@@ -58,4 +58,28 @@ describe("print SVG export", () => {
     expect(metrics.widthCm).toBe(13.7);
     expect(metrics.heightCm).toBe(12.55);
   });
+
+  it("uses the measured exam-style type, label knockouts, and physical line weights", () => {
+    const svg = renderDiagramSvg(cloneDefaultDocument());
+
+    expect(svg).toContain('class="grid-lines" stroke="#a9abaa" stroke-width="5.292"');
+    expect(svg).toContain('class="graph-axes" stroke="#1f2224" stroke-width="7.056"');
+    expect(svg).toContain("font-family=\"'Cambria Math', Cambria, 'Times New Roman', serif\"");
+    expect(svg).toContain('font-size="42.333"');
+    expect(svg.match(/class="axis-number/g)).toHaveLength(21);
+    expect(svg).toContain('class="axis-number axis-number-origin"');
+    expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*font-style="italic"[^>]*>0<\/text>/);
+    expect(svg.match(/class="axis-number[^]*?<rect[^>]*fill="#ffffff"/g)).toHaveLength(21);
+  });
+
+  it("aligns the y axis name with the y-axis numbers", () => {
+    const svg = renderDiagramSvg(cloneDefaultDocument());
+    const yNameX = svg.match(/class="axis-name axis-name-y" x="([^"]+)"/)?.[1];
+    const yNumberXs = [...svg.matchAll(/class="axis-number"><rect[^>]*\/><text x="([^"]+)"[^>]*text-anchor="end"/g)]
+      .map((match) => match[1]);
+
+    expect(yNameX).toBeDefined();
+    expect(yNumberXs).toHaveLength(10);
+    expect(new Set(yNumberXs)).toEqual(new Set([yNameX as string]));
+  });
 });

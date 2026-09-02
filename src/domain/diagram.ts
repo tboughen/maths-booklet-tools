@@ -52,11 +52,11 @@ export function createEditorLayout(document: DiagramDocumentV1): SvgLayout {
   const horizontalSquares = document.axes.x.negativeSquares + document.axes.x.positiveSquares;
   const verticalSquares = document.axes.y.negativeSquares + document.axes.y.positiveSquares;
   const plotLeft = 76;
-  const plotTop = 72;
+  const plotTop = 104;
   const plotRight = plotLeft + horizontalSquares * square;
   const plotBottom = plotTop + verticalSquares * square;
   return {
-    width: plotRight + 76,
+    width: plotRight + 112,
     height: plotBottom + 72,
     plotLeft,
     plotTop,

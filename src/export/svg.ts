@@ -5,10 +5,24 @@ import {
   visibleStraightPoints,
 } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
+import {
+  AXIS_LABEL_FONT_POINTS,
+  AXIS_STROKE_POINTS,
+  EQUATION_FONT_POINTS,
+  GRID_STROKE_POINTS,
+  SVG_MATHS_FONT_FAMILY,
+  axisLabelBoxHeight,
+  axisLabelBoxWidth,
+  pointsToDiagramUnits,
+} from "../domain/graphStyle";
 import type { Coordinate, DiagramDocumentV1, StraightObject, SvgLayout } from "../domain/types";
 
 const UNITS_PER_CM = 100;
 const PADDING = { left: 95, right: 75, top: 70, bottom: 85 };
+const GRID_STROKE_WIDTH = pointsToDiagramUnits(GRID_STROKE_POINTS, UNITS_PER_CM);
+const AXIS_STROKE_WIDTH = pointsToDiagramUnits(AXIS_STROKE_POINTS, UNITS_PER_CM);
+const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, UNITS_PER_CM);
+const EQUATION_FONT_SIZE = pointsToDiagramUnits(EQUATION_FONT_POINTS, UNITS_PER_CM);
 
 export interface ExportMetrics {
   widthCm: number;
@@ -55,6 +69,22 @@ function escapeXml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
+function axisTickLabelMarkup(
+  label: string,
+  x: number,
+  baseline: number,
+  textAnchor: "start" | "middle" | "end" = "middle",
+  origin = false,
+): string {
+  const width = axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE);
+  const height = axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+  const rectX = textAnchor === "middle" ? x - width / 2 : textAnchor === "end" ? x - width : x;
+  const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
+  const className = origin ? "axis-number axis-number-origin" : "axis-number";
+  const italic = origin ? ' font-style="italic"' : "";
+  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${italic}>${escapeXml(label)}</text></g>`;
+}
+
 function autoLabelPosition(object: StraightObject, layout: SvgLayout): Coordinate {
   const visible = visibleStraightPoints(object, layout.bounds);
   if (!visible) return { x: layout.plotLeft + 20, y: layout.plotTop + 35 };
@@ -80,7 +110,7 @@ function gridMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     const y = layout.plotTop + index * layout.square;
     lines.push(`<line x1="${n(layout.plotLeft)}" y1="${n(y)}" x2="${n(layout.plotRight)}" y2="${n(y)}"/>`);
   }
-  return `<g stroke="#bfc1c0" stroke-width="1.4" fill="none">${lines.join("")}</g>`;
+  return `<g class="grid-lines" stroke="#a9abaa" stroke-width="${n(GRID_STROKE_WIDTH)}" fill="none">${lines.join("")}</g>`;
 }
 
 function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
@@ -91,41 +121,40 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const yTotal = document.axes.y.negativeSquares + document.axes.y.positiveSquares;
   const xEvery = tickLabelEvery(document.axes.x.unitsPerSquare);
   const yEvery = tickLabelEvery(document.axes.y.unitsPerSquare);
+  const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
+  const yNumberX = origin.x - AXIS_LABEL_FONT_SIZE * 0.47;
 
   for (let index = 0; index <= xTotal; index += 1) {
     if (index % xEvery !== 0) continue;
     const value = (index - document.axes.x.negativeSquares) * document.axes.x.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
     const x = layout.plotLeft + index * layout.square;
-    const y = Math.min(layout.plotBottom + 34, Math.max(layout.plotTop + 30, origin.y + 34));
-    xLabels.push(`<text x="${n(x)}" y="${n(y)}" text-anchor="middle">${escapeXml(formatNumber(value))}</text>`);
+    xLabels.push(axisTickLabelMarkup(formatNumber(value), x, xNumberBaseline));
   }
   for (let index = 0; index <= yTotal; index += 1) {
     if (index % yEvery !== 0) continue;
     const value = (document.axes.y.positiveSquares - index) * document.axes.y.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
-    const x = Math.min(layout.plotRight - 14, Math.max(layout.plotLeft + 14, origin.x - 16));
-    const y = layout.plotTop + index * layout.square + 9;
-    yLabels.push(`<text x="${n(x)}" y="${n(y)}" text-anchor="end">${escapeXml(formatNumber(value))}</text>`);
+    const y = layout.plotTop + index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34;
+    yLabels.push(axisTickLabelMarkup(formatNumber(value), yNumberX, y, "end"));
   }
 
-  const originX = Math.min(layout.plotRight - 14, Math.max(layout.plotLeft + 14, origin.x - 13));
-  const originY = Math.min(layout.plotBottom - 10, Math.max(layout.plotTop + 27, origin.y + 28));
+  const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
   return `
     <defs>
-      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="25" markerHeight="25" orient="auto-start-reverse">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224"/>
       </marker>
     </defs>
-    <g stroke="#1f2224" stroke-width="2.7" fill="none">
+    <g class="graph-axes" stroke="#1f2224" stroke-width="${n(AXIS_STROKE_WIDTH)}" fill="none">
       <line x1="${n(layout.plotLeft)}" y1="${n(origin.y)}" x2="${n(layout.plotRight + 15)}" y2="${n(origin.y)}" marker-end="url(#axis-arrow)"/>
       <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - 15)}" marker-end="url(#axis-arrow)"/>
     </g>
-    <g fill="#242628" font-family="Arial, Helvetica, sans-serif" font-size="27">
+    <g class="axis-labels" fill="#242628" font-family="${SVG_MATHS_FONT_FAMILY}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">
       ${xLabels.join("")}${yLabels.join("")}
-      <text x="${n(originX)}" y="${n(originY)}" text-anchor="end">0</text>
-      <text x="${n(layout.plotRight + 35)}" y="${n(origin.y + 10)}" font-style="italic" font-size="31">x</text>
-      <text x="${n(origin.x + 13)}" y="${n(layout.plotTop - 28)}" font-style="italic" font-size="31">y</text>
+      ${axisTickLabelMarkup("0", originX, xNumberBaseline, "end", true)}
+      <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(origin.y + AXIS_LABEL_FONT_SIZE * 0.4)}" font-style="italic">x</text>
+      <text class="axis-name axis-name-y" x="${n(yNumberX)}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-style="italic">y</text>
     </g>`;
 }
 
@@ -156,9 +185,9 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     }
   }
   return `
-    <g stroke="#202224" stroke-width="3.2" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>
-    <g stroke="#202224" stroke-width="3" stroke-linecap="round" fill="none">${points.join("")}</g>
-    <g fill="#202224" font-family="Arial, Helvetica, sans-serif" font-size="31" font-style="italic">${labels.join("")}</g>`;
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">${points.join("")}</g>
+    <g fill="#202224" font-family="${SVG_MATHS_FONT_FAMILY}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>`;
 }
 
 export function renderDiagramSvg(document: DiagramDocumentV1): string {

@@ -17,6 +17,12 @@ import {
   visibleStraightPoints,
 } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
+import {
+  AXIS_LABEL_FONT_POINTS,
+  axisLabelBoxHeight,
+  axisLabelBoxWidth,
+  pointsToDiagramUnits,
+} from "../domain/graphStyle";
 import type {
   Coordinate,
   DiagramDocumentV1,
@@ -50,6 +56,30 @@ type SegmentDrag = {
 };
 
 type DragState = ObjectDrag | SegmentDrag;
+
+const EDITOR_UNITS_PER_CENTIMETRE = 60;
+const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, EDITOR_UNITS_PER_CENTIMETRE);
+
+interface AxisTickLabelProps {
+  text: string;
+  x: number;
+  baseline: number;
+  textAnchor?: "start" | "middle" | "end";
+  origin?: boolean;
+}
+
+function AxisTickLabel({ text, x, baseline, textAnchor = "middle", origin = false }: AxisTickLabelProps) {
+  const width = axisLabelBoxWidth(text, AXIS_LABEL_FONT_SIZE);
+  const height = axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+  const rectX = textAnchor === "middle" ? x - width / 2 : textAnchor === "end" ? x - width : x;
+  const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
+  return (
+    <g className={`axis-number${origin ? " axis-number--origin" : ""}`}>
+      <rect x={rectX} y={rectY} width={width} height={height} rx={AXIS_LABEL_FONT_SIZE * 0.05} />
+      <text x={x} y={baseline} textAnchor={textAnchor}>{text}</text>
+    </g>
+  );
+}
 
 function editorAutoLabelPosition(object: StraightObject, layout: SvgLayout): Coordinate {
   const visible = visibleStraightPoints(object, layout.bounds);
@@ -265,18 +295,35 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
   }
 
   const xLabels = [];
+  const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
   for (let index = 0; index <= horizontalSquares; index += 1) {
     if (index % tickLabelEvery(document.axes.x.unitsPerSquare) !== 0) continue;
     const value = (index - document.axes.x.negativeSquares) * document.axes.x.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
-    xLabels.push(<text key={index} x={layout.plotLeft + index * layout.square} y={Math.min(layout.plotBottom + 28, Math.max(layout.plotTop + 26, origin.y + 28))} textAnchor="middle">{formatNumber(value)}</text>);
+    xLabels.push(
+      <AxisTickLabel
+        key={index}
+        text={formatNumber(value)}
+        x={layout.plotLeft + index * layout.square}
+        baseline={xNumberBaseline}
+      />,
+    );
   }
   const yLabels = [];
+  const yNumberX = origin.x - AXIS_LABEL_FONT_SIZE * 0.47;
   for (let index = 0; index <= verticalSquares; index += 1) {
     if (index % tickLabelEvery(document.axes.y.unitsPerSquare) !== 0) continue;
     const value = (document.axes.y.positiveSquares - index) * document.axes.y.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
-    yLabels.push(<text key={index} x={Math.min(layout.plotRight - 10, Math.max(layout.plotLeft + 12, origin.x - 12))} y={layout.plotTop + index * layout.square + 6} textAnchor="end">{formatNumber(value)}</text>);
+    yLabels.push(
+      <AxisTickLabel
+        key={index}
+        text={formatNumber(value)}
+        x={yNumberX}
+        baseline={layout.plotTop + index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34}
+        textAnchor="end"
+      />,
+    );
   }
 
   return (
@@ -295,7 +342,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         <title>Interactive 1 cm square coordinate grid</title>
         <defs>
           <clipPath id="editor-plot-clip"><rect x={layout.plotLeft} y={layout.plotTop} width={layout.plotRight - layout.plotLeft} height={layout.plotBottom - layout.plotTop} /></clipPath>
-          <marker id="editor-axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
+          <marker id="editor-axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="15" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
         </defs>
         <rect className="canvas-paper" width={layout.width} height={layout.height} />
         <g className="grid-lines">
@@ -308,9 +355,9 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         </g>
         <g className="axis-labels">
           {xLabels}{yLabels}
-          <text x={Math.min(layout.plotRight - 10, Math.max(layout.plotLeft + 12, origin.x - 10))} y={Math.min(layout.plotBottom - 8, Math.max(layout.plotTop + 24, origin.y + 24))} textAnchor="end">0</text>
-          <text className="axis-name" x={layout.plotRight + 28} y={origin.y + 7}>x</text>
-          <text className="axis-name" x={origin.x + 10} y={layout.plotTop - 23}>y</text>
+          <AxisTickLabel text="0" x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38} baseline={xNumberBaseline} textAnchor="end" origin />
+          <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={origin.y + AXIS_LABEL_FONT_SIZE * 0.4}>x</text>
+          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end">y</text>
         </g>
         <g clipPath="url(#editor-plot-clip)">
           {visibleDocument.objects.filter((object): object is StraightObject => object.kind === "straight").map((object) => {
@@ -341,13 +388,10 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
           </g>
         )}
         <AxisEndControl x={layout.plotLeft - 58} y={origin.y - 12} axis="x" end="negative" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={layout.plotRight + 7} y={origin.y - 12} axis="x" end="positive" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={origin.x - 25} y={layout.plotTop - 51} axis="y" end="positive" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={layout.plotRight + 55} y={origin.y - 12} axis="x" end="positive" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={origin.x - 25} y={layout.plotTop - 94} axis="y" end="positive" onAdjust={onAxisAdjust} />
         <AxisEndControl x={origin.x - 25} y={layout.plotBottom + 13} axis="y" end="negative" onAdjust={onAxisAdjust} />
       </svg>
-      {document.objects.length === 0 && tool === "select" && (
-        <div className="canvas-hint"><strong>Start with Point or Segment</strong><span>Choose a tool above, then click or drag on the grid.</span></div>
-      )}
     </div>
   );
 }

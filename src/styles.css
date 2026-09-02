@@ -98,11 +98,13 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-stage[data-tool="point"] .graph-canvas { cursor: cell; }
 .graph-canvas { display: block; width: 100%; max-height: 680px; min-height: 520px; touch-action: none; user-select: none; filter: drop-shadow(0 9px 19px rgba(43,39,29,.065)); }
 .canvas-paper { fill: #fff; }
-.grid-lines { stroke: #c4c6c4; stroke-width: 1; }
-.graph-axes { stroke: #25282a; stroke-width: 2.3; fill: none; }
+.grid-lines { stroke: #a9abaa; stroke-width: 3.175; }
+.graph-axes { stroke: #25282a; stroke-width: 4.233; fill: none; }
 #editor-axis-arrow path { fill: #25282a; }
-.axis-labels { fill: #343638; font: 15px Arial, Helvetica, sans-serif; pointer-events: none; }
-.axis-labels .axis-name { font-size: 18px; font-style: italic; }
+.axis-labels { pointer-events: none; }
+.axis-number rect { fill: #fff; }
+.axis-number text, .axis-labels .axis-name { fill: #242628; font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 25.4px; font-weight: 400; }
+.axis-number--origin text, .axis-labels .axis-name { font-style: italic; }
 .graph-straight { stroke: #222426; stroke-width: 3; stroke-linecap: round; fill: none; pointer-events: none; }
 .graph-straight--selected { stroke: var(--blue); stroke-width: 4; }
 .graph-point { stroke: #222426; stroke-width: 3; stroke-linecap: round; fill: none; pointer-events: none; }
@@ -110,17 +112,13 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .segment-preview { stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 6; }
 .selection-handles circle { fill: #fff; stroke: var(--blue); stroke-width: 3; cursor: grab; }
 .selection-handles circle:active { cursor: grabbing; }
-.equation-labels { fill: #222426; font: italic 18px Arial, Helvetica, sans-serif; }
+.equation-labels { fill: #222426; font: italic 21.167px "Cambria Math", Cambria, "Times New Roman", serif; }
 .equation-labels text { cursor: grab; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
 .equation-labels text.selected { fill: var(--blue); }
 .axis-end-control rect { fill: #fff; stroke: #cfc9be; stroke-width: 1; filter: drop-shadow(0 2px 3px rgba(45,40,30,.12)); }
 .axis-end-control text { fill: #3b3e40; font: 700 16px Arial, sans-serif; pointer-events: none; }
 .axis-end-control g:hover rect, .axis-end-control g:focus rect { fill: var(--blue-soft); stroke: #93afd3; }
 .axis-end-control g:hover text, .axis-end-control g:focus text { fill: var(--blue); }
-.canvas-hint { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); min-width: 280px; display: grid; gap: 3px; padding: 10px 14px; border: 1px solid #d4cec2; border-radius: 10px; background: rgba(255,253,248,.94); box-shadow: 0 6px 16px rgba(40,37,28,.1); text-align: center; pointer-events: none; }
-.canvas-hint strong { font-size: 12px; }
-.canvas-hint span { color: var(--muted); font-size: 10px; }
-.canvas-footer { min-height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 14px; border-top: 1px solid #e2ddd3; background: #fffdfa; color: var(--muted); font-size: 10px; }
 
 .inspector-stack { display: grid; gap: 13px; }
 .panel-card { padding: 17px; box-shadow: 0 9px 24px rgba(50,45,35,.055); }
@@ -221,7 +219,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .copy-split { margin-left: auto; }
   .graph-stage { min-height: 390px; padding: 8px; }
   .graph-canvas { min-height: 360px; max-height: 520px; }
-  .canvas-hint { min-width: 250px; bottom: 20px; }
   .inspector-stack { grid-template-columns: 1fr; }
   .selection-panel, .equation-panel { grid-row: auto; }
 }
@@ -234,8 +231,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .tool-button span { display: none; }
   .copy-main { padding: 0 10px; }
   .copy-main svg { display: none; }
-  .canvas-footer span:first-child { display: none; }
-  .canvas-footer { justify-content: flex-end; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -261,11 +256,10 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
     --shadow: 0 14px 34px rgba(0,0,0,.22);
   }
   body { background: #20211f; }
-  .site-header, .editor-toolbar, .canvas-footer { background: rgba(42,43,40,.93); border-color: var(--line); }
+  .site-header, .editor-toolbar { background: rgba(42,43,40,.93); border-color: var(--line); }
   .brand-mark { background: #f1efe9; color: #242522; }
   .header-menu-button, .privacy-note, .coordinate-input input, .equation-fields input, .visibility-button, .secondary-panel-button, .scale-options button { border-color: var(--line); background: #30312e; }
   .graph-stage { background: #242522; }
-  .canvas-hint { border-color: #d4cec2; background: rgba(255,253,248,.96); color: #272821; }
   .tools-popover, .export-menu, .toast { color: #efeee8; }
   .segmented, .count-badge, .selected-equation { background: #363733; }
   .segmented button.active { background: #484a45; }

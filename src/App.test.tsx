@@ -49,4 +49,23 @@ describe("graph builder", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid numbers or fractions");
     expect(screen.getByText("0 objects")).toBeInTheDocument();
   });
+
+  it("keeps graph controls beyond the axis names and removes the diagram footer hint", () => {
+    const { container } = render(<App />);
+    const xName = container.querySelector<SVGTextElement>(".axis-name--x");
+    const yName = container.querySelector<SVGTextElement>(".axis-name--y");
+    const positiveXButton = screen.getByRole("button", { name: "Add one square at the positive end of the x-axis" });
+    const positiveYButton = screen.getByRole("button", { name: "Add one square at the positive end of the y-axis" });
+    const positiveXControl = positiveXButton.parentElement;
+    const positiveYControl = positiveYButton.parentElement;
+    const xControlPosition = Number(positiveXControl?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
+    const yControlPosition = Number(positiveYControl?.getAttribute("transform")?.match(/translate\([^ ]+ ([-\d.]+)/)?.[1]);
+
+    expect(xName).not.toBeNull();
+    expect(yName).not.toBeNull();
+    expect(xControlPosition).toBeGreaterThan(Number(xName?.getAttribute("x")));
+    expect(yControlPosition).toBeLessThan(Number(yName?.getAttribute("y")));
+    expect(screen.queryByText("Start with Point or Segment")).not.toBeInTheDocument();
+    expect(screen.queryByText("Exports at 1 cm per grid square.")).not.toBeInTheDocument();
+  });
 });

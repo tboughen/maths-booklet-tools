@@ -321,10 +321,6 @@ export default function App() {
               onSelect={selectObject}
               onAxisAdjust={(axis, end, delta) => commit(adjustAxis(document, axis, end, delta))}
             />
-            <div className="canvas-footer">
-              <span>Exports at 1 cm per grid square.</span>
-              <span>{document.objects.length} object{document.objects.length === 1 ? "" : "s"}</span>
-            </div>
           </div>
 
           <aside className="inspector-stack" aria-label="Graph settings">
@@ -356,6 +352,7 @@ export default function App() {
         </div>
       )}
       <div className="sr-only" aria-live="polite">{saveMessage}</div>
+      <div className="sr-only" aria-live="polite">{document.objects.length} object{document.objects.length === 1 ? "" : "s"}</div>
     </div>
   );
 }
