@@ -109,7 +109,7 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .axis-labels { pointer-events: none; }
 .axis-number rect { fill: #fff; }
 .axis-number text, .axis-labels .axis-name { fill: #242628; font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 25.4px; font-weight: 400; }
-.axis-number--origin text { font-style: italic; }
+.axis-number--origin text { font-style: normal; }
 .axis-labels .axis-name { font-style: normal; }
 .graph-straight { stroke: #222426; stroke-width: 3; stroke-linecap: round; fill: none; pointer-events: none; }
 .graph-straight--selected { stroke: var(--blue); stroke-width: 4; }

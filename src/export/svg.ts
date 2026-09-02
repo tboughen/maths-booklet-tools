@@ -13,6 +13,7 @@ import {
   EQUATION_FONT_POINTS,
   GRID_STROKE_POINTS,
   SVG_MATHS_FONT_FAMILY,
+  Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
   pointsToDiagramUnits,
@@ -83,8 +84,10 @@ function axisTickLabelMarkup(
   const rectX = textAnchor === "middle" ? x - width / 2 : textAnchor === "end" ? x - width : x;
   const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
   const className = origin ? "axis-number axis-number-origin" : "axis-number";
-  const italic = origin ? ' font-style="italic"' : "";
-  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${italic}>${escapeXml(label)}</text></g>`;
+  const originTransform = origin
+    ? ` transform="translate(${n(x)} ${n(baseline)}) skewX(-12) translate(${n(-x)} ${n(-baseline)})"`
+    : "";
+  return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${originTransform}>${escapeXml(label)}</text></g>`;
 }
 
 function autoLabelPosition(object: StraightObject, layout: SvgLayout): Coordinate {
@@ -124,7 +127,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const xEvery = tickLabelEvery(document.axes.x.unitsPerSquare);
   const yEvery = tickLabelEvery(document.axes.y.unitsPerSquare);
   const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
-  const yNumberX = origin.x - AXIS_LABEL_FONT_SIZE * 0.47;
+  const yNumberX = origin.x - UNITS_PER_CM * Y_AXIS_LABEL_GAP_CENTIMETRES;
 
   for (let index = 0; index <= xTotal; index += 1) {
     if (index % xEvery !== 0) continue;

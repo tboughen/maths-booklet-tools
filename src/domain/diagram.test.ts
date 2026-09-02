@@ -4,6 +4,7 @@ import {
   clipInfiniteLine,
   clipSegment,
   cloneDefaultDocument,
+  createEditorLayout,
   deleteSelectedObject,
   getBounds,
   setAxisScale,
@@ -21,6 +22,15 @@ describe("diagram domain", () => {
     expect(getBounds(first)).toEqual({ xMin: -5, xMax: 5, yMin: -5, yMax: 5 });
     first.axes.x.positiveSquares = 8;
     expect(second.axes.x.positiveSquares).toBe(5);
+  });
+
+  it("reserves clear space around all four axis-control groups", () => {
+    const layout = createEditorLayout(cloneDefaultDocument());
+
+    expect(layout.plotLeft).toBe(148);
+    expect(layout.width - layout.plotRight).toBe(172);
+    expect(layout.plotTop).toBe(120);
+    expect(layout.height - layout.plotBottom).toBe(112);
   });
 
   it("snaps each axis to half a square at the selected scale", () => {

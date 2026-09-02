@@ -68,8 +68,9 @@ describe("print SVG export", () => {
     expect(svg).toContain('font-size="42.333"');
     expect(svg.match(/class="axis-number/g)).toHaveLength(21);
     expect(svg).toContain('class="axis-number axis-number-origin"');
-    expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*font-style="italic"[^>]*>0<\/text>/);
+    expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*transform="[^"]*skewX\(-12\)[^"]*"[^>]*>0<\/text>/);
     expect(svg.match(/class="axis-number[^]*?<rect[^>]*fill="#ffffff"/g)).toHaveLength(21);
+    expect(svg).toContain(">−5</text>");
   });
 
   it("aligns the y axis name with the y-axis numbers", () => {
@@ -81,6 +82,7 @@ describe("print SVG export", () => {
     expect(yNameX).toBeDefined();
     expect(yNumberXs).toHaveLength(10);
     expect(new Set(yNumberXs)).toEqual(new Set([yNameX as string]));
+    expect(595 - Number(yNameX)).toBe(12);
   });
 
   it("aligns the Cambria Math x name with the x-axis numbers", () => {

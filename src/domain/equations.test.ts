@@ -19,6 +19,8 @@ describe("line equations", () => {
     expect(formatEquation({ kind: "slope", slope: -0.5, intercept: 2 })).toBe("y = −1/2x + 2");
     expect(formatEquation({ kind: "vertical", x: -2 })).toBe("x = −2");
     expect(formatNumber(1.25)).toBe("5/4");
+    expect(formatNumber(-3)).toBe("−3");
+    expect(formatNumber(-0.5)).toBe("−1/2");
   });
 
   it("accepts decimals, integers and fractions but rejects invalid input", () => {

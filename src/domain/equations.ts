@@ -51,20 +51,23 @@ export function approximateFraction(value: number, maximumDenominator = 12): [nu
 export function formatNumber(value: number): string {
   const clean = cleanNumber(value);
   const fraction = approximateFraction(clean);
-  if (fraction && fraction[1] !== 1) return `${fraction[0]}/${fraction[1]}`;
-  if (fraction) return String(fraction[0]);
-  return Number(clean.toFixed(3)).toString();
+  const formatted = fraction && fraction[1] !== 1
+    ? `${fraction[0]}/${fraction[1]}`
+    : fraction
+      ? String(fraction[0])
+      : Number(clean.toFixed(3)).toString();
+  return formatted.startsWith("-") ? `−${formatted.slice(1)}` : formatted;
 }
 
 function formatSlopeTerm(slope: number): string {
   if (slope === 1) return "x";
   if (slope === -1) return "−x";
-  return `${formatNumber(slope).replace("-", "−")}x`;
+  return `${formatNumber(slope)}x`;
 }
 
 export function formatEquation(equation: LineEquation | null): string {
   if (!equation) return "Undefined";
-  if (equation.kind === "vertical") return `x = ${formatNumber(equation.x).replace("-", "−")}`;
+  if (equation.kind === "vertical") return `x = ${formatNumber(equation.x)}`;
   const slopeTerm = formatSlopeTerm(equation.slope);
   if (equation.intercept === 0) return `y = ${slopeTerm}`;
   const operator = equation.intercept > 0 ? "+" : "−";
@@ -76,7 +79,7 @@ export function equationForObject(object: StraightObject): string {
 }
 
 export function parseNumericInput(value: string): number | null {
-  const trimmed = value.trim().replace("−", "-");
+  const trimmed = value.trim().replaceAll("−", "-");
   if (!trimmed) return null;
   const fractionMatch = trimmed.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\/\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/);
   if (fractionMatch) {

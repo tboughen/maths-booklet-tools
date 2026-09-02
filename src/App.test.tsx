@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
+import { cloneDefaultDocument } from "./domain/diagram";
+import { saveDiagram } from "./domain/persistence";
 
 describe("graph builder", () => {
   beforeEach(() => localStorage.clear());
@@ -61,6 +63,8 @@ describe("graph builder", () => {
     const xNumber = [...container.querySelectorAll<SVGTextElement>(".axis-number text")]
       .find((label) => label.getAttribute("text-anchor") === "middle");
     const positiveXControlRect = positiveXButton.querySelector("rect");
+    const originLabel = container.querySelector<SVGTextElement>(".axis-number--origin text");
+    const yAxis = container.querySelector<SVGLineElement>(".graph-axes line:nth-child(2)");
     const xControlPosition = Number(positiveXControl?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
     const yControlPosition = Number(positiveYControl?.getAttribute("transform")?.match(/translate\([^ ]+ ([-\d.]+)/)?.[1]);
 
@@ -70,6 +74,8 @@ describe("graph builder", () => {
     expect(yName).toHaveTextContent("𝑦");
     expect(xName?.getAttribute("font-family")).toContain("Cambria Math");
     expect(yName?.getAttribute("font-family")).toContain("Cambria Math");
+    expect(originLabel?.getAttribute("transform")).toContain("skewX(-12)");
+    expect(Number(yAxis?.getAttribute("x1")) - Number(yName?.getAttribute("x"))).toBeCloseTo(7.2);
     expect(xName?.getAttribute("y")).toBe(xNumber?.getAttribute("y"));
     expect(positiveXControlRect).toHaveAttribute("width", "48");
     expect(positiveXControlRect).toHaveAttribute("height", "48");
@@ -77,5 +83,34 @@ describe("graph builder", () => {
     expect(yControlPosition).toBeLessThan(Number(yName?.getAttribute("y")));
     expect(screen.queryByText("Start with Point or Segment")).not.toBeInTheDocument();
     expect(screen.queryByText("Exports at 1 cm per grid square.")).not.toBeInTheDocument();
+  });
+
+  it("keeps controls clear of the origin when both axes are on the lower-left boundary", () => {
+    const boundaryDocument = cloneDefaultDocument();
+    boundaryDocument.axes.x.negativeSquares = 0;
+    boundaryDocument.axes.y.negativeSquares = 0;
+    boundaryDocument.axes.y.positiveSquares = 8;
+    saveDiagram(boundaryDocument);
+    const { container } = render(<App />);
+
+    const negativeXControl = screen.getByRole("button", { name: "Add one square at the negative end of the x-axis" }).parentElement;
+    const negativeYControl = screen.getByRole("button", { name: "Add one square at the negative end of the y-axis" }).parentElement;
+    const originRect = container.querySelector<SVGRectElement>(".axis-number--origin rect");
+    const position = (element: Element | null) => {
+      const match = element?.getAttribute("transform")?.match(/translate\(([-\d.]+) ([-\d.]+)\)/);
+      return { x: Number(match?.[1]), y: Number(match?.[2]) };
+    };
+    const negativeX = position(negativeXControl);
+    const negativeY = position(negativeYControl);
+    const origin = {
+      left: Number(originRect?.getAttribute("x")),
+      top: Number(originRect?.getAttribute("y")),
+      right: Number(originRect?.getAttribute("x")) + Number(originRect?.getAttribute("width")),
+      bottom: Number(originRect?.getAttribute("y")) + Number(originRect?.getAttribute("height")),
+    };
+
+    expect(negativeX.x + 100).toBeLessThan(origin.left);
+    expect(negativeY.y).toBeGreaterThan(origin.bottom);
+    expect(negativeY.y).toBeGreaterThan(negativeX.y + 48);
   });
 });

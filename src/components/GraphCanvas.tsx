@@ -22,6 +22,7 @@ import {
   AXIS_X_NAME,
   AXIS_Y_NAME,
   MATHS_FONT_FAMILY,
+  Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
   pointsToDiagramUnits,
@@ -79,10 +80,13 @@ function AxisTickLabel({ text, x, baseline, textAnchor = "middle", origin = fals
   const height = axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
   const rectX = textAnchor === "middle" ? x - width / 2 : textAnchor === "end" ? x - width : x;
   const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
+  const originTransform = origin
+    ? `translate(${x} ${baseline}) skewX(-12) translate(${-x} ${-baseline})`
+    : undefined;
   return (
     <g className={`axis-number${origin ? " axis-number--origin" : ""}`}>
       <rect x={rectX} y={rectY} width={width} height={height} rx={AXIS_LABEL_FONT_SIZE * 0.05} />
-      <text x={x} y={baseline} textAnchor={textAnchor}>{text}</text>
+      <text x={x} y={baseline} textAnchor={textAnchor} transform={originTransform}>{text}</text>
     </g>
   );
 }
@@ -316,7 +320,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
     );
   }
   const yLabels = [];
-  const yNumberX = origin.x - AXIS_LABEL_FONT_SIZE * 0.47;
+  const yNumberX = origin.x - EDITOR_UNITS_PER_CENTIMETRE * Y_AXIS_LABEL_GAP_CENTIMETRES;
   for (let index = 0; index <= verticalSquares; index += 1) {
     if (index % tickLabelEvery(document.axes.y.unitsPerSquare) !== 0) continue;
     const value = (document.axes.y.positiveSquares - index) * document.axes.y.unitsPerSquare;
@@ -393,10 +397,10 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
             <circle cx={coordinateToSvg(selected.end, layout).x} cy={coordinateToSvg(selected.end, layout).y} r="8" onPointerDown={(event) => startObjectDrag(event, "end", selected.id)} />
           </g>
         )}
-        <AxisEndControl x={layout.plotLeft - AXIS_CONTROL_WIDTH - 8} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="negative" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={layout.plotRight + 52} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="positive" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={layout.plotLeft - AXIS_CONTROL_WIDTH - 40} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="negative" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={layout.plotRight + 64} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="positive" onAdjust={onAxisAdjust} />
         <AxisEndControl x={origin.x - AXIS_CONTROL_WIDTH / 2} y={layout.plotTop - 112} axis="y" end="positive" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={origin.x - AXIS_CONTROL_WIDTH / 2} y={layout.plotBottom + 13} axis="y" end="negative" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={origin.x - AXIS_CONTROL_WIDTH / 2} y={layout.plotBottom + 52} axis="y" end="negative" onAdjust={onAxisAdjust} />
       </svg>
     </div>
   );

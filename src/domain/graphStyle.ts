@@ -9,6 +9,7 @@ export const MATHS_FONT_FAMILY = '"Cambria Math", Cambria, "Times New Roman", se
 export const SVG_MATHS_FONT_FAMILY = "'Cambria Math', Cambria, 'Times New Roman', serif";
 export const AXIS_X_NAME = "𝑥";
 export const AXIS_Y_NAME = "𝑦";
+export const Y_AXIS_LABEL_GAP_CENTIMETRES = 0.12;
 
 export function pointsToDiagramUnits(points: number, unitsPerCentimetre: number): number {
   return (points / POINTS_PER_CENTIMETRE) * unitsPerCentimetre;
