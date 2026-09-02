@@ -18,6 +18,7 @@ import {
 } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
 import {
+  AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
   AXIS_X_NAME,
   AXIS_Y_NAME,
@@ -63,6 +64,7 @@ type DragState = ObjectDrag | SegmentDrag;
 
 const EDITOR_UNITS_PER_CENTIMETRE = 60;
 const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, EDITOR_UNITS_PER_CENTIMETRE);
+const AXIS_ARROW_EXTENSION = 12 + EDITOR_UNITS_PER_CENTIMETRE * AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES;
 const AXIS_CONTROL_SIZE = 48;
 const AXIS_CONTROL_GAP = 4;
 const AXIS_CONTROL_WIDTH = AXIS_CONTROL_SIZE * 2 + AXIS_CONTROL_GAP;
@@ -360,8 +362,8 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
           {Array.from({ length: verticalSquares + 1 }, (_, index) => <line key={`y-${index}`} x1={layout.plotLeft} y1={layout.plotTop + index * layout.square} x2={layout.plotRight} y2={layout.plotTop + index * layout.square} />)}
         </g>
         <g className="graph-axes">
-          <line x1={layout.plotLeft} y1={origin.y} x2={layout.plotRight + 12} y2={origin.y} markerEnd="url(#editor-axis-arrow)" />
-          <line x1={origin.x} y1={layout.plotBottom} x2={origin.x} y2={layout.plotTop - 12} markerEnd="url(#editor-axis-arrow)" />
+          <line x1={layout.plotLeft} y1={origin.y} x2={layout.plotRight + AXIS_ARROW_EXTENSION} y2={origin.y} markerEnd="url(#editor-axis-arrow)" />
+          <line x1={origin.x} y1={layout.plotBottom} x2={origin.x} y2={layout.plotTop - AXIS_ARROW_EXTENSION} markerEnd="url(#editor-axis-arrow)" />
         </g>
         <g className="axis-labels">
           {xLabels}{yLabels}

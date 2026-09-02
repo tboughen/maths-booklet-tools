@@ -6,6 +6,7 @@ import {
 } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
 import {
+  AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
   AXIS_STROKE_POINTS,
   AXIS_X_NAME,
@@ -26,6 +27,7 @@ const GRID_STROKE_WIDTH = pointsToDiagramUnits(GRID_STROKE_POINTS, UNITS_PER_CM)
 const AXIS_STROKE_WIDTH = pointsToDiagramUnits(AXIS_STROKE_POINTS, UNITS_PER_CM);
 const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, UNITS_PER_CM);
 const EQUATION_FONT_SIZE = pointsToDiagramUnits(EQUATION_FONT_POINTS, UNITS_PER_CM);
+const AXIS_ARROW_EXTENSION = 15 + UNITS_PER_CM * AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES;
 
 export interface ExportMetrics {
   widthCm: number;
@@ -152,8 +154,8 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       </marker>
     </defs>
     <g class="graph-axes" stroke="#1f2224" stroke-width="${n(AXIS_STROKE_WIDTH)}" fill="none">
-      <line x1="${n(layout.plotLeft)}" y1="${n(origin.y)}" x2="${n(layout.plotRight + 15)}" y2="${n(origin.y)}" marker-end="url(#axis-arrow)"/>
-      <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - 15)}" marker-end="url(#axis-arrow)"/>
+      <line x1="${n(layout.plotLeft)}" y1="${n(origin.y)}" x2="${n(layout.plotRight + AXIS_ARROW_EXTENSION)}" y2="${n(origin.y)}" marker-end="url(#axis-arrow)"/>
+      <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - AXIS_ARROW_EXTENSION)}" marker-end="url(#axis-arrow)"/>
     </g>
     <g class="axis-labels" fill="#242628" font-family="${SVG_MATHS_FONT_FAMILY}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">
       ${xLabels.join("")}${yLabels.join("")}

@@ -64,6 +64,8 @@ describe("graph builder", () => {
       .find((label) => label.getAttribute("text-anchor") === "middle");
     const positiveXControlRect = positiveXButton.querySelector("rect");
     const originLabel = container.querySelector<SVGTextElement>(".axis-number--origin text");
+    const plotRect = container.querySelector<SVGRectElement>("#editor-plot-clip rect");
+    const xAxis = container.querySelector<SVGLineElement>(".graph-axes line:nth-child(1)");
     const yAxis = container.querySelector<SVGLineElement>(".graph-axes line:nth-child(2)");
     const xControlPosition = Number(positiveXControl?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
     const yControlPosition = Number(positiveYControl?.getAttribute("transform")?.match(/translate\([^ ]+ ([-\d.]+)/)?.[1]);
@@ -75,6 +77,8 @@ describe("graph builder", () => {
     expect(xName?.getAttribute("font-family")).toContain("Cambria Math");
     expect(yName?.getAttribute("font-family")).toContain("Cambria Math");
     expect(originLabel?.getAttribute("transform")).toContain("skewX(-12)");
+    expect(Number(xAxis?.getAttribute("x2")) - (Number(plotRect?.getAttribute("x")) + Number(plotRect?.getAttribute("width")))).toBe(17);
+    expect(Number(plotRect?.getAttribute("y")) - Number(yAxis?.getAttribute("y2"))).toBe(17);
     expect(Number(yAxis?.getAttribute("x1")) - Number(yName?.getAttribute("x"))).toBeCloseTo(7.2);
     expect(xName?.getAttribute("y")).toBe(xNumber?.getAttribute("y"));
     expect(positiveXControlRect).toHaveAttribute("width", "48");

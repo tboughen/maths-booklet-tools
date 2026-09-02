@@ -61,6 +61,8 @@ describe("print SVG export", () => {
 
   it("uses the measured exam-style type, label knockouts, and physical line weights", () => {
     const svg = renderDiagramSvg(cloneDefaultDocument());
+    const metrics = getExportMetrics(cloneDefaultDocument());
+    const axisLines = [...svg.matchAll(/<line x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)" marker-end="url\(#axis-arrow\)"\/>/g)];
 
     expect(svg).toContain('class="grid-lines" stroke="#a9abaa" stroke-width="5.292"');
     expect(svg).toContain('class="graph-axes" stroke="#1f2224" stroke-width="7.056"');
@@ -71,6 +73,8 @@ describe("print SVG export", () => {
     expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*transform="[^"]*skewX\(-12\)[^"]*"[^>]*>0<\/text>/);
     expect(svg.match(/class="axis-number[^]*?<rect[^>]*fill="#ffffff"/g)).toHaveLength(21);
     expect(svg).toContain(">−5</text>");
+    expect(Number(axisLines[0]?.[3]) - metrics.layout.plotRight).toBeCloseTo(23.333, 3);
+    expect(metrics.layout.plotTop - Number(axisLines[1]?.[4])).toBeCloseTo(23.333, 3);
   });
 
   it("aligns the y axis name with the y-axis numbers", () => {
