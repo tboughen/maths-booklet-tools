@@ -83,6 +83,34 @@ export function svgToCoordinate(point: Coordinate, layout: SvgLayout): Coordinat
   };
 }
 
+type SvgViewport = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+/**
+ * Maps a browser pointer into an SVG using the default xMidYMid meet behaviour.
+ * The SVG can be wider or taller than its viewBox, so its visible artwork may
+ * be centred inside letterboxed space rather than filling the full element.
+ */
+export function clientPointToSvg(
+  point: Coordinate,
+  viewport: SvgViewport,
+  viewBox: Pick<SvgLayout, "width" | "height">,
+): Coordinate {
+  const scale = Math.min(viewport.width / viewBox.width, viewport.height / viewBox.height);
+  if (!Number.isFinite(scale) || scale <= 0) return { x: 0, y: 0 };
+
+  const contentLeft = viewport.left + (viewport.width - viewBox.width * scale) / 2;
+  const contentTop = viewport.top + (viewport.height - viewBox.height * scale) / 2;
+  return {
+    x: (point.x - contentLeft) / scale,
+    y: (point.y - contentTop) / scale,
+  };
+}
+
 export function clampToBounds(point: Coordinate, bounds: Bounds): Coordinate {
   return {
     x: Math.min(bounds.xMax, Math.max(bounds.xMin, point.x)),

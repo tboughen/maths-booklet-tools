@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   adjustAxis,
+  clientPointToSvg,
   clipInfiniteLine,
   clipSegment,
   cloneDefaultDocument,
@@ -36,6 +37,23 @@ describe("diagram domain", () => {
   it("snaps each axis to half a square at the selected scale", () => {
     expect(snapCoordinate({ x: 0.74, y: -1.26 }, 1, 0.5)).toEqual({ x: 0.5, y: -1.25 });
     expect(snapCoordinate({ x: 1.1, y: 2.9 }, 2, 2)).toEqual({ x: 1, y: 3 });
+  });
+
+  it("maps pointer positions through the SVG's centred aspect-ratio margins", () => {
+    const document = cloneDefaultDocument();
+    const layout = createEditorLayout(document);
+    const svgPoint = { x: 568, y: 360 };
+    const viewport = { left: 100, top: 50, width: 1100, height: 680 };
+    const scale = viewport.height / layout.height;
+    const horizontalMargin = (viewport.width - layout.width * scale) / 2;
+    const clientPoint = {
+      x: viewport.left + horizontalMargin + svgPoint.x * scale,
+      y: viewport.top + svgPoint.y * scale,
+    };
+
+    const mappedPoint = clientPointToSvg(clientPoint, viewport, layout);
+    expect(mappedPoint.x).toBeCloseTo(svgPoint.x, 10);
+    expect(mappedPoint.y).toBeCloseTo(svgPoint.y, 10);
   });
 
   it("changes one axis end by one square while respecting grid limits", () => {

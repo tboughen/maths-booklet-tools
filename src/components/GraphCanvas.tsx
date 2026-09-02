@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
   clampToBounds,
+  clientPointToSvg,
   coordinateToSvg,
   createEditorLayout,
   getObjectById,
@@ -192,10 +193,11 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
 
   function svgPointer(event: ReactPointerEvent<SVGSVGElement>): Coordinate {
     const rect = event.currentTarget.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * layout.width,
-      y: ((event.clientY - rect.top) / rect.height) * layout.height,
-    };
+    return clientPointToSvg(
+      { x: event.clientX, y: event.clientY },
+      rect,
+      layout,
+    );
   }
 
   function graphPointer(event: ReactPointerEvent<SVGSVGElement>, snap = true): Coordinate {
@@ -344,6 +346,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         ref={svgRef}
         className="graph-canvas"
         viewBox={`0 0 ${layout.width} ${layout.height}`}
+        preserveAspectRatio="xMidYMid meet"
         role="application"
         aria-label="Interactive coordinate graph. Choose a drawing tool, then use the graph area."
         onPointerDown={handlePointerDown}
