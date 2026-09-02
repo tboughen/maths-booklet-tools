@@ -8,6 +8,8 @@ import { equationForObject, formatNumber } from "../domain/equations";
 import {
   AXIS_LABEL_FONT_POINTS,
   AXIS_STROKE_POINTS,
+  AXIS_X_NAME,
+  AXIS_Y_NAME,
   EQUATION_FONT_POINTS,
   GRID_STROKE_POINTS,
   SVG_MATHS_FONT_FAMILY,
@@ -153,8 +155,8 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="axis-labels" fill="#242628" font-family="${SVG_MATHS_FONT_FAMILY}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">
       ${xLabels.join("")}${yLabels.join("")}
       ${axisTickLabelMarkup("0", originX, xNumberBaseline, "end", true)}
-      <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(origin.y + AXIS_LABEL_FONT_SIZE * 0.4)}" font-style="italic">x</text>
-      <text class="axis-name axis-name-y" x="${n(yNumberX)}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-style="italic">y</text>
+      <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(xNumberBaseline)}" font-family="${SVG_MATHS_FONT_FAMILY}">${AXIS_X_NAME}</text>
+      <text class="axis-name axis-name-y" x="${n(yNumberX)}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${SVG_MATHS_FONT_FAMILY}">${AXIS_Y_NAME}</text>
     </g>`;
 }
 

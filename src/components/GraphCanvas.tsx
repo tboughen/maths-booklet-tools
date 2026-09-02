@@ -19,6 +19,9 @@ import {
 import { equationForObject, formatNumber } from "../domain/equations";
 import {
   AXIS_LABEL_FONT_POINTS,
+  AXIS_X_NAME,
+  AXIS_Y_NAME,
+  MATHS_FONT_FAMILY,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
   pointsToDiagramUnits,
@@ -59,6 +62,9 @@ type DragState = ObjectDrag | SegmentDrag;
 
 const EDITOR_UNITS_PER_CENTIMETRE = 60;
 const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, EDITOR_UNITS_PER_CENTIMETRE);
+const AXIS_CONTROL_SIZE = 48;
+const AXIS_CONTROL_GAP = 4;
+const AXIS_CONTROL_WIDTH = AXIS_CONTROL_SIZE * 2 + AXIS_CONTROL_GAP;
 
 interface AxisTickLabelProps {
   text: string;
@@ -135,7 +141,7 @@ function AxisEndControl({ x, y, axis, end, onAdjust }: AxisEndControlProps) {
           role="button"
           tabIndex={0}
           aria-label={action.label}
-          transform={`translate(${index * 27} 0)`}
+          transform={`translate(${index * (AXIS_CONTROL_SIZE + AXIS_CONTROL_GAP)} 0)`}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => {
             event.stopPropagation();
@@ -148,8 +154,8 @@ function AxisEndControl({ x, y, axis, end, onAdjust }: AxisEndControlProps) {
             }
           }}
         >
-          <rect width="24" height="24" rx="6" />
-          <text x="12" y="17" textAnchor="middle">{action.symbol}</text>
+          <rect width={AXIS_CONTROL_SIZE} height={AXIS_CONTROL_SIZE} rx="8" />
+          <text x={AXIS_CONTROL_SIZE / 2} y="33" textAnchor="middle">{action.symbol}</text>
         </g>
       ))}
     </g>
@@ -356,8 +362,8 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         <g className="axis-labels">
           {xLabels}{yLabels}
           <AxisTickLabel text="0" x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38} baseline={xNumberBaseline} textAnchor="end" origin />
-          <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={origin.y + AXIS_LABEL_FONT_SIZE * 0.4}>x</text>
-          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end">y</text>
+          <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={xNumberBaseline} fontFamily={MATHS_FONT_FAMILY}>{AXIS_X_NAME}</text>
+          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end" fontFamily={MATHS_FONT_FAMILY}>{AXIS_Y_NAME}</text>
         </g>
         <g clipPath="url(#editor-plot-clip)">
           {visibleDocument.objects.filter((object): object is StraightObject => object.kind === "straight").map((object) => {
@@ -387,10 +393,10 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
             <circle cx={coordinateToSvg(selected.end, layout).x} cy={coordinateToSvg(selected.end, layout).y} r="8" onPointerDown={(event) => startObjectDrag(event, "end", selected.id)} />
           </g>
         )}
-        <AxisEndControl x={layout.plotLeft - 58} y={origin.y - 12} axis="x" end="negative" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={layout.plotRight + 55} y={origin.y - 12} axis="x" end="positive" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={origin.x - 25} y={layout.plotTop - 94} axis="y" end="positive" onAdjust={onAxisAdjust} />
-        <AxisEndControl x={origin.x - 25} y={layout.plotBottom + 13} axis="y" end="negative" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={layout.plotLeft - AXIS_CONTROL_WIDTH - 8} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="negative" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={layout.plotRight + 52} y={origin.y - AXIS_CONTROL_SIZE / 2} axis="x" end="positive" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={origin.x - AXIS_CONTROL_WIDTH / 2} y={layout.plotTop - 112} axis="y" end="positive" onAdjust={onAxisAdjust} />
+        <AxisEndControl x={origin.x - AXIS_CONTROL_WIDTH / 2} y={layout.plotBottom + 13} axis="y" end="negative" onAdjust={onAxisAdjust} />
       </svg>
     </div>
   );

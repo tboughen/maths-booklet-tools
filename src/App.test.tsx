@@ -58,11 +58,21 @@ describe("graph builder", () => {
     const positiveYButton = screen.getByRole("button", { name: "Add one square at the positive end of the y-axis" });
     const positiveXControl = positiveXButton.parentElement;
     const positiveYControl = positiveYButton.parentElement;
+    const xNumber = [...container.querySelectorAll<SVGTextElement>(".axis-number text")]
+      .find((label) => label.getAttribute("text-anchor") === "middle");
+    const positiveXControlRect = positiveXButton.querySelector("rect");
     const xControlPosition = Number(positiveXControl?.getAttribute("transform")?.match(/translate\(([-\d.]+)/)?.[1]);
     const yControlPosition = Number(positiveYControl?.getAttribute("transform")?.match(/translate\([^ ]+ ([-\d.]+)/)?.[1]);
 
     expect(xName).not.toBeNull();
     expect(yName).not.toBeNull();
+    expect(xName).toHaveTextContent("𝑥");
+    expect(yName).toHaveTextContent("𝑦");
+    expect(xName?.getAttribute("font-family")).toContain("Cambria Math");
+    expect(yName?.getAttribute("font-family")).toContain("Cambria Math");
+    expect(xName?.getAttribute("y")).toBe(xNumber?.getAttribute("y"));
+    expect(positiveXControlRect).toHaveAttribute("width", "48");
+    expect(positiveXControlRect).toHaveAttribute("height", "48");
     expect(xControlPosition).toBeGreaterThan(Number(xName?.getAttribute("x")));
     expect(yControlPosition).toBeLessThan(Number(yName?.getAttribute("y")));
     expect(screen.queryByText("Start with Point or Segment")).not.toBeInTheDocument();

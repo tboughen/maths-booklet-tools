@@ -5,7 +5,10 @@ export const AXIS_STROKE_POINTS = 2;
 export const AXIS_LABEL_FONT_POINTS = 12;
 export const EQUATION_FONT_POINTS = 10;
 
+export const MATHS_FONT_FAMILY = '"Cambria Math", Cambria, "Times New Roman", serif';
 export const SVG_MATHS_FONT_FAMILY = "'Cambria Math', Cambria, 'Times New Roman', serif";
+export const AXIS_X_NAME = "𝑥";
+export const AXIS_Y_NAME = "𝑦";
 
 export function pointsToDiagramUnits(points: number, unitsPerCentimetre: number): number {
   return (points / POINTS_PER_CENTIMETRE) * unitsPerCentimetre;

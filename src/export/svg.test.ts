@@ -82,4 +82,15 @@ describe("print SVG export", () => {
     expect(yNumberXs).toHaveLength(10);
     expect(new Set(yNumberXs)).toEqual(new Set([yNameX as string]));
   });
+
+  it("aligns the Cambria Math x name with the x-axis numbers", () => {
+    const svg = renderDiagramSvg(cloneDefaultDocument());
+    const xNameBaseline = svg.match(/class="axis-name axis-name-x"[^>]* y="([^"]+)"/)?.[1];
+    const firstXNumberBaseline = svg.match(/class="axis-number"><rect[^>]*\/><text[^>]* y="([^"]+)" text-anchor="middle"/)?.[1];
+
+    expect(xNameBaseline).toBeDefined();
+    expect(xNameBaseline).toBe(firstXNumberBaseline);
+    expect(svg).toMatch(/class="axis-name axis-name-x"[^>]*font-family="'Cambria Math'[^>]*>𝑥<\/text>/);
+    expect(svg).toMatch(/class="axis-name axis-name-y"[^>]*font-family="'Cambria Math'[^>]*>𝑦<\/text>/);
+  });
 });
