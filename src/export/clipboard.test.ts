@@ -13,20 +13,32 @@ vi.mock("./png", () => ({
 }));
 
 describe("Word clipboard export", () => {
-  let representations: Record<string, Blob> | undefined;
+  let copiedHtml: string | undefined;
+  let clipboardItemConstructed: boolean;
   const write = vi.fn(async () => undefined);
+  const execCommand = vi.fn(() => true);
 
   beforeEach(() => {
-    representations = undefined;
+    copiedHtml = undefined;
+    clipboardItemConstructed = false;
     write.mockReset();
     write.mockResolvedValue(undefined);
+    execCommand.mockReset();
+    execCommand.mockImplementation(() => {
+      copiedHtml = document.querySelector<HTMLElement>('div[aria-hidden="true"]')?.innerHTML;
+      return true;
+    });
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand,
+    });
     pngMocks.renderDiagramPng.mockReset();
     pngMocks.renderDiagramPng.mockResolvedValue(new Blob(["png"], { type: "image/png" }));
     pngMocks.assertPrintReadyPng.mockReset();
     pngMocks.assertPrintReadyPng.mockResolvedValue(undefined);
     class MockClipboardItem {
-      constructor(items: Record<string, Blob>) {
-        representations = items;
+      constructor() {
+        clipboardItemConstructed = true;
       }
     }
     vi.stubGlobal("ClipboardItem", MockClipboardItem);
@@ -36,28 +48,53 @@ describe("Word clipboard export", () => {
     });
   });
 
-  it("offers Word only the verified 600 ppi PNG", async () => {
+  it("copies the verified PNG through a Word-sized native webpage selection", async () => {
     await copyDiagram(cloneDefaultDocument());
 
-    expect(write).toHaveBeenCalledOnce();
+    expect(execCommand).toHaveBeenCalledOnce();
+    expect(execCommand).toHaveBeenCalledWith("copy");
+    expect(write).not.toHaveBeenCalled();
+    expect(clipboardItemConstructed).toBe(false);
     expect(pngMocks.assertPrintReadyPng).toHaveBeenCalledWith(expect.any(Blob), 11.7, 11.55);
-    expect(Object.keys(representations ?? {})).toEqual(["image/png"]);
-    expect(representations).not.toHaveProperty("text/html");
-    expect(representations).not.toHaveProperty("image/svg+xml");
-    expect(representations?.["image/png"].type).toBe("image/png");
+    expect(copiedHtml).toContain('src="data:image/png;base64,cG5n"');
+    expect(copiedHtml).toContain('style="width:11.7cm;height:11.55cm"');
+    expect(copiedHtml).toContain('width="11.7cm"');
+    expect(copiedHtml).toContain('height="11.55cm"');
+    expect(document.querySelector('div[aria-hidden="true"]')).not.toBeInTheDocument();
+  });
+
+  it("directs teachers to the PNG download instead of copying a wrongly sized raw clipboard image", async () => {
+    execCommand.mockReturnValueOnce(false);
+
+    await expect(copyDiagram(cloneDefaultDocument())).rejects.toThrow("Use Download PNG (600 ppi) instead");
+
+    expect(write).not.toHaveBeenCalled();
+    expect(clipboardItemConstructed).toBe(false);
+  });
+
+  it("uses native webpage copying without requiring the Async Clipboard API", async () => {
+    vi.stubGlobal("ClipboardItem", undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+
+    await expect(copyDiagram(cloneDefaultDocument())).resolves.toBeUndefined();
+    expect(execCommand).toHaveBeenCalledWith("copy");
+    expect(write).not.toHaveBeenCalled();
   });
 
   it("does not write an image that fails print-quality validation", async () => {
     pngMocks.assertPrintReadyPng.mockRejectedValueOnce(new Error("The print-quality PNG could not be verified."));
 
     await expect(copyDiagram(cloneDefaultDocument())).rejects.toThrow("print-quality PNG could not be verified");
+    expect(execCommand).not.toHaveBeenCalled();
     expect(write).not.toHaveBeenCalled();
   });
 
   it("reports the PNG download when the browser blocks clipboard access", async () => {
-    write.mockRejectedValueOnce(new DOMException("Not allowed", "NotAllowedError"));
+    execCommand.mockImplementationOnce(() => {
+      throw new DOMException("Not allowed", "NotAllowedError");
+    });
 
     await expect(copyDiagram(cloneDefaultDocument())).rejects.toThrow("Use Download PNG (600 ppi) instead");
-    expect(write).toHaveBeenCalledOnce();
+    expect(write).not.toHaveBeenCalled();
   });
 });
