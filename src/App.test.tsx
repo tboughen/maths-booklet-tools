@@ -198,4 +198,33 @@ describe("graph builder", () => {
     expect(screen.getByText("1 object")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Point x" })).toHaveValue("2");
   });
+
+  it("shows the one-time Windows Word quality setup without interrupting the main workflow", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Download options" }));
+    await user.click(screen.getByRole("menuitem", { name: /First-time Word setup/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "Keep full image quality in Word" });
+    expect(dialog).toHaveTextContent("File › Options › Advanced");
+    expect(dialog).toHaveTextContent("Do not compress images in file");
+    expect(dialog).toHaveTextContent("High fidelity");
+    expect(within(dialog).getByRole("link", { name: /change image resolution/ })).toHaveAttribute("href", expect.stringContaining("support.microsoft.com"));
+
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens the 600 ppi PNG fallback when clipboard images are unavailable", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+    vi.stubGlobal("ClipboardItem", undefined);
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Copy for Word" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Use Download PNG (600 ppi) instead");
+    expect(screen.getByRole("menuitem", { name: /Download PNG/ })).toBeInTheDocument();
+  });
 });

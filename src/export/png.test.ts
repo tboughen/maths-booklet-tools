@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { setPngDensity } from "./png";
+import { cloneDefaultDocument } from "../domain/diagram";
+import { getExportMetrics } from "./svg";
+import {
+  assertPrintReadyPng,
+  getPngRasterSize,
+  readPngMetadata,
+  setPngDensity,
+} from "./png";
 
 const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
@@ -17,6 +24,23 @@ function chunk(type: string, data = new Uint8Array()): Uint8Array {
 
 function fakePng(...chunks: Uint8Array[]): Blob {
   return new Blob([signature, ...chunks], { type: "image/png" });
+}
+
+function headerData(width: number, height: number): Uint8Array {
+  const data = new Uint8Array(13);
+  writeUint32(data, 0, width);
+  writeUint32(data, 4, height);
+  data[8] = 8;
+  data[9] = 6;
+  return data;
+}
+
+function densityData(pixelsPerMetre: number): Uint8Array {
+  const data = new Uint8Array(9);
+  writeUint32(data, 0, pixelsPerMetre);
+  writeUint32(data, 4, pixelsPerMetre);
+  data[8] = 1;
+  return data;
 }
 
 function readChunks(bytes: Uint8Array) {
@@ -43,6 +67,13 @@ function readBlob(blob: Blob): Promise<ArrayBuffer> {
 }
 
 describe("PNG print density", () => {
+  it("calculates the default diagram as 2764 by 2728 pixels at 600 ppi", () => {
+    const metrics = getExportMetrics(cloneDefaultDocument());
+
+    expect({ widthCm: metrics.widthCm, heightCm: metrics.heightCm }).toEqual({ widthCm: 11.7, heightCm: 11.55 });
+    expect(getPngRasterSize(metrics.widthCm, metrics.heightCm)).toEqual({ width: 2764, height: 2728 });
+  });
+
   it("adds a 600 ppi pHYs chunk immediately after the header", async () => {
     const output = await setPngDensity(fakePng(chunk("IHDR", new Uint8Array(13)), chunk("IEND")));
     const chunks = readChunks(new Uint8Array(await readBlob(output)));
@@ -62,5 +93,33 @@ describe("PNG print density", () => {
     expect(chunks.filter(({ type }) => type === "pHYs")).toHaveLength(1);
     const density = new DataView(chunks[1].data.buffer, chunks[1].data.byteOffset);
     expect(density.getUint32(0)).toBe(11811);
+  });
+
+  it("verifies the raster dimensions and 600 ppi density before export", async () => {
+    const printReady = fakePng(
+      chunk("IHDR", headerData(2764, 2728)),
+      chunk("pHYs", densityData(23622)),
+      chunk("IEND"),
+    );
+
+    await expect(assertPrintReadyPng(printReady, 11.7, 11.55)).resolves.toBeUndefined();
+    await expect(readPngMetadata(printReady)).resolves.toEqual({
+      width: 2764,
+      height: 2728,
+      horizontalPixelsPerMetre: 23622,
+      verticalPixelsPerMetre: 23622,
+      densityUnit: 1,
+    });
+  });
+
+  it("rejects a Word-downsampled 150 ppi rendition", async () => {
+    const downsampled = fakePng(
+      chunk("IHDR", headerData(691, 682)),
+      chunk("pHYs", densityData(5905)),
+      chunk("IEND"),
+    );
+
+    await expect(assertPrintReadyPng(downsampled, 11.7, 11.55)).rejects.toThrow("print-quality PNG could not be verified");
+    await expect(assertPrintReadyPng(new Blob(["not a PNG"], { type: "image/png" }), 11.7, 11.55)).rejects.toThrow("Use Download PNG (600 ppi) instead");
   });
 });

@@ -2,7 +2,22 @@ import { getExportMetrics, renderDiagramSvg } from "./svg";
 import type { DiagramDocumentV1 } from "../domain/types";
 
 const PNG_SIGNATURE_LENGTH = 8;
-const PIXELS_PER_METRE_600_DPI = 23622;
+const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+export const PRINT_DPI = 600;
+export const PRINT_PIXELS_PER_METRE = 23622;
+
+export interface PngMetadata {
+  width: number;
+  height: number;
+  horizontalPixelsPerMetre: number | null;
+  verticalPixelsPerMetre: number | null;
+  densityUnit: number | null;
+}
+
+export interface PngRasterSize {
+  width: number;
+  height: number;
+}
 
 function writeUint32(target: Uint8Array, offset: number, value: number): void {
   target[offset] = (value >>> 24) & 0xff;
@@ -38,7 +53,7 @@ function makeDensityChunk(pixelsPerMetre: number): Uint8Array {
   return chunk;
 }
 
-export async function setPngDensity(blob: Blob, pixelsPerMetre = PIXELS_PER_METRE_600_DPI): Promise<Blob> {
+export async function setPngDensity(blob: Blob, pixelsPerMetre = PRINT_PIXELS_PER_METRE): Promise<Blob> {
   const source = new Uint8Array(await readBlobAsArrayBuffer(blob));
   const outputParts: Uint8Array[] = [source.slice(0, PNG_SIGNATURE_LENGTH)];
   let offset = PNG_SIGNATURE_LENGTH;
@@ -57,6 +72,7 @@ export async function setPngDensity(blob: Blob, pixelsPerMetre = PIXELS_PER_METR
     offset = end;
     if (type === "IEND") break;
   }
+  if (!inserted) throw new Error("The generated PNG is invalid.");
   return new Blob(outputParts, { type: "image/png" });
 }
 
@@ -77,7 +93,74 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-export async function svgToPng(svg: string, widthCm: number, heightCm: number, dpi = 600): Promise<Blob> {
+export function getPngRasterSize(widthCm: number, heightCm: number, dpi = PRINT_DPI): PngRasterSize {
+  return {
+    width: Math.max(1, Math.round((widthCm / 2.54) * dpi)),
+    height: Math.max(1, Math.round((heightCm / 2.54) * dpi)),
+  };
+}
+
+export async function readPngMetadata(blob: Blob): Promise<PngMetadata> {
+  if (blob.type !== "image/png") throw new Error("The generated image is not a PNG.");
+  const source = new Uint8Array(await readBlobAsArrayBuffer(blob));
+  if (source.length < PNG_SIGNATURE_LENGTH
+      || PNG_SIGNATURE.some((byte, index) => source[index] !== byte)) {
+    throw new Error("The generated PNG is invalid.");
+  }
+
+  let width: number | null = null;
+  let height: number | null = null;
+  let horizontalPixelsPerMetre: number | null = null;
+  let verticalPixelsPerMetre: number | null = null;
+  let densityUnit: number | null = null;
+  let offset = PNG_SIGNATURE_LENGTH;
+
+  while (offset + 12 <= source.length) {
+    const view = new DataView(source.buffer, source.byteOffset + offset);
+    const length = view.getUint32(0);
+    const end = offset + 12 + length;
+    if (end > source.length) throw new Error("The generated PNG is invalid.");
+    const type = new TextDecoder().decode(source.slice(offset + 4, offset + 8));
+    const data = new DataView(source.buffer, source.byteOffset + offset + 8, length);
+
+    if (type === "IHDR") {
+      if (length !== 13) throw new Error("The generated PNG is invalid.");
+      width = data.getUint32(0);
+      height = data.getUint32(4);
+    } else if (type === "pHYs") {
+      if (length !== 9) throw new Error("The generated PNG is invalid.");
+      horizontalPixelsPerMetre = data.getUint32(0);
+      verticalPixelsPerMetre = data.getUint32(4);
+      densityUnit = data.getUint8(8);
+    }
+
+    offset = end;
+    if (type === "IEND") break;
+  }
+
+  if (width === null || height === null) throw new Error("The generated PNG is invalid.");
+  return { width, height, horizontalPixelsPerMetre, verticalPixelsPerMetre, densityUnit };
+}
+
+export async function assertPrintReadyPng(blob: Blob, widthCm: number, heightCm: number, dpi = PRINT_DPI): Promise<void> {
+  const expectedSize = getPngRasterSize(widthCm, heightCm, dpi);
+  const expectedPixelsPerMetre = Math.round(dpi / 0.0254);
+  let metadata: PngMetadata;
+  try {
+    metadata = await readPngMetadata(blob);
+  } catch {
+    throw new Error("The print-quality PNG could not be verified. Use Download PNG (600 ppi) instead.");
+  }
+  if (metadata.width !== expectedSize.width
+      || metadata.height !== expectedSize.height
+      || metadata.horizontalPixelsPerMetre !== expectedPixelsPerMetre
+      || metadata.verticalPixelsPerMetre !== expectedPixelsPerMetre
+      || metadata.densityUnit !== 1) {
+    throw new Error("The print-quality PNG could not be verified. Use Download PNG (600 ppi) instead.");
+  }
+}
+
+export async function svgToPng(svg: string, widthCm: number, heightCm: number, dpi = PRINT_DPI): Promise<Blob> {
   const image = new Image();
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   try {
@@ -87,8 +170,9 @@ export async function svgToPng(svg: string, widthCm: number, heightCm: number, d
       image.src = url;
     });
     const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round((widthCm / 2.54) * dpi));
-    canvas.height = Math.max(1, Math.round((heightCm / 2.54) * dpi));
+    const rasterSize = getPngRasterSize(widthCm, heightCm, dpi);
+    canvas.width = rasterSize.width;
+    canvas.height = rasterSize.height;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("The browser cannot create the PNG.");
     context.fillStyle = "#ffffff";
@@ -102,5 +186,5 @@ export async function svgToPng(svg: string, widthCm: number, heightCm: number, d
 
 export async function renderDiagramPng(document: DiagramDocumentV1): Promise<Blob> {
   const metrics = getExportMetrics(document);
-  return svgToPng(renderDiagramSvg(document), metrics.widthCm, metrics.heightCm, 600);
+  return svgToPng(renderDiagramSvg(document), metrics.widthCm, metrics.heightCm, PRINT_DPI);
 }

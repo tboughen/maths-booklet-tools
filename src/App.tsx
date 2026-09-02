@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
   ChevronDown,
+  CircleHelp,
   Download,
+  ExternalLink,
   FileImage,
   Grid3X3,
   LoaderCircle,
@@ -67,6 +69,7 @@ export default function App() {
   const [editingEquationId, setEditingEquationId] = useState<string | null>(null);
   const [objectsExpanded, setObjectsExpanded] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [wordHelpOpen, setWordHelpOpen] = useState(false);
   const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [copying, setCopying] = useState(false);
   const [downloadingPng, setDownloadingPng] = useState(false);
@@ -155,6 +158,7 @@ export default function App() {
         setEquationOpen(false);
         setEditingEquationId(null);
         setExportMenuOpen(false);
+        setWordHelpOpen(false);
         setToolsMenuOpen(false);
         replaceWithoutHistory({ ...document, selectedObjectId: null });
         return;
@@ -229,9 +233,12 @@ export default function App() {
     setExportMenuOpen(false);
     try {
       await copyDiagram(document);
-      setToast({ kind: "success", title: "Ready for Word", detail: "Press Ctrl+V in Word. Grid squares will paste at 1 cm." });
-    } catch {
-      setToast({ kind: "error", title: "Copy was blocked", detail: "Use Download SVG below, then insert it into Word for the sharpest result." });
+      setToast({ kind: "success", title: "Print-quality PNG copied", detail: "Paste into Word with Ctrl+V." });
+    } catch (error) {
+      const detail = error instanceof Error
+        ? error.message
+        : "Clipboard copying is unavailable. Use Download PNG (600 ppi) instead.";
+      setToast({ kind: "error", title: "Copy was not available", detail });
       setExportMenuOpen(true);
     } finally {
       setCopying(false);
@@ -262,6 +269,7 @@ export default function App() {
     setEquationOpen(false);
     setEditingEquationId(null);
     setExportMenuOpen(false);
+    setWordHelpOpen(false);
     setObjectsExpanded(false);
   }
 
@@ -314,6 +322,8 @@ export default function App() {
               <div className="export-menu" role="menu">
                 <button role="menuitem" onClick={() => { downloadDiagramSvg(document); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Vector · best for resizing</small></span></button>
                 <button role="menuitem" disabled={downloadingPng} onClick={handlePngDownload}>{downloadingPng ? <LoaderCircle className="spin" size={17} /> : <FileImage size={17} />}<span><strong>Download PNG</strong><small>600 ppi · print-ready image</small></span></button>
+                <div className="export-menu-separator" role="separator" />
+                <button className="export-help-item" role="menuitem" onClick={() => { setExportMenuOpen(false); setWordHelpOpen(true); }}><CircleHelp size={17} /><span><strong>First-time Word setup</strong><small>Keep pasted images at full quality</small></span></button>
               </div>
             )}
             <GraphCanvas
@@ -355,6 +365,29 @@ export default function App() {
           </aside>
         </section>
       </main>
+
+      {wordHelpOpen && (
+        <div className="word-help-backdrop" onMouseDown={() => setWordHelpOpen(false)}>
+          <section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="word-help-title" aria-describedby="word-help-description" onMouseDown={(event) => event.stopPropagation()}>
+            <header>
+              <div><p className="eyebrow">ONE-TIME SETUP</p><h2 id="word-help-title">Keep full image quality in Word</h2></div>
+              <button className="word-help-dismiss" autoFocus aria-label="Close Word setup" onClick={() => setWordHelpOpen(false)}><X size={19} /></button>
+            </header>
+            <p id="word-help-description">Set this once in Windows desktop Word so pasted graphs keep all 600 pixels per inch.</p>
+            <ol>
+              <li>Open <strong>File › Options › Advanced</strong>.</li>
+              <li>Find <strong>Image Size and Quality</strong> and choose <strong>All New Documents</strong>.</li>
+              <li>Tick <strong>Do not compress images in file</strong>.</li>
+              <li>Set <strong>Default resolution</strong> to <strong>High fidelity</strong>.</li>
+            </ol>
+            <div className="word-help-links">
+              <a href="https://support.microsoft.com/en-au/office/change-the-default-resolution-for-inserting-pictures-in-office-f4aca5b4-6332-48c6-9488-bf5e0094a7d2" target="_blank" rel="noreferrer">Microsoft: change image resolution <ExternalLink size={14} aria-hidden="true" /></a>
+              <a href="https://support.microsoft.com/en-au/office/turn-off-picture-compression-81a6b603-0266-4451-b08e-fc1bf58da658" target="_blank" rel="noreferrer">Microsoft: turn off compression <ExternalLink size={14} aria-hidden="true" /></a>
+            </div>
+            <button className="word-help-done" onClick={() => setWordHelpOpen(false)}>Done</button>
+          </section>
+        </div>
+      )}
 
       {toast && (
         <div className={`toast toast--${toast.kind}`} role="status">

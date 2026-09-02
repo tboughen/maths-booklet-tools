@@ -1,36 +1,22 @@
 import type { DiagramDocumentV1 } from "../domain/types";
-import { renderDiagramPng } from "./png";
+import { assertPrintReadyPng, renderDiagramPng } from "./png";
 import { getExportMetrics, renderDiagramSvg } from "./svg";
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error("The image could not be prepared."));
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function writeClipboardRepresentations(representations: Record<string, Blob>): Promise<void> {
+function assertImageClipboardSupport(): void {
   if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-    throw new Error("Clipboard images are not supported in this browser.");
+    throw new Error("Clipboard images are unavailable. Use Download PNG (600 ppi) instead.");
   }
-  await navigator.clipboard.write([new ClipboardItem(representations)]);
 }
 
 export async function copyDiagram(document: DiagramDocumentV1): Promise<void> {
+  assertImageClipboardSupport();
   const metrics = getExportMetrics(document);
   const png = await renderDiagramPng(document);
-  const dataUrl = await blobToDataUrl(png);
-  const html = `<img src="${dataUrl}" width="${metrics.widthCm}cm" height="${metrics.heightCm}cm" style="width:${metrics.widthCm}cm;height:${metrics.heightCm}cm" alt="Coordinate graph">`;
-  const baseRepresentations: Record<string, Blob> = {
-    "image/png": png,
-    "text/html": new Blob([html], { type: "text/html" }),
-  };
+  await assertPrintReadyPng(png, metrics.widthCm, metrics.heightCm);
   try {
-    await writeClipboardRepresentations(baseRepresentations);
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
   } catch {
-    await writeClipboardRepresentations({ "image/png": png });
+    throw new Error("The browser blocked copying. Use Download PNG (600 ppi) instead.");
   }
 }
 
