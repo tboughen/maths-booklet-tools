@@ -214,6 +214,7 @@ export default function App() {
         id: makeId(),
         kind: "straight",
         display: "line",
+        strokeStyle: "solid",
         start,
         end,
         equationVisible: showEquation,
@@ -339,7 +340,17 @@ export default function App() {
               yScale={document.axes.y.unitsPerSquare}
               onChange={(axis: "x" | "y", value: UnitsPerSquare) => commit(setAxisScale(document, axis, value))}
             />
-            <ObjectsPanel document={document} expanded={objectsExpanded} onToggle={() => setObjectsExpanded((open) => !open)} onSelect={(id) => { selectObject(id); setEquationOpen(false); }} />
+            <ObjectsPanel
+              document={document}
+              expanded={objectsExpanded}
+              onToggle={() => setObjectsExpanded((open) => !open)}
+              onSelect={(id) => {
+                selectObject(id);
+                setTool("select");
+                setEquationOpen(false);
+                setEditingEquationId(null);
+              }}
+            />
           </aside>
         </section>
       </main>

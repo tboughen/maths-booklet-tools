@@ -24,6 +24,8 @@ import {
   AXIS_X_NAME,
   AXIS_Y_NAME,
   MATHS_FONT_FAMILY,
+  STRAIGHT_DASH_GAP_CENTIMETRES,
+  STRAIGHT_DASH_LENGTH_CENTIMETRES,
   Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
@@ -66,6 +68,10 @@ type DragState = ObjectDrag | SegmentDrag;
 const EDITOR_UNITS_PER_CENTIMETRE = 60;
 const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, EDITOR_UNITS_PER_CENTIMETRE);
 const AXIS_ARROW_EXTENSION = 12 + EDITOR_UNITS_PER_CENTIMETRE * AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES;
+const STRAIGHT_DASH_ARRAY = [
+  EDITOR_UNITS_PER_CENTIMETRE * STRAIGHT_DASH_LENGTH_CENTIMETRES,
+  EDITOR_UNITS_PER_CENTIMETRE * STRAIGHT_DASH_GAP_CENTIMETRES,
+].map((value) => Number(value.toFixed(3))).join(" ");
 const AXIS_CONTROL_SIZE = 48;
 const AXIS_CONTROL_GAP = 4;
 const AXIS_CONTROL_WIDTH = AXIS_CONTROL_SIZE * 2 + AXIS_CONTROL_GAP;
@@ -292,6 +298,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
           id: makeId(),
           kind: "straight",
           display: "segment",
+          strokeStyle: "solid",
           start: drag.start,
           end: drag.current,
           equationVisible: false,
@@ -380,7 +387,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
             if (!visible) return null;
             const start = coordinateToSvg(visible[0], layout);
             const end = coordinateToSvg(visible[1], layout);
-            return <line key={object.id} className={`graph-straight${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`} x1={start.x} y1={start.y} x2={end.x} y2={end.y} />;
+            return <line key={object.id} className={`graph-straight${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`} x1={start.x} y1={start.y} x2={end.x} y2={end.y} strokeDasharray={object.strokeStyle === "dashed" ? STRAIGHT_DASH_ARRAY : undefined} />;
           })}
           {visibleDocument.objects.filter((object): object is PointObject => object.kind === "point" && pointInBounds(object.position, layout.bounds)).map((object) => (
             <Cross key={object.id} point={coordinateToSvg(object.position, layout)} className={`graph-point${object.id === visibleDocument.selectedObjectId ? " graph-point--selected" : ""}`} />

@@ -15,6 +15,7 @@ function isGraphObject(value: unknown): value is GraphObject {
   if (candidate.kind === "point") return isCoordinate(candidate.position);
   if (candidate.kind !== "straight") return false;
   return (candidate.display === "segment" || candidate.display === "line")
+    && (candidate.strokeStyle === undefined || candidate.strokeStyle === "solid" || candidate.strokeStyle === "dashed")
     && isCoordinate(candidate.start)
     && isCoordinate(candidate.end)
     && typeof candidate.equationVisible === "boolean"

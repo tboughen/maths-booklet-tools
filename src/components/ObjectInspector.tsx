@@ -56,7 +56,7 @@ export function ObjectInspector({ object, onUpdate, onDelete, onEditEquation }: 
   if (object.kind === "point") {
     return (
       <section className="panel-card selection-panel">
-        <div className="panel-heading"><div><p className="eyebrow">SELECTED OBJECT</p><h2>Point</h2></div><span className="object-kind-icon object-kind-icon--point">×</span></div>
+        <div className="panel-heading"><div><p className="eyebrow">SELECTED OBJECT</p><h2>Point</h2></div></div>
         <CoordinateFields value={object.position} onChange={(position) => onUpdate({ ...object, position })} />
         <button className="danger-button" onClick={onDelete}><Trash2 size={16} />Delete point</button>
       </section>
@@ -68,12 +68,18 @@ export function ObjectInspector({ object, onUpdate, onDelete, onEditEquation }: 
     <section className="panel-card selection-panel">
       <div className="panel-heading">
         <div><p className="eyebrow">SELECTED OBJECT</p><h2>{object.display === "segment" ? "Line segment" : "Straight line"}</h2></div>
-        <span className="object-kind-icon object-kind-icon--line" />
       </div>
       <p className="selected-equation">{equationForObject(object)}</p>
       <div className="segmented" role="group" aria-label="Object extent">
         <button className={object.display === "segment" ? "active" : ""} aria-pressed={object.display === "segment"} onClick={() => onUpdate({ ...object, display: "segment" })}>Segment</button>
         <button className={object.display === "line" ? "active" : ""} aria-pressed={object.display === "line"} onClick={() => onUpdate({ ...object, display: "line" })}>Line</button>
+      </div>
+      <div className="line-style-field">
+        <span>Line style</span>
+        <div className="segmented" role="group" aria-label="Line style">
+          <button className={object.strokeStyle !== "dashed" ? "active" : ""} aria-pressed={object.strokeStyle !== "dashed"} onClick={() => onUpdate({ ...object, strokeStyle: "solid" })}>Solid</button>
+          <button className={object.strokeStyle === "dashed" ? "active" : ""} aria-pressed={object.strokeStyle === "dashed"} onClick={() => onUpdate({ ...object, strokeStyle: "dashed" })}>Dashed</button>
+        </div>
       </div>
       <div className="endpoint-section">
         <CoordinateFields prefix="Start" value={object.start} onChange={(value) => updateEndpoint("start", value)} />

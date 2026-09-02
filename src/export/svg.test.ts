@@ -20,6 +20,7 @@ function populatedDocument(): DiagramDocumentV1 {
         id: "straight-2",
         kind: "straight",
         display: "segment",
+        strokeStyle: "dashed",
         start: { x: -3, y: 2 },
         end: { x: 3, y: 2 },
         equationVisible: false,
@@ -46,6 +47,7 @@ describe("print SVG export", () => {
     expect(svg).toContain("containing 3 plotted objects");
     expect(svg).toContain("y = x + 1");
     expect(svg.match(/<g stroke="#202224"/g)).toHaveLength(2);
+    expect(svg.match(/stroke-dasharray="18 12"/g)).toHaveLength(1);
     expect(svg).not.toMatch(/selected|handle|#2563eb|#2f6fed/i);
   });
 

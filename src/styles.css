@@ -133,12 +133,12 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .panel-heading .icon-button { width: var(--control-md); min-height: var(--control-md); flex-basis: var(--control-md); }
 .selection-panel--empty { min-height: 138px; }
 .selection-panel--empty > p:last-child { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.52; }
-.object-kind-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: #f0ede6; color: #292b2c; font-size: 22px; }
-.object-kind-icon--line::after { content: ""; width: 23px; height: 2px; background: currentColor; transform: rotate(-34deg); }
 .selected-equation { margin: 14px 0 12px; padding: 9px 10px; border-radius: 8px; background: #f1eee7; font: italic 14px Georgia, serif; text-align: center; }
 .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 8px; background: #ebe8e1; }
 .segmented button { min-height: var(--control-md); padding: 0 16px; border: 0; border-radius: 6px; background: transparent; font-size: var(--button-label); font-weight: 600; }
 .segmented button.active { background: #fff; color: var(--blue); box-shadow: 0 1px 4px rgba(30,30,30,.1); }
+.line-style-field { display: grid; gap: 6px; margin-top: 12px; }
+.line-style-field > span { color: var(--muted); font-size: var(--supporting-text); font-weight: 700; }
 .endpoint-section { display: grid; gap: 8px; margin: 14px 0; }
 .coordinate-fields { display: grid; grid-template-columns: 39px minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 7px; }
 .coordinate-fields--point { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -14,12 +14,22 @@ describe("local diagram recovery", () => {
           id: "straight-1",
           kind: "straight" as const,
           display: "line" as const,
+          strokeStyle: "solid" as const,
           start: { x: -5, y: -4 },
           end: { x: 5, y: 4 },
           equationVisible: true,
         },
+        {
+          id: "straight-2",
+          kind: "straight" as const,
+          display: "segment" as const,
+          strokeStyle: "dashed" as const,
+          start: { x: -2, y: 3 },
+          end: { x: 2, y: 3 },
+          equationVisible: false,
+        },
       ],
-      selectedObjectId: "straight-1",
+      selectedObjectId: "straight-2",
     };
 
     saveDiagram(document);
@@ -32,6 +42,20 @@ describe("local diagram recovery", () => {
 
     const invalid = { ...cloneDefaultDocument(), selectedObjectId: "missing" };
     expect(isDiagramDocument(invalid)).toBe(false);
+
+    const invalidStyle = {
+      ...cloneDefaultDocument(),
+      objects: [{
+        id: "straight-1",
+        kind: "straight",
+        display: "line",
+        strokeStyle: "dotted",
+        start: { x: -1, y: -1 },
+        end: { x: 1, y: 1 },
+        equationVisible: false,
+      }],
+    };
+    expect(isDiagramDocument(invalidStyle)).toBe(false);
   });
 
   it("rejects grids beyond the supported printable limits", () => {

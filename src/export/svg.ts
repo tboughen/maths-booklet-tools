@@ -13,6 +13,8 @@ import {
   AXIS_Y_NAME,
   EQUATION_FONT_POINTS,
   GRID_STROKE_POINTS,
+  STRAIGHT_DASH_GAP_CENTIMETRES,
+  STRAIGHT_DASH_LENGTH_CENTIMETRES,
   SVG_MATHS_FONT_FAMILY,
   Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
@@ -182,7 +184,10 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     if (visible) {
       const start = coordinateToSvg(visible[0], layout);
       const end = coordinateToSvg(visible[1], layout);
-      straight.push(`<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"/>`);
+      const dash = object.strokeStyle === "dashed"
+        ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`
+        : "";
+      straight.push(`<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`);
     }
     if (object.equationVisible && visible) {
       const position = object.equationLabelPosition

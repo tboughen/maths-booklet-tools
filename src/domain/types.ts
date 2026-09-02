@@ -1,4 +1,5 @@
 export type UnitsPerSquare = 0.5 | 1 | 2;
+export type StraightStrokeStyle = "solid" | "dashed";
 
 export interface Coordinate {
   x: number;
@@ -23,6 +24,8 @@ export interface PointObject extends BaseObject {
 export interface StraightObject extends BaseObject {
   kind: "straight";
   display: "segment" | "line";
+  /** Optional so diagrams saved before dashed lines were added still load as solid. */
+  strokeStyle?: StraightStrokeStyle;
   start: Coordinate;
   end: Coordinate;
   equationVisible: boolean;

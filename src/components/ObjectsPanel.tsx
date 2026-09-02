@@ -17,7 +17,7 @@ function objectTitle(object: GraphObject, index: number): string {
 
 function objectDescription(object: GraphObject): string {
   if (object.kind === "point") return `(${formatNumber(object.position.x)}, ${formatNumber(object.position.y)})`;
-  return equationForObject(object);
+  return `${equationForObject(object)}${object.strokeStyle === "dashed" ? " · dashed" : ""}`;
 }
 
 export function ObjectsPanel({ document, expanded, onToggle, onSelect }: ObjectsPanelProps) {
@@ -32,10 +32,13 @@ export function ObjectsPanel({ document, expanded, onToggle, onSelect }: Objects
         <div className="objects-list">
           {document.objects.length === 0 ? <p>No objects yet. Add a point, segment or line.</p> : document.objects.map((object, index) => {
             const offGrid = object.kind === "point" ? !pointInBounds(object.position, bounds) : !visibleStraightPoints(object, bounds);
+            const selected = object.id === document.selectedObjectId;
+            const title = objectTitle(object, index);
+            const description = objectDescription(object);
             return (
-              <button key={object.id} className={object.id === document.selectedObjectId ? "selected" : ""} onClick={() => onSelect(object.id)}>
+              <button key={object.id} type="button" className={selected ? "selected" : ""} aria-pressed={selected} aria-label={`Select ${title}: ${description}`} onClick={() => onSelect(object.id)}>
                 <span className="list-icon">{object.kind === "point" ? <X size={16} /> : <Slash size={16} />}</span>
-                <span className="list-copy"><strong>{objectTitle(object, index)}</strong><small>{objectDescription(object)}</small></span>
+                <span className="list-copy"><strong>{title}</strong><small>{description}</small></span>
                 {offGrid && <span className="off-grid" title="This object is outside the visible grid"><EyeOff size={14} /><span className="sr-only">Off grid</span></span>}
               </button>
             );

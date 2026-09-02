@@ -27,8 +27,13 @@ describe("graph builder", () => {
     await user.click(screen.getByRole("button", { name: "Add line" }));
 
     expect(screen.getByText("2 objects")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Point" }));
     await user.click(screen.getByRole("button", { name: /Objects/ }));
-    await user.click(screen.getByRole("button", { name: /Line 1/ }));
+    const firstObject = screen.getByRole("button", { name: /Select Line 1/ });
+    await user.click(firstObject);
+
+    expect(firstObject).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Select" })).toHaveAttribute("aria-pressed", "true");
     await user.click(within(screen.getByRole("group", { name: "Object extent" })).getByRole("button", { name: "Segment" }));
 
     expect(screen.getByRole("button", { name: /Segment 1/ })).toBeInTheDocument();
@@ -124,7 +129,7 @@ describe("graph builder", () => {
     pointDocument.objects = [point];
     pointDocument.selectedObjectId = point.id;
     saveDiagram(pointDocument);
-    render(<App />);
+    const { container } = render(<App />);
 
     const xInput = screen.getByRole("textbox", { name: "Point x" });
     const yInput = screen.getByRole("textbox", { name: "Point y" });
@@ -132,5 +137,41 @@ describe("graph builder", () => {
 
     expect(fields).toHaveClass("coordinate-fields--point");
     expect(fields).toContainElement(yInput);
+    expect(container.querySelector(".object-kind-icon")).toBeNull();
+  });
+
+  it("applies dashed styling to one straight object without changing another", async () => {
+    const user = userEvent.setup();
+    const lineDocument = cloneDefaultDocument();
+    lineDocument.objects = [
+      {
+        id: "straight-1",
+        kind: "straight",
+        display: "line",
+        start: { x: -5, y: -4 },
+        end: { x: 5, y: 4 },
+        equationVisible: false,
+      },
+      {
+        id: "straight-2",
+        kind: "straight",
+        display: "segment",
+        start: { x: -3, y: 2 },
+        end: { x: 3, y: 2 },
+        equationVisible: false,
+      },
+    ];
+    lineDocument.selectedObjectId = "straight-1";
+    saveDiagram(lineDocument);
+    const { container } = render(<App />);
+
+    const styleControls = within(screen.getByRole("group", { name: "Line style" }));
+    await user.click(styleControls.getByRole("button", { name: "Dashed" }));
+    const lines = container.querySelectorAll<SVGLineElement>(".graph-straight");
+
+    expect(styleControls.getByRole("button", { name: "Dashed" })).toHaveAttribute("aria-pressed", "true");
+    expect(lines[0]).toHaveAttribute("stroke-dasharray", "10.8 7.2");
+    expect(lines[1]).not.toHaveAttribute("stroke-dasharray");
+    expect(container.querySelector(".object-kind-icon")).toBeNull();
   });
 });

@@ -12,6 +12,8 @@ export const AXIS_Y_NAME = "𝑦";
 export const Y_AXIS_LABEL_GAP_CENTIMETRES = 0.12;
 /** Five editor SVG units, expressed physically so exported artwork matches the preview. */
 export const AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES = 5 / 60;
+export const STRAIGHT_DASH_LENGTH_CENTIMETRES = 0.18;
+export const STRAIGHT_DASH_GAP_CENTIMETRES = 0.12;
 
 export function pointsToDiagramUnits(points: number, unitsPerCentimetre: number): number {
   return (points / POINTS_PER_CENTIMETRE) * unitsPerCentimetre;
