@@ -34,16 +34,35 @@ describe("print SVG export", () => {
   it("uses one centimetre of physical width for every grid square", () => {
     const metrics = getExportMetrics(cloneDefaultDocument());
     expect(metrics.layout.square).toBe(100);
-    expect(metrics.widthCm).toBe(11.7);
-    expect(metrics.heightCm).toBe(11.55);
+    expect(metrics.widthCm).toBe(11.24);
+    expect(metrics.heightCm).toBe(11.12);
     expect(metrics.layout.plotRight - metrics.layout.plotLeft).toBe(1000);
+  });
+
+  it("keeps a close crop on the left and below without clipping edge-axis labels", () => {
+    const defaultMetrics = getExportMetrics(cloneDefaultDocument());
+    expect(defaultMetrics.layout.plotLeft).toBe(49);
+    expect(defaultMetrics.height - defaultMetrics.layout.plotBottom).toBe(42);
+
+    const edgeAxes = cloneDefaultDocument();
+    edgeAxes.axes.x.negativeSquares = 0;
+    edgeAxes.axes.y.negativeSquares = 0;
+    edgeAxes.axes.x.unitsPerSquare = 2;
+    edgeAxes.axes.y.unitsPerSquare = 2;
+    const edgeMetrics = getExportMetrics(edgeAxes);
+    const svg = renderDiagramSvg(edgeAxes);
+    const labelRects = [...svg.matchAll(/class="axis-number[^>]*><rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"/g)]
+      .map((match) => ({ x: Number(match[1]), y: Number(match[2]), width: Number(match[3]), height: Number(match[4]) }));
+
+    expect(Math.min(...labelRects.map(({ x }) => x))).toBeGreaterThanOrEqual(18);
+    expect(Math.max(...labelRects.map(({ y, height }) => y + height))).toBeLessThanOrEqual(edgeMetrics.height - 18);
   });
 
   it("exports every object but none of the blue editing guides", () => {
     const svg = renderDiagramSvg(populatedDocument());
 
-    expect(svg).toContain('width="11.7cm"');
-    expect(svg).toContain('height="11.55cm"');
+    expect(svg).toContain('width="11.24cm"');
+    expect(svg).toContain('height="11.12cm"');
     expect(svg).toContain("containing 3 plotted objects");
     expect(svg).toContain("y = x + 1");
     expect(svg.match(/<g stroke="#202224"/g)).toHaveLength(2);
@@ -57,8 +76,8 @@ describe("print SVG export", () => {
     document.axes.y.negativeSquares += 1;
     const metrics = getExportMetrics(document);
 
-    expect(metrics.widthCm).toBe(13.7);
-    expect(metrics.heightCm).toBe(12.55);
+    expect(metrics.widthCm).toBe(13.24);
+    expect(metrics.heightCm).toBe(12.12);
   });
 
   it("uses the measured exam-style type, label knockouts, and physical line weights", () => {
@@ -81,6 +100,7 @@ describe("print SVG export", () => {
 
   it("aligns the y axis name with the y-axis numbers", () => {
     const svg = renderDiagramSvg(cloneDefaultDocument());
+    const metrics = getExportMetrics(cloneDefaultDocument());
     const yNameX = svg.match(/class="axis-name axis-name-y" x="([^"]+)"/)?.[1];
     const yNumberXs = [...svg.matchAll(/class="axis-number"><rect[^>]*\/><text x="([^"]+)"[^>]*text-anchor="end"/g)]
       .map((match) => match[1]);
@@ -88,7 +108,7 @@ describe("print SVG export", () => {
     expect(yNameX).toBeDefined();
     expect(yNumberXs).toHaveLength(10);
     expect(new Set(yNumberXs)).toEqual(new Set([yNameX as string]));
-    expect(595 - Number(yNameX)).toBe(12);
+    expect(metrics.layout.plotLeft + 500 - Number(yNameX)).toBe(12);
   });
 
   it("aligns the Cambria Math x name with the x-axis numbers", () => {

@@ -55,11 +55,11 @@ describe("Word clipboard export", () => {
     expect(execCommand).toHaveBeenCalledWith("copy");
     expect(write).not.toHaveBeenCalled();
     expect(clipboardItemConstructed).toBe(false);
-    expect(pngMocks.assertPrintReadyPng).toHaveBeenCalledWith(expect.any(Blob), 11.7, 11.55);
+    expect(pngMocks.assertPrintReadyPng).toHaveBeenCalledWith(expect.any(Blob), 11.24, 11.12);
     expect(copiedHtml).toContain('src="data:image/png;base64,cG5n"');
-    expect(copiedHtml).toContain('style="width:11.7cm;height:11.55cm"');
-    expect(copiedHtml).toContain('width="11.7cm"');
-    expect(copiedHtml).toContain('height="11.55cm"');
+    expect(copiedHtml).toContain('style="width:11.24cm;height:11.12cm"');
+    expect(copiedHtml).toContain('width="11.24cm"');
+    expect(copiedHtml).toContain('height="11.12cm"');
     expect(document.querySelector('div[aria-hidden="true"]')).not.toBeInTheDocument();
   });
 

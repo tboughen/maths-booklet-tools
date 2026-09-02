@@ -24,7 +24,9 @@ import {
 import type { Coordinate, DiagramDocumentV1, StraightObject, SvgLayout } from "../domain/types";
 
 const UNITS_PER_CM = 100;
-const PADDING = { left: 95, right: 75, top: 70, bottom: 85 };
+const FIXED_PADDING = { right: 75, top: 70 };
+const EXPORT_CONTENT_MARGIN = 18;
+const POINT_MARK_HALF_SIZE = 14;
 const GRID_STROKE_WIDTH = pointsToDiagramUnits(GRID_STROKE_POINTS, UNITS_PER_CM);
 const AXIS_STROKE_WIDTH = pointsToDiagramUnits(AXIS_STROKE_POINTS, UNITS_PER_CM);
 const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, UNITS_PER_CM);
@@ -39,13 +41,92 @@ export interface ExportMetrics {
   layout: SvgLayout;
 }
 
+function tickLabels(
+  negativeSquares: number,
+  positiveSquares: number,
+  unitsPerSquare: DiagramDocumentV1["axes"]["x"]["unitsPerSquare"],
+): Array<{ index: number; label: string }> {
+  const total = negativeSquares + positiveSquares;
+  const every = tickLabelEvery(unitsPerSquare);
+  const labels: Array<{ index: number; label: string }> = [];
+  for (let index = 0; index <= total; index += 1) {
+    if (index % every !== 0) continue;
+    const value = (index - negativeSquares) * unitsPerSquare;
+    if (Math.abs(value) < 1e-9) continue;
+    labels.push({ index, label: formatNumber(value) });
+  }
+  return labels;
+}
+
+function exportLeftPadding(document: DiagramDocumentV1): number {
+  const xLabels = tickLabels(
+    document.axes.x.negativeSquares,
+    document.axes.x.positiveSquares,
+    document.axes.x.unitsPerSquare,
+  );
+  const yLabels = tickLabels(
+    document.axes.y.negativeSquares,
+    document.axes.y.positiveSquares,
+    document.axes.y.unitsPerSquare,
+  );
+  const originFromPlotLeft = document.axes.x.negativeSquares * UNITS_PER_CM;
+  const yNumberFromPlotLeft = originFromPlotLeft - UNITS_PER_CM * Y_AXIS_LABEL_GAP_CENTIMETRES;
+  let contentLeft = -POINT_MARK_HALF_SIZE - GRID_STROKE_WIDTH / 2;
+
+  for (const { index, label } of xLabels) {
+    contentLeft = Math.min(
+      contentLeft,
+      index * UNITS_PER_CM - axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE) / 2,
+    );
+  }
+  for (const { label } of yLabels) {
+    contentLeft = Math.min(
+      contentLeft,
+      yNumberFromPlotLeft - axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE),
+    );
+  }
+
+  const originLabelX = originFromPlotLeft - AXIS_LABEL_FONT_SIZE * 0.38;
+  contentLeft = Math.min(
+    contentLeft,
+    originLabelX - axisLabelBoxWidth("0", AXIS_LABEL_FONT_SIZE),
+  );
+  return Math.ceil(EXPORT_CONTENT_MARGIN - contentLeft);
+}
+
+function exportBottomPadding(document: DiagramDocumentV1): number {
+  const yLabels = tickLabels(
+    document.axes.y.positiveSquares,
+    document.axes.y.negativeSquares,
+    document.axes.y.unitsPerSquare,
+  );
+  const totalSquares = document.axes.y.negativeSquares + document.axes.y.positiveSquares;
+  let contentBottom = POINT_MARK_HALF_SIZE + GRID_STROKE_WIDTH / 2;
+
+  for (const { index } of yLabels) {
+    const baselineFromPlotBottom = (index - totalSquares) * UNITS_PER_CM
+      + AXIS_LABEL_FONT_SIZE * 0.34;
+    const knockoutBottom = baselineFromPlotBottom
+      - AXIS_LABEL_FONT_SIZE * 0.82
+      + axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+    contentBottom = Math.max(contentBottom, knockoutBottom);
+  }
+
+  const originFromPlotBottom = -document.axes.y.negativeSquares * UNITS_PER_CM;
+  const xLabelBottom = originFromPlotBottom + AXIS_LABEL_FONT_SIZE * 1.3;
+  contentBottom = Math.max(contentBottom, xLabelBottom);
+  return Math.ceil(EXPORT_CONTENT_MARGIN + contentBottom);
+}
+
 export function getExportMetrics(document: DiagramDocumentV1): ExportMetrics {
   const horizontalSquares = document.axes.x.negativeSquares + document.axes.x.positiveSquares;
   const verticalSquares = document.axes.y.negativeSquares + document.axes.y.positiveSquares;
-  const plotRight = PADDING.left + horizontalSquares * UNITS_PER_CM;
-  const plotBottom = PADDING.top + verticalSquares * UNITS_PER_CM;
-  const width = plotRight + PADDING.right;
-  const height = plotBottom + PADDING.bottom;
+  const leftPadding = exportLeftPadding(document);
+  const bottomPadding = exportBottomPadding(document);
+  const plotRight = leftPadding + horizontalSquares * UNITS_PER_CM;
+  const plotBottom = FIXED_PADDING.top + verticalSquares * UNITS_PER_CM;
+  const width = plotRight + FIXED_PADDING.right;
+  const height = plotBottom + bottomPadding;
   return {
     widthCm: width / UNITS_PER_CM,
     heightCm: height / UNITS_PER_CM,
@@ -54,8 +135,8 @@ export function getExportMetrics(document: DiagramDocumentV1): ExportMetrics {
     layout: {
       width,
       height,
-      plotLeft: PADDING.left,
-      plotTop: PADDING.top,
+      plotLeft: leftPadding,
+      plotTop: FIXED_PADDING.top,
       plotRight,
       plotBottom,
       square: UNITS_PER_CM,
@@ -176,7 +257,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       const point = coordinateToSvg(object.position, layout);
       if (object.position.x < layout.bounds.xMin || object.position.x > layout.bounds.xMax
           || object.position.y < layout.bounds.yMin || object.position.y > layout.bounds.yMax) continue;
-      const size = 14;
+      const size = POINT_MARK_HALF_SIZE;
       points.push(`<path d="M ${n(point.x - size)} ${n(point.y - size)} L ${n(point.x + size)} ${n(point.y + size)} M ${n(point.x - size)} ${n(point.y + size)} L ${n(point.x + size)} ${n(point.y - size)}"/>`);
       continue;
     }

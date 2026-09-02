@@ -67,11 +67,11 @@ function readBlob(blob: Blob): Promise<ArrayBuffer> {
 }
 
 describe("PNG print density", () => {
-  it("calculates the default diagram as 2764 by 2728 pixels at 600 ppi", () => {
+  it("calculates the tightly cropped default diagram at 600 ppi", () => {
     const metrics = getExportMetrics(cloneDefaultDocument());
 
-    expect({ widthCm: metrics.widthCm, heightCm: metrics.heightCm }).toEqual({ widthCm: 11.7, heightCm: 11.55 });
-    expect(getPngRasterSize(metrics.widthCm, metrics.heightCm)).toEqual({ width: 2764, height: 2728 });
+    expect({ widthCm: metrics.widthCm, heightCm: metrics.heightCm }).toEqual({ widthCm: 11.24, heightCm: 11.12 });
+    expect(getPngRasterSize(metrics.widthCm, metrics.heightCm)).toEqual({ width: 2655, height: 2627 });
   });
 
   it("adds a 600 ppi pHYs chunk immediately after the header", async () => {
@@ -97,15 +97,15 @@ describe("PNG print density", () => {
 
   it("verifies the raster dimensions and 600 ppi density before export", async () => {
     const printReady = fakePng(
-      chunk("IHDR", headerData(2764, 2728)),
+      chunk("IHDR", headerData(2655, 2627)),
       chunk("pHYs", densityData(23622)),
       chunk("IEND"),
     );
 
-    await expect(assertPrintReadyPng(printReady, 11.7, 11.55)).resolves.toBeUndefined();
+    await expect(assertPrintReadyPng(printReady, 11.24, 11.12)).resolves.toBeUndefined();
     await expect(readPngMetadata(printReady)).resolves.toEqual({
-      width: 2764,
-      height: 2728,
+      width: 2655,
+      height: 2627,
       horizontalPixelsPerMetre: 23622,
       verticalPixelsPerMetre: 23622,
       densityUnit: 1,
