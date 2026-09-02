@@ -117,4 +117,20 @@ describe("graph builder", () => {
     expect(negativeY.y).toBeGreaterThan(origin.bottom);
     expect(negativeY.y).toBeGreaterThan(negativeX.y + 48);
   });
+
+  it("gives point x and y coordinate inputs equal-width columns", () => {
+    const pointDocument = cloneDefaultDocument();
+    const point = { id: "point-1", kind: "point" as const, position: { x: -4, y: 2 } };
+    pointDocument.objects = [point];
+    pointDocument.selectedObjectId = point.id;
+    saveDiagram(pointDocument);
+    render(<App />);
+
+    const xInput = screen.getByRole("textbox", { name: "Point x" });
+    const yInput = screen.getByRole("textbox", { name: "Point y" });
+    const fields = xInput.closest(".coordinate-fields");
+
+    expect(fields).toHaveClass("coordinate-fields--point");
+    expect(fields).toContainElement(yInput);
+  });
 });

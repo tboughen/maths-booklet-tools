@@ -140,11 +140,12 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .segmented button { min-height: var(--control-md); padding: 0 16px; border: 0; border-radius: 6px; background: transparent; font-size: var(--button-label); font-weight: 600; }
 .segmented button.active { background: #fff; color: var(--blue); box-shadow: 0 1px 4px rgba(30,30,30,.1); }
 .endpoint-section { display: grid; gap: 8px; margin: 14px 0; }
-.coordinate-fields { display: grid; grid-template-columns: 39px 1fr 1fr; align-items: end; gap: 7px; }
+.coordinate-fields { display: grid; grid-template-columns: 39px minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 7px; }
+.coordinate-fields--point { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .coordinate-fields > strong { padding-bottom: 11px; font-size: var(--supporting-text); color: var(--muted); }
 .coordinate-input { display: grid; gap: 3px; }
 .coordinate-input span { color: var(--muted); font-size: var(--supporting-text); font-weight: 700; text-transform: uppercase; }
-.coordinate-input input { width: 100%; height: var(--control-md); padding: 0 12px; border: 1px solid #d5cfc4; border-radius: 7px; background: #fff; font-size: var(--button-label); }
+.coordinate-input input { width: 100%; min-width: 0; height: var(--control-md); padding: 0 12px; border: 1px solid #d5cfc4; border-radius: 7px; background: #fff; font-size: var(--button-label); }
 .visibility-button, .secondary-panel-button, .danger-button, .primary-panel-button { width: 100%; min-height: var(--control-lg); display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 0 16px; border-radius: 8px; font-size: var(--button-label); font-weight: 600; }
 .visibility-button { margin-top: 4px; border: 1px solid #d5cfc4; background: #fff; }
 .visibility-button.active { border-color: #b7cbe4; background: var(--blue-soft); color: var(--blue); }

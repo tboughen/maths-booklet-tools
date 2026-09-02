@@ -17,4 +17,9 @@ describe("accessible control sizing", () => {
     expect(styles).toMatch(/\.scale-options button span \{[^}]*font-size: var\(--button-label\)/);
     expect(styles).toMatch(/\.axis-end-control text \{[^}]*24px/);
   });
+
+  it("uses two equal columns for point coordinates", () => {
+    expect(styles).toMatch(/\.coordinate-fields--point \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(styles).toMatch(/\.coordinate-input input \{[^}]*min-width: 0/);
+  });
 });

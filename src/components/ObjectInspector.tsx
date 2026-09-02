@@ -34,7 +34,7 @@ function CoordinateInput({ label, accessibleLabel, value, onChange }: { label: s
 function CoordinateFields({ prefix, value, onChange }: { prefix?: string; value: Coordinate; onChange: (value: Coordinate) => void }) {
   const accessiblePrefix = prefix ?? "Point";
   return (
-    <div className="coordinate-fields">
+    <div className={`coordinate-fields${prefix ? "" : " coordinate-fields--point"}`}>
       {prefix && <strong>{prefix}</strong>}
       <CoordinateInput label="x" accessibleLabel={`${accessiblePrefix} x`} value={value.x} onChange={(x) => onChange({ ...value, x })} />
       <CoordinateInput label="y" accessibleLabel={`${accessiblePrefix} y`} value={value.y} onChange={(y) => onChange({ ...value, y })} />
