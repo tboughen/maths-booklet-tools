@@ -5,6 +5,7 @@ import {
   MousePointer2,
   Plus,
   Redo2,
+  RotateCcw,
   Slash,
   Undo2,
   X,
@@ -17,6 +18,7 @@ interface ToolbarProps {
   onEquation: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  onReset: () => void;
   canUndo: boolean;
   canRedo: boolean;
   copying: boolean;
@@ -47,6 +49,7 @@ export function Toolbar(props: ToolbarProps) {
       <span className="toolbar-rule" />
       <button className="icon-button" disabled={!props.canUndo} aria-label="Undo" title="Undo (Ctrl+Z)" onClick={props.onUndo}><Undo2 size={18} /></button>
       <button className="icon-button" disabled={!props.canRedo} aria-label="Redo" title="Redo (Ctrl+Y)" onClick={props.onRedo}><Redo2 size={18} /></button>
+      <button className="tool-button reset-button" aria-label="Reset diagram" title="Reset the grid and remove all objects" onClick={props.onReset}><RotateCcw size={17} aria-hidden="true" /><span>Reset</span></button>
       <div className="toolbar-spacer" />
       <div className="copy-split">
         <button className="copy-main" disabled={props.copying} onClick={props.onCopy}>

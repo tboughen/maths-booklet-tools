@@ -83,6 +83,8 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .tool-button:hover:not(:disabled), .icon-button:hover:not(:disabled) { background: #f0ede7; }
 .tool-button--active { color: var(--blue); border-color: #b9cce4; background: var(--blue-soft) !important; }
 .equation-tool { margin-left: 3px; color: #4c5259; }
+.reset-button { padding-inline: 12px; color: #7d4b47; white-space: nowrap; }
+.reset-button:hover:not(:disabled) { background: var(--red-soft); color: var(--red); }
 .toolbar-rule { width: 1px; height: 25px; margin: 0 3px; background: #ddd7cc; }
 .toolbar-spacer { flex: 1; }
 .copy-split { display: flex; margin-left: 5px; border-radius: 9px; box-shadow: 0 4px 13px rgba(40,95,159,.18); }
@@ -96,7 +98,6 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .export-menu button span { display: grid; gap: 2px; }
 .export-menu button strong { font-size: var(--button-label); line-height: 18px; }
 .export-menu button small { color: var(--muted); font-size: var(--supporting-text); line-height: 16px; }
-.menu-rule { display: block; height: 1px; margin: 5px; background: #e3ded5; }
 
 .graph-stage { position: relative; min-height: 580px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; background: #f7f4ed; }
 .graph-stage[data-tool="segment"] .graph-canvas { cursor: crosshair; }
@@ -239,6 +240,8 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .tool-button span { display: none; }
   .copy-main { padding: 0 10px; }
   .copy-main svg { display: none; }
+  .reset-button { width: var(--control-lg); padding: 0; }
+  .reset-button span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

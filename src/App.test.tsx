@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
@@ -6,7 +6,10 @@ import { cloneDefaultDocument } from "./domain/diagram";
 import { saveDiagram } from "./domain/persistence";
 
 describe("graph builder", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
 
   it("adds and independently changes multiple equation-defined lines", async () => {
     const user = userEvent.setup();
@@ -173,5 +176,26 @@ describe("graph builder", () => {
     expect(lines[0]).toHaveAttribute("stroke-dasharray", "10.8 7.2");
     expect(lines[1]).not.toHaveAttribute("stroke-dasharray");
     expect(container.querySelector(".object-kind-icon")).toBeNull();
+  });
+
+  it("resets the whole diagram from the toolbar and keeps the action undoable", async () => {
+    const user = userEvent.setup();
+    const changedDocument = cloneDefaultDocument();
+    changedDocument.axes.x.positiveSquares = 7;
+    changedDocument.objects = [{ id: "point-1", kind: "point", position: { x: 2, y: 3 } }];
+    changedDocument.selectedObjectId = "point-1";
+    saveDiagram(changedDocument);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Reset diagram" }));
+
+    expect(confirm).toHaveBeenCalledWith("Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.");
+    expect(screen.getByText("0 objects")).toBeInTheDocument();
+    expect(screen.getByText("Nothing selected")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    expect(screen.getByText("1 object")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Point x" })).toHaveValue("2");
   });
 });

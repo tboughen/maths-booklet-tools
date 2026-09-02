@@ -7,7 +7,6 @@ import {
   Grid3X3,
   LoaderCircle,
   LockKeyhole,
-  RotateCcw,
   Shapes,
   X,
 } from "lucide-react";
@@ -252,10 +251,13 @@ export default function App() {
     }
   }
 
-  function newDiagram() {
-    if (document.objects.length && !window.confirm("Start a new diagram? You can undo this action afterwards.")) return;
+  function resetDiagram() {
+    const resetDocument = cloneDefaultDocument();
+    const meaningfulDocument = { ...document, selectedObjectId: null };
+    if (!sameDocument(meaningfulDocument, resetDocument)
+        && !window.confirm("Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.")) return;
     clearSavedDiagram();
-    commit(cloneDefaultDocument());
+    commit(resetDocument);
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -301,6 +303,7 @@ export default function App() {
               onEquation={() => openEquationEditor()}
               onUndo={undo}
               onRedo={redo}
+              onReset={resetDiagram}
               canUndo={history.past.length > 0}
               canRedo={history.future.length > 0}
               copying={copying}
@@ -311,8 +314,6 @@ export default function App() {
               <div className="export-menu" role="menu">
                 <button role="menuitem" onClick={() => { downloadDiagramSvg(document); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Best for Word and resizing</small></span></button>
                 <button role="menuitem" disabled={downloadingPng} onClick={handlePngDownload}>{downloadingPng ? <LoaderCircle className="spin" size={17} /> : <FileImage size={17} />}<span><strong>Download PNG</strong><small>600 ppi print image</small></span></button>
-                <span className="menu-rule" />
-                <button role="menuitem" onClick={newDiagram}><RotateCcw size={17} /><span><strong>New diagram</strong><small>Reset the grid and objects</small></span></button>
               </div>
             )}
             <GraphCanvas
