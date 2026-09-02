@@ -229,7 +229,7 @@ export default function App() {
     setExportMenuOpen(false);
     try {
       await copyDiagram(document);
-      setToast({ kind: "success", title: "Diagram copied", detail: "Switch to Word and press Ctrl+V." });
+      setToast({ kind: "success", title: "Ready for Word", detail: "Press Ctrl+V in Word. Grid squares will paste at 1 cm." });
     } catch {
       setToast({ kind: "error", title: "Copy was blocked", detail: "Use Download SVG below, then insert it into Word for the sharpest result." });
       setExportMenuOpen(true);
@@ -312,8 +312,8 @@ export default function App() {
             />
             {exportMenuOpen && (
               <div className="export-menu" role="menu">
-                <button role="menuitem" onClick={() => { downloadDiagramSvg(document); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Best for Word and resizing</small></span></button>
-                <button role="menuitem" disabled={downloadingPng} onClick={handlePngDownload}>{downloadingPng ? <LoaderCircle className="spin" size={17} /> : <FileImage size={17} />}<span><strong>Download PNG</strong><small>600 ppi print image</small></span></button>
+                <button role="menuitem" onClick={() => { downloadDiagramSvg(document); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Vector · best for resizing</small></span></button>
+                <button role="menuitem" disabled={downloadingPng} onClick={handlePngDownload}>{downloadingPng ? <LoaderCircle className="spin" size={17} /> : <FileImage size={17} />}<span><strong>Download PNG</strong><small>600 ppi · print-ready image</small></span></button>
               </div>
             )}
             <GraphCanvas

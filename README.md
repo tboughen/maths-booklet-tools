@@ -12,7 +12,7 @@ A teacher-friendly website for creating the fiddly diagrams needed in student-fa
 - Add or remove a square at either end of either axis.
 - Set each axis independently to 0.5, 1 or 2 units per square.
 - Undo and redo changes, with automatic recovery on the same device.
-- Copy the clean diagram to the clipboard, download scalable SVG, or download a 600 ppi PNG.
+- Copy a Word-ready 600 ppi diagram at its intended physical size, download scalable SVG, or download a 600 ppi PNG.
 
 Selection handles and editing controls never appear in copied or downloaded diagrams.
 
@@ -21,7 +21,7 @@ Selection handles and editing controls never appear in copied or downloaded diag
 1. Set the grid size and scale.
 2. Use **Point**, **Segment**, or **Line by equation** to add objects.
 3. Choose **Select** and click an object to edit only that object.
-4. Choose **Copy diagram**, switch to Word, and press `Ctrl+V`.
+4. Choose **Copy for Word**, switch to Word, and press `Ctrl+V`.
 5. If clipboard image access is blocked by the browser, use **Download SVG** and insert that file into Word.
 
 The export declares every grid square as exactly 1 cm. Word can automatically shrink an image that is wider than the available page area, so check the image size after pasting an unusually wide graph.

@@ -52,11 +52,11 @@ export function Toolbar(props: ToolbarProps) {
       <button className="tool-button reset-button" aria-label="Reset diagram" title="Reset the grid and remove all objects" onClick={props.onReset}><RotateCcw size={17} aria-hidden="true" /><span>Reset</span></button>
       <div className="toolbar-spacer" />
       <div className="copy-split">
-        <button className="copy-main" disabled={props.copying} onClick={props.onCopy}>
+        <button className="copy-main" disabled={props.copying} title="Recommended: copy a 600 ppi image sized for Word" onClick={props.onCopy}>
           {props.copying ? <LoaderCircle className="spin" size={17} /> : <Copy size={17} />}
-          {props.copying ? "Preparing…" : "Copy diagram"}
+          {props.copying ? "Preparing…" : "Copy for Word"}
         </button>
-        <button className="copy-more" aria-label="More export options" aria-haspopup="menu" onClick={props.onToggleMenu}><ChevronDown size={16} /></button>
+        <button className="copy-more" aria-label="Download options" aria-haspopup="menu" onClick={props.onToggleMenu}><ChevronDown size={16} /></button>
       </div>
     </div>
   );

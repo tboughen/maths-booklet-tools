@@ -19,7 +19,6 @@ async function writeClipboardRepresentations(representations: Record<string, Blo
 }
 
 export async function copyDiagram(document: DiagramDocumentV1): Promise<void> {
-  const svg = renderDiagramSvg(document);
   const metrics = getExportMetrics(document);
   const png = await renderDiagramPng(document);
   const dataUrl = await blobToDataUrl(png);
@@ -28,21 +27,6 @@ export async function copyDiagram(document: DiagramDocumentV1): Promise<void> {
     "image/png": png,
     "text/html": new Blob([html], { type: "text/html" }),
   };
-  const supportsSvg = typeof ClipboardItem !== "undefined"
-    && typeof ClipboardItem.supports === "function"
-    && ClipboardItem.supports("image/svg+xml");
-
-  if (supportsSvg) {
-    try {
-      await writeClipboardRepresentations({
-        ...baseRepresentations,
-        "image/svg+xml": new Blob([svg], { type: "image/svg+xml" }),
-      });
-      return;
-    } catch {
-      // Some browsers report SVG support but reject mixed clipboard items.
-    }
-  }
   try {
     await writeClipboardRepresentations(baseRepresentations);
   } catch {
