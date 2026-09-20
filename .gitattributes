@@ -1,3 +1,5 @@
 * text=auto
 *.yml text eol=lf
 *.yaml text eol=lf
+public/bank/assets/** binary
+public/bank/pdfjs/** -text

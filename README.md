@@ -2,6 +2,23 @@
 
 A teacher-friendly website for creating the fiddly diagrams needed in student-facing maths booklets. The first tool builds Edexcel-style coordinate graphs on a one-centimetre square grid and prepares them for Microsoft Word and high-quality printing.
 
+## Question bank
+
+[Open the question bank](https://tboughen.github.io/maths-booklet-tools/?tool=question-bank).
+The initial release contains 97 reviewed GCSE maths questions across 113 Sparx
+topics, with original notation, diagrams and separate mark schemes.
+
+Search by Sparx code or topic, filter by tier/calculator/source, and select
+questions to export a student paper and matching mark schemes. Compact and
+writing-space layouts are available. Some topics await reviewed questions.
+
+Topic links use `?tool=question-bank&code=U851&tier=F`; an optional `question`
+parameter selects a stable question ID. Links open with answers hidden.
+The graph tool remains the default page and is also available at `?tool=graph`.
+
+Only the current reviewed assets are packaged. The website contains no class
+workbooks or pupil data. Questions and graphs are processed in the browser.
+
 ## Current graph tool
 
 - Add any number of independent points, line segments and straight lines.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
+  BookOpen,
   ChevronDown,
   CircleHelp,
   Download,
@@ -290,7 +291,7 @@ export default function App() {
             <div className="tools-popover" onClick={(event) => event.stopPropagation()}>
               <p className="eyebrow">GRAPHS</p>
               <button className="current"><Grid3X3 size={18} /><span><strong>1 cm square grid</strong><small>Current tool</small></span><Check size={16} /></button>
-              <p className="coming-soon">More booklet tools can be added here later.</p>
+              <button onClick={() => { location.href = "?tool=question-bank"; }}><BookOpen size={18} /><span><strong>Question bank</strong><small>Reviewed practice questions</small></span><ExternalLink size={16} /></button>
             </div>
           )}
           <div className={`save-indicator save-indicator--${saveState}`}><span />{saveMessage}</div>
