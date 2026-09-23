@@ -92,7 +92,7 @@
 .qb-notice { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; margin-bottom: 12px; background: #e2f1fe; color: #244b73; border-left: 3px solid #0f62fe; font-size: 14px; }
 .qb-notice button { border: 0; background: transparent; }
 .qb-display { position: fixed; inset: 0; z-index: 100; background: white; overflow: hidden; }
-.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage) { display: none; }
+.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage):not(.qb-display-notes) { display: none; }
 .qb-display .qb-main { max-width: none; padding: 0; margin: 0; }
 .qb-display .qb-workspace { display: block; }
 .qb-display .qb-question-card { border: 0; border-radius: 0; box-shadow: none; }
@@ -250,3 +250,6 @@ html:has(.qb-app), body:has(.qb-app) { height: 100%; overflow: hidden; }
   .qb-header, .qb-toolbar, .qb-footer, .qb-source-actions { display: none; }
 }
 .qb-erratum { margin: 4px 0 0; color: #80510b; font-size: 12px; line-height: 1.35; max-width: 80ch; }
+.qb-display-notes { flex: 0 0 auto; padding: 14px 200px 14px 24px; background: #fff9eb; border-bottom: 1px solid #ead7ac; }
+.qb-display-notes .qb-erratum { margin: 0; max-width: none; color: #684000; font-size: 18px; line-height: 1.4; }
+@media (max-width: 760px) { .qb-display-notes { padding: 56px 16px 12px; } }

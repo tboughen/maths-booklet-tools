@@ -43,7 +43,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
   const mf = await scheme.embedFont(StandardFonts.Helvetica); const mb = await scheme.embedFont(StandardFonts.HelveticaBold);
   const marks = snapshots.reduce((n, q) => n + q.marks, 0);
   for (const [doc, name] of [[student, "Questions"], [scheme, "Mark schemes"]] as const) {
-    doc.setTitle(`Maths question bank - ${name}`); doc.setSubject(`${snapshots.length} source questions, ${marks} marks. Catalogue ${version}.`);
+    doc.setTitle(`Maths question bank - ${name}`); doc.setSubject(`${snapshots.length} source questions, ${marks} mark${marks === 1 ? "" : "s"}. Catalogue ${version}.`);
     doc.setCreator("Maths Tools question bank"); doc.setLanguage("en-GB");
     doc.catalog.getOrCreateViewerPreferences().setPrintScaling(PrintScaling.None);
   }
@@ -61,7 +61,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
     for (let p = 0; p < pages.length; p++) {
       abortIfNeeded(signal);
       const embedded = pages[p];
-      const label = `${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | ${q.marks} marks`;
+      const label = `${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | ${q.marks} mark${q.marks === 1 ? "" : "s"}`;
       const notes = p === 0 ? noteLines(q.sourceErrata, sf, A4[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       // Reserve the question heading and the footer/calibration area before
@@ -102,7 +102,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const notes = q.schemeSourceNote ? noteLines([{note:q.schemeSourceNote}], mf, LANDSCAPE[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       const scale = Math.min(1, (LANDSCAPE[0]-48)/embedded.width, (LANDSCAPE[1]-85-noteHeight)/embedded.height);
-      page.drawText(`${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | Mark scheme | ${q.marks} marks`, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
+      page.drawText(`${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | Mark scheme | ${q.marks} mark${q.marks === 1 ? "" : "s"}`, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
       notes.forEach((note,i)=>page.drawText(note,{x:24,y:LANDSCAPE[1]-46-i*10,font:mf,size:8,color:rgb(.35,.25,.1)}));
       page.drawPage(embedded,{x:24,y:LANDSCAPE[1]-56-noteHeight-embedded.height*scale,width:embedded.width*scale,height:embedded.height*scale});
     }
