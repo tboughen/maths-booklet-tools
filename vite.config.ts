@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { catalogueAssetPaths } from "./bankAssets";
 
 export default defineConfig(({ command, mode }) => ({
   publicDir: command === "serve" ? "public" : false,
@@ -10,8 +11,6 @@ export default defineConfig(({ command, mode }) => ({
     apply: "build",
     generateBundle() {
       const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8"));
-      const revision = catalogue.questions[0].questionPdf.split("/")[2];
-      if (!/^[a-f0-9]{12}$/.test(revision)) throw new Error("Invalid reviewed asset revision");
       const add = (relative: string) => this.emitFile({type: "asset", fileName: relative, source: readFileSync(join("public", relative))});
       const tree = (relative: string) => {
         for (const item of readdirSync(join("public", relative), {withFileTypes: true})) {
@@ -20,7 +19,8 @@ export default defineConfig(({ command, mode }) => ({
         }
       };
       add("favicon.svg"); add("bank/catalogue.json");
-      tree(`bank/assets/${revision}`); tree("bank/pdfjs");
+      for (const asset of catalogueAssetPaths(catalogue)) add(asset);
+      tree("bank/pdfjs");
     },
   }],
   // Keep GitHub Pages links and PDF worker/font requests under the repository path.
