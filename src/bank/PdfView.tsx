@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, RotateCcw } from "lucide-react";
 import { assetUrl, loadPdf, renderPage } from "./pdf";
 import type { BankView } from "./model";
+import { overlays, type Overlay } from "./overlays";
 
-interface Props { path: string; view: BankView; scale: number; retryKey: number; onReady?: () => void; }
+interface Props { path: string; view: BankView; scale: number; retryKey: number; onReady?: () => void; overlay?: Overlay; }
 
-export function PdfView({path, view, scale, retryKey, onReady}: Props) {
+export function PdfView({path, view, scale, retryKey, onReady, overlay = "off"}: Props) {
   const host = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -32,6 +33,6 @@ export function PdfView({path, view, scale, retryKey, onReady}: Props) {
   return <div className="qb-pdf" style={{width: view.width * scale, minHeight: view.height * scale}} aria-busy={loading}>
     {loading && <div className="qb-view-status" role="status"><LoaderCircle className="spin" size={18}/> Preparing view…</div>}
     {error && <div className="qb-view-error" role="alert"><p>{error}</p><button className="qb-button" onClick={() => setLocalRetry(x => x + 1)}><RotateCcw size={16}/> Retry</button><a className="qb-button" href={assetUrl(path)} target="_blank" rel="noreferrer">Open PDF</a></div>}
-    <div ref={host} className="qb-canvas-host"/>
+    <div className="qb-canvas-surface"><div ref={host} className="qb-canvas-host"/>{overlay !== "off" && <div className="qb-coloured-overlay" aria-hidden="true" style={{backgroundColor: overlays.find(option => option.value === overlay)?.colour}}/>}</div>
   </div>;
 }
