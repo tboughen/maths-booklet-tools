@@ -19,7 +19,9 @@ const pages=async(blob:Blob)=>(await PDFDocument.load(new Uint8Array(await blob.
 it("uses source working space once and preserves legacy generated space",async()=>{
   expect(q).toBeDefined();
   const source=await makePapers([{...q,writingSpacePolicy:"source"}],catalogue.version,"writing",()=>{});
-  const legacy=await makePapers([q],catalogue.version,"writing",()=>{});
+  const legacyQuestion={...q};
+  delete legacyQuestion.writingSpacePolicy;
+  const legacy=await makePapers([legacyQuestion],catalogue.version,"writing",()=>{});
   const generated=await makePapers([{...q,writingSpacePolicy:"generated"}],catalogue.version,"writing",()=>{});
   const none=await makePapers([{...q,writingSpacePolicy:"none"}],catalogue.version,"writing",()=>{});
   expect(await pages(source.questions)).toBe(q.printPages.length);
