@@ -85,7 +85,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
         studentPage!.drawLine({start: {x: 250,y: 37}, end: {x: 250 + 50 * 72 / 25.4,y: 37}, thickness: .7});
       }
     }
-    if (preset === "writing") {
+    if (preset === "writing" && (q.writingSpacePolicy === undefined || q.writingSpacePolicy === "generated")) {
       let room = Math.max(100, Math.min(q.marks * 26, 208));
       if (sy - room < 42) addStudent();
       studentPage!.drawText(`Working space - question ${index + 1}`, {x: 24, y: sy - 8, size: 9, font: sf, color: rgb(.4,.45,.5)});

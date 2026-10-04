@@ -46,6 +46,7 @@ export interface BankQuestion {
   schemePdf: string;
   printPages: {width: number; height: number}[];
   scaleSensitive: boolean;
+  writingSpacePolicy?: "source" | "generated" | "none";
   equivalentId?: string;
   equivalentSource?: string;
   review: "reviewed" | "draft";
@@ -163,6 +164,7 @@ export function verifyCatalogue(data: unknown): BankCatalogue {
     if (ids.has(q.id) || !q.questionViews.length || !q.schemeViews.length || !q.questionPdf || !q.printPdf || !q.schemePdf || q.codes.some(c => !codes.has(c))) {
       throw new Error("A question failed its catalogue check. Please report the affected question.");
     }
+    if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) throw new Error("Question writing-space policy is invalid.");
     if (q.parts.reduce((sum, p) => sum + p.marks, 0) !== q.marks) throw new Error("Question marks do not match the catalogue.");
     ids.add(q.id);
   }
