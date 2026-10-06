@@ -24,7 +24,7 @@ jobs:
         run: docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
       - name: Qualify image under the deployment memory bound
         run: |
-          docker run -d --name maths-graph-test --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787 -e GRAPH_PUBLIC_URL=http://127.0.0.1:8787 -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production maths-graph-candidate
+          docker run -d --name maths-graph-test --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787 -e RENDER_EXTERNAL_URL=http://127.0.0.1:8787 -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production maths-graph-candidate
           node service-dist/smoke.js http://127.0.0.1:8787
       - name: Stop test container
         if: always()

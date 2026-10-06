@@ -47,6 +47,15 @@ See [operations and release](docs/GRAPH-MCP-RUNBOOK.txt) and
 [ChatGPT connection and acceptance](docs/GRAPH-MCP-CONNECTION.txt).
 Adding these files does not deploy a service or connect a ChatGPT account.
 
+Free hosting is configured in `render.yaml`. Use a free Render workspace without
+a payment method and review that the deployment lists only one Free web service.
+See [free setup](docs/GRAPH-MCP-FREE-SETUP.txt) for deployment and wake-up limits.
+
+[Deploy the graph integration candidate to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Ftboughen%2Fmaths-booklet-tools%2Ftree%2Fcodex%2Fchatgpt-graph-integration)
+
+This button uses the review branch. Website import support must also pass the
+normal GitHub Pages release checks before the full editor round trip is live.
+
 ## Using the tool in Word
 
 1. Set the grid size and scale.
@@ -94,4 +103,6 @@ If the repository is renamed, update the production `base` value in `vite.config
 - `src/export` produces the clean SVG, physical-size clipboard content and 600 ppi PNG.
 - `src/**/*.test.*` covers the domain, exports and core multi-object workflow.
 
-No diagram is uploaded to a server. Work is saved only in the browser's local storage.
+Human drawing and exports stay in the browser, with drafts saved locally.
+When you select the optional ChatGPT graph plugin, its graph inputs are sent to
+the renderer to produce files; no graph history is stored by the service.

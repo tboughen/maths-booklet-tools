@@ -56,25 +56,40 @@ continuation or one line. Run the smoke command from a second terminal.
 under 512 MiB. It deploys nothing. Existing deploy.yml remains the website
 release workflow. npm test builds the service before running its tests.
 
-Provisional host
-render.graph-mcp.yaml describes one Docker web service in Frankfurt with manual
-deploys, no disk/database, and compute plan 0.5c-512mb (formerly Starter).
-Review the provider's actual order summary and spending controls before creating
-it. On 6 October 2026, Render's pricing search result lists $7/month for this
-compute size. Tax, workspace, bandwidth and build charges may be additional.
-This is a public advertised compute price, not an authenticated account quote.
-The original $10–20/month planning allowance remains an estimate, not approval.
-Sources: https://render.com/pricing and https://render.com/docs/compute-plans
-No provider purchase or public service is created by adding this blueprint.
+Free host
+Tim's free-only instruction supersedes the earlier paid-host proposal.
+render.yaml describes one Free Docker web service in Frankfurt with manual
+deploys and no disk/database. Follow GRAPH-MCP-FREE-SETUP.txt. Use a free
+workspace without a payment method; do not upgrade or add paid resources.
+Review the deployment form: one Free web service, with no paid resources.
+Render suspends free services at the instance-hours limit. Without a payment
+method, excess bandwidth suspends services and excess build minutes stops new
+builds instead of charging. Included allowances are workspace-wide; existing
+resources may share them. This is bounded free hosting, not unlimited capacity.
+Source checked 6 October 2026: https://render.com/docs/free
+Free services sleep after 15 idle minutes and take about one minute to wake.
+Before connecting or using ChatGPT after an idle period, open /healthz and wait
+for its JSON response. If a tool request times out, wait for health and retry
+once. Do not add scheduled keep-awake traffic. Record actual cold-start behaviour
+in the target ChatGPT account before considering the integration accepted.
+Service state is disposable; signed links regenerate artifacts from their
+embedded graph. Keep the generated signing key in Render across restarts.
+No account, purchase or public service is created by adding this blueprint.
+autoDeployTrigger off disables code auto-deploys; linked Blueprint changes can
+still change resources on sync. Review Blueprint updates before applying them.
 
 Production configuration
-  GRAPH_PUBLIC_URL=https://<actual service host>/
+  RENDER_EXTERNAL_URL=<assigned automatically by Render>
   GRAPH_EDITOR_URL=https://tboughen.github.io/maths-booklet-tools/
   DOWNLOAD_SIGNING_KEY=<provider secret, at least 32 characters>
   DOWNLOAD_KEY_ID=initial
   MAX_DAILY_OUTPUT_BYTES=209715200
   PORT=<provider port>; BIND_HOST=0.0.0.0 (Docker defaults)
 Public URL must be HTTPS and a clean origin; local HTTP is loopback only.
+The CLI uses nonempty GRAPH_PUBLIC_URL, then nonempty RENDER_EXTERNAL_URL,
+then the local development origin. On Render leave GRAPH_PUBLIC_URL unset so
+the assigned hostname, health checks and signed links agree from first startup.
+For another provider, set GRAPH_PUBLIC_URL to its actual HTTPS origin.
 Host must match the configured origin, including port. Requests with an Origin
 header must use that same origin. The human site never fetches the service.
 
@@ -117,8 +132,10 @@ Actual ChatGPT file handling for this path is a mandatory live acceptance gate.
 
 Release sequence and gates
 1. Review PR and font samples. Require local checks and Linux image CI.
-2. Obtain the concrete hosting/spending decision. Verify authenticated quote,
-   admin/account access, logs and disable controls. Alerts are not hard caps.
+2. Verify the Free-only deployment settings, free workspace without a payment
+   method, admin/account access, logs and disable controls. If signup requires
+   billing details or paid resources, stop and report that account-specific
+   requirement instead of accepting a charge. Alerts are not hard caps.
 3. Release human interchange first through the normal website review workflow.
    Fetch the live HTML/assets and verify the deployed commit/build. Check graph
    editing, legacy recovery, import/undo, exports and question-bank navigation.
@@ -126,6 +143,8 @@ Release sequence and gates
    the approved manifest. Run smoke against its real HTTPS origin.
 5. Follow GRAPH-MCP-CONNECTION.txt and record the actual ChatGPT account/client,
    tools/calls, preview, downloads, imported/revised JSON and image delivery.
+   Test once while awake and once after 15 idle minutes, without keep-awake
+   traffic. Record wake time, timeout/retry and signed download behaviour.
 6. Verify maximum/large-file delivery in that client. A failure holds launch;
    do not silently add a temporary store or claim model access is working.
 7. Deliberately stop the service and confirm humans can still create/export.
