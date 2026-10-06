@@ -1,0 +1,152 @@
+GRAPH INTEGRATION — OPERATIONS AND RELEASE
+Implementation candidate. Hosting, live release and actual ChatGPT acceptance
+are separate stages. Never treat a passing local test as a connected account.
+
+Architecture
+The website keeps drawing, editing, undo, local recovery and browser exports.
+It does not call the service. Graph links and files contain a versioned document
+and its font profile. packages/graph-core owns geometry, equations, validation,
+SVG and PNG byte checks. services/graph-mcp exposes stateless Streamable HTTP.
+The service needs no OpenAI API key, graph database or question-bank assets.
+The existing question-bank routes/content are outside this change.
+
+Local development (Node 24; run commands at repository root)
+  npm ci
+  npm run lint
+  npm test
+  npm run typecheck
+  npm run build
+  npm run test:e2e
+  npm run build:service
+
+The default browser test uses installed Chrome. For reproducible CI:
+  npx playwright install --with-deps chromium
+  PLAYWRIGHT_CHANNEL=chromium npm run test:e2e
+In PowerShell set $env:PLAYWRIGHT_CHANNEL="chromium" first.
+Browser tests are automated development checks, not the ChatGPT graph workflow.
+test:watch requires a current build:service for native-worker tests.
+
+Set environment variables through a shell or provider secret controls:
+  GRAPH_PUBLIC_URL=http://127.0.0.1:8787
+  DOWNLOAD_SIGNING_KEY=<random secret of at least 32 characters>
+Then npm run start:service.
+Generate a secret with Node crypto.randomBytes(32).toString("base64url").
+Do not save a real secret in source, a screenshot, a Trello card or a link.
+Test a running service with:
+  node service-dist/smoke.js http://127.0.0.1:8787
+
+Deployment package
+Dockerfile.graph-mcp pins the official Node 24 bookworm-slim image by digest.
+The runtime installs services/graph-mcp/package-lock.json, with only MCP SDK,
+zod and resvg. It runs as the node user and includes the three pinned full
+STIX 2.0.2 fonts and their exact release license. No school files are in the
+Docker context. The site build contains fonts but no service or signing keys.
+service-dist/manifest.json records SHA-256 source/font/runtime-lock fingerprints.
+/healthz returns the manifest buildId and renderer version for release checks.
+
+Build/run a Linux container:
+  docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
+  docker run --rm --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787
+    -e GRAPH_PUBLIC_URL=http://127.0.0.1:8787
+    -e DOWNLOAD_SIGNING_KEY=<test secret> maths-graph-candidate
+The run command above is shown across lines for readability; use shell-specific
+continuation or one line. Run the smoke command from a second terminal.
+
+.github/workflows/graph-checks.yml checks PRs, including Linux Docker rendering
+under 512 MiB. It deploys nothing. Existing deploy.yml remains the website
+release workflow. npm test builds the service before running its tests.
+
+Provisional host
+render.graph-mcp.yaml describes one Docker web service in Frankfurt with manual
+deploys, no disk/database, and compute plan 0.5c-512mb (formerly Starter).
+Review the provider's actual order summary and spending controls before creating
+it. On 6 October 2026, Render's pricing search result lists $7/month for this
+compute size. Tax, workspace, bandwidth and build charges may be additional.
+This is a public advertised compute price, not an authenticated account quote.
+The original $10–20/month planning allowance remains an estimate, not approval.
+Sources: https://render.com/pricing and https://render.com/docs/compute-plans
+No provider purchase or public service is created by adding this blueprint.
+
+Production configuration
+  GRAPH_PUBLIC_URL=https://<actual service host>/
+  GRAPH_EDITOR_URL=https://tboughen.github.io/maths-booklet-tools/
+  DOWNLOAD_SIGNING_KEY=<provider secret, at least 32 characters>
+  DOWNLOAD_KEY_ID=initial
+  MAX_DAILY_OUTPUT_BYTES=209715200
+  PORT=<provider port>; BIND_HOST=0.0.0.0 (Docker defaults)
+Public URL must be HTTPS and a clean origin; local HTTP is loopback only.
+Host must match the configured origin, including port. Requests with an Origin
+header must use that same origin. The human site never fetches the service.
+
+Limits and privacy
+MCP body: 64 KiB; 50 graph objects; 100 revision operations. Human JSON file:
+1 MiB. URLs: 8192 characters. Print PNG: 32 million pixels at 600 ppi;
+preview: 2 million pixels; artifact: 10 MiB. Raster work is one native child
+at a time, with three queued jobs, 15-second queue/job deadlines, cancellation,
+128 MiB JS heap per child and the host/container's total memory bound.
+The service renders and validates the print artifact before reporting success.
+
+40 requests/minute per socket address and 120 globally; 200 MiB served-image/
+inline-file bytes per UTC day per process. Counters reset on restart and are
+not a provider spending cap. Behind a proxy, clients share the proxy's address;
+we deliberately do not trust arbitrary forwarded IP headers. Use one instance
+for the initial release. Multi-instance/durable quotas need a separate change.
+MCP metadata/JSON overhead is not counted as image/file byte usage.
+
+No user account or graph history is stored. The public endpoint accepts bounded
+anonymous graph requests; anyone who knows its URL can call it. Signed download
+links prevent forged download specifications, not anonymous graph creation.
+URLs contain readable graph data. Never add pupil names, secrets or transcripts.
+Logs contain only request ID, status, elapsed time and bytes; check the host's
+access logs separately and disable query/body capture. No external SVG, CSS,
+fonts, images or executable expressions are accepted as graph inputs.
+
+Keys, downloads and versioning
+Download links expire after seven days and contain the complete graph, format,
+renderer version and expiry, signed with HMAC-SHA256. No artifact disk is needed.
+Editable JSON and editor fragment links do not depend on service availability
+or download expiry. Hashes normalise key order, defaults and selection.
+For rotation, choose a NEW DOWNLOAD_KEY_ID and secret. Keep old IDs/secrets in
+DOWNLOAD_PREVIOUS_KEYS as a JSON object for at least seven days:
+  {"initial":"<previous secret>"}
+Then remove the expired old key deliberately. Never reuse an ID during overlap.
+Persist keys across ordinary redeploys. Keep support for graph-1 throughout the
+outstanding links' validity; reject unknown schemas rather than reinterpret them.
+Large graphs use embedded MCP SVG/JSON/PNG resources if links exceed the cap.
+Actual ChatGPT file handling for this path is a mandatory live acceptance gate.
+
+Release sequence and gates
+1. Review PR and font samples. Require local checks and Linux image CI.
+2. Obtain the concrete hosting/spending decision. Verify authenticated quote,
+   admin/account access, logs and disable controls. Alerts are not hard caps.
+3. Release human interchange first through the normal website review workflow.
+   Fetch the live HTML/assets and verify the deployed commit/build. Check graph
+   editing, legacy recovery, import/undo, exports and question-bank navigation.
+4. Deploy the separately approved service image. Compare /healthz buildId with
+   the approved manifest. Run smoke against its real HTTPS origin.
+5. Follow GRAPH-MCP-CONNECTION.txt and record the actual ChatGPT account/client,
+   tools/calls, preview, downloads, imported/revised JSON and image delivery.
+6. Verify maximum/large-file delivery in that client. A failure holds launch;
+   do not silently add a temporary store or claim model access is working.
+7. Deliberately stop the service and confirm humans can still create/export.
+   Record which stages actually passed; do not infer deployment from a commit.
+
+Rollback and immediate disable
+Stop/suspend the graph web service or disconnect its custom plugin to disable
+AI rendering. The human editor keeps working locally, including graph-file import.
+Do not rotate keys merely to hide operational problems; saved download links
+need their old keys. For service rollback deploy the previous approved image
+and preserve key IDs and graph-1 support.
+For website rollback retain the old site artifact/commit before release. The
+legacy localStorage key is untouched by this upgrade, so the older site can
+recover its old draft. Save current editable JSON BEFORE rolling back: an old
+site cannot read new envelopes or edits. Unreadable new saved envelopes require
+an explicit recovery backup before autosave can resume.
+
+Known qualification limits
+Manual Word insertion and target-account ChatGPT delivery remain live gates.
+Embedded fonts in browser SVG were checked in Chrome; server SVG outlines
+glyphs for portability. Prefer verified PNG for a fixed-size Word image.
+The existing website PDF.js dependency has a high-severity advisory requiring
+a major bank-renderer upgrade. It is excluded from the service runtime and was
+not upgraded as part of graph integration.

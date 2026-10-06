@@ -1,6 +1,7 @@
 import type { DiagramDocumentV1 } from "../domain/types";
 import { assertPrintReadyPng, renderDiagramPng } from "./png";
 import { getExportMetrics, renderDiagramSvg } from "./svg";
+import { embedPortableFonts } from "./portable";
 
 function getLegacyCopyCommand(): ((commandId: string) => boolean) | undefined {
   return (document as unknown as { execCommand?: (commandId: string) => boolean }).execCommand;
@@ -73,7 +74,7 @@ export async function copyDiagram(document: DiagramDocumentV1): Promise<void> {
   }
 }
 
-function downloadBlob(blob: Blob, filename: string): void {
+export function downloadBlob(blob: Blob, filename: string): void {
   const anchor = document.createElement("a");
   const url = URL.createObjectURL(blob);
   anchor.href = url;
@@ -84,8 +85,10 @@ function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function downloadDiagramSvg(document: DiagramDocumentV1): void {
-  downloadBlob(new Blob([renderDiagramSvg(document)], { type: "image/svg+xml;charset=utf-8" }), "maths-graph.svg");
+export async function downloadDiagramSvg(document: DiagramDocumentV1): Promise<void> {
+  const source = renderDiagramSvg(document);
+  const svg = document.styleProfile === "portable-v1" ? await embedPortableFonts(source) : source;
+  downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "maths-graph.svg");
 }
 
 export async function downloadDiagramPng(document: DiagramDocumentV1): Promise<void> {

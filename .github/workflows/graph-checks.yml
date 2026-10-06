@@ -1,0 +1,37 @@
+name: Graph integration checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint && npm test && npm run typecheck && npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+      - name: Build Linux service image
+        run: docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
+      - name: Qualify image under the deployment memory bound
+        run: |
+          docker run -d --name maths-graph-test --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787 -e GRAPH_PUBLIC_URL=http://127.0.0.1:8787 -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production maths-graph-candidate
+          node service-dist/smoke.js http://127.0.0.1:8787
+      - name: Stop test container
+        if: always()
+        run: docker rm -f maths-graph-test || true
+      - name: Retain browser evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: graph-browser-evidence
+          path: test-results

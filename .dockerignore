@@ -1,0 +1,15 @@
+*
+!package.json
+!package-lock.json
+!tsconfig.service.json
+!packages
+!packages/graph-core
+!packages/graph-core/src
+!packages/graph-core/src/**
+!services
+!services/graph-mcp
+!services/graph-mcp/**
+!assets
+!assets/graph-fonts
+!assets/graph-fonts/**
+!Dockerfile.graph-mcp
