@@ -24,6 +24,7 @@ import {
   AXIS_X_NAME,
   AXIS_Y_NAME,
   MATHS_FONT_FAMILY,
+  PORTABLE_FONT_FAMILY,
   STRAIGHT_DASH_GAP_CENTIMETRES,
   STRAIGHT_DASH_LENGTH_CENTIMETRES,
   Y_AXIS_LABEL_GAP_CENTIMETRES,
@@ -185,6 +186,7 @@ function Cross({ point, size = 8, className = "graph-point" }: { point: Coordina
 }
 
 export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }: GraphCanvasProps) {
+  const fontFamily = document.styleProfile === "portable-v1" ? PORTABLE_FONT_FAMILY : MATHS_FONT_FAMILY;
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const cycleRef = useRef<{ key: string; index: number }>({ key: "", index: 0 });
@@ -352,6 +354,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
       <svg
         ref={svgRef}
         className="graph-canvas"
+        data-style-profile={document.styleProfile ?? "legacy"}
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         preserveAspectRatio="xMidYMid meet"
         role="application"
@@ -378,8 +381,8 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         <g className="axis-labels">
           {xLabels}{yLabels}
           <AxisTickLabel text="0" x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38} baseline={xNumberBaseline} textAnchor="end" origin />
-          <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={xNumberBaseline} fontFamily={MATHS_FONT_FAMILY}>{AXIS_X_NAME}</text>
-          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end" fontFamily={MATHS_FONT_FAMILY}>{AXIS_Y_NAME}</text>
+          <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={xNumberBaseline} fontFamily={fontFamily}>{AXIS_X_NAME}</text>
+          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end" fontFamily={fontFamily}>{AXIS_Y_NAME}</text>
         </g>
         <g clipPath="url(#editor-plot-clip)">
           {visibleDocument.objects.filter((object): object is StraightObject => object.kind === "straight").map((object) => {

@@ -1,0 +1,47 @@
+CONNECT MATHS BOOKLET TOOLS TO CHATGPT
+
+This connection is made after the service has a verified public HTTPS URL and
+the human website has its new import support. A GitHub Pages URL alone cannot
+serve the MCP endpoint. No OpenAI API key is required by this renderer.
+
+Current OpenAI instructions checked on 6 October 2026:
+https://developers.openai.com/plugins/deploy/connect-chatgpt
+
+Open ChatGPT Plugins, use the plus button and Add custom MCP server. Name it
+"Maths Booklet Tools" and describe it as creating printable coordinate graphs.
+Enter the actual service URL ending /mcp. Select the no-authentication option
+for this bounded public renderer, review the warning, and Create as a plugin.
+Check that graph_capabilities, create_graph and revise_graph were discovered.
+Install it and select it with @ in a new chat. Account/workspace rules apply.
+If those controls are unavailable, resolve account/admin access before launch.
+Local development can use a separately authorised Secure MCP Tunnel; do not
+claim that a local HTTP address is publicly available to ChatGPT.
+
+Evaluation prompts and expected behaviour
+1. "Plot y = 1/2x - 1 and x = -2, with a cross at (1, 2), from -5 to 5."
+   Expect two independent lines, the point, exact scales, image preview,
+   three downloads and an editable website link. Download the print PNG.
+2. "Make the vertical line dashed and hide the first line's equation."
+   Expect revise_graph with the returned envelope/hash, preserving other
+   objects and scales. Compare revised PNG and JSON.
+3. "Use 0.5 units per square on x and 2 on y; enlarge the grid."
+   Expect set_axes with supported square counts and unchanged mathematical
+   objects. Check clipping, labels and physical size.
+4. Open its editor link while an existing human graph is saved.
+   Cancel must retain that draft. Open must be one undoable operation.
+   Edit it, save JSON, and give that JSON to ChatGPT for another revision.
+5. "Plot y = x squared."
+   Expect an explanation that curves are not supported. No invented graph.
+6. Submit a large valid graph whose link would exceed 8 KiB.
+   Inspect actual embedded file delivery. If the client cannot save all three
+   files, hold release and decide whether bounded artifact storage is needed.
+7. Stop the graph service. Human drawing/import/export must still work.
+
+Record selected tools, actual input/result/error receipts, client/account,
+downloaded files, PNG dimensions/density, editor round trip and unsupported
+behaviour. A model description or tool discovery alone is not acceptance.
+Keep download URLs out of logs; use non-sensitive synthetic graph examples.
+Refresh the custom connection after metadata changes and rerun affected cases.
+
+Once connected, ChatGPT calls the graph tools directly. It needs neither
+computer use nor the ability to click the website.

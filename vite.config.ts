@@ -26,6 +26,7 @@ export default defineConfig(({ command, mode }) => ({
   // Keep GitHub Pages links and PDF worker/font requests under the repository path.
   base: process.env.SITE_BASE || (mode === "production" ? "/maths-booklet-tools/" : "/"),
   test: {
+    exclude: ["node_modules/**", "dist/**", "service-dist/**", "e2e/**"],
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,

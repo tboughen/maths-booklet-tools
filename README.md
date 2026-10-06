@@ -33,6 +33,20 @@ workbooks or pupil data. Questions and graphs are processed in the browser.
 
 Selection handles and editing controls never appear in copied or downloaded diagrams.
 
+## Editable graphs and ChatGPT integration
+
+Download options now includes editable JSON files, confirmed file/link imports
+and shareable editor links. Imports preserve the current draft until opened
+and can be undone. Existing human graphs keep their original font; portable
+graphs use bundled STIX fonts consistently.
+
+The optional stateless MCP service exposes `graph_capabilities`, `create_graph`
+and `revise_graph` for direct graph creation without computer use. Human drawing
+and exports work independently of that service.
+See [operations and release](docs/GRAPH-MCP-RUNBOOK.txt) and
+[ChatGPT connection and acceptance](docs/GRAPH-MCP-CONNECTION.txt).
+Adding these files does not deploy a service or connect a ChatGPT account.
+
 ## Using the tool in Word
 
 1. Set the grid size and scale.
