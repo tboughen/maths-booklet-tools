@@ -33,7 +33,6 @@ try {
           kind: "line",
           id: "line",
           equation: { kind: "slope", slope: "1/2", intercept: -1 },
-          equationVisible: true,
         },
       ],
     },
@@ -47,6 +46,14 @@ try {
     printRaster: { width: number; height: number };
   };
   if (!data.printVerified) throw Error("Print verification is missing.");
+  if (
+    data.envelope.document.objects.some(
+      (object) => object.kind === "straight" && object.equationVisible,
+    )
+  )
+    throw Error(
+      "A newly plotted equation should have no printed label by default.",
+    );
   for (const format of ["png", "svg", "json"]) {
     const response = await fetch(data.downloads[format].url);
     if (!response.ok) throw Error(format + " download failed.");
@@ -70,10 +77,29 @@ try {
     arguments: {
       envelope: data.envelope,
       baseHash: data.contentHash,
-      operations: [{ op: "set_label", id: "line", visible: false }],
+      operations: [{ op: "set_label", id: "line", visible: true }],
     },
   });
   if (revised.isError) throw Error("Revision failed.");
+  const labelled = revised.structuredContent as typeof data;
+  const labelledLine = labelled.envelope.document.objects[0];
+  if (labelledLine.kind !== "straight" || !labelledLine.equationVisible)
+    throw Error("Explicit equation labels should remain available.");
+  const hidden = await client.callTool({
+    name: "revise_graph",
+    arguments: {
+      envelope: labelled.envelope,
+      baseHash: labelled.contentHash,
+      operations: [{ op: "set_label", id: "line", visible: false }],
+    },
+  });
+  if (
+    hidden.isError ||
+    (hidden.structuredContent as typeof data).contentHash !== data.contentHash
+  )
+    throw Error(
+      "Hiding the equation label changed the graph's mathematical content.",
+    );
   const maximum = await client.callTool({
     name: "create_graph",
     arguments: {

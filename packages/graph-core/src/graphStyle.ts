@@ -49,3 +49,10 @@ export function svgFontFamily(document: DiagramDocumentV1): string {
     ? PORTABLE_FONT_FAMILY
     : SVG_MATHS_FONT_FAMILY;
 }
+
+/** Allow the portable italic y's overhang to clear the upward arrowhead. */
+export function axisNameYGapCentimetres(document: DiagramDocumentV1): number {
+  return document.styleProfile === "portable-v1"
+    ? 0.2
+    : Y_AXIS_LABEL_GAP_CENTIMETRES;
+}

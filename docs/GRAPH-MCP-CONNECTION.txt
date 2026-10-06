@@ -24,6 +24,7 @@ Evaluation prompts and expected behaviour
 1. "Plot y = 1/2x - 1 and x = -2, with a cross at (1, 2), from -5 to 5."
    Expect two independent lines, the point, exact scales, image preview,
    three downloads and an editable website link. Download the print PNG.
+   Neither line should have a printed equation unless explicitly requested.
 2. "Make the vertical line dashed and hide the first line's equation."
    Expect revise_graph with the returned envelope/hash, preserving other
    objects and scales. Compare revised PNG and JSON.

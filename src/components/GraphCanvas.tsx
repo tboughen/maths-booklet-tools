@@ -30,6 +30,7 @@ import {
   Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
+  axisNameYGapCentimetres,
   pointsToDiagramUnits,
 } from "../domain/graphStyle";
 import type {
@@ -367,7 +368,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
         <title>Interactive 1 cm square coordinate grid</title>
         <defs>
           <clipPath id="editor-plot-clip"><rect x={layout.plotLeft} y={layout.plotTop} width={layout.plotRight - layout.plotLeft} height={layout.plotBottom - layout.plotTop} /></clipPath>
-          <marker id="editor-axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="15" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
+          <marker id="editor-axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="15" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" /></marker>
         </defs>
         <rect className="canvas-paper" width={layout.width} height={layout.height} />
         <g className="grid-lines">
@@ -382,7 +383,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
           {xLabels}{yLabels}
           <AxisTickLabel text="0" x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38} baseline={xNumberBaseline} textAnchor="end" origin />
           <text className="axis-name axis-name--x" x={layout.plotRight + 29} y={xNumberBaseline} fontFamily={fontFamily}>{AXIS_X_NAME}</text>
-          <text className="axis-name axis-name--y" x={yNumberX} y={layout.plotTop - 18} textAnchor="end" fontFamily={fontFamily}>{AXIS_Y_NAME}</text>
+          <text className="axis-name axis-name--y" x={origin.x - EDITOR_UNITS_PER_CENTIMETRE * axisNameYGapCentimetres(document)} y={layout.plotTop - 18} textAnchor="end" fontFamily={fontFamily}>{AXIS_Y_NAME}</text>
         </g>
         <g clipPath="url(#editor-plot-clip)">
           {visibleDocument.objects.filter((object): object is StraightObject => object.kind === "straight").map((object) => {

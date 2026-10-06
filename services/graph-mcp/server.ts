@@ -228,7 +228,7 @@ export function graphService(options: ServiceOptions) {
       { name: "Maths Booklet Tools", version: "1.0.0" },
       {
         instructions:
-          "Create and revise coordinate graphs with these tools. Use returned envelopes and contentHash for revisions. Do not use computer use. Supported objects are points, segments and straight lines only. Always retain axis settings and unchanged objects. Show the image, download links and editor link returned by the tool. Do not claim print PNG succeeded until its download succeeds. Explain warnings and unsupported requests.",
+          "Create and revise coordinate graphs with these tools. Use returned envelopes and contentHash for revisions. Do not use computer use. Supported objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Show the image, download links and editor link returned by the tool. Do not claim print PNG succeeded until its download succeeds. Explain warnings and unsupported requests.",
       },
     );
     const annotations = {
@@ -294,7 +294,7 @@ export function graphService(options: ServiceOptions) {
       "create_graph",
       {
         description:
-          "Create a coordinate graph using points, segments or straight lines. Supply exact square counts and scales. Fractions such as 1/2 are supported. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
+          "Create a coordinate graph using points, segments or straight lines. Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
         inputSchema: graphSpecSchema,
         outputSchema: graphOutputSchema,
         annotations,
