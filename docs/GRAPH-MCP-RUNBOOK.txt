@@ -169,3 +169,21 @@ glyphs for portability. Prefer verified PNG for a fixed-size Word image.
 The existing website PDF.js dependency has a high-severity advisory requiring
 a major bank-renderer upgrade. It is excluded from the service runtime and was
 not upgraded as part of graph integration.
+Graph presentation correction (6 October 2026)
+New MCP graphs leave equation labels hidden unless the user explicitly asks
+for a printed label. The human Show equation control remains available.
+Use revise_graph with the returned envelope/hash and set_label visible false
+to remove an existing label without altering its line or axes.
+Both editor and exported SVG use orient="auto" for their end arrowheads;
+the native renderer now points the y arrow upwards and x arrow rightwards.
+Portable graphs give the italic y more horizontal clearance and add 0.15 cm
+to the outer right margin. The grid still has exact one-centimetre squares.
+For a default -5..5 grid the portable export is 11.39 x 11.12 cm and its
+600 ppi PNG is 2691 x 2627 pixels. Legacy export dimensions are unchanged.
+Keep graph-1 compatibility and the existing private download signing key.
+Existing valid signed links re-render using the deployed presentation, while
+their label visibility remains as saved. Previously downloaded files require
+a fresh export. After manually deploying the qualified commit on the same
+Free Render service, verify its Linux buildId and actual HTTPS downloads.
+Refresh ChatGPT's connection metadata and check a real unlabelled creation
+and label-removal revision; renderer tests do not prove model behaviour.

@@ -82,7 +82,12 @@ const straightInput = {
   start: inputCoordinate.optional(),
   end: inputCoordinate.optional(),
   strokeStyle: z.enum(["solid", "dashed"]).default("solid"),
-  equationVisible: z.boolean().default(false),
+  equationVisible: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Print the equation on the diagram only when the user explicitly asks to show or label it. Plotting an equation alone does not request a printed label. Default false.",
+    ),
   equationLabelPosition: inputCoordinate.optional(),
 };
 export const objectInputSchema = z.union([

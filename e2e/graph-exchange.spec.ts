@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   createGraph,
+  documentFromEnvelope,
   editorLink,
 } from "../packages/graph-core/src/interchange";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
@@ -131,7 +132,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
   await page.getByRole("menuitem", { name: /PNG/ }).click();
   const png = await readFile((await (await pngDownload).path())!);
   await (await pngDownload).saveAs(testInfo.outputPath("browser-print.png"));
-  const metrics = getExportMetrics(incoming.document);
+  const metrics = getExportMetrics(documentFromEnvelope(incoming));
   verifyPrintBytes(
     png,
     Math.round((metrics.widthCm / 2.54) * 600),
@@ -163,6 +164,47 @@ test("human creation works without a service and the bank ignores graph fragment
   expect(requests.every((url) => new URL(url).hostname === "127.0.0.1")).toBe(
     true,
   );
+});
+
+test("an imported unlabelled line retains the human equation toggle", async ({
+  page,
+}, testInfo) => {
+  const graph = createGraph({
+    schemaVersion: 1,
+    objects: [
+      {
+        kind: "line",
+        id: "main",
+        equation: { kind: "slope", slope: 2, intercept: 1 },
+      },
+    ],
+  });
+  await page.goto(editorLink(graph, "http://127.0.0.1:5179/"));
+  await page
+    .getByRole("button", { name: "Open this graph", exact: true })
+    .click();
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator(".equation-labels text")).toHaveCount(0);
+  await page.getByRole("button", { name: /^Objects/ }).click();
+  await page.getByRole("button", { name: /^Select Line 1:/ }).click();
+  await page
+    .getByRole("button", { name: "Show equation", exact: true })
+    .click();
+  await expect(page.locator(".equation-labels text")).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Equation shown", exact: true })
+    .click();
+  await expect(page.locator(".equation-labels text")).toHaveCount(0);
+  await expect
+    .poll(async () => {
+      const raw = await page.evaluate((key) => localStorage.getItem(key), key);
+      return raw ? JSON.parse(raw).document.objects : null;
+    })
+    .toEqual(graph.document.objects);
+  await page.screenshot({
+    path: testInfo.outputPath("corrected-editor.png"),
+    fullPage: true,
+  });
 });
 test("unreadable saved data is retained and requires recovery before linked import", async ({
   page,

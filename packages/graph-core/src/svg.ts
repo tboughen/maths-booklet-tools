@@ -19,6 +19,7 @@ import {
   Y_AXIS_LABEL_GAP_CENTIMETRES,
   axisLabelBoxHeight,
   axisLabelBoxWidth,
+  axisNameYGapCentimetres,
   pointsToDiagramUnits,
 } from "./graphStyle";
 import type {
@@ -148,7 +149,10 @@ export function getExportMetrics(document: DiagramDocumentV1): ExportMetrics {
   const bottomPadding = exportBottomPadding(document);
   const plotRight = leftPadding + horizontalSquares * UNITS_PER_CM;
   const plotBottom = FIXED_PADDING.top + verticalSquares * UNITS_PER_CM;
-  const width = plotRight + FIXED_PADDING.right;
+  // Portable STIX x needs a visible margin beyond its actual ink bounds.
+  const width =
+    plotRight +
+    (document.styleProfile === "portable-v1" ? 90 : FIXED_PADDING.right);
   const height = plotBottom + bottomPadding;
   return {
     widthCm: width / UNITS_PER_CM,
@@ -276,7 +280,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
   return `
     <defs>
-      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="25" markerHeight="25" orient="auto-start-reverse">
+      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="25" markerHeight="25" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224"/>
       </marker>
     </defs>
@@ -288,7 +292,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       ${xLabels.join("")}${yLabels.join("")}
       ${axisTickLabelMarkup("0", originX, xNumberBaseline, "end", true)}
       <text class="axis-name axis-name-x" x="${n(layout.plotRight + 48)}" y="${n(xNumberBaseline)}" font-family="${svgFontFamily(document)}">${AXIS_X_NAME}</text>
-      <text class="axis-name axis-name-y" x="${n(yNumberX)}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${AXIS_Y_NAME}</text>
+      <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${AXIS_Y_NAME}</text>
     </g>`;
 }
 
