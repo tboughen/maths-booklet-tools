@@ -14,7 +14,10 @@ for (const name of [
   )
     throw Error("Bundled graph font integrity check failed.");
 }
-const publicUrl = process.env.GRAPH_PUBLIC_URL ?? "http://127.0.0.1:8787";
+const publicUrl =
+  process.env.GRAPH_PUBLIC_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  "http://127.0.0.1:8787";
 const signingKey = process.env.DOWNLOAD_SIGNING_KEY;
 if (!signingKey || signingKey.length < 32)
   throw Error(

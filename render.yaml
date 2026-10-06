@@ -1,17 +1,16 @@
-# Import this blueprint only after reviewing the provider's current price.
+# Free-only graph service. Use a free workspace without a payment method.
+# Review that Render lists one Free web service and no paid resources.
 # Website deployments continue through the existing GitHub Pages workflow.
 services:
   - type: web
     name: maths-booklet-graph-mcp
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: frankfurt
     dockerfilePath: ./Dockerfile.graph-mcp
     autoDeployTrigger: "off"
     healthCheckPath: /healthz
     envVars:
-      - key: GRAPH_PUBLIC_URL
-        sync: false
       - key: DOWNLOAD_SIGNING_KEY
         generateValue: true
       - key: DOWNLOAD_KEY_ID

@@ -3,6 +3,9 @@ CONNECT MATHS BOOKLET TOOLS TO CHATGPT
 This connection is made after the service has a verified public HTTPS URL and
 the human website has its new import support. A GitHub Pages URL alone cannot
 serve the MCP endpoint. No OpenAI API key is required by this renderer.
+For Free hosting follow GRAPH-MCP-FREE-SETUP.txt first. The service may need
+about a minute to wake after 15 idle minutes. Open its /healthz URL and wait
+for JSON before creating the ChatGPT connection or retrying a timed-out call.
 
 Current OpenAI instructions checked on 6 October 2026:
 https://developers.openai.com/plugins/deploy/connect-chatgpt
@@ -36,6 +39,10 @@ Evaluation prompts and expected behaviour
    Inspect actual embedded file delivery. If the client cannot save all three
    files, hold release and decide whether bounded artifact storage is needed.
 7. Stop the graph service. Human drawing/import/export must still work.
+8. Leave it idle for at least 15 minutes with no external requests. Try a graph
+   from ChatGPT. Record actual wake-up/timeouts; if needed, open /healthz,
+   wait for JSON and retry once. Test the signed downloads after another sleep.
+   A wake-up delay is expected on the Free plan; never promise always-on service.
 
 Record selected tools, actual input/result/error receipts, client/account,
 downloaded files, PNG dimensions/density, editor round trip and unsupported
