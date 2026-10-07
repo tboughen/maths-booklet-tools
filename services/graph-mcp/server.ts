@@ -32,6 +32,9 @@ import type { DownloadFormat } from "./downloads";
 import { RasterQueue } from "./raster";
 import { TrafficLimits } from "./limits";
 import { graphOutputSchema, capabilitiesOutputSchema } from "./output-schema";
+import { RatioDownloads } from "./ratio-downloads";
+import { ratioTools } from "./ratio-table-tools";
+import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
 
 export interface ServiceOptions {
   buildId?: string;
@@ -90,6 +93,8 @@ export function graphService(options: ServiceOptions) {
     options.renderTimeoutMs,
   );
   const limits = new TrafficLimits(options.dailyBytes);
+  const ratioDownloads = new RatioDownloads(base.href, options.keys, options.activeKey);
+  const ratios = ratioTools(raster, ratioDownloads, limits, options.editorUrl);
   const artifacts = async (
     envelope: GraphEnvelope,
     format: DownloadFormat,
@@ -228,7 +233,7 @@ export function graphService(options: ServiceOptions) {
       { name: "Maths Booklet Tools", version: "1.0.0" },
       {
         instructions:
-          "Create and revise coordinate graphs with these tools. Use returned envelopes and contentHash for revisions. Do not use computer use. Supported objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Show the image, download links and editor link returned by the tool. Do not claim print PNG succeeded until its download succeeds. Explain warnings and unsupported requests.",
+          "Create and revise coordinate graphs and ratio tables with these tools. Use returned envelopes and contentHash for revisions. Do not use computer use. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. For ratio tables, use create_ratio_table/revise_ratio_table and preserve empty and answer-line cells. Do not fill pupil answers unless explicitly requested. Show the image, download links and editor link returned by the tool. Do not claim print PNG succeeded until its download succeeds. Explain warnings and unsupported requests.",
       },
     );
     const annotations = {
@@ -330,6 +335,7 @@ export function graphService(options: ServiceOptions) {
         }
       },
     );
+    ratios.register(server, connectionSignal);
     return server;
   }
   return createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
@@ -369,11 +375,25 @@ export function graphService(options: ServiceOptions) {
         send(200, {
           ok: true,
           rendererVersion: RENDERER_VERSION,
+          ratioRendererVersion: RATIO_RENDERER_VERSION,
           buildId: options.buildId ?? "development",
         });
         return;
       }
       limits.request(req.socket.remoteAddress ?? "unknown");
+      if (req.method === "GET" && url.pathname === "/ratio-table/download") {
+        const { envelope, format } = ratioDownloads.verify(url);
+        const abort = new AbortController();
+        res.once("close", () => { if (!res.writableFinished) abort.abort(); });
+        const file = await ratios.artifacts(envelope, format, abort.signal);
+        limits.output(file.body.length); bytes = file.body.length;
+        res.writeHead(200, {
+          "Content-Type": file.type,
+          "Content-Disposition": `attachment; filename="maths-ratio-table.${format}"`,
+          "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+        });
+        res.end(file.body); return;
+      }
       if (req.method === "GET" && url.pathname === "/download") {
         const { envelope, format } = downloads.verify(url);
         const abort = new AbortController();
@@ -429,7 +449,7 @@ export function graphService(options: ServiceOptions) {
         res.end();
         return;
       }
-      const code = error instanceof GraphError ? error.code : "invalid_request";
+      const code = error instanceof GraphError || error instanceof RatioError ? error.code : "invalid_request";
       const status =
         code === "rate_limited"
           ? 429
@@ -444,7 +464,7 @@ export function graphService(options: ServiceOptions) {
       send(status, {
         error: code,
         message:
-          error instanceof GraphError
+          error instanceof GraphError || error instanceof RatioError
             ? error.message
             : "The request could not be processed.",
       });
