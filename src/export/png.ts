@@ -1,5 +1,6 @@
 import { getExportMetrics, renderDiagramSvg } from "./svg";
 import type { DiagramDocumentV1 } from "../domain/types";
+import { embedPortableFonts } from "./portable";
 
 const PNG_SIGNATURE_LENGTH = 8;
 const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -186,5 +187,9 @@ export async function svgToPng(svg: string, widthCm: number, heightCm: number, d
 
 export async function renderDiagramPng(document: DiagramDocumentV1): Promise<Blob> {
   const metrics = getExportMetrics(document);
-  return svgToPng(renderDiagramSvg(document), metrics.widthCm, metrics.heightCm, PRINT_DPI);
+  const size = getPngRasterSize(metrics.widthCm, metrics.heightCm);
+  if (size.width * size.height > 32_000_000) throw new Error("The graph is too large to print. Move distant equation labels closer to the grid.");
+  const source = renderDiagramSvg(document);
+  const svg = document.styleProfile === "portable-v1" ? await embedPortableFonts(source) : source;
+  return svgToPng(svg, metrics.widthCm, metrics.heightCm, PRINT_DPI);
 }

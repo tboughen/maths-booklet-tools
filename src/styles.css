@@ -100,6 +100,19 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .export-menu button small { color: var(--muted); font-size: var(--supporting-text); line-height: 16px; }
 .export-menu-separator { height: 1px; margin: 6px 8px; background: var(--line); }
 .export-menu .export-help-item { color: var(--blue-dark); }
+.graph-exchange-menu { position: absolute; z-index: 20; right: 11px; top: 293px; width: 280px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: 0 16px 40px rgba(42,38,28,.18); }
+.graph-exchange-menu button { display: block; width: 100%; min-height: 40px; padding: 10px 12px; text-align: left; border: 0; border-radius: 6px; background: transparent; }
+.graph-exchange-menu button:hover { background: #f1eee7; }
+.graph-import-actions button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.graph-import-preview { overflow: auto; max-height: 55vh; }
+.graph-import-preview svg { width: 100%; height: auto; display: block; }
+.graph-import-actions { display: flex; align-items: center; gap: 16px; }
+@font-face { font-family: "STIX Two Text"; font-style: normal; font-weight: 400; font-display: block; src: url("../assets/graph-fonts/STIXTwoText-Regular.otf") format("opentype"); }
+@font-face { font-family: "STIX Two Text"; font-style: italic; font-weight: 400; font-display: block; src: url("../assets/graph-fonts/STIXTwoText-Italic.otf") format("opentype"); }
+@font-face { font-family: "STIX Two Math"; font-style: normal; font-weight: 400; font-display: block; src: url("../assets/graph-fonts/STIXTwoMath-Regular.otf") format("opentype"); }
+.graph-canvas[data-style-profile="portable-v1"] .axis-number text,
+.graph-canvas[data-style-profile="portable-v1"] .axis-name,
+.graph-canvas[data-style-profile="portable-v1"] .equation-labels { font-family: "STIX Two Text", "STIX Two Math", serif; }
 
 .graph-stage { position: relative; min-height: 580px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; background: #f7f4ed; }
 .graph-stage[data-tool="segment"] .graph-canvas { cursor: crosshair; }
@@ -287,7 +300,8 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
   .brand-mark { background: #f1efe9; color: #242522; }
   .header-menu-button, .privacy-note, .coordinate-input input, .equation-fields input, .visibility-button, .secondary-panel-button, .scale-options button { border-color: var(--line); background: #30312e; }
   .graph-stage { background: #242522; }
-  .tools-popover, .export-menu, .toast, .word-help-dialog { color: #efeee8; }
+  .tools-popover, .export-menu, .graph-exchange-menu, .toast, .word-help-dialog { color: #efeee8; }
+  .graph-exchange-menu button:hover { background: #3c3d39; }
   .segmented, .count-badge, .selected-equation { background: #363733; }
   .segmented button.active { background: #484a45; }
   .danger-button { background: #342725; border-color: #65413e; }
