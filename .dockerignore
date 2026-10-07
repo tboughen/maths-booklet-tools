@@ -6,6 +6,9 @@
 !packages/graph-core
 !packages/graph-core/src
 !packages/graph-core/src/**
+!packages/ratio-table-core
+!packages/ratio-table-core/src
+!packages/ratio-table-core/src/**
 !services
 !services/graph-mcp
 !services/graph-mcp/**

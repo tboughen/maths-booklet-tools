@@ -1,0 +1,337 @@
+.ratio-app select {
+  font: inherit;
+}
+.ratio-app select:focus-visible,
+.ratio-app summary:focus-visible {
+  outline: 3px solid rgba(40, 95, 159, 0.3);
+  outline-offset: 2px;
+}
+.ratio-app .tools-popover button + button {
+  margin-top: 8px;
+}
+.ratio-toolbar {
+  flex-wrap: wrap;
+}
+.ratio-app .tool-group {
+  overflow: visible;
+  flex-wrap: wrap;
+}
+.ratio-preview-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  color: var(--muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.ratio-preview-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ratio-preview-controls select {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: white;
+  min-height: 32px;
+}
+.ratio-stage {
+  min-height: 430px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 38px;
+  overflow: auto;
+  background: #f7f4ed;
+}
+.ratio-paper {
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 10px 26px rgba(43, 39, 29, 0.08);
+}
+.ratio-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ratio-guides {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.ratio-preview-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 18px;
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--line);
+}
+.ratio-settings {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.ratio-settings .panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+}
+.ratio-settings input:not([type="checkbox"]),
+.ratio-settings select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: white;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.ratio-app .inspector-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.ratio-settings select {
+  font-size: 12px;
+}
+.ratio-row-headings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  text-align: center;
+  font:
+    italic 20px "STIX Two Text",
+    serif;
+  margin-top: 14px;
+}
+.ratio-row {
+  padding: 9px 0;
+}
+.ratio-row + .ratio-row {
+  border-top: 1px solid var(--line);
+}
+.ratio-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.ratio-remove {
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--red);
+  min-width: 28px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+}
+.ratio-cell-fields,
+.ratio-step-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.ratio-number-field {
+  display: block;
+  margin-top: 6px;
+}
+.ratio-number-field input {
+  text-align: center;
+}
+.ratio-number-field .field-error {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.ratio-step {
+  margin: 13px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.ratio-step > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.ratio-step-fields .ratio-number-field {
+  margin: 0;
+}
+.ratio-settings .panel-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: white;
+  font-size: 12px;
+}
+.ratio-examples,
+.ratio-headings {
+  margin-top: 14px;
+  font-size: 12px;
+}
+.ratio-app summary {
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--blue);
+}
+.ratio-examples button {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--surface);
+  text-align: left;
+  font-size: 12px;
+}
+.ratio-label {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+  margin-top: 12px;
+}
+.ratio-heading-controls {
+  margin: 10px 0;
+  display: grid;
+  gap: 7px;
+}
+.ratio-heading-controls > label:not(.check-row) {
+  display: grid;
+  gap: 5px;
+}
+.ratio-heading-controls .check-row {
+  margin: 0;
+  font-size: 12px;
+}
+.ratio-message,
+.ratio-recovery {
+  border: 1px solid #cbd7e5;
+  border-radius: 9px;
+  padding: 12px 16px;
+  background: var(--blue-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ratio-recovery {
+  margin-bottom: 16px;
+}
+.ratio-recovery button {
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-right: 8px;
+  margin-top: 6px;
+  background: white;
+}
+.ratio-warnings {
+  border-color: #d7bd82;
+  background: #fff9ec;
+}
+.ratio-warnings h2 {
+  font-size: 14px;
+}
+.ratio-warnings p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ratio-dialog {
+  width: min(580px, 100%);
+}
+.ratio-import-preview {
+  padding: 20px;
+  margin-bottom: 16px;
+  background: #f7f4ed;
+}
+.ratio-import-preview svg {
+  display: block;
+  width: min(100%, 330px);
+  height: auto;
+  margin: auto;
+}
+.ratio-export-menu {
+  top: 68px;
+}
+@media (max-width: 1050px) {
+  .ratio-app .workspace {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .ratio-toolbar .copy-split {
+    margin-left: auto;
+  }
+}
+@media (max-width: 850px) {
+  .ratio-app .workspace {
+    grid-template-columns: 1fr;
+  }
+  .ratio-app .main-content {
+    width: calc(100% - 28px);
+  }
+  .ratio-app .ratio-stage {
+    min-height: 340px;
+    padding: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .ratio-app .site-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .ratio-app .brand-copy span {
+    display: none;
+  }
+  .ratio-app .brand-copy strong {
+    font-size: 12px;
+  }
+  .ratio-app .save-indicator {
+    display: none;
+  }
+  .ratio-app .intro-row {
+    display: block;
+  }
+  .ratio-app h1 {
+    font-size: 25px;
+  }
+  .ratio-app .privacy-note {
+    margin-top: 14px;
+    width: fit-content;
+  }
+  .ratio-toolbar {
+    padding: 8px;
+  }
+  .ratio-toolbar .tool-button {
+    padding: 0 10px;
+    font-size: 12px;
+  }
+  .ratio-toolbar .icon-button {
+    width: 38px;
+    flex-basis: 38px;
+  }
+  .ratio-preview-controls {
+    flex-wrap: wrap;
+  }
+  .ratio-export-menu {
+    position: static;
+    width: 100%;
+    border-radius: 0;
+  }
+}
