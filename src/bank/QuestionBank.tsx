@@ -131,6 +131,7 @@ export default function QuestionBank() {
       </form>
       <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
       <a className="qb-tools" href="?tool=graph">Graph tool <ArrowRight size={16}/></a>
+      <a className="qb-tools" href="?tool=ratio-table">Ratio tables <ArrowRight size={16}/></a>
     </header>
     <main className="qb-main">
       <div className="qb-toolbar">

@@ -9,5 +9,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["services/graph-mcp/**/*.ts", "packages/graph-core/src/**/*.ts"]
+  "include": ["services/graph-mcp/**/*.ts", "packages/graph-core/src/**/*.ts", "packages/ratio-table-core/src/**/*.ts"]
 }

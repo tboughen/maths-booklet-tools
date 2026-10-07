@@ -13,6 +13,7 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
+    artifactKind?: "graph" | "ratio-table";
   }) => {
     try {
       // Round each dimension independently at 600 ppi; keep the original viewBox.
@@ -44,9 +45,12 @@ process.once(
           svg = svg
             .replace(/\bwidth="[^"]+"/, `width="${width}"`)
             .replace(/\bheight="[^"]+"/, `height="${height}"`);
+        const metadata = job.artifactKind === "ratio-table"
+          ? "<title>Ratio table</title><desc>Outlined lesson ratio table; use the accompanying JSON for editing.</desc>"
+          : "<title>Coordinate graph</title><desc>Outlined portable graph; use the accompanying JSON for editing.</desc>";
         svg = svg.replace(
           /(<svg\b[^>]*>)/,
-          "$1<title>Coordinate graph</title><desc>Outlined portable graph; use the accompanying JSON for editing.</desc>",
+          "$1" + metadata,
         );
         process.send?.({ svg }, () => process.exit(0));
         return;

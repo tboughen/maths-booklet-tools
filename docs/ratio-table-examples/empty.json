@@ -1,0 +1,49 @@
+{
+  "kind": "ratio-table",
+  "schemaVersion": 1,
+  "rendererVersion": "ratio-1",
+  "styleProfile": "ratio-lesson-v1",
+  "document": {
+    "headings": [
+      {
+        "text": "x",
+        "italic": true,
+        "direction": "right"
+      },
+      {
+        "text": "y",
+        "italic": true,
+        "direction": "up"
+      }
+    ],
+    "rows": [
+      {
+        "id": "row-1",
+        "cells": [
+          {
+            "kind": "empty"
+          },
+          {
+            "kind": "empty"
+          }
+        ]
+      },
+      {
+        "id": "row-2",
+        "cells": [
+          {
+            "kind": "empty"
+          },
+          {
+            "kind": "empty"
+          }
+        ]
+      }
+    ],
+    "transitions": [],
+    "size": "standard",
+    "mode": "simple",
+    "showArrows": true,
+    "showOperations": true
+  }
+}
