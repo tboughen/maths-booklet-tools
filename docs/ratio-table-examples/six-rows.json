@@ -1,0 +1,136 @@
+{
+  "kind": "ratio-table",
+  "schemaVersion": 1,
+  "rendererVersion": "ratio-1",
+  "styleProfile": "ratio-lesson-v1",
+  "document": {
+    "headings": [
+      {
+        "text": "x",
+        "italic": true,
+        "direction": "right"
+      },
+      {
+        "text": "y",
+        "italic": true,
+        "direction": "up"
+      }
+    ],
+    "rows": [
+      {
+        "id": "row-1",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "64"
+          },
+          {
+            "kind": "number",
+            "value": "128"
+          }
+        ]
+      },
+      {
+        "id": "row-2",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "32"
+          },
+          {
+            "kind": "number",
+            "value": "64"
+          }
+        ]
+      },
+      {
+        "id": "row-3",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "16"
+          },
+          {
+            "kind": "number",
+            "value": "32"
+          }
+        ]
+      },
+      {
+        "id": "row-4",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "8"
+          },
+          {
+            "kind": "number",
+            "value": "16"
+          }
+        ]
+      },
+      {
+        "id": "row-5",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "4"
+          },
+          {
+            "kind": "number",
+            "value": "8"
+          }
+        ]
+      },
+      {
+        "id": "row-6",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "2"
+          },
+          {
+            "kind": "number",
+            "value": "4"
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": "row-1",
+        "to": "row-2",
+        "operation": "divide",
+        "factor": "2"
+      },
+      {
+        "from": "row-2",
+        "to": "row-3",
+        "operation": "divide",
+        "factor": "2"
+      },
+      {
+        "from": "row-3",
+        "to": "row-4",
+        "operation": "divide",
+        "factor": "2"
+      },
+      {
+        "from": "row-4",
+        "to": "row-5",
+        "operation": "divide",
+        "factor": "2"
+      },
+      {
+        "from": "row-5",
+        "to": "row-6",
+        "operation": "divide",
+        "factor": "2"
+      }
+    ],
+    "size": "standard",
+    "mode": "annotated",
+    "showArrows": true,
+    "showOperations": true
+  }
+}

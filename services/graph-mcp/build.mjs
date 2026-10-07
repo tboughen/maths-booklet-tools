@@ -31,6 +31,7 @@ async function collect(directory) {
 }
 for (const directory of [
   "packages/graph-core",
+  "packages/ratio-table-core",
   "services/graph-mcp",
   "assets/graph-fonts",
 ])
@@ -44,7 +45,7 @@ const buildId = createHash("sha256")
 await writeFile(
   "service-dist/manifest.json",
   JSON.stringify(
-    { rendererVersion: "graph-1", buildId, files: sorted },
+    { rendererVersion: "graph-1", ratioRendererVersion: "ratio-1", buildId, files: sorted },
     null,
     2,
   ) + "\n",

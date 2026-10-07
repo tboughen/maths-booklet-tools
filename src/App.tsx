@@ -297,6 +297,7 @@ export default function App() {
             <div className="tools-popover" onClick={(event) => event.stopPropagation()}>
               <p className="eyebrow">GRAPHS</p>
               <button className="current"><Grid3X3 size={18} /><span><strong>1 cm square grid</strong><small>Current tool</small></span><Check size={16} /></button>
+              <button onClick={() => { location.href = "?tool=ratio-table"; }}><Grid3X3 size={18} /><span><strong>Ratio tables</strong><small>Values and scaling arrows</small></span><ExternalLink size={16} /></button>
               <button onClick={() => { location.href = "?tool=question-bank"; }}><BookOpen size={18} /><span><strong>Question bank</strong><small>Reviewed practice questions</small></span><ExternalLink size={16} /></button>
             </div>
           )}

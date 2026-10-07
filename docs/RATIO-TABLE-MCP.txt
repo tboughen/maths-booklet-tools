@@ -1,0 +1,127 @@
+RATIO TABLE MCP — EXTENSION OF THE EXISTING FREE SERVICE
+
+Architecture and compatibility
+The existing /mcp endpoint exposes the original graph trio plus:
+  ratio_table_capabilities
+  create_ratio_table
+  revise_ratio_table
+Browser and server use packages/ratio-table-core for the same schema, exact
+mathematics, layout and SVG. Graph signatures/envelopes and signed token v1 stay
+compatible. The native renderer queue, request/output limits and signing keys
+are shared. The graph-1 health field stays unchanged; ratioRendererVersion adds
+ratio-1. The build manifest includes both cores and the same bundled fonts.
+There are no new dependencies, paid services, model API calls or stored documents.
+
+Creation example: pupil scaffold
+{
+  "schemaVersion": 1,
+  "mode": "annotated",
+  "rows": [
+    { "id": "start", "cells": [
+      { "kind": "number", "value": "3" },
+      { "kind": "number", "value": "2" }
+    ] },
+    { "id": "target", "cells": [
+      { "kind": "number", "value": "1" },
+      { "kind": "answer-line" }
+    ] }
+  ],
+  "transitions": [
+    { "from": "start", "to": "target", "operation": "divide", "factor": "3" }
+  ]
+}
+Numeric values and factors are strings. The blank answer remains an answer line
+despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
+use explicit IDs when supplying transitions. Headings, size, mode and annotation
+visibility have human-editor defaults. Exactly two cells per row are required.
+
+Returned output
+Inline PNG preview, visible-value description, envelope, contentHash, warnings,
+ratio-1 renderer version, physical dimensions, verified print raster size/DPI,
+SVG/PNG/JSON downloads and editable website link. A warning never changes values.
+If a download/editor URL would exceed 8192 characters, use the returned bounded
+embedded file resource or saved JSON. Never guess or fabricate download links.
+
+Revisions
+Send the exact returned envelope and its contentHash as baseHash with operations.
+Up to 20 operations, applied atomically to a private copy; invalid changes refuse.
+Operations:
+  set_cell: rowId, column 0 or 1, cell
+  add_row: after (row ID or null for the beginning), row (unique ID and two cells)
+  remove_row: rowId
+  set_transition: transition (from, to, operation, factor)
+  remove_transition: from
+  set_headings: headings (two {text, italic, direction: right/up/none} objects)
+  set_size: size compact/standard/large
+  set_annotation_visibility: optional mode, showArrows, showOperations
+  fill_next_row: from, optional overwrite
+Empty operations refresh seven-day downloads. Stale base hashes refuse. Row
+insertion/deletion cleans only affected transitions; unchanged settings survive.
+Explicit fill_next_row requires a step and both source values; use overwrite true
+only after the user requests replacing existing target values. ChatGPT must
+preserve pupil scaffolds unless answers are requested. Rendering formatting and
+explicit cell states are enforced in code; model intent is separately checked
+in the target conversation.
+
+Downloads, resources and privacy
+Ratio tokens use /ratio-table/download and an authenticated ratio-table kind;
+graph downloads retain /download and their exact older token format. The same
+existing private signing key/key ID is used. Do not rotate or expose it for this
+feature. Tokens are strict and refuse malformed, tampered, expired or cross-type
+reuse. Limits remain global 64 KiB bodies, ratio 16 KiB creation/revision bodies,
+8 KiB canonical envelopes, two-to-six rows, bounded values and at most 20 ops.
+Graphs and ratios share the serial native renderer, waiting queue, cancellation,
+15-second render timeout, 32-megapixel/10 MiB file limits, 120 requests globally
+and 40 per client per minute, and the configured daily 200 MiB output allowance.
+Log only request IDs/status/time/byte counts; no document bodies or signed URLs.
+
+Candidate release and acceptance
+This ratio branch depends on the graph integration candidate from PR 1. Current
+main's reviewed question bank is reconciled in the isolated ratio branch without
+altering those asset bytes. Review the separate ratio PR; do not merge the other
+task simply to advance ratio status. Once the graph dependency is merged, retarget
+the ratio PR to fresh main and requalify any changed final candidate.
+
+The GitHub Pages website and the existing Render Free service are separate
+deployments. Keep https://maths-booklet-graph-mcp.onrender.com/mcp, its signing key,
+editor base URL, Free plan and no-autodeploy setting. Do not create another service.
+After the normal review/release process, deploy the exact qualified service SHA
+using the existing Render dashboard. If the dashboard is not available to the
+agent, Tim performs that action. Never report a code push as a deployment.
+
+Linux qualification (existing CI workflow includes this smoke):
+  docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
+  docker run -d --name maths-graph-test --memory 512m --pids-limit 64
+    -p 127.0.0.1:8787:8787
+    -e RENDER_EXTERNAL_URL=http://127.0.0.1:8787
+    -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production
+    maths-graph-candidate
+  node service-dist/smoke.js http://127.0.0.1:8787
+  docker rm -f maths-graph-test
+The smoke verifies all six exact tool names, actual graph and ratio creation,
+600 ppi downloads, outlined SVG/JSON round trips and an explicit 2/3 fill revision.
+Use a unique test container name when another qualification is running. Never
+use the production key for smoke. Local Windows tests do not replace Linux CI.
+
+After deployment:
+1. Verify successful Pages workflow and actually serve ?tool=ratio-table, its
+   bundled fonts under /maths-booklet-tools/, and both other tool routes.
+2. Check /healthz against the qualified Linux buildId, then actual HTTPS SDK
+   discovery/create/revise and all downloadable files, including graph regression.
+3. Confirm the six tools appear in the existing ChatGPT connection. In a real
+   target-account conversation request the simple (4,8)/(1,answer line) table and
+   worked (2,4)/(1,2) divide-by-two table. Confirm correct images/downloads/editor
+   links and a revision retaining a blank. This account check is separate from SDK.
+4. Paste a Standard simple, worked and fraction example into real Word; compare
+   displayed centimetres, aspect ratio and print sharpness. Browser verified bytes
+   do not prove actual Word paste behaviour.
+5. Record exact merged/deployed SHA, workflow/run IDs, buildId, checks and remaining
+   account/Word actions. Free-tier sleep behaviour remains unchanged.
+
+Rollback
+Save editable ratio JSON before rollback. Restore the previous qualified website
+and graph service without rotating the signing key or deleting ratio draft keys
+or saved files. Older graph-only versions cannot open ratio-1 documents or ratio
+download routes. Keep JSON/artifacts for reopening after reinstallation. Do not
+change question-bank assets or any production question-flow runtime to roll back
+this UI/service feature. Tim's whole-task confirmation still governs Trello Done.

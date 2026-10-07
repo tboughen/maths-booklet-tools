@@ -19,6 +19,17 @@ The graph tool remains the default page and is also available at `?tool=graph`.
 Only the current reviewed assets are packaged. The website contains no class
 workbooks or pupil data. Questions and graphs are processed in the browser.
 
+## Ratio tables
+
+The new Ratio tables page at `?tool=ratio-table` creates lesson-style two-column
+diagrams with values, empty cells or answer lines, exact fractions and optional
+paired scaling arrows. Copy for Word or download SVG, verified 600 ppi PNG and
+editable JSON; open/share safely and undo changes. Pupil blanks remain blank
+until an explicit fill action. The shared MCP service adds ratio capabilities,
+creation and revision tools alongside its graph tools, with the same free hosting.
+See [ratio editor](docs/RATIO-TABLE-TOOL.txt), [MCP and release](docs/RATIO-TABLE-MCP.txt)
+and [reference examples](docs/ratio-table-examples/review-preview.png).
+
 ## Current graph tool
 
 - Add any number of independent points, line segments and straight lines.
