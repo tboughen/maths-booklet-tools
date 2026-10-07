@@ -19,6 +19,7 @@ import { GraphCanvas } from "./components/GraphCanvas";
 import { ObjectInspector } from "./components/ObjectInspector";
 import { ObjectsPanel } from "./components/ObjectsPanel";
 import { Toolbar } from "./components/Toolbar";
+import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
   cloneDefaultDocument,
@@ -33,7 +34,7 @@ import {
 } from "./domain/diagram";
 import { pointsForEquation } from "./domain/equations";
 import type { LineEquation } from "./domain/equations";
-import { clearSavedDiagram, loadDiagram, saveDiagram } from "./domain/persistence";
+import { acknowledgeRecovery, loadDiagramRecovery, saveDiagram } from "./domain/persistence";
 import type {
   DiagramDocumentV1,
   DrawingTool,
@@ -64,7 +65,9 @@ function sameDocument(first: DiagramDocumentV1, second: DiagramDocumentV1): bool
 }
 
 export default function App() {
-  const [history, setHistory] = useState<HistoryState>(() => ({ past: [], present: loadDiagram(), future: [] }));
+  const [startup] = useState(loadDiagramRecovery);
+  const [recoveryConflict, setRecoveryConflict] = useState(startup.conflict);
+  const [history, setHistory] = useState<HistoryState>(() => ({ past: [], present: startup.document, future: [] }));
   const [tool, setTool] = useState<DrawingTool>("select");
   const [equationOpen, setEquationOpen] = useState(false);
   const [editingEquationId, setEditingEquationId] = useState<string | null>(null);
@@ -80,6 +83,9 @@ export default function App() {
   const selectedObject = getSelectedObject(document);
   const editingObject = editingEquationId ? getObjectById(document, editingEquationId) : undefined;
   const editingStraight = editingObject?.kind === "straight" ? editingObject : undefined;
+  const exchangeMessage = useCallback((message: string, error = false) => {
+    setToast({ kind: error ? "error" : "success", title: error ? "Graph could not be opened" : "Graph sharing", detail: message });
+  }, []);
 
   const commit = useCallback((next: DiagramDocumentV1) => {
     setHistory((current) => {
@@ -141,6 +147,7 @@ export default function App() {
 
   useEffect(() => {
     function handleKeyboard(event: KeyboardEvent) {
+      if (globalThis.document.querySelector('[aria-modal="true"]')) return;
       const target = event.target as HTMLElement | null;
       if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
       const command = event.ctrlKey || event.metaKey;
@@ -264,7 +271,6 @@ export default function App() {
     const meaningfulDocument = { ...document, selectedObjectId: null };
     if (!sameDocument(meaningfulDocument, resetDocument)
         && !window.confirm("Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.")) return;
-    clearSavedDiagram();
     commit(resetDocument);
     setTool("select");
     setEquationOpen(false);
@@ -321,12 +327,13 @@ export default function App() {
             />
             {exportMenuOpen && (
               <div className="export-menu" role="menu">
-                <button role="menuitem" onClick={() => { downloadDiagramSvg(document); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Vector · best for resizing</small></span></button>
+                <button role="menuitem" onClick={() => { void downloadDiagramSvg(document).catch(() => exchangeMessage("The SVG could not be downloaded. Try PNG instead.", true)); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Vector · best for resizing</small></span></button>
                 <button role="menuitem" disabled={downloadingPng} onClick={handlePngDownload}>{downloadingPng ? <LoaderCircle className="spin" size={17} /> : <FileImage size={17} />}<span><strong>Download PNG</strong><small>600 ppi · print-ready image</small></span></button>
                 <div className="export-menu-separator" role="separator" />
                 <button className="export-help-item" role="menuitem" onClick={() => { setExportMenuOpen(false); setWordHelpOpen(true); }}><CircleHelp size={17} /><span><strong>First-time Word setup</strong><small>Keep pasted images at full quality</small></span></button>
               </div>
             )}
+            <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={!recoveryConflict} />
             <GraphCanvas
               document={document}
               tool={tool}
@@ -366,6 +373,15 @@ export default function App() {
           </aside>
         </section>
       </main>
+
+      {recoveryConflict && <div className="word-help-backdrop"><section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="graph-recovery-title">
+        <h2 id="graph-recovery-title">Review local graph recovery</h2>
+        <p>A saved graph could not be read by this version. Its original data will be kept as a recovery copy. Continue with the last readable graph?</p>
+        <button className="word-help-done" onClick={() => {
+          try { acknowledgeRecovery(document); setRecoveryConflict(false); }
+          catch { exchangeMessage("The recovery copy could not be saved. Your original data is unchanged.", true); }
+        }}>Keep recovery copy and continue</button>
+      </section></div>}
 
       {wordHelpOpen && (
         <div className="word-help-backdrop" onMouseDown={() => setWordHelpOpen(false)}>

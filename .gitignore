@@ -4,3 +4,7 @@ coverage
 .DS_Store
 *.local
 *.log
+service-dist
+test-results
+playwright-report
+.env

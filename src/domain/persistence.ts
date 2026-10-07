@@ -1,61 +1,72 @@
-import { AXIS_LIMITS, cloneDefaultDocument, isAxisConfig, STORAGE_KEY } from "./diagram";
-import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
-
-function isCoordinate(value: unknown): value is Coordinate {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<Coordinate>;
-  return typeof candidate.x === "number" && Number.isFinite(candidate.x)
-    && typeof candidate.y === "number" && Number.isFinite(candidate.y);
-}
-
-function isGraphObject(value: unknown): value is GraphObject {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<GraphObject> & Record<string, unknown>;
-  if (typeof candidate.id !== "string") return false;
-  if (candidate.kind === "point") return isCoordinate(candidate.position);
-  if (candidate.kind !== "straight") return false;
-  return (candidate.display === "segment" || candidate.display === "line")
-    && (candidate.strokeStyle === undefined || candidate.strokeStyle === "solid" || candidate.strokeStyle === "dashed")
-    && isCoordinate(candidate.start)
-    && isCoordinate(candidate.end)
-    && typeof candidate.equationVisible === "boolean"
-    && (candidate.equationLabelPosition === undefined || isCoordinate(candidate.equationLabelPosition));
-}
-
-export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<DiagramDocumentV1>;
-  if (candidate.version !== 1 || !candidate.axes || !Array.isArray(candidate.objects)) return false;
-  if (!isAxisConfig(candidate.axes.x) || !isAxisConfig(candidate.axes.y)) return false;
-  const xTotal = candidate.axes.x.negativeSquares + candidate.axes.x.positiveSquares;
-  const yTotal = candidate.axes.y.negativeSquares + candidate.axes.y.positiveSquares;
-  if (candidate.axes.x.negativeSquares < 0 || candidate.axes.x.positiveSquares < 0
-      || xTotal < AXIS_LIMITS.x.minTotal || xTotal > AXIS_LIMITS.x.maxTotal) return false;
-  if (candidate.axes.y.negativeSquares < 0 || candidate.axes.y.positiveSquares < 0
-      || yTotal < AXIS_LIMITS.y.minTotal || yTotal > AXIS_LIMITS.y.maxTotal) return false;
-  if (!candidate.objects.every(isGraphObject)) return false;
-  return candidate.selectedObjectId === null
-    || (typeof candidate.selectedObjectId === "string" && candidate.objects.some((object) => object.id === candidate.selectedObjectId));
-}
-
-export function loadDiagram(): DiagramDocumentV1 {
-  if (typeof localStorage === "undefined") return cloneDefaultDocument();
+import { cloneDefaultDocument, STORAGE_KEY } from "./diagram";
+import type { DiagramDocumentV1 } from "./types";
+import { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
+import {
+  createEnvelope,
+  documentFromEnvelope,
+  validateEnvelope,
+} from "../../packages/graph-core/src/interchange";
+export { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
+export const ENVELOPE_STORAGE_KEY = "maths-booklet-tools:graph-envelope:v1";
+export function loadDiagramRecovery(): {
+  document: DiagramDocumentV1;
+  conflict: boolean;
+} {
+  if (typeof localStorage === "undefined")
+    return { document: cloneDefaultDocument(), conflict: false };
+  let conflict = false;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return cloneDefaultDocument();
-    const parsed: unknown = JSON.parse(saved);
-    return isDiagramDocument(parsed) ? parsed : cloneDefaultDocument();
+    const envelope = localStorage.getItem(ENVELOPE_STORAGE_KEY);
+    if (envelope !== null) {
+      try {
+        return {
+          document: documentFromEnvelope(
+            validateEnvelope(JSON.parse(envelope)),
+          ),
+          conflict: false,
+        };
+      } catch {
+        conflict = true;
+      }
+    }
+    const legacy = localStorage.getItem(STORAGE_KEY);
+    if (legacy) {
+      const parsed: unknown = JSON.parse(legacy);
+      if (isDiagramDocument(parsed)) return { document: parsed, conflict };
+    }
   } catch {
-    return cloneDefaultDocument();
+    /* Keep unreadable or inaccessible data untouched. */
   }
+  return { document: cloneDefaultDocument(), conflict };
 }
-
+export function loadDiagram(): DiagramDocumentV1 {
+  return loadDiagramRecovery().document;
+}
 export function saveDiagram(document: DiagramDocumentV1): void {
   if (typeof localStorage === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(document));
+  if (loadDiagramRecovery().conflict)
+    throw Error("Review local graph recovery before saving.");
+  localStorage.setItem(
+    ENVELOPE_STORAGE_KEY,
+    JSON.stringify(createEnvelope(document, false)),
+  );
 }
-
+export function acknowledgeRecovery(document: DiagramDocumentV1): void {
+  const raw = localStorage.getItem(ENVELOPE_STORAGE_KEY);
+  if (raw !== null)
+    localStorage.setItem(
+      `${ENVELOPE_STORAGE_KEY}:recovery:${Date.now()}:${crypto.randomUUID()}`,
+      raw,
+    );
+  localStorage.setItem(
+    ENVELOPE_STORAGE_KEY,
+    JSON.stringify(createEnvelope(document, false)),
+  );
+}
 export function clearSavedDiagram(): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY);
+  if (typeof localStorage !== "undefined") {
+    if (loadDiagramRecovery().conflict)
+      throw Error("Review local graph recovery before resetting.");
+    localStorage.removeItem(ENVELOPE_STORAGE_KEY);
+  }
 }
