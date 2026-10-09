@@ -1,0 +1,130 @@
+CHATGPT MCP IMPORT INCIDENT — 9 OCTOBER 2026
+
+Outcome
+The original Maths Booklet Tools plugin now exposes graph and ratio-table tools.
+Tim refreshed that connection and reported that the ratio-table test succeeded.
+He subsequently removed the temporary Maths Booklet Tools Updated plugin.
+One Render service and one ChatGPT connection are sufficient for these tools.
+
+The solution was a server schema correction followed by refreshing the original
+connection. A different plugin name, endpoint or hosting service was unnecessary.
+
+Symptoms and decisive evidence
+The website ratio editor worked, and direct MCP SDK discovery returned all six
+tools. Direct creation, revision and export checks also passed. However, the
+original ChatGPT connection still listed only Create graph, Graph capabilities
+and Revise graph. A conversation therefore could not use the ratio-table tools.
+
+Creating a temporary connection at the same /mcp URL failed with this banner:
+"Some app settings were rejected. Check the server URL or tunnel ID, icon, and
+authentication settings, then try again."
+
+That banner did not identify the failing field. HTTP 400 response headers alone
+also did not explain it. The failed request's JSON response supplied the cause:
+
+{
+  "detail": {
+    "type": "apps_sdk_error",
+    "error_code": "mcp_validation",
+    "message": "Invalid MCP tool schema for tool 'create_ratio_table'"
+  }
+}
+
+Browser console warnings about Content Security Policy were not evidence of the
+MCP schema failure. The response identified a tool validation problem; it did
+not establish that reusing the original endpoint was forbidden. No credentials,
+cookies or full browser network capture are needed to retain this diagnosis.
+
+Schema correction
+Both cells and headings are exactly two entries of the same respective type.
+In packages/ratio-table-core/src/schema.ts they previously used Zod tuples:
+
+  export const cellsSchema = z.tuple([cellSchema, cellSchema]);
+  export const headingsSchema = z.tuple([headingSchema, headingSchema]);
+
+The SDK emitted draft-07 positional array schemas with this shape:
+
+  { "type": "array", "items": [CELL_SCHEMA, CELL_SCHEMA],
+    "minItems": 2, "maxItems": 2, "additionalItems": false }
+
+The correction uses homogeneous arrays with an exact length constraint:
+
+  export const cellsSchema = z.array(cellSchema).length(2);
+  export const headingsSchema = z.array(headingSchema).length(2);
+
+The advertised shape is now:
+
+  { "type": "array", "items": CELL_SCHEMA,
+    "minItems": 2, "maxItems": 2 }
+
+CELL_SCHEMA is a placeholder for the actual cell schema, not executable JSON.
+The same change applies to headings. Shared definitions update creation,
+revision envelopes, add_row, set_headings and returned document schemas.
+Saved documents still contain two entries. Invalid lengths are still rejected;
+the numeric, empty and answer-line cell variants retain their validation.
+The fix neither fills student answers nor changes rendering or arithmetic.
+
+This is the compatibility repair verified for this service and ChatGPT import.
+The error named the tool, not the exact nested property. Positional arrays can
+be valid JSON Schema in the appropriate dialect; do not claim they are invalid
+everywhere. Likewise, this incident does not justify banning every oneOf union:
+the already working graph schemas use unions. Test the emitted schema in the
+actual target client rather than assuming all valid JSON Schema is accepted.
+
+Verification and deployment
+services/graph-mcp/ratio-table.test.ts now inspects real MCP tools/list results
+for all six input and output schemas. The project guard checks object-valued
+array items, absence of positional array constructs, and exact-two constraints
+on cells and headings. Actual MCP calls also reject invalid lengths on creation
+and revision, and malformed cell states. This guard covers the known regression;
+it is not a complete implementation of ChatGPT's schema validator.
+
+The fix passed lint, type checking, builds and 116 tests. Linux CI additionally
+passed 14 browser tests and the six-tool Docker smoke at a 512 MiB memory limit.
+The live HTTPS check found zero positional tuple occurrences, down from ten,
+preserved answer lines, and verified graph and ratio creation/revision/exports.
+The simple ratio preview was byte-for-byte identical before and after the fix.
+
+Recorded release evidence:
+  Repository: https://github.com/tboughen/maths-booklet-tools
+  Fix commit: e4a0882ec04f78f4849dc89a8e7f1fbfa29180ef
+  Review PR: https://github.com/tboughen/maths-booklet-tools/pull/3
+  Linux CI: https://github.com/tboughen/maths-booklet-tools/actions/runs/37886205626
+  Render service: srv-db2mfjaj9qps73eo05a0
+  Render deployment: dep-db4797u0tbcc73dcvrbg
+  Deployment live: 9 October 2026, 05:00:04 UTC
+  Qualified/live buildId:
+    64d5054475706b597d4caa3ad8fface51a821f9d9595c390c72686615db0a4cc
+
+The existing Render service deployed the corrected commit from its configured
+codex/chatgpt-graph-integration branch. The URL, Free plan and signing key were
+retained. No second service or OpenAI model API dependency was added.
+At the incident handover PR 3 remained open: deployment of the reviewed fix is
+distinct from merging it into main. Consult the PR for later source status.
+
+Account acceptance
+After deployment, Tim refreshed the ORIGINAL Maths Booklet Tools connection.
+The requested trial was the simple (4,8)/(1,answer-line) table with a PNG and
+editable website link. Tim reported:
+  "I refreshed - it now shows on the original plugin. Test succeeded too"
+
+This is human-reported ChatGPT account acceptance, beyond the direct SDK tests.
+It does not establish every future prompt or native Word insertion behaviour.
+The temporary Updated plugin was then removed by Tim. No further deployment
+was needed for that cleanup or for writing this documentation.
+
+Lessons for the next change
+Inspect the JSON schemas actually advertised through tools/list. Qualify the
+server locally and on its deployment platform, then test import and a real call
+in ChatGPT early. A successful SDK call does not prove client import acceptance.
+Deploy the correction first, refresh the existing connection, confirm its tools,
+then test in a new conversation. Read the failed network response before making
+another plugin or changing authentication, hosting, browser policy or keys.
+
+Related project guidance
+  MCP-PLUGIN-DEVELOPMENT.txt — future design, testing and release procedure
+  GRAPH-MCP-CONNECTION.txt — current connection and acceptance steps
+  RATIO-TABLE-MCP.txt — ratio schema, operations and deployment checks
+
+Official refresh procedure, checked 9 October 2026:
+https://developers.openai.com/plugins/deploy/connect-chatgpt
