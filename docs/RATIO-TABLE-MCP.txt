@@ -12,6 +12,15 @@ are shared. The graph-1 health field stays unchanged; ratioRendererVersion adds
 ratio-1. The build manifest includes both cores and the same bundled fonts.
 There are no new dependencies, paid services, model API calls or stored documents.
 
+Tool-schema compatibility
+Cells and headings use homogeneous array item schemas with minItems/maxItems 2.
+Do not replace these with positional tuples: the draft-07 tuple items array was
+rejected by ChatGPT's custom-server import for create_ratio_table. The document
+format still uses two entries, and server validation still rejects other lengths.
+The real MCP discovery regression scans all input/output array schemas; service
+tests also check invalid cell/heading lengths on creation and revision. SDK call
+success alone does not establish actual ChatGPT account import/acceptance.
+
 Creation example: pupil scaffold
 {
   "schemaVersion": 1,
