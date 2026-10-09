@@ -20,6 +20,10 @@ format still uses two entries, and server validation still rejects other lengths
 The real MCP discovery regression scans all input/output array schemas; service
 tests also check invalid cell/heading lengths on creation and revision. SDK call
 success alone does not establish actual ChatGPT account import/acceptance.
+The 9 October correction and account acceptance are documented in
+MCP-SCHEMA-INCIDENT-2026-10-09.txt; future plugin guidance is in
+MCP-PLUGIN-DEVELOPMENT.txt. Tim confirmed a successful original-plugin refresh
+and ratio trial, then removed the temporary Updated plugin.
 
 Creation example: pupil scaffold
 {
@@ -84,12 +88,16 @@ Graphs and ratios share the serial native renderer, waiting queue, cancellation,
 and 40 per client per minute, and the configured daily 200 MiB output allowance.
 Log only request IDs/status/time/byte counts; no document bodies or signed URLs.
 
-Candidate release and acceptance
-This ratio branch depends on the graph integration candidate from PR 1. Current
-main's reviewed question bank is reconciled in the isolated ratio branch without
-altering those asset bytes. Review the separate ratio PR; do not merge the other
-task simply to advance ratio status. Once the graph dependency is merged, retarget
-the ratio PR to fresh main and requalify any changed final candidate.
+Release and acceptance
+The original graph integration PR 1 and ratio builder PR 2 were merged on
+7 October 2026. The earlier graph PR dependency is therefore historical:
+  https://github.com/tboughen/maths-booklet-tools/pull/1
+  https://github.com/tboughen/maths-booklet-tools/pull/2
+The later schema fix was deployed separately and accepted in Tim's original
+ChatGPT connection on 9 October. At that handover its source PR 3 was still open:
+  https://github.com/tboughen/maths-booklet-tools/pull/3
+Consult that PR for subsequent merge status; do not equate deployed with merged.
+Preserve independent question-bank work during future release reconciliation.
 
 The GitHub Pages website and the existing Render Free service are separate
 deployments. Keep https://maths-booklet-graph-mcp.onrender.com/mcp, its signing key,

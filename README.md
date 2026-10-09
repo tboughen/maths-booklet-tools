@@ -52,11 +52,18 @@ and can be undone. Existing human graphs keep their original font; portable
 graphs use bundled STIX fonts consistently.
 
 The optional stateless MCP service exposes `graph_capabilities`, `create_graph`
-and `revise_graph` for direct graph creation without computer use. Human drawing
-and exports work independently of that service.
+and `revise_graph`, plus `ratio_table_capabilities`, `create_ratio_table` and
+`revise_ratio_table`, through one ChatGPT connection without computer use.
+Human drawing and exports work independently of that service.
 See [operations and release](docs/GRAPH-MCP-RUNBOOK.txt) and
 [ChatGPT connection and acceptance](docs/GRAPH-MCP-CONNECTION.txt).
 Adding these files does not deploy a service or connect a ChatGPT account.
+
+The original Maths Booklet Tools plugin was confirmed working after the
+9 October 2026 schema correction and refresh; its temporary duplicate was removed.
+See the [import incident and fix](docs/MCP-SCHEMA-INCIDENT-2026-10-09.txt) and
+[guide to future MCP plugins](docs/MCP-PLUGIN-DEVELOPMENT.txt) for schema design,
+testing, deployment, refresh and troubleshooting lessons.
 
 Free hosting is configured in `render.yaml`. Use a free Render workspace without
 a payment method and review that the deployment lists only one Free web service.
@@ -115,5 +122,5 @@ If the repository is renamed, update the production `base` value in `vite.config
 - `src/**/*.test.*` covers the domain, exports and core multi-object workflow.
 
 Human drawing and exports stay in the browser, with drafts saved locally.
-When you select the optional ChatGPT graph plugin, its graph inputs are sent to
-the renderer to produce files; no graph history is stored by the service.
+When you select the optional Maths Booklet Tools plugin, its diagram inputs are
+sent to the renderer to produce files; no diagram history is stored by the service.
