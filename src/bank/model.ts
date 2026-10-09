@@ -47,6 +47,7 @@ export interface BankQuestion {
   printPages: {width: number; height: number}[];
   scaleSensitive: boolean;
   writingSpacePolicy?: "source" | "generated" | "none";
+  exportRouting74?: { policy: "q8-classroom-compact74"; scopeSHA256: string; authoritySHA256: string };
   equivalentId?: string;
   equivalentSource?: string;
   review: "reviewed" | "draft";
