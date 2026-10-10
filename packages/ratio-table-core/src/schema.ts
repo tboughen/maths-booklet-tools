@@ -20,7 +20,9 @@ export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("answer-line") }).strict(),
 ]);
 export type RatioCell = z.infer<typeof cellSchema>;
-export const cellsSchema = z.tuple([cellSchema, cellSchema]);
+// Both positions have the same schema. Use homogeneous array items rather than
+// draft-07 tuple items, while retaining the exact two-column validation.
+export const cellsSchema = z.array(cellSchema).length(2);
 export const headingSchema = z
   .object({
     text: z
@@ -32,7 +34,7 @@ export const headingSchema = z
     direction: z.enum(["right", "up", "none"]),
   })
   .strict();
-export const headingsSchema = z.tuple([headingSchema, headingSchema]);
+export const headingsSchema = z.array(headingSchema).length(2);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z
   .object({
