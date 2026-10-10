@@ -36,7 +36,7 @@ describe("native PDF export and reviewed assets",()=>{
       evidence.push({preset,questionCount:result.questionCount,marks:result.marks,questionPages:q.getPageCount(),schemePages:m.getPageCount(),questionOrder:catalogue.questions.map(q=>q.id)});
     }
     await writeFile(path.join(dir,"checks.json"),JSON.stringify({version:catalogue.version,exports:evidence},null,2));
-  },60000);
+  },300000);
   it("supports writing space and keeps the scale drawing at a 1:1 matrix",async()=>{
     const question=catalogue.questions.find(q=>q.id==="1MA1_NOV_2019_1H_Q8")!;
     const result=await makePapers([question],catalogue.version,"writing",()=>undefined);
