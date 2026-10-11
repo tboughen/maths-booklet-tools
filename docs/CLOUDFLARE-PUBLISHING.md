@@ -30,7 +30,7 @@ Select preview/production and supply the exact site URL. The workflow serialises
 
 Keep prior R2 objects. A previous Workers deployment can be rolled back with Wrangler/dashboard because its catalogue still references immutable existing objects. Retained objects count toward account storage; pruning needs a separate inventory of all retained releases and explicit approval. The uploader has no deletion command. Changes to question bytes always produce a new URL; do not overwrite or purge immutable URLs to publish a correction.
 
-An upload receipt proves upload completion, not a website deployment. The final deployment receipt is written only after live catalogue/route checks and actual browser export tests pass. A failed post-deploy check is a release failure even if Cloudflare accepted the upload; inspect the deployment and roll back if needed. Do not infer success from an older receipt.
+An upload receipt proves upload completion, not a website deployment. The final deployment receipt is written only after live catalogue/route checks and actual browser export tests pass. Route/catalogue checks retry for up to two minutes to allow Cloudflare deployment propagation; a persistent failure still stops publishing without a success receipt. A failed post-deploy check is a release failure even if Cloudflare accepted the upload; inspect the deployment and roll back if needed. Do not infer success from an older receipt.
 
 ## Current dependency note
 

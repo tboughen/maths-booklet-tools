@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { execFileSync, spawnSync } from "node:child_process";
 import { S3Client, HeadObjectCommand, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { assetFile, prepareRelease, digest, sourceFingerprint } from "./release.ts";
-import { ensureAsset, concurrent, assertPublicHeaders, sha256, immutableCache } from "./upload-core.mjs";
+import { ensureAsset, concurrent, assertPublicHeaders, sha256, immutableCache, retryVerification } from "./upload-core.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 process.chdir(root);
@@ -85,12 +85,14 @@ async function verifyAssets(manifest) {
 async function verifySite(manifest) {
   const base = new URL(origin);
   if (base.protocol !== "https:" && base.hostname !== "127.0.0.1") throw new Error("Site must use HTTPS");
-  for (const path of ["/", "/?tool=question-bank&bankView=topics", "/?tool=coordinate-grid", "/?tool=ratio-table"]) {
-    const response = await fetch(new URL(path, base), {signal: AbortSignal.timeout(60000)});
-    if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) throw new Error(`Site route failed: ${path}`);
-  }
-  const response = await fetch(new URL("/bank/catalogue.json", base), {cache: "no-cache", signal: AbortSignal.timeout(60000)});
-  if (!response.ok || digest(Buffer.from(await response.arrayBuffer())) !== manifest.catalogueSha256) throw new Error("Live catalogue differs from release");
+  await retryVerification(async remaining => {
+    for (const path of ["/", "/?tool=question-bank&bankView=topics", "/?tool=graph", "/?tool=ratio-table"]) {
+      const response = await fetch(new URL(path, base), {signal: AbortSignal.timeout(Math.min(15000, remaining()))});
+      if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) throw new Error(`Site route failed: ${path}`);
+    }
+    const response = await fetch(new URL("/bank/catalogue.json", base), {cache: "no-cache", signal: AbortSignal.timeout(Math.min(15000, remaining()))});
+    if (!response.ok || digest(Buffer.from(await response.arrayBuffer())) !== manifest.catalogueSha256) throw new Error("Live catalogue differs from release");
+  }, {onRetry: error => console.log(`Waiting for the deployed site to become available: ${error.message}`)});
   console.log("Live website routes and catalogue verified. Browser export checks are a separate required release check.");
 }
 
