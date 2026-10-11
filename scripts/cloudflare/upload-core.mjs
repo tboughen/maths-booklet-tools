@@ -36,6 +36,20 @@ export async function concurrent(items, action, limit = 6) {
   return results;
 }
 
+export async function retryVerification(check, {timeoutMs = 120000, intervalMs = 5000,
+  now = Date.now, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), onRetry = () => {}} = {}) {
+  const deadline = now() + timeoutMs;
+  while (true) {
+    try { return await check(() => Math.max(1, deadline - now())); }
+    catch (error) {
+      if (now() >= deadline) throw error;
+      onRetry(error);
+      await sleep(Math.min(intervalMs, deadline - now()));
+      if (now() >= deadline) throw error;
+    }
+  }
+}
+
 export function assertPublicHeaders(response, asset, origin) {
   if (!response.ok || Number(response.headers.get("content-length")) !== asset.bytes
       || response.headers.get("content-type")?.split(";")[0] !== asset.contentType
