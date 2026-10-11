@@ -119,11 +119,25 @@ export function topicQuestions(catalogue: BankCatalogue, code: string): BankQues
 }
 
 export function filterQuestions(catalogue: BankCatalogue, route: BankRoute): BankQuestion[] {
-  return topicQuestions(catalogue, route.code).filter(q =>
+  const questions = topicQuestions(catalogue, route.code).filter(q =>
     (route.tier === "all" || q.tier === route.tier) &&
     (route.calculator === "all" || q.calculator === (route.calculator === "yes")) &&
-    (route.collection === "all" || (q.collection.startsWith("Mock") ? "mock" : "past") === route.collection),
+    (route.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === route.collection),
   );
+  // Filter first: retain the matching tier and mapping, including old direct links.
+  return route.code ? distinctQuestions(questions, route.question) : questions;
+}
+
+function distinctQuestions(questions: BankQuestion[], preferredId = ""): BankQuestion[] {
+  const key = (q: BankQuestion) => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
+  const preferred = questions.find(q => q.id === preferredId);
+  const seen = new Set<string>();
+  return questions.flatMap(q => {
+    const identity = key(q);
+    if (seen.has(identity)) return [];
+    seen.add(identity);
+    return [preferred && key(preferred) === identity ? preferred : q];
+  });
 }
 
 export function matchingParts(question: BankQuestion, code: string): {labels: string[]; marks: number} {
@@ -135,11 +149,11 @@ export function exportSelection(catalogue: BankCatalogue, ids: string[]): {quest
   const byId = new Map(catalogue.questions.map(q => [q.id, q]));
   const unique = [...new Set(ids)];
   if (!unique.length) throw new Error("Choose at least one question.");
-  const questions = unique.map(id => {
+  const questions = distinctQuestions(unique.map(id => {
     const question = byId.get(id);
     if (!question) throw new Error(`Question ${id} is not in this catalogue.`);
     return question;
-  });
+  }));
   return {questions, marks: questions.reduce((n, q) => n + q.marks, 0), version: catalogue.version};
 }
 
@@ -157,6 +171,7 @@ export function verifyCatalogue(data: unknown): BankCatalogue {
     throw new Error("This catalogue could not be read. Reload the page or use a saved PDF.");
   }
   const ids = new Set<string>();
+  const byId = new Map(d.questions.map(q => [q.id, q]));
   const codes = new Set(d.topics.map(t => t.code));
   for (const q of d.questions) {
     if (q.review !== "reviewed" && !(d.publication?.status === "draft" && q.review === "draft")) {
@@ -167,6 +182,13 @@ export function verifyCatalogue(data: unknown): BankCatalogue {
     }
     if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) throw new Error("Question writing-space policy is invalid.");
     if (q.parts.reduce((sum, p) => sum + p.marks, 0) !== q.marks) throw new Error("Question marks do not match the catalogue.");
+    if (q.equivalentId) {
+      const other = byId.get(q.equivalentId);
+      const sameSeries = other && (q.paperId && other.paperId ? q.paperId.replace(/_[123][FH]$/, "") === other.paperId.replace(/_[123][FH]$/, "") : q.set === other.set);
+      if (!other || !sameSeries || other.equivalentId !== q.id || other.tier === q.tier || other.calculator !== q.calculator || other.marks !== q.marks) {
+        throw new Error("A crossover question failed its catalogue check.");
+      }
+    }
     ids.add(q.id);
   }
   return d;

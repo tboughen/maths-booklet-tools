@@ -4,7 +4,7 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, PDFName, PDFArray, PDFRawStream, decodePDFRawStream } from "pdf-lib";
 import { makePapers } from "./export";
-import { verifyCatalogue } from "./model";
+import { exportSelection, verifyCatalogue } from "./model";
 vi.mock("./pdf",()=>({assetUrl:(p:string)=>p}));
 const root=path.resolve(process.cwd());
 const catalogue=verifyCatalogue(JSON.parse(await readFile("public/bank/catalogue.json","utf8")));
@@ -14,6 +14,25 @@ beforeEach(()=>{
 });
 afterEach(()=>vi.unstubAllGlobals());
 describe("native PDF export and reviewed assets",()=>{
+  it("generates one question and aligned scheme when both crossover appearances were requested",async()=>{
+    const ids=["1MA1_NOV_2019_1F_Q23","1MA1_NOV_2019_1H_Q4"];
+    const selection=exportSelection(catalogue,ids);
+    for(const preset of ["compact","writing"] as const){
+      const result=await makePapers(selection.questions,catalogue.version,preset,()=>undefined);
+      expect(result.questionCount).toBe(1);
+      expect(result.marks).toBe(2);
+      const question=await PDFDocument.load(new Uint8Array(await result.questions.arrayBuffer()));
+      const scheme=await PDFDocument.load(new Uint8Array(await result.schemes.arrayBuffer()));
+      expect(question.getPageCount()).toBe(1);
+      expect(scheme.getPageCount()).toBe(1);
+      const dir=process.env.CROSSOVER_EXPORT_DIR;
+      if(dir){
+        await mkdir(dir,{recursive:true});
+        await writeFile(path.join(dir,`${preset}-questions.pdf`),new Uint8Array(await result.questions.arrayBuffer()));
+        await writeFile(path.join(dir,`${preset}-mark-schemes.pdf`),new Uint8Array(await result.schemes.arrayBuffer()));
+      }
+    }
+  });
   it("exports the complete released catalogue in both layouts with aligned answers and full marks",async()=>{
     expect(catalogue.questions).toHaveLength(catalogue.scope.publishedQuestions);
     const dir=process.env.BANK_EXPORT_DIR||path.join(root,"coverage/bank-exports",catalogue.version);
