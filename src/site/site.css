@@ -154,6 +154,10 @@ body { background: #f2f5f8; }
   .qb-navigation > div { order: -1; width: 100%; min-width: 0; }
   .qb-zoom { flex-wrap: wrap; }
   .qb-display { height: 100dvh; overflow: auto; }
+  .site-app:has(> .site-page:not([hidden]) .qb-topics-mode) { height: 100dvh; min-height: 0; }
+  .qb-app.qb-topics-mode { height: 100%; overflow: hidden; }
+  .qb-topics-mode .qb-topics-host { overflow: auto; }
+  .qb-topics-mode .qb-topic-builder { flex: 0 0 auto; }
 }
 @media print {
   .site-navigation, .site-skip, .qb-page-search { display: none; }
