@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mathsdock-redirect",
+  "main": "scripts/cloudflare/redirect.mjs",
+  "compatibility_date": "2026-10-11",
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "mathsdock.com", "custom_domain": true },
+    { "pattern": "www.mathsdock.com", "custom_domain": true },
+    { "pattern": "www.mathsdock.co.uk", "custom_domain": true }
+  ]
+}

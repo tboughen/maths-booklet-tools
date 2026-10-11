@@ -8,3 +8,8 @@ service-dist
 test-results
 playwright-report
 .env
+dist-cloudflare
+cloudflare-release
+.wrangler
+.dev.vars*
+*.credentials.xml

@@ -1,10 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { catalogueAssetPaths } from "./bankAssets";
+import { prepareRelease, assetOrigin, sourceFingerprint } from "./scripts/cloudflare/release";
 
 export default defineConfig(({ command, mode }) => ({
+  define: mode === "cloudflare" ? { "import.meta.env.VITE_BANK_ASSET_ORIGIN": JSON.stringify(assetOrigin) } : {},
+  build: mode === "cloudflare" ? { outDir: "dist-cloudflare" } : {},
   publicDir: command === "serve" ? "public" : false,
   plugins: [react(), {
     name: "reviewed-question-bank-assets",
@@ -18,15 +22,25 @@ export default defineConfig(({ command, mode }) => ({
           if (item.isDirectory()) tree(child); else if (item.isFile()) add(child);
         }
       };
-      add("favicon.svg"); add("bank/catalogue.json");
-      for (const asset of catalogueAssetPaths(catalogue)) add(asset);
+      add("favicon.svg");
+      if (mode === "cloudflare") {
+        const commit = execFileSync("git", ["rev-parse", "HEAD"], {encoding: "utf8"}).trim();
+        const release = prepareRelease("public", commit, sourceFingerprint("."));
+        this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
+        this.emitFile({type: "asset", fileName: "_headers", source: "/bank/catalogue.json\n  Cache-Control: no-cache\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n"});
+        mkdirSync("cloudflare-release", {recursive: true});
+        writeFileSync("cloudflare-release/manifest.json", JSON.stringify(release.manifest, null, 2));
+      } else {
+        add("bank/catalogue.json");
+        for (const asset of catalogueAssetPaths(catalogue)) add(asset);
+      }
       tree("bank/pdfjs");
     },
   }],
   // Keep GitHub Pages links and PDF worker/font requests under the repository path.
-  base: process.env.SITE_BASE || (mode === "production" ? "/maths-booklet-tools/" : "/"),
+  base: mode === "cloudflare" ? "/" : process.env.SITE_BASE || (mode === "production" ? "/maths-booklet-tools/" : "/"),
   test: {
-    exclude: ["node_modules/**", "dist/**", "service-dist/**", "e2e/**"],
+    exclude: ["node_modules/**", "dist/**", "dist-cloudflare/**", "service-dist/**", "e2e/**", "scripts/cloudflare/*.test.mjs", "scripts/cloudflare/browser.spec.ts"],
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,

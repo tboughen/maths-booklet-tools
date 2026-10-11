@@ -1,5 +1,7 @@
 # Maths Booklet Tools
 
+Cloudflare migration and checked R2/Workers publishing: [publishing runbook](docs/CLOUDFLARE-PUBLISHING.md). GitHub Pages remains available until the verified cutover.
+
 The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is available at `?tool=home`, and the tools overview at `?tool=booklet-tools`. Existing editor and Question bank links remain supported.
 
 New editors should follow [Adding a booklet tool](docs/ADDING-BOOKLET-TOOLS.md) so they inherit the shared layout and navigation. Drafts and undo history are retained while switching pages in the same session; the existing browser-storage recovery and editable files handle saved work.
