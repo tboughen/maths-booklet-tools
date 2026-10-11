@@ -79,6 +79,7 @@ export interface BankCatalogue {
 }
 
 export interface BankRoute {
+  bankView?: "questions" | "topics";
   code: string;
   tier: Tier;
   calculator: CalculatorFilter;
@@ -87,13 +88,14 @@ export interface BankRoute {
   view: number;
 }
 
-export const emptyRoute: BankRoute = {code: "", tier: "all", calculator: "all", collection: "all", question: "", view: 0};
+export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", question: "", view: 0};
 export const normalizeCode = (code: string) => code.replace(/\s/g, "").toUpperCase();
 
 export function readRoute(search: string, catalogue?: BankCatalogue): BankRoute {
   const p = new URLSearchParams(search);
   const raw = normalizeCode(p.get("code") || "");
   return {
+    bankView: p.get("bankView") === "topics" ? "topics" : "questions",
     code: catalogue?.aliases[raw] || raw,
     tier: p.get("tier") === "F" || p.get("tier") === "H" ? p.get("tier") as Tier : "all",
     calculator: p.get("calc") === "yes" || p.get("calc") === "no" ? p.get("calc") as CalculatorFilter : "all",
@@ -105,6 +107,7 @@ export function readRoute(search: string, catalogue?: BankCatalogue): BankRoute 
 
 export function routeQuery(route: BankRoute): string {
   const p = new URLSearchParams({tool: "question-bank"});
+  if (route.bankView === "topics") p.set("bankView", "topics");
   if (route.code) p.set("code", normalizeCode(route.code));
   if (route.tier !== "all") p.set("tier", route.tier);
   if (route.calculator !== "all") p.set("calc", route.calculator);
@@ -119,17 +122,21 @@ export function topicQuestions(catalogue: BankCatalogue, code: string): BankQues
 }
 
 export function filterQuestions(catalogue: BankCatalogue, route: BankRoute): BankQuestion[] {
-  const questions = topicQuestions(catalogue, route.code).filter(q =>
-    (route.tier === "all" || q.tier === route.tier) &&
-    (route.calculator === "all" || q.calculator === (route.calculator === "yes")) &&
-    (route.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === route.collection),
-  );
+  const questions = topicQuestions(catalogue, route.code).filter(q => questionEligible(q, route));
   // Filter first: retain the matching tier and mapping, including old direct links.
   return route.code ? distinctQuestions(questions, route.question) : questions;
 }
 
+export const questionIdentity = (q: BankQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
+
+export function questionEligible(q: BankQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection">): boolean {
+  return (filters.tier === "all" || q.tier === filters.tier) &&
+    (filters.calculator === "all" || q.calculator === (filters.calculator === "yes")) &&
+    (filters.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === filters.collection);
+}
+
 function distinctQuestions(questions: BankQuestion[], preferredId = ""): BankQuestion[] {
-  const key = (q: BankQuestion) => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
+  const key = questionIdentity;
   const preferred = questions.find(q => q.id === preferredId);
   const seen = new Set<string>();
   return questions.flatMap(q => {

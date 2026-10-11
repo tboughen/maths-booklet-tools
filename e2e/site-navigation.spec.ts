@@ -73,7 +73,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   await expect(page).toHaveURL(bankUrl);
   await expect(current(page).locator(".qb-source-heading strong")).toHaveText(source);
   await expect(current(page).getByRole("button", { name: "Hide mark scheme", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(current(page).getByRole("button", { name: "Export PDFs (1)", exact: true })).toBeVisible();
+  await expect(current(page).getByRole("button", { name: "Review paper (1)", exact: true })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Booklet tools", exact: true })).toBeVisible();
   await page.goForward();
@@ -82,7 +82,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   await expect(sections(page)).toBeHidden();
   await page.keyboard.press("Escape");
   await expect(sections(page)).toBeVisible();
-  await current(page).getByRole("button", { name: "Export PDFs (1)", exact: true }).click();
+  await current(page).getByRole("button", { name: "Review paper (1)", exact: true }).click();
   const dialog = page.getByRole("dialog");
   for (const preset of ["Compact practice", "Writing space"]) {
     await dialog.getByRole("radio", { name: new RegExp(preset) }).check();
@@ -96,7 +96,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
       expect(pdf.getPageCount()).toBeGreaterThan(0);
     }
   }
-  await dialog.getByRole("button", { name: "Close export" }).click();
+  await dialog.getByRole("button", { name: "Close paper review" }).click();
 });
 
 test("a late bank response cannot hijack another page or lock its scrolling", async ({ page }) => {
