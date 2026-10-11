@@ -12,7 +12,8 @@ import "./question-bank.css";
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
 
-export default function QuestionBank() {
+export default function QuestionBank({ active = true }: { active?: boolean }) {
+  const activePage=useRef(active);activePage.current=active;
   const [catalogue,setCatalogue]=useState<BankCatalogue>();
   const [loadError,setLoadError]=useState("");
   const [reload,setReload]=useState(0);
@@ -45,18 +46,19 @@ export default function QuestionBank() {
   const app=useRef<HTMLDivElement>(null);
   const go=useCallback((next:BankRoute,replace=false)=>{
     const query=routeQuery(next);
-    if(location.search!==query) history[replace?"replaceState":"pushState"]({},"",`${location.pathname}${query}`);
+    if(activePage.current && location.search!==query) history[replace?"replaceState":"pushState"]({},"",`${location.pathname}${query}`);
+    if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
     setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice("");
   },[]);
   useEffect(()=>{
-    const controller=new AbortController();setLoadError("");
-    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=verifyCatalogue(data);setCatalogue(c);go(readRoute(location.search,c),true);}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
+    const controller=new AbortController();setLoadError("");const initialSearch=location.search;
+    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=verifyCatalogue(data);setCatalogue(c);go(readRoute(activePage.current?location.search:initialSearch,c),true);}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{setRoute(readRoute(location.search,catalogue));setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue]);
+  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);if(JSON.stringify(next)===JSON.stringify(route))return;setRoute(next);setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
   useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen]);
-  useEffect(()=>{if(exportOpen)exportDialog.current?.showModal();else exportDialog.current?.close();},[exportOpen]);
+  useEffect(()=>{if(active&&exportOpen)exportDialog.current?.showModal();else exportDialog.current?.close();},[active,exportOpen]);
   useEffect(()=>()=>exportAbort.current?.abort(),[]);
 
   const results=useMemo(()=>catalogue?filterQuestions(catalogue,route):[],[catalogue,route]);
@@ -83,12 +85,13 @@ export default function QuestionBank() {
 
   const move=useCallback((direction:number)=>{
     if(!question)return;const newView=viewIndex+direction*(two?2:1);
-    if(newView>=0&&newView<views.length){if(role==="scheme")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",`${location.pathname}${routeQuery(updated)}`);setRoute(updated);}}
+    if(newView>=0&&newView<views.length){if(role==="scheme")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",`${location.pathname}${routeQuery(updated)}`);window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?target.questionViews.length-1:0});}
   },[question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
   const reveal=useCallback(()=>{if(question)setMode({id:question.id,role:role==="question"?"scheme":"question",view:0});},[question,role]);
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
   useEffect(()=>{
+    if(!active)return;
     const key=(e:KeyboardEvent)=>{
       if(e.key==="Escape"){leaveDisplay();return;}
       if((e.target as HTMLElement)?.closest("input,select,textarea,dialog,[contenteditable=true]")||exportOpen)return;
@@ -99,18 +102,19 @@ export default function QuestionBank() {
     const fullscreen=()=>{if(!document.fullscreenElement)setDisplay(false);};
     window.addEventListener("keydown",key);document.addEventListener("fullscreenchange",fullscreen);
     return()=>{window.removeEventListener("keydown",key);document.removeEventListener("fullscreenchange",fullscreen);};
-  },[move,reveal,leaveDisplay,exportOpen]);
+  },[active,move,reveal,leaveDisplay,exportOpen]);
   useEffect(()=>{const q=results[questionIndex+1];if(q)void preloadQuestion(q).catch(()=>undefined);},[results,questionIndex]);
 
   const actions=useRef({catalogue,route,question,role,viewIndex,go});actions.current={catalogue,route,question,role,viewIndex,go};
   useEffect(()=>{
+    if(!active)return;
     const context=(document as Document&{modelContext?:WebContext}).modelContext;if(!context?.registerTool)return;
     const lifecycle=new AbortController();
     const register=(tool:Parameters<WebContext["registerTool"]>[0])=>{try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>undefined);}catch{/* Optional browser capability. */}};
     register({name:"question_bank_read_state",description:"Read the visible topic, question, view and whether its mark scheme is visible.",inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>{const a=actions.current;return{code:a.route.code,question:a.question?.id,role:a.role,view:a.viewIndex+1,version:a.catalogue?.version};}});
     register({name:"question_bank_open_topic",description:"Open a current Sparx topic in the visible viewer, hide its mark scheme and reset the view.",inputSchema:{type:"object",properties:{code:{type:"string"}},required:["code"],additionalProperties:false},annotations:{readOnlyHint:false},execute:(input)=>{const a=actions.current;const raw=(input as{code?:unknown})?.code;if(typeof raw!=="string")throw new Error("A Sparx code is required.");const code=a.catalogue?.aliases[normalizeCode(raw)]||normalizeCode(raw);if(!a.catalogue?.topics.some(t=>t.code===code))throw new Error("Unknown Sparx code.");flushSync(()=>a.go({...emptyRoute,code}));return{code,questions:filterQuestions(a.catalogue,{...emptyRoute,code}).length};}});
     return()=>lifecycle.abort();
-  },[]);
+  },[active]);
 
   function submitSearch(e:FormEvent){e.preventDefault();const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list or enter a Sparx code.");}
   function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return selected.includes(id)||!!(q?.equivalentId&&selected.includes(q.equivalentId));}
@@ -124,22 +128,19 @@ export default function QuestionBank() {
   const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(role==="scheme"&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
 
   return <div ref={app} className={`qb-app${display?" qb-display":""}`}>
-    <header className="qb-header">
-      <a className="qb-brand" href="?tool=graph"><span className="qb-brand-icon"><BookOpen size={22}/></span><span>Maths Tools<strong>Question bank</strong></span></a>
+    <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
+      <div className="qb-page-search">
       <form onSubmit={submitSearch} className="qb-search-form">
         <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
         <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
         <button className="qb-button qb-primary" type="submit">Find</button>
       </form>
       <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
-      <a className="qb-tools" href="?tool=graph">Graph tool <ArrowRight size={16}/></a>
-      <a className="qb-tools" href="?tool=ratio-table">Ratio tables <ArrowRight size={16}/></a>
-    </header>
-    <main className="qb-main">
+      </div>
       <div className="qb-toolbar">
         <div className="qb-topic">
           {route.code&&<span className="qb-code">{route.code}</span>}
-          <div><h1>{topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{topic?`${topic.bankCount} matched in full bank · ${topic.availableCount??topic.pilotCount} ${catalogue?.publication?"available":"in this pilot"}`:catalogue?.publication?.description||(catalogue?`${catalogue.questions.length} reviewed questions`:"")}</span></div>
+          <div><h1 tabIndex={-1}>{topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{topic?`${topic.bankCount} matched in full bank · ${topic.availableCount??topic.pilotCount} ${catalogue?.publication?"available":"in this pilot"}`:catalogue?.publication?.description||(catalogue?`${catalogue.questions.length} reviewed questions`:"")}</span></div>
         </div>
         <div className="qb-toolbar-actions">
           <button className="qb-button" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}><List size={18}/>{countText}</button>

@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  BookOpen,
-  Check,
   ChevronDown,
   Copy,
   Download,
   Grid3X3,
-  LockKeyhole,
   Plus,
   Redo2,
   RotateCcw,
@@ -44,6 +41,7 @@ import {
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { RatioDialog } from "./RatioDialog";
+import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
 
 type History = {
@@ -96,7 +94,7 @@ function example(kind: "simple" | "worked" | "fraction") {
           ],
   });
 }
-export default function RatioTablePage() {
+export default function RatioTablePage({ active = true }: { active?: boolean }) {
   const [startup] = useState(loadRatioRecovery);
   const [recovery, setRecovery] = useState(startup.recovery),
     [recoveryDownloaded, setRecoveryDownloaded] = useState(false);
@@ -107,8 +105,7 @@ export default function RatioTablePage() {
   }));
   const [saveState, setSaveState] = useState(startup.error ? "error" : "saved");
   const [message, setMessage] = useState(startup.error ?? "");
-  const [toolsOpen, setToolsOpen] = useState(false),
-    [exportsOpen, setExportsOpen] = useState(false);
+  const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(2),
     [guides, setGuides] = useState(false);
@@ -228,7 +225,7 @@ export default function RatioTablePage() {
   }, []);
   useEffect(() => {
     function link() {
-      if (!location.hash.startsWith("#ratio-table=") || blocked.current) return;
+      if (!active || !location.hash.startsWith("#ratio-table=") || blocked.current) return;
       try {
         if (location.href.length > RATIO_MAX_LINK_LENGTH)
           throw Error(
@@ -248,8 +245,9 @@ export default function RatioTablePage() {
     link();
     window.addEventListener("hashchange", link);
     return () => window.removeEventListener("hashchange", link);
-  }, [recovery]);
+  }, [active, recovery]);
   useEffect(() => {
+    if (!active) return;
     function keyboard(e: KeyboardEvent) {
       if (globalThis.document.querySelector('[aria-modal="true"]')) return;
       const target = e.target as HTMLElement | null;
@@ -265,12 +263,11 @@ export default function RatioTablePage() {
       }
       if (e.key === "Escape") {
         setExportsOpen(false);
-        setToolsOpen(false);
       }
     }
     window.addEventListener("keydown", keyboard);
     return () => window.removeEventListener("keydown", keyboard);
-  }, [undo, redo]);
+  }, [active, undo, redo]);
   async function runExport(action: () => Promise<void>, success = "") {
     setBusy(true);
     setExportsOpen(false);
@@ -328,97 +325,11 @@ export default function RatioTablePage() {
   }
   const headingNames = document.headings.map((h) => h.text);
   return (
-    <div
-      className="app-shell ratio-app"
-      onClick={() => {
-        if (toolsOpen) setToolsOpen(false);
-      }}
-    >
-      <header className="site-header">
-        <div className="brand-mark" aria-hidden="true">
-          MB
-        </div>
-        <div className="brand-copy">
-          <strong>Maths Booklet Tools</strong>
-          <span>Practical tools for lesson resources</span>
-        </div>
-        <div className="header-tools">
-          <button
-            className="header-menu-button"
-            aria-expanded={toolsOpen}
-            onClick={(e) => {
-              e.stopPropagation();
-              setToolsOpen((v) => !v);
-            }}
-          >
-            <Shapes size={16} />
-            Tools
-            <ChevronDown size={14} />
-          </button>
-          {toolsOpen && (
-            <div className="tools-popover" onClick={(e) => e.stopPropagation()}>
-              <p className="eyebrow">MATHS TOOLS</p>
-              <button
-                onClick={() => {
-                  location.href = "?tool=graph";
-                }}
-              >
-                <Grid3X3 size={18} />
-                <span>
-                  <strong>Graph builder</strong>
-                  <small>1 cm square grid</small>
-                </span>
-              </button>
-              <button>
-                <Table2 size={18} />
-                <span>
-                  <strong>Ratio tables</strong>
-                  <small>Current tool</small>
-                </span>
-                <Check size={16} />
-              </button>
-              <button
-                onClick={() => {
-                  location.href = "?tool=question-bank";
-                }}
-              >
-                <BookOpen size={18} />
-                <span>
-                  <strong>Question bank</strong>
-                  <small>Reviewed practice questions</small>
-                </span>
-              </button>
-            </div>
-          )}
-          <div
-            role="status"
-            className={`save-indicator save-indicator--${saveState}`}
-          >
-            <span />
-            {recovery
-              ? "Recovery needed"
-              : pendingInputs.size
-                ? "Finish editing to save"
-                : saveState === "saving"
-                  ? "Saving…"
-                  : saveState === "error"
-                    ? "Not saved on device"
-                    : "Saved on this device"}
-          </div>
-        </div>
-      </header>
-      <main className="main-content">
-        <section className="intro-row">
-          <div>
-            <p className="eyebrow">RATIO TABLES · LESSON DIAGRAMS</p>
-            <h1>Build a ratio table for Word</h1>
-            <p>Choose values, fade the scaffolding and copy a clean diagram.</p>
-          </div>
-          <div className="privacy-note">
-            <LockKeyhole size={15} />
-            <span>Your table stays in this browser.</span>
-          </div>
-        </section>
+    <div className="app-shell booklet-editor ratio-app">
+      <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
+        <PageHeading title="Ratio tables" description="Choose values, add scaling arrows and copy a clean table into Word.">
+          <div role="status" className={`save-indicator save-indicator--${saveState}`}><span />{recovery ? "Recovery needed" : pendingInputs.size ? "Finish editing to save" : saveState === "saving" ? "Saving…" : saveState === "error" ? "Not saved on device" : "Saved on this device"}</div>
+        </PageHeading>
         {recovery !== null && (
           <section className="ratio-recovery" role="alert">
             <strong>Recover your saved table</strong>
@@ -457,7 +368,7 @@ export default function RatioTablePage() {
           </p>
         )}
         <section className="workspace">
-          <div className="editor-card">
+          <Panel className="editor-card">
             <div className="editor-toolbar ratio-toolbar">
               <div className="tool-group">
                 <button
@@ -686,7 +597,7 @@ export default function RatioTablePage() {
                 to apply it or Escape to cancel.
               </p>
             )}
-          </div>
+          </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card">
@@ -1061,7 +972,7 @@ export default function RatioTablePage() {
           </aside>
         </section>
       </main>
-      {pending && (
+      {active && pending && (
         <RatioDialog
           title={pending.title}
           onCancel={cancelPending}

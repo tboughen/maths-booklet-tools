@@ -1,0 +1,54 @@
+# Adding a booklet tool
+
+The website has two main sections: **Question bank** and **Booklet tools**. Graph tool and Ratio tables belong to Booklet tools. `src/site/SiteApp.tsx` owns the common header, query-based navigation and page lifetime; an editor owns its controls, working document and exports.
+
+## Register the editor
+
+Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon and React component. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
+
+Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. The bare URL continues to open Graph tool for existing users. Question bank remains a separate section.
+
+## Use the shared layout
+
+```tsx
+import { PageHeading, Panel } from "../site/PageHeading";
+
+export default function NewTool({ active = true }: { active?: boolean }) {
+  return <div className="app-shell booklet-editor">
+    <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
+      <PageHeading title="New tool" description="Explain what the teacher can create." />
+      <section className="workspace">
+        <Panel className="editor-card">
+          <div className="editor-toolbar">{/* Edit, history and export actions */}</div>
+          {/* Working preview */}
+        </Panel>
+        <aside className="inspector-stack" aria-label="New tool settings">
+          <section className="panel-card">{/* Settings */}</section>
+        </aside>
+      </section>
+    </main>
+  </div>;
+}
+```
+
+Use the shared tokens and interface classes in `src/site/site.css` for colours, typography, spacing, borders, controls and focus. Add narrowly scoped styles for specialist controls. The shared interface follows the Question bank's white and blue-grey appearance. Mathematical content has its own rendering and fonts; interface styles must not change exported diagrams.
+
+## Preserve work during navigation
+
+Editors mount on first visit and remain mounted in hidden page containers for the session. This preserves drafts, undo history and pending inputs. `active` controls their visibility-sensitive effects:
+
+- Register keyboard shortcuts and browser model tools only while active; clean up listeners and registrations when inactive.
+- Inspect editable-link hashes only while active. Existing imports and recovery flows must retain their confirmation and data-preservation behaviour.
+- Render modal overlays only while active. Native dialogs must close when their page is inactive.
+- Keep autosave running independently of visibility, using a distinct storage key. Storage errors must remain visible and must not replace recovery data.
+- Use real `?tool=…` links for internal navigation. The site host intercepts ordinary clicks; modified clicks, downloads and external links keep browser behaviour.
+
+Question bank announces query changes with `maths-tools:route` so its latest deep link can be restored after section navigation. If a future editor changes query state, announce that event after its history update. Ordinary Back/Forward navigation is handled by the page host; page-specific handlers must ignore URLs for other pages.
+
+Session retention does not promise undo or invalid-input persistence after a reload. Valid saved diagram recovery keeps its established behaviour.
+
+## Verify the new page
+
+Check direct links, the overview and active navigation labels; Back/Forward; keyboard operation; leaving immediately after an edit and returning; pending input; storage failure/recovery; and interaction with another mounted editor's shortcuts. Check desktop, tablet and 320–375 px layouts without horizontal page overflow. Verify copy/download/export size and content independently from interface styling.
+
+Run the existing lint, unit, typecheck, build and browser checks. Navigation regression coverage is in `e2e/site-navigation.spec.ts`; graph and ratio export checks remain in their existing test suites.
