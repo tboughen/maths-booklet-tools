@@ -1,10 +1,11 @@
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import type { BankQuestion, BankView, ViewRole } from "./model";
+import { resolveBankAssetUrl } from "./assetUrl";
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 const documents = new Map<string, Promise<PDFDocumentProxy>>();
-export const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+export const assetUrl = (path: string) => resolveBankAssetUrl(path, import.meta.env.BASE_URL, import.meta.env.VITE_BANK_ASSET_ORIGIN);
 
 export function loadPdf(path: string, retry = false): Promise<PDFDocumentProxy> {
   if (retry) documents.delete(path);
