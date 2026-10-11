@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, Minus, MoreHorizontal, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, Minus, MoreHorizontal, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
 import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage } from "./pdf";
-import { makePapers, type ExportProgress, type ExportResult } from "./export";
-import { emptyReason, emptyRoute, exportSelection, filterQuestions, matchingParts, normalizeCode, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankRoute, type RoomLayout, type ViewRole } from "./model";
+import { catalogueCoverage } from "./coverage";
+import { draftEntries, draftReducer, emptyDraft, hasDraftIntent } from "./paper-builder";
+import { TopicPaperBuilder } from "./TopicPaperBuilder";
+import { PaperSummary } from "./PaperSummary";
+import { PaperReviewDialog } from "./PaperReviewDialog";
+import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankRoute, type RoomLayout, type ViewRole } from "./model";
 import "./question-bank.css";
 
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
@@ -28,39 +32,40 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   useEffect(()=>{try{localStorage.setItem("qb-overlay",overlay);}catch{/* Optional device preference. */}},[overlay]);
   const [display,setDisplay]=useState(false);
   const [listOpen,setListOpen]=useState(false);
-  const [selected,setSelected]=useState<string[]>([]);
-  const [exportOpen,setExportOpen]=useState(false);
-  const [exportIds,setExportIds]=useState<string[]>([]);
-  const [preset,setPreset]=useState<"compact"|"writing">("compact");
-  const [progress,setProgress]=useState<ExportProgress>();
-  const [exportResult,setExportResult]=useState<ExportResult>();
-  const [exportError,setExportError]=useState("");
+  const [draft,dispatchDraft]=useReducer(draftReducer,undefined,()=>emptyDraft());
+  const draftRef=useRef(draft);draftRef.current=draft;
+  const [reviewOpen,setReviewOpen]=useState(false);
   const [imageBusy,setImageBusy]=useState(false);
   const [wholeImage,setWholeImage]=useState(false);
   const [stageSize,setStageSize]=useState({width:900,height:500});
   const stage=useRef<HTMLDivElement>(null);
   const searchInput=useRef<HTMLInputElement>(null);
-  const exportDialog=useRef<HTMLDialogElement>(null);
-  const exportAbort=useRef<AbortController|undefined>(undefined);
   const touchStart=useRef<{x:number;y:number}|undefined>(undefined);
   const app=useRef<HTMLDivElement>(null);
   const go=useCallback((next:BankRoute,replace=false)=>{
     const query=routeQuery(next);
     if(activePage.current && location.search!==query) history[replace?"replaceState":"pushState"]({},"",`${location.pathname}${query}`);
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
-    setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice("");
+    setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice("");
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
-    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=verifyCatalogue(data);setCatalogue(c);go(readRoute(activePage.current?location.search:initialSearch,c),true);}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
+    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=verifyCatalogue(data);setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);if(JSON.stringify(next)===JSON.stringify(route))return;setRoute(next);setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
+  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
-  useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen]);
-  useEffect(()=>{if(active&&exportOpen)exportDialog.current?.showModal();else exportDialog.current?.close();},[active,exportOpen]);
-  useEffect(()=>()=>exportAbort.current?.abort(),[]);
+  useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
+
+  const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection}),[route.tier,route.calculator,route.collection]);
+  const coverage=useMemo(()=>catalogue?catalogueCoverage(catalogue,filters):undefined,[catalogue,filters]);
+  const overall=useMemo(()=>catalogue?catalogueCoverage(catalogue,emptyRoute):undefined,[catalogue]);
+  const entries=useMemo(()=>coverage?draftEntries(coverage,draft):[],[coverage,draft]);
+  const included=useMemo(()=>new Set(entries.map(e=>e.key)),[entries]);
+  const topicsMode=route.bankView==="topics";
+  useEffect(()=>{dispatchDraft({type:"remember",keys:entries.map(e=>e.key)});},[entries]);
+  useEffect(()=>{if(!active)setReviewOpen(false);},[active]);
   const results=useMemo(()=>catalogue?filterQuestions(catalogue,route):[],[catalogue,route]);
   const questionIndex=Math.max(0,results.findIndex(q=>q.id===route.question));
   const question=results[questionIndex];
@@ -78,7 +83,6 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const widthScale=visibleViews.length?(stageSize.width-32-(two?16:0))/visibleViews.reduce((n,v)=>n+v.width,0):1;
   const fitScale=visibleViews.length?Math.min(widthScale,(stageSize.height-32)/Math.max(...visibleViews.map(v=>v.height))):1;
   const scale=Math.max(.01,(fit==="width"?widthScale:fitScale)*zoom);
-  const exportSnapshot=catalogue&&exportIds.length?exportSelection(catalogue,exportIds):undefined;
   const reason=catalogue?emptyReason(catalogue,route):null;
   const previous=!!question&&(questionIndex>0||viewIndex>0);
   const next=!!question&&(questionIndex<results.length-1||viewIndex+visibleViews.length<views.length);
@@ -91,10 +95,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const reveal=useCallback(()=>{if(question)setMode({id:question.id,role:role==="question"?"scheme":"question",view:0});},[question,role]);
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
   useEffect(()=>{
-    if(!active)return;
+    if(!active||topicsMode)return;
     const key=(e:KeyboardEvent)=>{
       if(e.key==="Escape"){leaveDisplay();return;}
-      if((e.target as HTMLElement)?.closest("input,select,textarea,dialog,[contenteditable=true]")||exportOpen)return;
+      if((e.target as HTMLElement)?.closest("input,select,textarea,dialog,[contenteditable=true]")||reviewOpen)return;
       if(["ArrowRight","PageDown"].includes(e.key)){e.preventDefault();move(1);}
       if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();move(-1);}
       if(e.key.toLowerCase()==="m"){e.preventDefault();reveal();}
@@ -102,8 +106,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const fullscreen=()=>{if(!document.fullscreenElement)setDisplay(false);};
     window.addEventListener("keydown",key);document.addEventListener("fullscreenchange",fullscreen);
     return()=>{window.removeEventListener("keydown",key);document.removeEventListener("fullscreenchange",fullscreen);};
-  },[active,move,reveal,leaveDisplay,exportOpen]);
-  useEffect(()=>{const q=results[questionIndex+1];if(q)void preloadQuestion(q).catch(()=>undefined);},[results,questionIndex]);
+  },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen]);
+  useEffect(()=>{const q=!topicsMode&&active?results[questionIndex+1]:undefined;if(q)void preloadQuestion(q).catch(()=>undefined);},[results,questionIndex,topicsMode,active]);
 
   const actions=useRef({catalogue,route,question,role,viewIndex,go});actions.current={catalogue,route,question,role,viewIndex,go};
   useEffect(()=>{
@@ -117,19 +121,18 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[active]);
 
   function submitSearch(e:FormEvent){e.preventDefault();const code=normalizeCode(search),alias=catalogue?.aliases[code]||code;const exact=catalogue?.topics.find(t=>t.title.toLowerCase()===search.trim().toLowerCase());const candidate=exact?.code||(/^U\d+$/.test(alias)?alias:suggestions[0]?.code);if(candidate)go({...route,code:candidate,question:"",view:0});else setNotice("Choose a topic from the list or enter a Sparx code.");}
-  function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return selected.includes(id)||!!(q?.equivalentId&&selected.includes(q.equivalentId));}
-  function selectQuestion(id:string,checked:boolean){if(!catalogue)return;const other=catalogue.questions.find(q=>q.id===id)?.equivalentId;setSelected(s=>checked?exportSelection(catalogue,[...s,id]).questions.map(q=>q.id):s.filter(q=>q!==id&&q!==other));}
-  function startExport(ids:string[]){if(!catalogue)return;setExportIds(exportSelection(catalogue,ids).questions.map(q=>q.id));setExportError("");setExportResult(undefined);setProgress(undefined);setExportOpen(true);}
-  async function prepareExport(){if(!exportSnapshot)return;const controller=new AbortController();exportAbort.current=controller;setExportError("");setExportResult(undefined);try{setExportResult(await makePapers(exportSnapshot.questions,exportSnapshot.version,preset,setProgress,controller.signal));}catch(error){setExportError(controller.signal.aborted?"Export cancelled. Your selection is unchanged.":error instanceof Error?error.message:"Export failed. Please try again.");}finally{setProgress(undefined);}}
-  function closeExport(){exportAbort.current?.abort();setExportOpen(false);}
+  function isSelected(id:string){const q=catalogue?.questions.find(q=>q.id===id);return !!q&&included.has(questionIdentity(q));}
+  function selectQuestion(id:string,checked:boolean){const q=catalogue?.questions.find(q=>q.id===id);if(q)dispatchDraft({type:"question",question:q,checked});}
+  function startExport(){if(!hasDraftIntent(draft))dispatchDraft({type:"add",questions:results});setReviewOpen(true);}
   async function imageExport(copy:boolean){if(!question||!view)return;setImageBusy(true);try{const pending=questionImage(question,role,view,wholeImage);if(copy&&navigator.clipboard?.write&&typeof ClipboardItem!=="undefined"){try{await navigator.clipboard.write([new ClipboardItem({"image/png":pending})]);setNotice("Image copied. Paste it into Word or PowerPoint.");return;}catch{/* Download fallback. */}}downloadBlob(await pending,`${question.id}-${role}-${wholeImage?"whole":viewIndex+1}.png`);setNotice(copy?"Clipboard access was unavailable. The image was downloaded instead.":"Image downloaded with its source reference.");}catch(error){setNotice(error instanceof Error?error.message:"The image could not be exported.");}finally{setImageBusy(false);}}
   const countText=`${results.length} ${results.length===1?"question":"questions"}`;
   const rangeText=view?`View ${viewIndex+1}${two?`–${viewIndex+2}`:""} of ${views.length}`:"";
   const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(role==="scheme"&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
 
-  return <div ref={app} className={`qb-app${display?" qb-display":""}`}>
+  return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
-      <div className="qb-page-search">
+      {!display&&<nav className="qb-bank-modes" aria-label="Question bank views"><button className="qb-button" aria-pressed={!topicsMode} onClick={()=>go({...route,bankView:"questions"})}>Browse questions</button><button className="qb-button" aria-pressed={topicsMode} onClick={()=>go({...route,bankView:"topics"})}>Build by topic</button></nav>}
+      {!topicsMode&&<><div className="qb-page-search">
       <form onSubmit={submitSearch} className="qb-search-form">
         <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
         <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
@@ -145,13 +148,14 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
         <div className="qb-toolbar-actions">
           <button className="qb-button" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}><List size={18}/>{countText}</button>
           <details className="qb-filters"><summary><SlidersHorizontal size={16}/> Filters{route.tier!=="all"||route.calculator!=="all"||route.collection!=="all"?" · active":""}</summary><div><label>Tier <select value={route.tier} onChange={e=>go({...route,tier:e.target.value as BankRoute["tier"],question:"",view:0})}><option value="all">Both tiers</option><option value="F">Foundation</option><option value="H">Higher</option></select></label><label>Calculator <select value={route.calculator} onChange={e=>go({...route,calculator:e.target.value as BankRoute["calculator"],question:"",view:0})}><option value="all">Either</option><option value="yes">Calculator</option><option value="no">Non-calculator</option></select></label><label>Collection <select value={route.collection} onChange={e=>go({...route,collection:e.target.value as BankRoute["collection"],question:"",view:0})}><option value="all">All sources</option><option value="past">Past papers</option><option value="mock">Mock papers</option></select></label><button className="qb-text-button" onClick={()=>go({...route,tier:"all",calculator:"all",collection:"all",question:"",view:0})}>Clear filters</button></div></details>
-          <button className="qb-button" disabled={!results.length} onClick={()=>startExport(selected.length?selected:results.map(q=>q.id))}><FileDown size={18}/>Export PDFs{selected.length?` (${selected.length})`:""}</button>
+          <button className="qb-button" disabled={hasDraftIntent(draft)?!entries.length:!results.length} onClick={startExport}><FileDown size={18}/>{hasDraftIntent(draft)?`Review paper (${entries.length})`:"Export matching questions"}</button>
           <button className="qb-button qb-primary" disabled={!question} onClick={()=>{setDisplay(true);(document.activeElement as HTMLElement)?.blur();}}><Maximize2 size={18}/> Display</button>
         </div>
       </div>
+      </>}
       {notice&&<div className="qb-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={()=>setNotice("")}><X size={16}/></button></div>}
-      <div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
-        {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>{if(catalogue&&results.length)setSelected(exportSelection(catalogue,results.map(q=>q.id)).questions.map(q=>q.id));}}>Select all</button><button className="qb-text-button" onClick={()=>setSelected([])}>Clear</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${question?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span><small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
+      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<h1 tabIndex={-1}>Build a paper by topic</h1>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
+        {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${question?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span><small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
         <section className="qb-question-card" aria-label="Question viewer">
           <div className="qb-source">
             <div className="qb-source-copy"><div className="qb-source-heading"><strong>{question?.source||"Topic results"}</strong>{question&&<span>{question.tier==="H"?"Higher":"Foundation"} · {question.calculator?"Calculator":"Non-calculator"} · {question.marks} mark{question.marks===1?"":"s"}</span>}</div>
@@ -181,9 +185,11 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           {question&&<div className="qb-controls"><div className="qb-zoom"><button className="qb-button qb-icon" aria-label="Zoom out" disabled={zoom<=.5} onClick={()=>setZoom(z=>Math.max(.5,z-.25))}><Minus size={16}/></button><output>{Math.round(zoom*100)}%</output><button className="qb-button qb-icon" aria-label="Zoom in" disabled={zoom>=3} onClick={()=>setZoom(z=>Math.min(3,z+.25))}><Plus size={16}/></button><select aria-label="Fit mode" value={fit} onChange={e=>{setFit(e.target.value as typeof fit);setZoom(1);}}><option value="page">Fit view</option><option value="width">Fit width</option></select><button className="qb-text-button" onClick={()=>{setZoom(1);setFit("page");}}>Reset</button></div><OverlayControls value={overlay} onChange={setOverlay} room={room} onRoomChange={setRoom}/><div className="qb-image-actions"><label><input type="checkbox" checked={wholeImage} onChange={e=>setWholeImage(e.target.checked)}/> Whole question</label><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(true)}><Copy size={16}/>Copy image</button><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(false)}><Download size={16}/>PNG</button></div></div>}
           </footer>
         </section>
-      </div>
+      </div>}
+      {!display&&(topicsMode||hasDraftIntent(draft))&&<PaperSummary draft={draft} entries={entries} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)}/>}
     </main>
     {display&&<button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button>}
-    <dialog ref={exportDialog} className="qb-dialog" onCancel={e=>{e.preventDefault();closeExport();}} onClose={()=>setExportOpen(false)}><div className="qb-dialog-heading"><h2>Build a practice paper</h2><button className="qb-button qb-icon" aria-label="Close export" onClick={closeExport}><X size={20}/></button></div><p><strong>{exportSnapshot?.questions.length||0} complete questions · {exportSnapshot?.marks||0} mark{exportSnapshot?.marks===1?"":"s"}</strong></p><p>Questions and mark schemes are separate PDFs, in the order below. All parts are included, including parts mapped to other topics.</p><ol className="qb-export-list">{exportSnapshot?.questions.map((q,i)=><li key={q.id}><span>{q.source}<small>{q.marks} mark{q.marks===1?"":"s"}{q.scaleSensitive?" · original scale retained":""}</small></span><button className="qb-button qb-icon" aria-label={`Move ${q.source} up`} disabled={!!progress||i===0} onClick={()=>{const ids=[...exportIds];[ids[i-1],ids[i]]=[ids[i],ids[i-1]];setExportIds(ids);setExportResult(undefined);}}><ArrowUp size={16}/></button><button className="qb-button qb-icon" aria-label={`Move ${q.source} down`} disabled={!!progress||i===exportIds.length-1} onClick={()=>{const ids=[...exportIds];[ids[i],ids[i+1]]=[ids[i+1],ids[i]];setExportIds(ids);setExportResult(undefined);}}><ArrowDown size={16}/></button><button className="qb-button qb-icon" aria-label={`Remove ${q.source}`} disabled={!!progress||exportIds.length===1} onClick={()=>{setExportIds(exportIds.filter(id=>id!==q.id));setExportResult(undefined);}}><X size={16}/></button></li>)}</ol><fieldset disabled={!!progress}><legend>Page layout</legend><label><input type="radio" name="preset" checked={preset==="compact"} onChange={()=>{setPreset("compact");setExportResult(undefined);}}/> Compact practice — reviewed classroom crops</label><label><input type="radio" name="preset" checked={preset==="writing"} onChange={()=>{setPreset("writing");setExportResult(undefined);}}/> Writing space — original regions plus working lines</label></fieldset>{exportError&&<p role="alert" className="qb-export-error">{exportError}</p>}{progress&&<div role="status"><p>{progress.message}</p><progress value={progress.done} max={progress.total}/></div>}{exportResult?<div className="qb-export-ready" role="status"><strong>Both PDFs are ready</strong><button className="qb-button qb-primary" onClick={()=>downloadBlob(exportResult.questions,"practice-questions.pdf")}><Download size={16}/>Questions PDF</button><button className="qb-button" onClick={()=>downloadBlob(exportResult.schemes,"practice-mark-schemes.pdf")}><Download size={16}/>Mark schemes PDF</button></div>:<div className="qb-dialog-actions"><button className="qb-button" onClick={progress?()=>exportAbort.current?.abort():closeExport}>{progress?"Cancel export":"Cancel"}</button><button className="qb-button qb-primary" disabled={!!progress||!exportSnapshot} onClick={()=>void prepareExport()}><FileDown size={18}/>Prepare both PDFs</button></div>}<p className="qb-small">The original exam question numbers remain visible beneath the new paper numbering. This custom paper has no official grade boundaries.</p></dialog>
+    <PaperReviewDialog open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} excluded={draft.excluded.length} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>
+
   </div>;
 }
