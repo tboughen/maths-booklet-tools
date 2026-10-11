@@ -157,7 +157,7 @@ test("human creation works without a service and the bank ignores graph fragment
   const bank = new URL(editorLink(incoming, "http://127.0.0.1:5179/"));
   bank.search = "?tool=question-bank";
   await page.goto(bank.href);
-  await expect(page.locator(".qb-brand")).toContainText("Question bank");
+  await expect(page.getByRole("navigation", { name: "Main sections" }).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByRole("dialog", { name: "Open this graph?" }),
   ).toHaveCount(0);

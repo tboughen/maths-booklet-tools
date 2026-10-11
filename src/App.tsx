@@ -1,18 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
-  BookOpen,
-  ChevronDown,
   CircleHelp,
   Download,
   ExternalLink,
   FileImage,
-  Grid3X3,
   LoaderCircle,
-  LockKeyhole,
-  Shapes,
   X,
 } from "lucide-react";
+import { PageHeading, Panel } from "./site/PageHeading";
 import { AxisSettings } from "./components/AxisSettings";
 import { EquationPanel } from "./components/EquationPanel";
 import { GraphCanvas } from "./components/GraphCanvas";
@@ -64,7 +60,7 @@ function sameDocument(first: DiagramDocumentV1, second: DiagramDocumentV1): bool
   return JSON.stringify(first) === JSON.stringify(second);
 }
 
-export default function App() {
+export default function App({ active = true }: { active?: boolean }) {
   const [startup] = useState(loadDiagramRecovery);
   const [recoveryConflict, setRecoveryConflict] = useState(startup.conflict);
   const [history, setHistory] = useState<HistoryState>(() => ({ past: [], present: startup.document, future: [] }));
@@ -74,7 +70,6 @@ export default function App() {
   const [objectsExpanded, setObjectsExpanded] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [wordHelpOpen, setWordHelpOpen] = useState(false);
-  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [copying, setCopying] = useState(false);
   const [downloadingPng, setDownloadingPng] = useState(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">("saved");
@@ -146,6 +141,7 @@ export default function App() {
   }, [toast]);
 
   useEffect(() => {
+    if (!active) return;
     function handleKeyboard(event: KeyboardEvent) {
       if (globalThis.document.querySelector('[aria-modal="true"]')) return;
       const target = event.target as HTMLElement | null;
@@ -167,7 +163,6 @@ export default function App() {
         setEditingEquationId(null);
         setExportMenuOpen(false);
         setWordHelpOpen(false);
-        setToolsMenuOpen(false);
         replaceWithoutHistory({ ...document, selectedObjectId: null });
         return;
       }
@@ -194,7 +189,7 @@ export default function App() {
     }
     window.addEventListener("keydown", handleKeyboard);
     return () => window.removeEventListener("keydown", handleKeyboard);
-  }, [commit, document, redo, replaceWithoutHistory, selectedObject, undo]);
+  }, [active, commit, document, redo, replaceWithoutHistory, selectedObject, undo]);
 
   function selectObject(id: string | null) {
     replaceWithoutHistory({ ...document, selectedObjectId: id });
@@ -282,37 +277,19 @@ export default function App() {
 
   const saveMessage = useMemo(() => {
     if (saveState === "saving") return "Saving…";
-    if (saveState === "error") return "Could not save locally";
+    if (saveState === "error") return "Not saved on device";
     return "Saved on this device";
   }, [saveState]);
 
   return (
-    <div className="app-shell" onClick={() => toolsMenuOpen && setToolsMenuOpen(false)}>
-      <header className="site-header">
-        <div className="brand-mark" aria-hidden="true">MB</div>
-        <div className="brand-copy"><strong>Maths Booklet Tools</strong><span>Practical tools for lesson resources</span></div>
-        <div className="header-tools">
-          <button className="header-menu-button" aria-expanded={toolsMenuOpen} onClick={(event) => { event.stopPropagation(); setToolsMenuOpen((open) => !open); }}><Shapes size={16} />Tools<ChevronDown size={14} /></button>
-          {toolsMenuOpen && (
-            <div className="tools-popover" onClick={(event) => event.stopPropagation()}>
-              <p className="eyebrow">GRAPHS</p>
-              <button className="current"><Grid3X3 size={18} /><span><strong>1 cm square grid</strong><small>Current tool</small></span><Check size={16} /></button>
-              <button onClick={() => { location.href = "?tool=ratio-table"; }}><Grid3X3 size={18} /><span><strong>Ratio tables</strong><small>Values and scaling arrows</small></span><ExternalLink size={16} /></button>
-              <button onClick={() => { location.href = "?tool=question-bank"; }}><BookOpen size={18} /><span><strong>Question bank</strong><small>Reviewed practice questions</small></span><ExternalLink size={16} /></button>
-            </div>
-          )}
+    <div className="app-shell booklet-editor">
+      <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
+        <PageHeading title="Graph tool" description="Draw, adjust and copy a graph on a 1 cm square grid.">
           <div className={`save-indicator save-indicator--${saveState}`}><span />{saveMessage}</div>
-        </div>
-      </header>
-
-      <main className="main-content">
-        <section className="intro-row">
-          <div><p className="eyebrow">GRAPHS · 1 CM SQUARE GRID</p><h1>Build a graph for Word</h1><p>Draw, adjust and copy a clean exam-style diagram.</p></div>
-          <div className="privacy-note"><LockKeyhole size={15} /><span>Your diagram stays in this browser.</span></div>
-        </section>
+        </PageHeading>
 
         <section className="workspace">
-          <div className="editor-card">
+          <Panel className="editor-card">
             <Toolbar
               tool={tool}
               onToolChange={(next) => { setTool(next); setEquationOpen(false); setEditingEquationId(null); }}
@@ -334,7 +311,7 @@ export default function App() {
                 <button className="export-help-item" role="menuitem" onClick={() => { setExportMenuOpen(false); setWordHelpOpen(true); }}><CircleHelp size={17} /><span><strong>First-time Word setup</strong><small>Keep pasted images at full quality</small></span></button>
               </div>
             )}
-            <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={!recoveryConflict} />
+            <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={active && !recoveryConflict} />
             <GraphCanvas
               document={document}
               tool={tool}
@@ -342,7 +319,7 @@ export default function App() {
               onSelect={selectObject}
               onAxisAdjust={(axis, end, delta) => commit(adjustAxis(document, axis, end, delta))}
             />
-          </div>
+          </Panel>
 
           <aside className="inspector-stack" aria-label="Graph settings">
             {equationOpen ? (
@@ -375,7 +352,7 @@ export default function App() {
         </section>
       </main>
 
-      {recoveryConflict && <div className="word-help-backdrop"><section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="graph-recovery-title">
+      {active && recoveryConflict && <div className="word-help-backdrop"><section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="graph-recovery-title">
         <h2 id="graph-recovery-title">Review local graph recovery</h2>
         <p>A saved graph could not be read by this version. Its original data will be kept as a recovery copy. Continue with the last readable graph?</p>
         <button className="word-help-done" onClick={() => {
@@ -384,7 +361,7 @@ export default function App() {
         }}>Keep recovery copy and continue</button>
       </section></div>}
 
-      {wordHelpOpen && (
+      {active && wordHelpOpen && (
         <div className="word-help-backdrop" onMouseDown={() => setWordHelpOpen(false)}>
           <section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="word-help-title" aria-describedby="word-help-description" onMouseDown={(event) => event.stopPropagation()}>
             <header>

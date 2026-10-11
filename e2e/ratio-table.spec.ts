@@ -121,10 +121,9 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     (key) => localStorage.getItem(key),
     graphKey,
   );
-  await page.getByRole("button", { name: "Tools", exact: true }).click();
-  await page.getByRole("button", { name: /Graph builder/ }).click();
+  await page.getByRole("navigation", { name: "Booklet tools", exact: true }).getByRole("link", { name: "Graph tool", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Build a graph for Word" }),
+    page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate((key) => localStorage.getItem(key), graphKey),
