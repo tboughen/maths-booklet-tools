@@ -679,6 +679,35 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
     path: testInfo.outputPath("inline-factor-left-editing.png"),
     fullPage: true,
   });
+  await page.setViewportSize({ width: 320, height: 900 });
+  await left.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      page
+        .getByRole("group", { name: "Columns", exact: true })
+        .evaluate((group) => {
+          const bounds = group.getBoundingClientRect(),
+            stage = group.closest(".ratio-stage")!.getBoundingClientRect();
+          return bounds.bottom <= stage.bottom;
+        }),
+    )
+    .toBe(true);
+  await expect
+    .poll(() =>
+      page
+        .locator(".ratio-inline-factor.is-left .ratio-factor-operation")
+        .evaluate((symbol) => {
+          const label = symbol.getBoundingClientRect(),
+            stage = symbol.closest(".ratio-stage")!.getBoundingClientRect();
+          return label.x >= stage.x && label.right <= stage.right;
+        }),
+    )
+    .toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("inline-factor-left-mobile-editing.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await left.press("Enter");
   await expect(right).toHaveValue("4");
   await expect(
