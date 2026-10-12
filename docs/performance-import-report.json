@@ -1,0 +1,149 @@
+{
+  "sources": [
+    {
+      "file": "GCSE Maths Higher Enhanced Skills Mapping Grid updated.xlsx",
+      "sha256": "074a2b87e6ad1f6666a99796f0375f4a299e3d8f11dd5237565f539b301285e4",
+      "tier": "H"
+    },
+    {
+      "file": "GCSE-Maths-Foundation-Enhanced-Skills-Mapping-Grid-updated.xlsx",
+      "sha256": "904bd0ac5a1225ee4172b7df50f0e72ec613f74fc8a13045d50f008f39a6a396",
+      "tier": "F"
+    }
+  ],
+  "sourceQuestions": 2542,
+  "measuredAppearances": 1188,
+  "estimatedAppearances": 599,
+  "unavailableAppearances": 0,
+  "exceptions": [
+    {
+      "key": "1MA1_JUN_2017_2F/5",
+      "reason": "Invalid or overlapping source rows",
+      "sheet": "Foundation Questions",
+      "rows": [
+        {
+          "label": "Q05a",
+          "mean": 0.9,
+          "marks": 1,
+          "row": 54
+        },
+        {
+          "label": "Q05a",
+          "mean": 0.74,
+          "marks": 1,
+          "row": 55
+        }
+      ]
+    },
+    {
+      "key": "1MA1_NOV_2017_1F/26",
+      "reason": "Invalid or overlapping source rows",
+      "sheet": "Foundation Questions",
+      "rows": [
+        {
+          "label": "Q26",
+          "mean": "looking t",
+          "marks": 4,
+          "row": 156
+        }
+      ]
+    }
+  ],
+  "markMismatches": [
+    {
+      "id": "1MA1_NOV_2018_3F_Q19",
+      "catalogueMarks": 7,
+      "sourceMarks": 4,
+      "rows": [
+        466,
+        467
+      ]
+    }
+  ],
+  "curves": {
+    "F": [
+      {
+        "position": 0.05,
+        "percentage": 80.50337690631808
+      },
+      {
+        "position": 0.15,
+        "percentage": 77.01226190476191
+      },
+      {
+        "position": 0.25,
+        "percentage": 75.4262910798122
+      },
+      {
+        "position": 0.35,
+        "percentage": 67.62564521992003
+      },
+      {
+        "position": 0.45,
+        "percentage": 58.212752525252526
+      },
+      {
+        "position": 0.55,
+        "percentage": 48.6140376984127
+      },
+      {
+        "position": 0.65,
+        "percentage": 39.703597122302156
+      },
+      {
+        "position": 0.75,
+        "percentage": 39.01541353383459
+      },
+      {
+        "position": 0.85,
+        "percentage": 22.88006756756757
+      },
+      {
+        "position": 0.95,
+        "percentage": 18.67056277056277
+      }
+    ],
+    "H": [
+      {
+        "position": 0.05,
+        "percentage": 72.19987745098038
+      },
+      {
+        "position": 0.15,
+        "percentage": 59.94722222222222
+      },
+      {
+        "position": 0.25,
+        "percentage": 57.52362459546926
+      },
+      {
+        "position": 0.35,
+        "percentage": 54.54006116207951
+      },
+      {
+        "position": 0.45,
+        "percentage": 48.554014939309056
+      },
+      {
+        "position": 0.55,
+        "percentage": 41.652064896755164
+      },
+      {
+        "position": 0.65,
+        "percentage": 30.848989218328843
+      },
+      {
+        "position": 0.75,
+        "percentage": 30.848989218328843
+      },
+      {
+        "position": 0.85,
+        "percentage": 24.173139158576053
+      },
+      {
+        "position": 0.95,
+        "percentage": 17.089310176125245
+      }
+    ]
+  }
+}
