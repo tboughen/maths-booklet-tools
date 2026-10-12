@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Table2,
   Undo2,
+  Trash2,
 } from "lucide-react";
 import {
   applyRatioOperations,
@@ -117,6 +118,8 @@ export default function RatioTablePage({
   const [pending, setPending] = useState<Pending | null>(null),
     [inputVersion, setInputVersion] = useState(0);
   const [selection, setSelection] = useState<RatioSelection>(null);
+  const [selectionActive, setSelectionActive] = useState(false);
+  const editor = useRef<HTMLDivElement>(null);
   const [tool, setTool] = useState<"edit" | "arrow">("edit");
   const [arrowFrom, setArrowFrom] = useState<string | null>(null);
   const [pendingInputs, setPendingInputs] = useState<Set<string>>(
@@ -337,14 +340,47 @@ export default function RatioTablePage({
     setPending({ envelope: next, title, confirmLabel: "Replace table" });
   }
   const structureDisabled = !!recovery || pendingInputs.size > 0;
+  useEffect(() => {
+    if (!active) return;
+    function clickAway(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        event.composedPath().includes(editor.current as EventTarget) &&
+        target.closest(
+          ".ratio-inline-cell, .ratio-inline-heading, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-structure-toolbar button, .ratio-canvas-layout > button, .ratio-settings details button",
+        )
+      )
+        return;
+      setSelectionActive(false);
+      setTool("edit");
+      setArrowFrom(null);
+      // Keep invalid panel drafts mounted, but clear all diagram selection.
+      if (!Array.from(pendingInputs).some((key) => !key.startsWith("inline-")))
+        setSelection(null);
+    }
+    globalThis.document.addEventListener("click", clickAway);
+    return () => globalThis.document.removeEventListener("click", clickAway);
+  }, [active, pendingInputs]);
+  useEffect(() => {
+    if (!selectionActive && !pendingInputs.size) setSelection(null);
+  }, [selectionActive, pendingInputs]);
+  function showSelection(next: RatioSelection) {
+    setSelection(next);
+    setSelectionActive(true);
+  }
   function selectItem(next: RatioSelection) {
-    if (Array.from(pendingInputs).some((key) => !key.startsWith("inline-"))) {
+    if (
+      Array.from(pendingInputs).some((key) => !key.startsWith("inline-")) &&
+      JSON.stringify(selection) !== JSON.stringify(next)
+    ) {
       setMessage(
         "Finish or cancel the panel input before selecting another item. Press Enter to apply it or Escape to cancel.",
       );
+      setSelectionActive(false);
       return;
     }
-    setSelection(next);
+    showSelection(next);
   }
   function addRow() {
     attempt(() => {
@@ -362,7 +398,7 @@ export default function RatioTablePage({
       ]);
       setTool("edit");
       setArrowFrom(null);
-      setSelection({ kind: "cell", rowId: `row-${index}`, column: 0 });
+      showSelection({ kind: "cell", rowId: `row-${index}`, column: 0 });
       requestAnimationFrame(() =>
         globalThis.document
           .querySelector<HTMLInputElement>(
@@ -374,19 +410,28 @@ export default function RatioTablePage({
   }
   function addColumn() {
     attempt(() => {
+      const column = document.headings.length;
+      const text =
+        ["x", "y", "z"].find(
+          (name) => !document.headings.some((heading) => heading.text === name),
+        ) ?? "z";
       operations([
         {
           op: "add_column",
-          heading: { text: "z", italic: true, direction: "none" },
+          heading: {
+            text,
+            italic: true,
+            direction: text === "x" ? "right" : text === "y" ? "up" : "none",
+          },
         },
       ]);
       setTool("edit");
       setArrowFrom(null);
-      setSelection({ kind: "heading", column: 2 });
+      showSelection({ kind: "heading", column });
       requestAnimationFrame(() =>
         globalThis.document
           .querySelector<HTMLInputElement>(
-            '[aria-label="Edit column 3 heading"]',
+            `[aria-label="Edit column ${column + 1} heading"]`,
           )
           ?.focus(),
       );
@@ -426,7 +471,7 @@ export default function RatioTablePage({
           showOperations: true,
         },
       ]);
-      setSelection({ kind: "step", from: arrowFrom });
+      showSelection({ kind: "step", from: arrowFrom });
       setArrowFrom(null);
       setTool("edit");
     });
@@ -445,8 +490,41 @@ export default function RatioTablePage({
       });
     else action();
   }
+  function removeRow(rowId: string) {
+    attempt(() => {
+      operations([{ op: "remove_row", rowId }]);
+      setSelection(null);
+      setArrowFrom(null);
+      setTool("edit");
+    });
+  }
+  function removeColumn(column: number) {
+    setPending({
+      title: "Remove this column?",
+      confirmLabel: "Remove column",
+      description:
+        "This removes the heading and every cell in this column. You can undo the change.",
+      action: () =>
+        attempt(() => {
+          operations([{ op: "remove_column", column: column as 0 | 1 | 2 }]);
+          setSelection(null);
+          setArrowFrom(null);
+          setTool("edit");
+        }),
+    });
+  }
+  const removalRow =
+    selection?.kind === "cell"
+      ? selection.rowId
+      : selection?.kind === "step"
+        ? selection.from
+        : document.rows.at(-1)!.id;
+  const removalColumn =
+    selection?.kind === "cell" || selection?.kind === "heading"
+      ? selection.column
+      : document.headings.length - 1;
   return (
-    <div className="app-shell booklet-editor ratio-app">
+    <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
         className="main-content"
         id={active ? "main-content" : undefined}
@@ -524,6 +602,8 @@ export default function RatioTablePage({
                   onClick={() => {
                     setTool("edit");
                     setArrowFrom(null);
+                    setSelection(null);
+                    setSelectionActive(false);
                     setMessage("");
                   }}
                 >
@@ -533,11 +613,12 @@ export default function RatioTablePage({
                 <button
                   className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
                   aria-pressed={tool === "arrow"}
-                  disabled={structureDisabled}
+                  data-ratio-select
+                  disabled={structureDisabled || document.rows.length < 2}
                   onClick={() => {
                     setTool("arrow");
                     setArrowFrom(null);
-                    setSelection({ kind: "step", from: document.rows[0].id });
+                    showSelection({ kind: "step", from: document.rows[0].id });
                     setMessage("");
                   }}
                 >
@@ -547,10 +628,11 @@ export default function RatioTablePage({
                 <button
                   className="tool-button"
                   disabled={structureDisabled}
+                  data-ratio-select
                   onClick={() => {
                     setTool("edit");
                     setArrowFrom(null);
-                    setSelection({ kind: "headings" });
+                    showSelection({ kind: "headings" });
                   }}
                 >
                   <Type size={18} />
@@ -722,12 +804,30 @@ export default function RatioTablePage({
                 <span>Add row</span>
               </button>
               <button
+                className="tool-button ratio-danger"
+                disabled={structureDisabled || document.rows.length <= 1}
+                title={`Remove row ${document.rows.findIndex((row) => row.id === removalRow) + 1}${selection?.kind === "cell" || selection?.kind === "step" ? " (selected)" : " (last row)"}`}
+                onClick={() => removeRow(removalRow)}
+              >
+                <Trash2 size={16} />
+                <span>Remove row</span>
+              </button>
+              <button
                 className="tool-button"
                 disabled={structureDisabled || document.headings.length >= 3}
                 onClick={addColumn}
               >
                 <Plus size={16} />
                 <span>Add column</span>
+              </button>
+              <button
+                className="tool-button ratio-danger"
+                disabled={structureDisabled || document.headings.length <= 1}
+                title={`Remove column ${removalColumn + 1}${selection?.kind === "cell" || selection?.kind === "heading" ? " (selected)" : " (last column)"}`}
+                onClick={() => removeColumn(removalColumn)}
+              >
+                <Trash2 size={16} />
+                <span>Remove column</span>
               </button>
               <p className="panel-note">
                 {tool === "arrow"
@@ -744,7 +844,7 @@ export default function RatioTablePage({
               inputVersion={inputVersion}
               disabled={!!recovery}
               structureDisabled={structureDisabled}
-              selection={selection}
+              selection={selectionActive ? selection : null}
               tool={tool}
               arrowFrom={arrowFrom}
               onSelect={selectItem}
@@ -779,27 +879,8 @@ export default function RatioTablePage({
                 onPending={onInputPending}
                 onOperations={operations}
                 onAction={(ops) => attempt(() => operations(ops))}
-                onRemoveRow={(rowId) =>
-                  attempt(() => {
-                    operations([{ op: "remove_row", rowId }]);
-                    setSelection(null);
-                  })
-                }
-                onRemoveColumn={(column) =>
-                  setPending({
-                    title: "Remove this column?",
-                    confirmLabel: "Remove column",
-                    description:
-                      "This removes the heading and every cell in this column. You can undo the change.",
-                    action: () =>
-                      attempt(() => {
-                        operations([
-                          { op: "remove_column", column: column as 0 | 1 | 2 },
-                        ]);
-                        setSelection(null);
-                      }),
-                  })
-                }
+                onRemoveRow={removeRow}
+                onRemoveColumn={removeColumn}
                 onFill={fill}
               />
               <section className="panel-card">

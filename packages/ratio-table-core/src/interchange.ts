@@ -40,13 +40,13 @@ function bounded(value: unknown, maximum: number, name: string) {
 export function ratioEnvelope(input: unknown): RatioEnvelope {
   const document = normalizeDocument(input);
   ratioMetrics(document);
+  const legacy = document.headings.length === 2 && document.rows.length >= 2;
   const envelope: RatioEnvelope = {
     kind: "ratio-table",
-    schemaVersion: document.headings.length === 2 ? 1 : 2,
-    rendererVersion:
-      document.headings.length === 2
-        ? RATIO_RENDERER_VERSION
-        : RATIO_THREE_COLUMN_RENDERER_VERSION,
+    schemaVersion: legacy ? 1 : 2,
+    rendererVersion: legacy
+      ? RATIO_RENDERER_VERSION
+      : RATIO_THREE_COLUMN_RENDERER_VERSION,
     styleProfile: RATIO_STYLE_PROFILE,
     document,
   };
@@ -66,7 +66,11 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
       "This file is not a ratio table. Open graph files in the Graph builder.",
     );
   const envelope = readSchema(ratioEnvelopeSchema, input);
-  const version = envelope.document.headings.length === 2 ? 1 : 2;
+  const version =
+    envelope.document.headings.length === 2 &&
+    envelope.document.rows.length >= 2
+      ? 1
+      : 2;
   if (
     envelope.schemaVersion !== version ||
     envelope.rendererVersion !==
@@ -76,7 +80,7 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
   )
     throw new RatioError(
       "invalid_ratio_table",
-      "The saved format must match the number of columns.",
+      "The saved format must match the row and column counts.",
     );
   return ratioEnvelope(envelope.document);
 }
@@ -84,20 +88,25 @@ export function createRatioTable(input: unknown): RatioEnvelope {
   bounded(input, RATIO_MAX_REQUEST_BYTES, "The ratio request");
   const spec = readSchema(ratioSpecSchema, input),
     used = new Set(spec.rows.flatMap((r) => (r.id ? [r.id] : [])));
-  if (spec.schemaVersion === 1 && spec.rows[0].cells.length !== 2)
+  if (
+    spec.schemaVersion === 1 &&
+    (spec.rows[0].cells.length !== 2 || spec.rows.length < 2)
+  )
     throw new RatioError(
       "invalid_ratio_table",
-      "Use schemaVersion 2 for three columns.",
+      "Use schemaVersion 2 for one row, one column or three columns.",
     );
   return ratioEnvelope({
     headings:
       spec.headings ??
-      (spec.rows[0].cells.length === 3
-        ? [
-            ...structuredClone(DEFAULT_HEADINGS),
-            { text: "z", italic: true, direction: "none" },
-          ]
-        : structuredClone(DEFAULT_HEADINGS)),
+      (spec.rows[0].cells.length === 1
+        ? structuredClone(DEFAULT_HEADINGS).slice(0, 1)
+        : spec.rows[0].cells.length === 3
+          ? [
+              ...structuredClone(DEFAULT_HEADINGS),
+              { text: "z", italic: true, direction: "none" },
+            ]
+          : structuredClone(DEFAULT_HEADINGS)),
     rows: spec.rows.map((row) => {
       if (row.id) return row;
       let index = 1;
@@ -365,7 +374,7 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
         );
     });
   }
-  if (document.headings.length === 3) {
+  if (document.headings.length !== 2) {
     const complete = document.rows
       .filter((row) => row.cells.every((cell) => cell.kind === "number"))
       .map((row) => ({

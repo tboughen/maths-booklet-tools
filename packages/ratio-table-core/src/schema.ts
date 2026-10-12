@@ -21,7 +21,7 @@ export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("answer-line") }).strict(),
 ]);
 export type RatioCell = z.infer<typeof cellSchema>;
-export const cellsSchema = z.array(cellSchema).min(2).max(3);
+export const cellsSchema = z.array(cellSchema).min(1).max(3);
 export const headingSchema = z
   .object({
     text: z
@@ -33,7 +33,7 @@ export const headingSchema = z
     direction: z.enum(["right", "up", "none"]),
   })
   .strict();
-export const headingsSchema = z.array(headingSchema).min(2).max(3);
+export const headingsSchema = z.array(headingSchema).min(1).max(3);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z
   .object({
@@ -46,7 +46,7 @@ export const transitionSchema = z
 export const documentSchema = z
   .object({
     headings: headingsSchema,
-    rows: z.array(rowSchema).min(2).max(6),
+    rows: z.array(rowSchema).min(1).max(6),
     transitions: z.array(transitionSchema).max(5),
     size: z.enum(["compact", "standard", "large"]),
     mode: z.enum(["simple", "annotated"]),
@@ -78,7 +78,7 @@ export const ratioSpecSchema = z
     schemaVersion: z.union([z.literal(1), z.literal(2)]),
     rows: z
       .array(z.object({ id: id.optional(), cells: cellsSchema }).strict())
-      .min(2)
+      .min(1)
       .max(6),
     headings: headingsSchema.optional(),
     transitions: z.array(transitionSchema).max(5).optional(),

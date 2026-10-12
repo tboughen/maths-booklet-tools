@@ -194,7 +194,7 @@ test("long headings cannot leave a stale export enabled", async ({ page }) => {
     page.getByRole("button", { name: "Download options", exact: true }),
   ).toBeDisabled();
   await heading.press("Escape");
-  await expect(heading).toHaveValue("x");
+  await expect(heading).toHaveValue("x →");
   await expect(
     page.getByRole("button", { name: "Download options", exact: true }),
   ).toBeEnabled();
@@ -607,4 +607,175 @@ test("three-column image and editable exports survive reopening without editor d
       await expect.poll(() => stored(page)).toEqual(envelope);
     }
   }
+});
+
+test("visible remove controls shrink to one row/column, retain values and restore through undo", async ({
+  page,
+}) => {
+  await seed(page, JSON.stringify(simple));
+  await page.goto("/?tool=ratio-table");
+  const structure = page.getByRole("group", { name: "Table structure" });
+  await page.getByLabel("Row 1 x value", { exact: true }).click();
+  await structure
+    .getByRole("button", { name: "Remove row", exact: true })
+    .click();
+  await expect
+    .poll(async () => (await stored(page)).document.rows)
+    .toEqual([simple.document.rows[1]]);
+  await expect(
+    structure.getByRole("button", { name: "Remove row", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page
+      .getByRole("group", { name: "Ratio editing tools" })
+      .getByRole("button", { name: "Add arrow", exact: true }),
+  ).toBeDisabled();
+  await structure
+    .getByRole("button", { name: "Remove column", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Remove column", exact: true })
+    .click();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[0].cells)
+    .toEqual([{ kind: "number", value: "1" }]);
+  await expect(
+    structure.getByRole("button", { name: "Remove column", exact: true }),
+  ).toBeDisabled();
+  await page.reload();
+  await expect(page.getByLabel("Row 1 x value", { exact: true })).toHaveValue(
+    "1",
+  );
+  const single = await stored(page),
+    singleMetrics = ratioMetrics(single.document);
+  await page
+    .getByRole("button", { name: "Download options", exact: true })
+    .click();
+  const singleDownloading = page.waitForEvent("download");
+  await page.getByRole("menuitem", { name: /Download PNG/ }).click();
+  const singleBytes = await readFile((await (await singleDownloading).path())!);
+  verifyPrintBytes(
+    singleBytes,
+    Math.round((singleMetrics.widthCm / 2.54) * 600),
+    Math.round((singleMetrics.heightCm / 2.54) * 600),
+  );
+  await structure
+    .getByRole("button", { name: "Add column", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Edit column 2 heading", { exact: true }),
+  ).toBeFocused();
+  await expect(
+    page.getByLabel("Edit column 2 heading", { exact: true }),
+  ).toHaveValue("y ↑");
+  await structure.getByRole("button", { name: "Add row", exact: true }).click();
+  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells)
+    .toEqual([{ kind: "empty" }, { kind: "empty" }]);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).document.headings.length)
+    .toBe(1);
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).document.headings.length)
+    .toBe(2);
+});
+
+test("default heading arrows are editable Unicode and can be deleted, restored and saved", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/?tool=ratio-table");
+  const first = page.getByLabel("Edit column 1 heading", { exact: true });
+  const second = page.getByLabel("Edit column 2 heading", { exact: true });
+  await expect(first).toHaveValue("x →");
+  await expect(second).toHaveValue("y ↑");
+  for (const field of [first, second]) {
+    await field.click();
+    await field.press("End");
+    await field.press("Backspace");
+    await field.press("Enter");
+  }
+  await expect
+    .poll(async () =>
+      (await stored(page)).document.headings.map(
+        (heading: { direction: string }) => heading.direction,
+      ),
+    )
+    .toEqual(["none", "none"]);
+  await page.reload();
+  await expect(first).toHaveValue("x");
+  await expect(second).toHaveValue("y");
+  await page
+    .getByRole("button", { name: "Edit headings", exact: true })
+    .click();
+  const panel = page.getByLabel("Column 1 heading", { exact: true });
+  await panel.fill("x →");
+  await panel.press("Enter");
+  await expect
+    .poll(async () => (await stored(page)).document.headings[0].direction)
+    .toBe("right");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(first).toHaveValue("x");
+});
+
+test("clicking away clears cell, heading, scaling and arrow-creation highlights without discarding invalid drafts", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/?tool=ratio-table");
+  const title = page.getByRole("heading", {
+    name: "Ratio tables",
+    exact: true,
+  });
+  const highlighted = page.locator(
+    ".ratio-edit-layer .is-selected, .ratio-step-highlight",
+  );
+  await page.getByLabel("Row 1 x value", { exact: true }).click();
+  await expect(highlighted).toHaveCount(1);
+  await title.click();
+  await expect(highlighted).toHaveCount(0);
+  await page.getByLabel("Edit column 1 heading", { exact: true }).click();
+  await expect(highlighted).toHaveCount(1);
+  await page
+    .getByRole("region", { name: "Ratio table workspace" })
+    .click({ position: { x: 5, y: 5 } });
+  await expect(highlighted).toHaveCount(0);
+  await page
+    .getByRole("button", { name: /Edit scaling arrow/ })
+    .first()
+    .click();
+  await expect(page.locator(".ratio-step-highlight")).toHaveCount(2);
+  await title.click();
+  await expect(highlighted).toHaveCount(0);
+  await page
+    .getByRole("button", { name: /Edit scaling arrow/ })
+    .first()
+    .click();
+  const factor = page.getByLabel("Row 1 scaling factor", { exact: true });
+  await factor.fill("0");
+  await factor.press("Enter");
+  await title.click();
+  await expect(highlighted).toHaveCount(0);
+  await expect(factor).toHaveAttribute("aria-invalid", "true");
+  await expect(
+    page.getByRole("button", { name: "Copy for Word", exact: true }),
+  ).toBeDisabled();
+  await factor.focus();
+  await factor.press("Escape");
+  await page
+    .getByRole("group", { name: "Ratio editing tools" })
+    .getByRole("button", { name: "Add arrow", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Choose row 1 for arrow", exact: true })
+    .click();
+  await expect(page.locator(".ratio-row-target.is-selected")).toHaveCount(1);
+  await title.click();
+  await expect(highlighted).toHaveCount(0);
+  await expect(page.locator(".ratio-row-target")).toHaveCount(0);
 });

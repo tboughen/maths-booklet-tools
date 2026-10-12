@@ -56,7 +56,7 @@ export function ratioMetrics(document: RatioDocument) {
         );
   // Two-column documents retain their exact lesson layout. Three columns each
   // reserve a scaling lane, so the middle column's operation is explicit too.
-  const columnWidth = 150 + (document.headings.length === 3 ? gutter : 0),
+  const columnWidth = 150 + (document.headings.length !== 2 ? gutter : 0),
     tableWidth = document.headings.length * columnWidth,
     width = 30 + tableWidth + (document.headings.length === 2 ? gutter * 2 : 0),
     height = (document.rows.length + 1) * 100 + 30;

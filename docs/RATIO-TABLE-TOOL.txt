@@ -5,7 +5,7 @@ Use the shared navigation to switch between Graph tool, Ratio tables and Questio
 Human editing and exports use the browser; the MCP service is not required.
 
 Design and scope
-Two or three columns and two to six data rows, plus headings. The ratio-lesson-v1 profile
+One to three columns and one to six data rows, plus headings. The ratio-lesson-v1 profile
 uses a 3 cm table body, 1 cm rows, 12 pt bundled STIX text and 2.25 pt centre/header
 rules at Standard size. Compact is 80%; Large is 120%. The exported size includes
 margins and scaling annotation gutters. Preview zoom changes screen size only.
@@ -37,10 +37,16 @@ Direct editing and controls
 The toolbar matches Graph tool: Edit, Add arrow and Edit headings, then history,
 Reset and Copy for Word. Lower-emphasis structural actions are grouped separately.
 Click a heading or cell and type; Enter applies, Escape restores and Tab moves
-through the fields. Selected-cell settings distinguish Value, Empty and Answer
+through the fields. The default heading fields contain editable Unicode x → and
+y ↑. Backspace/delete removes the arrow; typing → or ↑ at the end restores it.
+The legacy text/direction representation preserves untouched saved diagrams.
+Clicking away clears all diagram selection, including arrow-source highlighting;
+invalid panel drafts remain mounted for correction without selection highlights. Selected-cell settings distinguish Value, Empty and Answer
 line. Clearing an answer-line cell preserves its scaffold until its type changes.
 Add row below the diagram or in the toolbar; Add column at its right edge or in
-the toolbar. A new column contains empty cells and never infers pupil answers.
+the toolbar. Visible Remove row and Remove column actions use the selected item
+or the last one when nothing is selected. At least one row and one column remain.
+Column removal is confirmed; all removal is undoable and removes affected steps. A new column contains empty cells and never infers pupil answers.
 Choose Add arrow and click a source row followed by the row immediately below,
 or select the rows and operation in the settings. The initial arrow is multiply
 by 2; edit its operation/factor in the contextual panel. Click any copy of a
@@ -75,10 +81,10 @@ automatically printed or inferred.
 
 Saving, sharing and recovery
 The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
-all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables
-retain schemaVersion 1 / ratio-1 and their hashes; adding a third column uses
+all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables with at least two rows
+retain schemaVersion 1 / ratio-1 and their hashes; one-row, one-column or three-column tables use
 schemaVersion 2 / ratio-2. Existing saved files, links and the storage key are
-unchanged. Removing a column is confirmed and undoable. Returning to two columns
+unchanged. Removing a column is confirmed and undoable. Returning to two columns with at least two rows
 returns to the original format. Older website versions cannot open three-column
 files; the current editor can open both formats.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves

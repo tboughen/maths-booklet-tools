@@ -6,6 +6,7 @@ import type {
 import type { RatioSelection } from "./RatioCanvas";
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
+import { headingText, headingFromText } from "./headingText";
 
 export function RatioInspector({
   document,
@@ -46,27 +47,15 @@ export function RatioInspector({
           key={`heading-${column}-${inputVersion}`}
           label={`Column ${column + 1} heading`}
           inputKey={`heading-${column}`}
-          value={heading.text}
+          value={headingText(heading)}
           onPending={onPending}
-          onCommit={(text) => change({ text })}
+          onFocus={() => onSelect(selection)}
+          onCommit={(text) => change(headingFromText(heading, text))}
         />
-        <select
-          aria-label={`Column ${column + 1} heading arrow`}
-          value={heading.direction}
-          disabled={pendingInputs}
-          onChange={(event) =>
-            change(
-              {
-                direction: event.target.value as typeof heading.direction,
-              },
-              true,
-            )
-          }
-        >
-          <option value="right">Right arrow →</option>
-          <option value="up">Up arrow ↑</option>
-          <option value="none">No heading arrow</option>
-        </select>
+        <p className="panel-note">
+          Delete → or ↑ to remove the heading arrow. Type either character at
+          the end to add it.
+        </p>
         <label className="check-row">
           <input
             type="checkbox"
@@ -78,7 +67,7 @@ export function RatioInspector({
         </label>
         <button
           className="panel-button ratio-danger"
-          disabled={pendingInputs || document.headings.length <= 2}
+          disabled={pendingInputs || document.headings.length <= 1}
           onClick={() => onRemoveColumn(column)}
         >
           <Trash2 size={15} />
@@ -191,7 +180,7 @@ export function RatioInspector({
             </label>
             <button
               className="panel-button ratio-danger"
-              disabled={pendingInputs || document.rows.length <= 2}
+              disabled={pendingInputs || document.rows.length <= 1}
               onClick={() => onRemoveRow(row.id)}
             >
               <Trash2 size={15} />
@@ -263,6 +252,9 @@ export function RatioInspector({
                   key={`${transition.from}-factor-${inputVersion}`}
                   label={`Row ${fromIndex + 1} scaling factor`}
                   inputKey={`${transition.from}-factor`}
+                  onFocus={() =>
+                    onSelect({ kind: "step", from: transition.from })
+                  }
                   value={transition.factor}
                   onPending={onPending}
                   onCommit={(factor) => setStep({ factor })}

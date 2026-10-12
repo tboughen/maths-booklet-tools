@@ -64,11 +64,13 @@ const ratioCapabilitiesSchema = z
     rendererVersion: z.literal(RATIO_RENDERER_VERSION),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
     columns: z.literal(2),
-    supportedColumns: z.array(z.union([z.literal(2), z.literal(3)])),
+    supportedColumns: z.array(
+      z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    ),
     rendererVersions: z.array(
       z.enum([RATIO_RENDERER_VERSION, RATIO_THREE_COLUMN_RENDERER_VERSION]),
     ),
-    rows: z.object({ minimum: z.literal(2), maximum: z.literal(6) }),
+    rows: z.object({ minimum: z.literal(1), maximum: z.literal(6) }),
     cellKinds: z.array(z.enum(["number", "empty", "answer-line"])),
     sizes: z.array(z.enum(["compact", "standard", "large"])),
     modes: z.array(z.enum(["simple", "annotated"])),
@@ -239,7 +241,7 @@ export function ratioTools(
       "ratio_table_capabilities",
       {
         description:
-          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style two- or three-column diagrams. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
+          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style one-, two- or three-column diagrams. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
         inputSchema: z.object({}).strict(),
         outputSchema: ratioCapabilitiesSchema,
         annotations,
@@ -249,12 +251,12 @@ export function ratioTools(
           rendererVersion: RATIO_RENDERER_VERSION,
           styleProfile: RATIO_STYLE_PROFILE,
           columns: 2 as const,
-          supportedColumns: [2, 3] as Array<2 | 3>,
+          supportedColumns: [1, 2, 3] as Array<1 | 2 | 3>,
           rendererVersions: [
             RATIO_RENDERER_VERSION,
             RATIO_THREE_COLUMN_RENDERER_VERSION,
           ],
-          rows: { minimum: 2 as const, maximum: 6 as const },
+          rows: { minimum: 1 as const, maximum: 6 as const },
           cellKinds: ["number", "empty", "answer-line"] as Array<
             "number" | "empty" | "answer-line"
           >,
@@ -292,7 +294,7 @@ export function ratioTools(
       "create_ratio_table",
       {
         description:
-          "Create a lesson-style ratio table with 2–6 rows. Use schemaVersion 1 for two columns, or schemaVersion 2 for three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
+          "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
         inputSchema: ratioSpecSchema,
         outputSchema: ratioOutputSchema,
         annotations,

@@ -126,10 +126,12 @@ describe("legacy saved tables and three-column ratios", () => {
         },
       ]),
     ).toThrow();
+    const single = applyRatioOperations(legacy[1].envelope, [
+      { op: "remove_column", column: 1 },
+    ]);
+    expect(single.document.headings).toHaveLength(1);
     expect(() =>
-      applyRatioOperations(legacy[1].envelope, [
-        { op: "remove_column", column: 1 },
-      ]),
+      applyRatioOperations(single, [{ op: "remove_column", column: 0 }]),
     ).toThrow();
     expect(added).toEqual(thirdColumn());
   });
@@ -158,4 +160,25 @@ describe("legacy saved tables and three-column ratios", () => {
       );
     }
   });
+});
+
+it("supports undoable one-row/one-column drafts without changing legacy-format rules", () => {
+  const one = applyRatioOperations(legacy[1].envelope, [
+    { op: "remove_row", rowId: "target" },
+    { op: "remove_column", column: 1 },
+  ]);
+  expect(one.schemaVersion).toBe(2);
+  expect(one.document.rows).toHaveLength(1);
+  expect(one.document.transitions).toEqual([]);
+  expect(parseRatioFile(canonicalRatio(one))).toEqual(one);
+  expect(renderRatioSvg(one.document)).not.toContain("ratio-scaling-arrow");
+  expect(() =>
+    applyRatioOperations(one, [{ op: "remove_row", rowId: "start" }]),
+  ).toThrow();
+  expect(
+    createRatioTable({
+      schemaVersion: 2,
+      rows: [{ cells: [{ kind: "empty" }] }],
+    }).document.headings,
+  ).toHaveLength(1);
 });

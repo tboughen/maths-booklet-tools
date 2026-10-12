@@ -34,12 +34,11 @@ Numeric values and factors are strings. The blank answer remains an answer line
 despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
 use explicit IDs when supplying transitions. Headings, size, mode and annotation
 visibility have human-editor defaults. Use schemaVersion 1 and exactly two cells
-per row for legacy diagrams. Use schemaVersion 2 and exactly three cells per row
-for three columns; every row must match the number of headings. Capabilities
-retain columns: 2 as the default and add supportedColumns: [2, 3] and both renderer
+per row for legacy diagrams. Use schemaVersion 2 for one row, one column or three columns; every row must match the number of headings. Capabilities
+retain columns: 2 as the default and add supportedColumns: [1, 2, 3] and both renderer
 versions. add_column appends a heading and empty cells; remove_column uses a
 zero-based column index. All scaling operations and explicit fills cover every
-column. The three-column output uses ratio-2; existing ratio-1 outputs and hashes
+column. Extended tables use ratio-2; existing ratio-1 outputs and hashes
 remain unchanged.
 
 Returned output
@@ -58,13 +57,13 @@ Operations:
   remove_row: rowId
   set_transition: transition (from, to, operation, factor)
   remove_transition: from
-  set_headings: headings (two {text, italic, direction: right/up/none} objects)
+  set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
   set_size: size compact/standard/large
   set_annotation_visibility: optional mode, showArrows, showOperations
   fill_next_row: from, optional overwrite
 Empty operations refresh seven-day downloads. Stale base hashes refuse. Row
 insertion/deletion cleans only affected transitions; unchanged settings survive.
-Explicit fill_next_row requires a step and both source values; use overwrite true
+Explicit fill_next_row requires a step and all source values; use overwrite true
 only after the user requests replacing existing target values. ChatGPT must
 preserve pupil scaffolds unless answers are requested. Rendering formatting and
 explicit cell states are enforced in code; model intent is separately checked
