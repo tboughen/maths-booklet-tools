@@ -380,8 +380,8 @@ export function pointToSegmentDistance(
   return Math.sqrt(squaredDistance(point, projection));
 }
 
-export function tickLabelEvery(scale: UnitsPerSquare): number {
-  return scale === 0.5 ? 2 : 1;
+export function shouldLabelAxisSquare(squareOffset: number, scale: UnitsPerSquare): boolean {
+  return scale !== 0.5 || squareOffset % 2 === 0;
 }
 
 export function isAxisConfig(value: unknown): value is AxisConfig {
