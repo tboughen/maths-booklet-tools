@@ -312,7 +312,7 @@ test("row removal, undo, mobile layout and lesson preview are usable", async ({
     .getByLabel("Row 2 scaling operation", { exact: true })
     .selectOption("multiply");
   await page.getByLabel("Row 2 x value", { exact: true }).click();
-  await page.getByRole("button", { name: "Remove row 2", exact: true }).click();
+  await page.getByRole("button", { name: "Remove row", exact: true }).click();
   await expect
     .poll(async () => (await stored(page)).document.transitions)
     .toEqual([]);
@@ -333,6 +333,14 @@ test("row removal, undo, mobile layout and lesson preview are usable", async ({
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeVisible();
+  for (const name of ["Rows", "Columns"]) {
+    const pair = page.getByRole("group", { name, exact: true });
+    const bounds = await pair.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+    await expect(pair.getByRole("button")).toHaveCount(2);
+  }
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(320);
@@ -464,13 +472,10 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
   await page
     .getByRole("button", { name: "Edit headings", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Remove column 3", exact: true })
-    .click();
-  await page
-    .getByRole("dialog")
+  await structure
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
   await expect
     .poll(async () => (await stored(page)).document)
@@ -490,6 +495,29 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
   await expect(
     structure.getByRole("button", { name: "Add row", exact: true }),
   ).toBeVisible();
+  const stage = page.getByRole("region", {
+    name: "Ratio table workspace",
+    exact: true,
+  });
+  const stageBounds = await stage.boundingBox();
+  for (const scrollLeft of [0, 1000]) {
+    await stage.evaluate((element, left) => {
+      element.scrollLeft = left;
+    }, scrollLeft);
+    for (const name of ["Rows", "Columns"]) {
+      const bounds = await structure
+        .getByRole("group", { name, exact: true })
+        .boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.x).toBeGreaterThanOrEqual(stageBounds!.x);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(
+        stageBounds!.x + stageBounds!.width,
+      );
+    }
+  }
+  await stage.evaluate((element) => {
+    element.scrollLeft = 0;
+  });
   await page.screenshot({
     path: testInfo.outputPath("three-columns-mobile.png"),
     fullPage: true,
@@ -615,6 +643,32 @@ test("visible remove controls shrink to one row/column, retain values and restor
   await seed(page, JSON.stringify(simple));
   await page.goto("/?tool=ratio-table");
   const structure = page.getByRole("group", { name: "Table structure" });
+  for (const name of ["Add row", "Remove row", "Add column", "Remove column"]) {
+    await expect(page.getByRole("button", { name, exact: true })).toHaveCount(
+      1,
+    );
+    await expect(
+      page
+        .locator(".editor-toolbar")
+        .getByRole("button", { name, exact: true }),
+    ).toHaveCount(0);
+  }
+  for (const [group, add, remove] of [
+    ["Rows", "Add row", "Remove row"],
+    ["Columns", "Add column", "Remove column"],
+  ]) {
+    const pair = structure.getByRole("group", { name: group, exact: true });
+    const addBounds = await pair
+      .getByRole("button", { name: add, exact: true })
+      .boundingBox();
+    const removeBounds = await pair
+      .getByRole("button", { name: remove, exact: true })
+      .boundingBox();
+    expect(addBounds).not.toBeNull();
+    expect(removeBounds).not.toBeNull();
+    expect(removeBounds!.y).toBe(addBounds!.y);
+    expect(removeBounds!.x).toBeGreaterThan(addBounds!.x + addBounds!.width);
+  }
   await page.getByLabel("Row 1 x value", { exact: true }).click();
   await structure
     .getByRole("button", { name: "Remove row", exact: true })
@@ -633,10 +687,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   await structure
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Remove column", exact: true })
-    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect
     .poll(async () => (await stored(page)).document.rows[0].cells)
     .toEqual([{ kind: "number", value: "1" }]);

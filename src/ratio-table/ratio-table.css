@@ -271,17 +271,13 @@
 .ratio-export-menu {
   top: 68px;
 }
-.ratio-app .ratio-structure-toolbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 14px;
+.ratio-edit-hint {
+  margin: 0;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--line);
-}
-.ratio-structure-toolbar .panel-note {
-  flex: 1 1 220px;
-  margin: 0 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 .ratio-app .ratio-stage {
   display: block;
@@ -289,7 +285,7 @@
 }
 .ratio-canvas-layout {
   display: grid;
-  grid-template-columns: max-content 122px;
+  grid-template-columns: max-content max-content;
   grid-template-rows: max-content 48px;
   align-items: center;
   gap: 10px;
@@ -300,15 +296,24 @@
 .ratio-app .ratio-paper {
   max-width: none;
 }
-.ratio-add-column,
-.ratio-add-row {
+.ratio-action-pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ratio-action-pair .tool-button {
   border: 1px solid var(--line-strong);
   background: white;
   justify-content: center;
   white-space: nowrap;
 }
-.ratio-add-row {
+.ratio-column-actions {
+  grid-column: 2;
+  grid-row: 1;
+}
+.ratio-row-actions {
   grid-column: 1;
+  grid-row: 2;
   justify-self: center;
 }
 .ratio-edit-layer {
@@ -449,17 +454,21 @@
     grid-template-columns: max-content;
     grid-template-rows: max-content 44px 44px;
   }
-  .ratio-add-column {
+  .ratio-column-actions {
     grid-column: 1;
     grid-row: 3;
-    justify-self: center;
   }
-  .ratio-app .ratio-structure-toolbar {
-    padding: 8px;
+  .ratio-action-pair {
+    justify-self: start;
+    position: sticky;
+    left: 0;
   }
-  .ratio-structure-toolbar .panel-note {
-    flex-basis: 100%;
-    margin-left: 0;
+  .ratio-app .ratio-action-pair .tool-button {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+  .ratio-edit-hint {
+    padding-inline: 10px;
   }
   .ratio-app .ratio-stage {
     height: 360px;

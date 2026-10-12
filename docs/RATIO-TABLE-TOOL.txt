@@ -43,10 +43,11 @@ The legacy text/direction representation preserves untouched saved diagrams.
 Clicking away clears all diagram selection, including arrow-source highlighting;
 invalid panel drafts remain mounted for correction without selection highlights. Selected-cell settings distinguish Value, Empty and Answer
 line. Clearing an answer-line cell preserves its scaffold until its type changes.
-Add row below the diagram or in the toolbar; Add column at its right edge or in
-the toolbar. Visible Remove row and Remove column actions use the selected item
+Add row and Remove row sit together below the diagram; Add column and Remove
+column sit together at its right edge. These controls appear only on the diagram.
+Visible Remove row and Remove column actions use the selected item
 or the last one when nothing is selected. At least one row and one column remain.
-Column removal is confirmed; all removal is undoable and removes affected steps. A new column contains empty cells and never infers pupil answers.
+Removal is immediate and undoable, and removes affected steps. A new column contains empty cells and never infers pupil answers.
 Choose Add arrow and click a source row followed by the row immediately below,
 or select the rows and operation in the settings. The initial arrow is multiply
 by 2; edit its operation/factor in the contextual panel. Click any copy of a
@@ -55,7 +56,7 @@ are highlighted only in the editor. Invalid drafts remain visible when moving
 between cells and disable structural changes and exports.
 Fit to screen is the initial preview zoom; it keeps text at least at 100% and
 uses bounded horizontal scrolling when a three-column table does not fit. On
-small screens edge controls sit below the table; toolbar controls remain visible.
+small screens both pairs of structure controls sit below the table.
 IBM Carbon button hierarchy, grouping and focus guidance informed the controls;
 the editor reuses Graph tool's classes without adding a Carbon dependency.
 https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines
@@ -84,7 +85,7 @@ The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
 all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables with at least two rows
 retain schemaVersion 1 / ratio-1 and their hashes; one-row, one-column or three-column tables use
 schemaVersion 2 / ratio-2. Existing saved files, links and the storage key are
-unchanged. Removing a column is confirmed and undoable. Returning to two columns with at least two rows
+unchanged. Removing a column is immediate and undoable. Returning to two columns with at least two rows
 returns to the original format. Older website versions cannot open three-column
 files; the current editor can open both formats.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves

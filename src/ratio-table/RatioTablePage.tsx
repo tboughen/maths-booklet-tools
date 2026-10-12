@@ -6,12 +6,10 @@ import {
   ArrowDown,
   MousePointer2,
   Type,
-  Plus,
   Redo2,
   RotateCcw,
   Table2,
   Undo2,
-  Trash2,
 } from "lucide-react";
 import {
   applyRatioOperations,
@@ -348,7 +346,7 @@ export default function RatioTablePage({
       if (
         event.composedPath().includes(editor.current as EventTarget) &&
         target.closest(
-          ".ratio-inline-cell, .ratio-inline-heading, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-structure-toolbar button, .ratio-canvas-layout > button, .ratio-settings details button",
+          ".ratio-inline-cell, .ratio-inline-heading, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
         )
       )
         return;
@@ -499,18 +497,11 @@ export default function RatioTablePage({
     });
   }
   function removeColumn(column: number) {
-    setPending({
-      title: "Remove this column?",
-      confirmLabel: "Remove column",
-      description:
-        "This removes the heading and every cell in this column. You can undo the change.",
-      action: () =>
-        attempt(() => {
-          operations([{ op: "remove_column", column: column as 0 | 1 | 2 }]);
-          setSelection(null);
-          setArrowFrom(null);
-          setTool("edit");
-        }),
+    attempt(() => {
+      operations([{ op: "remove_column", column: column as 0 | 1 | 2 }]);
+      setSelection(null);
+      setArrowFrom(null);
+      setTool("edit");
     });
   }
   const removalRow =
@@ -790,53 +781,13 @@ export default function RatioTablePage({
                 Editing guides
               </label>
             </div>
-            <div
-              className="ratio-structure-toolbar"
-              role="group"
-              aria-label="Table structure"
-            >
-              <button
-                className="tool-button"
-                disabled={structureDisabled || document.rows.length >= 6}
-                onClick={addRow}
-              >
-                <Plus size={16} />
-                <span>Add row</span>
-              </button>
-              <button
-                className="tool-button ratio-danger"
-                disabled={structureDisabled || document.rows.length <= 1}
-                title={`Remove row ${document.rows.findIndex((row) => row.id === removalRow) + 1}${selection?.kind === "cell" || selection?.kind === "step" ? " (selected)" : " (last row)"}`}
-                onClick={() => removeRow(removalRow)}
-              >
-                <Trash2 size={16} />
-                <span>Remove row</span>
-              </button>
-              <button
-                className="tool-button"
-                disabled={structureDisabled || document.headings.length >= 3}
-                onClick={addColumn}
-              >
-                <Plus size={16} />
-                <span>Add column</span>
-              </button>
-              <button
-                className="tool-button ratio-danger"
-                disabled={structureDisabled || document.headings.length <= 1}
-                title={`Remove column ${removalColumn + 1}${selection?.kind === "cell" || selection?.kind === "heading" ? " (selected)" : " (last column)"}`}
-                onClick={() => removeColumn(removalColumn)}
-              >
-                <Trash2 size={16} />
-                <span>Remove column</span>
-              </button>
-              <p className="panel-note">
-                {tool === "arrow"
-                  ? arrowFrom
-                    ? "Select the row immediately below."
-                    : "Select a source row, then the row below, or use the arrow settings."
-                  : "Click a heading or cell and type. Click an arrow to edit its factor."}
-              </p>
-            </div>
+            <p className="ratio-edit-hint">
+              {tool === "arrow"
+                ? arrowFrom
+                  ? "Select the row immediately below."
+                  : "Select a source row, then the row below, or use the arrow settings."
+                : "Click a heading or cell and type. Click an arrow to edit its factor."}
+            </p>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}
@@ -853,6 +804,12 @@ export default function RatioTablePage({
               onOperations={operations}
               onAddRow={addRow}
               onAddColumn={addColumn}
+              onRemoveRow={() => removeRow(removalRow)}
+              onRemoveColumn={() => removeColumn(removalColumn)}
+              removalRowIndex={document.rows.findIndex(
+                (row) => row.id === removalRow,
+              )}
+              removalColumnIndex={removalColumn}
             />
             <div className="ratio-preview-footer">
               <span>
@@ -879,8 +836,6 @@ export default function RatioTablePage({
                 onPending={onInputPending}
                 onOperations={operations}
                 onAction={(ops) => attempt(() => operations(ops))}
-                onRemoveRow={removeRow}
-                onRemoveColumn={removeColumn}
                 onFill={fill}
               />
               <section className="panel-card">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   describeRatio,
   ratioMetrics,
@@ -37,6 +37,10 @@ export function RatioCanvas({
   onOperations,
   onAddRow,
   onAddColumn,
+  onRemoveRow,
+  onRemoveColumn,
+  removalRowIndex,
+  removalColumnIndex,
 }: {
   envelope: RatioEnvelope;
   zoom: number;
@@ -53,6 +57,10 @@ export function RatioCanvas({
   onOperations: (operations: RatioOperation[]) => void;
   onAddRow: () => void;
   onAddColumn: () => void;
+  onRemoveRow: () => void;
+  onRemoveColumn: () => void;
+  removalRowIndex: number;
+  removalColumnIndex: number;
 }) {
   const document = envelope.document,
     m = ratioMetrics(document);
@@ -70,7 +78,7 @@ export function RatioCanvas({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const edgeControlsWidth = availableWidth < 560 ? 0 : 132;
+  const edgeControlsWidth = availableWidth < 560 ? 0 : 300;
   const physicalWidth = m.widthCm * 37.7952756;
   const displayZoom =
     zoom ||
@@ -102,7 +110,11 @@ export function RatioCanvas({
           Scroll sideways to see every column.
         </p>
       )}
-      <div className="ratio-canvas-layout">
+      <div
+        className="ratio-canvas-layout"
+        role="group"
+        aria-label="Table structure"
+      >
         <div
           className="ratio-paper"
           style={
@@ -293,32 +305,62 @@ export function RatioCanvas({
               })}
           </fieldset>
         </div>
-        <button
-          className="tool-button ratio-add-column"
-          disabled={structureDisabled || document.headings.length >= 3}
-          onClick={onAddColumn}
-          title={
-            document.headings.length >= 3
-              ? "Maximum of three columns"
-              : "Add a third column"
-          }
+        <div
+          className="ratio-action-pair ratio-column-actions"
+          role="group"
+          aria-label="Columns"
         >
-          <Plus size={16} />
-          <span>Add column</span>
-        </button>
-        <button
-          className="tool-button ratio-add-row"
-          disabled={structureDisabled || document.rows.length >= 6}
-          onClick={onAddRow}
-          title={
-            document.rows.length >= 6
-              ? "Maximum of six rows"
-              : "Extend the table downwards"
-          }
+          <button
+            className="tool-button ratio-add-column"
+            disabled={structureDisabled || document.headings.length >= 3}
+            onClick={onAddColumn}
+            title={
+              document.headings.length >= 3
+                ? "Maximum of three columns"
+                : "Extend the table to the right"
+            }
+          >
+            <Plus size={16} />
+            <span>Add column</span>
+          </button>
+          <button
+            className="tool-button ratio-danger"
+            disabled={structureDisabled || document.headings.length <= 1}
+            onClick={onRemoveColumn}
+            title={`Remove column ${removalColumnIndex + 1}`}
+          >
+            <Trash2 size={16} />
+            <span>Remove column</span>
+          </button>
+        </div>
+        <div
+          className="ratio-action-pair ratio-row-actions"
+          role="group"
+          aria-label="Rows"
         >
-          <Plus size={16} />
-          <span>Add row</span>
-        </button>
+          <button
+            className="tool-button ratio-add-row"
+            disabled={structureDisabled || document.rows.length >= 6}
+            onClick={onAddRow}
+            title={
+              document.rows.length >= 6
+                ? "Maximum of six rows"
+                : "Extend the table downwards"
+            }
+          >
+            <Plus size={16} />
+            <span>Add row</span>
+          </button>
+          <button
+            className="tool-button ratio-danger"
+            disabled={structureDisabled || document.rows.length <= 1}
+            onClick={onRemoveRow}
+            title={`Remove row ${removalRowIndex + 1}`}
+          >
+            <Trash2 size={16} />
+            <span>Remove row</span>
+          </button>
+        </div>
       </div>
     </div>
   );

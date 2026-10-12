@@ -17,8 +17,6 @@ export function RatioInspector({
   onPending,
   onOperations,
   onAction,
-  onRemoveRow,
-  onRemoveColumn,
   onFill,
 }: {
   document: RatioDocument;
@@ -29,8 +27,6 @@ export function RatioInspector({
   onPending: (key: string, pending: boolean) => void;
   onOperations: (operations: RatioOperation[]) => void;
   onAction: (operations: RatioOperation[]) => void;
-  onRemoveRow: (rowId: string) => void;
-  onRemoveColumn: (column: number) => void;
   onFill: (from: string) => void;
 }) {
   function headingControls(column: number) {
@@ -65,14 +61,6 @@ export function RatioInspector({
           />
           Italic maths heading
         </label>
-        <button
-          className="panel-button ratio-danger"
-          disabled={pendingInputs || document.headings.length <= 1}
-          onClick={() => onRemoveColumn(column)}
-        >
-          <Trash2 size={15} />
-          Remove column {column + 1}
-        </button>
       </div>
     );
   }
@@ -178,14 +166,6 @@ export function RatioInspector({
                 <option value="answer-line">Answer line</option>
               </select>
             </label>
-            <button
-              className="panel-button ratio-danger"
-              disabled={pendingInputs || document.rows.length <= 1}
-              onClick={() => onRemoveRow(row.id)}
-            >
-              <Trash2 size={15} />
-              Remove row {rowIndex + 1}
-            </button>
           </>
         )}
         {selection?.kind === "heading" && headingControls(selection.column)}
