@@ -7,18 +7,33 @@ For Free hosting follow GRAPH-MCP-FREE-SETUP.txt first. The service may need
 about a minute to wake after 15 idle minutes. Open its /healthz URL and wait
 for JSON before creating the ChatGPT connection or retrying a timed-out call.
 
-Current OpenAI instructions checked on 6 October 2026:
+Current OpenAI instructions checked on 9 October 2026:
 https://developers.openai.com/plugins/deploy/connect-chatgpt
 
 Open ChatGPT Plugins, use the plus button and Add custom MCP server. Name it
-"Maths Booklet Tools" and describe it as creating printable coordinate graphs.
+"Maths Booklet Tools" and describe it as creating printable graphs and ratio tables.
 Enter the actual service URL ending /mcp. Select the no-authentication option
 for this bounded public renderer, review the warning, and Create as a plugin.
-Check that graph_capabilities, create_graph and revise_graph were discovered.
+Check that all six tools were discovered:
+  graph_capabilities, create_graph, revise_graph
+  ratio_table_capabilities, create_ratio_table, revise_ratio_table
 Install it and select it with @ in a new chat. Account/workspace rules apply.
 If those controls are unavailable, resolve account/admin access before launch.
 Local development can use a separately authorised Secure MCP Tunnel; do not
 claim that a local HTTP address is publicly available to ChatGPT.
+
+Updating an existing connection
+Deploy and verify the server change first, then open the ORIGINAL connection in
+ChatGPT Plugins and use Refresh. Confirm the actions and test in a new chat.
+Do not create another plugin merely because tools were added at the same URL.
+On 9 October Tim confirmed the original plugin's refresh and ratio-table test
+succeeded, and later removed the temporary Updated plugin. The server's tuple
+schema correction, not a second connection, resolved that import failure.
+See MCP-SCHEMA-INCIDENT-2026-10-09.txt and MCP-PLUGIN-DEVELOPMENT.txt.
+
+If app settings are rejected, read the failed Network request's Response JSON,
+not just its headers or unrelated console warnings. Retain the error code,
+message and named tool. Never copy Authorization headers, cookies or tokens.
 
 Evaluation prompts and expected behaviour
 1. "Plot y = 1/2x - 1 and x = -2, with a cross at (1, 2), from -5 to 5."
@@ -44,12 +59,18 @@ Evaluation prompts and expected behaviour
    from ChatGPT. Record actual wake-up/timeouts; if needed, open /healthz,
    wait for JSON and retry once. Test the signed downloads after another sleep.
    A wake-up delay is expected on the Free plan; never promise always-on service.
+9. "Make a ratio table with headings x right and y up, rows (4,8) and
+   (1,blank answer line). Return its PNG and editable website link."
+   Expect create_ratio_table, the pupil blank retained, actual files and a link
+   to ?tool=ratio-table. Open the link and check the document is editable.
+10. Request a worked (2,4)/(1,2) divide-by-two table with arrows on both sides,
+    then revise the scaffold's size. The revision must preserve the blank.
 
 Record selected tools, actual input/result/error receipts, client/account,
 downloaded files, PNG dimensions/density, editor round trip and unsupported
 behaviour. A model description or tool discovery alone is not acceptance.
-Keep download URLs out of logs; use non-sensitive synthetic graph examples.
+Keep download URLs out of logs; use non-sensitive synthetic diagram examples.
 Refresh the custom connection after metadata changes and rerun affected cases.
 
-Once connected, ChatGPT calls the graph tools directly. It needs neither
+Once connected, ChatGPT calls graph and ratio-table tools directly. It needs neither
 computer use nor the ability to click the website.

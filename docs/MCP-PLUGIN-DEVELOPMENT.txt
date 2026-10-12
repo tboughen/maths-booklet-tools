@@ -1,0 +1,167 @@
+GUIDE TO FUTURE CUSTOM MCP PLUGINS
+Project lessons and official guidance checked 9 October 2026.
+
+1. Decide what belongs together
+A human website, an MCP server and a ChatGPT plugin connection have separate
+lifecycle steps. The website provides an editor. The server exposes operations
+ChatGPT can call directly. The connection imports that server's tool metadata.
+Publishing the website does not deploy the server or refresh a user's connection.
+The Render administration plugin in Codex is separate from Maths Booklet Tools,
+which is the diagram plugin used by ChatGPT conversations.
+
+For another diagram tool with the same ownership, public access and bounded
+rendering model, consider adding named tools to the existing service/connection.
+Graph and ratio tools demonstrate this pattern. A new service or connection may
+be appropriate when ownership, authentication or access boundaries differ, or
+when an intentional migration is required. A new name does not fix a schema.
+
+Keep the human editor usable independently of the MCP service. Both should use
+a shared core for document validation, exact maths, layout and exports. Define
+explicit blank states, version saved documents, preserve unrelated content on
+revision, and require an explicit operation to fill a pupil's answer. MCP tools
+should return usable results even without the website UI.
+
+2. Design a clear and bounded tool contract
+Use specific names and descriptions explaining when to call each tool, supported
+inputs, defaults, limitations and what is returned. Separate capability discovery,
+creation and revision where this makes the contract clearer. Make annotations
+accurately describe side effects, external access and repeated-call behaviour.
+Validate inputs in handlers; metadata alone does not enforce resource limits.
+
+Return structured results: a versioned editable document, revision hash, preview,
+actual file downloads, physical dimensions and an editor link where supported.
+Keep useful descriptions and actionable errors. Do not fabricate links, silently
+change mathematical values, or describe a successful render as proof that a
+ChatGPT conversation used it. Use bounded fallback files when links are too long.
+
+Inspect the emitted input AND output JSON Schemas from actual MCP tools/list,
+including nested saved documents, defaults, unions and revision operations.
+Reading TypeScript or Zod source alone is insufficient: an SDK's translation
+may expose a representation the target client rejects.
+
+For identical cell/heading types in two positions, this project uses:
+  z.array(cellSchema).length(2)
+This advertises an object-valued items schema with minItems/maxItems 2. Do not
+reintroduce z.tuple([cellSchema, cellSchema]) here; that emitted positional items
+and caused the documented ChatGPT import failure. Retain exact length and cell
+validation. See MCP-SCHEMA-INCIDENT-2026-10-09.txt for the diagnosis and limits of
+this conclusion. Do not assume every union is unsupported or weaken validation
+until registration passes. Qualify SDK/schema changes against the real client.
+
+Official tool/schema/annotation guidance:
+https://developers.openai.com/plugins/build/mcp-server
+
+3. Verify each layer with separate evidence
+Local checks: validate mathematical behaviour, blank preservation, invalid inputs,
+revision atomicity, document compatibility and export bytes. Reuse shared tests
+and add meaningful cases for the change. For this repository run, as appropriate:
+  npm run lint
+  npm test
+  npm run typecheck
+  npm run build
+  npm run build:service
+  npm run test:e2e
+
+Protocol checks: use the MCP SDK or Inspector to discover actual tool schemas and
+call creation/revision through the same transport clients use. Verify input and
+output schemas, error handling and downloads. The existing discovery guard and
+six-tool smoke provide a starting point, not a universal ChatGPT validator.
+
+Deployment qualification: run required Linux CI and the Docker smoke with the
+Free instance's 512 MiB memory constraint. Windows success does not prove native
+fonts/rendering or container behaviour on Linux. Use synthetic test keys and
+isolated containers; do not export or rotate the production signing key for tests.
+
+Production checks: compare /healthz buildId with the qualified build, discover
+tools, make affected calls and download the actual PNG/SVG/JSON. The built smoke
+accepts a service base URL:
+  node service-dist/smoke.js https://maths-booklet-graph-mcp.onrender.com
+Run deliberately within service limits. Verify graph regression when extending
+the shared service, and confirm the editor route/fonts/round trip separately.
+
+ChatGPT checks: refresh/import the connection, confirm the expected actions and
+test in a NEW conversation with the plugin selected. Check the actual returned
+files and editable link; a model's unsupported-tool explanation or prose claim
+is not a tool receipt. Record what Tim tested separately from automated checks.
+If Word output matters, insert/copy a real image into Word and check its size and
+sharpness; browser raster metadata does not prove Word's behaviour.
+
+Do not collapse these stages into "working": code written, tests passed, merged,
+deployed, tools discovered, ChatGPT call accepted and Word trial are distinct.
+For documentation-only edits, verify content/links/diffs; runtime requalification
+or a Render redeployment is unnecessary unless runtime inputs also change.
+
+4. Diagnose rejection from the response
+When ChatGPT gives a generic app-settings banner, find the failed request in the
+browser's Network panel and read its Response JSON. Retain the status, error type,
+error code, message and named tool. Headers and unrelated console warnings may
+not explain the failure. A normal browser GET to /mcp is also not a protocol test:
+this server uses stateless Streamable HTTP POST and can return 405 to GET.
+
+Do not paste Authorization headers, cookies, tokens, signed downloads or an
+unredacted HAR into documentation or Trello. Use synthetic diagram examples.
+Distinguish unreachable/cold service, authentication failure, invalid schema,
+metadata refresh and tool execution errors using the actual evidence. Address
+the reported cause before changing identity, auth mode, host, keys or CSP.
+
+For mcp_validation naming a tool, inspect its complete emitted schema and shared
+references, add a focused regression, repair the representation while retaining
+semantics, then rerun affected discovery and invalid-input checks. SDK success
+alone did not prevent the 9 October ratio-table import failure.
+
+5. Release an update to an existing custom connection
+a. Review the final source and required checks through the project's PR process.
+   Preserve unrelated agents' work; do not merge another task to change status.
+b. Check the ACTUAL hosting repository, branch, Dockerfile and deployment settings.
+   Our existing service used codex/chatgpt-graph-integration with manual deployment;
+   a push to main or another branch did not automatically update that service.
+c. Deploy the exact qualified source through the authorised release path. Record
+   the commit, workflow, deployment ID, buildId and live HTTPS check. A code push
+   is not proof of deployment. Preserve the stable URL and compatible contracts.
+d. In ChatGPT Plugins, open the ORIGINAL connection and use Refresh. Confirm the
+   new tools, then open a new conversation, select the plugin and test it.
+e. Create a replacement only for a deliberate migration or a diagnosed connection
+   problem. Do not keep adding differently named copies to work around rejection.
+   Remove an obsolete duplicate only when authorised; Tim removed ours himself.
+f. Record the account trial and remaining review/Word actions. Keep a rollback
+   route that preserves editable documents and signing-key compatibility.
+
+Current endpoint: https://maths-booklet-graph-mcp.onrender.com/mcp
+Health endpoint: https://maths-booklet-graph-mcp.onrender.com/healthz
+Human ratio editor: https://tboughen.github.io/maths-booklet-tools/?tool=ratio-table
+Connection steps and acceptance prompts: GRAPH-MCP-CONNECTION.txt
+Official custom connection/refresh guidance:
+https://developers.openai.com/plugins/deploy/connect-chatgpt
+
+6. Keep the free/public design intentional
+This renderer makes no OpenAI model API calls and requires no OpenAI API key.
+The human website remains browser-based; graphs and ratios share one Free Render
+service. Free hosting can sleep and delay calls. Waking /healthz then retrying is
+useful for a cold service, but cannot repair an invalid schema. Do not add paid
+instances, another service or a periodic keep-awake job as a schema workaround.
+
+No authentication is appropriate for this intentionally public bounded renderer;
+do not copy that setting into plugins exposing private account data or privileged
+actions. Preserve input/output/queue/time limits and validate host/origin access.
+Keep logs to operational metadata, and retain real error responses without
+credentials or document bodies. Follow GRAPH-MCP-FREE-SETUP.txt and
+GRAPH-MCP-RUNBOOK.txt for the current deployment and privacy limits.
+
+7. Treat public publication as a separate step
+A private custom MCP connection is not a publicly submitted plugin. If a future
+plugin is packaged, update its metadata/instructions/examples and version using
+the relevant plugin workflow, then test that package as well as the server.
+Public submission adds listing, permission and review requirements. Published
+tool definitions are subject to review; a running server with new tools does not
+guarantee that all published users immediately receive those tools. Plan for
+compatible changes and verify the distribution path actually being used.
+Official publication/review guidance:
+https://developers.openai.com/plugins/deploy/app-review
+
+Example ratio acceptance prompts
+  "Use Maths Booklet Tools to make headings x right and y up, rows (4,8) and
+   (1,blank answer line). Return the PNG and editable website link."
+  "Move to a worked (2,4)/(1,2) table with divide-by-two arrows on both sides."
+  "Revise the first table's size while keeping the student's answer blank."
+Check actual tool calls, correct drawings/files and the independent editor link.
+Retest a graph and an unsupported request. Record only cases actually tried.

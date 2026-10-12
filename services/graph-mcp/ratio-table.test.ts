@@ -85,6 +85,93 @@ type Output = {
   printRaster: { width: number; height: number };
 };
 describe("ratio tools on the shared real MCP service", () => {
+  it("advertises homogeneous array schemas for ChatGPT imports", async () => {
+    const { client } = await start();
+    const tools = (await client.listTools()).tools;
+    const ratioTools = tools.filter((tool) =>
+      tool.name.includes("ratio_table"),
+    );
+    expect(ratioTools).toHaveLength(3);
+    function inspect(schema: unknown, path: string) {
+      if (!schema || typeof schema !== "object") return;
+      if (Array.isArray(schema)) {
+        schema.forEach((value, index) => inspect(value, `${path}[${index}]`));
+        return;
+      }
+      const node = schema as Record<string, unknown>;
+      expect(node, path).not.toHaveProperty("prefixItems");
+      expect(node, path).not.toHaveProperty("additionalItems");
+      if (node.type === "array") {
+        expect(node.items, `${path}.items`).toBeTypeOf("object");
+        expect(Array.isArray(node.items), `${path}.items`).toBe(false);
+      }
+      Object.entries(node).forEach(([key, value]) =>
+        inspect(value, `${path}.${key}`),
+      );
+    }
+    for (const tool of tools) {
+      inspect(tool.inputSchema, `${tool.name}.inputSchema`);
+      inspect(tool.outputSchema, `${tool.name}.outputSchema`);
+    }
+    const create = ratioTools.find(
+      (tool) => tool.name === "create_ratio_table",
+    )!;
+    const properties = create.inputSchema.properties as Record<string, unknown>;
+    expect(properties.headings).toMatchObject({ minItems: 2, maxItems: 2 });
+    expect(properties.rows).toMatchObject({
+      items: { properties: { cells: { minItems: 2, maxItems: 2 } } },
+    });
+  });
+  it("still refuses incomplete or extra columns and headings over MCP", async () => {
+    const { client } = await start();
+    const headings = [
+      { text: "x", italic: true, direction: "right" },
+      { text: "y", italic: true, direction: "up" },
+    ];
+    for (const count of [0, 1, 3]) {
+      const cells = Array.from({ length: count }, () => ({ kind: "empty" }));
+      const invalidCells = await client.callTool({
+        name: "create_ratio_table",
+        arguments: { ...spec, rows: [{ cells }, spec.rows[1]] },
+      });
+      expect(invalidCells.isError, `cells count ${count}`).toBe(true);
+      const invalidHeadings = await client.callTool({
+        name: "create_ratio_table",
+        arguments: {
+          ...spec,
+          headings: Array.from({ length: count }, () => headings[0]),
+        },
+      });
+      expect(invalidHeadings.isError, `headings count ${count}`).toBe(true);
+    }
+    const valid = await client.callTool({
+      name: "create_ratio_table",
+      arguments: { ...spec, headings },
+    });
+    expect(valid.isError).not.toBe(true);
+    const data = valid.structuredContent as Output;
+    for (const operation of [
+      { op: "set_headings", headings: [...headings, headings[0]] },
+      { op: "add_row", after: "target", row: { id: "third", cells: [] } },
+      { op: "set_cell", rowId: "target", column: 1, cell: { kind: "number" } },
+      {
+        op: "set_cell",
+        rowId: "target",
+        column: 1,
+        cell: { kind: "empty", value: "2" },
+      },
+    ]) {
+      const invalid = await client.callTool({
+        name: "revise_ratio_table",
+        arguments: {
+          envelope: data.envelope,
+          baseHash: data.contentHash,
+          operations: [operation],
+        },
+      });
+      expect(invalid.isError, operation.op).toBe(true);
+    }
+  }, 15000);
   it("discovers, preserves a pupil blank, downloads all formats and explicitly fills a revision", async () => {
     const { base, client } = await start();
     const tools = (await client.listTools()).tools;
