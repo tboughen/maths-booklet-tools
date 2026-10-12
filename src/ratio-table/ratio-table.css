@@ -403,12 +403,15 @@
 .ratio-app .ratio-inline-factor input {
   font-size: calc(var(--ratio-edit-font) * 0.8);
 }
+.ratio-inline-factor {
+  --ratio-factor-edit-width: 48px;
+}
 .ratio-inline-factor:focus-within {
   z-index: 6;
 }
 .ratio-inline-factor input:focus,
 .ratio-inline-factor input[aria-invalid="true"] {
-  min-width: 48px;
+  min-width: var(--ratio-factor-edit-width);
 }
 .ratio-inline-factor.is-left input:focus,
 .ratio-inline-factor.is-left input[aria-invalid="true"] {
@@ -423,7 +426,7 @@
   .ratio-factor-operation {
   display: block;
   position: absolute;
-  right: calc(max(100%, 48px) + 4px);
+  right: calc(max(100%, var(--ratio-factor-edit-width)) + 4px);
   top: 50%;
   transform: translateY(-50%);
   background: white;
@@ -493,6 +496,9 @@
   height: max(320px, calc(100dvh - 390px));
 }
 @media (max-width: 620px) {
+  .ratio-inline-factor {
+    --ratio-factor-edit-width: min(48px, calc(3ch + 10px));
+  }
   .ratio-canvas-layout {
     grid-template-columns: max-content;
     grid-template-rows: max-content 44px max-content;
@@ -520,9 +526,11 @@
   .ratio-edit-hint {
     padding-inline: 10px;
   }
-  .ratio-app .ratio-stage {
-    height: 360px;
-    padding: 12px;
+  .booklet-editor.ratio-app .ratio-stage {
+    height: auto;
+    min-height: 340px;
+    max-height: 480px;
+    padding: 16px;
   }
 }
 @media (max-width: 1050px) {
