@@ -1,7 +1,7 @@
 import {
   coordinateToSvg,
   getBounds,
-  tickLabelEvery,
+  shouldLabelAxisSquare,
   visibleStraightPoints,
 } from "./diagram";
 import { equationForObject, formatNumber } from "./equations";
@@ -66,10 +66,9 @@ function tickLabels(
   unitsPerSquare: DiagramDocumentV1["axes"]["x"]["unitsPerSquare"],
 ): Array<{ index: number; label: string }> {
   const total = negativeSquares + positiveSquares;
-  const every = tickLabelEvery(unitsPerSquare);
   const labels: Array<{ index: number; label: string }> = [];
   for (let index = 0; index <= total; index += 1) {
-    if (index % every !== 0) continue;
+    if (!shouldLabelAxisSquare(index - negativeSquares, unitsPerSquare)) continue;
     const value = (index - negativeSquares) * unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
     labels.push({ index, label: formatNumber(value) });
@@ -252,13 +251,11 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     document.axes.x.negativeSquares + document.axes.x.positiveSquares;
   const yTotal =
     document.axes.y.negativeSquares + document.axes.y.positiveSquares;
-  const xEvery = tickLabelEvery(document.axes.x.unitsPerSquare);
-  const yEvery = tickLabelEvery(document.axes.y.unitsPerSquare);
   const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
   const yNumberX = origin.x - UNITS_PER_CM * Y_AXIS_LABEL_GAP_CENTIMETRES;
 
   for (let index = 0; index <= xTotal; index += 1) {
-    if (index % xEvery !== 0) continue;
+    if (!shouldLabelAxisSquare(index - document.axes.x.negativeSquares, document.axes.x.unitsPerSquare)) continue;
     const value =
       (index - document.axes.x.negativeSquares) *
       document.axes.x.unitsPerSquare;
@@ -267,7 +264,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     xLabels.push(axisTickLabelMarkup(formatNumber(value), x, xNumberBaseline));
   }
   for (let index = 0; index <= yTotal; index += 1) {
-    if (index % yEvery !== 0) continue;
+    if (!shouldLabelAxisSquare(document.axes.y.positiveSquares - index, document.axes.y.unitsPerSquare)) continue;
     const value =
       (document.axes.y.positiveSquares - index) *
       document.axes.y.unitsPerSquare;
