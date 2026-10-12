@@ -13,6 +13,10 @@ import type {
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { headingText, headingFromText } from "./headingText";
+import {
+  numberWidth,
+  textWidth,
+} from "../../packages/ratio-table-core/src/svg";
 
 export type RatioSelection =
   | { kind: "cell"; rowId: string; column: number }
@@ -28,6 +32,7 @@ export function RatioCanvas({
   inputVersion,
   disabled,
   structureDisabled,
+  pendingInputs,
   selection,
   tool,
   arrowFrom,
@@ -48,6 +53,7 @@ export function RatioCanvas({
   inputVersion: number;
   disabled: boolean;
   structureDisabled: boolean;
+  pendingInputs: ReadonlySet<string>;
   selection: RatioSelection;
   tool: "edit" | "arrow";
   arrowFrom: string | null;
@@ -78,7 +84,7 @@ export function RatioCanvas({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const edgeControlsWidth = availableWidth < 560 ? 0 : 300;
+  const edgeControlsWidth = availableWidth < 560 ? 0 : 170;
   const physicalWidth = m.widthCm * 37.7952756;
   const displayZoom =
     zoom ||
@@ -272,36 +278,117 @@ export function RatioCanvas({
                 );
                 const lanes =
                   document.headings.length === 2
-                    ? [0, m.tableLeft + m.tableWidth]
-                    : document.headings.map(
-                        (_, column) =>
-                          m.tableLeft + column * m.columnWidth + 150,
-                      );
-                return lanes.map((x, index) => (
-                  <button
-                    key={`${step.from}-${index}`}
-                    type="button"
-                    className={`ratio-arrow-target${selection?.kind === "step" && selection.from === step.from ? " is-selected" : ""}`}
-                    style={position(
-                      x,
-                      m.tableTop + 150 + row * 100 + 5,
-                      m.gutter,
-                      90,
-                    )}
-                    aria-label={`Edit scaling arrow ${row + 1} to ${row + 2}, ${index === 0 && document.headings.length === 2 ? "left" : `column ${index + 1}`}, ${step.operation === "multiply" ? "multiply" : "divide"} by ${step.factor}`}
-                    disabled={structureDisabled}
-                    onClick={() => {
-                      onSelect({ kind: "step", from: step.from });
-                      requestAnimationFrame(() =>
-                        globalThis.document
-                          .querySelector<HTMLInputElement>(
-                            `[aria-label="Row ${row + 1} scaling factor"]`,
-                          )
-                          ?.focus(),
-                      );
-                    }}
-                  />
-                ));
+                    ? [
+                        { edge: m.tableLeft, side: -1 },
+                        {
+                          edge: m.tableLeft + m.tableWidth,
+                          side: 1,
+                        },
+                      ]
+                    : document.headings.map((_, column) => ({
+                        edge: m.tableLeft + column * m.columnWidth + 150,
+                        side: 1,
+                      }));
+                return lanes.flatMap(({ edge, side }, index) => {
+                  // Match the printed label's geometry without changing the SVG or saved format.
+                  const font = (12 / 72) * 2.54 * 100 * 0.8,
+                    factorWidth = numberWidth(step.factor, font),
+                    total =
+                      textWidth(
+                        step.operation === "multiply" ? "×" : "÷",
+                        font,
+                      ) +
+                      6 +
+                      factorWidth,
+                    centre =
+                      edge +
+                      side * ((document.showArrows ? 52 : 10) + total / 2),
+                    factorCentre = centre + total / 2 - factorWidth / 2,
+                    inputKey = `inline-factor-${step.from}-${index}`,
+                    laneName =
+                      index === 0 && document.headings.length === 2
+                        ? "left"
+                        : `column ${index + 1}`;
+                  return [
+                    <button
+                      key={`${step.from}-${index}`}
+                      type="button"
+                      className={`ratio-arrow-target${selection?.kind === "step" && selection.from === step.from ? " is-selected" : ""}`}
+                      style={position(
+                        document.showArrows
+                          ? edge + (side < 0 ? -48 : 4)
+                          : centre - total / 2 - 3,
+                        m.tableTop +
+                          150 +
+                          row * 100 +
+                          (document.showArrows ? 5 : 24),
+                        document.showArrows
+                          ? 44
+                          : textWidth(
+                              step.operation === "multiply" ? "×" : "÷",
+                              font,
+                            ) + 6,
+                        document.showArrows ? 90 : 52,
+                      )}
+                      aria-label={`Edit scaling arrow ${row + 1} to ${row + 2}, ${laneName}, ${step.operation === "multiply" ? "multiply" : "divide"} by ${step.factor}`}
+                      disabled={structureDisabled}
+                      onClick={() => {
+                        onSelect({ kind: "step", from: step.from });
+                        requestAnimationFrame(() =>
+                          globalThis.document
+                            .querySelector<HTMLInputElement>(
+                              `[aria-label="Row ${row + 1} scaling factor"]`,
+                            )
+                            ?.focus(),
+                        );
+                      }}
+                    />,
+                    ...(document.showOperations && tool === "edit"
+                      ? [
+                          <div
+                            key={`${inputKey}-${inputVersion}`}
+                            className={`ratio-inline-factor${side < 0 ? " is-left" : ""}`}
+                            style={position(
+                              factorCentre - factorWidth / 2 - 3,
+                              m.tableTop + 150 + row * 100 + 24,
+                              Math.max(factorWidth + 6, 28),
+                              52,
+                            )}
+                          >
+                            {side < 0 && (
+                              <span
+                                className="ratio-factor-operation"
+                                aria-hidden="true"
+                              >
+                                {step.operation === "multiply" ? "×" : "÷"}
+                              </span>
+                            )}
+                            <NumberInput
+                              value={step.factor}
+                              label={`Row ${row + 1} ${laneName} arrow factor`}
+                              inputKey={inputKey}
+                              disabled={
+                                structureDisabled &&
+                                !pendingInputs.has(inputKey)
+                              }
+                              onPending={onPending}
+                              onFocus={() =>
+                                onSelect({ kind: "step", from: step.from })
+                              }
+                              onCommit={(factor) =>
+                                onOperations([
+                                  {
+                                    op: "set_transition",
+                                    transition: { ...step, factor },
+                                  },
+                                ])
+                              }
+                            />
+                          </div>,
+                        ]
+                      : []),
+                  ];
+                });
               })}
           </fieldset>
         </div>

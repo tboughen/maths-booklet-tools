@@ -557,6 +557,9 @@ test("GUI row selection adds one shared operation and keyboard entry preserves i
   await page
     .getByLabel("Row 1 scaling operation", { exact: true })
     .selectOption("divide");
+  await expect
+    .poll(async () => (await stored(page)).document.transitions[0]?.operation)
+    .toBe("divide");
   const factor = page.getByLabel("Row 1 scaling factor", { exact: true });
   await factor.fill("0");
   await factor.press("Enter");
@@ -637,6 +640,161 @@ test("three-column image and editable exports survive reopening without editor d
   }
 });
 
+test("arrow factors edit directly, synchronize every copy and retain invalid drafts without filling values", async ({
+  page,
+}, testInfo) => {
+  await seed(page, JSON.stringify(simple));
+  await page.goto("/?tool=ratio-table");
+  await page.getByRole("button", { name: "Add arrow", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Choose row 1 for arrow", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Choose row 2 for arrow", exact: true })
+    .click();
+  const left = page.getByLabel("Row 1 left arrow factor", { exact: true });
+  const right = page.getByLabel("Row 1 column 2 arrow factor", { exact: true });
+  // Click the actual printed number, so overlay placement is tested too.
+  const clickPrintedFactor = async (column: number) => {
+    await page
+      .locator(".ratio-inline-factor input")
+      .nth(column)
+      .scrollIntoViewIfNeeded();
+    const bounds = await page
+      .locator(".ratio-operation")
+      .nth(column)
+      .locator("text")
+      .last()
+      .boundingBox();
+    expect(bounds).not.toBeNull();
+    await page.mouse.click(
+      bounds!.x + bounds!.width / 2,
+      bounds!.y + bounds!.height / 2,
+    );
+  };
+  await clickPrintedFactor(0);
+  await expect(left).toBeFocused();
+  await left.fill("4");
+  await page.screenshot({
+    path: testInfo.outputPath("inline-factor-left-editing.png"),
+    fullPage: true,
+  });
+  await left.press("Enter");
+  await expect(right).toHaveValue("4");
+  await expect(
+    page.getByLabel("Row 1 scaling factor", { exact: true }),
+  ).toHaveValue("4");
+  expect((await stored(page)).document.rows).toEqual(simple.document.rows);
+  await page.getByRole("button", { name: /Edit scaling arrow.*left/ }).click();
+  await expect(
+    page.getByLabel("Row 1 scaling factor", { exact: true }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(left).toHaveValue("2");
+  await expect(right).toHaveValue("2");
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await clickPrintedFactor(1);
+  await expect(right).toBeFocused();
+  await page
+    .getByLabel("Row 1 scaling operation", { exact: true })
+    .selectOption("divide");
+  await expect
+    .poll(async () => (await stored(page)).document.transitions[0]?.operation)
+    .toBe("divide");
+  await right.click();
+  await right.fill("0");
+  await right.press("Enter");
+  await expect(right).toHaveAttribute("aria-invalid", "true");
+  await expect(left).toBeDisabled();
+  await expect(
+    page.getByLabel("Row 1 scaling factor", { exact: true }),
+  ).toBeDisabled();
+  expect((await stored(page)).document.transitions[0].factor).toBe("4");
+  await page
+    .getByRole("heading", { name: "Ratio tables", exact: true })
+    .click();
+  await expect(
+    page.locator(".ratio-step-highlight, .ratio-arrow-target.is-selected"),
+  ).toHaveCount(0);
+  await expect(right).toHaveValue("0");
+  await right.press("Escape");
+  await right.fill("1/2");
+  await right.press("Enter");
+  await expect(left).toHaveValue("1/2");
+  await page.getByRole("button", { name: "Add column", exact: true }).click();
+  const middle = page.getByLabel("Row 1 column 2 arrow factor", {
+    exact: true,
+  });
+  const first = page.getByLabel("Row 1 column 1 arrow factor", { exact: true });
+  const third = page.getByLabel("Row 1 column 3 arrow factor", { exact: true });
+  await clickPrintedFactor(1);
+  await expect(middle).toBeFocused();
+  await middle.fill("6");
+  await page.screenshot({
+    path: testInfo.outputPath("inline-factor-editing.png"),
+    fullPage: true,
+  });
+  await page
+    .getByRole("heading", { name: "Ratio tables", exact: true })
+    .click();
+  await expect(first).toHaveValue("6");
+  await expect(third).toHaveValue("6");
+  await expect(page.locator(".ratio-operation")).toHaveText(["÷6", "÷6", "÷6"]);
+  expect(
+    (await stored(page)).document.rows.map((row) => row.cells.slice(0, 2)),
+  ).toEqual(simple.document.rows.map((row) => row.cells));
+  await expect
+    .poll(async () => (await stored(page)).document.transitions[0]?.factor)
+    .toBe("6");
+  await page.reload();
+  await expect(middle).toHaveValue("6");
+  await clickPrintedFactor(1);
+  await middle.fill("1/0");
+  await page
+    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("link", { name: "Graph tool", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("link", { name: "Ratio tables", exact: true })
+    .click();
+  await expect(middle).toHaveValue("1/0");
+  await expect(
+    page.getByRole("button", { name: "Copy for Word", exact: true }),
+  ).toBeDisabled();
+  await middle.press("Escape");
+  await page
+    .getByRole("heading", { name: "Ratio tables", exact: true })
+    .click();
+  await page.screenshot({
+    path: testInfo.outputPath("inline-factor-desktop.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 320, height: 900 });
+  const columns = page.getByRole("group", { name: "Columns", exact: true });
+  const [add, remove] = await columns.evaluate((element) =>
+    Array.from(element.querySelectorAll("button")).map((button) => {
+      const { x, y, width, height } = button.getBoundingClientRect();
+      return { x, y, width, height };
+    }),
+  );
+  expect(remove.x).toBe(add.x);
+  expect(remove.y).toBeGreaterThan(add.y + add.height);
+  await clickPrintedFactor(1);
+  await expect(middle).toBeFocused();
+  await middle.fill("3/2");
+  await middle.press("Enter");
+  await expect(first).toHaveValue("3/2");
+  await expect(third).toHaveValue("3/2");
+  await page
+    .getByRole("heading", { name: "Ratio tables", exact: true })
+    .click();
+  await page.screenshot({
+    path: testInfo.outputPath("inline-factor-mobile.png"),
+    fullPage: true,
+  });
+});
+
 test("visible remove controls shrink to one row/column, retain values and restore through undo", async ({
   page,
 }) => {
@@ -658,16 +816,27 @@ test("visible remove controls shrink to one row/column, retain values and restor
     ["Columns", "Add column", "Remove column"],
   ]) {
     const pair = structure.getByRole("group", { name: group, exact: true });
-    const addBounds = await pair
-      .getByRole("button", { name: add, exact: true })
-      .boundingBox();
-    const removeBounds = await pair
-      .getByRole("button", { name: remove, exact: true })
-      .boundingBox();
+    await expect(
+      pair.getByRole("button", { name: add, exact: true }),
+    ).toBeVisible();
+    await expect(
+      pair.getByRole("button", { name: remove, exact: true }),
+    ).toBeVisible();
+    const [addBounds, removeBounds] = await pair.evaluate((element) =>
+      Array.from(element.querySelectorAll("button")).map((button) => {
+        const { x, y, width, height } = button.getBoundingClientRect();
+        return { x, y, width, height };
+      }),
+    );
     expect(addBounds).not.toBeNull();
     expect(removeBounds).not.toBeNull();
-    expect(removeBounds!.y).toBe(addBounds!.y);
-    expect(removeBounds!.x).toBeGreaterThan(addBounds!.x + addBounds!.width);
+    if (group === "Columns") {
+      expect(removeBounds!.x).toBe(addBounds!.x);
+      expect(removeBounds!.y).toBeGreaterThan(addBounds!.y + addBounds!.height);
+    } else {
+      expect(removeBounds!.y).toBe(addBounds!.y);
+      expect(removeBounds!.x).toBeGreaterThan(addBounds!.x + addBounds!.width);
+    }
   }
   await page.getByLabel("Row 1 x value", { exact: true }).click();
   await structure

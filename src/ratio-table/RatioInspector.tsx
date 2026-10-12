@@ -13,6 +13,7 @@ export function RatioInspector({
   selection,
   inputVersion,
   pendingInputs,
+  factorDisabled,
   onSelect,
   onPending,
   onOperations,
@@ -23,6 +24,7 @@ export function RatioInspector({
   selection: RatioSelection;
   inputVersion: number;
   pendingInputs: boolean;
+  factorDisabled: boolean;
   onSelect: (selection: RatioSelection) => void;
   onPending: (key: string, pending: boolean) => void;
   onOperations: (operations: RatioOperation[]) => void;
@@ -127,8 +129,8 @@ export function RatioInspector({
         </div>
         {!selection && (
           <p className="panel-note">
-            Click a heading or cell and type. Select an arrow to change its
-            operation or factor.
+            Click a heading, cell or arrow number and type. Select a curved
+            arrow to change its operation or factor.
           </p>
         )}
         {selection?.kind === "cell" && row && (
@@ -231,6 +233,7 @@ export function RatioInspector({
                 <NumberInput
                   key={`${transition.from}-factor-${inputVersion}`}
                   label={`Row ${fromIndex + 1} scaling factor`}
+                  disabled={factorDisabled}
                   inputKey={`${transition.from}-factor`}
                   onFocus={() =>
                     onSelect({ kind: "step", from: transition.from })
