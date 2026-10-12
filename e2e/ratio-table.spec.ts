@@ -8,6 +8,17 @@ import {
 } from "../packages/ratio-table-core/src/interchange";
 import { createGraph } from "../packages/graph-core/src/interchange";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
+import { readFileSync } from "node:fs";
+import type { RatioEnvelope } from "../packages/ratio-table-core/src/interchange";
+const legacyFixtures = JSON.parse(
+  readFileSync(
+    new URL(
+      "../packages/ratio-table-core/fixtures/legacy-v1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as Array<{ envelope: RatioEnvelope }>;
 const key = "maths-booklet-tools:ratio-table-envelope:v1";
 const graphKey = "maths-booklet-tools:graph-envelope:v1";
 const simple = createRatioTable({
@@ -99,6 +110,10 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     2,
   );
   await page
+    .getByRole("button", { name: /Edit scaling arrow/ })
+    .first()
+    .click();
+  await page
     .getByRole("button", { name: "Fill next row", exact: true })
     .click();
   await page
@@ -115,13 +130,18 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     0,
   );
   await expect(page.locator(".ratio-preview .ratio-operation")).toHaveCount(2);
-  await page.getByRole("button", { name: "Simple", exact: true }).click();
+  await page
+    .getByLabel("Annotation display", { exact: true })
+    .selectOption("simple");
   await expect(page.locator(".ratio-preview .ratio-operation")).toHaveCount(0);
   const graphRaw = await page.evaluate(
     (key) => localStorage.getItem(key),
     graphKey,
   );
-  await page.getByRole("navigation", { name: "Booklet tools", exact: true }).getByRole("link", { name: "Graph tool", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("link", { name: "Graph tool", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
@@ -163,7 +183,9 @@ test("invalid input cannot export or overwrite the saved value; Escape recovers 
 test("long headings cannot leave a stale export enabled", async ({ page }) => {
   await seed(page);
   await page.goto("/?tool=ratio-table");
-  await page.getByText("Custom headings", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit headings", exact: true })
+    .click();
   const heading = page.getByLabel("Column 1 heading", { exact: true });
   await heading.fill("Temperature");
   await heading.press("Enter");
@@ -278,18 +300,26 @@ test("row removal, undo, mobile layout and lesson preview are usable", async ({
 }, testInfo) => {
   await seed(page);
   await page.goto("/?tool=ratio-table");
-  await page.getByRole("button", { name: "Add row", exact: true }).click();
+  await page
+    .getByRole("group", { name: "Table structure" })
+    .getByRole("button", { name: "Add row", exact: true })
+    .click();
+  await page.getByText("Scaling steps", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Row 2 → Row 3 · Add arrow", exact: true })
+    .click();
   await page
     .getByLabel("Row 2 scaling operation", { exact: true })
     .selectOption("multiply");
+  await page.getByLabel("Row 2 x value", { exact: true }).click();
   await page.getByRole("button", { name: "Remove row 2", exact: true }).click();
   await expect
     .poll(async () => (await stored(page)).document.transitions)
     .toEqual([]);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(
-    page.getByLabel("Row 2 scaling operation", { exact: true }),
-  ).toHaveValue("multiply");
+  await expect
+    .poll(async () => (await stored(page)).document.transitions[1]?.operation)
+    .toBe("multiply");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.screenshot({
@@ -351,4 +381,230 @@ test("clipboard includes the verified PNG and centimetre dimensions; blocked cop
   await expect(
     page.getByText(/Download PNG \(600 ppi\) and insert it into Word instead/),
   ).toBeVisible();
+});
+
+test("direct editing, three clear scaling arrows, explicit fill and legacy undo work together", async ({
+  page,
+}, testInfo) => {
+  await seed(page, JSON.stringify(legacyFixtures[1].envelope));
+  await page.goto("/?tool=ratio-table");
+  const structure = page.getByRole("group", { name: "Table structure" });
+  await structure
+    .getByRole("button", { name: "Add column", exact: true })
+    .click();
+  const heading = page.getByLabel("Edit column 3 heading", { exact: true });
+  await expect(heading).toBeFocused();
+  await heading.fill("Mass");
+  await heading.press("Enter");
+  const third = page.getByLabel("Row 1 Mass value", { exact: true });
+  await third.click();
+  await third.fill("6");
+  await third.press("Enter");
+  await page.getByLabel("Row 2 Mass value", { exact: true }).click();
+  await expect(page.locator(".ratio-preview .ratio-scaling-arrow")).toHaveCount(
+    3,
+  );
+  await expect(page.locator(".ratio-preview .ratio-operation")).toHaveCount(3);
+  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
+  expect((await stored(page)).document.rows[1].cells).toEqual([
+    { kind: "number", value: "1" },
+    { kind: "answer-line" },
+    { kind: "empty" },
+  ]);
+  await page
+    .getByRole("button", { name: /Edit scaling arrow.*column 2/ })
+    .click();
+  const factor = page.getByLabel("Row 1 scaling factor", { exact: true });
+  await expect(factor).toBeFocused();
+  await factor.fill("6");
+  await factor.press("Enter");
+  expect((await stored(page)).document.rows[1].cells[1]).toEqual({
+    kind: "answer-line",
+  });
+  await page
+    .getByRole("button", { name: "Fill next row", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Fill next row", exact: true })
+    .click();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells)
+    .toEqual([
+      { kind: "number", value: "1/2" },
+      { kind: "number", value: "1/3" },
+      { kind: "number", value: "1" },
+    ]);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells[1].kind)
+    .toBe("answer-line");
+  await page
+    .getByRole("button", { name: /Edit scaling arrow.*column 2/ })
+    .click();
+  await factor.fill("3");
+  await factor.press("Enter");
+  await page
+    .getByRole("heading", { name: "Scaling arrow", exact: true })
+    .click();
+  await page.screenshot({
+    path: testInfo.outputPath("three-columns-desktop.png"),
+    fullPage: true,
+  });
+  await page
+    .locator(".ratio-preview")
+    .screenshot({ path: testInfo.outputPath("three-columns-diagram.png") });
+  await structure.getByRole("button", { name: "Add row", exact: true }).click();
+  await expect(page.getByLabel("Row 3 x value", { exact: true })).toBeFocused();
+  expect((await stored(page)).document.rows[0].cells[0]).toEqual({
+    kind: "number",
+    value: "3",
+  });
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit headings", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Remove column 3", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Remove column", exact: true })
+    .click();
+  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect
+    .poll(async () => (await stored(page)).document)
+    .toEqual(legacyFixtures[1].envelope.document);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).document.headings[2]?.text)
+    .toBe("Mass");
+  await page.reload();
+  await expect(page.locator(".ratio-preview .ratio-scaling-arrow")).toHaveCount(
+    3,
+  );
+  await page.setViewportSize({ width: 320, height: 900 });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
+  await expect(
+    structure.getByRole("button", { name: "Add row", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("three-columns-mobile.png"),
+    fullPage: true,
+  });
+});
+
+test("GUI row selection adds one shared operation and keyboard entry preserves invalid drafts", async ({
+  page,
+}) => {
+  await seed(page, JSON.stringify(simple));
+  await page.goto("/?tool=ratio-table");
+  const cell = page.getByLabel("Row 1 x value", { exact: true });
+  await cell.click();
+  await cell.fill("1/0");
+  await cell.press("Tab");
+  await expect(page.getByLabel("Row 1 y value", { exact: true })).toBeFocused();
+  await expect(cell).toHaveAttribute("aria-invalid", "true");
+  await expect(
+    page.getByRole("button", { name: "Copy for Word", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Add arrow", exact: true }),
+  ).toBeDisabled();
+  await cell.focus();
+  await cell.press("Escape");
+  await expect(cell).toHaveValue("4");
+  await page.getByRole("button", { name: "Add arrow", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Choose row 1 for arrow", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Choose row 2 for arrow", exact: true })
+    .click();
+  await expect(page.locator(".ratio-preview .ratio-scaling-arrow")).toHaveCount(
+    2,
+  );
+  await page
+    .getByLabel("Row 1 scaling operation", { exact: true })
+    .selectOption("divide");
+  const factor = page.getByLabel("Row 1 scaling factor", { exact: true });
+  await factor.fill("0");
+  await factor.press("Enter");
+  await expect(factor).toHaveAttribute("aria-invalid", "true");
+  await page.getByLabel("Row 1 y value", { exact: true }).click();
+  await expect(factor).toBeVisible();
+  await expect(factor).toHaveAttribute("aria-invalid", "true");
+  await factor.focus();
+  await factor.press("Escape");
+  await factor.fill("4");
+  await factor.press("Enter");
+  await expect
+    .poll(async () => (await stored(page)).document.transitions[0])
+    .toMatchObject({ operation: "divide", factor: "4" });
+  expect((await stored(page)).document.rows).toEqual(simple.document.rows);
+});
+
+test("three-column image and editable exports survive reopening without editor decorations", async ({
+  page,
+}, testInfo) => {
+  await seed(page);
+  await page.goto("/?tool=ratio-table");
+  await page
+    .getByRole("group", { name: "Table structure" })
+    .getByRole("button", { name: "Add column", exact: true })
+    .click();
+  await page.getByLabel("Row 1 z value", { exact: true }).fill("6");
+  await page.getByLabel("Row 1 z value", { exact: true }).press("Enter");
+  await page.getByLabel("Editing guides", { exact: true }).check();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[0].cells[2]?.value)
+    .toBe("6");
+  const envelope = await stored(page),
+    metrics = ratioMetrics(envelope.document);
+  for (const [name, format] of [
+    ["Download PNG", "png"],
+    ["Download SVG", "svg"],
+    ["Save editable table", "json"],
+  ]) {
+    await page
+      .getByRole("button", { name: "Download options", exact: true })
+      .click();
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("menuitem", { name: new RegExp(name) }).click();
+    const download = await downloading;
+    await download.saveAs(testInfo.outputPath(`three-columns.${format}`));
+    const bytes = await readFile((await download.path())!);
+    if (format === "png")
+      verifyPrintBytes(
+        bytes,
+        Math.round((metrics.widthCm / 2.54) * 600),
+        Math.round((metrics.heightCm / 2.54) * 600),
+      );
+    if (format === "svg") {
+      expect(
+        bytes.toString().match(/class="ratio-scaling-arrow"/g),
+      ).toHaveLength(3);
+      expect(bytes.toString()).not.toMatch(
+        /ratio-guides|ratio-edit-layer|ratio-step-highlight|Add column/,
+      );
+      expect(bytes.toString()).toContain("data:font/otf;base64,");
+    }
+    if (format === "json") {
+      expect(JSON.parse(bytes.toString())).toEqual(envelope);
+      await page
+        .getByLabel("Open editable ratio-table file", { exact: true })
+        .setInputFiles({
+          name: "three-columns.json",
+          mimeType: "application/json",
+          buffer: bytes,
+        });
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "Open this table", exact: true })
+        .click();
+      await expect.poll(() => stored(page)).toEqual(envelope);
+    }
+  }
 });

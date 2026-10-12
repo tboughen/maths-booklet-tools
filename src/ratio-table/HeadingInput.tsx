@@ -6,12 +6,14 @@ export function HeadingInput({
   inputKey,
   onCommit,
   onPending,
+  onFocus,
 }: {
   value: string;
   label: string;
   inputKey: string;
   onCommit: (value: string) => void;
   onPending: (key: string, value: boolean) => void;
+  onFocus?: () => void;
 }) {
   const [draft, setDraft] = useState(value),
     [error, setError] = useState("");
@@ -50,6 +52,7 @@ export function HeadingInput({
         aria-invalid={!!error}
         aria-describedby={error ? id : undefined}
         maxLength={12}
+        onFocus={onFocus}
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
