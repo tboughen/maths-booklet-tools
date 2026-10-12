@@ -346,7 +346,7 @@ export default function RatioTablePage({
       if (
         event.composedPath().includes(editor.current as EventTarget) &&
         target.closest(
-          ".ratio-inline-cell, .ratio-inline-heading, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
+          ".ratio-inline-cell, .ratio-inline-heading, .ratio-inline-factor, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
         )
       )
         return;
@@ -786,7 +786,7 @@ export default function RatioTablePage({
                 ? arrowFrom
                   ? "Select the row immediately below."
                   : "Select a source row, then the row below, or use the arrow settings."
-                : "Click a heading or cell and type. Click an arrow to edit its factor."}
+                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
             </p>
             <RatioCanvas
               envelope={envelope}
@@ -795,6 +795,7 @@ export default function RatioTablePage({
               inputVersion={inputVersion}
               disabled={!!recovery}
               structureDisabled={structureDisabled}
+              pendingInputs={pendingInputs}
               selection={selectionActive ? selection : null}
               tool={tool}
               arrowFrom={arrowFrom}
@@ -832,6 +833,9 @@ export default function RatioTablePage({
                 selection={selection}
                 inputVersion={inputVersion}
                 pendingInputs={pendingInputs.size > 0}
+                factorDisabled={Array.from(pendingInputs).some((key) =>
+                  key.startsWith("inline-factor-"),
+                )}
                 onSelect={selectItem}
                 onPending={onInputPending}
                 onOperations={operations}

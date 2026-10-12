@@ -310,6 +310,8 @@
 .ratio-column-actions {
   grid-column: 2;
   grid-row: 1;
+  flex-direction: column;
+  align-items: stretch;
 }
 .ratio-row-actions {
   grid-column: 1;
@@ -327,6 +329,7 @@
 }
 .ratio-inline-cell,
 .ratio-inline-heading,
+.ratio-inline-factor,
 .ratio-arrow-target,
 .ratio-row-target,
 .ratio-step-highlight {
@@ -335,12 +338,16 @@
 }
 .ratio-inline-cell,
 .ratio-inline-heading,
+.ratio-inline-factor,
 .ratio-arrow-target,
 .ratio-row-target {
   pointer-events: auto;
 }
 .ratio-inline-cell:hover,
 .ratio-inline-heading:hover {
+  outline: 1px dashed var(--blue);
+}
+.ratio-inline-factor:hover {
   outline: 1px dashed var(--blue);
 }
 .ratio-inline-cell.is-selected,
@@ -350,6 +357,7 @@
   outline-offset: 2px;
 }
 .ratio-inline-cell .ratio-number-field,
+.ratio-inline-factor .ratio-number-field,
 .ratio-inline-heading > label {
   display: block;
   height: 100%;
@@ -357,6 +365,7 @@
   font-size: 0;
 }
 .ratio-app .ratio-inline-cell input,
+.ratio-app .ratio-inline-factor input,
 .ratio-app .ratio-inline-heading input {
   display: block;
   width: 100%;
@@ -373,19 +382,53 @@
   opacity: 0;
 }
 .ratio-inline-cell input:focus,
+.ratio-inline-factor input:focus,
 .ratio-inline-heading input:focus,
 .ratio-inline-cell input[aria-invalid="true"],
+.ratio-inline-factor input[aria-invalid="true"],
 .ratio-inline-heading input[aria-invalid="true"] {
   opacity: 1;
 }
 .ratio-inline-cell input:focus-visible,
+.ratio-inline-factor input:focus-visible,
 .ratio-inline-heading input:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
 .ratio-inline-cell:has(input[aria-invalid="true"]),
+.ratio-inline-factor:has(input[aria-invalid="true"]),
 .ratio-inline-heading:has(input[aria-invalid="true"]) {
   z-index: 5;
+}
+.ratio-app .ratio-inline-factor input {
+  font-size: calc(var(--ratio-edit-font) * 0.8);
+}
+.ratio-inline-factor:focus-within {
+  z-index: 6;
+}
+.ratio-inline-factor input:focus,
+.ratio-inline-factor input[aria-invalid="true"] {
+  min-width: 48px;
+}
+.ratio-inline-factor.is-left input:focus,
+.ratio-inline-factor.is-left input[aria-invalid="true"] {
+  position: absolute;
+  right: 0;
+}
+.ratio-factor-operation {
+  display: none;
+}
+.ratio-inline-factor.is-left:focus-within .ratio-factor-operation,
+.ratio-inline-factor.is-left:has(input[aria-invalid="true"])
+  .ratio-factor-operation {
+  display: block;
+  position: absolute;
+  right: calc(max(100%, 48px) + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  font-family: "STIX Two Text", serif;
+  font-size: calc(var(--ratio-edit-font) * 0.8);
 }
 .ratio-edit-layer .field-error {
   position: absolute;
@@ -452,7 +495,7 @@
 @media (max-width: 620px) {
   .ratio-canvas-layout {
     grid-template-columns: max-content;
-    grid-template-rows: max-content 44px 44px;
+    grid-template-rows: max-content 44px max-content;
   }
   .ratio-column-actions {
     grid-column: 1;

@@ -43,15 +43,20 @@ The legacy text/direction representation preserves untouched saved diagrams.
 Clicking away clears all diagram selection, including arrow-source highlighting;
 invalid panel drafts remain mounted for correction without selection highlights. Selected-cell settings distinguish Value, Empty and Answer
 line. Clearing an answer-line cell preserves its scaffold until its type changes.
-Add row and Remove row sit together below the diagram; Add column and Remove
-column sit together at its right edge. These controls appear only on the diagram.
+Add row and Remove row sit together below the diagram; Remove column sits below
+Add column at its right edge. These controls appear only on the diagram.
 Visible Remove row and Remove column actions use the selected item
 or the last one when nothing is selected. At least one row and one column remain.
 Removal is immediate and undoable, and removes affected steps. A new column contains empty cells and never infers pupil answers.
 Choose Add arrow and click a source row followed by the row immediately below,
 or select the rows and operation in the settings. The initial arrow is multiply
-by 2; edit its operation/factor in the contextual panel. Click any copy of a
-scaling label to edit the same shared operation. Selected source/target rows
+by 2; edit its operation/factor in the contextual panel. Click the number beside
+any arrow to edit the factor directly. Enter or clicking away applies a valid
+factor; Escape restores it. Decimals and fractions are supported. Every copy of
+the same step stays synchronized, including all three columns. Values stay
+unchanged until an explicit Fill next row. Invalid drafts remain visible, block
+exports and cannot be overwritten through another copy or the side-panel factor.
+Click the curved arrow to open its settings. Selected source/target rows
 are highlighted only in the editor. Invalid drafts remain visible when moving
 between cells and disable structural changes and exports.
 Fit to screen is the initial preview zoom; it keeps text at least at 100% and

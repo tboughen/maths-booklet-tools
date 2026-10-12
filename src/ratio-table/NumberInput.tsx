@@ -9,6 +9,7 @@ export function NumberInput({
   inputKey,
   allowEmpty = false,
   onFocus,
+  disabled = false,
 }: {
   value: string;
   label: string;
@@ -17,6 +18,7 @@ export function NumberInput({
   onPending: (key: string, pending: boolean) => void;
   allowEmpty?: boolean;
   onFocus?: () => void;
+  disabled?: boolean;
 }) {
   const [draft, setDraft] = useState(value),
     [error, setError] = useState("");
@@ -44,6 +46,7 @@ export function NumberInput({
     <label className="ratio-number-field">
       <span className="sr-only">{label}</span>
       <input
+        disabled={disabled}
         value={draft}
         inputMode="text"
         aria-label={label}
