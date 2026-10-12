@@ -85,6 +85,62 @@ type Output = {
   printRaster: { width: number; height: number };
 };
 describe("ratio tools on the shared real MCP service", () => {
+  it("creates, downloads and revises a three-column table through the real protocol", async () => {
+    const { client } = await start();
+    const caps = await client.callTool({
+      name: "ratio_table_capabilities",
+      arguments: {},
+    });
+    expect(caps.structuredContent).toMatchObject({
+      supportedColumns: [2, 3],
+      rendererVersions: ["ratio-1", "ratio-2"],
+    });
+    const reply = await client.callTool({
+      name: "create_ratio_table",
+      arguments: {
+        ...spec,
+        schemaVersion: 2,
+        rows: spec.rows.map((row, index) => ({
+          ...row,
+          cells: [
+            ...row.cells,
+            index ? { kind: "answer-line" } : { kind: "number", value: "6" },
+          ],
+        })),
+      },
+    });
+    expect(reply.isError).not.toBe(true);
+    const data = reply.structuredContent as Output;
+    expect(reply.structuredContent).toMatchObject({
+      rendererVersion: "ratio-2",
+      envelope: { schemaVersion: 2 },
+    });
+    expect(data.envelope.document.rows[1].cells[2]).toEqual({
+      kind: "answer-line",
+    });
+    const svgResponse = await fetch(data.downloads.svg.url);
+    expect(svgResponse.status).toBe(200);
+    const svg = await svgResponse.text();
+    expect(svg).toContain("<title>Ratio table</title>");
+    expect(svg).not.toContain("<text");
+    expect(svg).toMatch(/width="[\d.]+cm"/);
+    const png = new Uint8Array(
+      await (await fetch(data.downloads.png.url)).arrayBuffer(),
+    );
+    verifyPrintBytes(png, data.printRaster.width, data.printRaster.height);
+    const filled = await client.callTool({
+      name: "revise_ratio_table",
+      arguments: {
+        envelope: data.envelope,
+        baseHash: data.contentHash,
+        operations: [{ op: "fill_next_row", from: "start", overwrite: true }],
+      },
+    });
+    expect(filled.isError).not.toBe(true);
+    expect(
+      (filled.structuredContent as Output).envelope.document.rows[1].cells[2],
+    ).toEqual({ kind: "number", value: "2" });
+  });
   it("discovers, preserves a pupil blank, downloads all formats and explicitly fills a revision", async () => {
     const { base, client } = await start();
     const tools = (await client.listTools()).tools;

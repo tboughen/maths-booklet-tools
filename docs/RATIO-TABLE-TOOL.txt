@@ -1,16 +1,18 @@
 RATIO TABLES — HUMAN EDITOR AND SHARED MCP RENDERER
 
 Open the human editor at ?tool=ratio-table under the normal website base path.
-Use Tools to switch between Graph builder, Ratio tables and Question bank.
+Use the shared navigation to switch between Graph tool, Ratio tables and Question bank.
 Human editing and exports use the browser; the MCP service is not required.
 
 Design and scope
-Two columns and two to six data rows, plus headings. The ratio-lesson-v1 profile
+Two or three columns and two to six data rows, plus headings. The ratio-lesson-v1 profile
 uses a 3 cm table body, 1 cm rows, 12 pt bundled STIX text and 2.25 pt centre/header
 rules at Standard size. Compact is 80%; Large is 120%. The exported size includes
 margins and scaling annotation gutters. Preview zoom changes screen size only.
-There is one centre divider and one rule under the headings; there is no outer
-box or printed row grid. Default headings are italic x/right-arrow and y/up-arrow.
+There is a divider between each pair of columns and one rule under the headings;
+there is no outer box or printed row grid. Two-column diagrams keep the original
+layout exactly. A three-column diagram reserves a scaling lane beside each
+column so its arrows and factors explicitly include the middle column. Default headings are italic x/right-arrow and y/up-arrow.
 Custom headings accept up to 12 ASCII letters, digits, spaces, underscores or
 hyphens, subject to the available width. Curved scaling arrows are vector paths
 with explicit oriented arrowheads. Fractions are stacked with a fraction bar.
@@ -23,12 +25,34 @@ Simple hides all scaling annotations but retains the saved steps. With scaling
 arrows enables annotations; Show arrows and Show operation labels can then fade
 each separately. Editing guides are optional and never appear in any export.
 
-Scaling steps connect adjacent rows and apply one factor to both columns. Choose
+Scaling steps connect adjacent rows and apply one factor to every column. Choose
 Multiply or Divide, enter a factor and deliberately press Fill next row if the
-answers should be supplied. If either target contains a value, confirmation is
-required. Filling requires both source values and a valid operation. Row deletion
+answers should be supplied. If any target contains a value, confirmation is
+required. Filling requires all source values and a valid operation. Row deletion
 removes only its connected steps; insertion removes a step across the new row.
 Every change and confirmed example/file/link replacement is undoable.
+
+
+Direct editing and controls
+The toolbar matches Graph tool: Edit, Add arrow and Edit headings, then history,
+Reset and Copy for Word. Lower-emphasis structural actions are grouped separately.
+Click a heading or cell and type; Enter applies, Escape restores and Tab moves
+through the fields. Selected-cell settings distinguish Value, Empty and Answer
+line. Clearing an answer-line cell preserves its scaffold until its type changes.
+Add row below the diagram or in the toolbar; Add column at its right edge or in
+the toolbar. A new column contains empty cells and never infers pupil answers.
+Choose Add arrow and click a source row followed by the row immediately below,
+or select the rows and operation in the settings. The initial arrow is multiply
+by 2; edit its operation/factor in the contextual panel. Click any copy of a
+scaling label to edit the same shared operation. Selected source/target rows
+are highlighted only in the editor. Invalid drafts remain visible when moving
+between cells and disable structural changes and exports.
+Fit to screen is the initial preview zoom; it keeps text at least at 100% and
+uses bounded horizontal scrolling when a three-column table does not fit. On
+small screens edge controls sit below the table; toolbar controls remain visible.
+IBM Carbon button hierarchy, grouping and focus guidance informed the controls;
+the editor reuses Graph tool's classes without adding a Carbon dependency.
+https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines
 
 Numbers and validation
 Enter strings such as -3, 0.125 or 2/3. Decimals retain decimal presentation;
@@ -51,7 +75,12 @@ automatically printed or inferred.
 
 Saving, sharing and recovery
 The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
-all graph keys. Save editable table downloads the complete ratio-1 JSON envelope.
+all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables
+retain schemaVersion 1 / ratio-1 and their hashes; adding a third column uses
+schemaVersion 2 / ratio-2. Existing saved files, links and the storage key are
+unchanged. Removing a column is confirmed and undoable. Returning to two columns
+returns to the original format. Older website versions cannot open three-column
+files; the current editor can open both formats.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves
 the current table unchanged; a confirmed opening is one undoable change.
 Share links use ?tool=ratio-table#ratio-table=...; the fragment stays in the browser.

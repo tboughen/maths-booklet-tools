@@ -14,6 +14,7 @@ import {
   ratioHash,
   ratioEditorLink,
   RATIO_RENDERER_VERSION,
+  RATIO_THREE_COLUMN_RENDERER_VERSION,
   RATIO_STYLE_PROFILE,
   RATIO_MAX_REQUEST_BYTES,
   RatioError,
@@ -34,7 +35,10 @@ export const ratioOutputSchema = z
   .object({
     envelope: ratioEnvelopeSchema,
     contentHash: z.string().regex(/^[a-f0-9]{64}$/),
-    rendererVersion: z.literal(RATIO_RENDERER_VERSION),
+    rendererVersion: z.enum([
+      RATIO_RENDERER_VERSION,
+      RATIO_THREE_COLUMN_RENDERER_VERSION,
+    ]),
     description: z.string(),
     warnings: z.array(z.string()),
     downloads: z
@@ -60,6 +64,10 @@ const ratioCapabilitiesSchema = z
     rendererVersion: z.literal(RATIO_RENDERER_VERSION),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
     columns: z.literal(2),
+    supportedColumns: z.array(z.union([z.literal(2), z.literal(3)])),
+    rendererVersions: z.array(
+      z.enum([RATIO_RENDERER_VERSION, RATIO_THREE_COLUMN_RENDERER_VERSION]),
+    ),
     rows: z.object({ minimum: z.literal(2), maximum: z.literal(6) }),
     cellKinds: z.array(z.enum(["number", "empty", "answer-line"])),
     sizes: z.array(z.enum(["compact", "standard", "large"])),
@@ -189,7 +197,7 @@ export function ratioTools(
       structuredContent: {
         envelope,
         contentHash: hash,
-        rendererVersion: RATIO_RENDERER_VERSION,
+        rendererVersion: envelope.rendererVersion,
         description,
         warnings,
         downloads: links,
@@ -231,7 +239,7 @@ export function ratioTools(
       "ratio_table_capabilities",
       {
         description:
-          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style two-column diagrams with optional paired curved scaling arrows.",
+          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style two- or three-column diagrams. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
         inputSchema: z.object({}).strict(),
         outputSchema: ratioCapabilitiesSchema,
         annotations,
@@ -241,6 +249,11 @@ export function ratioTools(
           rendererVersion: RATIO_RENDERER_VERSION,
           styleProfile: RATIO_STYLE_PROFILE,
           columns: 2 as const,
+          supportedColumns: [2, 3] as Array<2 | 3>,
+          rendererVersions: [
+            RATIO_RENDERER_VERSION,
+            RATIO_THREE_COLUMN_RENDERER_VERSION,
+          ],
           rows: { minimum: 2 as const, maximum: 6 as const },
           cellKinds: ["number", "empty", "answer-line"] as Array<
             "number" | "empty" | "answer-line"
@@ -254,6 +267,8 @@ export function ratioTools(
           maximumRevisionOperations: 20 as const,
           numberLimits: NUMBER_LIMITS,
           revisionOperations: [
+            "add_column",
+            "remove_column",
             "set_cell",
             "add_row",
             "remove_row",
@@ -277,7 +292,7 @@ export function ratioTools(
       "create_ratio_table",
       {
         description:
-          "Create a lesson-style two-column ratio table. Supply schemaVersion 1 and 2–6 rows with exactly two explicit cell states each: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show paired curved arrows and factor labels; simple hides annotations. Use this renderer for ratio diagrams in booklets. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
+          "Create a lesson-style ratio table with 2–6 rows. Use schemaVersion 1 for two columns, or schemaVersion 2 for three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
         inputSchema: ratioSpecSchema,
         outputSchema: ratioOutputSchema,
         annotations,
@@ -297,7 +312,7 @@ export function ratioTools(
       "revise_ratio_table",
       {
         description:
-          "Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Use stable row IDs. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and both source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Preserve unchanged values/settings and show the returned image and links.",
+          "Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Use stable row IDs. add_column appends an explicit heading and empty cells; remove_column uses a zero-based column index. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and all source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Preserve unchanged values/settings and show the returned image and links.",
         inputSchema: ratioRevisionSchema,
         outputSchema: ratioOutputSchema,
         annotations,

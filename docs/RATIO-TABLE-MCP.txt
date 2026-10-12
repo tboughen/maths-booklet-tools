@@ -33,11 +33,18 @@ Creation example: pupil scaffold
 Numeric values and factors are strings. The blank answer remains an answer line
 despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
 use explicit IDs when supplying transitions. Headings, size, mode and annotation
-visibility have human-editor defaults. Exactly two cells per row are required.
+visibility have human-editor defaults. Use schemaVersion 1 and exactly two cells
+per row for legacy diagrams. Use schemaVersion 2 and exactly three cells per row
+for three columns; every row must match the number of headings. Capabilities
+retain columns: 2 as the default and add supportedColumns: [2, 3] and both renderer
+versions. add_column appends a heading and empty cells; remove_column uses a
+zero-based column index. All scaling operations and explicit fills cover every
+column. The three-column output uses ratio-2; existing ratio-1 outputs and hashes
+remain unchanged.
 
 Returned output
 Inline PNG preview, visible-value description, envelope, contentHash, warnings,
-ratio-1 renderer version, physical dimensions, verified print raster size/DPI,
+ratio-1 or ratio-2 renderer version, physical dimensions, verified print raster size/DPI,
 SVG/PNG/JSON downloads and editable website link. A warning never changes values.
 If a download/editor URL would exceed 8192 characters, use the returned bounded
 embedded file resource or saved JSON. Never guess or fabricate download links.

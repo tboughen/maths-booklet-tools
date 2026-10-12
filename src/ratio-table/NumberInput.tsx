@@ -7,12 +7,16 @@ export function NumberInput({
   onCommit,
   onPending,
   inputKey,
+  allowEmpty = false,
+  onFocus,
 }: {
   value: string;
   label: string;
   inputKey: string;
   onCommit: (value: string) => void;
   onPending: (key: string, pending: boolean) => void;
+  allowEmpty?: boolean;
+  onFocus?: () => void;
 }) {
   const [draft, setDraft] = useState(value),
     [error, setError] = useState("");
@@ -25,7 +29,8 @@ export function NumberInput({
   useEffect(() => () => onPending(inputKey, false), [inputKey, onPending]);
   function accept() {
     try {
-      const canonical = canonicalNumber(draft);
+      const canonical =
+        allowEmpty && !draft.trim() ? "" : canonicalNumber(draft);
       onCommit(canonical);
       setDraft(canonical);
       setError("");
@@ -45,11 +50,13 @@ export function NumberInput({
         aria-invalid={!!error}
         aria-describedby={error ? id : undefined}
         maxLength={32}
+        onFocus={onFocus}
         onChange={(e) => {
           setDraft(e.target.value);
           onPending(inputKey, e.target.value !== value);
           try {
-            canonicalNumber(e.target.value);
+            if (!allowEmpty || e.target.value.trim())
+              canonicalNumber(e.target.value);
             setError("");
           } catch (failure) {
             setError(
