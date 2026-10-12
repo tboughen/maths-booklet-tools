@@ -40,7 +40,7 @@ describe("shared paper draft",()=>{
   });
   it("keeps manual contributions on untick and excludes the identity across both tiers",()=>{
     let state=draftReducer(draftReducer(emptyDraft(),tick("U1")),{type:"question",question:h,checked:true});
-    expect(draftEntries(scope,state)[0].question.id).toBe("q2");
+    expect(draftEntries(scope,state).find(e=>e.key===questionIdentity(h))?.question.id).toBe("q2");
     state=draftReducer(state,{type:"code",code:"U1",checked:false});
     expect(draftEntries(scope,state).map(e=>e.question.id)).toEqual(["q2"]);
     state=draftReducer(state,{type:"question",question:f,checked:false});

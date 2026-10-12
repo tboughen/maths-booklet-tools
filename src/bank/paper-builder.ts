@@ -1,7 +1,8 @@
 import { normalizeCode, questionIdentity, type BankCatalogue, type BankQuestion } from "./model";
 import type { Coverage } from "./coverage";
+import { compareAccessibility } from "./performance";
 
-export interface PaperDraft { codes: string[]; manual: Record<string,string>; excluded: string[]; order: string[]; version: string }
+export interface PaperDraft { codes: string[]; manual: Record<string,string>; excluded: string[]; order: string[]; version: string; manuallyOrdered?: boolean }
 export interface PaperEntry { key: string; question: BankQuestion; matchingCodes: string[]; matchedParts: string[]; otherParts: string[] }
 export const emptyDraft = (version = ""): PaperDraft => ({codes: [], manual: {}, excluded: [], order: [], version});
 export type DraftAction =
@@ -33,8 +34,8 @@ export function draftReducer(state: PaperDraft, action: DraftAction): PaperDraft
     case "move": {
       const i = action.visible.indexOf(action.key), target = action.visible[i + action.direction];
       if (!target) return state;
-      const order = [...new Set([...state.order, ...action.visible])], a = order.indexOf(action.key), b = order.indexOf(target);
-      [order[a],order[b]] = [order[b],order[a]]; return {...state, order};
+      const order = [...new Set(state.manuallyOrdered ? [...state.order, ...action.visible] : [...action.visible, ...state.order])], a = order.indexOf(action.key), b = order.indexOf(target);
+      [order[a],order[b]] = [order[b],order[a]]; return {...state, order, manuallyOrdered: true};
     }
     case "reconcile": {
       const identities = new Set(action.catalogue.questions.map(questionIdentity)), byId = new Map(action.catalogue.questions.map(q => [q.id,q]));
@@ -66,7 +67,9 @@ export function draftEntries(coverage: Coverage, state: PaperDraft): PaperEntry[
     entries.push({key, question, matchingCodes, matchedParts, otherParts: matchingCodes.length ? question.parts.filter(p => !matchedParts.includes(p.label)).map(p => p.label) : []});
   }
   const position = new Map(state.order.map((key,i) => [key,i]));
-  return entries.sort((a,b) => (position.get(a.key) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.key) ?? Number.MAX_SAFE_INTEGER));
+  return entries.sort((a,b) => state.manuallyOrdered
+    ? (position.get(a.key) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.key) ?? Number.MAX_SAFE_INTEGER)
+    : compareAccessibility(a.question,b.question));
 }
 
 export const hasDraftIntent = (state: PaperDraft) => !!(state.codes.length || Object.keys(state.manual).length);

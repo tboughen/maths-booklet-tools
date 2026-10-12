@@ -348,3 +348,11 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
   .qb-paper-dialog { padding: 12px; }
   .qb-paper-dialog .qb-dialog-heading h2 { font-size: 20px; }
 }
+/* Pastel performance badges sit outside source images and student exports. */
+.qb-performance-group { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 4px 0; }
+.qb-performance { display: inline-block; padding: 3px 8px; border: 1px solid #24313a24; border-radius: 6px; color: #24313a; font-size: 12px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
+.qb-performance-estimated { background: #eceff2; }
+.qb-performance-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; min-height: 36px; }
+.qb-performance-toggle input { accent-color: #334e6c; }
+.qb-results .qb-performance-group { display: flex; }
+@media print { .qb-performance-group, .qb-performance-toggle { display: none; } }
