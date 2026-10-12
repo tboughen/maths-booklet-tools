@@ -31,6 +31,17 @@ function populatedDocument(): DiagramDocumentV1 {
 }
 
 describe("print SVG export", () => {
+  it("exports only integer axis labels with odd or even half-unit extents", () => {
+    for (const extent of [4, 5, 6]) {
+      const document = cloneDefaultDocument();
+      document.axes.x = { negativeSquares: extent, positiveSquares: 5, unitsPerSquare: 0.5 };
+      document.axes.y = { negativeSquares: 5, positiveSquares: extent, unitsPerSquare: 0.5 };
+      const labels = [...renderDiagramSvg(document).matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((match) => match[1]);
+      expect(labels).toContain("2");
+      expect(labels.filter((label) => /[0-9]/.test(label)).every((label) => /^−?\d+$/.test(label))).toBe(true);
+    }
+  });
+
   it("uses one centimetre of physical width for every grid square", () => {
     const metrics = getExportMetrics(cloneDefaultDocument());
     expect(metrics.layout.square).toBe(100);

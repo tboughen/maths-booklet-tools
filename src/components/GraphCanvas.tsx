@@ -13,7 +13,7 @@ import {
   snapCoordinate,
   squaredDistance,
   svgToCoordinate,
-  tickLabelEvery,
+  shouldLabelAxisSquare,
   updateObject,
   visibleStraightPoints,
 } from "../domain/diagram";
@@ -321,7 +321,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
   const xLabels = [];
   const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
   for (let index = 0; index <= horizontalSquares; index += 1) {
-    if (index % tickLabelEvery(document.axes.x.unitsPerSquare) !== 0) continue;
+    if (!shouldLabelAxisSquare(index - document.axes.x.negativeSquares, document.axes.x.unitsPerSquare)) continue;
     const value = (index - document.axes.x.negativeSquares) * document.axes.x.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
     xLabels.push(
@@ -336,7 +336,7 @@ export function GraphCanvas({ document, tool, onCommit, onSelect, onAxisAdjust }
   const yLabels = [];
   const yNumberX = origin.x - EDITOR_UNITS_PER_CENTIMETRE * Y_AXIS_LABEL_GAP_CENTIMETRES;
   for (let index = 0; index <= verticalSquares; index += 1) {
-    if (index % tickLabelEvery(document.axes.y.unitsPerSquare) !== 0) continue;
+    if (!shouldLabelAxisSquare(document.axes.y.positiveSquares - index, document.axes.y.unitsPerSquare)) continue;
     const value = (document.axes.y.positiveSquares - index) * document.axes.y.unitsPerSquare;
     if (Math.abs(value) < 1e-9) continue;
     yLabels.push(
