@@ -11,6 +11,8 @@ import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
 import { PaperReviewDialog } from "./PaperReviewDialog";
 import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode, questionIdentity, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankRoute, type RoomLayout, type ViewRole } from "./model";
+import { withPerformance } from "./performance";
+import { PerformanceBadge } from "./PerformanceBadge";
 import "./question-bank.css";
 
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
@@ -31,6 +33,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [overlay,setOverlay]=useState<Overlay>(overlayPreference);
   useEffect(()=>{try{localStorage.setItem("qb-overlay",overlay);}catch{/* Optional device preference. */}},[overlay]);
   const [display,setDisplay]=useState(false);
+  const [showPerformance,setShowPerformance]=useState(false);
   const [listOpen,setListOpen]=useState(false);
   const [draft,dispatchDraft]=useReducer(draftReducer,undefined,()=>emptyDraft());
   const draftRef=useRef(draft);draftRef.current=draft;
@@ -50,7 +53,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
-    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=verifyCatalogue(data);setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
+    fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=withPerformance(verifyCatalogue(data));setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
   useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
@@ -146,6 +149,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           <div><h1 tabIndex={-1}>{topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{topic?`${topic.bankCount} matched in full bank · ${topic.availableCount??topic.pilotCount} ${catalogue?.publication?"available":"in this pilot"}`:catalogue?.publication?.description||(catalogue?`${catalogue.questions.length} reviewed questions`:"")}</span></div>
         </div>
         <div className="qb-toolbar-actions">
+          <label className="qb-performance-toggle"><input type="checkbox" checked={showPerformance} onChange={e=>setShowPerformance(e.target.checked)}/> Show average marks achieved</label>
           <button className="qb-button" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}><List size={18}/>{countText}</button>
           <details className="qb-filters"><summary><SlidersHorizontal size={16}/> Filters{route.tier!=="all"||route.calculator!=="all"||route.collection!=="all"?" · active":""}</summary><div><label>Tier <select value={route.tier} onChange={e=>go({...route,tier:e.target.value as BankRoute["tier"],question:"",view:0})}><option value="all">Both tiers</option><option value="F">Foundation</option><option value="H">Higher</option></select></label><label>Calculator <select value={route.calculator} onChange={e=>go({...route,calculator:e.target.value as BankRoute["calculator"],question:"",view:0})}><option value="all">Either</option><option value="yes">Calculator</option><option value="no">Non-calculator</option></select></label><label>Collection <select value={route.collection} onChange={e=>go({...route,collection:e.target.value as BankRoute["collection"],question:"",view:0})}><option value="all">All sources</option><option value="past">Past papers</option><option value="mock">Mock papers</option></select></label><button className="qb-text-button" onClick={()=>go({...route,tier:"all",calculator:"all",collection:"all",question:"",view:0})}>Clear filters</button></div></details>
           <button className="qb-button" disabled={hasDraftIntent(draft)?!entries.length:!results.length} onClick={startExport}><FileDown size={18}/>{hasDraftIntent(draft)?`Review paper (${entries.length})`:"Export matching questions"}</button>
@@ -155,10 +159,11 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       </>}
       {notice&&<div className="qb-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={()=>setNotice("")}><X size={16}/></button></div>}
       <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<h1 tabIndex={-1}>Build a paper by topic</h1>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
-        {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${question?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span><small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
+        {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${question?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={route.tier}/>}<small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
         <section className="qb-question-card" aria-label="Question viewer">
           <div className="qb-source">
             <div className="qb-source-copy"><div className="qb-source-heading"><strong>{question?.source||"Topic results"}</strong>{question&&<span>{question.tier==="H"?"Higher":"Foundation"} · {question.calculator?"Calculator":"Non-calculator"} · {question.marks} mark{question.marks===1?"":"s"}</span>}</div>
+              {question&&showPerformance&&<PerformanceBadge question={question} catalogue={catalogue} tier={route.tier}/>}
               {question&&<div className="qb-view-info"><span>{role==="scheme"?"Mark scheme":view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}</div>}
               {question?.sourceErrata?.map((erratum,i)=><p className="qb-erratum" key={i}>{erratum.note}</p>)}
               {role==="scheme"&&question?.schemeSourceNote&&<p className="qb-erratum">{question.schemeSourceNote}</p>}
@@ -189,7 +194,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
       {!display&&(topicsMode||hasDraftIntent(draft))&&<PaperSummary draft={draft} entries={entries} onUntick={code=>dispatchDraft({type:"code",code,checked:false})} onClear={()=>dispatchDraft({type:"clear"})} onReview={()=>setReviewOpen(true)}/>}
     </main>
     {display&&<button className="qb-exit-display qb-button" onClick={leaveDisplay}><X size={18}/> Exit Display <kbd>Esc</kbd></button>}
-    <PaperReviewDialog open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} excluded={draft.excluded.length} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>
+    <PaperReviewDialog open={reviewOpen} active={active} entries={entries} version={catalogue?.version||""} showPerformance={showPerformance} onShowPerformance={setShowPerformance} catalogue={catalogue} tier={route.tier} excluded={draft.excluded.length} onClose={()=>setReviewOpen(false)} onRemove={key=>dispatchDraft({type:"exclude",key})} onMove={(key,direction)=>dispatchDraft({type:"move",key,direction,visible:entries.map(e=>e.key)})} onRestore={()=>dispatchDraft({type:"restore"})}/>
 
   </div>;
 }
