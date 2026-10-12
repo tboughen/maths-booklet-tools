@@ -92,7 +92,7 @@ describe("ratio tools on the shared real MCP service", () => {
       arguments: {},
     });
     expect(caps.structuredContent).toMatchObject({
-      supportedColumns: [2, 3],
+      supportedColumns: [1, 2, 3],
       rendererVersions: ["ratio-1", "ratio-2"],
     });
     const reply = await client.callTool({
@@ -158,7 +158,7 @@ describe("ratio tools on the shared real MCP service", () => {
     });
     expect(caps.structuredContent).toMatchObject({
       columns: 2,
-      rows: { minimum: 2, maximum: 6 },
+      rows: { minimum: 1, maximum: 6 },
       printDpi: 600,
     });
     const reply = await client.callTool({

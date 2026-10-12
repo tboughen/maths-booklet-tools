@@ -12,6 +12,7 @@ import type {
 } from "../../packages/ratio-table-core/src/interchange";
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
+import { headingText, headingFromText } from "./headingText";
 
 export type RatioSelection =
   | { kind: "cell"; rowId: string; column: number }
@@ -171,14 +172,14 @@ export function RatioCanvas({
                 )}
               >
                 <HeadingInput
-                  value={heading.text}
+                  value={headingText(heading)}
                   label={`Edit column ${column + 1} heading`}
                   inputKey={`inline-heading-${column}`}
                   onPending={onPending}
                   onFocus={() => onSelect({ kind: "heading", column })}
                   onCommit={(text) => {
                     const headings = structuredClone(document.headings);
-                    headings[column] = { ...headings[column], text };
+                    headings[column] = headingFromText(headings[column], text);
                     onOperations([{ op: "set_headings", headings }]);
                   }}
                 />

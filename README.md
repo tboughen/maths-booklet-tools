@@ -25,10 +25,12 @@ workbooks or pupil data. Questions and graphs are processed in the browser.
 
 ## Ratio tables
 
-The new Ratio tables page at `?tool=ratio-table` creates lesson-style two- or three-column
+The new Ratio tables page at `?tool=ratio-table` creates lesson-style one- to three-column
 diagrams with directly editable headings and cells, empty cells or answer lines,
 exact fractions and optional scaling arrows. Add rows below the table and a third
 column at its right edge; matching toolbar actions stay available on small screens.
+Remove rows and columns with visible toolbar controls. Default heading arrows
+are editable Unicode characters. Clicking away clears selection highlights.
 Click an arrow to edit its operation and factor. Three-column tables show a
 scaling arrow beside every column. Existing two-column saved tables remain compatible. Copy for Word or download SVG, verified 600 ppi PNG and
 editable JSON; open/share safely and undo changes. Pupil blanks remain blank
