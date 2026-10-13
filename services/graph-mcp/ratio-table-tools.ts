@@ -61,9 +61,17 @@ export const ratioOutputSchema = z
   .strict();
 const ratioCapabilitiesSchema = z
   .object({
-    rendererVersion: z.literal(RATIO_RENDERER_VERSION),
+    rendererVersion: z
+      .literal(RATIO_RENDERER_VERSION)
+      .describe(
+        "Legacy default renderer, not the only supported renderer. See rendererVersions; each returned envelope identifies its actual renderer.",
+      ),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
-    columns: z.literal(2),
+    columns: z
+      .literal(2)
+      .describe(
+        "Legacy default column count, not a limit. See supportedColumns for all supported counts.",
+      ),
     supportedColumns: z.array(
       z.union([z.literal(1), z.literal(2), z.literal(3)]),
     ),
@@ -241,7 +249,7 @@ export function ratioTools(
       "ratio_table_capabilities",
       {
         description:
-          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style one-, two- or three-column diagrams. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
+          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style one-, two- or three-column diagrams. columns: 2 and rendererVersion: ratio-1 are legacy defaults, not limits; supportedColumns and rendererVersions list full support. Returned envelopes normalize to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Adding/removing rows or columns can change the returned version; always reuse the returned envelope and contentHash. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
         inputSchema: z.object({}).strict(),
         outputSchema: ratioCapabilitiesSchema,
         annotations,
@@ -285,7 +293,7 @@ export function ratioTools(
         content: [
           {
             type: "text",
-            text: "Use number cells with string values (e.g. 2/3), empty cells or answer-line cells. Default headings x → and y ↑. Preserve pupil blanks; fill_next_row solves only when explicitly requested. Long values/headings must fit at the fixed lesson font size. SVG, verified 600 ppi PNG and editable JSON are available. Word exports are images.",
+            text: "Use number cells with string values (e.g. 2/3), empty cells or answer-line cells. Default headings x → and y ↑. columns: 2 and rendererVersion: ratio-1 are legacy defaults; supportedColumns [1,2,3] and rendererVersions [ratio-1,ratio-2] describe full support. Returned envelopes use schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2, including after revisions. Preserve pupil blanks; fill_next_row solves only when explicitly requested. Long values/headings must fit at the fixed lesson font size. SVG, verified 600 ppi PNG and editable JSON are available. Word exports are images.",
           },
         ],
       }),
@@ -314,7 +322,7 @@ export function ratioTools(
       "revise_ratio_table",
       {
         description:
-          "Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Use stable row IDs. add_column appends an explicit heading and empty cells; remove_column uses a zero-based column index. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and all source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Preserve unchanged values/settings and show the returned image and links.",
+          'Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Each operation is an object with op and these fields: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor}}; remove_transition {from}; set_headings {headings}; set_size {size}; set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. Do not put transition fields at the operation top level. Numeric values/factors are strings; column indexes are zero-based; after is a row ID or null. Heading direction is right/up/none and italic is boolean. add_column appends the heading and empty cells. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and all source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Row/column changes normalize the result to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Preserve unchanged values/settings, reuse the returned envelope/hash and show the returned image and links.',
         inputSchema: ratioRevisionSchema,
         outputSchema: ratioOutputSchema,
         annotations,
