@@ -52,9 +52,11 @@ Revisions
 Send the exact returned envelope and its contentHash as baseHash with operations.
 Up to 20 operations, applied atomically to a private copy; invalid changes refuse.
 Operations:
-  set_cell: rowId, column 0 or 1, cell
-  add_row: after (row ID or null for the beginning), row (unique ID and two cells)
+  set_cell: rowId, zero-based existing column, cell
+  add_row: after (row ID or null for the beginning), row (unique ID and one cell per column)
   remove_row: rowId
+  add_column: heading (text, italic, direction); appends empty cells
+  remove_column: zero-based column index; at least one column must remain
   set_transition: transition (from, to, operation, factor)
   remove_transition: from
   set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
@@ -75,22 +77,23 @@ graph downloads retain /download and their exact older token format. The same
 existing private signing key/key ID is used. Do not rotate or expose it for this
 feature. Tokens are strict and refuse malformed, tampered, expired or cross-type
 reuse. Limits remain global 64 KiB bodies, ratio 16 KiB creation/revision bodies,
-8 KiB canonical envelopes, two-to-six rows, bounded values and at most 20 ops.
+8 KiB canonical envelopes, one-to-six rows, one-to-three columns, bounded values
+and at most 20 ops. At least one row and one column must remain. Legacy v1
+requires exactly two columns and at least two rows; extended shapes use v2.
 Graphs and ratios share the serial native renderer, waiting queue, cancellation,
 15-second render timeout, 32-megapixel/10 MiB file limits, 120 requests globally
 and 40 per client per minute, and the configured daily 200 MiB output allowance.
 Log only request IDs/status/time/byte counts; no document bodies or signed URLs.
 
 Candidate release and acceptance
-This ratio branch depends on the graph integration candidate from PR 1. Current
-main's reviewed question bank is reconciled in the isolated ratio branch without
-altering those asset bytes. Review the separate ratio PR; do not merge the other
-task simply to advance ratio status. Once the graph dependency is merged, retarget
-the ratio PR to fresh main and requalify any changed final candidate.
+Reconcile the release with current main and requalify the exact final commit,
+including the shared Graph renderer. The existing PR includes the ratio editor
+and the compatible MCP extension; source push, merge and deployment are distinct.
 
-The GitHub Pages website and the existing Render Free service are separate
+The Cloudflare mathsdock.co.uk website, GitHub Pages fallback and Render service are separate
 deployments. Keep https://maths-booklet-graph-mcp.onrender.com/mcp, its signing key,
-editor base URL, Free plan and no-autodeploy setting. Do not create another service.
+Free plan and no-autodeploy setting. Use https://mathsdock.co.uk/ as the editor base
+for Graph and ratio links. Do not create another service.
 After the normal review/release process, deploy the exact qualified service SHA
 using the existing Render dashboard. If the dashboard is not available to the
 agent, Tim performs that action. Never report a code push as a deployment.
@@ -104,14 +107,17 @@ Linux qualification (existing CI workflow includes this smoke):
     maths-graph-candidate
   node service-dist/smoke.js http://127.0.0.1:8787
   docker rm -f maths-graph-test
-The smoke verifies all six exact tool names, actual graph and ratio creation,
-600 ppi downloads, outlined SVG/JSON round trips and an explicit 2/3 fill revision.
+The smoke verifies all six exact tool names and importable array schemas, graph
+and v1/v2 ratio creation, 600 ppi downloads, outlined SVG/JSON round trips, explicit
+2/3 filling, shared-factor editing without filling blanks, column addition/removal,
+exact restoration of v1, one-row/one-column drafts and maximum 6x3 printing.
 Use a unique test container name when another qualification is running. Never
 use the production key for smoke. Local Windows tests do not replace Linux CI.
 
 After deployment:
-1. Verify successful Pages workflow and actually serve ?tool=ratio-table, its
-   bundled fonts under /maths-booklet-tools/, and both other tool routes.
+1. Verify the production mathsdock.co.uk editor opens returned v1/v2 links and
+   retains headings, cells and shared scaling steps. Do not redeploy Cloudflare
+   merely to release the separate MCP service.
 2. Check /healthz against the qualified Linux buildId, then actual HTTPS SDK
    discovery/create/revise and all downloadable files, including graph regression.
 3. Confirm the six tools appear in the existing ChatGPT connection. In a real

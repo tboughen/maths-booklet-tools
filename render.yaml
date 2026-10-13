@@ -16,6 +16,6 @@ services:
       - key: DOWNLOAD_KEY_ID
         value: initial
       - key: GRAPH_EDITOR_URL
-        value: https://tboughen.github.io/maths-booklet-tools/
+        value: https://mathsdock.co.uk/
       - key: MAX_DAILY_OUTPUT_BYTES
         value: "209715200"

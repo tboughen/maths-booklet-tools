@@ -27,6 +27,31 @@ try {
   const tools = await client.listTools();
   const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table"];
   if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected the graph and ratio-table tool trios.");
+  // ChatGPT imports every advertised array schema, including nested unions.
+  function checkArrays(value: unknown): void {
+    if (!value || typeof value !== "object") return;
+    const schema = value as Record<string, unknown>;
+    if (schema.type === "array" && !schema.items)
+      throw Error("An advertised array schema has no items.");
+    for (const child of Object.values(schema)) {
+      if (Array.isArray(child)) child.forEach(checkArrays);
+      else checkArrays(child);
+    }
+  }
+  tools.tools.forEach(tool => {
+    checkArrays(tool.inputSchema);
+    checkArrays(tool.outputSchema);
+  });
+  const capabilities = await client.callTool({ name: "ratio_table_capabilities", arguments: {} });
+  const caps = capabilities.structuredContent as {
+    supportedColumns: number[]; rendererVersions: string[];
+    rows: { minimum: number; maximum: number }; revisionOperations: string[];
+  };
+  if (capabilities.isError || JSON.stringify(caps.supportedColumns) !== "[1,2,3]" ||
+      JSON.stringify(caps.rendererVersions) !== '["ratio-1","ratio-2"]' ||
+      caps.rows.minimum !== 1 || caps.rows.maximum !== 6 ||
+      !caps.revisionOperations.includes("add_column") || !caps.revisionOperations.includes("remove_column"))
+    throw Error("Extended ratio capabilities were not advertised.");
   const reply = await client.callTool({
     name: "create_graph",
     arguments: {
@@ -156,6 +181,63 @@ try {
   if (ratioRevision.isError) throw Error("Ratio revision failed.");
   const target = (ratioRevision.structuredContent as typeof table).envelope.document.rows[1].cells[1];
   if (target.kind !== "number" || target.value !== "2/3") throw Error("The explicit ratio fill is not exact.");
+  async function reviseTable(source: typeof table, operations: unknown[]) {
+    const reply = await client.callTool({ name: "revise_ratio_table", arguments: {
+      envelope: source.envelope, baseHash: source.contentHash, operations,
+    } });
+    if (reply.isError) throw Error("Extended ratio revision failed.");
+    return reply.structuredContent as typeof table;
+  }
+  const extended = await reviseTable(table, [{ op: "add_column", heading: { text: "z", italic: true, direction: "none" } }]);
+  if (extended.envelope.schemaVersion !== 2 || extended.envelope.rendererVersion !== "ratio-2" ||
+      extended.envelope.document.rows.some(row => row.cells[2].kind !== "empty"))
+    throw Error("Column addition did not preserve a blank third column.");
+  const factorEdit = await reviseTable(extended, [{ op: "set_transition", transition: {
+    from: "start", to: "target", operation: "multiply", factor: "2/3",
+  } }]);
+  if (JSON.stringify(factorEdit.envelope.document.rows) !== JSON.stringify(extended.envelope.document.rows) ||
+      factorEdit.envelope.document.transitions.length !== 1 || factorEdit.envelope.document.transitions[0].factor !== "2/3")
+    throw Error("Editing the shared factor altered table values.");
+  for (const format of ["png", "svg", "json"]) {
+    const response = await fetch(factorEdit.downloads[format].url);
+    if (!response.ok) throw Error("Extended ratio download failed.");
+    if (format === "png") verifyPrintBytes(new Uint8Array(await response.arrayBuffer()), factorEdit.printRaster.width, factorEdit.printRaster.height);
+    if (format === "svg") {
+      const svg = await response.text();
+      if (svg.includes("<text") || (svg.match(/class="ratio-scaling-arrow"/g) ?? []).length !== 3 ||
+          (svg.match(/class="ratio-operation"/g) ?? []).length !== 3)
+        throw Error("Three-column arrows or outlined SVG were lost.");
+    }
+    if (format === "json" && await ratioHash(await response.json() as RatioEnvelope) !== factorEdit.contentHash)
+      throw Error("Extended ratio JSON changed.");
+  }
+  const restored = await reviseTable(extended, [{ op: "remove_column", column: 2 }]);
+  if (restored.contentHash !== table.contentHash || JSON.stringify(restored.envelope) !== JSON.stringify(table.envelope))
+    throw Error("Removing the added column did not restore the exact legacy table.");
+  const single = await reviseTable(extended, [
+    { op: "remove_row", rowId: "target" }, { op: "remove_column", column: 2 }, { op: "remove_column", column: 1 },
+  ]);
+  if (single.envelope.document.rows.length !== 1 || single.envelope.document.headings.length !== 1 ||
+      single.envelope.schemaVersion !== 2 || single.envelope.document.transitions.length !== 0)
+    throw Error("Single-cell tables or transition cleanup failed.");
+  for (const operation of [{ op: "remove_row", rowId: "start" }, { op: "remove_column", column: 0 }]) {
+    const refused = await client.callTool({ name: "revise_ratio_table", arguments: {
+      envelope: single.envelope, baseHash: single.contentHash, operations: [operation],
+    } });
+    if (!refused.isError) throw Error("Removing the final row/column should be refused.");
+  }
+  const maximumRatio = await client.callTool({ name: "create_ratio_table", arguments: {
+    schemaVersion: 2, mode: "annotated", size: "large",
+    rows: Array.from({ length: 6 }, (_, index) => ({ id: `r${index}`, cells: [
+      { kind: "number", value: String(index + 1) }, { kind: "empty" }, { kind: "answer-line" },
+    ] })),
+    transitions: Array.from({ length: 5 }, (_, index) => ({ from: `r${index}`, to: `r${index + 1}`, operation: "multiply", factor: "2" })),
+  } });
+  if (maximumRatio.isError) throw Error("Maximum six-row/three-column render failed.");
+  const maxRatio = maximumRatio.structuredContent as typeof table;
+  const maxRatioPng = await fetch(maxRatio.downloads.png.url);
+  if (!maxRatioPng.ok) throw Error("Maximum ratio PNG failed.");
+  verifyPrintBytes(new Uint8Array(await maxRatioPng.arrayBuffer()), maxRatio.printRaster.width, maxRatio.printRaster.height);
   const health = (await (await fetch(new URL("/healthz", base))).json()) as {
     buildId: string;
   };
@@ -164,6 +246,7 @@ try {
       ok: true,
       tools: tools.tools.map((t) => t.name),
       printVerified: true,
+      extendedRatiosVerified: true,
       buildId: health.buildId,
     }) + "\n",
   );
