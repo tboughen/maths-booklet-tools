@@ -1,12 +1,14 @@
 # Adding a booklet tool
 
+Before implementing an editor, read [Creating MathsDock tools](TOOL-CREATION-GUIDE.md) and complete the [new tool brief](TOOL-BRIEF-TEMPLATE.md). Those documents cover the teaching purpose, direct editing, control placement, recovery, print output and compatibility lessons from [Graph tool and Ratio tables](TOOL-EVOLUTION.md). This page covers integration with the shared site.
+
 The website has two main sections: **Question bank** and **Booklet tools**. Graph tool and Ratio tables belong to Booklet tools. `src/site/SiteApp.tsx` owns the common header, query-based navigation and page lifetime; an editor owns its controls, working document and exports.
 
 ## Register the editor
 
 Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon and React component. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
 
-Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. The bare URL continues to open Graph tool for existing users. Question bank remains a separate section.
+Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. Link explicitly to `?tool=graph` or `?tool=ratio-table` when targeting those editors, rather than depending on the bare URL's default page. Question bank remains a separate section.
 
 ## Use the shared layout
 
