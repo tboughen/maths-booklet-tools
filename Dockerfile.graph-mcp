@@ -5,6 +5,7 @@ RUN npm ci
 COPY tsconfig.service.json ./
 COPY packages/graph-core packages/graph-core
 COPY packages/ratio-table-core packages/ratio-table-core
+COPY packages/value-graph-core packages/value-graph-core
 COPY services/graph-mcp services/graph-mcp
 COPY assets/graph-fonts assets/graph-fonts
 RUN npm run build:service
