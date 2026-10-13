@@ -23,6 +23,7 @@ export default defineConfig(({ command, mode }) => ({
         }
       };
       add("favicon.svg");
+      tree("brand");
       if (mode === "cloudflare") {
         const commit = execFileSync("git", ["rev-parse", "HEAD"], {encoding: "utf8"}).trim();
         const release = prepareRelease("public", commit, sourceFingerprint("."));

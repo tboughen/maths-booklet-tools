@@ -2,6 +2,7 @@ import { z } from "zod";
 import { canonicalNumber, RatioError } from "./numbers";
 
 export const RATIO_RENDERER_VERSION = "ratio-1";
+export const RATIO_THREE_COLUMN_RENDERER_VERSION = "ratio-2";
 export const RATIO_STYLE_PROFILE = "ratio-lesson-v1";
 export const RATIO_MAX_FILE_BYTES = 64 * 1024;
 export const RATIO_MAX_ENVELOPE_BYTES = 8 * 1024;
@@ -20,7 +21,7 @@ export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("answer-line") }).strict(),
 ]);
 export type RatioCell = z.infer<typeof cellSchema>;
-export const cellsSchema = z.tuple([cellSchema, cellSchema]);
+export const cellsSchema = z.array(cellSchema).min(1).max(3);
 export const headingSchema = z
   .object({
     text: z
@@ -32,7 +33,7 @@ export const headingSchema = z
     direction: z.enum(["right", "up", "none"]),
   })
   .strict();
-export const headingsSchema = z.tuple([headingSchema, headingSchema]);
+export const headingsSchema = z.array(headingSchema).min(1).max(3);
 export const rowSchema = z.object({ id, cells: cellsSchema }).strict();
 export const transitionSchema = z
   .object({
@@ -45,7 +46,7 @@ export const transitionSchema = z
 export const documentSchema = z
   .object({
     headings: headingsSchema,
-    rows: z.array(rowSchema).min(2).max(6),
+    rows: z.array(rowSchema).min(1).max(6),
     transitions: z.array(transitionSchema).max(5),
     size: z.enum(["compact", "standard", "large"]),
     mode: z.enum(["simple", "annotated"]),
@@ -58,8 +59,11 @@ export type RatioTransition = z.infer<typeof transitionSchema>;
 export const ratioEnvelopeSchema = z
   .object({
     kind: z.literal("ratio-table"),
-    schemaVersion: z.literal(1),
-    rendererVersion: z.literal(RATIO_RENDERER_VERSION),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    rendererVersion: z.enum([
+      RATIO_RENDERER_VERSION,
+      RATIO_THREE_COLUMN_RENDERER_VERSION,
+    ]),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
     document: documentSchema,
   })
@@ -71,10 +75,10 @@ export const DEFAULT_HEADINGS: RatioDocument["headings"] = [
 ];
 export const ratioSpecSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
     rows: z
       .array(z.object({ id: id.optional(), cells: cellsSchema }).strict())
-      .min(2)
+      .min(1)
       .max(6),
     headings: headingsSchema.optional(),
     transitions: z.array(transitionSchema).max(5).optional(),
@@ -97,6 +101,13 @@ export function readSchema<T>(schema: z.ZodType<T>, input: unknown): T {
 }
 export function normalizeDocument(input: unknown): RatioDocument {
   const document = readSchema(documentSchema, input);
+  if (
+    document.rows.some((row) => row.cells.length !== document.headings.length)
+  )
+    throw new RatioError(
+      "invalid_ratio_table",
+      "Every row must have one cell for each heading.",
+    );
   const ids = document.rows.map((r) => r.id);
   if (new Set(ids).size !== ids.length)
     throw new RatioError("invalid_ratio_table", "Row IDs must be unique.");

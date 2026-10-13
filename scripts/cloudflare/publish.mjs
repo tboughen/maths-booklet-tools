@@ -73,9 +73,13 @@ async function verifyAssets(manifest) {
   // Always send Origin: otherwise R2 intentionally omits the CORS headers.
   let complete = 0;
   await concurrent(manifest.assets, async asset => {
-    const response = await fetch(`${manifest.assetOrigin}/${asset.key}`, {
-      method: full ? "GET" : "HEAD", headers: {Origin: origin}, signal: AbortSignal.timeout(60000),
-    });
+    // Retry isolated connection resets in a large inventory. Header/content
+    // mismatches remain outside the retry and still stop publication.
+    const response = await retryVerification(remaining => fetch(`${manifest.assetOrigin}/${asset.key}`, {
+      method: full ? "GET" : "HEAD", headers: {Origin: origin},
+      signal: AbortSignal.timeout(Math.min(full ? 60000 : 15000, remaining())),
+    }), {timeoutMs: 60000, intervalMs: 1000,
+      onRetry: () => console.log("Retrying an interrupted public asset request...")});
     assertPublicHeaders(response, asset, origin);
     if (full && sha256(Buffer.from(await response.arrayBuffer())) !== asset.sha256) throw new Error(`Public bytes differ: ${asset.key}`);
     if (++complete % 500 === 0) console.log(`Public ${complete}/${manifest.assets.length}`);

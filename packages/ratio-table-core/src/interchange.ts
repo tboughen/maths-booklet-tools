@@ -11,6 +11,7 @@ import {
   readSchema,
   normalizeDocument,
   RATIO_RENDERER_VERSION,
+  RATIO_THREE_COLUMN_RENDERER_VERSION,
   RATIO_STYLE_PROFILE,
   RATIO_MAX_ENVELOPE_BYTES,
   RATIO_MAX_FILE_BYTES,
@@ -39,10 +40,13 @@ function bounded(value: unknown, maximum: number, name: string) {
 export function ratioEnvelope(input: unknown): RatioEnvelope {
   const document = normalizeDocument(input);
   ratioMetrics(document);
+  const legacy = document.headings.length === 2 && document.rows.length >= 2;
   const envelope: RatioEnvelope = {
     kind: "ratio-table",
-    schemaVersion: 1,
-    rendererVersion: RATIO_RENDERER_VERSION,
+    schemaVersion: legacy ? 1 : 2,
+    rendererVersion: legacy
+      ? RATIO_RENDERER_VERSION
+      : RATIO_THREE_COLUMN_RENDERER_VERSION,
     styleProfile: RATIO_STYLE_PROFILE,
     document,
   };
@@ -61,14 +65,48 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
       "wrong_tool",
       "This file is not a ratio table. Open graph files in the Graph builder.",
     );
-  return ratioEnvelope(readSchema(ratioEnvelopeSchema, input).document);
+  const envelope = readSchema(ratioEnvelopeSchema, input);
+  const version =
+    envelope.document.headings.length === 2 &&
+    envelope.document.rows.length >= 2
+      ? 1
+      : 2;
+  if (
+    envelope.schemaVersion !== version ||
+    envelope.rendererVersion !==
+      (version === 1
+        ? RATIO_RENDERER_VERSION
+        : RATIO_THREE_COLUMN_RENDERER_VERSION)
+  )
+    throw new RatioError(
+      "invalid_ratio_table",
+      "The saved format must match the row and column counts.",
+    );
+  return ratioEnvelope(envelope.document);
 }
 export function createRatioTable(input: unknown): RatioEnvelope {
   bounded(input, RATIO_MAX_REQUEST_BYTES, "The ratio request");
   const spec = readSchema(ratioSpecSchema, input),
     used = new Set(spec.rows.flatMap((r) => (r.id ? [r.id] : [])));
+  if (
+    spec.schemaVersion === 1 &&
+    (spec.rows[0].cells.length !== 2 || spec.rows.length < 2)
+  )
+    throw new RatioError(
+      "invalid_ratio_table",
+      "Use schemaVersion 2 for one row, one column or three columns.",
+    );
   return ratioEnvelope({
-    headings: spec.headings ?? structuredClone(DEFAULT_HEADINGS),
+    headings:
+      spec.headings ??
+      (spec.rows[0].cells.length === 1
+        ? structuredClone(DEFAULT_HEADINGS).slice(0, 1)
+        : spec.rows[0].cells.length === 3
+          ? [
+              ...structuredClone(DEFAULT_HEADINGS),
+              { text: "z", italic: true, direction: "none" },
+            ]
+          : structuredClone(DEFAULT_HEADINGS)),
     rows: spec.rows.map((row) => {
       if (row.id) return row;
       let index = 1;
@@ -100,10 +138,19 @@ const id = z
   .regex(/^[A-Za-z0-9_-]+$/);
 export const ratioOperationSchema = z.discriminatedUnion("op", [
   z
+    .object({ op: z.literal("add_column"), heading: headingsSchema.element })
+    .strict(),
+  z
+    .object({
+      op: z.literal("remove_column"),
+      column: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+    })
+    .strict(),
+  z
     .object({
       op: z.literal("set_cell"),
       rowId: id,
-      column: z.union([z.literal(0), z.literal(1)]),
+      column: z.union([z.literal(0), z.literal(1), z.literal(2)]),
       cell: cellSchema,
     })
     .strict(),
@@ -161,7 +208,25 @@ export function applyRatioOperations(
       return row;
     };
     switch (op.op) {
+      case "add_column":
+        document.headings.push(op.heading);
+        document.rows.forEach((row) => row.cells.push({ kind: "empty" }));
+        break;
+      case "remove_column":
+        if (op.column >= document.headings.length)
+          throw new RatioError(
+            "invalid_ratio_table",
+            "Choose an existing column.",
+          );
+        document.headings.splice(op.column, 1);
+        document.rows.forEach((row) => row.cells.splice(op.column, 1));
+        break;
       case "set_cell":
+        if (op.column >= document.headings.length)
+          throw new RatioError(
+            "invalid_ratio_table",
+            "Choose an existing column.",
+          );
         requireRow(op.rowId).cells[op.column] = op.cell;
         break;
       case "add_row": {
@@ -229,7 +294,7 @@ export function applyRatioOperations(
         if (source.cells.some((c) => c.kind !== "number"))
           throw new RatioError(
             "incomplete_row",
-            "Enter both source values before filling the next row.",
+            "Enter all source values before filling the next row.",
           );
         if (!op.overwrite && target.cells.some((c) => c.kind === "number"))
           throw new RatioError(
@@ -308,6 +373,46 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
           `${step.from} to ${step.to}: the operation disagrees with column ${column + 1}. Values have been kept.`,
         );
     });
+  }
+  if (document.headings.length !== 2) {
+    const complete = document.rows
+      .filter((row) => row.cells.every((cell) => cell.kind === "number"))
+      .map((row) => ({
+        id: row.id,
+        values: row.cells.map((cell) =>
+          parseNumber(cell.kind === "number" ? cell.value : "0"),
+        ),
+      }));
+    const reference = complete.find((row) =>
+      row.values.some((value) => value.n !== 0n),
+    );
+    if (reference) {
+      const pivot = reference.values.findIndex((value) => value.n !== 0n);
+      for (const row of complete) {
+        if (
+          row.values.some(
+            (value, column) =>
+              !sameNumber(
+                {
+                  n: value.n * reference.values[pivot].n,
+                  d: value.d * reference.values[pivot].d,
+                },
+                {
+                  n: row.values[pivot].n * reference.values[column].n,
+                  d: row.values[pivot].d * reference.values[column].d,
+                },
+              ),
+          )
+        )
+          warnings.push(
+            `${row.id} has a different ratio from ${reference.id}. Values have been kept.`,
+          );
+      }
+    } else if (complete.length)
+      warnings.push(
+        "All complete rows contain zeros; they do not determine a unique ratio.",
+      );
+    return warnings;
   }
   const pairs = document.rows.flatMap((row) =>
     row.cells.every((c) => c.kind === "number")

@@ -6,12 +6,14 @@ export function HeadingInput({
   inputKey,
   onCommit,
   onPending,
+  onFocus,
 }: {
   value: string;
   label: string;
   inputKey: string;
   onCommit: (value: string) => void;
   onPending: (key: string, value: boolean) => void;
+  onFocus?: () => void;
 }) {
   const [draft, setDraft] = useState(value),
     [error, setError] = useState("");
@@ -25,9 +27,9 @@ export function HeadingInput({
   function apply() {
     try {
       const next = draft.trim();
-      if (!/^[A-Za-z0-9 _-]{1,12}$/.test(next))
+      if (!/^[A-Za-z0-9 _-]{1,12}(?: ?[→↑])?$/.test(next))
         throw Error(
-          "Use a short heading with letters, digits, spaces, underscores or hyphens.",
+          "Use a short heading with letters, digits, spaces, underscores or hyphens, optionally ending in → or ↑.",
         );
       onCommit(next);
       setDraft(next);
@@ -49,7 +51,8 @@ export function HeadingInput({
         aria-label={label}
         aria-invalid={!!error}
         aria-describedby={error ? id : undefined}
-        maxLength={12}
+        maxLength={14}
+        onFocus={onFocus}
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);

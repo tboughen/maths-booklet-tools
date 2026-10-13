@@ -11,6 +11,18 @@ describe("graph builder", () => {
     vi.restoreAllMocks();
   });
 
+  it("shows integer axis labels when both axes use two squares per unit", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    for (const axis of ["x", "y"]) {
+      await user.click(within(screen.getByRole("group", { name: `${axis}-axis scale` })).getByRole("button", { name: /2 squares/ }));
+    }
+    const labels = [...container.querySelectorAll(".axis-number text")].map((label) => label.textContent);
+    expect(labels).toContain("−2");
+    expect(labels).toContain("2");
+    expect(labels.every((label) => /^−?\d+$/.test(label ?? ""))).toBe(true);
+  });
+
   it("adds and independently changes multiple equation-defined lines", async () => {
     const user = userEvent.setup();
     render(<App />);

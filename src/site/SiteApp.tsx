@@ -24,10 +24,12 @@ export default function SiteApp() {
     return () => { window.removeEventListener("popstate", back); window.removeEventListener("maths-tools:route", remember); };
   }, []);
   useEffect(() => {
-    document.title = `${pageName(page)} · Maths Tools`;
+    document.title = `${pageName(page)} · Maths Dock`;
     if (firstPage.current) { firstPage.current = false; return; }
     if (host.current?.querySelector(".site-page:not([hidden]) [aria-modal=true]")) return;
-    host.current?.querySelector<HTMLElement>(".site-page:not([hidden]) h1")?.focus({ preventScroll: true });
+    const visible = host.current?.querySelector(".site-page:not([hidden])");
+    const focusTarget = visible?.querySelector<HTMLElement>("h1") ?? visible?.querySelector<HTMLElement>("#main-content");
+    focusTarget?.focus({ preventScroll: true });
   }, [page]);
   function navigate(event: MouseEvent<HTMLDivElement>) {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;

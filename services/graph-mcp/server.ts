@@ -34,6 +34,8 @@ import { TrafficLimits } from "./limits";
 import { graphOutputSchema, capabilitiesOutputSchema } from "./output-schema";
 import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
+import { ValueDownloads } from "./value-downloads";
+import { valueGraphTools } from "./value-graph-tools";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
 
 export interface ServiceOptions {
@@ -95,6 +97,8 @@ export function graphService(options: ServiceOptions) {
   const limits = new TrafficLimits(options.dailyBytes);
   const ratioDownloads = new RatioDownloads(base.href, options.keys, options.activeKey);
   const ratios = ratioTools(raster, ratioDownloads, limits, options.editorUrl);
+  const valueDownloads = new ValueDownloads(base.href, options.keys, options.activeKey);
+  const values = valueGraphTools(raster, valueDownloads, limits, options.editorUrl);
   const artifacts = async (
     envelope: GraphEnvelope,
     format: DownloadFormat,
@@ -336,6 +340,7 @@ export function graphService(options: ServiceOptions) {
       },
     );
     ratios.register(server, connectionSignal);
+    values.register(server, connectionSignal);
     return server;
   }
   return createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
@@ -376,11 +381,23 @@ export function graphService(options: ServiceOptions) {
           ok: true,
           rendererVersion: RENDERER_VERSION,
           ratioRendererVersion: RATIO_RENDERER_VERSION,
+          valueGraphRendererVersion: "value-graph-1",
           buildId: options.buildId ?? "development",
         });
         return;
       }
       limits.request(req.socket.remoteAddress ?? "unknown");
+      if (req.method === "GET" && url.pathname === "/value-graph/download") {
+        const { envelope, format } = valueDownloads.verify(url);
+        const abort = new AbortController();
+        res.once("close", () => { if (!res.writableFinished) abort.abort(); });
+        const file = await values.artifacts(envelope, format, abort.signal);
+        limits.output(file.body.length); bytes = file.body.length;
+        res.writeHead(200, { "Content-Type": file.type,
+          "Content-Disposition": `attachment; filename="mathsdock-values-and-graph.${format}"`,
+          "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox" });
+        res.end(file.body); return;
+      }
       if (req.method === "GET" && url.pathname === "/ratio-table/download") {
         const { envelope, format } = ratioDownloads.verify(url);
         const abort = new AbortController();

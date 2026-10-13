@@ -87,5 +87,6 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
   await page.getByRole("navigation", {name: "Booklet tools", exact: true}).getByRole("link", {name: "Ratio tables"}).click();
   await expect(page.getByRole("heading", {name: "Ratio tables", exact: true})).toBeVisible();
   await page.getByRole("button", {name: "Add row", exact: true}).click();
-  await expect(page.getByLabel("Row 3 x cell type", {exact: true})).toBeVisible();
+  await expect(page.getByLabel("Row 3 x value", {exact: true})).toBeFocused();
+  await expect(page.getByLabel("Row 3 x value", {exact: true})).toHaveValue("");
 });

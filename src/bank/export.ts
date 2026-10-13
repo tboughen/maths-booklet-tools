@@ -64,7 +64,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
   const marks = snapshots.reduce((n, q) => n + q.marks, 0);
   for (const [doc, name] of [[student, "Questions"], [scheme, "Mark schemes"]] as const) {
     doc.setTitle(`Maths question bank - ${name}`); doc.setSubject(`${snapshots.length} source questions, ${marks} mark${marks === 1 ? "" : "s"}. Catalogue ${version}.`);
-    doc.setCreator("Maths Tools question bank"); doc.setLanguage("en-GB");
+    doc.setCreator("Maths Dock question bank"); doc.setLanguage("en-GB");
     doc.catalog.getOrCreateViewerPreferences().setPrintScaling(PrintScaling.None);
   }
   let studentPage: PDFPage | undefined;

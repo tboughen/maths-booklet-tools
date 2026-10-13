@@ -1,0 +1,53 @@
+{
+  "success": true,
+  "site": "https://mathsdock.co.uk",
+  "deploymentVersion": "466530f0-489d-4383-a0bf-e89620d5d9f0",
+  "completedAt": "2026-10-11T15:11:06.784Z",
+  "sourceCommit": "0eb1476453ce87fdea29cfe97caf7b1ee25099cf",
+  "sourceFingerprint": "dea3c99c50f95549ad1ebdc111cec364aff837abced2395629999a0c3bc4392e",
+  "catalogueSha256": "e26836cfa532d3393fa4b27bf0c5b522f010b7f428191a3172f600b328d386df",
+  "sourceChangesCommitted": false,
+  "tests": {
+    "unitFiles": 25,
+    "unitTests": 139,
+    "publishingTests": 10,
+    "liveBrowserTests": 2,
+    "brandingViewports": 4,
+    "exactBrandingAndCatalogueFiles": 11
+  },
+  "r2": {
+    "objects": 9057,
+    "uploaded": 0,
+    "reused": 9057,
+    "publicVerification": "size, ETag, MIME type, caching and CORS"
+  },
+  "pdfs": [
+    {
+      "path": "cloudflare-release\\brand-production-exports\\browser-split-hosting-disp-b7608-nd-both-real-export-layouts\\compact-questions.pdf",
+      "creator": "Maths Dock question bank",
+      "pages": 3
+    },
+    {
+      "path": "cloudflare-release\\brand-production-exports\\browser-split-hosting-disp-b7608-nd-both-real-export-layouts\\compact-schemes.pdf",
+      "creator": "Maths Dock question bank",
+      "pages": 3
+    },
+    {
+      "path": "cloudflare-release\\brand-production-exports\\browser-split-hosting-disp-b7608-nd-both-real-export-layouts\\writing-questions.pdf",
+      "creator": "Maths Dock question bank",
+      "pages": 4
+    },
+    {
+      "path": "cloudflare-release\\brand-production-exports\\browser-split-hosting-disp-b7608-nd-both-real-export-layouts\\writing-schemes.pdf",
+      "creator": "Maths Dock question bank",
+      "pages": 3
+    }
+  ],
+  "publicationNotes": "Initial full release stopped before deployment on an interrupted public fetch; a verification-only retry also stopped. Added bounded transport retry (validation errors still stop immediately), passed publishing tests, then resumed public verification, deployment, live routes, browser exports and branding checks.",
+  "proofs": {
+    "assets": "cloudflare-release/verify-assets-receipt.json",
+    "routes": "cloudflare-release/verify-site-receipt.json",
+    "branding": "cloudflare-release/brand-review/proof.json",
+    "exports": "cloudflare-release/brand-production-exports"
+  }
+}
