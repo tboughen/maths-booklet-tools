@@ -1,0 +1,6 @@
+interface:
+  display_name: "MathsDock tool creation"
+  short_description: "Design MathsDock tools and MCP integrations"
+  default_prompt: "Use $mathsdock-tool-creation to plan a new MathsDock booklet tool using the established design guidance."
+policy:
+  allow_implicit_invocation: true

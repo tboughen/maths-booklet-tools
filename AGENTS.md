@@ -1,0 +1,19 @@
+# MathsDock project guidance
+
+## Booklet tool development
+
+Before planning, creating or substantially changing a MathsDock booklet tool or its MCP integration, read:
+
+- `docs/TOOL-CREATION-GUIDE.md`
+- `docs/TOOL-EVOLUTION.md`
+- `docs/TOOL-BRIEF-TEMPLATE.md`
+
+Apply the relevant principles throughout design and implementation. Use the brief for new tools and the guide's acceptance checklist for review. Briefly identify the relevant principles before proposing changes. For edits to an existing tool, preserve its teaching purpose and saved-file compatibility without requiring a new full brief for a small fix.
+
+The reusable development workflow is `.agents/skills/mathsdock-tool-creation/SKILL.md`. For conversations producing diagrams with the existing MCP connector, use `.agents/skills/mathsdock-diagrams/SKILL.md` and the capabilities exposed by the current connection. User requests and the project's existing approval rules govern implementation and release.
+
+## Maintaining the guidance
+
+Keep the documents in `docs/` as the canonical source. When changing guidance or skills, refresh the portable copies installed locally or included in the Maths Booklet Tools plugin, as applicable. Validate the skill frontmatter and reference links. Do not assume that publishing a plugin update rewrites definitions already cached in a conversation.
+
+See `docs/USING-TOOL-GUIDANCE.md` for locations, invocation and a fresh-conversation check.
