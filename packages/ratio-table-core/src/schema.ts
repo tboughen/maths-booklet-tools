@@ -21,6 +21,7 @@ export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("answer-line") }).strict(),
 ]);
 export type RatioCell = z.infer<typeof cellSchema>;
+// Homogeneous array items keep nested schemas importable by ChatGPT.
 export const cellsSchema = z.array(cellSchema).min(1).max(3);
 export const headingSchema = z
   .object({
