@@ -238,6 +238,9 @@ describe("ratio tools on the shared real MCP service", () => {
       "ratio_table_capabilities",
       "create_ratio_table",
       "revise_ratio_table",
+      "value_graph_capabilities",
+      "create_value_graph",
+      "revise_value_graph",
     ]);
     const caps = await client.callTool({
       name: "ratio_table_capabilities",

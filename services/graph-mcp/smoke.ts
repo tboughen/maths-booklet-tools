@@ -6,6 +6,7 @@ import { graphHash } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import { contentHash as valueHash, type ValueEnvelope } from "../../packages/value-graph-core/src/interchange";
 const base = process.argv[2];
 if (!base)
   throw Error("Supply the service origin, e.g. http://127.0.0.1:8787.");
@@ -26,8 +27,8 @@ try {
     new StreamableHTTPClientTransport(new URL("/mcp", base)),
   );
   const tools = await client.listTools();
-  const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table"];
-  if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected the graph and ratio-table tool trios.");
+  const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph"];
+  if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected the graph, ratio-table and table-of-values tool trios.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
     if (!value || typeof value !== "object") return;
@@ -254,6 +255,11 @@ try {
   const maxRatioPng = await fetch(maxRatio.downloads.png.url);
   if (!maxRatioPng.ok) throw Error("Maximum ratio PNG failed.");
   verifyPrintBytes(new Uint8Array(await maxRatioPng.arrayBuffer()), maxRatio.printRaster.width, maxRatio.printRaster.height);
+  const valuesReply = await client.callTool({name:"create_value_graph",arguments:{}});
+  if(valuesReply.isError)throw Error("Value-table scaffold creation failed.");
+  const values=valuesReply.structuredContent as {envelope:ValueEnvelope;contentHash:string;downloads:Record<string,{url:string}>;printRaster:{width:number;height:number}};
+  if(values.envelope.document.columns.filter(c=>c.y.kind==="blank").length!==5)throw Error("Value-table blanks changed.");
+  for(const format of ["svg","png","json"]){const response=await fetch(values.downloads[format].url);if(!response.ok)throw Error("Value-graph download failed.");if(format==="png")verifyPrintBytes(new Uint8Array(await response.arrayBuffer()),values.printRaster.width,values.printRaster.height);if(format==="json"&&await valueHash(await response.json() as ValueEnvelope)!==values.contentHash)throw Error("Value-graph JSON changed.");}
   const health = (await (await fetch(new URL("/healthz", base))).json()) as {
     buildId: string;
   };
@@ -263,6 +269,7 @@ try {
       tools: tools.tools.map((t) => t.name),
       printVerified: true,
       extendedRatiosVerified: true,
+      valueGraphVerified: true,
       buildId: health.buildId,
     }) + "\n",
   );

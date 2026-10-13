@@ -1,11 +1,13 @@
 import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
+import ValueGraphPage from "../value-graph/ValueGraphPage";
 import { Grid3X3, Table2 } from "lucide-react";
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
   { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage },
   { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage },
+  { id: "value-table-graph", name: "Table of values & graphs", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage },
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];

@@ -16,7 +16,7 @@ export class RasterQueue {
     print = false,
     outlined = false,
     signal?: AbortSignal,
-    artifactKind: "graph" | "ratio-table" = "graph",
+    artifactKind: "graph" | "ratio-table" | "value-graph" = "graph",
   ): Promise<{ png?: Uint8Array; svg?: string }> {
     if (
       !Number.isSafeInteger(width) ||

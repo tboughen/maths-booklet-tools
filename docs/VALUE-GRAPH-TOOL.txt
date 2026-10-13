@@ -1,0 +1,168 @@
+TABLE OF VALUES & GRAPHS
+
+Route: ?tool=value-table-graph. Browser editor works without the MCP service.
+The default is the June 2018 Q5 scaffold; no calculation or plotting is implicit.
+
+Exam reference
+-------------
+The source PDF uses a 120 x 140 mm plot, fine 2 mm grid lines, intermediate
+10 mm lines and heavy 20 mm lines. These have source-derived widths 0.510,
+1.020 and 1.417 pt. All three use the same grey; the axis is separate black
+artwork. Grids are anchored at zero, even when the bounds move.
+Default x scale: 0.5 units per cm (20 mm per unit).
+Default y scale: 1 unit per cm (10 mm per unit).
+Scale numbers and italic x/y/O use 12 pt in physical SVG geometry, matching
+the nominal size in the exam PDF. They are not styled with the editor's larger
+interface text. Preview zoom changes the entire view, without changing print
+dimensions. Extending bounds adds grid area with unchanged text/grid sizing.
+Bundled STIX fonts are used consistently in preview and portable exports.
+
+Teacher workflow
+----------------
+The resource is the editor: click its displayed equation, table cells, x/y axis
+names, endpoint values, points, joins, curve or horizontal line. One local editor
+opens beside the selection, clamped within the viewport. Labelled buttons and an
+object selector provide keyboard access, including hidden/off-grid objects.
+The permanent settings sidebar and its displaced controls have been removed.
+The global toolbar contains only history/reset, Examples, Layout and exports.
+
+Click the equation to edit its expanded quadratic as one exact operation.
+x^2/x², minus signs, decimals and fractions are accepted by a bounded parser.
+Enter/Apply commits; Escape/Cancel restores the input. No code is evaluated.
+
+Click a table cell to type; Enter applies, Escape restores, valid blur applies.
+An invalid draft remains visible and blocks calculations, structural edits and
+exports. Leave blank and Answer line are distinct states; zero is a value.
+Calculate selected/blank cells is explicit; replacing occupied cells asks first.
+Generate range accepts exact fractions and makes blank y cells. Add/remove column
+are paired at the table's right edge; removal is undoable. Tables allow 2–13 x
+columns. Fill blank values is beside the table; whole-row calculation, range,
+print dimensions/number display and a separate worked copy are in Table options.
+Paired range controls are at the four axis ends. Click an endpoint for an exact
+bound, or the printed x/y name for units/cm and label interval.
+
+Plot entered table pairs skips blanks and includes zero. Plot equation at table
+x values calculates points explicitly without filling the table. Draw true
+quadratic uses an exact quadratic Bezier over the chosen domain, rather than
+interpolating a spline through the table values. Straight joins are separately
+selected per point series and remain straight in exports and reopened files.
+Hide markers/joins/curves without deleting them. Reference lines use y=k.
+
+Points can be entered numerically or clicked/dragged on the grid. Optional snapping
+uses the fine-grid mathematical scale. Each drag is one Undo step. Linked points
+can update the table or detach to retain the table and show a misplaced point.
+Selected points have labelled numeric x/y controls and a Remove action. A separate
+local curve equation editor can retain an intentionally different quadratic. Teacher warnings
+explain disagreement; they never appear in pupil artwork. Equation edits preserve
+existing cells and curve/point snapshots until explicit recalculation/replotting.
+Boundary markers remain complete; off-grid points are omitted with a warning,
+and connecting segments/curves are clipped to the plotting rectangle.
+Graph actions have one location beside the grid: Plot, Add, Curve, Graph options
+and Select object. Add contains numerical/click placement and horizontal lines;
+selected point sets choose Points only or Straight line joins. Curve creates or
+selects the same curve editor with its equation and precise start/end x domain.
+Graph options owns grid/axis style and visibility controls. Layout owns composition
+and equation visibility. Editor controls never enter downloaded artwork.
+
+Source examples include June 2018, November 2018 (mixed 0.5/2.5 unit scales),
+November 2021, November 2017 straight-join error, Mock set 08 and fractions.
+Example replacement, reset, range replacement and import protect existing work.
+All actual mathematical/structural changes are undoable; editor draft choices
+such as preview zoom are separate from the saved mathematical document.
+
+Print, saving and navigation
+---------------------------
+Choose combined, table-only or graph-only output. Table width, row height and
+gap are editable; values that overflow are rejected rather than shrunk silently.
+Supported plot dimensions: 60–180 mm wide, 40–240 mm high; at most 40 points.
+Both ranges include zero and align with fine-grid spacing. Labels are independently
+spaced and zero-anchored. 1/2, 1, 2, 2.5, 5 and 10 units/cm are available, and
+valid imported scales remain visible/editable. Fine paper can be 1, 2 or 5 mm.
+
+Copy for Word uses the existing HTML image route with physical dimensions and
+verified 600 ppi PNG bytes. SVG embeds bundled portable fonts; the service returns
+outlined SVG. PNG pixel dimensions and density metadata are checked. Editable
+JSON and compatible editor links retain all cell states and connection choices.
+There is no worksheet PDF export in this release.
+
+The saved envelope uses schemaVersion 1, rendererVersion value-graph-1 and
+styleProfile exam-v1. Default recovery key: mathsdock:value-table-graph:v1.
+Corrupt recovery is retained and downloadable. A newer other-tab save is never
+overwritten by a stale editor. Storage failures offer editable-file saving.
+Worked versions open in a separate draft namespace so the pupil's saved blanks
+remain intact. Its ?draft=... parameter is retained when copying its editor link.
+Valid content survives reload. Tool navigation retains work, drafts and Undo;
+only the active tool listens for shortcuts and editable-link imports.
+
+Shared implementation
+---------------------
+packages/value-graph-core: schemas, exact arithmetic, atomic operations, document
+interchange, physical layout and SVG. Exact rational handling and font advances
+reuse the ratio core; density/print raster routines reuse the graph core.
+src/value-graph: direct editor, history, recovery and browser exports.
+services/graph-mcp/value-* adapts the same core and existing bounded raster queue.
+No new network dependency, service, database or model dependency is introduced.
+Existing graph/ratio formats and routes are unchanged.
+
+Optional MCP contract (implemented locally; release is a separate stage)
+-----------------------------------------------------------------------
+value_graph_capabilities: no input; describes limits, print style and operations.
+create_value_graph: {envelope?: full ValueEnvelope}. Omitting envelope gives the
+scaffold with five blank cells and no plotted work. Supply the complete returned
+envelope shape when customizing; there is no hidden default-answer calculation.
+revise_value_graph: {envelope,baseHash,operations}. Use the actual returned hash.
+All numeric content is a string: integers, decimals up to six places or fractions.
+IDs are stable strings; no positional tuple arrays or undocumented indexes.
+Revisions are atomic and reject a stale hash. Empty operations refresh downloads.
+
+Every operation has op plus the following fields:
+set_equation {equation:{a,b,c}}
+set_cell {columnId,x?,y?}; y is {kind:blank}, {kind:answer-line}, or {kind:value,value}
+insert_column {afterId,column:{id,x,y}}
+remove_column {columnId}
+replace_columns {columns:[{id,x,y},...]}
+calculate_cells {columnIds:[id,...],overwrite:boolean}
+set_graph {settings:{bounds?,xUnitsPer10mm?,yUnitsPer10mm?,minorPitchMm?,
+  intermediatePitchMm?,heavyPitchMm?,xLabelEvery?,yLabelEvery?,originLabel?,
+  axisStyle?,positiveEndArrows?}}
+plot_series {id,source:table|equation,columnIds:[id,...],connection:none|straight-joins}
+put_series {series:{id,source:table|equation|custom,
+  points:[{id,x,y,columnId?},...],connection:none|straight-joins}}
+remove_series {id}
+set_connection {id,connection:none|straight-joins}
+move_point {seriesId,pointId,x,y,linked:update-table|detach}
+set_curve {curve:null|{id,equation:{a,b,c},min,max}}
+set_reference_lines {lines:[{id,y},...]}
+set_presentation {settings:{composition?,showEquation?,showMarkers?,showJoins?,
+  showCurves?,showReferenceLines?,decimalPlaces?}}
+set_print {settings:{tableWidthMm?,tableRowHeightMm?,gapMm?}}
+
+Example sequence in client notation:
+const created = await client.callTool({name:'create_value_graph',arguments:{}});
+const first = created.structuredContent;
+const revised = await client.callTool({name:'revise_value_graph',arguments:{
+  envelope:first.envelope,baseHash:first.contentHash,operations:[
+    {op:'calculate_cells',columnIds:['c2','c3','c5','c6','c7'],overwrite:false},
+    {op:'plot_series',id:'points',source:'table',
+     columnIds:['c1','c2','c3','c4','c5','c6','c7'],connection:'straight-joins'}
+  ]}});
+// Open revised.structuredContent.editorUrl, accept its replacement dialog,
+// then edit/save/reopen. Continue every revision with its returned envelope/hash.
+
+Results contain a real preview, canonical envelope/hash, warnings, SVG/PNG/JSON
+downloads, editor URL, physical size, print raster dimensions and verified 600 ppi
+status. Signed downloads expire after seven days. Large resources fall back to
+included file content; they are not replaced by a plausible Markdown table/image.
+
+Verification commands
+---------------------
+npm run lint; npm run typecheck; npm run build; npm run build:service; npm test
+npx playwright test e2e/value-graph.spec.ts e2e/site-navigation.spec.ts
+node scripts/render-value-graph-examples.mjs [review-output-directory]
+Existing Docker service-image smoke also covers the new scaffold/downloads.
+Check actual SVG/PNG/JSON, source font/grid proportions, maximum fractional table,
+all source examples, clipping/domain endpoints, keyboard/touch editing, invalid
+drafts, Undo/Redo, recovery, narrow layouts and existing-tool navigation.
+Real Word insertion and fresh target-account discovery are separate checks; record
+them as outstanding until actually performed. Website, service and client release
+require separate exact evidence, targeting mathsdock.co.uk for the website.

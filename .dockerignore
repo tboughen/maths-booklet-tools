@@ -9,6 +9,9 @@
 !packages/ratio-table-core
 !packages/ratio-table-core/src
 !packages/ratio-table-core/src/**
+!packages/value-graph-core
+!packages/value-graph-core/src
+!packages/value-graph-core/src/**
 !services
 !services/graph-mcp
 !services/graph-mcp/**
