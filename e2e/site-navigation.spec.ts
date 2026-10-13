@@ -15,13 +15,21 @@ async function addLine(page: Page) {
 
 test("home and overview keep the two sections distinct; bare and existing URLs still work", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Graph tool", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Maths Tools home" }).click();
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await page.reload();
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await current(page).getByRole("link", { name: /Explore booklet tools/ }).click();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await page.goto("/?tool=home");
   await expect(page).toHaveURL(/tool=home$/);
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
   await current(page).getByRole("link", { name: /Explore booklet tools/ }).click();
   await expect(page.getByRole("heading", { name: "Booklet tools", exact: true })).toBeVisible();
   await current(page).getByRole("link", { name: /Open Ratio tables/ }).click();
-  await expect(page).toHaveTitle("Ratio tables · Maths Tools");
+  await expect(page).toHaveTitle("Ratio tables · Maths Dock");
   await expect(tools(page).getByRole("link", { name: "Ratio tables" })).toHaveAttribute("aria-current", "page");
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Booklet tools", exact: true })).toBeVisible();
@@ -33,8 +41,9 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
   await page.goto("/?tool=graph");
   await addLine(page);
   await tools(page).getByRole("link", { name: "Ratio tables" }).click();
-  await current(page).getByRole("button", { name: "Add row", exact: true }).click();
+  await current(page).getByRole("group", { name: "Table structure" }).getByRole("button", { name: "Add row", exact: true }).click();
   await expect(current(page).getByLabel("Row 3 x cell type", { exact: true })).toBeVisible();
+  await current(page).getByRole("region", { name: "Ratio table workspace" }).focus();
   await page.keyboard.press("Control+z");
   await expect(current(page).getByLabel("Row 3 x cell type", { exact: true })).toHaveCount(0);
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
@@ -49,7 +58,6 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
 
 test("invalid ratio drafts survive leaving and returning without silently replacing their values", async ({ page }) => {
   await page.goto("/?tool=ratio-table");
-  await page.getByLabel("Row 1 x cell type", { exact: true }).selectOption("number");
   const field = current(page).getByLabel("Row 1 x value", { exact: true });
   await field.fill("1/");
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
@@ -129,7 +137,8 @@ test("layouts fit laptop, tablet and narrow screens; mobile navigation supports 
     await page.setViewportSize({ width, height: width < 620 ? 812 : 800 });
     for (const id of ["home", "booklet-tools", "graph", "ratio-table", "question-bank"]) {
       await page.goto(`/?tool=${id}`);
-      await expect(current(page).getByRole("heading", { level: 1 })).toBeVisible();
+      if (id === "home") await expect(current(page).getByRole("main", {name: "Home", exact: true})).toBeVisible();
+      else await expect(current(page).getByRole("heading", { level: 1 })).toBeVisible();
       if (id === "question-bank") {
         await expect(current(page).locator(".qb-canvas-host canvas")).toBeVisible();
         await expect(current(page).locator(".qb-view-error")).toHaveCount(0);

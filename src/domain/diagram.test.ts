@@ -10,11 +10,20 @@ import {
   getBounds,
   setAxisScale,
   snapCoordinate,
+  shouldLabelAxisSquare,
   updateObject,
 } from "./diagram";
 import type { DiagramDocumentV1, PointObject } from "./types";
 
 describe("diagram domain", () => {
+  it("labels whole units relative to zero at the half-unit scale", () => {
+    for (const offset of [-5, -3, -1, 1, 3, 5]) expect(shouldLabelAxisSquare(offset, 0.5)).toBe(false);
+    for (const offset of [-4, -2, 0, 2, 4]) expect(shouldLabelAxisSquare(offset, 0.5)).toBe(true);
+    for (const scale of [1, 2] as const) {
+      for (const offset of [-3, -2, -1, 0, 1, 2, 3]) expect(shouldLabelAxisSquare(offset, scale)).toBe(true);
+    }
+  });
+
   it("creates an independent default 10 by 10 grid", () => {
     const first = cloneDefaultDocument();
     const second = cloneDefaultDocument();

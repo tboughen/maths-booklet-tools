@@ -27,14 +27,14 @@ body { background: #f2f5f8; }
 .site-app { min-height: 100dvh; color: var(--ink); font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
 .site-app a { color: inherit; }
 .site-app :is(button,a,input,select,summary,textarea):focus-visible { outline: 2px solid #0f62fe; outline-offset: 3px; }
-.site-app h1:focus { outline: none; }
+.site-app :is(h1, #main-content):focus { outline: none; }
 .site-skip { position: fixed; top: 8px; left: 12px; z-index: 200; padding: 12px; background: white; transform: translateY(-160%); }
 .site-skip:focus { transform: none; }
 .site-navigation { position: sticky; top: 0; z-index: 40; flex: 0 0 auto; background: white; border-bottom: 1px solid var(--line); }
 .site-navigation-row { min-height: 58px; padding: 0 20px; display: flex; align-items: center; gap: 32px; }
 .site-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; white-space: nowrap; }
-.site-brand strong { font-size: 17px; font-weight: 650; }
-.site-brand-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 5px; background: #173c65; color: white; }
+.site-brand { flex: 0 0 auto; }
+.site-brand-logo { display: block; width: 218px; height: auto; }
 .site-sections { display: flex; align-items: center; gap: 8px; }
 .site-sections a, .site-tool-navigation a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 14px; border-radius: 4px; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .site-sections a:hover, .site-tool-navigation a:hover { background: var(--surface); }
@@ -118,7 +118,7 @@ body { background: #f2f5f8; }
 }
 @media (max-width: 620px) {
   .site-navigation-row { padding: 8px 12px; gap: 12px; min-height: 56px; flex-wrap: wrap; }
-  .site-brand strong { font-size: 16px; }
+  .site-brand-logo { width: min(184px, calc(100vw - 160px)); }
   .site-current { display: none; }
   .site-menu-toggle { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; min-height: 40px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; font-size: 13px; }
   .site-sections { display: none; width: 100%; }

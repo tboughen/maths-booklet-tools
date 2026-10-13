@@ -20,6 +20,10 @@ Run `npm run cloudflare:login` for the one-time browser authorisation used by Wr
 
 The helper can separately run `Upload`, `VerifyAssets` and `VerifySite`. `npm run cloudflare:publish -- --preview --site=PREVIEW_URL` is the equivalent environment-variable entry point; production omits `--preview`. These commands do not enable redirects automatically. Use Node 24, as specified in `.nvmrc`; the publisher uses Node's native TypeScript support.
 
+Interrupted public asset fetches retry within a 60-second deadline per object.
+Header/CORS mismatches still fail immediately; the retry does not relax any
+validation or permit publication with missing assets.
+
 ## GitHub Actions
 
 `.github/workflows/cloudflare.yml` is initially manual (`workflow_dispatch`). Create repository/environment secrets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`. Use a Workers deployment token limited to the correct account and needed permissions; its account-level rights may include other Workers, so it is not a single-Worker isolation boundary. R2 keys must be limited to the MathsDock bucket. Set an approval rule for the production environment if desired.

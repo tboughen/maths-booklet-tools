@@ -106,6 +106,9 @@ describe("actual MCP transport and print downloads", () => {
       "ratio_table_capabilities",
       "create_ratio_table",
       "revise_ratio_table",
+      "value_graph_capabilities",
+      "create_value_graph",
+      "revise_value_graph",
     ]);
     const reply = await client.callTool({
       name: "create_graph",

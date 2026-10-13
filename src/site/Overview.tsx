@@ -3,8 +3,8 @@ import { PageHeading } from "./PageHeading";
 import { bookletTools, pageHref } from "./registry";
 
 export function Overview({ home = false }: { home?: boolean }) {
-  return <main className="site-overview" id="main-content" tabIndex={-1}>
-    <PageHeading title={home ? "Maths Tools" : "Booklet tools"} description={home ? "Questions and diagrams for your next lesson." : "Create clear diagrams for lesson resources, then copy them into Word."} />
+  return <main className="site-overview" id="main-content" aria-label={home ? "Home" : undefined} tabIndex={-1}>
+    {!home && <PageHeading title="Booklet tools" description="Create clear diagrams for lesson resources, then copy them into Word." />}
     <div className="overview-cards">
       {home ? <>
         <a className="overview-card" href={pageHref("question-bank")}><span className="overview-icon"><BookOpen size={25} /></span><h2>Question bank</h2><p>Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.</p><span className="overview-launch">Open Question bank <ArrowRight size={18} /></span></a>
