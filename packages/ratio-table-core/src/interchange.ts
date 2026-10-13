@@ -189,7 +189,12 @@ export const ratioRevisionSchema = z
   .object({
     envelope: ratioEnvelopeSchema,
     baseHash: z.string().regex(/^[a-f0-9]{64}$/),
-    operations: z.array(ratioOperationSchema).max(20),
+    operations: z
+      .array(ratioOperationSchema)
+      .max(20)
+      .describe(
+        'Atomic operations with an op discriminator. set_transition requires a nested transition object, e.g. {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. add_column requires heading:{text,italic,direction}; remove_column requires a zero-based column index. See the tool description for all operation payloads.',
+      ),
   })
   .strict();
 

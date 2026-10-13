@@ -51,6 +51,13 @@ zero-based column index. All scaling operations and explicit fills cover every
 column. Extended tables use ratio-2; existing ratio-1 outputs and hashes
 remain unchanged.
 
+columns: 2 and rendererVersion: ratio-1 are legacy defaults, not support limits.
+Use supportedColumns and rendererVersions to determine full support. Creation
+and revisions normalize returned envelopes to schemaVersion 1/ratio-1 for
+exactly two columns and at least two rows; all other supported shapes use
+schemaVersion 2/ratio-2. Removing a column from a three-column table can therefore
+return schemaVersion 1. Always reuse that returned envelope and contentHash.
+
 Returned output
 Inline PNG preview, visible-value description, envelope, contentHash, warnings,
 ratio-1 or ratio-2 renderer version, physical dimensions, verified print raster size/DPI,
@@ -73,6 +80,14 @@ Operations:
   set_size: size compact/standard/large
   set_annotation_visibility: optional mode, showArrows, showOperations
   fill_next_row: from, optional overwrite
+Every operation includes its op discriminator. In particular, transition fields
+belong inside transition, not at the operation top level:
+  {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}
+Column addition example:
+  {"op":"add_column","heading":{"text":"D","italic":false,"direction":"none"}}
+Numeric values/factors are strings, column indexes are zero-based, and after is
+a row ID or null. The live tool description lists the payload for every operation;
+the operations input schema also documents the nested transition shape.
 Empty operations refresh seven-day downloads. Stale base hashes refuse. Row
 insertion/deletion cleans only affected transitions; unchanged settings survive.
 Explicit fill_next_row requires a step and all source values; use overwrite true
