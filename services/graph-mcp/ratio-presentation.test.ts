@@ -4,6 +4,7 @@ import { Resvg } from "@resvg/resvg-js";
 import { resolve } from "node:path";
 import {
   createRatioTable,
+  applyRatioOperations,
   renderRatioSvg,
   ratioMetrics,
   numberWidth,
@@ -40,6 +41,52 @@ const fixture = (size = "standard", annotated = true) =>
     transitions: [{ from: "a", to: "b", operation: "divide", factor: "2" }],
   });
 describe("native ratio-table presentation", () => {
+  it("keeps all three scaling lanes inside their columns and the native print bounds", () => {
+    for (const size of ["compact", "standard", "large"] as const) {
+      const envelope = applyRatioOperations(fixture(size), [
+        {
+          op: "add_column",
+          heading: { text: "z", italic: true, direction: "none" },
+        },
+        {
+          op: "set_cell",
+          rowId: "a",
+          column: 2,
+          cell: { kind: "number", value: "99999" },
+        },
+        {
+          op: "set_transition",
+          transition: {
+            from: "a",
+            to: "b",
+            operation: "divide",
+            factor: "99999/999983",
+          },
+        },
+      ]);
+      const svg = renderRatioSvg(envelope.document),
+        m = ratioMetrics(envelope.document);
+      const renderer = new Resvg(
+        svg
+          .replace(/<rect[^>]+\/>/, "")
+          .replace(/width="[^"]+"/, `width="${m.width}"`)
+          .replace(/height="[^"]+"/, `height="${m.height}"`),
+        { font },
+      );
+      const bounds = renderer.innerBBox()!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.y).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(m.width);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(m.height);
+      const raster = renderer.render();
+      for (let column = 0; column < 3; column++) {
+        const x = Math.round(m.tableLeft + column * m.columnWidth + 166);
+        expect(raster.pixels[(248 * raster.width + x) * 4 + 3]).toBeGreaterThan(
+          200,
+        );
+      }
+    }
+  });
   it("draws the two lesson rules, paired downward arrows and visible fractions with clear margins", () => {
     for (const size of ["compact", "standard", "large"])
       for (const annotated of [true, false]) {

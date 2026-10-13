@@ -1,0 +1,173 @@
+[
+  {
+    "envelope": {
+      "kind": "ratio-table",
+      "schemaVersion": 1,
+      "rendererVersion": "ratio-1",
+      "styleProfile": "ratio-lesson-v1",
+      "document": {
+        "headings": [
+          {
+            "text": "x",
+            "italic": true,
+            "direction": "right"
+          },
+          {
+            "text": "y",
+            "italic": true,
+            "direction": "up"
+          }
+        ],
+        "rows": [
+          {
+            "id": "row-1",
+            "cells": [
+              {
+                "kind": "empty"
+              },
+              {
+                "kind": "empty"
+              }
+            ]
+          },
+          {
+            "id": "row-2",
+            "cells": [
+              {
+                "kind": "empty"
+              },
+              {
+                "kind": "empty"
+              }
+            ]
+          }
+        ],
+        "transitions": [],
+        "size": "standard",
+        "mode": "simple",
+        "showArrows": true,
+        "showOperations": true
+      }
+    },
+    "hash": "a460e2fd24bfacc1c2b9db243cb6364838f0c1b234c3b319e04c6543e9d73c61",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"3.3cm\" height=\"3.3cm\" viewBox=\"0 0 330 330\" role=\"img\" aria-label=\"Ratio table\"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width=\"330\" height=\"330\" fill=\"white\"/><g font-family=\"STIX Two Text\" fill=\"none\" stroke=\"#202020\"><path class=\"ratio-rules\" d=\"M165 15V315M15 115H315\" stroke-width=\"7.9375\"/><text stroke=\"none\" fill=\"#202020\" x=\"71\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\" font-style=\"italic\">x</text><path d=\"M90.5885 65H114.5885\" stroke-width=\"2\"/><path d=\"M114.5885 65l-8 -5v10Z\" fill=\"#202020\" stroke=\"none\"/><text stroke=\"none\" fill=\"#202020\" x=\"221\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\" font-style=\"italic\">y</text><path d=\"M252.44033333333334 77V53\" stroke-width=\"2\"/><path d=\"M252.44033333333334 53l-5 8h10Z\" fill=\"#202020\" stroke=\"none\"/><g class=\"ratio-cell\" data-row=\"row-1\" data-column=\"0\" data-kind=\"empty\"></g><g class=\"ratio-cell\" data-row=\"row-1\" data-column=\"1\" data-kind=\"empty\"></g><g class=\"ratio-cell\" data-row=\"row-2\" data-column=\"0\" data-kind=\"empty\"></g><g class=\"ratio-cell\" data-row=\"row-2\" data-column=\"1\" data-kind=\"empty\"></g></g></svg>"
+  },
+  {
+    "envelope": {
+      "kind": "ratio-table",
+      "schemaVersion": 1,
+      "rendererVersion": "ratio-1",
+      "styleProfile": "ratio-lesson-v1",
+      "document": {
+        "headings": [
+          {
+            "text": "x",
+            "italic": true,
+            "direction": "right"
+          },
+          {
+            "text": "y",
+            "italic": true,
+            "direction": "up"
+          }
+        ],
+        "rows": [
+          {
+            "id": "start",
+            "cells": [
+              {
+                "kind": "number",
+                "value": "3"
+              },
+              {
+                "kind": "number",
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "id": "target",
+            "cells": [
+              {
+                "kind": "number",
+                "value": "1"
+              },
+              {
+                "kind": "answer-line"
+              }
+            ]
+          }
+        ],
+        "transitions": [
+          {
+            "from": "start",
+            "to": "target",
+            "operation": "divide",
+            "factor": "3"
+          }
+        ],
+        "size": "standard",
+        "mode": "annotated",
+        "showArrows": true,
+        "showOperations": true
+      }
+    },
+    "hash": "fd40f834a2bd8aef5a3b57fdf579a8f9e88c10170892c45720f68fd90275d8fb",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"5.515280000000001cm\" height=\"3.3cm\" viewBox=\"0 0 551.528 330\" role=\"img\" aria-label=\"Ratio table\"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width=\"551.528\" height=\"330\" fill=\"white\"/><g font-family=\"STIX Two Text\" fill=\"none\" stroke=\"#202020\"><path class=\"ratio-rules\" d=\"M275.764 15V315M125.764 115H425.764\" stroke-width=\"7.9375\"/><text stroke=\"none\" fill=\"#202020\" x=\"181.764\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\" font-style=\"italic\">x</text><path d=\"M201.35250000000002 65H225.35250000000002\" stroke-width=\"2\"/><path d=\"M225.35250000000002 65l-8 -5v10Z\" fill=\"#202020\" stroke=\"none\"/><text stroke=\"none\" fill=\"#202020\" x=\"331.764\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\" font-style=\"italic\">y</text><path d=\"M363.20433333333335 77V53\" stroke-width=\"2\"/><path d=\"M363.20433333333335 53l-5 8h10Z\" fill=\"#202020\" stroke=\"none\"/><g class=\"ratio-cell\" data-row=\"start\" data-column=\"0\" data-kind=\"number\"><text stroke=\"none\" fill=\"#202020\" x=\"200.764\" y=\"178.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">3</text></g><g class=\"ratio-cell\" data-row=\"start\" data-column=\"1\" data-kind=\"number\"><text stroke=\"none\" fill=\"#202020\" x=\"350.764\" y=\"178.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">2</text></g><g class=\"ratio-cell\" data-row=\"target\" data-column=\"0\" data-kind=\"number\"><text stroke=\"none\" fill=\"#202020\" x=\"200.764\" y=\"278.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">1</text></g><g class=\"ratio-cell\" data-row=\"target\" data-column=\"1\" data-kind=\"answer-line\"><path class=\"ratio-answer-line\" d=\"M320.764 281H380.764\" stroke-width=\"2\"/></g><g class=\"ratio-scaling-arrow\"><path d=\"M113.764 177C85.764 195 85.764 235 113.764 253\" stroke-width=\"2.6\"/><path d=\"M113.764 253l-4 -12l-7 9Z\" fill=\"#202020\" stroke=\"none\"/></g><g class=\"ratio-operation\"><text stroke=\"none\" fill=\"#202020\" x=\"41.22946666666666\" y=\"225.49866666666668\" font-size=\"33.86666666666667\" text-anchor=\"middle\">÷</text><text stroke=\"none\" fill=\"#202020\" x=\"65.38199999999998\" y=\"225.49866666666668\" font-size=\"33.86666666666667\" text-anchor=\"middle\">3</text></g><g class=\"ratio-scaling-arrow\"><path d=\"M437.764 177C465.764 195 465.764 235 437.764 253\" stroke-width=\"2.6\"/><path d=\"M437.764 253l4 -12l7 9Z\" fill=\"#202020\" stroke=\"none\"/></g><g class=\"ratio-operation\"><text stroke=\"none\" fill=\"#202020\" x=\"487.53453333333334\" y=\"225.49866666666668\" font-size=\"33.86666666666667\" text-anchor=\"middle\">÷</text><text stroke=\"none\" fill=\"#202020\" x=\"511.6870666666667\" y=\"225.49866666666668\" font-size=\"33.86666666666667\" text-anchor=\"middle\">3</text></g></g></svg>"
+  },
+  {
+    "envelope": {
+      "kind": "ratio-table",
+      "schemaVersion": 1,
+      "rendererVersion": "ratio-1",
+      "styleProfile": "ratio-lesson-v1",
+      "document": {
+        "headings": [
+          {
+            "text": "Apples",
+            "italic": false,
+            "direction": "none"
+          },
+          {
+            "text": "Pears",
+            "italic": false,
+            "direction": "none"
+          }
+        ],
+        "rows": [
+          {
+            "id": "row-1",
+            "cells": [
+              {
+                "kind": "number",
+                "value": "-1/3"
+              },
+              {
+                "kind": "empty"
+              }
+            ]
+          },
+          {
+            "id": "row-2",
+            "cells": [
+              {
+                "kind": "answer-line"
+              },
+              {
+                "kind": "number",
+                "value": "0.25"
+              }
+            ]
+          }
+        ],
+        "transitions": [],
+        "size": "large",
+        "mode": "simple",
+        "showArrows": true,
+        "showOperations": true
+      }
+    },
+    "hash": "da873aefd011c9da3e092feaa25d7dd7de2b8bd17b7a244d391f08c97e018aac",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"3.9599999999999995cm\" height=\"3.9599999999999995cm\" viewBox=\"0 0 330 330\" role=\"img\" aria-label=\"Ratio table\"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width=\"330\" height=\"330\" fill=\"white\"/><g font-family=\"STIX Two Text\" fill=\"none\" stroke=\"#202020\"><path class=\"ratio-rules\" d=\"M165 15V315M15 115H315\" stroke-width=\"7.9375\"/><text stroke=\"none\" fill=\"#202020\" x=\"90\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">Apples</text><text stroke=\"none\" fill=\"#202020\" x=\"240\" y=\"78.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">Pears</text><g class=\"ratio-cell\" data-row=\"row-1\" data-column=\"0\" data-kind=\"number\"><text stroke=\"none\" fill=\"#202020\" x=\"90\" y=\"158.65\" font-size=\"33.86666666666667\" text-anchor=\"middle\">−1</text><path d=\"M65.426 165H114.574\" stroke-width=\"2\"/><text stroke=\"none\" fill=\"#202020\" x=\"90\" y=\"198.02\" font-size=\"33.86666666666667\" text-anchor=\"middle\">3</text></g><g class=\"ratio-cell\" data-row=\"row-1\" data-column=\"1\" data-kind=\"empty\"></g><g class=\"ratio-cell\" data-row=\"row-2\" data-column=\"0\" data-kind=\"answer-line\"><path class=\"ratio-answer-line\" d=\"M60 281H120\" stroke-width=\"2\"/></g><g class=\"ratio-cell\" data-row=\"row-2\" data-column=\"1\" data-kind=\"number\"><text stroke=\"none\" fill=\"#202020\" x=\"240\" y=\"278.12333333333333\" font-size=\"42.333333333333336\" text-anchor=\"middle\">0.25</text></g></g></svg>"
+  }
+]
