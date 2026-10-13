@@ -3,13 +3,12 @@ import {
   ChevronDown,
   Copy,
   Download,
-  Grid3X3,
-  Plus,
+  ArrowDown,
+  MousePointer2,
+  Type,
   Redo2,
   RotateCcw,
-  Shapes,
   Table2,
-  Trash2,
   Undo2,
 } from "lucide-react";
 import {
@@ -29,7 +28,6 @@ import {
 import type {
   RatioOperation,
   RatioEnvelope,
-  RatioDocument,
 } from "../../packages/ratio-table-core/src/interchange";
 import { downloadBlob } from "../export/clipboard";
 import { copyRatioForWord, downloadRatioImage } from "./export";
@@ -38,8 +36,9 @@ import {
   saveRatio,
   startRatioAfterRecovery,
 } from "./persistence";
-import { NumberInput } from "./NumberInput";
-import { HeadingInput } from "./HeadingInput";
+import { RatioCanvas } from "./RatioCanvas";
+import type { RatioSelection } from "./RatioCanvas";
+import { RatioInspector } from "./RatioInspector";
 import { RatioDialog } from "./RatioDialog";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
@@ -55,6 +54,7 @@ type Pending = {
   action?: () => void;
   confirmLabel?: string;
   fromLink?: boolean;
+  description?: string;
 };
 function example(kind: "simple" | "worked" | "fraction") {
   const values =
@@ -94,7 +94,11 @@ function example(kind: "simple" | "worked" | "fraction") {
           ],
   });
 }
-export default function RatioTablePage({ active = true }: { active?: boolean }) {
+export default function RatioTablePage({
+  active = true,
+}: {
+  active?: boolean;
+}) {
   const [startup] = useState(loadRatioRecovery);
   const [recovery, setRecovery] = useState(startup.recovery),
     [recoveryDownloaded, setRecoveryDownloaded] = useState(false);
@@ -107,10 +111,15 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
   const [message, setMessage] = useState(startup.error ?? "");
   const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
-    [zoom, setZoom] = useState(2),
+    [zoom, setZoom] = useState(0),
     [guides, setGuides] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null),
     [inputVersion, setInputVersion] = useState(0);
+  const [selection, setSelection] = useState<RatioSelection>(null);
+  const [selectionActive, setSelectionActive] = useState(false);
+  const editor = useRef<HTMLDivElement>(null);
+  const [tool, setTool] = useState<"edit" | "arrow">("edit");
+  const [arrowFrom, setArrowFrom] = useState<string | null>(null);
   const [pendingInputs, setPendingInputs] = useState<Set<string>>(
     () => new Set(),
   );
@@ -176,6 +185,9 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
     });
     setInputVersion((v) => v + 1);
     setPendingInputs(new Set());
+    setSelection(null);
+    setArrowFrom(null);
+    setTool("edit");
   }, []);
   const redo = useCallback(() => {
     setHistory((previous) => {
@@ -190,6 +202,9 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
     });
     setInputVersion((v) => v + 1);
     setPendingInputs(new Set());
+    setSelection(null);
+    setArrowFrom(null);
+    setTool("edit");
   }, []);
   useEffect(() => {
     if (recovery) return;
@@ -225,7 +240,12 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
   }, []);
   useEffect(() => {
     function link() {
-      if (!active || !location.hash.startsWith("#ratio-table=") || blocked.current) return;
+      if (
+        !active ||
+        !location.hash.startsWith("#ratio-table=") ||
+        blocked.current
+      )
+        return;
       try {
         if (location.href.length > RATIO_MAX_LINK_LENGTH)
           throw Error(
@@ -263,6 +283,8 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
       }
       if (e.key === "Escape") {
         setExportsOpen(false);
+        setTool("edit");
+        setArrowFrom(null);
       }
     }
     window.addEventListener("keydown", keyboard);
@@ -315,20 +337,209 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
   function replace(next: RatioEnvelope, title: string) {
     setPending({ envelope: next, title, confirmLabel: "Replace table" });
   }
-  function changeHeadings(
-    index: number,
-    update: Partial<RatioDocument["headings"][number]>,
-  ) {
-    const headings = structuredClone(document.headings);
-    headings[index] = { ...headings[index], ...update };
-    attempt(() => operations([{ op: "set_headings", headings }]));
+  const structureDisabled = !!recovery || pendingInputs.size > 0;
+  useEffect(() => {
+    if (!active) return;
+    function clickAway(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        event.composedPath().includes(editor.current as EventTarget) &&
+        target.closest(
+          ".ratio-inline-cell, .ratio-inline-heading, .ratio-inline-factor, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
+        )
+      )
+        return;
+      setSelectionActive(false);
+      setTool("edit");
+      setArrowFrom(null);
+      // Keep invalid panel drafts mounted, but clear all diagram selection.
+      if (!Array.from(pendingInputs).some((key) => !key.startsWith("inline-")))
+        setSelection(null);
+    }
+    globalThis.document.addEventListener("click", clickAway);
+    return () => globalThis.document.removeEventListener("click", clickAway);
+  }, [active, pendingInputs]);
+  useEffect(() => {
+    if (!selectionActive && !pendingInputs.size) setSelection(null);
+  }, [selectionActive, pendingInputs]);
+  function showSelection(next: RatioSelection) {
+    setSelection(next);
+    setSelectionActive(true);
   }
-  const headingNames = document.headings.map((h) => h.text);
+  function selectItem(next: RatioSelection) {
+    if (
+      Array.from(pendingInputs).some((key) => !key.startsWith("inline-")) &&
+      JSON.stringify(selection) !== JSON.stringify(next)
+    ) {
+      setMessage(
+        "Finish or cancel the panel input before selecting another item. Press Enter to apply it or Escape to cancel.",
+      );
+      setSelectionActive(false);
+      return;
+    }
+    showSelection(next);
+  }
+  function addRow() {
+    attempt(() => {
+      let index = 1;
+      while (document.rows.some((row) => row.id === `row-${index}`)) index++;
+      operations([
+        {
+          op: "add_row",
+          after: document.rows.at(-1)!.id,
+          row: {
+            id: `row-${index}`,
+            cells: document.headings.map(() => ({ kind: "empty" })),
+          },
+        },
+      ]);
+      setTool("edit");
+      setArrowFrom(null);
+      showSelection({ kind: "cell", rowId: `row-${index}`, column: 0 });
+      requestAnimationFrame(() =>
+        globalThis.document
+          .querySelector<HTMLInputElement>(
+            `[aria-label="Row ${document.rows.length + 1} ${document.headings[0].text} value"]`,
+          )
+          ?.focus(),
+      );
+    });
+  }
+  function addColumn() {
+    attempt(() => {
+      const column = document.headings.length;
+      const text =
+        ["x", "y", "z"].find(
+          (name) => !document.headings.some((heading) => heading.text === name),
+        ) ?? "z";
+      operations([
+        {
+          op: "add_column",
+          heading: {
+            text,
+            italic: true,
+            direction: text === "x" ? "right" : text === "y" ? "up" : "none",
+          },
+        },
+      ]);
+      setTool("edit");
+      setArrowFrom(null);
+      showSelection({ kind: "heading", column });
+      requestAnimationFrame(() =>
+        globalThis.document
+          .querySelector<HTMLInputElement>(
+            `[aria-label="Edit column ${column + 1} heading"]`,
+          )
+          ?.focus(),
+      );
+    });
+  }
+  function arrowRow(rowId: string) {
+    if (!arrowFrom || arrowFrom === rowId) {
+      setArrowFrom(rowId);
+      setMessage("Choose the row immediately below to add the scaling arrow.");
+      return;
+    }
+    const index = document.rows.findIndex((row) => row.id === arrowFrom);
+    if (document.rows[index + 1]?.id !== rowId) {
+      setMessage(
+        "Choose the row immediately below the highlighted row. Scaling arrows connect adjacent rows.",
+      );
+      return;
+    }
+    attempt(() => {
+      const existing = document.transitions.find(
+        (step) => step.from === arrowFrom,
+      );
+      operations([
+        {
+          op: "set_transition",
+          transition: existing ?? {
+            from: arrowFrom,
+            to: rowId,
+            operation: "multiply",
+            factor: "2",
+          },
+        },
+        {
+          op: "set_annotation_visibility",
+          mode: "annotated",
+          showArrows: true,
+          showOperations: true,
+        },
+      ]);
+      showSelection({ kind: "step", from: arrowFrom });
+      setArrowFrom(null);
+      setTool("edit");
+    });
+  }
+  function fill(from: string) {
+    const step = document.transitions.find((step) => step.from === from);
+    const target = document.rows.find((row) => row.id === step?.to);
+    const action = (overwrite = false) =>
+      attempt(() => operations([{ op: "fill_next_row", from, overwrite }]));
+    if (target?.cells.some((cell) => cell.kind === "number"))
+      setPending({
+        title: "Replace the next row's values?",
+        action: () => action(true),
+        confirmLabel: "Fill next row",
+        description: `This will fill all ${document.headings.length} target cells using the selected scaling operation. You can undo this change.`,
+      });
+    else action();
+  }
+  function removeRow(rowId: string) {
+    attempt(() => {
+      operations([{ op: "remove_row", rowId }]);
+      setSelection(null);
+      setArrowFrom(null);
+      setTool("edit");
+    });
+  }
+  function removeColumn(column: number) {
+    attempt(() => {
+      operations([{ op: "remove_column", column: column as 0 | 1 | 2 }]);
+      setSelection(null);
+      setArrowFrom(null);
+      setTool("edit");
+    });
+  }
+  const removalRow =
+    selection?.kind === "cell"
+      ? selection.rowId
+      : selection?.kind === "step"
+        ? selection.from
+        : document.rows.at(-1)!.id;
+  const removalColumn =
+    selection?.kind === "cell" || selection?.kind === "heading"
+      ? selection.column
+      : document.headings.length - 1;
   return (
-    <div className="app-shell booklet-editor ratio-app">
-      <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Ratio tables" description="Choose values, add scaling arrows and copy a clean table into Word.">
-          <div role="status" className={`save-indicator save-indicator--${saveState}`}><span />{recovery ? "Recovery needed" : pendingInputs.size ? "Finish editing to save" : saveState === "saving" ? "Saving…" : saveState === "error" ? "Not saved on device" : "Saved on this device"}</div>
+    <div ref={editor} className="app-shell booklet-editor ratio-app">
+      <main
+        className="main-content"
+        id={active ? "main-content" : undefined}
+        tabIndex={-1}
+      >
+        <PageHeading
+          title="Ratio tables"
+          description="Choose values, add scaling arrows and copy a clean table into Word."
+        >
+          <div
+            role="status"
+            className={`save-indicator save-indicator--${saveState}`}
+          >
+            <span />
+            {recovery
+              ? "Recovery needed"
+              : pendingInputs.size
+                ? "Finish editing to save"
+                : saveState === "saving"
+                  ? "Saving…"
+                  : saveState === "error"
+                    ? "Not saved on device"
+                    : "Saved on this device"}
+          </div>
         </PageHeading>
         {recovery !== null && (
           <section className="ratio-recovery" role="alert">
@@ -370,34 +581,56 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
         <section className="workspace">
           <Panel className="editor-card">
             <div className="editor-toolbar ratio-toolbar">
-              <div className="tool-group">
+              <div
+                className="tool-group"
+                role="group"
+                aria-label="Ratio editing tools"
+              >
                 <button
-                  className={`tool-button${document.mode === "simple" ? " tool-button--active" : ""}`}
-                  disabled={!!recovery}
-                  onClick={() =>
-                    attempt(() =>
-                      operations([
-                        { op: "set_annotation_visibility", mode: "simple" },
-                      ]),
-                    )
-                  }
+                  className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
+                  aria-pressed={tool === "edit"}
+                  disabled={structureDisabled}
+                  onClick={() => {
+                    setTool("edit");
+                    setArrowFrom(null);
+                    setSelection(null);
+                    setSelectionActive(false);
+                    setMessage("");
+                  }}
                 >
-                  Simple
+                  <MousePointer2 size={18} />
+                  <span>Edit</span>
                 </button>
                 <button
-                  className={`tool-button${document.mode === "annotated" ? " tool-button--active" : ""}`}
-                  disabled={!!recovery}
-                  onClick={() =>
-                    attempt(() =>
-                      operations([
-                        { op: "set_annotation_visibility", mode: "annotated" },
-                      ]),
-                    )
-                  }
+                  className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
+                  aria-pressed={tool === "arrow"}
+                  data-ratio-select
+                  disabled={structureDisabled || document.rows.length < 2}
+                  onClick={() => {
+                    setTool("arrow");
+                    setArrowFrom(null);
+                    showSelection({ kind: "step", from: document.rows[0].id });
+                    setMessage("");
+                  }}
                 >
-                  With scaling arrows
+                  <ArrowDown size={18} />
+                  <span>Add arrow</span>
+                </button>
+                <button
+                  className="tool-button"
+                  disabled={structureDisabled}
+                  data-ratio-select
+                  onClick={() => {
+                    setTool("edit");
+                    setArrowFrom(null);
+                    showSelection({ kind: "headings" });
+                  }}
+                >
+                  <Type size={18} />
+                  <span>Edit headings</span>
                 </button>
               </div>
+              <span className="toolbar-rule" />
               <button
                 className="icon-button"
                 aria-label="Undo"
@@ -416,7 +649,7 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
               </button>
               <button
                 className="tool-button reset-button"
-                disabled={!!recovery}
+                disabled={structureDisabled}
                 onClick={() => replace(emptyRatioTable(), "Reset this table?")}
               >
                 <RotateCcw size={16} />
@@ -533,6 +766,7 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
                 >
+                  <option value={0}>Fit to screen</option>
                   <option value={1}>100%</option>
                   <option value={2}>200%</option>
                   <option value={3}>300%</option>
@@ -547,43 +781,37 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
                 Editing guides
               </label>
             </div>
-            <div className="ratio-stage">
-              <div
-                className="ratio-paper"
-                style={{
-                  width: `${metrics.widthCm * 37.7952756 * zoom}px`,
-                  maxWidth: "100%",
-                }}
-              >
-                <div
-                  className="ratio-preview"
-                  data-testid="ratio-preview"
-                  dangerouslySetInnerHTML={{ __html: renderRatioSvg(document) }}
-                />
-                {guides && (
-                  <svg
-                    className="ratio-guides"
-                    viewBox={`0 0 ${metrics.width} ${metrics.height}`}
-                    aria-hidden="true"
-                  >
-                    <g stroke="#a3a9b0" strokeDasharray="3 5" fill="none">
-                      {Array.from(
-                        { length: document.rows.length + 2 },
-                        (_, i) => (
-                          <path
-                            key={i}
-                            d={`M${metrics.tableLeft} ${metrics.tableTop + i * 100}h300`}
-                          />
-                        ),
-                      )}
-                      <path
-                        d={`M${metrics.tableLeft} ${metrics.tableTop}v${(document.rows.length + 1) * 100}M${metrics.tableLeft + 300} ${metrics.tableTop}v${(document.rows.length + 1) * 100}`}
-                      />
-                    </g>
-                  </svg>
-                )}
-              </div>
-            </div>
+            <p className="ratio-edit-hint">
+              {tool === "arrow"
+                ? arrowFrom
+                  ? "Select the row immediately below."
+                  : "Select a source row, then the row below, or use the arrow settings."
+                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
+            </p>
+            <RatioCanvas
+              envelope={envelope}
+              zoom={zoom}
+              guides={guides}
+              inputVersion={inputVersion}
+              disabled={!!recovery}
+              structureDisabled={structureDisabled}
+              pendingInputs={pendingInputs}
+              selection={selectionActive ? selection : null}
+              tool={tool}
+              arrowFrom={arrowFrom}
+              onSelect={selectItem}
+              onArrowRow={arrowRow}
+              onPending={onInputPending}
+              onOperations={operations}
+              onAddRow={addRow}
+              onAddColumn={addColumn}
+              onRemoveRow={() => removeRow(removalRow)}
+              onRemoveColumn={() => removeColumn(removalColumn)}
+              removalRowIndex={document.rows.findIndex(
+                (row) => row.id === removalRow,
+              )}
+              removalColumnIndex={removalColumn}
+            />
             <div className="ratio-preview-footer">
               <span>
                 Print size: {metrics.widthCm.toFixed(2)} ×{" "}
@@ -600,114 +828,21 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
             <fieldset disabled={!!recovery} className="ratio-settings">
+              <RatioInspector
+                document={document}
+                selection={selection}
+                inputVersion={inputVersion}
+                pendingInputs={pendingInputs.size > 0}
+                factorDisabled={Array.from(pendingInputs).some((key) =>
+                  key.startsWith("inline-factor-"),
+                )}
+                onSelect={selectItem}
+                onPending={onInputPending}
+                onOperations={operations}
+                onAction={(ops) => attempt(() => operations(ops))}
+                onFill={fill}
+              />
               <section className="panel-card">
-                <div className="panel-heading">
-                  <Table2 size={17} />
-                  <h2>Values</h2>
-                </div>
-                <p className="panel-note">
-                  Enter a number or fraction. Choose Empty or Answer line to
-                  leave work for pupils.
-                </p>
-                <div className="ratio-row-headings">
-                  <span>{headingNames[0]}</span>
-                  <span>{headingNames[1]}</span>
-                </div>
-                {document.rows.map((row, index) => (
-                  <div className="ratio-row" key={row.id}>
-                    <div className="ratio-row-label">
-                      <strong>Row {index + 1}</strong>
-                      <button
-                        className="ratio-remove"
-                        aria-label={`Remove row ${index + 1}`}
-                        disabled={document.rows.length <= 2}
-                        onClick={() =>
-                          attempt(() =>
-                            operations([{ op: "remove_row", rowId: row.id }]),
-                          )
-                        }
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="ratio-cell-fields">
-                      {row.cells.map((cell, column) => (
-                        <div key={column}>
-                          <select
-                            aria-label={`Row ${index + 1} ${headingNames[column]} cell type`}
-                            value={cell.kind}
-                            onChange={(e) =>
-                              attempt(() =>
-                                operations([
-                                  {
-                                    op: "set_cell",
-                                    rowId: row.id,
-                                    column: column as 0 | 1,
-                                    cell:
-                                      e.target.value === "number"
-                                        ? { kind: "number", value: "0" }
-                                        : {
-                                            kind: e.target.value as
-                                              | "empty"
-                                              | "answer-line",
-                                          },
-                                  },
-                                ]),
-                              )
-                            }
-                          >
-                            <option value="number">Value</option>
-                            <option value="empty">Empty</option>
-                            <option value="answer-line">Answer line</option>
-                          </select>
-                          {cell.kind === "number" && (
-                            <NumberInput
-                              key={`${row.id}-${column}-${inputVersion}`}
-                              inputKey={`${row.id}-${column}`}
-                              label={`Row ${index + 1} ${headingNames[column]} value`}
-                              value={cell.value}
-                              onPending={onInputPending}
-                              onCommit={(value) =>
-                                operations([
-                                  {
-                                    op: "set_cell",
-                                    rowId: row.id,
-                                    column: column as 0 | 1,
-                                    cell: { kind: "number", value },
-                                  },
-                                ])
-                              }
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <button
-                  className="panel-button"
-                  disabled={document.rows.length >= 6}
-                  onClick={() =>
-                    attempt(() => {
-                      let index = 1;
-                      while (document.rows.some((r) => r.id === `row-${index}`))
-                        index++;
-                      operations([
-                        {
-                          op: "add_row",
-                          after: document.rows.at(-1)!.id,
-                          row: {
-                            id: `row-${index}`,
-                            cells: [{ kind: "empty" }, { kind: "empty" }],
-                          },
-                        },
-                      ]);
-                    })
-                  }
-                >
-                  <Plus size={16} />
-                  Add row
-                </button>
                 <details className="ratio-examples">
                   <summary>Start from an example</summary>
                   <button
@@ -742,219 +877,6 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
                   </button>
                 </details>
               </section>
-              <section className="panel-card">
-                <div className="panel-heading">
-                  <Shapes size={17} />
-                  <h2>Scaling steps</h2>
-                </div>
-                <p className="panel-note">
-                  One operation applies to both columns. Filling answers is
-                  always your choice.
-                </p>
-                {document.rows.slice(0, -1).map((row, index) => {
-                  const step = document.transitions.find(
-                      (t) => t.from === row.id,
-                    ),
-                    to = document.rows[index + 1].id;
-                  return (
-                    <div className="ratio-step" key={row.id}>
-                      <strong>
-                        Row {index + 1} → Row {index + 2}
-                      </strong>
-                      <div className="ratio-step-fields">
-                        <select
-                          aria-label={`Row ${index + 1} scaling operation`}
-                          value={step?.operation ?? "none"}
-                          onChange={(e) =>
-                            attempt(() =>
-                              operations([
-                                e.target.value === "none"
-                                  ? { op: "remove_transition", from: row.id }
-                                  : {
-                                      op: "set_transition",
-                                      transition: {
-                                        from: row.id,
-                                        to,
-                                        operation: e.target.value as
-                                          | "multiply"
-                                          | "divide",
-                                        factor: step?.factor ?? "2",
-                                      },
-                                    },
-                              ]),
-                            )
-                          }
-                        >
-                          <option value="none">No step</option>
-                          <option value="multiply">Multiply ×</option>
-                          <option value="divide">Divide ÷</option>
-                        </select>
-                        {step && (
-                          <NumberInput
-                            key={`${row.id}-factor-${inputVersion}`}
-                            inputKey={`${row.id}-factor`}
-                            value={step.factor}
-                            label={`Row ${index + 1} scaling factor`}
-                            onPending={onInputPending}
-                            onCommit={(factor) =>
-                              operations([
-                                {
-                                  op: "set_transition",
-                                  transition: { ...step, factor },
-                                },
-                              ])
-                            }
-                          />
-                        )}
-                      </div>
-                      {step && (
-                        <button
-                          className="panel-button"
-                          disabled={pendingInputs.size > 0}
-                          onClick={() => {
-                            const fill = (overwrite = false) =>
-                              attempt(() =>
-                                operations([
-                                  {
-                                    op: "fill_next_row",
-                                    from: row.id,
-                                    overwrite,
-                                  },
-                                ]),
-                              );
-                            if (
-                              document.rows[index + 1].cells.some(
-                                (c) => c.kind === "number",
-                              )
-                            )
-                              setPending({
-                                title: "Replace the next row's values?",
-                                action: () => fill(true),
-                                confirmLabel: "Fill next row",
-                              });
-                            else fill();
-                          }}
-                        >
-                          Fill next row
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={document.showArrows}
-                    onChange={(e) =>
-                      attempt(() =>
-                        operations([
-                          {
-                            op: "set_annotation_visibility",
-                            showArrows: e.target.checked,
-                          },
-                        ]),
-                      )
-                    }
-                  />
-                  Show arrows
-                </label>
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={document.showOperations}
-                    onChange={(e) =>
-                      attempt(() =>
-                        operations([
-                          {
-                            op: "set_annotation_visibility",
-                            showOperations: e.target.checked,
-                          },
-                        ]),
-                      )
-                    }
-                  />
-                  Show operation labels
-                </label>
-                {document.mode === "simple" && (
-                  <p className="panel-note">
-                    Simple mode hides scaling annotations and keeps your steps
-                    for later.
-                  </p>
-                )}
-              </section>
-              <section className="panel-card">
-                <div className="panel-heading">
-                  <Grid3X3 size={17} />
-                  <h2>Appearance</h2>
-                </div>
-                <label className="ratio-label">
-                  Print size
-                  <select
-                    aria-label="Print size"
-                    value={document.size}
-                    onChange={(e) =>
-                      attempt(() =>
-                        operations([
-                          {
-                            op: "set_size",
-                            size: e.target.value as RatioDocument["size"],
-                          },
-                        ]),
-                      )
-                    }
-                  >
-                    <option value="compact">Compact · 80%</option>
-                    <option value="standard">Standard · lesson size</option>
-                    <option value="large">Large · 120%</option>
-                  </select>
-                </label>
-                <details className="ratio-headings">
-                  <summary>Custom headings</summary>
-                  <p className="panel-note">
-                    Use short labels to keep the table compact.
-                  </p>
-                  {document.headings.map((heading, index) => (
-                    <div className="ratio-heading-controls" key={index}>
-                      <HeadingInput
-                        key={`heading-${index}-${inputVersion}`}
-                        label={`Column ${index + 1} heading`}
-                        inputKey={`heading-${index}`}
-                        value={heading.text}
-                        onPending={onInputPending}
-                        onCommit={(text) => {
-                          const headings = structuredClone(document.headings);
-                          headings[index] = { ...headings[index], text };
-                          operations([{ op: "set_headings", headings }]);
-                        }}
-                      />
-                      <select
-                        aria-label={`Column ${index + 1} heading arrow`}
-                        value={heading.direction}
-                        onChange={(e) =>
-                          changeHeadings(index, {
-                            direction: e.target
-                              .value as typeof heading.direction,
-                          })
-                        }
-                      >
-                        <option value="right">Right arrow →</option>
-                        <option value="up">Up arrow ↑</option>
-                        <option value="none">No arrow</option>
-                      </select>
-                      <label className="check-row">
-                        <input
-                          type="checkbox"
-                          checked={heading.italic}
-                          onChange={(e) =>
-                            changeHeadings(index, { italic: e.target.checked })
-                          }
-                        />
-                        Italic maths heading
-                      </label>
-                    </div>
-                  ))}
-                </details>
-              </section>
             </fieldset>
             {warnings.length > 0 && (
               <section className="panel-card ratio-warnings">
@@ -983,6 +905,9 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
               if (pending.envelope) {
                 commit(pending.envelope);
                 setInputVersion((v) => v + 1);
+                setSelection(null);
+                setTool("edit");
+                setArrowFrom(null);
               } else pending.action?.();
             });
             cancelPending();
@@ -992,7 +917,7 @@ export default function RatioTablePage({ active = true }: { active?: boolean }) 
           <p>
             {pending.envelope
               ? "Your current table stays unchanged until you open this one. You can undo the replacement."
-              : "This will fill both target cells using the selected scaling operation. You can undo this change."}
+              : (pending.description ?? "You can undo this change.")}
           </p>
           {pending.envelope && (
             <div

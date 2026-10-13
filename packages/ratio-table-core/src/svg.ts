@@ -54,13 +54,19 @@ export function ratioMetrics(document: RatioDocument) {
           "layout_overflow",
           `A value in ${row.id} is too wide for the table. Use a shorter value or fraction.`,
         );
-  const width = 330 + gutter * 2,
+  // Two-column documents retain their exact lesson layout. Three columns each
+  // reserve a scaling lane, so the middle column's operation is explicit too.
+  const columnWidth = 150 + (document.headings.length !== 2 ? gutter : 0),
+    tableWidth = document.headings.length * columnWidth,
+    width = 30 + tableWidth + (document.headings.length === 2 ? gutter * 2 : 0),
     height = (document.rows.length + 1) * 100 + 30;
   return {
     width,
     height,
-    tableLeft: 15 + gutter,
+    tableLeft: 15 + (document.headings.length === 2 ? gutter : 0),
     tableTop: 15,
+    columnWidth,
+    tableWidth,
     gutter,
     widthCm: (width / 100) * scale,
     heightCm: (height / 100) * scale,
@@ -109,10 +115,15 @@ export function renderRatioSvg(document: RatioDocument): string {
   const m = ratioMetrics(document),
     left = m.tableLeft,
     top = m.tableTop;
-  let body = `<path class="ratio-rules" d="M${left + 150} ${top}V${top + (document.rows.length + 1) * 100}M${left} ${top + 100}H${left + 300}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
+  const rules = Array.from(
+    { length: document.headings.length - 1 },
+    (_, i) =>
+      `M${left + (i + 1) * m.columnWidth} ${top}V${top + (document.rows.length + 1) * 100}`,
+  ).join("");
+  let body = `<path class="ratio-rules" d="${rules}M${left} ${top + 100}H${left + m.tableWidth}" stroke-width="${(2.25 / 72) * 2.54 * 100}"/>`;
   document.headings.forEach((heading, i) => {
     const width = textWidth(heading.text, FONT, heading.italic),
-      centre = left + 75 + i * 150;
+      centre = left + 75 + i * m.columnWidth;
     const hasArrow = heading.direction !== "none",
       textX = centre - (hasArrow ? 19 : 0);
     body += text(
@@ -127,16 +138,25 @@ export function renderRatioSvg(document: RatioDocument): string {
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
-      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + 75 + column * 150, top + 150 + i * 100)}</g>`;
+      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + 75 + column * m.columnWidth, top + 150 + i * 100)}</g>`;
     }),
   );
   if (document.mode === "annotated")
     for (const step of document.transitions) {
       const index = document.rows.findIndex((r) => r.id === step.from),
         y = top + 150 + index * 100;
-      for (const side of [-1, 1]) {
-        const edge = left + (side < 0 ? 0 : 300),
-          x = edge + side * 12;
+      const lanes =
+        document.headings.length === 2
+          ? [
+              { side: -1, edge: left },
+              { side: 1, edge: left + 300 },
+            ]
+          : document.headings.map((_, column) => ({
+              side: 1,
+              edge: left + column * m.columnWidth + 150,
+            }));
+      for (const { side, edge } of lanes) {
+        const x = edge + side * 12;
         if (document.showArrows) {
           // Both arrows travel downwards. Explicit triangles follow the terminal tangent.
           body += `<g class="ratio-scaling-arrow"><path d="M${x} ${y + 12}C${x + side * 28} ${y + 30} ${x + side * 28} ${y + 70} ${x} ${y + 88}" stroke-width="2.6"/><path d="M${x} ${y + 88}l${side * 4} -12l${side * 7} 9Z" fill="#202020" stroke="none"/></g>`;

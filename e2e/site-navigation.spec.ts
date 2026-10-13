@@ -33,8 +33,9 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
   await page.goto("/?tool=graph");
   await addLine(page);
   await tools(page).getByRole("link", { name: "Ratio tables" }).click();
-  await current(page).getByRole("button", { name: "Add row", exact: true }).click();
+  await current(page).getByRole("group", { name: "Table structure" }).getByRole("button", { name: "Add row", exact: true }).click();
   await expect(current(page).getByLabel("Row 3 x cell type", { exact: true })).toBeVisible();
+  await current(page).getByRole("region", { name: "Ratio table workspace" }).focus();
   await page.keyboard.press("Control+z");
   await expect(current(page).getByLabel("Row 3 x cell type", { exact: true })).toHaveCount(0);
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
@@ -49,7 +50,6 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
 
 test("invalid ratio drafts survive leaving and returning without silently replacing their values", async ({ page }) => {
   await page.goto("/?tool=ratio-table");
-  await page.getByLabel("Row 1 x cell type", { exact: true }).selectOption("number");
   const field = current(page).getByLabel("Row 1 x value", { exact: true });
   await field.fill("1/");
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
