@@ -1,9 +1,10 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { Resvg } from "@resvg/resvg-js";
 import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { graphHash } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
-import { ratioHash } from "../../packages/ratio-table-core/src/interchange";
+import { ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 const base = process.argv[2];
 if (!base)
@@ -204,9 +205,24 @@ try {
     if (format === "png") verifyPrintBytes(new Uint8Array(await response.arrayBuffer()), factorEdit.printRaster.width, factorEdit.printRaster.height);
     if (format === "svg") {
       const svg = await response.text();
-      if (svg.includes("<text") || (svg.match(/class="ratio-scaling-arrow"/g) ?? []).length !== 3 ||
-          (svg.match(/class="ratio-operation"/g) ?? []).length !== 3)
-        throw Error("Three-column arrows or outlined SVG were lost.");
+      if (svg.includes("<text")) throw Error("Extended SVG text was not outlined.");
+      // Outlining removes CSS classes. Check actual exported ink in each lane.
+      const metrics = ratioMetrics(factorEdit.envelope.document);
+      const raster = new Resvg(svg.replace(/width="[^"]+"/, `width="${Math.ceil(metrics.width)}px"`)
+        .replace(/height="[^"]+"/, `height="${metrics.height}px"`)).render();
+      const pixels = raster.pixels;
+      const ink = (x1: number, x2: number, y1: number, y2: number) => {
+        let count = 0;
+        for (let y = y1; y < y2; y++) for (let x = Math.round(x1); x < Math.round(x2); x++)
+          if (pixels[(y * raster.width + x) * 4] < 100) count++;
+        return count;
+      };
+      for (let column = 0; column < 3; column++) {
+        const edge = metrics.tableLeft + column * metrics.columnWidth + 150;
+        if (ink(edge + 9, edge + 41, 175, 256) < 50 ||
+            ink(edge + 51, edge + metrics.gutter - 5, 198, 244) < 20)
+          throw Error("A three-column arrow or factor lane is blank in the exported SVG.");
+      }
     }
     if (format === "json" && await ratioHash(await response.json() as RatioEnvelope) !== factorEdit.contentHash)
       throw Error("Extended ratio JSON changed.");
