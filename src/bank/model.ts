@@ -1,3 +1,5 @@
+import { compareAccessibility, type QuestionPerformance } from "./performance";
+
 export type Tier = "all" | "F" | "H";
 export type CalculatorFilter = "all" | "yes" | "no";
 export type CollectionFilter = "all" | "past" | "mock";
@@ -26,6 +28,7 @@ export interface BankPart {
 }
 
 export interface BankQuestion {
+  performance?: QuestionPerformance;
   id: string;
   source: string;
   set: string;
@@ -66,6 +69,7 @@ export interface BankTopic {
 }
 
 export interface BankCatalogue {
+  paperQuestionCounts?: Record<string, number>;
   schemaVersion: 1;
   version: string;
   title: string;
@@ -124,7 +128,7 @@ export function topicQuestions(catalogue: BankCatalogue, code: string): BankQues
 export function filterQuestions(catalogue: BankCatalogue, route: BankRoute): BankQuestion[] {
   const questions = topicQuestions(catalogue, route.code).filter(q => questionEligible(q, route));
   // Filter first: retain the matching tier and mapping, including old direct links.
-  return route.code ? distinctQuestions(questions, route.question) : questions;
+  return (route.code ? distinctQuestions(questions, route.question) : questions).sort(compareAccessibility);
 }
 
 export const questionIdentity = (q: BankQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
