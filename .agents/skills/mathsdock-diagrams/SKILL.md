@@ -34,6 +34,36 @@ Use the returned envelope and its `contentHash` as the next revision's `baseHash
 
 Preserve all unrelated settings and content. Use overwrite only when the user requests replacement of existing target values. After a revision, continue with its returned envelope and hash. If a stale hash is rejected, reconcile against the latest returned document; do not guess a replacement hash.
 
+## Print output for another AI project
+
+The consuming AI owns booklet assembly, final placement and saving. Use the
+returned physicalSizeCm for native placement and preserve aspect ratio. The
+downloaded 600 ppi PNG is the print image; the inline preview is not. Service SVG
+is vector artwork with outlined lettering. printVerified checks the PNG, not a
+downstream document or physical printer. Keep the JSON for revisions.
+
+Inspect actual discovery before using optional output tools. If printGuidance
+is returned, its visible text, grid, answer-line and row measurements describe
+the current resource at native size and do not enter its definition/hash.
+When considering a resize, check_diagram_placement accepts kind, the returned
+envelope, and widthMm and/or heightMm. No baseHash is needed. It reports a
+proportional fit and print consequences without inspecting or editing a booklet.
+Warnings do not impose a universal minimum or require repeated confirmations.
+
+If available and useful, download_diagram_bundle accepts kind and the saved
+envelope and provides JSON/SVG/print PNG/print facts/README as one ZIP. Retrieve
+the actual archive before claiming success; a returned link is not a saved file.
+Repeat the call with saved source to refresh expiry. The server retains no
+artifact library. Optional failure leaves the individual downloads usable; never
+invent a tool call or signed URL. Legacy Graph fonts require the explicitly
+reported portable conversion before bundling. Saving to another project is the
+consumer's action. The website opens extracted source.json, not the ZIP itself.
+
+For quadratic resources, inspect value_graph_capabilities and use the discovered
+create_value_graph/revise_value_graph tools. Preserve blank/answer-line/zero
+states, hidden labels and deliberate plotting errors. Calculating answers and
+plotting worked variants remain explicit actions.
+
 ## Return usable artifacts
 
 Show the returned preview and concise links to the actual SVG, verified print PNG, editable JSON and website editor where supplied. Use only tool-returned URLs or embedded resources; never construct signed download links. Editor links should target `mathsdock.co.uk`; report a different returned target rather than rewriting a signed or encoded URL by guesswork.

@@ -1,8 +1,20 @@
 import type { RatioDocument, RatioCell } from "./schema";
 import { RatioError } from "./numbers";
 import { glyphAdvance } from "./font-metrics";
+import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 
 const FONT = (12 / 72) * 2.54 * 100;
+const ROW_HEIGHT = 100;
+const ANSWER_LINE_WIDTH = 60;
+export function ratioPrintFacts(document: RatioDocument) {
+  const m = ratioMetrics(document), mmPerUnit = m.widthCm * 10 / m.width;
+  return guidance({
+    textSizesPt: renderedTextSizesPt(renderRatioSvg(document), mmPerUnit * 72 / 25.4),
+    answerLineLengthsMm: document.rows.some((r) => r.cells.some((c) => c.kind === "answer-line"))
+      ? [ANSWER_LINE_WIDTH * mmPerUnit] : [],
+    tableRowHeightsMm: [ROW_HEIGHT * mmPerUnit],
+  });
+}
 export function textWidth(text: string, size = FONT, italic = false): number {
   return Array.from(text).reduce(
     (sum, c) => sum + glyphAdvance(c, italic) * size,
@@ -59,7 +71,7 @@ export function ratioMetrics(document: RatioDocument) {
   const columnWidth = 150 + (document.headings.length !== 2 ? gutter : 0),
     tableWidth = document.headings.length * columnWidth,
     width = 30 + tableWidth + (document.headings.length === 2 ? gutter * 2 : 0),
-    height = (document.rows.length + 1) * 100 + 30;
+    height = (document.rows.length + 1) * ROW_HEIGHT + 30;
   return {
     width,
     height,
@@ -103,7 +115,7 @@ function number(value: string, x: number, y: number, size = FONT) {
 function cellMarkup(cell: RatioCell, x: number, y: number) {
   if (cell.kind === "number") return number(cell.value, x, y);
   if (cell.kind === "answer-line")
-    return `<path class="ratio-answer-line" d="M${x - 30} ${y + 16}H${x + 30}" stroke-width="2"/>`;
+    return `<path class="ratio-answer-line" d="M${x - ANSWER_LINE_WIDTH / 2} ${y + 16}H${x + ANSWER_LINE_WIDTH / 2}" stroke-width="2"/>`;
   return "";
 }
 function arrow(x: number, y: number, direction: "up" | "right") {

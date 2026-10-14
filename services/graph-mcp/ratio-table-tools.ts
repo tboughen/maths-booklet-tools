@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
+import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
@@ -57,6 +59,7 @@ export const ratioOutputSchema = z
       .strict(),
     printDpi: z.literal(600),
     printVerified: z.literal(true),
+    printGuidance: printGuidanceSchema.optional(),
   })
   .strict();
 const ratioCapabilitiesSchema = z
@@ -205,6 +208,7 @@ export function ratioTools(
     limits.output(preview.png!.byteLength);
     return {
       structuredContent: {
+        printGuidance: ratioPrintFacts(envelope.document),
         envelope,
         contentHash: hash,
         rendererVersion: envelope.rendererVersion,
@@ -217,7 +221,7 @@ export function ratioTools(
         printDpi: 600 as const,
         printVerified: true as const,
       },
-      content,
+      content: [...content, { type: "text" as const, text: PRINT_INSTRUCTIONS }],
     };
   }
   function register(server: McpServer, connectionSignal: AbortSignal) {

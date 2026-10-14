@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "rows": [
+    {"id": "start", "cells": [{"kind": "number", "value": "4"}, {"kind": "number", "value": "8"}]},
+    {"id": "target", "cells": [{"kind": "number", "value": "1"}, {"kind": "answer-line"}]}
+  ],
+  "transitions": [{"from": "start", "to": "target", "operation": "divide", "factor": "4"}],
+  "mode": "annotated", "size": "standard"
+}

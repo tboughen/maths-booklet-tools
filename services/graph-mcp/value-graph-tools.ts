@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { valuePrintFacts } from "../../packages/value-graph-core/src/svg";
+import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
@@ -40,6 +42,7 @@ const output = z
     printRaster: z.object({ width: z.number(), height: z.number() }),
     printDpi: z.literal(600),
     printVerified: z.literal(true),
+    printGuidance: printGuidanceSchema.optional(),
   })
   .strict();
 export function valueGraphTools(
@@ -146,6 +149,7 @@ export function valueGraphTools(
     limits.output(preview.png!.byteLength);
     return {
       structuredContent: {
+        printGuidance: valuePrintFacts(e),
         envelope: e,
         contentHash: hash,
         rendererVersion: "value-graph-1" as const,
@@ -157,7 +161,7 @@ export function valueGraphTools(
         printDpi: 600 as const,
         printVerified: true as const,
       },
-      content,
+      content: [...content, { type: "text" as const, text: PRINT_INSTRUCTIONS }],
     };
   }
   function register(server: McpServer, connection: AbortSignal) {

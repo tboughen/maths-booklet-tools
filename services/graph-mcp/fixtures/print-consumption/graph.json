@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "axes": {
+    "x": {"negativeSquares": 4, "positiveSquares": 4, "unitsPerSquare": 0.5},
+    "y": {"negativeSquares": 3, "positiveSquares": 5, "unitsPerSquare": 2}
+  },
+  "objects": [
+    {"id": "main", "kind": "line", "equation": {"kind": "slope", "slope": "2", "intercept": "1"}, "equationVisible": false},
+    {"id": "fraction", "kind": "point", "position": {"x": "-1/2", "y": "3"}}
+  ]
+}
