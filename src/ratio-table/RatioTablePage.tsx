@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ChevronDown,
   Copy,
   Download,
   ArrowDown,
   MousePointer2,
   Type,
-  Redo2,
-  RotateCcw,
   Table2,
-  Undo2,
 } from "lucide-react";
 import {
   applyRatioOperations,
@@ -40,6 +36,7 @@ import { RatioCanvas } from "./RatioCanvas";
 import type { RatioSelection } from "./RatioCanvas";
 import { RatioInspector } from "./RatioInspector";
 import { RatioDialog } from "./RatioDialog";
+import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
 
@@ -346,7 +343,7 @@ export default function RatioTablePage({
       if (
         event.composedPath().includes(editor.current as EventTarget) &&
         target.closest(
-          ".ratio-inline-cell, .ratio-inline-heading, .ratio-inline-factor, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, .ratio-toolbar [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
+          ".ratio-inline-cell, .ratio-inline-heading, .ratio-inline-factor, .ratio-arrow-target, .ratio-row-target, .ratio-selection-panel input, .ratio-selection-panel select, .ratio-selection-panel button, .ratio-selection-panel label, [data-ratio-select], .ratio-action-pair button, .ratio-settings details button",
         )
       )
         return;
@@ -580,176 +577,95 @@ export default function RatioTablePage({
         )}
         <section className="workspace">
           <Panel className="editor-card">
-            <div className="editor-toolbar ratio-toolbar">
-              <div
-                className="tool-group"
-                role="group"
-                aria-label="Ratio editing tools"
-              >
-                <button
-                  className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
-                  aria-pressed={tool === "edit"}
-                  disabled={structureDisabled}
-                  onClick={() => {
-                    setTool("edit");
-                    setArrowFrom(null);
-                    setSelection(null);
-                    setSelectionActive(false);
-                    setMessage("");
-                  }}
-                >
-                  <MousePointer2 size={18} />
-                  <span>Edit</span>
-                </button>
-                <button
-                  className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
-                  aria-pressed={tool === "arrow"}
-                  data-ratio-select
-                  disabled={structureDisabled || document.rows.length < 2}
-                  onClick={() => {
-                    setTool("arrow");
-                    setArrowFrom(null);
-                    showSelection({ kind: "step", from: document.rows[0].id });
-                    setMessage("");
-                  }}
-                >
-                  <ArrowDown size={18} />
-                  <span>Add arrow</span>
-                </button>
-                <button
-                  className="tool-button"
-                  disabled={structureDisabled}
-                  data-ratio-select
-                  onClick={() => {
-                    setTool("edit");
-                    setArrowFrom(null);
-                    showSelection({ kind: "headings" });
-                  }}
-                >
-                  <Type size={18} />
-                  <span>Edit headings</span>
-                </button>
-              </div>
-              <span className="toolbar-rule" />
-              <button
-                className="icon-button"
-                aria-label="Undo"
-                disabled={!!recovery || !history.past.length}
-                onClick={undo}
-              >
-                <Undo2 size={18} />
-              </button>
-              <button
-                className="icon-button"
-                aria-label="Redo"
-                disabled={!!recovery || !history.future.length}
-                onClick={redo}
-              >
-                <Redo2 size={18} />
-              </button>
-              <button
-                className="tool-button reset-button"
-                disabled={structureDisabled}
-                onClick={() => replace(emptyRatioTable(), "Reset this table?")}
-              >
-                <RotateCcw size={16} />
-                Reset
-              </button>
-              <span className="toolbar-spacer" />
-              <div className="copy-split">
-                <button
-                  className="copy-main"
-                  disabled={exportDisabled}
-                  onClick={() =>
-                    void runExport(
-                      () => copyRatioForWord(envelope),
-                      "Copied at its print size. Paste into Word with Ctrl+V.",
-                    )
-                  }
-                >
-                  <Copy size={16} />
-                  {busy ? "Preparing…" : "Copy for Word"}
-                </button>
-                <button
-                  className="copy-more"
-                  aria-label="Download options"
-                  aria-expanded={exportsOpen}
-                  disabled={exportDisabled}
-                  onClick={() => setExportsOpen((v) => !v)}
-                >
-                  <ChevronDown size={16} />
-                </button>
-              </div>
-            </div>
-            {exportsOpen && (
-              <div className="export-menu ratio-export-menu" role="menu">
-                <button
-                  role="menuitem"
-                  onClick={() =>
-                    void runExport(() => downloadRatioImage(envelope, "svg"))
-                  }
-                >
-                  <Download size={18} />
-                  <span>
-                    <strong>Download SVG</strong>
-                    <small>Scalable vector with bundled fonts</small>
-                  </span>
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() =>
-                    void runExport(() => downloadRatioImage(envelope, "png"))
-                  }
-                >
-                  <Download size={18} />
-                  <span>
-                    <strong>Download PNG</strong>
-                    <small>600 ppi · print-ready image</small>
-                  </span>
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() => {
-                    downloadBlob(
-                      new Blob([JSON.stringify(envelope, null, 2)], {
-                        type: "application/json",
-                      }),
-                      "maths-ratio-table.json",
-                    );
-                    setExportsOpen(false);
-                  }}
-                >
-                  <Download size={18} />
-                  <span>
-                    <strong>Save editable table</strong>
-                    <small>Reopen to change values and scaffolds</small>
-                  </span>
-                </button>
-                <button role="menuitem" onClick={() => file.current?.click()}>
-                  <Table2 size={18} />
-                  <span>
-                    <strong>Open saved table</strong>
-                    <small>Preview before replacing your draft</small>
-                  </span>
-                </button>
-                <button
-                  role="menuitem"
-                  onClick={() =>
-                    void runExport(async () => {
-                      await navigator.clipboard.writeText(
-                        ratioEditorLink(envelope, location.href),
+            <EditorToolbar
+              canUndo={!recovery && !!history.past.length}
+              canRedo={!recovery && !!history.future.length}
+              onUndo={undo}
+              onRedo={redo}
+              onReset={() => replace(emptyRatioTable(), "Reset this table?")}
+              resetDisabled={structureDisabled}
+              exportDisabled={exportDisabled}
+              busy={busy}
+              onCopy={() =>
+                void runExport(
+                  () => copyRatioForWord(envelope),
+                  "Copied at its print size. Paste into Word with Ctrl+V.",
+                )
+              }
+              menuOpen={exportsOpen}
+              onToggleMenu={() => setExportsOpen((v) => !v)}
+            />
+            <div className="editor-export-popover" hidden={!exportsOpen}>
+              {exportsOpen && (
+                <div className="export-menu ratio-export-menu" role="menu">
+                  <button
+                    role="menuitem"
+                    onClick={() =>
+                      void runExport(() => downloadRatioImage(envelope, "svg"))
+                    }
+                  >
+                    <Download size={18} />
+                    <span>
+                      <strong>Download SVG</strong>
+                      <small>Scalable vector with bundled fonts</small>
+                    </span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() =>
+                      void runExport(() => downloadRatioImage(envelope, "png"))
+                    }
+                  >
+                    <Download size={18} />
+                    <span>
+                      <strong>Download PNG</strong>
+                      <small>600 ppi · print-ready image</small>
+                    </span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      downloadBlob(
+                        new Blob([JSON.stringify(envelope, null, 2)], {
+                          type: "application/json",
+                        }),
+                        "maths-ratio-table.json",
                       );
-                    }, "Editable link copied. Anyone with the link can open this table.")
-                  }
-                >
-                  <Copy size={18} />
-                  <span>
-                    <strong>Copy editable link</strong>
-                    <small>Share this table for further editing</small>
-                  </span>
-                </button>
-              </div>
-            )}
+                      setExportsOpen(false);
+                    }}
+                  >
+                    <Download size={18} />
+                    <span>
+                      <strong>Save editable table</strong>
+                      <small>Reopen to change values and scaffolds</small>
+                    </span>
+                  </button>
+                  <button role="menuitem" onClick={() => file.current?.click()}>
+                    <Table2 size={18} />
+                    <span>
+                      <strong>Open saved table</strong>
+                      <small>Preview before replacing your draft</small>
+                    </span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() =>
+                      void runExport(async () => {
+                        await navigator.clipboard.writeText(
+                          ratioEditorLink(envelope, location.href),
+                        );
+                      }, "Editable link copied. Anyone with the link can open this table.")
+                    }
+                  >
+                    <Copy size={18} />
+                    <span>
+                      <strong>Copy editable link</strong>
+                      <small>Share this table for further editing</small>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
             <input
               ref={file}
               className="sr-only"
@@ -828,6 +744,66 @@ export default function RatioTablePage({
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
             <fieldset disabled={!!recovery} className="ratio-settings">
+              <section className="panel-card specialist-tools">
+                <h2>Table tools</h2>
+                <div
+                  className="tool-group"
+                  role="group"
+                  aria-label="Ratio editing tools"
+                >
+                  <button
+                    className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
+                    aria-pressed={tool === "edit"}
+                    disabled={structureDisabled}
+                    onClick={() => {
+                      setTool("edit");
+                      setArrowFrom(null);
+                      setSelection(null);
+                      setSelectionActive(false);
+                      setMessage("");
+                    }}
+                  >
+                    <MousePointer2 size={18} />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
+                    aria-pressed={tool === "arrow"}
+                    data-ratio-select
+                    disabled={structureDisabled || document.rows.length < 2}
+                    onClick={() => {
+                      setTool("arrow");
+                      setArrowFrom(null);
+                      showSelection({
+                        kind: "step",
+                        from: document.rows[0].id,
+                      });
+                      setMessage("");
+                    }}
+                  >
+                    <ArrowDown size={18} />
+                    <span>Add arrow</span>
+                  </button>
+                  <button
+                    className="tool-button"
+                    disabled={structureDisabled}
+                    data-ratio-select
+                    onClick={() => {
+                      setTool("edit");
+                      setArrowFrom(null);
+                      showSelection({ kind: "headings" });
+                    }}
+                  >
+                    <Type size={18} />
+                    <span>Edit headings</span>
+                  </button>
+                </div>
+
+                <p className="panel-note">
+                  Edit values on the table. Add and remove rows or columns
+                  beside its edges.
+                </p>
+              </section>
               <RatioInspector
                 document={document}
                 selection={selection}

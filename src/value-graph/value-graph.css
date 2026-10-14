@@ -8,10 +8,6 @@
   font-style: italic;
   src: url("../../assets/graph-fonts/STIXTwoText-Italic.otf");
 }
-.vg-editor .workspace {
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-}
 .vg-editor fieldset {
   border: 0;
   padding: 0;
@@ -19,8 +15,7 @@
   min-width: 0;
 }
 .vg-editor .editor-card {
-  padding: 18px;
-  margin-bottom: 14px;
+  padding: 0;
 }
 .vg-editor h2 {
   font-size: 1.05rem;
@@ -138,9 +133,8 @@
   overflow: auto;
   max-width: 100%;
   padding: 14px;
-  background: #edf1f6;
-  border-radius: 8px;
-  margin-top: 10px;
+  background: var(--surface);
+  height: max(380px, calc(100dvh - 350px));
 }
 .vg-paper {
   position: relative;
@@ -149,6 +143,7 @@
 }
 .vg-editor-frame {
   position: relative;
+  margin-inline: auto;
 }
 .vg-paper {
   position: absolute;
@@ -176,13 +171,14 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  width: 164px;
+  width: 96px;
 }
 .vg-table-tools strong,
 .vg-graph-tools strong {
   font-size: 13px;
   color: #44586e;
 }
+.vg-table-tools .vg-actions strong { flex-basis: 100%; }
 .vg-axis-end {
   position: absolute;
   display: flex;
@@ -338,8 +334,10 @@
   margin-top: 14px;
 }
 .vg-size {
-  margin-bottom: 0;
-  color: #44586e;
+  margin: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
 }
 .vg-axis-controls {
   display: flex;
@@ -391,26 +389,23 @@
   display: block;
   font-size: 0.9rem;
 }
-@media (max-width: 1050px) {
-  .vg-editor .workspace {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .vg-editor .inspector-stack {
-    width: 100%;
-  }
-  .vg-editor .editor-card {
-    min-width: 0;
-  }
-}
+/* Use the site's controls for the interface; mathematical SVG styling is separate. */
+.vg-editor button { border-radius: 4px; color: var(--ink); font-family: inherit; }
+.vg-editor .editor-toolbar .icon-button { width: var(--control-lg); min-height: var(--control-lg); padding: 0; border-color: transparent; background: transparent; }
+.vg-editor .editor-toolbar .tool-button { min-height: var(--control-lg); padding: 0 12px; border-color: transparent; background: transparent; font-size: var(--button-label); font-weight: 650; }
+.vg-editor .editor-toolbar .reset-button { color: #7d4b47; }
+.vg-editor .editor-toolbar :is(.copy-main, .copy-more) { min-height: var(--control-lg); padding: 0 16px; color: white; background: var(--blue); border: 0; font-size: var(--button-label); font-weight: 650; }
+.vg-editor .editor-toolbar .copy-main { border-radius: 4px 0 0 4px; gap: 8px; line-height: 18px; }
+.vg-editor .editor-toolbar .copy-more { width: var(--control-lg); padding: 0; border-left: 1px solid #ffffff40; border-radius: 0 4px 4px 0; }
+.vg-editor .editor-toolbar :is(.copy-main, .copy-more):hover:not(:disabled) { background: var(--blue-dark); }
+.vg-editor .export-menu button { border: 0; background: white; }
+.vg-editor .ratio-preview-controls select { display: inline; width: auto; margin: 0; }
+.vg-editor .panel-card h2 { margin: 0; font: 600 17px/1.3 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #213c59; }
+.vg-editor .vg-context-content { margin-top: 12px; }
+.vg-editor :is(.vg-message, .vg-recovery, .vg-warning) { margin: 10px 14px; }
 @media (max-width: 440px) {
-  .vg-editor .editor-card {
-    padding: 10px;
-  }
   .vg-fields {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .vg-toolbar button {
-    flex: 1 1 auto;
   }
   .vg-display-controls {
     align-items: flex-start;
