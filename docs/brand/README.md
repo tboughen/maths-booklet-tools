@@ -1,45 +1,48 @@
-# Maths Dock branding
+# Maths Dock — wrapped M revision
 
-Tim approved `approved-draft.png` on 11 October 2026. The SVG masters trace its
-full-size symbol and lettering rather than substituting a typeface. The M has
-straight geometric edges. Contours are simplified and smoothed slightly during
-vector conversion; the draft remains the reference for visual review.
+Prepared on 14 October 2026 from the current production branding source at
+commit `0f4ab4d74f70de149e9f291e26387a49f8f1a599`, branch
+`codex/layout-cloudflare`. Tim approved these assets for website publication, including the favicon.
+Release evidence is retained in reports/mathsdock-wrapped-logo-2026-10-14.
 
-## Assets
+The M uses the rounded L-shaped wall and camera from Tim's 3D reference image.
+Its upright strokes remain straight in 3D, while the letter follows the two
+perpendicular faces and their rounded corner. The top and base are level in
+the model. The letter height is fitted optically inside the existing logo;
+the base is lowered to sit close above the water line, with a clear ink gap.
 
-- `public/brand/mathsdock-logo.svg`: full navy/blue logo, transparent background.
-- `public/brand/mathsdock-logo-inverse.svg`: white/light-blue logo for navy grounds.
-- `public/brand/mathsdock-icon.svg`: standalone symbol.
-- `public/brand/mathsdock-icon-inverse.svg`: inverted standalone symbol.
-- `public/brand/mathsdock-icon-mono.svg`: symbol using `currentColor` throughout.
-- `public/favicon.svg`: full symbol on a white square, readable against either
-  browser theme. PNG fallbacks are 16, 32 and 48 pixels.
-- `public/brand/icon-180.png`, `icon-192.png`, `icon-512.png`: mobile icons.
-- `public/brand/mathsdock-social.png`: 1200 × 630 sharing image.
-- `review-board.svg` and `review-board.png`: vector conversion review, including
-  inverse, standalone and actual-size favicon examples.
+Following Tim's second reference, both lower stems now extend to a curved cut
+parallel to the logo's existing waterline, leaving a 7px vertical clearance at
+native symbol size. The lower ends are no longer flat. The upper M and its
+corner wrap remain unchanged. `waterline_profile.py` preserves the existing
+SVG contour used to construct those bottom edges.
 
-The SVGs contain paths only; they need no external font or raster image.
-Standard colours: navy `#173c65`, blue `#0f62fe`; inverse water `#2bb8ff`.
-The wall outline, four bollards, three rope spans, convex left shoulder and
-three downward joints below the middle/right bollards follow the approved draft.
-Fine stonework and rope detail naturally reduces at favicon sizes.
+The rightmost bollard is now scaled to 85% of its previous width and height,
+anchored at the centre of its sloping wall base. The adjoining rope controls
+reconnect to the smaller post at their original heights, preserving the rope's
+thickness (5px at the attachment) rather than scaling it with the post.
+The approved wrapped M, other three bollards,
+wall/stone detail, water and outlined wordmark are unchanged from the preceding
+review draft. The retained approved raster and reference images are unmodified.
+
+The assets include normal/inverse full logos, normal/inverse/monochrome symbols,
+SVG/PNG favicons, mobile icons and social image. The SVGs use vector paths only,
+with no font or raster-image dependency. `review-board.png` shows the revision;
+`comparison.png` shows the pinched rope before correction and the restored rope
+at full and small sizes. The smaller bollard is retained in both.
 
 ## Rebuild
 
-From the repository root with Python (numpy/Pillow) and Node available:
+From the package root with numpy/Pillow and the app's Node dependencies:
 
 ```text
 python scripts/brand/trace-master.py docs/brand/approved-draft.png
 node scripts/brand/render-assets.mjs
 ```
 
-The website uses the full SVG in the header with an accessible home-link label.
-Page titles, metadata and question-bank PDF creator use “Maths Dock”. The
-homepage starts directly with its cards; its separate heading/tagline are
-removed at Tim's request. Existing storage keys, routes and section names are preserved.
-Brand assets are included in both the Cloudflare and GitHub Pages builds.
+`scripts/brand/wrapped_monogram.py` contains the editable surface, camera and
+optical placement settings. `--output-root <directory>` on the tracer generates
+separate candidate masters. Use the current production repository baseline for
+a future release; do not deploy an older Cloudflare checkout.
 
-Review the preview before publishing the branding to the production domain.
-Social metadata uses the production image URL; it will work after production
-publication. GitHub Pages remains the retained migration fallback.
+`scripts/brand/bollard_perspective.py` contains the 0.85 scale and base anchor.

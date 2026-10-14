@@ -89,3 +89,16 @@ the final mobile screenshot. One initial live attempt timed out during Worker
 propagation; the final propagation-aware check passed. No repeat PDF run was
 needed for this heading/focus-only preview change. The full production release
 above subsequently verified all four PDF exports again.
+
+
+## Approved wrapped M replacement — 14 October 2026
+
+Tim authorised replacing the website logo and favicon. Prepared from the
+current production source .layout-cf-release / codex/layout-cloudflare,
+baseline 0f4ab4d74f70de149e9f291e26387a49f8f1a599. The M follows the rounded
+L-shaped wall; both feet follow the waterline with clear separation. The last
+bollard is 15% smaller and the adjoining rope retains its original thickness.
+All logo variants, favicons, mobile icons and sharing artwork are updated.
+Browser image links use a content version to refresh cached artwork.
+Exact checks and deployment outcome: reports/mathsdock-wrapped-logo-2026-10-14.
+Earlier entries above are historical releases.

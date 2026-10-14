@@ -23,7 +23,7 @@ export function SiteHeader({ page }: { page: PageId }) {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
   }}>
     <div className="site-navigation-row">
-      <a className="site-brand" href={pageHref("home")} aria-label="Maths Dock home"><img className="site-brand-logo" src={`${import.meta.env.BASE_URL}brand/mathsdock-logo.svg`} width="1501" height="326" alt="Maths Dock" /></a>
+      <a className="site-brand" href={pageHref("home")} aria-label="Maths Dock home"><img className="site-brand-logo" src={`${import.meta.env.BASE_URL}brand/mathsdock-logo.svg?v=964b436da6be`} width="1501" height="326" alt="Maths Dock" /></a>
       <button ref={button} type="button" className="site-menu-toggle" aria-expanded={open} aria-controls="site-sections" onClick={() => setOpen(!open)}>{open ? <X size={18} /> : <Menu size={18} />}<span>{page === "home" ? "Sections" : booklet ? "Booklet tools" : "Question bank"}</span><ChevronDown size={14} /></button>
       <nav id="site-sections" aria-label="Main sections" className={`site-sections${open ? " is-open" : ""}`}>
         <a href={pageHref("question-bank")} aria-current={page === "question-bank" ? "page" : undefined}><BookOpen size={17} aria-hidden="true" />Question bank</a>
