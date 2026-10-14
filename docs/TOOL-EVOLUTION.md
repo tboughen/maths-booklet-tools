@@ -48,6 +48,12 @@ The [11 October site organisation change](https://github.com/tboughen/maths-book
 
 The resulting design direction is a specialist mathematical editor inside a familiar shell. Reuse the shared navigation, visual hierarchy, editing conventions, recovery and export behaviour. Design each new representation around its own mathematics and classroom use.
 
+## Plotting quadratic graphs: clean resource and source examples, 14 October
+
+Tim requested a white resource area that less technical teachers can screenshot directly. Axis controls now sit beyond the resource in the blue workspace, aligned with their axes; table controls sit further right at table height. Transparent direct editing remains on the artwork. The shared bar places image-only Copy to clipboard before Copy for Word, keeping the Word physical-size route. The stable route and editable file format are unchanged by the new display name.
+
+The quadratic presets demonstrate another reusable feature: editable examples linked to real published past-paper questions. Include this wherever suitable questions exist in future tools, retaining traceable sources and pupil blanks and making worked output explicit. See the guide and brief for acceptance cases.
+
 ## Reference implementation
 
 The 14 October [three-editor layout audit](EDITOR-LAYOUT-AUDIT.md) extends this direction to Table of values & graphs: a shared document utility bar, specialist actions in the right-hand inspector, and selected local controls beside the resource. Direct editing remains useful without putting every settings panel beside the diagram.

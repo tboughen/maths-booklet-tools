@@ -34,6 +34,10 @@ Use [the preview convention](TOOL-CARD-PREVIEWS.md); include this in the first r
 - **Layout review:** Preview on the right on desktop/tablet; stacked on narrow phones; check actual card size, complete labels and image/link keyboard behaviour.
 - **Verification evidence:** Source reopening, mathematical checks, screenshots and built/live asset checks where publication is authorised.
 
+## Source-linked examples
+
+List suitable published past-paper questions, their verified paper/tier/question links and the teaching purpose of each editable preset. Specify pupil blanks and explicit worked variants. If no suitable source exists, explain why.
+
 ## Interaction plan
 
 | Teacher action | Direct interaction | Keyboard or labelled control | Placement | Undo and validation behaviour |
@@ -44,7 +48,7 @@ Use [the preview convention](TOOL-CARD-PREVIEWS.md); include this in the first r
 | Hide or show scaffolding | | | | |
 | Export | | | | |
 
-Specify the default state, Enter/Escape/Tab behaviour, click-away selection clearing and handling of invalid drafts. Identify which values appear more than once and must stay synchronized. Show desktop and narrow-screen control placement; state what scrolls if the diagram is too wide.
+Specify the default state, Enter/Escape/Tab behaviour, click-away selection clearing and handling of invalid drafts. Identify which values appear more than once and must stay synchronized. Identify the clean white snip area and position visible utilities beyond it in the blue workspace, aligned with their effect. Show desktop and narrow-screen control placement; state what scrolls if the diagram is too wide.
 
 ## Mathematical and teaching rules
 
@@ -59,7 +63,7 @@ Specify the default state, Enter/Escape/Tab behaviour, click-away selection clea
 ## Saving and outputs
 
 - **Print contract:** Dimensions, typography, line weights, margins and overflow behaviour.
-- **Exports:** Copy for Word, SVG, PNG and editable file; explain any variation from the existing pattern.
+- **Exports:** Image-only Copy to clipboard first, Copy for Word, SVG, PNG and editable file; explain any variation from the existing pattern.
 - **Saving:** Distinct storage key, document version, recovery and import confirmation.
 - **Compatibility:** Existing files or links to preserve and fixtures to prove it.
 - **Navigation:** What survives changing tools, reloads and browser Back/Forward.
@@ -77,7 +81,7 @@ Write observable outcomes, including failure behaviour. For example:
 
 > Given an invalid number draft, when the user attempts to export, then export is blocked with a useful error and the draft remains available to correct or cancel.
 
-Add cases for mathematical boundaries, Undo/Redo, structural deletion, keyboard/touch use, maximum size on a narrow screen, recovery, old files and actual Word output. Use the guide's acceptance checklist to check coverage.
+Add cases for a clean snip area at every composition/zoom, actual image clipboard contents, verified source-question links, mathematical boundaries, Undo/Redo, structural deletion, keyboard/touch use, maximum size on a narrow screen, recovery, old files and actual Word output. Use the guide's acceptance checklist to check coverage.
 
 ## Implementation and release record
 
