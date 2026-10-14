@@ -11,16 +11,17 @@ export const bookletTools = [
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];
-export type PageId = ToolId | "home" | "booklet-tools" | "question-bank";
+export type PageId = ToolId | "home" | "booklet-tools" | "question-bank" | "assessment-follow-up";
 export const pageHref = (id: PageId) => `?tool=${id}`;
 export function readPage(search: string): PageId {
   const id = new URLSearchParams(search).get("tool");
-  if (id === "home" || id === "booklet-tools" || id === "question-bank") return id;
+  if (id === "home" || id === "booklet-tools" || id === "question-bank" || id === "assessment-follow-up") return id;
   return bookletTools.find(tool => tool.id === id)?.id ?? "graph";
 }
 export function pageName(id: PageId): string {
   if (id === "home") return "Home";
   if (id === "booklet-tools") return "Booklet tools";
   if (id === "question-bank") return "Question bank";
+  if (id === "assessment-follow-up") return "Assessment follow-up";
   return bookletTools.find(tool => tool.id === id)!.name;
 }
