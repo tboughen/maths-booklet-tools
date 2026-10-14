@@ -8,11 +8,12 @@ export interface AssessmentPreset {
 }
 export const approvedPresets = data.presets as AssessmentPreset[];
 // Full HPP papers reuse the approved complementary selections and source IDs.
-// Stable numeric ordering interleaves whole questions while retaining part order.
+// Spreadsheet columns follow the teaching sequence: odd HPP, then even HPP.
+// Keep each selection's question and part order intact.
 export const fullHppPresets: AssessmentPreset[] = [1, 3, 5].flatMap(first => (["F", "H"] as const).map(tier => {
   const left = approvedPresets.find(p => p.id === `HPP${first}_${tier}`)!;
   const right = approvedPresets.find(p => p.id === `HPP${first + 1}_${tier}`)!;
-  const combine = (key: "items" | "parts") => [...left[key], ...right[key]].sort((a, b) => Number(a.label.match(/\d+/)?.[0]) - Number(b.label.match(/\d+/)?.[0]));
+  const combine = (key: "items" | "parts") => [...left[key], ...right[key]];
   return { id: `HPP${first}-${first + 1}_${tier}`, name: `HPP${first}-${first + 1} — ${tier === "H" ? "Higher" : "Foundation"}`, tier, group: "HPPs", marks: left.marks + right.marks, sourcePaperId: left.sourcePaperId, items: combine("items"), parts: combine("parts") };
 }));
 export function assessmentPresets(catalogue: BankCatalogue): AssessmentPreset[] {
