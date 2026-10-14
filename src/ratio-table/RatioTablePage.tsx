@@ -1,3 +1,5 @@
+import { SourceExamples } from "../examples/PastPaperExamples";
+import { ratioExamples } from "../examples/sourceExamples";
 import { copyPngToClipboard } from "../export/clipboard";
 import { ratioPrintPng } from "./export";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -812,6 +814,7 @@ export default function RatioTablePage({
                   beside its edges.
                 </p>
               </section>
+              <SourceExamples examples={ratioExamples} disabled={structureDisabled || busy} onUse={(resource,title) => replace(resource, `Replace with ${title}?`)} />
               <RatioInspector
                 document={document}
                 selection={selection}
