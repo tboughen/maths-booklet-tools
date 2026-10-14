@@ -53,6 +53,8 @@ The [layout audit](EDITOR-LAYOUT-AUDIT.md) records the Graph, Ratio and Table of
 
 Use Carbon's button hierarchy and grouping guidance as a reference, while reusing MathsDock's existing components and styles. Adopting Carbon as a dependency would be a separate implementation decision. [Carbon button guidance](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines).
 
+Reuse Graph tool’s large, rounded, raised +/− design for axis-end range controls. Keep adjacent utility readouts out of the clean workspace; offer precise endpoints in labelled axis settings while retaining the printed mathematical tick labels.
+
 Apply the placement principle to each representation. A number line may put interval controls at its ends; it need not inherit a ratio table's row and column controls.
 
 ## Keep the resource easy to snip
@@ -66,6 +68,8 @@ Check combined, table-only and graph-only output, all supported preview zooms, m
 Where suitable questions exist, provide editable starting examples linked to the actual source question in the Question bank. Record the verified paper, tier, question and stable question link with each example. Reuse current published sources; do not invent a reference or link to an unrelated question. Explain the mathematical or teaching feature the example illustrates, such as mixed scales, fractions or a deliberate straight-join error.
 
 Keep pupil blanks and scaffolds in the default example. Offer calculation, plotting and worked copies explicitly. Replacing current work should follow the tool's confirmation and Undo conventions. Treat source-linked examples as a design requirement to consider for every future tool; document why they are unavailable or inappropriate when no suitable source exists. Validate the source links and editable example, including its actual exports, during acceptance.
+
+The [Graph and Ratio examples](TOOL-SOURCE-EXAMPLES.md) show verified source cards, separate scaffold/worked actions, confirmation and Undo, and direct links that keep the editor open. An adapted teaching step should say which part of the source question it supports.
 
 ## Preserve the teacher's mathematical intent
 

@@ -54,6 +54,10 @@ Tim requested a white resource area that less technical teachers can screenshot 
 
 The quadratic presets demonstrate another reusable feature: editable examples linked to real published past-paper questions. Include this wherever suitable questions exist in future tools, retaining traceable sources and pupil blanks and making worked output explicit. See the guide and brief for acceptance cases.
 
+## Source-linked Graph and Ratio examples and clearer range buttons, 14 October
+
+Graph tool and Ratio tables gained verified source-question cards with separate blank/scaffold and worked actions. The source opens alongside the editor; confirmed replacement is undoable. The [example record](TOOL-SOURCE-EXAMPLES.md) documents the checked values and deliberate adaptations. Plotting quadratics reuses Graph tool’s 48 px rounded +/− design without adjacent numeric readouts; exact bounds remain available through the printed axis labels.
+
 ## Reference implementation
 
 The 14 October [three-editor layout audit](EDITOR-LAYOUT-AUDIT.md) extends this direction to Table of values & graphs: a shared document utility bar, specialist actions in the right-hand inspector, and selected local controls beside the resource. Direct editing remains useful without putting every settings panel beside the diagram.
