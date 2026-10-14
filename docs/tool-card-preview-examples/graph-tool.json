@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "graph-1",
+  "styleProfile": "portable-v1",
+  "document": {
+    "version": 1,
+    "axes": {
+      "x": {
+        "negativeSquares": 2,
+        "positiveSquares": 4,
+        "unitsPerSquare": 1
+      },
+      "y": {
+        "negativeSquares": 2,
+        "positiveSquares": 4,
+        "unitsPerSquare": 1
+      }
+    },
+    "objects": [
+      {
+        "id": "line",
+        "kind": "straight",
+        "display": "line",
+        "strokeStyle": "solid",
+        "start": {
+          "x": -2,
+          "y": -1
+        },
+        "end": {
+          "x": 3,
+          "y": 4
+        },
+        "equationVisible": false
+      },
+      {
+        "id": "point-1",
+        "kind": "point",
+        "position": {
+          "x": -1,
+          "y": 0
+        }
+      },
+      {
+        "id": "point-2",
+        "kind": "point",
+        "position": {
+          "x": 1,
+          "y": 2
+        }
+      },
+      {
+        "id": "point-3",
+        "kind": "point",
+        "position": {
+          "x": 3,
+          "y": 4
+        }
+      }
+    ],
+    "selectedObjectId": null
+  }
+}

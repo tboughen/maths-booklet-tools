@@ -6,7 +6,9 @@ The website has two main sections: **Question bank** and **Booklet tools**. Grap
 
 ## Register the editor
 
-Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon and React component. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
+Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon, React component and `preview: { src, alt }`. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
+
+Generate a real sample output and import its SVG from `src/assets/tool-previews/`. Keep the icon and use the shared card's preview area on the right, with its narrow-screen stacking. Follow [All tools card previews](TOOL-CARD-PREVIEWS.md) for generation, saved examples, implementation history and acceptance checks. That page also explains how to handle a checkout predating the shared preview-card implementation.
 
 Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. Link explicitly to `?tool=graph` or `?tool=ratio-table` when targeting those editors, rather than depending on the bare URL's default page. Question bank remains a separate section.
 
@@ -55,5 +57,7 @@ Session retention does not promise undo or invalid-input persistence after a rel
 ## Verify the new page
 
 Check direct links, the overview and active navigation labels; Back/Forward; keyboard operation; leaving immediately after an edit and returning; pending input; storage failure/recovery; and interaction with another mounted editor's shortcuts. Check desktop, tablet and 320–375 px layouts without horizontal page overflow. Verify copy/download/export size and content independently from interface styling.
+
+Review the tool's output preview in the overview at its actual display size. Check the retained icon, SVG load, alternative text, full image and text click target, responsive placement and unchanged Home cards. For an authorised website release, verify the served SVG matches the reviewed bytes.
 
 Run the existing lint, unit, typecheck, build and browser checks. Navigation regression coverage is in `e2e/site-navigation.spec.ts`; graph and ratio export checks remain in their existing test suites.
