@@ -6,6 +6,7 @@ await build({
     "services/graph-mcp/cli.ts",
     "services/graph-mcp/raster-worker.ts",
     "services/graph-mcp/smoke.ts",
+    "services/graph-mcp/verify-consumption.ts",
   ],
   outdir: "service-dist",
   outExtension: { ".js": ".js" },

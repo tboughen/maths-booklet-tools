@@ -5,8 +5,23 @@ import {
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { number, AXIS_FONT_PT, PT_MM, validate } from "./model";
 import type { Equation, ValueEnvelope } from "./schema";
+import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 
 const FONT = AXIS_FONT_PT * PT_MM;
+const ANSWER_LINE_COLUMN_FRACTION = 0.6;
+export function valuePrintFacts(e: ValueEnvelope) {
+  const m = metrics(e), svg = renderSvg(e);
+  return guidance({
+    textSizesPt: renderedTextSizesPt(svg, 1 / PT_MM),
+    gridPitchMm: m.withGraph
+      ? [["fine", e.document.graph.minorPitchMm], ["intermediate", e.document.graph.intermediatePitchMm], ["heavy", e.document.graph.heavyPitchMm]]
+          .filter(([tier]) => new RegExp(`data-grid-tier="${tier}" d="[^"]+"`).test(svg))
+          .map(([, pitch]) => Number(pitch)) : [],
+    answerLineLengthsMm: m.withTable && e.document.columns.some((c) => c.y.kind === "answer-line")
+      ? [m.table.width / (e.document.columns.length + 1) * ANSWER_LINE_COLUMN_FRACTION] : [],
+    tableRowHeightsMm: m.withTable ? [m.table.rowHeight] : [],
+  });
+}
 const escape = (s: string) =>
   s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 export function displayNumber(v: string, places: number | null = null): string {
@@ -189,7 +204,7 @@ export function renderSvg(raw: ValueEnvelope): string {
         elements.push(numericText(x, base + t.rowHeight, label));
       } else if (c.y.kind === "answer-line")
         elements.push(
-          `<path d="M${x - cw * 0.3} ${base + t.rowHeight + 0.6}h${cw * 0.6}" stroke="black" stroke-width="0.18"/>`,
+          `<path d="M${x - cw * ANSWER_LINE_COLUMN_FRACTION / 2} ${base + t.rowHeight + 0.6}h${cw * ANSWER_LINE_COLUMN_FRACTION}" stroke="black" stroke-width="0.18"/>`,
         );
     });
   }

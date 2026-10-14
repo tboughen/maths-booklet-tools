@@ -1,4 +1,7 @@
 GRAPH INTEGRATION — OPERATIONS AND RELEASE
+Optional print measurements, placement advice, source bundles and the vector
+consumer qualification are documented in MCP-DIAGRAM-OUTPUTS.md. These are
+diagram outputs for another AI project; the service does not assemble booklets.
 Implementation candidate. Hosting, live release and actual ChatGPT acceptance
 are separate stages. Never treat a passing local test as a connected account.
 

@@ -25,6 +25,7 @@ import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
   getExportMetrics,
   renderDiagramSvg,
+  graphPrintFacts,
 } from "../../packages/graph-core/src/svg";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
 import { Downloads } from "./downloads";
@@ -36,6 +37,9 @@ import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
 import { ValueDownloads } from "./value-downloads";
 import { valueGraphTools } from "./value-graph-tools";
+import { BundleDownloads } from "./bundle-downloads";
+import { diagramOutputTools } from "./diagram-output-tools";
+import { PRINT_INSTRUCTIONS } from "./placement";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
 
 export interface ServiceOptions {
@@ -135,6 +139,14 @@ export function graphService(options: ServiceOptions) {
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };
   };
+  const bundles = new BundleDownloads(base.href, options.keys, options.activeKey);
+  const diagramOutputs = diagramOutputTools(raster, bundles, limits, (source, format, signal) => {
+    switch (source.kind) {
+      case "graph": return artifacts(source.envelope, format, signal);
+      case "ratio-table": return ratios.artifacts(source.envelope, format, signal);
+      case "value-graph": return values.artifacts(source.envelope, format, signal);
+    }
+  });
   async function result(raw: GraphEnvelope, signal?: AbortSignal) {
     // Imported human graphs acquire the explicit portable profile on the server.
     const converted = raw.styleProfile !== "portable-v1";
@@ -217,6 +229,7 @@ export function graphService(options: ServiceOptions) {
     );
     return {
       structuredContent: {
+        printGuidance: graphPrintFacts(document),
         envelope,
         contentHash: hash,
         rendererVersion: RENDERER_VERSION,
@@ -229,7 +242,7 @@ export function graphService(options: ServiceOptions) {
         printDpi: 600,
         printVerified: true as const,
       },
-      content,
+      content: [...content, { type: "text" as const, text: PRINT_INSTRUCTIONS }],
     };
   }
   function mcp(connectionSignal: AbortSignal) {
@@ -341,6 +354,7 @@ export function graphService(options: ServiceOptions) {
     );
     ratios.register(server, connectionSignal);
     values.register(server, connectionSignal);
+    diagramOutputs.register(server, connectionSignal);
     return server;
   }
   return createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
@@ -387,6 +401,17 @@ export function graphService(options: ServiceOptions) {
         return;
       }
       limits.request(req.socket.remoteAddress ?? "unknown");
+      if (req.method === "GET" && url.pathname === "/diagram-bundle/download") {
+        const source = bundles.verify(url);
+        const abort = new AbortController();
+        res.once("close", () => { if (!res.writableFinished) abort.abort(); });
+        const file = await diagramOutputs.bundle(source, abort.signal);
+        limits.output(file.body.length); bytes = file.body.length;
+        res.writeHead(200, { "Content-Type": file.type,
+          "Content-Disposition": 'attachment; filename="mathsdock-diagram.zip"',
+          "Content-Security-Policy": "default-src 'none'; sandbox" });
+        res.end(file.body); return;
+      }
       if (req.method === "GET" && url.pathname === "/value-graph/download") {
         const { envelope, format } = valueDownloads.verify(url);
         const abort = new AbortController();
