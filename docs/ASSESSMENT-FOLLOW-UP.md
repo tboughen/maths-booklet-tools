@@ -31,4 +31,4 @@ This is a question-bank workflow, not a mathematical diagram editor: Word clipbo
 
 ## Source and stage
 
-Based on current production source `.layout-cf-release` at 0f4ab4d74f70de149e9f291e26387a49f8f1a599. Worktree `web/af`, branch `codex/assessment-followup`. Implementation and verification are local; merge, website deployment and service release are separate stages. Check the task handover for actual test results and remaining print review.
+Initial preview: `web/af`, branch `codex/assessment-followup`. Production candidate: `.af-cf-release`, branch `codex/assessment-cloudflare`, based on the latest verified `.logo-cf-release` commit 8ef5417b7d953196b6fa1319a079285214fb6f59, retaining source examples, quadratic controls and the approved logo. GitHub source branch: `.af-main`, `codex/assessment-main`. Check `reports/mathsdock-assessment-follow-up-2026-10-14/HANDOVER.txt` in the parent workspace for observed merge/deployment stages and print review. Run the assessment browser suite against the real site with ASSESSMENT_SITE_URL; it uses synthetic marks only. Website and MCP/service releases are separate; this feature has no service release.
