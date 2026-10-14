@@ -50,6 +50,7 @@ body { background: #f2f5f8; }
 .site-panel, .booklet-editor .panel-card { background: white; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
 .site-overview { max-width: 1120px; padding: 36px 20px; margin: 0 auto; }
 .site-overview .page-heading { margin-bottom: 24px; }
+.overview-home-cards { grid-auto-rows: 1fr; }
 .overview-cards { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
 .overview-card { display: flex; flex-direction: column; align-items: start; padding: 28px; border: 1px solid var(--line); border-radius: 6px; background: white; box-shadow: var(--shadow); text-decoration: none; }
 .overview-card:hover { border-color: #8aabd1; }
@@ -175,9 +176,8 @@ body { background: #f2f5f8; }
   .qb-topics-mode .qb-topics-host { overflow: auto; }
   .qb-topics-mode .qb-topic-builder { flex: 0 0 auto; }
 }
-/* The third section link needs room on tablets without horizontal overflow. */
-.overview-assessment-preview { width: auto; height: 180px; max-width: 100%; align-self: center; object-fit: contain; border: 1px solid var(--line); margin: 8px 0 16px; }
-@media (min-width: 621px) and (max-width: 1050px) {
+/* Keep all four destinations together when the full header needs a second row. */
+@media (min-width: 621px) and (max-width: 1200px) {
   .site-navigation-row { gap: 16px; flex-wrap: wrap; }
   .site-current { display: none; }
   .site-sections { flex-wrap: wrap; }
