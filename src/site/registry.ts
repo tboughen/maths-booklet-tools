@@ -2,12 +2,15 @@ import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
 import ValueGraphPage from "../value-graph/ValueGraphPage";
 import { Grid3X3, Table2 } from "lucide-react";
+import graphPreview from "../assets/tool-previews/graph-tool.svg";
+import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
+import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
-  { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage },
-  { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage },
-  { id: "value-table-graph", name: "Table of values & graphs", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage },
+  { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage, preview: { src: graphPreview, alt: "Example coordinate grid with a straight line and three plotted points." } },
+  { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage, preview: { src: ratioPreview, alt: "Example ratio table with multiplication arrows and a blank answer space." } },
+  { id: "value-table-graph", name: "Table of values & graphs", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage, preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];
