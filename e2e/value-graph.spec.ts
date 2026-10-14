@@ -39,7 +39,9 @@ test("direct equation and axis editing retain snapshots and have one control loc
   expect((await stored(page)).document.equation).toEqual(
     initial.document.equation,
   );
-  await expect(page.locator(".inspector-stack")).toHaveCount(0);
+  await expect(
+    page.getByRole("complementary", { name: "Table and graph settings" }),
+  ).toHaveCount(1);
   await expect(
     page.getByRole("textbox", { name: "Coefficient a", exact: true }),
   ).toHaveCount(0);
@@ -158,7 +160,7 @@ test("local line and layout controls remain reachable on a 320px screen", async 
   await expect(
     page.getByRole("textbox", { name: "Horizontal line y", exact: true }),
   ).toHaveValue("2");
-  const box = await page.locator(".vg-local-editor").boundingBox();
+  const box = await page.locator(".vg-inspector-editor").boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(320);
   await page
@@ -223,11 +225,13 @@ test("source grid, exam-size axis values and actual SVG/PNG downloads", async ({
       .first()
       .getAttribute("font-size"),
   ).toBe(String((12 * 25.4) / 72));
-  await page.getByRole("button", { name: "Downloads", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Download options", exact: true })
+    .click();
   for (const format of ["SVG", "PNG (600 ppi)"]) {
     const waiting = page.waitForEvent("download");
     await page
-      .getByRole("button", { name: `Download ${format}`, exact: true })
+      .getByRole("menuitem", { name: `Download ${format}`, exact: true })
       .click();
     const download = await waiting,
       path = info.outputPath(
