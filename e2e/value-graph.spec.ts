@@ -193,7 +193,7 @@ async function open(page: Page) {
   await page.goto("/?tool=value-table-graph");
   await expect(
     page.getByRole("heading", {
-      name: "Table of values & graphs",
+      name: "Plotting quadratic graphs",
       exact: true,
     }),
   ).toBeVisible();
@@ -270,7 +270,7 @@ test("zero and answer lines survive direct editing, undo, navigation and reload"
     .click();
   await page
     .getByRole("navigation", { name: "Booklet tools", exact: true })
-    .getByRole("link", { name: "Table of values & graphs", exact: true })
+    .getByRole("link", { name: "Plotting quadratic graphs", exact: true })
     .click();
   expect((await stored(page)).document.columns[1].y.value).toBe("0");
   await page.reload();
@@ -299,7 +299,7 @@ test("invalid input survives navigation, blocks export and cancels without chang
     .click();
   await page
     .getByRole("navigation", { name: "Booklet tools", exact: true })
-    .getByRole("link", { name: "Table of values & graphs", exact: true })
+    .getByRole("link", { name: "Plotting quadratic graphs", exact: true })
     .click();
   await expect(field).toHaveValue("1/0");
   await field.press("Escape");

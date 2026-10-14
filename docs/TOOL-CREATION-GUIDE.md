@@ -29,7 +29,7 @@ Use these defaults:
 | Extend or shorten the structure | Paired controls next to the affected edge | Explain the affected row, column, interval or object in its accessible name |
 | Add a relationship | Choose the relationship action, then its endpoints | Explicit endpoint and operation fields where useful |
 | Change a repeated label | Edit any displayed copy | All copies derive from one stored value |
-| Finish the resource | Prominent **Copy for Word** | A nearby download menu for alternative formats and editable files |
+| Finish the resource | Image-only **Copy to clipboard** first, then **Copy for Word** | A nearby download menu for alternative formats and editable files |
 
 Keep an ordinary edit available immediately. Use a mode only when it disambiguates actions such as selecting, drawing or adding a relationship. Show the active mode and provide a clear exit.
 
@@ -43,7 +43,7 @@ Use the existing shared header, tool navigation, page heading, workspace and set
 
 Within the editor:
 
-- Use `EditorToolbar` for the same Undo, Redo, Reset and **Copy for Word**/download bar across editors. Keep save status in the page heading and preview-only controls immediately above the resource.
+- Use `EditorToolbar` for the same Undo, Redo, Reset, **Copy to clipboard**, **Copy for Word** and download bar across editors. Keep save status in the page heading and preview-only controls immediately above the resource.
 - Put specialist modes and actions in labelled right-hand panels, followed by contextual and whole-resource settings. On narrow screens these panels move below the resource. Use local editors for small values or labels when proximity aids editing; broader configuration belongs in the inspector.
 - Place structure controls beside the diagram. Ratio tables pairs Add/Remove row below the table and stacks Add/Remove column at its right. Avoid duplicating those controls in the toolbar.
 - Keep selected-object settings in a predictable place. Separate these from whole-diagram settings such as print size and annotation visibility.
@@ -54,6 +54,18 @@ The [layout audit](EDITOR-LAYOUT-AUDIT.md) records the Graph, Ratio and Table of
 Use Carbon's button hierarchy and grouping guidance as a reference, while reusing MathsDock's existing components and styles. Adopting Carbon as a dependency would be a separate implementation decision. [Carbon button guidance](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines).
 
 Apply the placement principle to each representation. A number line may put interval controls at its ends; it need not inherit a ratio table's row and column controls.
+
+## Keep the resource easy to snip
+
+Treat the white resource rectangle as the complete pupil artwork. A teacher should be able to snip that rectangle without capturing visible buttons or settings. Put visible utility controls in the surrounding blue workspace, beyond the full resource boundary, even when the artwork has white margins. Align axis controls with their axis; place table structure controls just to the right of the resource at table height. Preserve useful transparent direct-edit targets on values and labels, with keyboard alternatives, and clear selection feedback when editing ends. Keep broader specialist actions in the right-hand inspector.
+
+Check combined, table-only and graph-only output, all supported preview zooms, maximum structures and narrow screens. Controls must remain reachable by scrolling within the workspace, avoid each other and never overlap the white rectangle. Preview zoom and control placement must leave print dimensions and mathematical content unchanged.
+
+## Include examples linked to past-paper questions
+
+Where suitable questions exist, provide editable starting examples linked to the actual source question in the Question bank. Record the verified paper, tier, question and stable question link with each example. Reuse current published sources; do not invent a reference or link to an unrelated question. Explain the mathematical or teaching feature the example illustrates, such as mixed scales, fractions or a deliberate straight-join error.
+
+Keep pupil blanks and scaffolds in the default example. Offer calculation, plotting and worked copies explicitly. Replacing current work should follow the tool's confirmation and Undo conventions. Treat source-linked examples as a design requirement to consider for every future tool; document why they are unavailable or inappropriate when no suitable source exists. Validate the source links and editable example, including its actual exports, during acceptance.
 
 ## Preserve the teacher's mathematical intent
 
@@ -89,6 +101,7 @@ Specify physical output size before polishing the preview. Graph tool's 1 cm squ
 
 For comparable diagram tools, follow the existing output pattern:
 
+- Image-only **Copy to clipboard** as the first copy action; reuse the verified print PNG and give a useful download fallback when the browser denies access.
 - **Copy for Word** with an image and physical-size information.
 - SVG for scalable artwork, and verified 600 ppi PNG for dependable insertion and printing.
 - Editable JSON for later changes in MathsDock, with a compatible editor link where supported.
@@ -143,6 +156,9 @@ Retain existing hosting and cost constraints. Reuse the existing service when ap
 
 Use the following as an acceptance checklist, marking irrelevant checks with a reason:
 
+- [ ] The white resource can be snipped without visible utility controls at every composition and zoom; nearby blue-space controls remain reachable.
+- [ ] Suitable source-linked past-paper examples have verified question links, editable presets and pupil blanks preserved; any exception is explained.
+- [ ] Image-only copying writes an actual PNG to the clipboard and handles refusal; Copy for Word retains its physical-size contract.
 - [ ] A teacher can produce the representative output without hidden configuration or technical knowledge.
 - [ ] The All tools card retains its icon and includes an accurate output preview, meaningful alternative text and a working image link; desktop and narrow-screen layouts are reviewed.
 - [ ] Common edits are discoverable on the diagram, with labelled keyboard alternatives.

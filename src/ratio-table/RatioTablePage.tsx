@@ -1,3 +1,5 @@
+import { copyPngToClipboard } from "../export/clipboard";
+import { ratioPrintPng } from "./export";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Copy,
@@ -586,6 +588,12 @@ export default function RatioTablePage({
               resetDisabled={structureDisabled}
               exportDisabled={exportDisabled}
               busy={busy}
+              onCopyClipboard={() =>
+                void runExport(
+                  () => copyPngToClipboard(() => ratioPrintPng(envelope)),
+                  "Image copied to clipboard. Paste with Ctrl+V.",
+                )
+              }
               onCopy={() =>
                 void runExport(
                   () => copyRatioForWord(envelope),
