@@ -37,6 +37,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         `${element.getBoundingClientRect().height}px`,
       );
     measure();
+    if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
