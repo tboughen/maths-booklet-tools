@@ -1,4 +1,4 @@
-PLOTTING QUADRATIC GRAPHS
+PLOTTING QUADRATICS
 
 Route: ?tool=value-table-graph. Browser editor works without the MCP service.
 The default is the June 2018 Q5 scaffold; no calculation or plotting is implicit.
@@ -40,8 +40,8 @@ are paired in blue space just beyond the white resource's right edge; removal is
 columns. Fill blank values is beside the table; whole-row calculation, range,
 print dimensions/number display and a separate worked copy are in Table options.
 Paired range controls sit beyond the white resource in blue space, aligned
-with their axes. The full white rectangle can be snipped without utility buttons. Click an endpoint for an exact
-bound, or the printed x/y name for units/cm and label interval.
+with their axes. The full white rectangle can be snipped without utility buttons. The larger 48 px +/− buttons match Graph tool and show no adjacent numerical
+readout. Click the printed x/y name for precise endpoints, units/cm and label interval.
 
 Plot entered table pairs skips blanks and includes zero. Plot equation at table
 x values calculates points explicitly without filling the table. Draw true
