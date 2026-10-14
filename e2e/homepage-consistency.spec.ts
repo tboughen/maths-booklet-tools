@@ -28,7 +28,7 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(page.getByRole("region", { name: "Your paper", exact: true }).getByRole("status").first()).toContainText("1 distinct question");
   await page.getByRole("combobox", { name: "Tier", exact: true }).selectOption("F");
   const builderUrl = page.url();
-  await expect(page).toHaveTitle("Paper builder Â· Maths Dock");
+  await expect(page).toHaveTitle("Paper builder · Maths Tools");
   await nav(page).getByRole("link", { name: "Question bank", exact: true }).click();
   await expect(page).toHaveURL(bankUrl);
   await expect(page.getByRole("button", { name: "Review paper (1)", exact: true })).toBeVisible();
@@ -42,7 +42,7 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(page).toHaveURL(builderUrl);
   await page.getByRole("button", { name: "Browse questions", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page).toHaveTitle("Question bank Â· Maths Dock");
+  await expect(page).toHaveTitle("Question bank · Maths Tools");
   await page.getByRole("button", { name: "Build by topic", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Paper builder", exact: true })).toHaveAttribute("aria-current", "page");
 });
