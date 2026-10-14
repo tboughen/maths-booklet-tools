@@ -185,6 +185,13 @@ body { background: #f2f5f8; }
   .overview-tool-card { grid-template-columns: minmax(0,1fr); }
   .overview-tool-preview { max-width: 240px; }
 }
+/* The third section link needs room on tablets without horizontal overflow. */
+.overview-assessment-preview { width: auto; height: 180px; max-width: 100%; align-self: center; object-fit: contain; border: 1px solid var(--line); margin: 8px 0 16px; }
+@media (min-width: 621px) and (max-width: 1050px) {
+  .site-navigation-row { gap: 16px; flex-wrap: wrap; }
+  .site-current { display: none; }
+  .site-sections { flex-wrap: wrap; }
+}
 @media print {
   .site-navigation, .site-skip, .qb-page-search { display: none; }
 }
