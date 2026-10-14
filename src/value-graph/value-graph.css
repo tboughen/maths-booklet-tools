@@ -414,3 +414,6 @@
     justify-content: flex-start;
   }
 }
+
+/* The white rectangle is the complete resource; visible utilities stay in blue space. */
+.vg-paper { box-shadow: 0 2px 12px #15335110; }

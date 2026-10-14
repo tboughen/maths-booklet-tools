@@ -1,4 +1,4 @@
-TABLE OF VALUES & GRAPHS
+PLOTTING QUADRATIC GRAPHS
 
 Route: ?tool=value-table-graph. Browser editor works without the MCP service.
 The default is the June 2018 Q5 scaffold; no calculation or plotting is implicit.
@@ -23,8 +23,9 @@ The resource is the editor: click its displayed equation, table cells, x/y axis
 names, endpoint values, points, joins, curve or horizontal line. One local editor
 opens beside the selection, clamped within the viewport. Labelled buttons and an
 object selector provide keyboard access, including hidden/off-grid objects.
-The permanent settings sidebar and its displaced controls have been removed.
-The global toolbar contains only history/reset, Examples, Layout and exports.
+The shared toolbar contains history/reset, image-only Copy to clipboard first,
+Copy for Word and downloads. Specialist tools, Examples and Layout are in the
+right-hand inspector. Small direct edits open local editors.
 
 Click the equation to edit its expanded quadratic as one exact operation.
 x^2/x², minus signs, decimals and fractions are accepted by a bounded parser.
@@ -35,10 +36,11 @@ An invalid draft remains visible and blocks calculations, structural edits and
 exports. Leave blank and Answer line are distinct states; zero is a value.
 Calculate selected/blank cells is explicit; replacing occupied cells asks first.
 Generate range accepts exact fractions and makes blank y cells. Add/remove column
-are paired at the table's right edge; removal is undoable. Tables allow 2–13 x
+are paired in blue space just beyond the white resource's right edge; removal is undoable. Tables allow 2–13 x
 columns. Fill blank values is beside the table; whole-row calculation, range,
 print dimensions/number display and a separate worked copy are in Table options.
-Paired range controls are at the four axis ends. Click an endpoint for an exact
+Paired range controls sit beyond the white resource in blue space, aligned
+with their axes. The full white rectangle can be snipped without utility buttons. Click an endpoint for an exact
 bound, or the printed x/y name for units/cm and label interval.
 
 Plot entered table pairs skips blanks and includes zero. Plot equation at table
@@ -57,7 +59,7 @@ explain disagreement; they never appear in pupil artwork. Equation edits preserv
 existing cells and curve/point snapshots until explicit recalculation/replotting.
 Boundary markers remain complete; off-grid points are omitted with a warning,
 and connecting segments/curves are clipped to the plotting rectangle.
-Graph actions have one location beside the grid: Plot, Add, Curve, Graph options
+Graph actions have one location in the right-hand inspector: Plot, Add, Curve, Graph options
 and Select object. Add contains numerical/click placement and horizontal lines;
 selected point sets choose Points only or Straight line joins. Curve creates or
 selects the same curve editor with its equation and precise start/end x domain.
@@ -79,6 +81,8 @@ Both ranges include zero and align with fine-grid spacing. Labels are independen
 spaced and zero-anchored. 1/2, 1, 2, 2.5, 5 and 10 units/cm are available, and
 valid imported scales remain visible/editable. Fine paper can be 1, 2 or 5 mm.
 
+Copy to clipboard writes an image-only print PNG through the browser clipboard;
+unsupported or denied access offers Copy for Word or PNG download instead.
 Copy for Word uses the existing HTML image route with physical dimensions and
 verified 600 ppi PNG bytes. SVG embeds bundled portable fonts; the service returns
 outlined SVG. PNG pixel dimensions and density metadata are checked. Editable

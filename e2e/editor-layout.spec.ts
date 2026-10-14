@@ -33,6 +33,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         "Undo",
         "Redo",
         tool === "graph" ? "Reset diagram" : "Reset",
+        "Copy to clipboard",
         "Copy for Word",
         "Download options",
       ]);
