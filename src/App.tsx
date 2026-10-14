@@ -1,3 +1,6 @@
+import { SourceExamples } from "./examples/PastPaperExamples";
+import { graphExamples } from "./examples/sourceExamples";
+import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -67,6 +70,7 @@ export default function App({ active = true }: { active?: boolean }) {
   const [startup] = useState(loadDiagramRecovery);
   const [recoveryConflict, setRecoveryConflict] = useState(startup.conflict);
   const [history, setHistory] = useState<HistoryState>(() => ({ past: [], present: startup.document, future: [] }));
+  const [pendingExample, setPendingExample] = useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
   const [equationOpen, setEquationOpen] = useState(false);
   const [editingEquationId, setEditingEquationId] = useState<string | null>(null);
@@ -321,6 +325,7 @@ export default function App({ active = true }: { active?: boolean }) {
 
           <aside className="inspector-stack" aria-label="Graph settings">
             <GraphTools tool={tool} onToolChange={(next) => { setTool(next); setEquationOpen(false); setEditingEquationId(null); }} onEquation={() => openEquationEditor()} />
+            <SourceExamples examples={graphExamples} graph disabled={recoveryConflict || copying} onUse={(resource) => setPendingExample(resource)} />
             {equationOpen ? (
               <EquationPanel editing={editingStraight} onSubmit={submitEquation} onClose={() => { setEquationOpen(false); setEditingEquationId(null); }} />
             ) : (
@@ -350,6 +355,8 @@ export default function App({ active = true }: { active?: boolean }) {
           </aside>
         </section>
       </main>
+
+      {active && pendingExample && <RatioDialog title="Replace with this graph example?" confirmLabel="Replace graph" onCancel={() => setPendingExample(null)} onConfirm={() => { commit(pendingExample); setPendingExample(null); setTool("select"); setEquationOpen(false); setEditingEquationId(null); }}>Your current graph stays unchanged until you confirm. Replacing it is undoable.</RatioDialog>}
 
       {active && recoveryConflict && <div className="word-help-backdrop"><section className="word-help-dialog" role="dialog" aria-modal="true" aria-labelledby="graph-recovery-title">
         <h2 id="graph-recovery-title">Review local graph recovery</h2>

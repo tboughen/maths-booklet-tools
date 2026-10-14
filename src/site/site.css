@@ -191,3 +191,13 @@ body { background: #f2f5f8; }
   .booklet-editor .editor-copy-actions { width: 100%; }
   .booklet-editor .editor-copy-actions > .clipboard-copy, .booklet-editor .editor-copy-actions > .copy-split { flex: 1 1 auto; width: auto; justify-content: center; }
 }
+
+.source-examples > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.source-example { padding: 12px 0; border-top: 1px solid var(--line); }
+.source-example h3 { font-size: 15px; margin: 0 0 6px; }
+.source-example p { font-size: 12px; margin: 4px 0; }
+.source-example a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--blue); margin: 6px 0 10px; }
+.source-example-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.source-example-actions button { min-height: 38px; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; color: var(--ink); cursor: pointer; font-size: 12px; }
+.source-example-actions button:hover:not(:disabled) { background: var(--blue-soft); }
+.source-example-actions button:disabled { opacity: .5; cursor: default; }

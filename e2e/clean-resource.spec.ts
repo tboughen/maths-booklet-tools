@@ -16,7 +16,7 @@ test("visible table and axis utilities stay outside the snip area at every compo
       envelope.document.print.tableWidthMm=180;
       await page.addInitScript(e=>localStorage.setItem("mathsdock:value-table-graph:v1",JSON.stringify(e)),envelope);
       await page.goto("/?tool=value-table-graph");
-      await expect(page.getByRole("heading", {name:"Plotting quadratic graphs",exact:true})).toBeVisible();
+      await expect(page.getByRole("heading", {name:"Plotting quadratics",exact:true})).toBeVisible();
       for (const zoom of ["0.75","1","1.25","1.5"]) {
         await page.getByRole("combobox",{name:"Preview zoom",exact:true}).selectOption(zoom);
         const geometry=await page.locator(".vg-editor-frame").evaluate(frame=>{
