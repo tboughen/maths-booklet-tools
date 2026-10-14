@@ -6,6 +6,8 @@ Run with the bundled Python runtime (numpy and Pillow).
 from pathlib import Path
 import argparse
 import math
+from wrapped_monogram import monogram_path
+from bollard_perspective import shrink_right_bollard
 import numpy as np
 from PIL import Image
 
@@ -105,7 +107,9 @@ def svg(width, height, content, title='Maths Dock'):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('approved_draft', type=Path)
+    parser.add_argument('--output-root', type=Path, default=ROOT)
     args = parser.parse_args()
+    out = args.output_root / 'public' / 'brand'
     image = np.array(Image.open(args.approved_draft).convert('RGB')).astype(int)
     # Approved full-size symbol occupies this rectangle in the review board.
     icon = image[100:426, 184:691]
@@ -123,22 +127,23 @@ def main():
     shapes = {'wall': path_data(wall_loops), 'water': path_data(contours(blue(icon))),
               'wordmark': path_data(contours(navy(text)))}
     # The M has straight geometric edges, not the raster's incidental pixel noise.
-    shapes['wall'] += ' M118,104 H150 L214,160 L275,104 H304 V255 H266 V164 L214,211 L156,164 V255 H118 Z'
-    OUT.mkdir(parents=True, exist_ok=True)
+    shapes['wall'] = shrink_right_bollard(shapes['wall'])
+    shapes['wall'] += ' ' + monogram_path()
+    out.mkdir(parents=True, exist_ok=True)
     def symbol(ink=NAVY, water=BLUE):
         return f'<path fill="{ink}" fill-rule="evenodd" d="{shapes["wall"]}"/><path fill="{water}" fill-rule="evenodd" d="{shapes["water"]}"/>'
     def lockup(ink=NAVY, water=BLUE):
         return symbol(ink, water) + f'<path transform="translate(580 126)" fill="{ink}" fill-rule="evenodd" d="{shapes["wordmark"]}"/>'
-    (OUT / 'mathsdock-icon.svg').write_text(svg(507, 326, symbol()), encoding='utf-8')
-    (OUT / 'mathsdock-icon-inverse.svg').write_text(svg(507, 326, symbol('#fff', '#2bb8ff')), encoding='utf-8')
-    (OUT / 'mathsdock-logo.svg').write_text(svg(1501, 326, lockup()), encoding='utf-8')
-    (OUT / 'mathsdock-logo-inverse.svg').write_text(svg(1501, 326, lockup('#fff', '#2bb8ff')), encoding='utf-8')
-    (OUT / 'mathsdock-icon-mono.svg').write_text(svg(507, 326, symbol('currentColor', 'currentColor')), encoding='utf-8')
+    (out / 'mathsdock-icon.svg').write_text(svg(507, 326, symbol()), encoding='utf-8')
+    (out / 'mathsdock-icon-inverse.svg').write_text(svg(507, 326, symbol('#fff', '#2bb8ff')), encoding='utf-8')
+    (out / 'mathsdock-logo.svg').write_text(svg(1501, 326, lockup()), encoding='utf-8')
+    (out / 'mathsdock-logo-inverse.svg').write_text(svg(1501, 326, lockup('#fff', '#2bb8ff')), encoding='utf-8')
+    (out / 'mathsdock-icon-mono.svg').write_text(svg(507, 326, symbol('currentColor', 'currentColor')), encoding='utf-8')
     # Full symbol retained in favicons, with a clear white ground in either browser theme.
     square = '<rect width="512" height="512" rx="64" fill="#fff"/><g transform="translate(26 108) scale(.9073)">' + symbol() + '</g>'
-    (ROOT / 'public' / 'favicon.svg').write_text(svg(512, 512, square), encoding='utf-8')
+    (args.output_root / 'public' / 'favicon.svg').write_text(svg(512, 512, square), encoding='utf-8')
     social = '<rect width="1200" height="630" fill="#fff"/><g transform="translate(90 205) scale(.68)">' + lockup() + '</g>'
-    (OUT / 'mathsdock-social.svg').write_text(svg(1200, 630, social), encoding='utf-8')
+    (out / 'mathsdock-social.svg').write_text(svg(1200, 630, social), encoding='utf-8')
     print('Created six SVG masters and favicon.svg; outlined wordmark, no font dependencies.')
 
 
