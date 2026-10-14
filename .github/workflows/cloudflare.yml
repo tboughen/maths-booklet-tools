@@ -1,0 +1,53 @@
+name: Publish MathsDock to Cloudflare
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        type: choice
+        options: [preview, production]
+        default: preview
+      site_url:
+        description: Full website URL (preview workers.dev URL or https://mathsdock.co.uk)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: mathsdock-cloudflare
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target == 'production' && 'mathsdock-production' || 'mathsdock-preview' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Checked assets-first deployment
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          TARGET: ${{ inputs.target }}
+          SITE_URL: ${{ inputs.site_url }}
+          PLAYWRIGHT_CHANNEL: chromium
+        run: |
+          if [ "$TARGET" = preview ]; then
+            npm run cloudflare:publish -- --preview "--site=$SITE_URL"
+          else
+            test "$SITE_URL" = https://mathsdock.co.uk
+            npm run cloudflare:publish -- "--site=$SITE_URL"
+          fi
+      - name: Retain publishing evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cloudflare-release-${{ github.run_id }}
+          path: cloudflare-release/
+          retention-days: 14

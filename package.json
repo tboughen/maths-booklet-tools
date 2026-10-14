@@ -9,6 +9,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:cloudflare": "tsc -b && vite build --mode cloudflare",
+    "test:cloudflare": "node --test scripts/cloudflare/upload-core.test.mjs",
+    "cloudflare:plan": "node scripts/cloudflare/publish.mjs plan",
+    "cloudflare:upload": "node scripts/cloudflare/publish.mjs upload",
+    "cloudflare:verify": "node scripts/cloudflare/publish.mjs verify-assets",
+    "cloudflare:publish": "node scripts/cloudflare/publish.mjs deploy",
+    "cloudflare:login": "wrangler login",
+    "test:cloudflare:browser": "playwright test --config playwright.cloudflare.config.ts",
     "pretest": "npm run build:service",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -31,6 +39,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.1149.0",
     "@eslint/js": "^9.17.0",
     "@playwright/test": "1.63.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -50,7 +59,8 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "wrangler": "4.149.0"
   },
   "packageManager": "npm@11.12.1"
 }

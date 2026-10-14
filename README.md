@@ -1,5 +1,7 @@
 # Maths Booklet Tools
 
+Cloudflare migration and checked R2/Workers publishing: [publishing runbook](docs/CLOUDFLARE-PUBLISHING.md). GitHub Pages remains available until the verified cutover.
+
 The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is available at `?tool=home`, and the tools overview at `?tool=booklet-tools`. Existing editor and Question bank links remain supported.
 
 For new tools, start with [Creating MathsDock tools](docs/TOOL-CREATION-GUIDE.md) and the [new tool brief](docs/TOOL-BRIEF-TEMPLATE.md). The guide turns the evolution of Graph tool and Ratio tables into practical design, teaching, export and compatibility principles, with [linked development examples](docs/TOOL-EVOLUTION.md).
