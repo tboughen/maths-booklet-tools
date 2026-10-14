@@ -109,6 +109,8 @@ describe("actual MCP transport and print downloads", () => {
       "value_graph_capabilities",
       "create_value_graph",
       "revise_value_graph",
+      "check_diagram_placement",
+      "download_diagram_bundle",
     ]);
     const reply = await client.callTool({
       name: "create_graph",

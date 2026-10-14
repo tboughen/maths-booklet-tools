@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Resvg } from "@resvg/resvg-js";
+import { unzipSync } from "fflate";
 import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { graphHash } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
@@ -27,7 +28,7 @@ try {
     new StreamableHTTPClientTransport(new URL("/mcp", base)),
   );
   const tools = await client.listTools();
-  const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph"];
+  const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "check_diagram_placement", "download_diagram_bundle"];
   if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected the graph, ratio-table and table-of-values tool trios.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
@@ -74,8 +75,18 @@ try {
     printVerified: boolean;
     downloads: Record<string, { url: string }>;
     printRaster: { width: number; height: number };
+    physicalSizeCm: {width: number; height: number};
   };
   if (!data.printVerified) throw Error("Print verification is missing.");
+  const advice = await client.callTool({name: "check_diagram_placement", arguments: {kind: "graph", envelope: data.envelope, widthMm: data.physicalSizeCm.width * 7.5}});
+  if (advice.isError || Math.abs((advice.structuredContent as {uniformScale: number}).uniformScale - 0.75) > 1e-10) throw Error("Placement advice failed.");
+  const bundleReply = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "graph", envelope: data.envelope}});
+  if (bundleReply.isError) throw Error("Bundle tool failed.");
+  const bundleLink = (bundleReply.structuredContent as {download: {url: string}}).download;
+  const bundleResponse = await fetch(bundleLink.url);
+  if (!bundleResponse.ok) throw Error("Bundle retrieval failed.");
+  const bundleFiles = unzipSync(new Uint8Array(await bundleResponse.arrayBuffer()));
+  if (JSON.stringify(JSON.parse(Buffer.from(bundleFiles["source.json"]).toString())) !== JSON.stringify(data.envelope)) throw Error("Bundled source changed.");
   if (
     data.envelope.document.objects.some(
       (object) => object.kind === "straight" && object.equationVisible,
@@ -270,6 +281,8 @@ try {
       printVerified: true,
       extendedRatiosVerified: true,
       valueGraphVerified: true,
+      placementVerified: true,
+      bundleVerified: true,
       buildId: health.buildId,
     }) + "\n",
   );

@@ -7,4 +7,5 @@ coverage
 service-dist
 test-results
 playwright-report
+tmp/diagram-consumption
 .env

@@ -1,5 +1,7 @@
 import { Resvg } from "@resvg/resvg-js";
 import { join } from "node:path";
+import { packArchive } from "./archive";
+import { GraphError } from "../../packages/graph-core/src/interchange";
 import {
   setDensityBytes,
   verifyPrintBytes,
@@ -14,8 +16,14 @@ process.once(
     outlined: boolean;
     fontRoot: string;
     artifactKind?: "graph" | "ratio-table" | "value-graph";
+    archive?: Record<string, Uint8Array>;
   }) => {
     try {
+      if (job.archive) {
+        const zip = packArchive(job.archive);
+        process.send?.({ zip }, () => process.exit(0));
+        return;
+      }
       // Round each dimension independently at 600 ppi; keep the original viewBox.
       const input = job.outlined
         ? job.svg
@@ -66,8 +74,8 @@ process.once(
         verifyPrintBytes(png, job.width, job.height);
       }
       process.send?.({ png }, () => process.exit(0));
-    } catch {
-      process.send?.({ error: "The graph could not be rendered." }, () =>
+    } catch (error) {
+      process.send?.({ code: error instanceof GraphError ? error.code : "render_failed", error: error instanceof GraphError ? error.message : "The artifact could not be rendered." }, () =>
         process.exit(1),
       );
     }
