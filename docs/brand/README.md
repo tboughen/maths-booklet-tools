@@ -46,3 +46,9 @@ separate candidate masters. Use the current production repository baseline for
 a future release; do not deploy an older Cloudflare checkout.
 
 `scripts/brand/bollard_perspective.py` contains the 0.85 scale and base anchor.
+
+
+The final logo release preserves the latest source examples and inspector layout
+from .examples-cf-release / codex/tool-source-examples, baseline 38c551ad167461f6b50512fc5a5164fa16c73825.
+The earlier quadratic baseline above is historical. Production release source:
+.logo-cf-release / codex/wrapped-logo-production.
