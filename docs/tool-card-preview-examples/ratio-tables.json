@@ -1,0 +1,59 @@
+{
+  "kind": "ratio-table",
+  "schemaVersion": 1,
+  "rendererVersion": "ratio-1",
+  "styleProfile": "ratio-lesson-v1",
+  "document": {
+    "headings": [
+      {
+        "text": "x",
+        "italic": true,
+        "direction": "right"
+      },
+      {
+        "text": "y",
+        "italic": true,
+        "direction": "up"
+      }
+    ],
+    "rows": [
+      {
+        "id": "start",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "3"
+          },
+          {
+            "kind": "number",
+            "value": "5"
+          }
+        ]
+      },
+      {
+        "id": "target",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "9"
+          },
+          {
+            "kind": "answer-line"
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": "start",
+        "to": "target",
+        "operation": "multiply",
+        "factor": "3"
+      }
+    ],
+    "size": "standard",
+    "mode": "annotated",
+    "showArrows": true,
+    "showOperations": true
+  }
+}

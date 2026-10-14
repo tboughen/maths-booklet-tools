@@ -14,6 +14,8 @@ Before adding controls, specify a small set of representative outputs: a simple 
 
 Define the first release around a coherent teaching task. A tool does not need every possible annotation, arbitrary styling or unlimited dimensions. Give each limit a mathematical, layout or performance reason, explain it in the interface, and avoid borrowing another tool's row or object limits without checking the new use case.
 
+Include a representative output image on the All tools card from the first release, alongside the existing small icon. Generate it from the tool's real export renderer, preserve any illustrative pupil blanks, and keep it legible at card size. Follow [All tools card previews](TOOL-CARD-PREVIEWS.md) for the reference examples, SVG generation, registry fields, responsive layout and review checks.
+
 ## Make the diagram the main editing surface
 
 Place the common action where the teacher is looking. Graph tool locates plus and minus controls at the axis ends. Ratio tables progressed from settings-panel editing to clicking headings, cells and arrow factors directly. A capability that exists only in a distant settings panel may still be difficult to discover.
@@ -142,6 +144,7 @@ Retain existing hosting and cost constraints. Reuse the existing service when ap
 Use the following as an acceptance checklist, marking irrelevant checks with a reason:
 
 - [ ] A teacher can produce the representative output without hidden configuration or technical knowledge.
+- [ ] The All tools card retains its icon and includes an accurate output preview, meaningful alternative text and a working image link; desktop and narrow-screen layouts are reviewed.
 - [ ] Common edits are discoverable on the diagram, with labelled keyboard alternatives.
 - [ ] Related controls are grouped; narrow layouts and focused inputs remain usable.
 - [ ] Blank, answer-line and zero states survive edits, visibility changes, saving and reopening.

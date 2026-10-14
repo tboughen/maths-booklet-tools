@@ -24,6 +24,16 @@ Provide a sketch or example of each relevant case. Record the desired print dime
 | Largest supported structure | | |
 | Deliberate error | If useful for teaching | |
 
+## All tools card preview
+
+Use [the preview convention](TOOL-CARD-PREVIEWS.md); include this in the first release.
+
+- **Representative sample:** What should a teacher recognise before entering the tool? Which pupil blanks remain?
+- **Editable example and renderer:** Saved example location, real export renderer and generation route.
+- **Website SVG and alternative text:** `src/assets/tool-previews/<tool-slug>.svg` and its registry `preview` entry; preserve the small icon.
+- **Layout review:** Preview on the right on desktop/tablet; stacked on narrow phones; check actual card size, complete labels and image/link keyboard behaviour.
+- **Verification evidence:** Source reopening, mathematical checks, screenshots and built/live asset checks where publication is authorised.
+
 ## Interaction plan
 
 | Teacher action | Direct interaction | Keyboard or labelled control | Placement | Undo and validation behaviour |
