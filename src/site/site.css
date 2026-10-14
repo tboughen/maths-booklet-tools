@@ -188,3 +188,16 @@ body { background: #f2f5f8; }
 @media print {
   .site-navigation, .site-skip, .qb-page-search { display: none; }
 }
+
+/* Common image and Word copy actions; menu follows the measured toolbar height. */
+.booklet-editor .editor-copy-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.booklet-editor .editor-copy-actions .copy-split { margin: 0; }
+.booklet-editor .editor-copy-actions .clipboard-copy { border-radius: 4px; min-height: 40px; }
+.booklet-editor .editor-copy-actions .copy-split :is(.copy-main,.copy-more) { background: white; color: var(--blue); border: 1px solid var(--line-strong); }
+.booklet-editor .editor-copy-actions .copy-more { border-left: 0; }
+.booklet-editor .editor-copy-actions .copy-split button:hover { background: var(--blue-soft); }
+.booklet-editor .editor-export-popover { top: var(--editor-toolbar-height, 58px); }
+@media (max-width: 620px) {
+  .booklet-editor .editor-copy-actions { width: 100%; }
+  .booklet-editor .editor-copy-actions > .clipboard-copy, .booklet-editor .editor-copy-actions > .copy-split { flex: 1 1 auto; width: auto; justify-content: center; }
+}

@@ -1,6 +1,6 @@
 # Lessons from Graph tool and Ratio tables
 
-These examples explain the design choices behind the [tool creation guide](TOOL-CREATION-GUIDE.md). They cover development through 13 October 2026. Commit links identify the relevant changes; the principles describe how to apply those changes to future tools.
+These examples explain the design choices behind the [tool creation guide](TOOL-CREATION-GUIDE.md). They cover development through 14 October 2026. Commit links identify the relevant changes; the principles describe how to apply those changes to future tools.
 
 ## Graph tool
 
@@ -34,11 +34,25 @@ Two choices are worth preserving together. First, a scaling step is shared acros
 
 Compatibility also shaped the extension. Existing two-column tables with at least two rows retain schema 1 and renderer ratio-1. Other supported shapes use schema 2 and ratio-2. Removing a column can return a table to the earlier canonical format, so clients must continue with the returned document and hash. The details are in [Ratio table MCP](RATIO-TABLE-MCP.txt).
 
+## All tools output previews
+
+On 14 October, Tim asked to keep the small tool icons while adding examples of what each tool generates. The Graph tool, Ratio tables and Table of values & graphs cards gained actual exported artwork on the right, with the image stacked beneath the text on narrow phones. Icons, descriptions and the whole-card launch links were retained. The ratio sample deliberately keeps an answer line.
+
+The examples were generated locally from the shared core renderers after the connector timed out, with bundled mathematical fonts outlined into SVG. Saved editable examples, card-size visual review, responsive/navigation checks and live byte comparisons established that the images accurately represented the tools. The website release was [794ee8ff](https://github.com/tboughen/maths-booklet-tools/commit/794ee8fff0e4849e4c8a7639396d1b209428f451); its Cloudflare deployment is separate from a main-branch merge.
+
+The reusable lesson is to include a discoverable example in each new tool's first release, using the shared registry/card implementation and the tool's real rendering. [All tools card previews](TOOL-CARD-PREVIEWS.md) records the examples and full convention.
+
 ## Shared direction
 
 The [11 October site organisation change](https://github.com/tboughen/maths-booklet-tools/commit/493f6b00) brought both editors into the Question bank's visual language and introduced shared navigation and a tool registry. This made consistency an implementation default and preserved drafts and undo history while switching pages.
 
 The resulting design direction is a specialist mathematical editor inside a familiar shell. Reuse the shared navigation, visual hierarchy, editing conventions, recovery and export behaviour. Design each new representation around its own mathematics and classroom use.
+
+## Plotting quadratic graphs: clean resource and source examples, 14 October
+
+Tim requested a white resource area that less technical teachers can screenshot directly. Axis controls now sit beyond the resource in the blue workspace, aligned with their axes; table controls sit further right at table height. Transparent direct editing remains on the artwork. The shared bar places image-only Copy to clipboard before Copy for Word, keeping the Word physical-size route. The stable route and editable file format are unchanged by the new display name.
+
+The quadratic presets demonstrate another reusable feature: editable examples linked to real published past-paper questions. Include this wherever suitable questions exist in future tools, retaining traceable sources and pupil blanks and making worked output explicit. See the guide and brief for acceptance cases.
 
 ## Reference implementation
 
