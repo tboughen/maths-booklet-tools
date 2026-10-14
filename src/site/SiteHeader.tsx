@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, ChevronDown, Menu, Shapes, X, FileSpreadsheet } from "lucide-react";
-import { bookletTools, pageHref, pageName, type PageId } from "./registry";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { bookletTools, pageHref, sectionName, siteSections, type PageId, type SectionId } from "./registry";
 
-export function SiteHeader({ page }: { page: PageId }) {
+export function SiteHeader({ page, section }: { page: PageId; section: SectionId }) {
   const [open, setOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -24,13 +24,11 @@ export function SiteHeader({ page }: { page: PageId }) {
   }}>
     <div className="site-navigation-row">
       <a className="site-brand" href={pageHref("home")} aria-label="Maths Dock home"><img className="site-brand-logo" src={`${import.meta.env.BASE_URL}brand/mathsdock-logo.svg?v=964b436da6be`} width="1501" height="326" alt="Maths Dock" /></a>
-      <button ref={button} type="button" className="site-menu-toggle" aria-expanded={open} aria-controls="site-sections" onClick={() => setOpen(!open)}>{open ? <X size={18} /> : <Menu size={18} />}<span>{page === "home" ? "Sections" : booklet ? "Booklet tools" : page === "assessment-follow-up" ? "Follow-up" : "Question bank"}</span><ChevronDown size={14} /></button>
+      <button ref={button} type="button" className="site-menu-toggle" aria-expanded={open} aria-controls="site-sections" onClick={() => setOpen(!open)}>{open ? <X size={18} /> : <Menu size={18} />}<span>{page === "home" ? "Sections" : booklet ? "Booklet tools" : sectionName(section)}</span><ChevronDown size={14} /></button>
       <nav id="site-sections" aria-label="Main sections" className={`site-sections${open ? " is-open" : ""}`}>
-        <a href={pageHref("question-bank")} aria-current={page === "question-bank" ? "page" : undefined}><BookOpen size={17} aria-hidden="true" />Question bank</a>
-        <a href={pageHref("assessment-follow-up")} aria-current={page === "assessment-follow-up" ? "page" : undefined}><FileSpreadsheet size={17} aria-hidden="true" />Assessment follow-up</a>
-        <a href={pageHref("booklet-tools")} aria-current={booklet ? (page === "booklet-tools" ? "page" : "true") : undefined}><Shapes size={17} aria-hidden="true" />Booklet tools</a>
+        {siteSections.map(item => <a key={item.id} href={item.href} aria-current={section === item.id ? "page" : item.id === "booklet-tools" && booklet ? "true" : undefined}><item.icon size={17} aria-hidden="true" />{item.name}</a>)}
       </nav>
-      <span className="site-current">{pageName(page)}</span>
+      <span className="site-current">{sectionName(section)}</span>
     </div>
     {booklet && <nav className="site-tool-navigation" aria-label="Booklet tools">
       <a href={pageHref("booklet-tools")} aria-current={page === "booklet-tools" ? "page" : undefined}>All tools</a>
