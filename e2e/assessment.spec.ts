@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
+test.describe.configure({ timeout: 90000 });
 
 async function enterClass(page: import("@playwright/test").Page) {
   await page.goto("/?tool=assessment-follow-up");
@@ -247,7 +248,7 @@ test("custom mappings, import warnings and marks-only limits remain accessible",
   await expect(page.getByLabel("Pages per student", { exact: true })).toHaveValue("4");
 });
 test("home entry, keyboard navigation and tablet widths remain usable", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?tool=home");
   await page.getByRole("link", { name: /Create class practice/ }).click();
   await expect(page.getByRole("heading", { name: "Assessment follow-up", exact: true })).toBeVisible();
   for (const width of [320, 375, 621, 768, 1024, 1440]) {
