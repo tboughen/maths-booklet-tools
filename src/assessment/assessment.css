@@ -1,0 +1,40 @@
+.af-page { max-width: 1500px; margin: 0 auto; padding: 22px; }
+.af-page button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 8px 12px; background: white; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 4px; font: inherit; font-size: 13px; cursor: pointer; }
+.af-page button:hover:not(:disabled) { background: var(--blue-soft); }
+.af-page button:disabled { opacity: .5; cursor: default; }
+.af-page .af-primary { background: var(--blue); border-color: var(--blue); color: white; }
+.af-toolbar, .af-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.af-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; align-items: start; }
+.af-main, .af-inspector { display: grid; gap: 16px; min-width: 0; }
+.af-panel { padding: 18px; }
+.af-panel h2 { font-size: 17px; margin: 0 0 14px; }
+.af-page label { display: grid; gap: 6px; margin: 12px 0; font-size: 13px; font-weight: 600; }
+.af-page input:not([type=checkbox]), .af-page select, .af-page textarea { width: 100%; min-width: 0; min-height: 38px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; color: var(--ink); font: inherit; }
+.af-page textarea { font-family: ui-monospace, monospace; font-size: 12px; resize: vertical; }
+.af-page fieldset { padding: 0; border: 0; margin: 12px 0; min-width: 0; }
+.af-page legend { font-weight: 600; font-size: 14px; }
+.af-page .af-check { display: flex; align-items: center; gap: 8px; }
+.af-check input { width: 18px; height: 18px; flex-shrink: 0; }
+.af-help, .af-intro { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.af-input-alternatives { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.af-input-alternatives details { min-width: 0; max-width: 100%; }
+.af-input-alternatives summary { color: var(--blue); padding: 8px 0; }
+.af-data-help { padding: 0 8px; color: var(--muted); }
+.af-error { padding: 12px; color: var(--red); background: var(--red-soft); border-radius: 4px; }
+.af-notices, .af-page details { font-size: 13px; line-height: 1.6; }
+.af-page summary { cursor: pointer; padding: 6px 0; }
+.af-table { overflow-x: auto; max-width: 100%; }
+.af-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.af-table th, .af-table td { padding: 9px; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.af-preview { padding: 12px; background: var(--surface); text-align: center; }
+.af-preview canvas { max-width: 100%; height: auto; background: white; box-shadow: var(--shadow); }
+.af-pack-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.af-pack-summary strong { padding: 10px 12px; background: var(--blue-soft); border-radius: 4px; font-size: 15px; }
+.af-import-summary { padding: 8px 12px; background: var(--surface); border-left: 3px solid var(--green); font-size: 13px; line-height: 1.55; }
+.af-import-summary p { margin: 5px 0; }
+.af-assessment-summary { font-weight: 600; color: var(--muted); font-size: 14px; }
+.af-preview-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; margin: 12px 0; }
+.af-preview-controls span { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.af-preview-download { display: flex; justify-content: center; margin: 14px 0; }
+@media(max-width: 850px) { .af-workspace { grid-template-columns: minmax(0,1fr); } .af-inspector { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 550px) { .af-page { padding: 12px; } .af-inspector { grid-template-columns: minmax(0,1fr); } .af-panel { padding: 12px; } .af-toolbar button { flex: 1 1 140px; } }
