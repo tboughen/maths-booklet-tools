@@ -3,6 +3,49 @@ import { readFile, mkdir } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
 test.describe.configure({ timeout: 90000 });
 
+for (const pair of ["1-2", "3-4", "5-6"]) for (const tier of ["H", "F"]) {
+  test(`HPP${pair}_${tier} uses spreadsheet order for mappings, templates and marks`, async ({ page }) => {
+    const data = JSON.parse(await readFile("src/assessment/presets-data.json", "utf8"));
+    const selections = data.presets.filter((p: { id: string }) => pair.split("-").some(n => p.id === `HPP${n}_${tier}`));
+    await page.goto("/?tool=assessment-follow-up");
+    await page.getByLabel("Choose assessment", { exact: true }).selectOption(`HPP${pair}_${tier}`);
+    const parts = page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true });
+    const summary = page.getByText("View or edit mapping", { exact: true });
+    for (const partScores of [true, false]) {
+      await parts.setChecked(partScores);
+      const number = (item: { label: string }) => Number(item.label.match(/\d+/)![0]);
+      const items: { label: string; marks: number }[] = selections.flatMap((p: Record<string, { label: string; marks: number }[]>) => p[partScores ? "parts" : "items"]);
+      items.sort((a, b) => number(b) % 2 - number(a) % 2 || number(a) - number(b));
+      await summary.click();
+      const tableLabels = await page.locator(".af-table").first().locator("tbody tr td:first-child").allTextContents();
+      expect(tableLabels).toEqual(items.map(item => item.label));
+      await summary.click();
+      const pending = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Download template", exact: true }).click();
+      const downloaded = await pending;
+      const csv = await readFile((await downloaded.path())!, "utf8");
+      expect(csv.split("\n")[0].split('","').slice(4).map(cell => cell.replace(/"$/g, ""))).toEqual(items.map(item => item.label));
+      await page.getByLabel("Paste marks", { exact: true }).fill(items.map(item => number(item) % 2 ? "0" : String(item.marks)).join("\t"));
+      await expect(page.locator(".af-import-summary")).toContainText(`${items.length}/${items.length} columns matched`);
+      await expect(page.getByRole("alert")).toHaveCount(0);
+    }
+    await page.getByRole("button", { name: "Generate class pack", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Download class PDF" }).first()).toBeEnabled({ timeout: 60000 });
+    await page.getByText("Why these questions?", { exact: true }).click();
+    const reasons = await page.getByText("Why these questions?", { exact: true }).locator("..").locator("li").allTextContents();
+    expect(reasons.length).toBeGreaterThan(0);
+    for (const reason of reasons) {
+      const references = reason.match(/follow-up to (.*?) ·/)![1].match(/Q\d+/g)!;
+      expect(references.length).toBeGreaterThan(0);
+      expect(references.every(label => Number(label.slice(1)) % 2 === 1)).toBe(true);
+    }
+    if (pair === "1-2" && tier === "H") {
+      await summary.click();
+      await page.screenshot({ path: "coverage/assessment/hpp-odd-first.png", fullPage: true });
+    }
+  });
+}
+
 async function enterClass(page: import("@playwright/test").Page) {
   await page.goto("/?tool=assessment-follow-up");
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("1MA1_NOV_2019_1H");

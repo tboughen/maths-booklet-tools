@@ -60,7 +60,7 @@ describe("assessment import and diagnostic boundaries", () => {
     }
     expect(assessmentPresets(bank).find(p => p.id === paper)?.name).toBe("November 2019 — Paper 1 — Higher");
   });
-  it("combines all six full HPP presets into complete 80-mark papers in original question and part order", () => {
+  it("combines all six full HPP presets into 80-mark papers with odd questions before even questions", () => {
     expect(fullHppPresets).toHaveLength(6);
     for (const preset of fullHppPresets) {
       const first = Number(preset.id.match(/\d+/)![0]);
@@ -68,7 +68,8 @@ describe("assessment import and diagnostic boundaries", () => {
       expect(pair[0].sourcePaperId).toBe(pair[1].sourcePaperId);
       expect(preset.sourcePaperId).toBe(pair[0].sourcePaperId);
       expect(preset.marks).toBe(80);
-      expect(preset.items.map(i => i.label)).toEqual(Array.from({ length: preset.items.length }, (_, i) => `Q${i + 1}`));
+      const numbers = Array.from({ length: preset.items.length }, (_, i) => i + 1);
+      expect(preset.items.map(i => i.label)).toEqual([...numbers.filter(n => n % 2 === 1), ...numbers.filter(n => n % 2 === 0)].map(n => `Q${n}`));
       for (const key of ["items", "parts"] as const) {
         expect(preset[key].reduce((n, item) => n + item.marks, 0)).toBe(80);
         expect(new Set(preset[key].map(i => questionLabel(i.label))).size).toBe(preset[key].length);
@@ -77,6 +78,30 @@ describe("assessment import and diagnostic boundaries", () => {
         expect(imported.warnings).toEqual([]); expect(imported.rows).toHaveLength(preset[key].length);
       }
       expect(assessmentPresets(bank).find(p => p.id === preset.id)).toBe(preset);
+    }
+  });
+  it.each(fullHppPresets.map(preset => [preset.id, preset] as const))("maps %s spreadsheet marks to the correct questions in both score modes", (_, preset) => {
+    const odd = (item: AssessmentItem) => Number(item.label.match(/\d+/)![0]) % 2 === 1;
+    for (const items of [preset.items, preset.parts]) {
+      // Model two spreadsheet rows independently of the preset's column order.
+      const columns = [...items.filter(odd), ...items.filter(item => !odd(item))];
+      const rows = [columns.map(item => odd(item) ? "0" : String(item.marks)), columns.map(item => odd(item) ? String(item.marks) : "")];
+      const imported = importPupils(rows, items);
+      expect(imported.warnings).toEqual([]);
+      expect(imported.detection.hasHeaders).toBe(false);
+      expect(imported.rows.map(p => p.identifier)).toEqual(["S001", "S002"]);
+      expect(imported.detection.matchedQuestions).toBe(items.length);
+      for (const item of items) {
+        expect(imported.rows[0].scores[questionLabel(item.label)]).toBe(odd(item) ? 0 : item.marks);
+        expect(imported.rows[1].scores[questionLabel(item.label)]).toBe(odd(item) ? item.marks : null);
+      }
+      const template = parseDelimited(resultsCsv(items));
+      expect(template[0].slice(4)).toEqual(columns.map(item => item.label));
+      // Explicit headers still identify questions when an older sheet uses numeric order.
+      const numeric = [...items].sort((a, b) => Number(a.label.match(/\d+/)![0]) - Number(b.label.match(/\d+/)![0]));
+      const labelled = importPupils([numeric.map(item => item.label), numeric.map(item => odd(item) ? "0" : String(item.marks))], items);
+      expect(labelled.warnings).toEqual([]);
+      expect(labelled.rows[0].scores).toEqual(imported.rows[0].scores);
     }
   });
   it("uses both codes from one assessment cell and selects a shared practice question only once", () => {
