@@ -5,7 +5,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
-import { Copy, Download, Undo2, Redo2, RotateCcw } from "lucide-react";
+import { Copy, Download } from "lucide-react";
 import {
   apply,
   canonical,
@@ -31,6 +31,7 @@ import {
   rational,
   fractionString,
 } from "../../packages/ratio-table-core/src/numbers";
+import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { downloadBlob } from "../export/clipboard";
@@ -40,6 +41,7 @@ import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
 import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
+import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
 
 type Selection =
@@ -231,9 +233,14 @@ export default function ValueGraphPage({
         if (e.shiftKey) redo();
         else undo();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redo();
+      }
       if (e.key === "Escape" && !pendingFields.size) {
         setSelection(null);
         setMode("select");
+        setExportOpen(false);
       }
     };
     window.addEventListener("keydown", keys);
@@ -1259,10 +1266,9 @@ export default function ValueGraphPage({
     m.plot.top,
     Math.min(zero.y, m.plot.top + m.plot.height),
   );
-  const sideLeft =
-    Math.max(m.table.left + m.table.width, m.plot.left + m.plot.width) *
-      pxPerMm +
-    152;
+  const localSelection =
+    selection &&
+    ["equation", "axis", "bound", "cell", "point"].includes(selection.kind);
 
   return (
     <div className="app-shell booklet-editor vg-editor">
@@ -1274,111 +1280,90 @@ export default function ValueGraphPage({
         <PageHeading
           title="Table of values & graphs"
           description="Click the equation, table or graph to edit your resource."
-        />
+        >
+          <div
+            className={`save-indicator save-indicator--${saved ? "saved" : "error"}`}
+          >
+            <span />
+            {saved ? "Saved on this device" : "Not saved on device"}
+          </div>
+        </PageHeading>
         <section className="workspace">
           <Panel className="editor-card">
-            <div className="vg-toolbar">
-              <button
-                aria-label="Undo"
-                disabled={blocked || !history.past.length}
-                onClick={undo}
-              >
-                <Undo2 size={18} />
-              </button>
-              <button
-                aria-label="Redo"
-                disabled={blocked || !history.future.length}
-                onClick={redo}
-              >
-                <Redo2 size={18} />
-              </button>
-              <button
-                disabled={blocked}
-                onClick={() =>
-                  ask(
-                    "Reset this resource?",
-                    "Replace with the June 2018 scaffold. You can undo this.",
-                    () => {
-                      commit(defaultEnvelope());
-                      setSelection(null);
-                    },
-                  )
-                }
-              >
-                <RotateCcw size={17} />
-                Reset
-              </button>
-              <button
-                disabled={blocked}
-                onClick={(e) => choose({ kind: "examples" }, e.currentTarget)}
-              >
-                Examples
-              </button>
-              <button
-                disabled={blocked}
-                onClick={(e) => choose({ kind: "layout" }, e.currentTarget)}
-              >
-                Layout
-              </button>
-              <button
-                className="vg-primary"
-                disabled={blocked || !!renderError}
-                onClick={() => void exportAction(() => copyForWord(envelope))}
-              >
-                <Copy size={17} />
-                Copy for Word
-              </button>
-              <button
-                disabled={blocked || !!renderError}
-                aria-expanded={exportOpen}
-                onClick={() => setExportOpen(!exportOpen)}
-              >
-                <Download size={17} />
-                Downloads
-              </button>
-            </div>
-            {exportOpen && (
-              <div className="vg-downloads">
-                {(["svg", "png", "json"] as const).map((format) => (
+            <EditorToolbar
+              canUndo={!blocked && !!history.past.length}
+              canRedo={!blocked && !!history.future.length}
+              onUndo={undo}
+              onRedo={redo}
+              onReset={() =>
+                ask(
+                  "Reset this resource?",
+                  "Replace with the June 2018 scaffold. You can undo this.",
+                  () => {
+                    commit(defaultEnvelope());
+                    setSelection(null);
+                  },
+                )
+              }
+              resetDisabled={blocked}
+              exportDisabled={blocked || !!renderError}
+              busy={busy}
+              onCopy={() => void exportAction(() => copyForWord(envelope))}
+              menuOpen={exportOpen}
+              onToggleMenu={() => setExportOpen(!exportOpen)}
+            />
+            <div className="editor-export-popover" hidden={!exportOpen}>
+              {exportOpen && (
+                <div className="export-menu" role="menu">
+                  {(["svg", "png", "json"] as const).map((format) => (
+                    <button
+                      key={format}
+                      role="menuitem"
+                      disabled={blocked || !!renderError}
+                      onClick={() =>
+                        void exportAction(() => download(envelope, format))
+                      }
+                    >
+                      <Download size={17} aria-hidden="true" />
+                      <span>
+                        Download{" "}
+                        {format === "png"
+                          ? "PNG (600 ppi)"
+                          : format === "json"
+                            ? "editable JSON"
+                            : "SVG"}
+                      </span>
+                    </button>
+                  ))}
                   <button
-                    key={format}
-                    disabled={blocked || !!renderError}
+                    role="menuitem"
+                    disabled={blocked}
                     onClick={() =>
-                      void exportAction(() => download(envelope, format))
+                      act(() => {
+                        file.current?.click();
+                      })
                     }
                   >
-                    Download{" "}
-                    {format === "png"
-                      ? "PNG (600 ppi)"
-                      : format === "json"
-                        ? "editable JSON"
-                        : "SVG"}
+                    <Copy size={17} aria-hidden="true" />
+                    <span>Open editable file</span>
                   </button>
-                ))}
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    act(() => {
-                      file.current?.click();
-                    })
-                  }
-                >
-                  Open editable file
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    void exportAction(async () => {
-                      await navigator.clipboard.writeText(
-                        editorLink(envelope, location.href),
-                      );
-                    })
-                  }
-                >
-                  Copy editable link
-                </button>
-              </div>
-            )}
+                  <button
+                    role="menuitem"
+                    disabled={blocked}
+                    onClick={() =>
+                      void exportAction(async () => {
+                        await navigator.clipboard.writeText(
+                          editorLink(envelope, location.href),
+                        );
+                      })
+                    }
+                  >
+                    <Copy size={17} aria-hidden="true" />
+                    <span>Copy editable link</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <input
               type="file"
               accept=".json,application/json"
@@ -1404,7 +1389,7 @@ export default function ValueGraphPage({
                 }
               }}
             />
-            <div className="vg-display-controls">
+            <div className="ratio-preview-controls">
               <label>
                 Preview zoom{" "}
                 <select
@@ -1417,11 +1402,6 @@ export default function ValueGraphPage({
                   <option value={1.5}>150%</option>
                 </select>
               </label>
-              <span>
-                {saved
-                  ? "Saved on this device"
-                  : "Save an editable file to keep your work"}
-              </span>
             </div>
             {!!message && (
               <p role="status" className="vg-message">
@@ -1483,7 +1463,7 @@ export default function ValueGraphPage({
               <div
                 className="vg-editor-frame"
                 style={{
-                  width: Math.max(m.width * pxPerMm, sideLeft + 170) + 168,
+                  width: m.width * pxPerMm + 240,
                   height:
                     Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) + 112,
                 }}
@@ -1708,108 +1688,10 @@ export default function ValueGraphPage({
                           −
                         </button>
                       </div>
-                      <button
-                        disabled={blocked}
-                        onClick={() =>
-                          act(() => {
-                            const blanks = d.columns
-                              .filter((c) => c.y.kind !== "value")
-                              .map((c) => c.id);
-                            if (!blanks.length) {
-                              setMessage("There are no blank cells to fill.");
-                              return;
-                            }
-                            change([
-                              {
-                                op: "calculate_cells",
-                                columnIds: blanks,
-                                overwrite: false,
-                              },
-                            ]);
-                          })
-                        }
-                      >
-                        Fill blank values
-                      </button>
-                      <button
-                        disabled={blocked}
-                        onClick={(e) =>
-                          choose({ kind: "table" }, e.currentTarget)
-                        }
-                      >
-                        Table options
-                      </button>
                     </div>
                   )}
                   {m.withGraph && (
                     <>
-                      <div
-                        className="vg-graph-tools"
-                        style={{
-                          left: sideLeft,
-                          top: Math.max(
-                            m.plot.top * pxPerMm + 50,
-                            m.withTable ? m.table.top * pxPerMm + 240 : 0,
-                          ),
-                        }}
-                      >
-                        <strong>Graph</strong>
-                        <button
-                          disabled={blocked}
-                          onClick={(e) =>
-                            choose({ kind: "plot" }, e.currentTarget)
-                          }
-                        >
-                          Plot
-                        </button>
-                        <button
-                          disabled={blocked}
-                          onClick={(e) =>
-                            choose({ kind: "add" }, e.currentTarget)
-                          }
-                        >
-                          Add
-                        </button>
-                        <button
-                          disabled={blocked}
-                          onClick={(e) => {
-                            if (!g.curves.length) curve();
-                            choose(
-                              {
-                                kind: "curve",
-                                id: g.curves[0]?.id ?? "quadratic",
-                              },
-                              e.currentTarget,
-                            );
-                          }}
-                        >
-                          Curve
-                        </button>
-                        <button
-                          disabled={blocked}
-                          onClick={(e) =>
-                            choose({ kind: "graph" }, e.currentTarget)
-                          }
-                        >
-                          Graph options
-                        </button>
-                        <button
-                          disabled={blocked}
-                          onClick={(e) =>
-                            choose({ kind: "objects" }, e.currentTarget)
-                          }
-                        >
-                          Select object
-                        </button>
-                        {mode === "point" && (
-                          <>
-                            <p>Click the grid to place a point.</p>
-                            <button onClick={() => setMode("select")}>
-                              Cancel placement
-                            </button>
-                          </>
-                        )}
-                      </div>
                       {(["xMin", "xMax", "yMin", "yMax"] as const).map(
                         (key) => {
                           const side =
@@ -1958,7 +1840,7 @@ export default function ValueGraphPage({
                 {w}
               </p>
             ))}
-            {selection && (
+            {selection && localSelection && (
               <LocalEditor
                 anchor={anchor}
                 title={contextTitle}
@@ -1975,6 +1857,129 @@ export default function ValueGraphPage({
               </LocalEditor>
             )}
           </Panel>
+          <aside
+            className="inspector-stack"
+            aria-label="Table and graph settings"
+          >
+            <section className="panel-card specialist-tools">
+              <h2>Table and graph tools</h2>
+              <div className="specialist-actions">
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "table" }, e.currentTarget)}
+                >
+                  Table options
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={() =>
+                    act(() => {
+                      const blanks = d.columns
+                        .filter((c) => c.y.kind !== "value")
+                        .map((c) => c.id);
+                      if (!blanks.length) {
+                        setMessage("There are no blank cells to fill.");
+                        return;
+                      }
+                      change([
+                        {
+                          op: "calculate_cells",
+                          columnIds: blanks,
+                          overwrite: false,
+                        },
+                      ]);
+                    })
+                  }
+                >
+                  Fill blank values
+                </button>
+              </div>
+              <div className="specialist-actions">
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "plot" }, e.currentTarget)}
+                >
+                  Plot
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "add" }, e.currentTarget)}
+                >
+                  Add
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={(e) => {
+                    if (!g.curves.length) curve();
+                    choose(
+                      {
+                        kind: "curve",
+                        id: g.curves[0]?.id ?? "quadratic",
+                      },
+                      e.currentTarget,
+                    );
+                  }}
+                >
+                  Curve
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "graph" }, e.currentTarget)}
+                >
+                  Graph options
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "objects" }, e.currentTarget)}
+                >
+                  Select object
+                </button>
+                {mode === "point" && (
+                  <>
+                    <p>Click the grid to place a point.</p>
+                    <button onClick={() => setMode("select")}>
+                      Cancel placement
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
+            <section className="panel-card specialist-tools">
+              <h2>Resource settings</h2>
+              <div className="specialist-actions">
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "layout" }, e.currentTarget)}
+                >
+                  Layout
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={(e) => choose({ kind: "examples" }, e.currentTarget)}
+                >
+                  Examples
+                </button>
+              </div>
+            </section>
+            {selection && !localSelection ? (
+              <InspectorEditor
+                title={contextTitle}
+                active={active && !pending}
+                blocked={blocked}
+                onClose={close}
+              >
+                <div key={JSON.stringify(selection)}>{contextContent()}</div>
+              </InspectorEditor>
+            ) : (
+              <section className="panel-card">
+                <h2>Edit resource</h2>
+                <p>
+                  Click the equation, a table cell, an axis label or a plotted
+                  object to edit it. Use the tools above for other settings.
+                </p>
+              </section>
+            )}
+          </aside>
         </section>
         {active && pending && (
           <RatioDialog

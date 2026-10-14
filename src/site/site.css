@@ -100,6 +100,22 @@ body { background: #f2f5f8; }
 .booklet-editor .toast--error { background: #fff9f8; border-color: #ecc7c5; }
 .booklet-editor .objects-list button:hover { background: var(--surface); }
 .booklet-editor .objects-list button.selected { background: var(--blue-soft); }
+/* Editor placement: common document utilities, specialist inspector, local structure. */
+.booklet-editor .specialist-tools h2 { margin: 0 0 12px; font: 600 17px/1.3 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #213c59; }
+.booklet-editor .specialist-tools .tool-group { flex-wrap: wrap; }
+.booklet-editor .specialist-tools .tool-button { padding-inline: 9px; }
+.booklet-editor .specialist-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.booklet-editor .specialist-actions button { min-width: 0; white-space: normal; }
+.booklet-editor .editor-export-popover { position: absolute; z-index: 20; top: 58px; right: 12px; width: min(280px, calc(100% - 24px)); max-height: min(360px, calc(100dvh - 220px)); overflow: auto; background: white; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 6px 30px #173c6522; }
+.booklet-editor .editor-export-popover :is(.export-menu, .graph-exchange-menu) { position: static; width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+.booklet-editor .editor-export-popover .graph-exchange-menu { border-top: 1px solid var(--line); }
+.booklet-editor .editor-toolbar .tool-group { flex-wrap: nowrap; }
+@media (max-width: 440px) {
+  .booklet-editor .editor-toolbar { padding-inline: 8px; }
+  .booklet-editor .editor-toolbar .copy-split { width: 100%; margin: 4px 0 0; }
+  .booklet-editor .editor-toolbar .copy-main { flex: 1; justify-content: center; }
+  .booklet-editor .editor-export-popover { top: 104px; max-height: min(340px, calc(100dvh - 270px)); }
+}
 /* Only the visible Question bank locks the viewport; retained editors remain inert. */
 .site-app:has(> .site-page:not([hidden]) .qb-app) { height: 100dvh; min-height: 0; display: flex; flex-direction: column; }
 .site-page:has(.qb-app) { flex: 1; min-height: 0; }

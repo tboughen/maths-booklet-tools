@@ -1,17 +1,20 @@
 # Adding a booklet tool
 
+Before implementing an editor, read [Creating MathsDock tools](TOOL-CREATION-GUIDE.md) and complete the [new tool brief](TOOL-BRIEF-TEMPLATE.md). Those documents cover the teaching purpose, direct editing, control placement, recovery, print output and compatibility lessons from [Graph tool and Ratio tables](TOOL-EVOLUTION.md). This page covers integration with the shared site.
+
 The website has two main sections: **Question bank** and **Booklet tools**. Graph tool and Ratio tables belong to Booklet tools. `src/site/SiteApp.tsx` owns the common header, query-based navigation and page lifetime; an editor owns its controls, working document and exports.
 
 ## Register the editor
 
 Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon and React component. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
 
-Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. The bare URL continues to open Graph tool for existing users. Question bank remains a separate section.
+Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. Link explicitly to `?tool=graph` or `?tool=ratio-table` when targeting those editors, rather than depending on the bare URL's default page. Question bank remains a separate section.
 
 ## Use the shared layout
 
 ```tsx
 import { PageHeading, Panel } from "../site/PageHeading";
+import { EditorToolbar } from "../site/EditorToolbar";
 
 export default function NewTool({ active = true }: { active?: boolean }) {
   return <div className="app-shell booklet-editor">
@@ -19,11 +22,11 @@ export default function NewTool({ active = true }: { active?: boolean }) {
       <PageHeading title="New tool" description="Explain what the teacher can create." />
       <section className="workspace">
         <Panel className="editor-card">
-          <div className="editor-toolbar">{/* Edit, history and export actions */}</div>
+          {/* EditorToolbar: Undo, Redo, Reset, Copy for Word and downloads. */}
           {/* Working preview */}
         </Panel>
         <aside className="inspector-stack" aria-label="New tool settings">
-          <section className="panel-card">{/* Settings */}</section>
+          <section className="panel-card specialist-tools">{/* Specialist actions and settings */}</section>
         </aside>
       </section>
     </main>
@@ -32,6 +35,8 @@ export default function NewTool({ active = true }: { active?: boolean }) {
 ```
 
 Use the shared tokens and interface classes in `src/site/site.css` for colours, typography, spacing, borders, controls and focus. Add narrowly scoped styles for specialist controls. The shared interface follows the Question bank's white and blue-grey appearance. Mathematical content has its own rendering and fonts; interface styles must not change exported diagrams.
+
+Use `EditorToolbar` for common document utilities rather than recreating them. Keep specialist modes and configuration in the inspector, paired structure controls beside the resource, and direct value/label editing on the resource. Keep import dialogs outside any hidden export-menu wrapper so links can open them while that menu is closed. See [the layout audit](EDITOR-LAYOUT-AUDIT.md).
 
 ## Preserve work during navigation
 
