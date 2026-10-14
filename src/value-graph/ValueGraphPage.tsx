@@ -784,6 +784,9 @@ export default function ValueGraphPage({
                   },
                 ]),
             )}
+            <div className="vg-fields">
+              {(axis === "x" ? ["xMin", "xMax"] as const : ["yMin", "yMax"] as const).map(key => field(({xMin:"Left x endpoint",xMax:"Right x endpoint",yMin:"Bottom y endpoint",yMax:"Top y endpoint"})[key], g.bounds[key], value => change([{op:"set_graph",settings:{bounds:{...g.bounds,[key]:value}}}]), key))}
+            </div>
             <p>The printed axis values keep their exam size: 12 pt.</p>
           </>
         );
@@ -1283,7 +1286,7 @@ export default function ValueGraphPage({
         tabIndex={-1}
       >
         <PageHeading
-          title="Plotting quadratic graphs"
+          title="Plotting quadratics"
           description="Click the equation, table or graph to edit your resource."
         >
           <div
@@ -1474,7 +1477,7 @@ export default function ValueGraphPage({
               <div
                 className="vg-editor-frame"
                 style={{
-                  width: m.width * pxPerMm + paperLeft + 160,
+                  width: m.width * pxPerMm + paperLeft + (m.withTable ? 228 : 160),
                   height:
                     Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) +
                     paperTop +
@@ -1733,7 +1736,7 @@ export default function ValueGraphPage({
                   <div
                     className="vg-table-tools"
                     style={{
-                      left: paperLeft + m.width * pxPerMm + 24,
+                      left: paperLeft + m.width * pxPerMm + 128,
                       top: paperTop + m.table.top * pxPerMm,
                     }}
                   >
@@ -1745,7 +1748,7 @@ export default function ValueGraphPage({
                         disabled={blocked || d.columns.length >= 13}
                         onClick={() => act(appendColumn)}
                       >
-                        ＋
+                        +
                       </button>
                       <button
                         aria-label={
@@ -1826,17 +1829,6 @@ export default function ValueGraphPage({
                             onClick={() => stepBound(key, dir === 1 ? -1 : 1)}
                           >
                             −
-                          </button>
-                          <button
-                            className="vg-bound-value"
-                            aria-label={"Edit " + side + " endpoint"}
-                            title="Set exact endpoint"
-                            disabled={blocked}
-                            onClick={(e) =>
-                              choose({ kind: "bound", key }, e.currentTarget)
-                            }
-                          >
-                            {g.bounds[key]}
                           </button>
                         </div>
                       );

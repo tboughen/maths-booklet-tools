@@ -10,7 +10,7 @@ import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graph
 export const bookletTools = [
   { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage, preview: { src: graphPreview, alt: "Example coordinate grid with a straight line and three plotted points." } },
   { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage, preview: { src: ratioPreview, alt: "Example ratio table with multiplication arrows and a blank answer space." } },
-  { id: "value-table-graph", name: "Plotting quadratic graphs", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage, preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
+  { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage, preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];
