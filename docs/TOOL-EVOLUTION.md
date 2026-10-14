@@ -42,6 +42,8 @@ The resulting design direction is a specialist mathematical editor inside a fami
 
 ## Reference implementation
 
+The 14 October [three-editor layout audit](EDITOR-LAYOUT-AUDIT.md) extends this direction to Table of values & graphs: a shared document utility bar, specialist actions in the right-hand inspector, and selected local controls beside the resource. Direct editing remains useful without putting every settings panel beside the diagram.
+
 - [Adding a booklet tool](ADDING-BOOKLET-TOOLS.md): registry, shell, page lifetime and navigation.
 - [Ratio table editor](RATIO-TABLE-TOOL.txt): direct editing, teaching states, arithmetic, recovery and output.
 - [Ratio table MCP](RATIO-TABLE-MCP.txt): versions, operations, discovery, artifacts and release checks.
