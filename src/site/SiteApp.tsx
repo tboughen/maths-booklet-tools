@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import QuestionBank from "../bank/QuestionBank";
+import AssessmentPage from "../assessment/AssessmentPage";
 import { Overview } from "./Overview";
 import { SiteHeader } from "./SiteHeader";
 import { bookletTools, pageName, readPage, type PageId } from "./registry";
@@ -58,5 +59,6 @@ export default function SiteApp() {
     {(page === "home" || page === "booklet-tools") && <div className="site-page"><Overview home={page === "home"} /></div>}
     {bookletTools.map(tool => visited.includes(tool.id) && <div key={tool.id} className="site-page" hidden={page !== tool.id}><tool.component active={page === tool.id} /></div>)}
     {visited.includes("question-bank") && <div className="site-page" hidden={page !== "question-bank"}><QuestionBank active={page === "question-bank"} /></div>}
+    {visited.includes("assessment-follow-up") && <div className="site-page" hidden={page !== "assessment-follow-up"}><AssessmentPage active={page === "assessment-follow-up"} /></div>}
   </div>;
 }

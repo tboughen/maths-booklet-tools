@@ -5,6 +5,7 @@ export interface QuestionPerformance { percentage: number; kind: "measured" | "e
 interface SourceScore { percentage: number; marks: number }
 const scores: Record<string, SourceScore> = data.scores;
 const paperCounts: Record<string, number> = data.paperQuestionCounts;
+export const originalPaperCount = (paperId: string): number | undefined => paperCounts[paperId];
 
 export function estimatePercentage(position: number, curve: {position: number; percentage: number}[]): number | undefined {
   if (!Number.isFinite(position) || !curve.length) return undefined;

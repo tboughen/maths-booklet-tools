@@ -1,0 +1,5203 @@
+{
+  "schemaVersion": 1,
+  "sourceManifestSHA256": "1032ba3f8dc9ab12c12780518173c4e2bb871e30dea1286f5438f695b7eccdaa",
+  "presets": [
+    {
+      "id": "HPP1_F",
+      "name": "HPP1 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 38,
+      "sourcePaperId": "1MA1_NOV_2023_1F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U526"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U881"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 2,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U408",
+            "U683",
+            "U803"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U519"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U127",
+            "U868"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 4,
+          "codes": [
+            "U554",
+            "U868"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U544"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U851",
+            "U694",
+            "U235"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 4,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U599",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 2,
+          "codes": [
+            "U910"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q25"
+        },
+        {
+          "label": "Q27",
+          "marks": 3,
+          "codes": [
+            "U768",
+            "U963"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q27"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U526"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U881"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q5"
+        },
+        {
+          "label": "Q7a",
+          "marks": 1,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 1,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q7"
+        },
+        {
+          "label": "Q9i",
+          "marks": 1,
+          "codes": [
+            "U408"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q9"
+        },
+        {
+          "label": "Q9ii",
+          "marks": 1,
+          "codes": [
+            "U683"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q9"
+        },
+        {
+          "label": "Q9iii",
+          "marks": 1,
+          "codes": [
+            "U803"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U519"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U127",
+            "U868"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 4,
+          "codes": [
+            "U554",
+            "U868"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U544"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q17"
+        },
+        {
+          "label": "Q19a(i)",
+          "marks": 1,
+          "codes": [
+            "U851"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q19"
+        },
+        {
+          "label": "Q19a(ii)",
+          "marks": 1,
+          "codes": [
+            "U694"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q19"
+        },
+        {
+          "label": "Q19b",
+          "marks": 2,
+          "codes": [
+            "U235"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q19"
+        },
+        {
+          "label": "Q21a",
+          "marks": 3,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q21"
+        },
+        {
+          "label": "Q21b",
+          "marks": 1,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U599",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 2,
+          "codes": [
+            "U910"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q25"
+        },
+        {
+          "label": "Q27a",
+          "marks": 2,
+          "codes": [
+            "U768"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q27"
+        },
+        {
+          "label": "Q27b",
+          "marks": 1,
+          "codes": [
+            "U963"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q27"
+        }
+      ]
+    },
+    {
+      "id": "HPP2_F",
+      "name": "HPP2 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 42,
+      "sourcePaperId": "1MA1_NOV_2023_1F",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U417"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U447"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 3,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 6,
+          "codes": [
+            "U653",
+            "U569",
+            "U363"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 6,
+          "codes": [
+            "U585"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U741"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 2,
+          "codes": [
+            "U554"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U739",
+            "U250"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 2,
+          "codes": [
+            "U245"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 3,
+          "codes": [
+            "U225"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q26"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U417"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U447"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 3,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q6"
+        },
+        {
+          "label": "Q8a",
+          "marks": 2,
+          "codes": [
+            "U653"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 1,
+          "codes": [
+            "U569"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q8"
+        },
+        {
+          "label": "Q8c",
+          "marks": 3,
+          "codes": [
+            "U363"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q10"
+        },
+        {
+          "label": "Q12a(i)",
+          "marks": 2,
+          "codes": [
+            "U585"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q12"
+        },
+        {
+          "label": "Q12a(ii)",
+          "marks": 2,
+          "codes": [
+            "U585"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q12"
+        },
+        {
+          "label": "Q12b",
+          "marks": 2,
+          "codes": [
+            "U585"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U741"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 2,
+          "codes": [
+            "U554"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q18"
+        },
+        {
+          "label": "Q20a",
+          "marks": 2,
+          "codes": [
+            "U739"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q20"
+        },
+        {
+          "label": "Q20b",
+          "marks": 2,
+          "codes": [
+            "U250"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 2,
+          "codes": [
+            "U245"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 3,
+          "codes": [
+            "U225"
+          ],
+          "questionId": "1MA1_NOV_2023_1F_Q26"
+        }
+      ]
+    },
+    {
+      "id": "HPP3_F",
+      "name": "HPP3 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 34,
+      "sourcePaperId": "1MA1_NOV_2023_2F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U211"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 2,
+          "codes": [
+            "U719"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 2,
+          "codes": [
+            "U104"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U803"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 2,
+          "codes": [
+            "U993"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U200"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U628",
+            "U732",
+            "U826"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 2,
+          "codes": [
+            "U696"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 3,
+          "codes": [
+            "U870"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q25"
+        },
+        {
+          "label": "Q27",
+          "marks": 2,
+          "codes": [
+            "U107"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q27"
+        },
+        {
+          "label": "Q29",
+          "marks": 2,
+          "codes": [
+            "U283"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q29"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U211"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q5"
+        },
+        {
+          "label": "Q7a",
+          "marks": 1,
+          "codes": [
+            "U719"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 1,
+          "codes": [
+            "U719"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 2,
+          "codes": [
+            "U104"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q9"
+        },
+        {
+          "label": "Q11a",
+          "marks": 1,
+          "codes": [
+            "U803"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q11"
+        },
+        {
+          "label": "Q11b",
+          "marks": 1,
+          "codes": [
+            "U803"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q11"
+        },
+        {
+          "label": "Q13a",
+          "marks": 1,
+          "codes": [
+            "U993"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q13"
+        },
+        {
+          "label": "Q13b",
+          "marks": 1,
+          "codes": [
+            "U993"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U200"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U628",
+            "U732",
+            "U826"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 2,
+          "codes": [
+            "U696"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 3,
+          "codes": [
+            "U870"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q25"
+        },
+        {
+          "label": "Q27",
+          "marks": 2,
+          "codes": [
+            "U107"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q27"
+        },
+        {
+          "label": "Q29",
+          "marks": 2,
+          "codes": [
+            "U283"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q29"
+        }
+      ]
+    },
+    {
+      "id": "HPP4_F",
+      "name": "HPP4 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 46,
+      "sourcePaperId": "1MA1_NOV_2023_2F",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U851"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U256"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 4,
+          "codes": [
+            "U127"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 2,
+          "codes": [
+            "U687"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 4,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U981"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U926",
+            "U298"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 6,
+          "codes": [
+            "U179",
+            "U365",
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 2,
+          "codes": [
+            "U332"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 4,
+          "codes": [
+            "U577",
+            "U865"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q26"
+        },
+        {
+          "label": "Q28",
+          "marks": 4,
+          "codes": [
+            "U256",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q28"
+        },
+        {
+          "label": "Q30",
+          "marks": 3,
+          "codes": [
+            "U760"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q30"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U851"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U256"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 4,
+          "codes": [
+            "U127"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 2,
+          "codes": [
+            "U687"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 4,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U981"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q16"
+        },
+        {
+          "label": "Q18a",
+          "marks": 2,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q18"
+        },
+        {
+          "label": "Q18b",
+          "marks": 1,
+          "codes": [
+            "U298"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q18"
+        },
+        {
+          "label": "Q20a",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q20"
+        },
+        {
+          "label": "Q20b",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q20"
+        },
+        {
+          "label": "Q22a",
+          "marks": 2,
+          "codes": [
+            "U179"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q22"
+        },
+        {
+          "label": "Q22b",
+          "marks": 2,
+          "codes": [
+            "U365"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q22"
+        },
+        {
+          "label": "Q22c",
+          "marks": 2,
+          "codes": [
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 2,
+          "codes": [
+            "U332"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 4,
+          "codes": [
+            "U577",
+            "U865"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q26"
+        },
+        {
+          "label": "Q28",
+          "marks": 4,
+          "codes": [
+            "U256",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q28"
+        },
+        {
+          "label": "Q30",
+          "marks": 3,
+          "codes": [
+            "U760"
+          ],
+          "questionId": "1MA1_NOV_2023_2F_Q30"
+        }
+      ]
+    },
+    {
+      "id": "HPP5_F",
+      "name": "HPP5 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 41,
+      "sourcePaperId": "1MA1_NOV_2023_3F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U435"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 5,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U176"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 2,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 5,
+          "codes": [
+            "U280"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U256",
+            "U610"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 3,
+          "codes": [
+            "U743"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 2,
+          "codes": [
+            "U166"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U509",
+            "U759"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 2,
+          "codes": [
+            "U357"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q25"
+        },
+        {
+          "label": "Q27",
+          "marks": 3,
+          "codes": [
+            "U527",
+            "U929"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q27"
+        },
+        {
+          "label": "Q29",
+          "marks": 4,
+          "codes": [
+            "U385",
+            "U604"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q29"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U435"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 5,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U176"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q11"
+        },
+        {
+          "label": "Q13a",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q13"
+        },
+        {
+          "label": "Q13b",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q13"
+        },
+        {
+          "label": "Q15a",
+          "marks": 3,
+          "codes": [
+            "U280"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q15"
+        },
+        {
+          "label": "Q15b",
+          "marks": 2,
+          "codes": [
+            "U280"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U256",
+            "U610"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 3,
+          "codes": [
+            "U743"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 2,
+          "codes": [
+            "U166"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q21"
+        },
+        {
+          "label": "Q23a",
+          "marks": 2,
+          "codes": [
+            "U509"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q23"
+        },
+        {
+          "label": "Q23b",
+          "marks": 2,
+          "codes": [
+            "U759"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q23"
+        },
+        {
+          "label": "Q25",
+          "marks": 2,
+          "codes": [
+            "U357"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q25"
+        },
+        {
+          "label": "Q27",
+          "marks": 3,
+          "codes": [
+            "U527",
+            "U929"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q27"
+        },
+        {
+          "label": "Q29",
+          "marks": 4,
+          "codes": [
+            "U385",
+            "U604"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q29"
+        }
+      ]
+    },
+    {
+      "id": "HPP6_F",
+      "name": "HPP6 — Foundation",
+      "tier": "F",
+      "group": "HPPs",
+      "marks": 39,
+      "sourcePaperId": "1MA1_NOV_2023_3F",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U480"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U679"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U506"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 4,
+          "codes": [
+            "U213"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U121",
+            "U719"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U594"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 2,
+          "codes": [
+            "U325"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 5,
+          "codes": [
+            "U599"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 2,
+          "codes": [
+            "U330",
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 4,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 3,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 3,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q26"
+        },
+        {
+          "label": "Q28",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q28"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U480"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U679"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q4"
+        },
+        {
+          "label": "Q6a",
+          "marks": 1,
+          "codes": [
+            "U506"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q6"
+        },
+        {
+          "label": "Q6b",
+          "marks": 3,
+          "codes": [
+            "U506"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q6"
+        },
+        {
+          "label": "Q8a",
+          "marks": 1,
+          "codes": [
+            "U213"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 2,
+          "codes": [
+            "U213"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q8"
+        },
+        {
+          "label": "Q8c",
+          "marks": 1,
+          "codes": [
+            "U213"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q8"
+        },
+        {
+          "label": "Q10a",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q10"
+        },
+        {
+          "label": "Q10b",
+          "marks": 2,
+          "codes": [
+            "U719"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U594"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 2,
+          "codes": [
+            "U325"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 5,
+          "codes": [
+            "U599"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q18"
+        },
+        {
+          "label": "Q20a",
+          "marks": 1,
+          "codes": [
+            "U330"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q20"
+        },
+        {
+          "label": "Q20b",
+          "marks": 1,
+          "codes": [
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q20"
+        },
+        {
+          "label": "Q22a",
+          "marks": 3,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q22"
+        },
+        {
+          "label": "Q22b",
+          "marks": 1,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 3,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q24"
+        },
+        {
+          "label": "Q26",
+          "marks": 3,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q26"
+        },
+        {
+          "label": "Q28",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "questionId": "1MA1_NOV_2023_3F_Q28"
+        }
+      ]
+    },
+    {
+      "id": "MM1_F",
+      "name": "MM1 — Foundation",
+      "tier": "F",
+      "group": "Mini mocks",
+      "marks": 50,
+      "sourcePaperId": "1MA1_JUN_2025_1F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U447"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U981"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U363",
+            "U557"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U121",
+            "U719"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U613",
+            "U755"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U480",
+            "U225"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 4,
+          "codes": [
+            "U736",
+            "U881"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 5,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "M175"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U628",
+            "U826"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q16"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q17"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U200"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q18"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U388"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U447"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q5"
+        },
+        {
+          "label": "Q6a",
+          "marks": 1,
+          "codes": [
+            "U981"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q6"
+        },
+        {
+          "label": "Q6b",
+          "marks": 3,
+          "codes": [
+            "U981"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q6"
+        },
+        {
+          "label": "Q7a",
+          "marks": 2,
+          "codes": [
+            "U363"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 3,
+          "codes": [
+            "U557"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q7"
+        },
+        {
+          "label": "Q8a",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 1,
+          "codes": [
+            "U719"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q8"
+        },
+        {
+          "label": "Q9a",
+          "marks": 1,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q9"
+        },
+        {
+          "label": "Q9b",
+          "marks": 1,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q9"
+        },
+        {
+          "label": "Q9c",
+          "marks": 1,
+          "codes": [
+            "U755"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q9"
+        },
+        {
+          "label": "Q10a",
+          "marks": 1,
+          "codes": [
+            "U480"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q10"
+        },
+        {
+          "label": "Q10b",
+          "marks": 2,
+          "codes": [
+            "U225"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q10"
+        },
+        {
+          "label": "Q11a",
+          "marks": 2,
+          "codes": [
+            "U736"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q11"
+        },
+        {
+          "label": "Q11b",
+          "marks": 2,
+          "codes": [
+            "U881"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q11"
+        },
+        {
+          "label": "Q12a",
+          "marks": 3,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q12"
+        },
+        {
+          "label": "Q12b",
+          "marks": 2,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q12"
+        },
+        {
+          "label": "Q13a",
+          "marks": 1,
+          "codes": [
+            "M175"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q13"
+        },
+        {
+          "label": "Q13b",
+          "marks": 2,
+          "codes": [
+            "M175"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U628",
+            "U826"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q16"
+        },
+        {
+          "label": "Q17",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q17"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U200"
+          ],
+          "questionId": "1MA1_JUN_2025_1F_Q18"
+        }
+      ]
+    },
+    {
+      "id": "MM2_F",
+      "name": "MM2 — Foundation",
+      "tier": "F",
+      "group": "Mini mocks",
+      "marks": 50,
+      "sourcePaperId": "1MA1_NOV_2024_3F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U600"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U916"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U211"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 3,
+          "codes": [
+            "U105",
+            "U755"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 2,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 6,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 5,
+          "codes": [
+            "U349",
+            "U916"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 5,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 4,
+          "codes": [
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U786"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 4,
+          "codes": [
+            "U256"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 4,
+          "codes": [
+            "U569"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U739",
+            "U529"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q16"
+        },
+        {
+          "label": "Q17",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q17"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U600"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U916"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U211"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q5"
+        },
+        {
+          "label": "Q6a",
+          "marks": 1,
+          "codes": [
+            "U105",
+            "U755"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q6"
+        },
+        {
+          "label": "Q6b",
+          "marks": 1,
+          "codes": [
+            "U755"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q6"
+        },
+        {
+          "label": "Q6c",
+          "marks": 1,
+          "codes": [
+            "U755"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q6"
+        },
+        {
+          "label": "Q7a",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q7"
+        },
+        {
+          "label": "Q8a",
+          "marks": 3,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 3,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 5,
+          "codes": [
+            "U349",
+            "U916"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q9"
+        },
+        {
+          "label": "Q10a",
+          "marks": 1,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q10"
+        },
+        {
+          "label": "Q10b(i)",
+          "marks": 3,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q10"
+        },
+        {
+          "label": "Q10b(ii)",
+          "marks": 1,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q10"
+        },
+        {
+          "label": "Q11a",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q11"
+        },
+        {
+          "label": "Q11b",
+          "marks": 3,
+          "codes": [
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U786"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 4,
+          "codes": [
+            "U256"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q14"
+        },
+        {
+          "label": "Q15a",
+          "marks": 3,
+          "codes": [
+            "U569"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q15"
+        },
+        {
+          "label": "Q15b",
+          "marks": 1,
+          "codes": [
+            "U569"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q15"
+        },
+        {
+          "label": "Q16a",
+          "marks": 2,
+          "codes": [
+            "U739"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q16"
+        },
+        {
+          "label": "Q16b",
+          "marks": 2,
+          "codes": [
+            "U529"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q16"
+        },
+        {
+          "label": "Q17",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "questionId": "1MA1_NOV_2024_3F_Q17"
+        }
+      ]
+    },
+    {
+      "id": "MM3_F",
+      "name": "MM3 — Foundation",
+      "tier": "F",
+      "group": "Mini mocks",
+      "marks": 52,
+      "sourcePaperId": "1MA1_NOV_2024_2F",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U435"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 3,
+          "codes": [
+            "U753"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U291",
+            "U526",
+            "U408"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U851",
+            "M462"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 2,
+          "codes": [
+            "U687"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U993"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 3,
+          "codes": [
+            "U613",
+            "U105"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 4,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U390",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U914",
+            "U403"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 3,
+          "codes": [
+            "U408",
+            "U746"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q16"
+        },
+        {
+          "label": "Q17",
+          "marks": 6,
+          "codes": [
+            "U671",
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q17"
+        },
+        {
+          "label": "Q18",
+          "marks": 2,
+          "codes": [
+            "U519"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q18"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U365",
+            "U509"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q19"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 1,
+          "codes": [
+            "U902"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 1,
+          "codes": [
+            "U435"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 3,
+          "codes": [
+            "U753"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q6"
+        },
+        {
+          "label": "Q7a",
+          "marks": 2,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 2,
+          "codes": [
+            "U526"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q7"
+        },
+        {
+          "label": "Q7c",
+          "marks": 1,
+          "codes": [
+            "U408"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q7"
+        },
+        {
+          "label": "Q8a",
+          "marks": 1,
+          "codes": [
+            "U851"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 1,
+          "codes": [
+            "M462"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 2,
+          "codes": [
+            "U687"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U993"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q10"
+        },
+        {
+          "label": "Q11a",
+          "marks": 1,
+          "codes": [
+            "U613"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q11"
+        },
+        {
+          "label": "Q11b",
+          "marks": 2,
+          "codes": [
+            "U105"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 4,
+          "codes": [
+            "U349"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 4,
+          "codes": [
+            "U390",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q13"
+        },
+        {
+          "label": "Q14a",
+          "marks": 1,
+          "codes": [
+            "U914"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q14"
+        },
+        {
+          "label": "Q14b",
+          "marks": 2,
+          "codes": [
+            "U403"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 3,
+          "codes": [
+            "U408",
+            "U746"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q16"
+        },
+        {
+          "label": "Q17a",
+          "marks": 3,
+          "codes": [
+            "U671"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q17"
+        },
+        {
+          "label": "Q17b",
+          "marks": 3,
+          "codes": [
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q17"
+        },
+        {
+          "label": "Q18",
+          "marks": 2,
+          "codes": [
+            "U519"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q18"
+        },
+        {
+          "label": "Q19a",
+          "marks": 2,
+          "codes": [
+            "U365"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q19"
+        },
+        {
+          "label": "Q19b",
+          "marks": 2,
+          "codes": [
+            "U509"
+          ],
+          "questionId": "1MA1_NOV_2024_2F_Q19"
+        }
+      ]
+    },
+    {
+      "id": "HPP1_H",
+      "name": "HPP1 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 41,
+      "sourcePaperId": "1MA1_NOV_2023_1H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 4,
+          "codes": [
+            "U739",
+            "U250"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 2,
+          "codes": [
+            "U245"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 4,
+          "codes": [
+            "U652",
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 5,
+          "codes": [
+            "U879",
+            "U837"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U110"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U800"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 4,
+          "codes": [
+            "U858",
+            "U133"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 3,
+          "codes": [
+            "U450",
+            "U598"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 5,
+          "codes": [
+            "U567",
+            "U875"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q21"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 3,
+          "codes": [
+            "U293"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q1"
+        },
+        {
+          "label": "Q3a",
+          "marks": 2,
+          "codes": [
+            "U739"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q3"
+        },
+        {
+          "label": "Q3b",
+          "marks": 2,
+          "codes": [
+            "U250"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 2,
+          "codes": [
+            "U245"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U721"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q7"
+        },
+        {
+          "label": "Q9a",
+          "marks": 2,
+          "codes": [
+            "U652"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q9"
+        },
+        {
+          "label": "Q9b(i)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q9"
+        },
+        {
+          "label": "Q9b(ii)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q9"
+        },
+        {
+          "label": "Q11a(i)",
+          "marks": 2,
+          "codes": [
+            "U879"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q11"
+        },
+        {
+          "label": "Q11a(ii)",
+          "marks": 1,
+          "codes": [
+            "U837"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q11"
+        },
+        {
+          "label": "Q11b",
+          "marks": 2,
+          "codes": [
+            "U837"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U110"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 3,
+          "codes": [
+            "U800"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q15"
+        },
+        {
+          "label": "Q17a",
+          "marks": 2,
+          "codes": [
+            "U858"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q17"
+        },
+        {
+          "label": "Q17b",
+          "marks": 2,
+          "codes": [
+            "U133"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q17"
+        },
+        {
+          "label": "Q19a",
+          "marks": 2,
+          "codes": [
+            "U450"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q19"
+        },
+        {
+          "label": "Q19b",
+          "marks": 1,
+          "codes": [
+            "U450",
+            "U598"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q19"
+        },
+        {
+          "label": "Q21a",
+          "marks": 2,
+          "codes": [
+            "U567"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q21"
+        },
+        {
+          "label": "Q21b",
+          "marks": 3,
+          "codes": [
+            "U875"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q21"
+        }
+      ]
+    },
+    {
+      "id": "HPP2_H",
+      "name": "HPP2 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 39,
+      "sourcePaperId": "1MA1_NOV_2023_1H",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 4,
+          "codes": [
+            "U851",
+            "U694",
+            "U235"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 4,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U599",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U604",
+            "U950"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 3,
+          "codes": [
+            "U898"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U694",
+            "U772"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U434"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 4,
+          "codes": [
+            "U558"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U319",
+            "U591"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 4,
+          "codes": [
+            "U281",
+            "U958"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q22"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2a(i)",
+          "marks": 1,
+          "codes": [
+            "U851"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q2"
+        },
+        {
+          "label": "Q2a(ii)",
+          "marks": 1,
+          "codes": [
+            "U694"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q2"
+        },
+        {
+          "label": "Q2b",
+          "marks": 2,
+          "codes": [
+            "U235"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q2"
+        },
+        {
+          "label": "Q4a",
+          "marks": 3,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q4"
+        },
+        {
+          "label": "Q4b",
+          "marks": 1,
+          "codes": [
+            "U291"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U599",
+            "U628"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U604",
+            "U950"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 3,
+          "codes": [
+            "U898"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U694",
+            "U772"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q14"
+        },
+        {
+          "label": "Q16a",
+          "marks": 3,
+          "codes": [
+            "U434"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q16"
+        },
+        {
+          "label": "Q16b",
+          "marks": 1,
+          "codes": [
+            "U434"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 4,
+          "codes": [
+            "U558"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U319",
+            "U591"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 4,
+          "codes": [
+            "U281",
+            "U958"
+          ],
+          "questionId": "1MA1_NOV_2023_1H_Q22"
+        }
+      ]
+    },
+    {
+      "id": "HPP3_H",
+      "name": "HPP3 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 44,
+      "sourcePaperId": "1MA1_NOV_2023_2H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 6,
+          "codes": [
+            "U179",
+            "U365",
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 2,
+          "codes": [
+            "U332"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 4,
+          "codes": [
+            "U577",
+            "U865"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 4,
+          "codes": [
+            "U256",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U606"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U238"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U689"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 6,
+          "codes": [
+            "U983",
+            "U814",
+            "U267"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 6,
+          "codes": [
+            "U168"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U895",
+            "U996"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 4,
+          "codes": [
+            "U699"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q21"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1a",
+          "marks": 2,
+          "codes": [
+            "U179"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q1"
+        },
+        {
+          "label": "Q1b",
+          "marks": 2,
+          "codes": [
+            "U365"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q1"
+        },
+        {
+          "label": "Q1c",
+          "marks": 2,
+          "codes": [
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 2,
+          "codes": [
+            "U332"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 4,
+          "codes": [
+            "U577",
+            "U865"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 4,
+          "codes": [
+            "U256",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U606"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U238"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U689"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q13"
+        },
+        {
+          "label": "Q15a",
+          "marks": 1,
+          "codes": [
+            "U983"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q15"
+        },
+        {
+          "label": "Q15b",
+          "marks": 2,
+          "codes": [
+            "U814"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q15"
+        },
+        {
+          "label": "Q15c",
+          "marks": 3,
+          "codes": [
+            "U267"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q15"
+        },
+        {
+          "label": "Q17a",
+          "marks": 2,
+          "codes": [
+            "U168"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q17"
+        },
+        {
+          "label": "Q17b",
+          "marks": 1,
+          "codes": [
+            "U168"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q17"
+        },
+        {
+          "label": "Q17c",
+          "marks": 3,
+          "codes": [
+            "U168"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q17"
+        },
+        {
+          "label": "Q19a",
+          "marks": 2,
+          "codes": [
+            "U895"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q19"
+        },
+        {
+          "label": "Q19b",
+          "marks": 2,
+          "codes": [
+            "U996"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 4,
+          "codes": [
+            "U699"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q21"
+        }
+      ]
+    },
+    {
+      "id": "HPP4_H",
+      "name": "HPP4 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 36,
+      "sourcePaperId": "1MA1_NOV_2023_2H",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 3,
+          "codes": [
+            "U870"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U107"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U657"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 5,
+          "codes": [
+            "U729"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 3,
+          "codes": [
+            "U385",
+            "U933"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 5,
+          "codes": [
+            "U138",
+            "U407"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U592",
+            "U826",
+            "U952"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 4,
+          "codes": [
+            "U781"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U685",
+            "U824"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q20"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 3,
+          "codes": [
+            "U870"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U107"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U657"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q8"
+        },
+        {
+          "label": "Q10a",
+          "marks": 2,
+          "codes": [
+            "U729"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q10"
+        },
+        {
+          "label": "Q10b",
+          "marks": 3,
+          "codes": [
+            "U729"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 3,
+          "codes": [
+            "U385",
+            "U933"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 5,
+          "codes": [
+            "U138",
+            "U407"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 4,
+          "codes": [
+            "U592",
+            "U826",
+            "U952"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 4,
+          "codes": [
+            "U781"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 4,
+          "codes": [
+            "U685",
+            "U824"
+          ],
+          "questionId": "1MA1_NOV_2023_2H_Q20"
+        }
+      ]
+    },
+    {
+      "id": "HPP5_H",
+      "name": "HPP5 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 45,
+      "sourcePaperId": "1MA1_NOV_2023_3H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U330",
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q1"
+        },
+        {
+          "label": "Q3",
+          "marks": 4,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 3,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 3,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 3,
+          "codes": [
+            "U248",
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q11"
+        },
+        {
+          "label": "Q13",
+          "marks": 6,
+          "codes": [
+            "U642",
+            "U507"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 2,
+          "codes": [
+            "U578"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q15"
+        },
+        {
+          "label": "Q17",
+          "marks": 7,
+          "codes": [
+            "U397",
+            "U769",
+            "U665",
+            "U960"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U543"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 4,
+          "codes": [
+            "U808"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U687",
+            "U960"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q23"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1a",
+          "marks": 1,
+          "codes": [
+            "U330"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q1"
+        },
+        {
+          "label": "Q1b",
+          "marks": 1,
+          "codes": [
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q1"
+        },
+        {
+          "label": "Q3a",
+          "marks": 3,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q3"
+        },
+        {
+          "label": "Q3b",
+          "marks": 1,
+          "codes": [
+            "U877"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q3"
+        },
+        {
+          "label": "Q5",
+          "marks": 3,
+          "codes": [
+            "U751"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q5"
+        },
+        {
+          "label": "Q7",
+          "marks": 3,
+          "codes": [
+            "U151"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q7"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q9"
+        },
+        {
+          "label": "Q11",
+          "marks": 3,
+          "codes": [
+            "U248",
+            "U257"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q11"
+        },
+        {
+          "label": "Q13a",
+          "marks": 2,
+          "codes": [
+            "U642"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q13"
+        },
+        {
+          "label": "Q13b",
+          "marks": 1,
+          "codes": [
+            "U642"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q13"
+        },
+        {
+          "label": "Q13c",
+          "marks": 2,
+          "codes": [
+            "U642"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q13"
+        },
+        {
+          "label": "Q13d",
+          "marks": 1,
+          "codes": [
+            "U507"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q13"
+        },
+        {
+          "label": "Q15",
+          "marks": 2,
+          "codes": [
+            "U578"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q15"
+        },
+        {
+          "label": "Q17a(i)",
+          "marks": 2,
+          "codes": [
+            "U397"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q17"
+        },
+        {
+          "label": "Q17a(ii)",
+          "marks": 1,
+          "codes": [
+            "U769"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q17"
+        },
+        {
+          "label": "Q17b",
+          "marks": 3,
+          "codes": [
+            "U665"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q17"
+        },
+        {
+          "label": "Q17c",
+          "marks": 1,
+          "codes": [
+            "U960"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q17"
+        },
+        {
+          "label": "Q19",
+          "marks": 4,
+          "codes": [
+            "U543"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q19"
+        },
+        {
+          "label": "Q21",
+          "marks": 4,
+          "codes": [
+            "U808"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q21"
+        },
+        {
+          "label": "Q23",
+          "marks": 4,
+          "codes": [
+            "U687",
+            "U960"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q23"
+        }
+      ]
+    },
+    {
+      "id": "HPP6_H",
+      "name": "HPP6 — Higher",
+      "tier": "H",
+      "group": "HPPs",
+      "marks": 35,
+      "sourcePaperId": "1MA1_NOV_2023_3H",
+      "items": [
+        {
+          "label": "Q2",
+          "marks": 2,
+          "codes": [
+            "U166"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q2"
+        },
+        {
+          "label": "Q4",
+          "marks": 4,
+          "codes": [
+            "U509",
+            "U759"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U357"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 3,
+          "codes": [
+            "U527",
+            "U929"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U373"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U206"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 3,
+          "codes": [
+            "U369"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q16"
+        },
+        {
+          "label": "Q18",
+          "marks": 3,
+          "codes": [
+            "U134",
+            "U766"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q18"
+        },
+        {
+          "label": "Q20",
+          "marks": 3,
+          "codes": [
+            "U598",
+            "U455"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 4,
+          "codes": [
+            "U587"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 4,
+          "codes": [
+            "U170",
+            "U541",
+            "U577"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q24"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q2",
+          "marks": 2,
+          "codes": [
+            "U166"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q2"
+        },
+        {
+          "label": "Q4a",
+          "marks": 2,
+          "codes": [
+            "U509"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q4"
+        },
+        {
+          "label": "Q4b",
+          "marks": 2,
+          "codes": [
+            "U759"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q4"
+        },
+        {
+          "label": "Q6",
+          "marks": 2,
+          "codes": [
+            "U357"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q6"
+        },
+        {
+          "label": "Q8",
+          "marks": 3,
+          "codes": [
+            "U527",
+            "U929"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q8"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U181"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q10"
+        },
+        {
+          "label": "Q12",
+          "marks": 2,
+          "codes": [
+            "U373"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q12"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U206"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q14"
+        },
+        {
+          "label": "Q16",
+          "marks": 3,
+          "codes": [
+            "U369"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q16"
+        },
+        {
+          "label": "Q18a",
+          "marks": 2,
+          "codes": [
+            "U134"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q18"
+        },
+        {
+          "label": "Q18b",
+          "marks": 1,
+          "codes": [
+            "U766"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q18"
+        },
+        {
+          "label": "Q20a",
+          "marks": 1,
+          "codes": [
+            "U598"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q20"
+        },
+        {
+          "label": "Q20b",
+          "marks": 2,
+          "codes": [
+            "U455"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q20"
+        },
+        {
+          "label": "Q22",
+          "marks": 4,
+          "codes": [
+            "U587"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q22"
+        },
+        {
+          "label": "Q24",
+          "marks": 4,
+          "codes": [
+            "U170",
+            "U541",
+            "U577"
+          ],
+          "questionId": "1MA1_NOV_2023_3H_Q24"
+        }
+      ]
+    },
+    {
+      "id": "MM1_H",
+      "name": "MM1 — Higher",
+      "tier": "H",
+      "group": "Mini mocks",
+      "marks": 55,
+      "sourcePaperId": "1MA1_JUN_2025_1H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U250"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 5,
+          "codes": [
+            "U683",
+            "U510"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 5,
+          "codes": [
+            "U989",
+            "U667"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 6,
+          "codes": [
+            "U577",
+            "U687",
+            "U881"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 3,
+          "codes": [
+            "U290"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U427"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 6,
+          "codes": [
+            "U103",
+            "U738",
+            "U145"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 5,
+          "codes": [
+            "U887",
+            "U578"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 4,
+          "codes": [
+            "U696",
+            "U134"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U582"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 5,
+          "codes": [
+            "U138",
+            "U407"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 7,
+          "codes": [
+            "U800",
+            "U882"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q12"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U250"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q1"
+        },
+        {
+          "label": "Q2a",
+          "marks": 3,
+          "codes": [
+            "U683"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q2"
+        },
+        {
+          "label": "Q2b",
+          "marks": 2,
+          "codes": [
+            "U510"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q2"
+        },
+        {
+          "label": "Q3a",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q3"
+        },
+        {
+          "label": "Q3b",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q3"
+        },
+        {
+          "label": "Q3c",
+          "marks": 1,
+          "codes": [
+            "U667"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q3"
+        },
+        {
+          "label": "Q4a",
+          "marks": 5,
+          "codes": [
+            "U577",
+            "U687",
+            "U881"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q4"
+        },
+        {
+          "label": "Q4b",
+          "marks": 1,
+          "codes": [
+            "U687"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 3,
+          "codes": [
+            "U290"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U427"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q6"
+        },
+        {
+          "label": "Q7a",
+          "marks": 1,
+          "codes": [
+            "U103"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q7"
+        },
+        {
+          "label": "Q7b",
+          "marks": 3,
+          "codes": [
+            "U738"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q7"
+        },
+        {
+          "label": "Q7c",
+          "marks": 2,
+          "codes": [
+            "U145"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q7"
+        },
+        {
+          "label": "Q8a",
+          "marks": 2,
+          "codes": [
+            "U887"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q8"
+        },
+        {
+          "label": "Q8b",
+          "marks": 3,
+          "codes": [
+            "U578"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q8"
+        },
+        {
+          "label": "Q9a",
+          "marks": 2,
+          "codes": [
+            "U696"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q9"
+        },
+        {
+          "label": "Q9b",
+          "marks": 2,
+          "codes": [
+            "U134"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 3,
+          "codes": [
+            "U582"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 5,
+          "codes": [
+            "U138",
+            "U407"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q11"
+        },
+        {
+          "label": "Q12a(i)",
+          "marks": 3,
+          "codes": [
+            "U800"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q12"
+        },
+        {
+          "label": "Q12a(ii)",
+          "marks": 1,
+          "codes": [
+            "U800"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q12"
+        },
+        {
+          "label": "Q12b",
+          "marks": 3,
+          "codes": [
+            "U882"
+          ],
+          "questionId": "1MA1_JUN_2025_1H_Q12"
+        }
+      ]
+    },
+    {
+      "id": "MM2_H",
+      "name": "MM2 — Higher",
+      "tier": "H",
+      "group": "Mini mocks",
+      "marks": 52,
+      "sourcePaperId": "1MA1_NOV_2024_3H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 2,
+          "codes": [
+            "U330",
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 2,
+          "codes": [
+            "U787"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 4,
+          "codes": [
+            "U558"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 5,
+          "codes": [
+            "U278",
+            "U577"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U909"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 2,
+          "codes": [
+            "U301"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U283"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U662"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 3,
+          "codes": [
+            "U221"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 6,
+          "codes": [
+            "U332",
+            "U988"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U265",
+            "U578"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U689"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 4,
+          "codes": [
+            "U191"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 5,
+          "codes": [
+            "U898"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q16"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q1"
+        },
+        {
+          "label": "Q2a",
+          "marks": 1,
+          "codes": [
+            "U330"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q2"
+        },
+        {
+          "label": "Q2b",
+          "marks": 1,
+          "codes": [
+            "U534"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 2,
+          "codes": [
+            "U787"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q3"
+        },
+        {
+          "label": "Q4a",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q4"
+        },
+        {
+          "label": "Q4b",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 5,
+          "codes": [
+            "U278",
+            "U577"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U909"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 2,
+          "codes": [
+            "U301"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U283"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q8"
+        },
+        {
+          "label": "Q9a",
+          "marks": 2,
+          "codes": [
+            "U662"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q9"
+        },
+        {
+          "label": "Q9b",
+          "marks": 1,
+          "codes": [
+            "U662"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 3,
+          "codes": [
+            "U221"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q11"
+        },
+        {
+          "label": "Q12a",
+          "marks": 3,
+          "codes": [
+            "U332"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q12"
+        },
+        {
+          "label": "Q12b",
+          "marks": 3,
+          "codes": [
+            "U988"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 3,
+          "codes": [
+            "U265",
+            "U578"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 3,
+          "codes": [
+            "U689"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 4,
+          "codes": [
+            "U191"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q15"
+        },
+        {
+          "label": "Q16",
+          "marks": 5,
+          "codes": [
+            "U898"
+          ],
+          "questionId": "1MA1_NOV_2024_3H_Q16"
+        }
+      ]
+    },
+    {
+      "id": "MM3_H",
+      "name": "MM3 — Higher",
+      "tier": "H",
+      "group": "Mini mocks",
+      "marks": 52,
+      "sourcePaperId": "1MA1_NOV_2024_2H",
+      "items": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q1"
+        },
+        {
+          "label": "Q2",
+          "marks": 3,
+          "codes": [
+            "U277",
+            "U128"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 3,
+          "codes": [
+            "U610"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 2,
+          "codes": [
+            "U296",
+            "U748"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q4"
+        },
+        {
+          "label": "Q5",
+          "marks": 4,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U828"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U264"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U427"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 4,
+          "codes": [
+            "U760"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U134"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 5,
+          "codes": [
+            "U786",
+            "U910",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q12"
+        },
+        {
+          "label": "Q13",
+          "marks": 5,
+          "codes": [
+            "U640",
+            "U407",
+            "U238"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U369"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q14"
+        },
+        {
+          "label": "Q15",
+          "marks": 6,
+          "codes": [
+            "U206",
+            "U171"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q15"
+        }
+      ],
+      "parts": [
+        {
+          "label": "Q1",
+          "marks": 2,
+          "codes": [
+            "U926"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q1"
+        },
+        {
+          "label": "Q2a",
+          "marks": 1,
+          "codes": [
+            "U277"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q2"
+        },
+        {
+          "label": "Q2b",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q2"
+        },
+        {
+          "label": "Q2c",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q2"
+        },
+        {
+          "label": "Q3",
+          "marks": 3,
+          "codes": [
+            "U610"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q3"
+        },
+        {
+          "label": "Q4",
+          "marks": 2,
+          "codes": [
+            "U296",
+            "U748"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q4"
+        },
+        {
+          "label": "Q5a",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q5"
+        },
+        {
+          "label": "Q5b",
+          "marks": 2,
+          "codes": [
+            "U989"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q5"
+        },
+        {
+          "label": "Q6",
+          "marks": 4,
+          "codes": [
+            "U278"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q6"
+        },
+        {
+          "label": "Q7",
+          "marks": 5,
+          "codes": [
+            "U599",
+            "U828"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q7"
+        },
+        {
+          "label": "Q8",
+          "marks": 2,
+          "codes": [
+            "U264"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q8"
+        },
+        {
+          "label": "Q9",
+          "marks": 3,
+          "codes": [
+            "U427"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q9"
+        },
+        {
+          "label": "Q10",
+          "marks": 4,
+          "codes": [
+            "U760"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q10"
+        },
+        {
+          "label": "Q11",
+          "marks": 2,
+          "codes": [
+            "U134"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q11"
+        },
+        {
+          "label": "Q12",
+          "marks": 5,
+          "codes": [
+            "U786",
+            "U910",
+            "U915"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q12"
+        },
+        {
+          "label": "Q13a",
+          "marks": 1,
+          "codes": [
+            "U640"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q13"
+        },
+        {
+          "label": "Q13b(i)",
+          "marks": 3,
+          "codes": [
+            "U407"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q13"
+        },
+        {
+          "label": "Q13b(ii)",
+          "marks": 1,
+          "codes": [
+            "U238"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q13"
+        },
+        {
+          "label": "Q14",
+          "marks": 2,
+          "codes": [
+            "U369"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q14"
+        },
+        {
+          "label": "Q15a",
+          "marks": 3,
+          "codes": [
+            "U206"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q15"
+        },
+        {
+          "label": "Q15b",
+          "marks": 3,
+          "codes": [
+            "U171"
+          ],
+          "questionId": "1MA1_NOV_2024_2H_Q15"
+        }
+      ]
+    }
+  ],
+  "exceptions": []
+}
