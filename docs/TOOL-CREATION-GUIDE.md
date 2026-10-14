@@ -41,10 +41,13 @@ Use the existing shared header, tool navigation, page heading, workspace and set
 
 Within the editor:
 
-- Put editing modes, Undo, Redo and Reset in the toolbar. Keep **Copy for Word** visually prominent and alternative downloads together.
+- Use `EditorToolbar` for the same Undo, Redo, Reset and **Copy for Word**/download bar across editors. Keep save status in the page heading and preview-only controls immediately above the resource.
+- Put specialist modes and actions in labelled right-hand panels, followed by contextual and whole-resource settings. On narrow screens these panels move below the resource. Use local editors for small values or labels when proximity aids editing; broader configuration belongs in the inspector.
 - Place structure controls beside the diagram. Ratio tables pairs Add/Remove row below the table and stacks Add/Remove column at its right. Avoid duplicating those controls in the toolbar.
 - Keep selected-object settings in a predictable place. Separate these from whole-diagram settings such as print size and annotation visibility.
 - Collapse less frequent options, help and examples where that keeps the main workflow clear.
+
+The [layout audit](EDITOR-LAYOUT-AUDIT.md) records the Graph, Ratio and Table of values & graphs comparison behind this placement convention. Similar utilities share one component; specialist controls keep their mathematical purpose and do not need identical content.
 
 Use Carbon's button hierarchy and grouping guidance as a reference, while reusing MathsDock's existing components and styles. Adopting Carbon as a dependency would be a separate implementation decision. [Carbon button guidance](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines).
 

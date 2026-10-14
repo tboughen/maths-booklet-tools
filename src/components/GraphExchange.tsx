@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   createEnvelope,
   decodeEnvelope,
@@ -21,6 +21,7 @@ export function GraphExchange({
   onMessage,
   visible,
   enabled = true,
+  children,
 }: {
   document: DiagramDocumentV1;
   onImport: (d: DiagramDocumentV1) => void;
@@ -28,6 +29,7 @@ export function GraphExchange({
   onMessage: (message: string, error?: boolean) => void;
   visible: boolean;
   enabled?: boolean;
+  children?: ReactNode;
 }) {
   const file = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLElement>(null);
@@ -134,70 +136,76 @@ export function GraphExchange({
         onChange={(event) => void openFile(event.currentTarget.files?.[0])}
       />
       {visible && (
-        <div
-          className="graph-exchange-menu"
-          role="menu"
-          aria-label="Editable graph actions"
-        >
-          <button
-            role="menuitem"
-            onClick={() => {
-              downloadBlob(
-                new Blob([JSON.stringify(createEnvelope(document), null, 2)], {
-                  type: "application/json",
-                }),
-                "maths-graph.json",
-              );
-              onClose();
-            }}
+        <div className="editor-export-popover">
+          {children}
+          <div
+            className="graph-exchange-menu"
+            role="menu"
+            aria-label="Editable graph actions"
           >
-            Save editable graph
-          </button>
-          <button role="menuitem" onClick={() => file.current?.click()}>
-            Open saved graph
-          </button>
-          <button
-            role="menuitem"
-            onClick={() =>
-              void (async () => {
-                try {
-                  await navigator.clipboard.writeText(
-                    editorLink(createEnvelope(document), location.href),
-                  );
-                  onMessage(
-                    "Editable link copied. Anyone with the link can open this graph.",
-                  );
-                  onClose();
-                } catch (error) {
-                  onMessage(
-                    error instanceof Error
-                      ? error.message
-                      : "Copying links is unavailable. Save editable graph instead.",
-                    true,
-                  );
-                }
-              })()
-            }
-          >
-            Copy editable link
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => {
-              onImport({
-                ...document,
-                styleProfile:
-                  document.styleProfile === "portable-v1"
-                    ? "legacy"
-                    : "portable-v1",
-              });
-              onClose();
-            }}
-          >
-            {document.styleProfile === "portable-v1"
-              ? "Use original graph font"
-              : "Use portable graph font"}
-          </button>
+            <button
+              role="menuitem"
+              onClick={() => {
+                downloadBlob(
+                  new Blob(
+                    [JSON.stringify(createEnvelope(document), null, 2)],
+                    {
+                      type: "application/json",
+                    },
+                  ),
+                  "maths-graph.json",
+                );
+                onClose();
+              }}
+            >
+              Save editable graph
+            </button>
+            <button role="menuitem" onClick={() => file.current?.click()}>
+              Open saved graph
+            </button>
+            <button
+              role="menuitem"
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await navigator.clipboard.writeText(
+                      editorLink(createEnvelope(document), location.href),
+                    );
+                    onMessage(
+                      "Editable link copied. Anyone with the link can open this graph.",
+                    );
+                    onClose();
+                  } catch (error) {
+                    onMessage(
+                      error instanceof Error
+                        ? error.message
+                        : "Copying links is unavailable. Save editable graph instead.",
+                      true,
+                    );
+                  }
+                })()
+              }
+            >
+              Copy editable link
+            </button>
+            <button
+              role="menuitem"
+              onClick={() => {
+                onImport({
+                  ...document,
+                  styleProfile:
+                    document.styleProfile === "portable-v1"
+                      ? "legacy"
+                      : "portable-v1",
+                });
+                onClose();
+              }}
+            >
+              {document.styleProfile === "portable-v1"
+                ? "Use original graph font"
+                : "Use portable graph font"}
+            </button>
+          </div>
         </div>
       )}
       {pending && enabled && (

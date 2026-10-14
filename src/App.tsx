@@ -14,7 +14,8 @@ import { EquationPanel } from "./components/EquationPanel";
 import { GraphCanvas } from "./components/GraphCanvas";
 import { ObjectInspector } from "./components/ObjectInspector";
 import { ObjectsPanel } from "./components/ObjectsPanel";
-import { Toolbar } from "./components/Toolbar";
+import { GraphTools } from "./components/GraphTools";
+import { EditorToolbar } from "./site/EditorToolbar";
 import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
@@ -290,19 +291,13 @@ export default function App({ active = true }: { active?: boolean }) {
 
         <section className="workspace">
           <Panel className="editor-card">
-            <Toolbar
-              tool={tool}
-              onToolChange={(next) => { setTool(next); setEquationOpen(false); setEditingEquationId(null); }}
-              onEquation={() => openEquationEditor()}
-              onUndo={undo}
-              onRedo={redo}
-              onReset={resetDiagram}
-              canUndo={history.past.length > 0}
-              canRedo={history.future.length > 0}
-              copying={copying}
-              onCopy={handleCopy}
+            <EditorToolbar
+              onUndo={undo} onRedo={redo} onReset={resetDiagram} resetLabel="Reset diagram"
+              canUndo={history.past.length > 0} canRedo={history.future.length > 0}
+              busy={copying} onCopy={handleCopy} menuOpen={exportMenuOpen}
               onToggleMenu={() => setExportMenuOpen((open) => !open)}
             />
+            <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={active && !recoveryConflict}>
             {exportMenuOpen && (
               <div className="export-menu" role="menu">
                 <button role="menuitem" onClick={() => { void downloadDiagramSvg(document).catch(() => exchangeMessage("The SVG could not be downloaded. Try PNG instead.", true)); setExportMenuOpen(false); }}><Download size={17} /><span><strong>Download SVG</strong><small>Vector · best for resizing</small></span></button>
@@ -311,7 +306,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 <button className="export-help-item" role="menuitem" onClick={() => { setExportMenuOpen(false); setWordHelpOpen(true); }}><CircleHelp size={17} /><span><strong>First-time Word setup</strong><small>Keep pasted images at full quality</small></span></button>
               </div>
             )}
-            <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={active && !recoveryConflict} />
+            </GraphExchange>
             <GraphCanvas
               document={document}
               tool={tool}
@@ -322,6 +317,7 @@ export default function App({ active = true }: { active?: boolean }) {
           </Panel>
 
           <aside className="inspector-stack" aria-label="Graph settings">
+            <GraphTools tool={tool} onToolChange={(next) => { setTool(next); setEquationOpen(false); setEditingEquationId(null); }} onEquation={() => openEquationEditor()} />
             {equationOpen ? (
               <EquationPanel editing={editingStraight} onSubmit={submitEquation} onClose={() => { setEquationOpen(false); setEditingEquationId(null); }} />
             ) : (

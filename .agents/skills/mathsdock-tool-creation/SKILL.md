@@ -17,6 +17,7 @@ When running from a portable installation, prefer the current versions in an acc
 
 - Start from what the teacher needs to produce and what the pupil should see, including print dimensions and deliberate blanks.
 - Use the shared MathsDock shell, styles and tool registry. Make common values and labels editable on the diagram, with labelled keyboard alternatives and contextual settings.
+- Reuse EditorToolbar for common utilities. Put specialist modes and settings in the right-hand inspector, retaining useful direct value editing and paired structure controls beside the resource.
 - Group structural controls beside their effect and pair adding with removing. Keep Copy for Word prominent. Check the largest supported structure and focused inputs on narrow screens.
 - Distinguish mathematical content, teaching presentation and temporary editor state. Preserve empty cells, answer lines and zero as different states. Supply answers only through an explicit requested calculation action.
 - Use one stored value for representations that share meaning. A repeated scaling factor must stay synchronized without silently changing the table values.
