@@ -13,6 +13,18 @@ function assertClipboardSupport(): void {
   }
 }
 
+/** Write immediately in the click handler; PNG preparation can finish asynchronously. */
+export async function copyPngToClipboard(render: () => Promise<Blob>): Promise<void> {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("Image copying is unavailable in this browser. Use Copy for Word or Download PNG (600 ppi) instead.");
+  }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": render() })]);
+  } catch {
+    throw new Error("The browser blocked image copying. Use Copy for Word or Download PNG (600 ppi) instead.");
+  }
+}
+
 export function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
