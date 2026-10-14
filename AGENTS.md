@@ -10,6 +10,8 @@ Before planning, creating or substantially changing a MathsDock booklet tool or 
 
 Apply the relevant principles throughout design and implementation. Use the brief for new tools and the guide's acceptance checklist for review. Briefly identify the relevant principles before proposing changes. For edits to an existing tool, preserve its teaching purpose and saved-file compatibility without requiring a new full brief for a small fix.
 
+Every new tool's first release includes an All tools output preview alongside its small icon. Follow `docs/TOOL-CARD-PREVIEWS.md` for accurate examples, shared card integration and responsive verification.
+
 The reusable development workflow is `.agents/skills/mathsdock-tool-creation/SKILL.md`. For conversations producing diagrams with the existing MCP connector, use `.agents/skills/mathsdock-diagrams/SKILL.md` and the capabilities exposed by the current connection. User requests and the project's existing approval rules govern implementation and release.
 
 ## Maintaining the guidance

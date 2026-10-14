@@ -8,6 +8,8 @@ For new tools, start with [Creating MathsDock tools](docs/TOOL-CREATION-GUIDE.md
 
 New editors should follow [Adding a booklet tool](docs/ADDING-BOOKLET-TOOLS.md) so they inherit the shared layout and navigation. Drafts and undo history are retained while switching pages in the same session; the existing browser-storage recovery and editable files handle saved work.
 
+Each new tool also needs an accurate output image beside its existing All tools icon. Follow [All tools card previews](docs/TOOL-CARD-PREVIEWS.md) for example selection, SVG generation, shared cards and desktop/mobile checks.
+
 A teacher-friendly website for creating the fiddly diagrams needed in student-facing maths booklets. The first tool builds Edexcel-style coordinate graphs on a one-centimetre square grid and prepares them for Microsoft Word and high-quality printing.
 
 ## Question bank

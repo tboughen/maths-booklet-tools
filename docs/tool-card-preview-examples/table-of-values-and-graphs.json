@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "value-graph-1",
+  "styleProfile": "exam-v1",
+  "document": {
+    "equation": {
+      "a": "1",
+      "b": "0",
+      "c": "-1"
+    },
+    "columns": [
+      {
+        "id": "col-1",
+        "x": "-2",
+        "y": {
+          "kind": "value",
+          "value": "3"
+        }
+      },
+      {
+        "id": "col-2",
+        "x": "-1",
+        "y": {
+          "kind": "value",
+          "value": "0"
+        }
+      },
+      {
+        "id": "col-3",
+        "x": "0",
+        "y": {
+          "kind": "value",
+          "value": "-1"
+        }
+      },
+      {
+        "id": "col-4",
+        "x": "1",
+        "y": {
+          "kind": "value",
+          "value": "0"
+        }
+      },
+      {
+        "id": "col-5",
+        "x": "2",
+        "y": {
+          "kind": "value",
+          "value": "3"
+        }
+      }
+    ],
+    "graph": {
+      "bounds": {
+        "xMin": "-2",
+        "xMax": "2",
+        "yMin": "-1",
+        "yMax": "4"
+      },
+      "xUnitsPer10mm": "1/2",
+      "yUnitsPer10mm": "1",
+      "minorPitchMm": 2,
+      "intermediatePitchMm": 10,
+      "heavyPitchMm": 20,
+      "xLabelEvery": "1",
+      "yLabelEvery": "1",
+      "originLabel": "O",
+      "axisStyle": "exam",
+      "positiveEndArrows": true,
+      "series": [
+        {
+          "id": "points",
+          "source": "table",
+          "points": [
+            {
+              "id": "p-col-1",
+              "x": "-2",
+              "y": "3",
+              "columnId": "col-1"
+            },
+            {
+              "id": "p-col-2",
+              "x": "-1",
+              "y": "0",
+              "columnId": "col-2"
+            },
+            {
+              "id": "p-col-3",
+              "x": "0",
+              "y": "-1",
+              "columnId": "col-3"
+            },
+            {
+              "id": "p-col-4",
+              "x": "1",
+              "y": "0",
+              "columnId": "col-4"
+            },
+            {
+              "id": "p-col-5",
+              "x": "2",
+              "y": "3",
+              "columnId": "col-5"
+            }
+          ],
+          "connection": "none"
+        }
+      ],
+      "curves": [
+        {
+          "id": "quadratic",
+          "equation": {
+            "a": "1",
+            "b": "0",
+            "c": "-1"
+          },
+          "min": "-2",
+          "max": "2"
+        }
+      ],
+      "referenceLines": []
+    },
+    "presentation": {
+      "composition": "combined",
+      "showEquation": true,
+      "showMarkers": true,
+      "showJoins": false,
+      "showCurves": true,
+      "showReferenceLines": false,
+      "decimalPlaces": null
+    },
+    "print": {
+      "tableWidthMm": 90,
+      "tableRowHeightMm": 10,
+      "gapMm": 5
+    }
+  }
+}
