@@ -34,8 +34,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
-import { downloadBlob } from "../export/clipboard";
-import { download, copyForWord } from "./export";
+import { downloadBlob, copyPngToClipboard } from "../export/clipboard";
+import { download, copyForWord, printPng } from "./export";
 import { recovery, save, STORAGE_KEY } from "./persistence";
 import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
@@ -369,18 +369,23 @@ export default function ValueGraphPage({
       },
     });
   }
-  async function exportAction(action: () => Promise<void>) {
+  async function exportAction(
+    action: () => Promise<void>,
+    success = "Export ready.",
+  ) {
     if (blocked || renderError) return;
     setBusy(true);
     try {
       await action();
-      setMessage("Export ready.");
+      setMessage(success);
     } catch (e) {
       setMessage(errorText(e));
     } finally {
       setBusy(false);
     }
   }
+  const paperLeft = 144,
+    paperTop = 64;
   const ids = d.columns.map((c) => c.id);
   function calculate(all = false) {
     const targets = all
@@ -1278,7 +1283,7 @@ export default function ValueGraphPage({
         tabIndex={-1}
       >
         <PageHeading
-          title="Table of values & graphs"
+          title="Plotting quadratic graphs"
           description="Click the equation, table or graph to edit your resource."
         >
           <div
@@ -1308,6 +1313,12 @@ export default function ValueGraphPage({
               resetDisabled={blocked}
               exportDisabled={blocked || !!renderError}
               busy={busy}
+              onCopyClipboard={() =>
+                void exportAction(
+                  () => copyPngToClipboard(() => printPng(envelope)),
+                  "Image copied to clipboard. Paste with Ctrl+V.",
+                )
+              }
               onCopy={() => void exportAction(() => copyForWord(envelope))}
               menuOpen={exportOpen}
               onToggleMenu={() => setExportOpen(!exportOpen)}
@@ -1463,9 +1474,11 @@ export default function ValueGraphPage({
               <div
                 className="vg-editor-frame"
                 style={{
-                  width: m.width * pxPerMm + 240,
+                  width: m.width * pxPerMm + paperLeft + 160,
                   height:
-                    Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) + 112,
+                    Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) +
+                    paperTop +
+                    64,
                 }}
               >
                 <div
@@ -1474,8 +1487,8 @@ export default function ValueGraphPage({
                   style={{
                     width: m.width * pxPerMm,
                     height: m.height * pxPerMm,
-                    left: 112,
-                    top: 56,
+                    left: paperLeft,
+                    top: paperTop,
                   }}
                   onClick={(e) => {
                     if (!(e.target instanceof Element) || blocked) return;
@@ -1537,10 +1550,10 @@ export default function ValueGraphPage({
                     title="Click to edit equation"
                     disabled={blocked}
                     style={{
-                      left: 0,
+                      left: d.presentation.showEquation ? 0 : m.width * pxPerMm + 24,
                       top: d.presentation.showEquation ? 0 : -38,
-                      width: m.width * pxPerMm,
-                      height: 9 * pxPerMm,
+                      width: d.presentation.showEquation ? m.width * pxPerMm : 120,
+                      height: d.presentation.showEquation ? 9 * pxPerMm : 32,
                     }}
                     onClick={(e) =>
                       choose({ kind: "equation" }, e.currentTarget)
@@ -1645,120 +1658,8 @@ export default function ValueGraphPage({
                         );
                       }),
                     )}
-                  {m.withTable && (
-                    <div
-                      className="vg-table-tools"
-                      style={{
-                        left: (m.table.left + m.table.width) * pxPerMm + 18,
-                        top: m.table.top * pxPerMm,
-                      }}
-                    >
-                      <div className="vg-actions">
-                        <strong>Table</strong>
-                        <button
-                          aria-label="Add column"
-                          title="Add column"
-                          disabled={blocked || d.columns.length >= 13}
-                          onClick={() => act(appendColumn)}
-                        >
-                          ＋
-                        </button>
-                        <button
-                          aria-label={
-                            selectedColumn
-                              ? "Remove selected column"
-                              : "Remove last column"
-                          }
-                          title="Remove column"
-                          disabled={blocked || d.columns.length <= 2}
-                          onClick={() =>
-                            act(() => {
-                              change([
-                                {
-                                  op: "remove_column",
-                                  columnId:
-                                    selectedColumn?.id ??
-                                    d.columns[d.columns.length - 1].id,
-                                },
-                              ]);
-                              setSelection(null);
-                            })
-                          }
-                        >
-                          −
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   {m.withGraph && (
                     <>
-                      {(["xMin", "xMax", "yMin", "yMax"] as const).map(
-                        (key) => {
-                          const side =
-                              key === "xMin"
-                                ? "x left"
-                                : key === "xMax"
-                                  ? "x right"
-                                  : key === "yMin"
-                                    ? "y bottom"
-                                    : "y top",
-                            dir = key.endsWith("Min") ? -1 : 1;
-                          const vertical = key.startsWith("y");
-                          const left = vertical
-                            ? axisX * pxPerMm + (key === "yMax" ? 38 : -44)
-                            : key === "xMin"
-                              ? m.plot.left * pxPerMm - 104
-                              : (m.plot.left + m.plot.width) * pxPerMm + 52;
-                          const top = vertical
-                            ? key === "yMax"
-                              ? m.plot.top * pxPerMm - 48
-                              : (m.plot.top + m.plot.height) * pxPerMm + 10
-                            : axisY * pxPerMm - 20;
-                          return (
-                            <div
-                              key={key}
-                              className="vg-axis-end"
-                              style={{ left, top }}
-                              aria-label={side + " endpoint"}
-                            >
-                              <button
-                                aria-label={"Extend " + side + " range"}
-                                title="Add one centimetre"
-                                disabled={blocked}
-                                onClick={() => stepBound(key, dir)}
-                              >
-                                +
-                              </button>
-                              <button
-                                aria-label={"Shorten " + side + " range"}
-                                title="Remove one centimetre"
-                                disabled={
-                                  blocked || number(g.bounds[key]) === 0
-                                }
-                                onClick={() =>
-                                  stepBound(key, dir === 1 ? -1 : 1)
-                                }
-                              >
-                                −
-                              </button>
-                              <button
-                                className="vg-bound-value"
-                                aria-label={"Edit " + side + " endpoint"}
-                                title="Set exact endpoint"
-                                disabled={blocked}
-                                onClick={(e) =>
-                                  choose(
-                                    { kind: "bound", key },
-                                    e.currentTarget,
-                                  )
-                                }
-                              >
-                                {g.bounds[key]}
-                              </button>
-                            </div>
-                          );
-                        },
-                      )}
                       <button
                         className="vg-axis-name"
                         aria-label="Edit x axis scale"
@@ -1828,6 +1729,120 @@ export default function ValueGraphPage({
                     </>
                   )}
                 </div>
+                {m.withTable && (
+                  <div
+                    className="vg-table-tools"
+                    style={{
+                      left: paperLeft + m.width * pxPerMm + 24,
+                      top: paperTop + m.table.top * pxPerMm,
+                    }}
+                  >
+                    <div className="vg-actions">
+                      <strong>Table</strong>
+                      <button
+                        aria-label="Add column"
+                        title="Add column"
+                        disabled={blocked || d.columns.length >= 13}
+                        onClick={() => act(appendColumn)}
+                      >
+                        ＋
+                      </button>
+                      <button
+                        aria-label={
+                          selectedColumn
+                            ? "Remove selected column"
+                            : "Remove last column"
+                        }
+                        title="Remove column"
+                        disabled={blocked || d.columns.length <= 2}
+                        onClick={() =>
+                          act(() => {
+                            change([
+                              {
+                                op: "remove_column",
+                                columnId:
+                                  selectedColumn?.id ??
+                                  d.columns[d.columns.length - 1].id,
+                              },
+                            ]);
+                            setSelection(null);
+                          })
+                        }
+                      >
+                        −
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {m.withGraph && (
+                  <>
+                    {(["xMin", "xMax", "yMin", "yMax"] as const).map((key) => {
+                      const side =
+                          key === "xMin"
+                            ? "x left"
+                            : key === "xMax"
+                              ? "x right"
+                              : key === "yMin"
+                                ? "y bottom"
+                                : "y top",
+                        dir = key.endsWith("Min") ? -1 : 1;
+                      const vertical = key.startsWith("y");
+                      const left = vertical
+                        ? paperLeft + axisX * pxPerMm
+                        : key === "xMin"
+                          ? paperLeft - 16
+                          : paperLeft + m.width * pxPerMm + 16;
+                      const top = vertical
+                        ? key === "yMax"
+                          ? paperTop - 16
+                          : paperTop + m.height * pxPerMm + 16
+                        : paperTop + axisY * pxPerMm;
+                      const transform = vertical
+                        ? key === "yMax"
+                          ? "translate(-50%, -100%)"
+                          : "translateX(-50%)"
+                        : key === "xMin"
+                          ? "translate(-100%, -50%)"
+                          : "translateY(-50%)";
+                      return (
+                        <div
+                          key={key}
+                          className="vg-axis-end"
+                          style={{ left, top, transform }}
+                          aria-label={side + " endpoint"}
+                        >
+                          <button
+                            aria-label={"Extend " + side + " range"}
+                            title="Add one centimetre"
+                            disabled={blocked}
+                            onClick={() => stepBound(key, dir)}
+                          >
+                            +
+                          </button>
+                          <button
+                            aria-label={"Shorten " + side + " range"}
+                            title="Remove one centimetre"
+                            disabled={blocked || number(g.bounds[key]) === 0}
+                            onClick={() => stepBound(key, dir === 1 ? -1 : 1)}
+                          >
+                            −
+                          </button>
+                          <button
+                            className="vg-bound-value"
+                            aria-label={"Edit " + side + " endpoint"}
+                            title="Set exact endpoint"
+                            disabled={blocked}
+                            onClick={(e) =>
+                              choose({ kind: "bound", key }, e.currentTarget)
+                            }
+                          >
+                            {g.bounds[key]}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </div>
             <p className="vg-size">

@@ -1,3 +1,4 @@
+import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -41,6 +42,7 @@ import type {
 } from "./domain/types";
 import {
   copyDiagram,
+  copyPngToClipboard,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
@@ -232,12 +234,13 @@ export default function App({ active = true }: { active?: boolean }) {
     setEditingEquationId(null);
   }
 
-  async function handleCopy() {
+  async function handleCopy(imageOnly = false) {
     setCopying(true);
     setExportMenuOpen(false);
     try {
-      await copyDiagram(document);
-      setToast({ kind: "success", title: "Print-quality PNG copied", detail: "Paste into Word with Ctrl+V." });
+      if (imageOnly) await copyPngToClipboard(() => renderDiagramPng(document));
+      else await copyDiagram(document);
+      setToast({ kind: "success", title: "Print-quality PNG copied", detail: imageOnly ? "Image copied to clipboard. Paste with Ctrl+V." : "Paste into Word with Ctrl+V." });
     } catch (error) {
       const detail = error instanceof Error
         ? error.message
@@ -294,7 +297,7 @@ export default function App({ active = true }: { active?: boolean }) {
             <EditorToolbar
               onUndo={undo} onRedo={redo} onReset={resetDiagram} resetLabel="Reset diagram"
               canUndo={history.past.length > 0} canRedo={history.future.length > 0}
-              busy={copying} onCopy={handleCopy} menuOpen={exportMenuOpen}
+              busy={copying} onCopy={() => void handleCopy()} onCopyClipboard={() => void handleCopy(true)} menuOpen={exportMenuOpen}
               onToggleMenu={() => setExportMenuOpen((open) => !open)}
             />
             <GraphExchange document={document} onImport={commit} onClose={() => setExportMenuOpen(false)} onMessage={exchangeMessage} visible={exportMenuOpen} enabled={active && !recoveryConflict}>
