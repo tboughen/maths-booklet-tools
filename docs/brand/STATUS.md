@@ -102,3 +102,9 @@ All logo variants, favicons, mobile icons and sharing artwork are updated.
 Browser image links use a content version to refresh cached artwork.
 Exact checks and deployment outcome: reports/mathsdock-wrapped-logo-2026-10-14.
 Earlier entries above are historical releases.
+
+
+The final logo release preserves the latest source examples and inspector layout
+from .examples-cf-release / codex/tool-source-examples, baseline 38c551ad167461f6b50512fc5a5164fa16c73825.
+The earlier quadratic baseline above is historical. Production release source:
+.logo-cf-release / codex/wrapped-logo-production.

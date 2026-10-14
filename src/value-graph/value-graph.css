@@ -417,3 +417,10 @@
 
 /* The white rectangle is the complete resource; visible utilities stay in blue space. */
 .vg-paper { box-shadow: 0 2px 12px #15335110; }
+
+/* Match Graph tool's 48px, rounded, raised axis controls in blue space. */
+.vg-axis-end { gap: 4px; }
+.vg-editor :is(.vg-axis-end, .vg-table-tools) button { width: 48px; height: 48px; min-height: 48px; padding: 0; flex: none; border: 1.5px solid #cfc9be; border-radius: 8px; background: white; color: #3b3e40; font: 650 24px/1 Inter, ui-sans-serif, system-ui, sans-serif; box-shadow: 0 2px 3px rgba(45,40,30,.12); }
+.vg-editor :is(.vg-axis-end, .vg-table-tools) button:hover:not(:disabled), .vg-editor :is(.vg-axis-end, .vg-table-tools) button:focus-visible { background: var(--blue-soft); border-color: #93afd3; color: var(--blue); }
+.vg-table-tools { width: 100px; }
+.vg-table-tools .vg-actions { gap: 4px; }
