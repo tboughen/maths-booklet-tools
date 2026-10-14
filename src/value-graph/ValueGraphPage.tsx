@@ -1550,10 +1550,10 @@ export default function ValueGraphPage({
                     title="Click to edit equation"
                     disabled={blocked}
                     style={{
-                      left: 0,
+                      left: d.presentation.showEquation ? 0 : m.width * pxPerMm + 24,
                       top: d.presentation.showEquation ? 0 : -38,
-                      width: m.width * pxPerMm,
-                      height: 9 * pxPerMm,
+                      width: d.presentation.showEquation ? m.width * pxPerMm : 120,
+                      height: d.presentation.showEquation ? 9 * pxPerMm : 32,
                     }}
                     onClick={(e) =>
                       choose({ kind: "equation" }, e.currentTarget)

@@ -8,8 +8,10 @@ test("visible table and axis utilities stay outside the snip area at every compo
   for (const width of [1440, 320]) {
     await page.setViewportSize({width, height:1000});
     for (const composition of ["combined", "table", "graph"] as const) {
+     for (const showEquation of [true,false]) {
       const envelope=defaultEnvelope();
       envelope.document.presentation.composition=composition;
+      envelope.document.presentation.showEquation=showEquation;
       envelope.document.columns=rangeColumns("-3", "3", "1/2");
       envelope.document.print.tableWidthMm=180;
       await page.addInitScript(e=>localStorage.setItem("mathsdock:value-table-graph:v1",JSON.stringify(e)),envelope);
@@ -19,25 +21,32 @@ test("visible table and axis utilities stay outside the snip area at every compo
         await page.getByRole("combobox",{name:"Preview zoom",exact:true}).selectOption(zoom);
         const geometry=await page.locator(".vg-editor-frame").evaluate(frame=>{
           const paper=frame.querySelector(".vg-paper")!.getBoundingClientRect();
-          const controls=Array.from(frame.querySelectorAll(".vg-table-tools,.vg-axis-end"));
+          const controls=Array.from(frame.querySelectorAll(".vg-table-tools,.vg-axis-end,.vg-placeholder"));
           return controls.map(control=>{
             const box=control.getBoundingClientRect();
             return {name:control.getAttribute("aria-label")??"Table",outside:box.right<=paper.left||box.left>=paper.right||box.bottom<=paper.top||box.top>=paper.bottom,insidePaper:!!control.closest(".vg-paper"),aligned:control.getAttribute("aria-label")?.startsWith("x") ? box.top+box.height/2 : box.left+box.width/2};
           });
         });
-        expect(geometry).toHaveLength(composition==="combined"?5:composition==="graph"?4:1);
-        expect(geometry.every(c=>c.outside&&!c.insidePaper)).toBe(true);
+        expect(geometry).toHaveLength((composition==="combined"?5:composition==="graph"?4:1)+(showEquation?0:1));
+        expect(geometry.every(c=>c.outside)).toBe(true);
+        expect(geometry.filter(c=>c.name!=="Edit equation").every(c=>!c.insidePaper)).toBe(true);
+        const overlap=await page.locator(".vg-editor-frame").evaluate(frame=>{
+          const boxes=Array.from(frame.querySelectorAll(".vg-table-tools,.vg-axis-end,.vg-placeholder")).map(c=>c.getBoundingClientRect());
+          return boxes.some((a,i)=>boxes.slice(i+1).some(b=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top));
+        });
+        expect(overlap).toBe(false);
         if(composition!=="table") {
           expect(geometry.find(c=>c.name==="x left endpoint")!.aligned).toBeCloseTo(geometry.find(c=>c.name==="x right endpoint")!.aligned,3);
           expect(geometry.find(c=>c.name==="y top endpoint")!.aligned).toBeCloseTo(geometry.find(c=>c.name==="y bottom endpoint")!.aligned,3);
         }
         expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       }
-      if(width===1440&&composition==="combined") {
+      if(width===1440&&composition==="combined"&&showEquation) {
         await page.getByRole("combobox",{name:"Preview zoom",exact:true}).selectOption("1");
         await page.screenshot({path:info.outputPath("clean-workspace.png"),fullPage:true});
         await page.locator(".vg-paper").screenshot({path:info.outputPath("clean-resource.png")});
       }
+     }
     }
   }
 });
