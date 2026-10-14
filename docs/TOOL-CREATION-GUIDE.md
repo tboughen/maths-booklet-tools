@@ -144,6 +144,15 @@ Version the saved document, renderer and style deliberately. Retain representati
 
 Where an MCP connector is in scope, reuse the capabilities/create/revise pattern. Return the canonical document envelope, its content hash, a preview, real downloads, warnings, physical dimensions and an editor link. Revisions should operate on stable IDs, check the supplied base hash and apply all operations atomically.
 
+For portable print outputs, follow [MCP diagram outputs](MCP-DIAGRAM-OUTPUTS.md).
+Return physical facts as response metadata outside the saved definition/hash;
+qualify actual SVG consumption into vector PDFs rather than trusting extensions
+or previews. Optional placement advice calculates the effects of a supplied size
+without editing or inspecting the consumer's booklet. Optional source bundles
+remain bounded and stateless; the consuming AI owns assembly and saving. Avoid
+adding persistent artifact storage, extra mandatory hashes or broad document
+migrations merely to improve printing.
+
 Treat tool descriptions as a usable interface. List complete operation payloads, nested fields, numeric-string conventions, index bases, defaults and supported ranges. The ratio connector needed explicit clarification that `columns: 2` was a legacy default rather than the maximum. Clients must reuse the returned envelope and hash because structural changes may change the canonical version.
 
 Test the schemas exposed by actual discovery as well as internal validators. Ratio-table tuple arrays passed internal use but failed ChatGPT import; homogeneous array schemas plus server-side shape checks resolved that incident. Check the real consuming client and a fresh conversation when connector definitions change. Do not substitute a plausible image or Markdown table for a failed tool call.

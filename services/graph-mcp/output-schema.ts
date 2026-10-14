@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { printGuidanceSchema } from "./placement";
 import {
   envelopeSchema,
   axisSchema,
@@ -21,6 +22,7 @@ export const graphOutputSchema = z.object({
   printRaster: z.object({ width: z.number().int(), height: z.number().int() }),
   printDpi: z.literal(600),
   printVerified: z.literal(true),
+  printGuidance: printGuidanceSchema.optional(),
 });
 export const capabilitiesOutputSchema = z.object({
   rendererVersion: z.literal(RENDERER_VERSION),

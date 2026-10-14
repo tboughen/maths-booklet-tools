@@ -1,6 +1,8 @@
 import { fork } from "node:child_process";
 import { resolve } from "node:path";
 import { GraphError } from "../../packages/graph-core/src/interchange";
+import { validateArchiveMembers } from "./archive";
+type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array };
 export class RasterQueue {
   private active = false;
   private waiting: Array<() => void> = [];
@@ -29,6 +31,15 @@ export class RasterQueue {
         "size_limit",
         "The print image exceeds 32 million pixels.",
       );
+    return this.run({ svg, width, height, print, outlined, fontRoot: this.fontRoot, artifactKind }, signal);
+  }
+  async pack(members: Record<string, Uint8Array>, signal?: AbortSignal): Promise<Uint8Array> {
+    validateArchiveMembers(members);
+    const result = await this.run({ archive: members }, signal);
+    if (!result.zip) throw new GraphError("render_failed", "No archive was generated.");
+    return result.zip;
+  }
+  private async run(job: Record<string, unknown>, signal?: AbortSignal): Promise<WorkerResult> {
     if (this.waiting.length >= 3)
       throw new GraphError("busy", "The renderer is busy. Try again shortly.");
     if (this.active)
@@ -69,7 +80,7 @@ export class RasterQueue {
         let settled = false;
         const finish = (
           error?: Error,
-          result?: { png?: Uint8Array; svg?: string },
+          result?: WorkerResult,
         ) => {
           if (settled) return;
           settled = true;
@@ -103,11 +114,11 @@ export class RasterQueue {
         );
         child.once(
           "message",
-          (message: { png?: Uint8Array; svg?: string; error?: string }) => {
+          (message: WorkerResult & { error?: string; code?: string }) => {
             if (message.error)
-              finish(new GraphError("render_failed", message.error));
+              finish(new GraphError(message.code ?? "render_failed", message.error));
             else if (
-              (message.png?.byteLength ??
+              (message.zip?.byteLength ?? message.png?.byteLength ??
                 Buffer.byteLength(message.svg ?? "")) >
               10 * 1024 * 1024
             )
@@ -120,15 +131,7 @@ export class RasterQueue {
             else finish(undefined, message);
           },
         );
-        child.send({
-          svg,
-          width,
-          height,
-          print,
-          outlined,
-          fontRoot: this.fontRoot,
-          artifactKind,
-        });
+        child.send(job);
       });
     } finally {
       const next = this.waiting.shift();

@@ -28,11 +28,21 @@ import type {
   StraightObject,
   SvgLayout,
 } from "./types";
+import { guidance } from "./print-guidance";
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
 const EXPORT_CONTENT_MARGIN = 18;
 const POINT_MARK_HALF_SIZE = 14;
+export function graphPrintFacts(document: DiagramDocumentV1) {
+  const m = getExportMetrics(document);
+  const labelled = document.objects.some((o) =>
+    o.kind === "straight" && o.equationVisible && visibleStraightPoints(o, m.layout.bounds));
+  return guidance({
+    textSizesPt: [AXIS_LABEL_FONT_POINTS, ...(labelled ? [EQUATION_FONT_POINTS] : [])],
+    gridPitchMm: [m.layout.square / UNITS_PER_CM * 10],
+  });
+}
 const GRID_STROKE_WIDTH = pointsToDiagramUnits(
   GRID_STROKE_POINTS,
   UNITS_PER_CM,
