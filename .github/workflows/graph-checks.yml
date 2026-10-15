@@ -2,47 +2,159 @@ name: Graph integration checks
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      base:
+        description: Exact comparison baseline (missing evidence selects full checks)
+        type: string
 permissions:
   contents: read
+  actions: read
+concurrency:
+  group: qualification-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  verify:
+  prepare:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      website: ${{ steps.package.outputs.website }}
+      service: ${{ steps.package.outputs.service }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run lint && npm test && npm run typecheck && npm run build
+      - id: package
+        name: Prepare one exact website package
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
+        run: node scripts/cloudflare/pipeline.mjs prepare ${BASE:+--base=$BASE}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: prepared-release
+          path: |
+            cloudflare-release/package
+            cloudflare-release/evidence
+          retention-days: 90
+  website:
+    name: ${{ matrix.check }}
+    needs: prepare
+    if: needs.prepare.outputs.website == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [units, catalogue, publisher, built, browser-1, browser-2]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: prepared-release
+          path: cloudflare-release
+      - if: startsWith(matrix.check, 'browser-') || matrix.check == 'built'
+        run: npx playwright install --with-deps chromium
+      - name: Qualify the exact prepared package
+        env:
+          CHECK: ${{ matrix.check }}
+          PLAYWRIGHT_CHANNEL: chromium
+        run: node scripts/cloudflare/pipeline.mjs check "--check=$CHECK"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: check-${{ matrix.check }}
+          path: cloudflare-release/evidence
+          retention-days: 90
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: diagnostics-${{ matrix.check }}
+          path: |
+            test-results
+            cloudflare-release/browser
+          retention-days: 14
+  service:
+    needs: prepare
+    if: needs.prepare.outputs.service == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Qualify actual MCP diagrams through a vector PDF consumer
-        run: |
-          python -m pip install -r scripts/diagram-consumption-requirements.txt
-          node service-dist/verify-consumption.js tmp/diagram-consumption
-          python scripts/verify-diagram-consumption.py tmp/diagram-consumption
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-        env:
-          PLAYWRIGHT_CHANNEL: chromium
-          MCP_CONSUMPTION_DIR: tmp/diagram-consumption
-      - name: Build Linux service image
-        run: docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
-      - name: Qualify image under the deployment memory bound
-        run: |
-          docker run -d --name maths-graph-test --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787 -e RENDER_EXTERNAL_URL=http://127.0.0.1:8787 -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production maths-graph-candidate
-          node service-dist/smoke.js http://127.0.0.1:8787
-      - name: Stop test container
-        if: always()
-        run: docker rm -f maths-graph-test || true
-      - name: Retain browser evidence
-        if: always()
-        uses: actions/upload-artifact@v6
+      - run: npm ci
+      - run: python -m pip install -r scripts/diagram-consumption-requirements.txt
+      - uses: actions/download-artifact@v7
         with:
-          name: graph-browser-evidence
+          name: prepared-release
+          path: cloudflare-release
+      - run: node scripts/cloudflare/pipeline.mjs check --check=service
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: check-service
+          path: cloudflare-release/evidence
+          retention-days: 90
+  release-qualification:
+    name: release-qualification
+    if: always()
+    needs: [prepare, website, service]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Reject failed, cancelled or missing required jobs
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          WEBSITE_REQUIRED: ${{ needs.prepare.outputs.website }}
+          WEBSITE_RESULT: ${{ needs.website.result }}
+          SERVICE_REQUIRED: ${{ needs.prepare.outputs.service }}
+          SERVICE_RESULT: ${{ needs.service.result }}
+        run: |
+          test "$PREPARE" = success
+          if [ "$WEBSITE_REQUIRED" = true ]; then test "$WEBSITE_RESULT" = success; fi
+          if [ "$SERVICE_REQUIRED" = true ]; then test "$SERVICE_RESULT" = success; fi
+      - uses: actions/download-artifact@v7
+        with:
+          name: prepared-release
+          path: cloudflare-release
+      - uses: actions/download-artifact@v7
+        if: needs.prepare.outputs.website == 'true' || needs.prepare.outputs.service == 'true'
+        with:
+          pattern: check-*
+          path: cloudflare-release/evidence
+          merge-multiple: true
+      - name: Seal complete qualification evidence
+        if: needs.prepare.outputs.website == 'true' || needs.prepare.outputs.service == 'true'
+        run: node scripts/cloudflare/pipeline.mjs seal
+      - uses: actions/upload-artifact@v6
+        if: needs.prepare.outputs.website == 'true'
+        with:
+          name: qualified-release
           path: |
-            test-results
-            tmp/diagram-consumption
+            cloudflare-release/package
+            cloudflare-release/evidence
+          retention-days: 90

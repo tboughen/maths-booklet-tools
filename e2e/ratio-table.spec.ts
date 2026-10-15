@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import { editorBase, test, expect } from "./release-fixtures";
+import type { Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
   createRatioTable,
@@ -77,7 +77,7 @@ test("ratio link protects a draft; confirming opens once and undo restores it", 
   page,
 }) => {
   await seed(page, JSON.stringify(simple));
-  await page.goto(ratioEditorLink(scaffold, "http://127.0.0.1:5179/"));
+  await page.goto(ratioEditorLink(scaffold, editorBase()));
   const dialog = page.getByRole("dialog", { name: "Open this ratio table?" });
   await expect(dialog).toBeVisible();
   expect(await stored(page)).toEqual(simple);
@@ -88,7 +88,7 @@ test("ratio link protects a draft; confirming opens once and undo restores it", 
     (hash) => {
       location.hash = hash;
     },
-    new URL(ratioEditorLink(scaffold, "http://127.0.0.1:5179/")).hash,
+    new URL(ratioEditorLink(scaffold, editorBase())).hash,
   );
   await dialog
     .getByRole("button", { name: "Open this table", exact: true })

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
 
 for (const width of [1440, 1024, 900, 375, 320]) {
   test(`shared utilities and specialist controls remain usable at ${width}px`, async ({

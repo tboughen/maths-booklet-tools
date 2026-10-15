@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { editorBase, test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
   defaultEnvelope,
@@ -388,7 +388,7 @@ test("maximum fractional table and focused input fit narrow screens without page
   for (const width of [375, 320]) {
     await page.goto("about:blank");
     await page.setViewportSize({ width, height: 812 });
-    await page.goto(editorLink(e, "http://127.0.0.1:5179/"));
+    await page.goto(editorLink(e, editorBase()));
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Continue", exact: true })

@@ -2,14 +2,17 @@ import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
 import ValueGraphPage from "../value-graph/ValueGraphPage";
 import CuboidPage from "../cuboid/CuboidPage";
-import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box } from "lucide-react";
+import cuboidPreview from "../assets/tool-previews/cuboids.svg";
+import graphPreview from "../assets/tool-previews/graph-tool.svg";
+import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
+import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
-  { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage },
-  { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage },
-  { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage },
+  { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage, preview: { src: graphPreview, alt: "Example coordinate grid with a straight line and three plotted points." } },
+  { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage, preview: { src: ratioPreview, alt: "Example ratio table with multiplication arrows and a blank answer space." } },
+  { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage, preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
   { id: "cuboids", name: "Cuboids", description: "Draw and label cuboids, show their cubes, and reveal each layer.", icon: Box, component: CuboidPage, preview: { src: cuboidPreview, alt: "Cuboid divided into equal cubes, with two dimensions labelled and one answer space." } },
 ] as const;
 
@@ -33,6 +36,7 @@ export function sectionName(section: SectionId): string {
 }
 export function readPage(search: string): PageId {
   const id = new URLSearchParams(search).get("tool");
+  if (!id) return "home";
   if (id === "home" || id === "booklet-tools" || id === "question-bank" || id === "assessment-follow-up") return id;
   return bookletTools.find(tool => tool.id === id)?.id ?? "graph";
 }
