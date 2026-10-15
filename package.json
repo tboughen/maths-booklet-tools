@@ -18,7 +18,24 @@
     "build:service": "tsc -p tsconfig.service.json && node services/graph-mcp/build.mjs",
     "start:service": "node service-dist/cli.js",
     "test:e2e": "playwright test",
-    "test:service": "npm run build:service && vitest run services/graph-mcp"
+    "test:service": "npm run build:service && vitest run services/graph-mcp",
+    "build:cloudflare": "tsc -b && vite build --mode cloudflare",
+    "test:cloudflare": "node --test scripts/cloudflare/upload-core.test.mjs",
+    "cloudflare:plan": "node scripts/cloudflare/publish.mjs plan",
+    "cloudflare:upload": "node scripts/cloudflare/publish.mjs upload",
+    "cloudflare:verify": "node scripts/cloudflare/publish.mjs verify-assets",
+    "cloudflare:publish": "node scripts/cloudflare/publish.mjs deploy",
+    "cloudflare:login": "wrangler login",
+    "test:cloudflare:browser": "playwright test --config playwright.cloudflare.config.ts",
+    "test:website": "vitest run --exclude \"services/**\" --exclude \"integration/**\"",
+    "test:catalogue": "vitest run integration/catalogue-export.test.ts",
+    "test:publisher": "node --test scripts/cloudflare/*.test.mjs",
+    "release:prepare": "node scripts/cloudflare/pipeline.mjs prepare",
+    "release:check": "node scripts/cloudflare/pipeline.mjs check",
+    "release:seal": "node scripts/cloudflare/pipeline.mjs seal",
+    "release:qualify": "node scripts/cloudflare/pipeline.mjs qualify",
+    "release:audit": "node scripts/cloudflare/promote.mjs audit",
+    "release:promote": "node scripts/cloudflare/promote.mjs promote"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
@@ -51,7 +68,9 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "@aws-sdk/client-s3": "3.1149.0",
+    "wrangler": "4.149.0"
   },
   "packageManager": "npm@11.12.1"
 }

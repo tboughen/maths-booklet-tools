@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["https://mathsdock.co.uk", "https://www.mathsdock.co.uk", "https://mathsdock.com", "https://www.mathsdock.com", "https://tboughen.github.io"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["Range"],
+    "ExposeHeaders": ["Accept-Ranges", "Content-Length", "Content-Range", "ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
