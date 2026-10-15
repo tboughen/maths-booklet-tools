@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+  type DownloadAction,
+} from "../site/EditorDownloadMenu";
+import { useEffect, useRef, useState } from "react";
 import {
   createEnvelope,
   decodeEnvelope,
@@ -21,7 +26,9 @@ export function GraphExchange({
   onMessage,
   visible,
   enabled = true,
-  children,
+  imageActions,
+  active = true,
+  onBusyChange,
 }: {
   document: DiagramDocumentV1;
   onImport: (d: DiagramDocumentV1) => void;
@@ -29,9 +36,13 @@ export function GraphExchange({
   onMessage: (message: string, error?: boolean) => void;
   visible: boolean;
   enabled?: boolean;
-  children?: ReactNode;
+  imageActions: DownloadAction[];
+  active?: boolean;
+  onBusyChange: (busy: boolean) => void;
 }) {
   const file = useRef<HTMLInputElement>(null);
+  const available = useRef(enabled);
+  available.current = enabled;
   const dialog = useRef<HTMLElement>(null);
   const [pending, setPending] = useState<GraphEnvelope | null>(null);
   const [fromLink, setFromLink] = useState(false);
@@ -107,11 +118,17 @@ export function GraphExchange({
     setFromLink(false);
   }
   async function openFile(selected: File | undefined) {
-    if (!selected) return;
+    if (!selected || !available.current) return;
     try {
       if (selected.size > MAX_FILE_BYTES)
         throw Error("Choose a graph JSON smaller than 1 MiB.");
-      setPending(parseGraphFile(await selected.text()));
+      const incoming = parseGraphFile(await selected.text());
+      if (!available.current)
+        throw Error(
+          "Apply or cancel unfinished input before opening another graph.",
+        );
+      onClose();
+      setPending(incoming);
       setFromLink(false);
     } catch (error) {
       onMessage(
@@ -130,84 +147,69 @@ export function GraphExchange({
       <input
         ref={file}
         className="sr-only"
+        hidden
         type="file"
         accept=".json,application/json"
         aria-label="Open editable graph file"
+        disabled={!enabled}
         onChange={(event) => void openFile(event.currentTarget.files?.[0])}
       />
-      {visible && (
-        <div className="editor-export-popover">
-          {children}
-          <div
-            className="graph-exchange-menu"
-            role="menu"
-            aria-label="Editable graph actions"
-          >
-            <button
-              role="menuitem"
-              onClick={() => {
-                downloadBlob(
-                  new Blob(
-                    [JSON.stringify(createEnvelope(document), null, 2)],
-                    {
-                      type: "application/json",
-                    },
-                  ),
-                  "maths-graph.json",
-                );
-                onClose();
-              }}
-            >
-              Save editable graph
-            </button>
-            <button role="menuitem" onClick={() => file.current?.click()}>
-              Open saved graph
-            </button>
-            <button
-              role="menuitem"
-              onClick={() =>
-                void (async () => {
-                  try {
-                    await navigator.clipboard.writeText(
-                      editorLink(createEnvelope(document), location.href),
-                    );
-                    onMessage(
-                      "Editable link copied. Anyone with the link can open this graph.",
-                    );
-                    onClose();
-                  } catch (error) {
-                    onMessage(
-                      error instanceof Error
-                        ? error.message
-                        : "Copying links is unavailable. Save editable graph instead.",
-                      true,
-                    );
-                  }
-                })()
-              }
-            >
-              Copy editable link
-            </button>
-            <button
-              role="menuitem"
-              onClick={() => {
-                onImport({
-                  ...document,
-                  styleProfile:
-                    document.styleProfile === "portable-v1"
-                      ? "legacy"
-                      : "portable-v1",
-                });
-                onClose();
-              }}
-            >
-              {document.styleProfile === "portable-v1"
-                ? "Use original graph font"
-                : "Use portable graph font"}
-            </button>
-          </div>
-        </div>
-      )}
+      <EditorDownloadMenu
+        id="graph-downloads"
+        open={visible}
+        active={active}
+        onClose={onClose}
+        onBusyChange={onBusyChange}
+        onMessage={onMessage}
+        actions={[
+          ...imageActions.filter(
+            (item) => item.label !== "First-time Word setup",
+          ),
+          {
+            label: "Save editable file",
+            disabled: !enabled,
+            separator: true,
+            action: () => {
+              if (!available.current)
+                throw Error("Apply or cancel unfinished input first.");
+              downloadBlob(
+                new Blob([JSON.stringify(createEnvelope(document), null, 2)], {
+                  type: "application/json",
+                }),
+                "maths-graph.json",
+              );
+            },
+            success: "Editable file download started.",
+          },
+          {
+            label: "Open editable file",
+            disabled: !enabled,
+            picker: true,
+            action: () => {
+              if (available.current) file.current?.click();
+            },
+          },
+          {
+            label: "Copy editable link",
+            disabled: !enabled,
+            description: LINK_DESCRIPTION,
+            action: () => {
+              if (!available.current)
+                throw Error("Apply or cancel unfinished input first.");
+              return navigator.clipboard.writeText(
+                editorLink(createEnvelope(document), location.href),
+              );
+            },
+            success: "Editable link copied.",
+          },
+          ...imageActions
+            .filter((item) => item.label === "First-time Word setup")
+            .map((item) => ({ ...item, separator: true })),
+        ].filter(
+          (item, index, items) =>
+            items.findIndex((other) => other.label === item.label) === index,
+        )}
+      />
       {pending && enabled && (
         <div className="word-help-backdrop">
           <section
@@ -241,6 +243,7 @@ export function GraphExchange({
               <button
                 className="word-help-done"
                 onClick={() => {
+                  if (!available.current) return;
                   onImport(documentFromEnvelope(pending));
                   setPending(null);
                   removeFragment();

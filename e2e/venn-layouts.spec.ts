@@ -1,3 +1,4 @@
+import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
 import { resolve } from "node:path";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,8 +20,7 @@ import {
   verifyPrintBytes,
 } from "../packages/graph-core/src/png-bytes";
 const report = resolve(
-  process.env.VENN_REPORT_DIR ??
-    "test-results/venn-artifacts",
+  process.env.VENN_REPORT_DIR ?? "test-results/venn-artifacts",
 );
 mkdirSync(report, { recursive: true });
 const key = "maths-booklet-tools:venn:v1";
@@ -46,7 +46,7 @@ async function confirm(page: Page) {
 }
 async function download(page: Page, label: string, name: string) {
   const promise = page.waitForEvent("download");
-  await page.getByRole("button", { name: label, exact: true }).click();
+  await clickResourceAction(page, label);
   const path = resolve(report, name);
   await (await promise).saveAs(path);
   return path;
@@ -282,7 +282,7 @@ for (const ex of teachingExamples)
       .getByRole("button", { name: "Copy to clipboard", exact: true })
       .click();
     await expect(
-      page.getByText("Resource ready.", { exact: true }),
+      page.getByText(/Image copied\. Paste with Ctrl\+V\./, { exact: true }),
     ).toBeVisible();
     const image = await page.evaluate(async () => {
       const items = await navigator.clipboard.read();
@@ -483,9 +483,11 @@ test("answer-view label overflow is retained and correctable without exposing pu
   await expect(
     page.getByRole("button", { name: "Copy to clipboard", exact: true }),
   ).toBeDisabled();
+  await openResourceMenu(page);
   await expect(
-    page.getByRole("button", { name: "Save editable file", exact: true }),
+    page.getByRole("menuitem", { name: "Save editable file", exact: true }),
   ).toBeEnabled();
+  await page.keyboard.press("Escape");
   await page
     .getByRole("button", { name: "Edit inner set label", exact: true })
     .click();

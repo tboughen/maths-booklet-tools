@@ -216,7 +216,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
   for (const [name, format] of [
     ["Download PNG", "png"],
     ["Download SVG", "svg"],
-    ["Save editable table", "json"],
+    ["Save editable file", "json"],
   ]) {
     await page
       .getByRole("button", { name: "Download options", exact: true })
@@ -367,7 +367,7 @@ test("clipboard includes the verified PNG and centimetre dimensions; blocked cop
   await page
     .getByRole("button", { name: "Copy for Word", exact: true })
     .click();
-  await expect(page.getByText(/Copied at its print size/)).toBeVisible();
+  await expect(page.getByText(/Copied for Word at/)).toBeVisible();
   const html = await page.evaluate(
     () => (window as typeof window & { copiedRatio?: string }).copiedRatio!,
   );
@@ -597,7 +597,7 @@ test("three-column image and editable exports survive reopening without editor d
   for (const [name, format] of [
     ["Download PNG", "png"],
     ["Download SVG", "svg"],
-    ["Save editable table", "json"],
+    ["Save editable file", "json"],
   ]) {
     await page
       .getByRole("button", { name: "Download options", exact: true })

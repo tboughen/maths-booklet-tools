@@ -1,0 +1,254 @@
+.resource-download-menu {
+  position: fixed;
+  z-index: 1100;
+  width: min(300px, calc(100vw - 16px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #fff;
+  border: 1px solid #bacddd;
+  border-radius: 6px;
+  padding: 6px;
+  box-shadow: 0 6px 30px #173c6533;
+  color: #19334c;
+  font:
+    14px/1.4 "IBM Plex Sans",
+    "Segoe UI",
+    sans-serif;
+}
+.resource-download-menu button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: white;
+  border-radius: 4px;
+  padding: 10px;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.resource-download-menu button:hover:not(:disabled),
+.resource-download-menu button:focus-visible {
+  background: #eaf2fc;
+}
+.resource-download-menu button:focus-visible {
+  outline: 2px solid #1766ca;
+  outline-offset: -2px;
+}
+.resource-download-menu small {
+  font-size: 12px;
+  font-weight: 400;
+  color: #52687c;
+}
+.resource-download-menu [role="separator"] {
+  height: 1px;
+  background: #d7e1ea;
+  margin: 5px 0;
+}
+.booklet-editor
+  .editor-toolbar
+  :is(.copy-main, .copy-more, .tool-button, .icon-button) {
+  font:
+    650 14px/1.3 "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  min-height: 40px;
+}
+.booklet-editor .page-heading-actions {
+  font:
+    12px/1.5 "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+.booklet-editor .resource-save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #345771;
+}
+.resource-save-status > span {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #31825f;
+}
+.resource-save-status--saving > span,
+.resource-save-status--pending > span {
+  background: #a56a16;
+}
+.resource-save-status--error > span {
+  background: #b33333;
+}
+.booklet-editor .resource-size {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #345771;
+  white-space: normal;
+}
+.booklet-editor .resource-preview-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: white;
+}
+.booklet-editor
+  :is(
+    .resource-preview-bar,
+    .nl-preview-bar,
+    .cb-preview-bar,
+    .vn-preview-bar,
+    .ratio-preview-controls,
+    .vg-preview-controls
+  )
+  select {
+  font:
+    13px/1.4 "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #afc2d4;
+  border-radius: 4px;
+  background: white;
+  color: #19334c;
+}
+.booklet-editor .resource-feedback {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #19334c;
+  background: #f0f6fc;
+  border-block: 1px solid #d7e3ed;
+  overflow-wrap: anywhere;
+}
+.booklet-editor .vn-answer-toggle {
+  margin-left: 0;
+}
+.graph-control-group {
+  display: contents;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.graph-draft-field {
+  min-width: 0;
+}
+.graph-draft-field .coordinate-input {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.graph-draft-field input {
+  width: 100%;
+  min-width: 0;
+}
+.graph-draft-field .field-error {
+  margin: 4px 0;
+  font-size: 12px;
+}
+.graph-draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+.graph-draft-actions button {
+  min-height: 32px;
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #afc2d4;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.graph-pending-note {
+  font-size: 13px;
+  padding: 12px;
+  margin: 0;
+  color: #793f00;
+  background: #fff4dd;
+}
+.graph-axis-ranges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-block: 10px;
+}
+.graph-editor .axis-panel summary {
+  min-height: 40px;
+  padding-top: 10px;
+  cursor: pointer;
+}
+.graph-editor .graph-stage {
+  display: block;
+  position: relative;
+  overflow: auto;
+  padding: 0;
+  min-height: 360px;
+  height: max(400px, calc(100dvh - 335px));
+  background: #edf4ff;
+}
+.graph-editor .graph-board {
+  position: relative;
+  flex: none;
+  margin-inline: auto;
+  max-width: none;
+}
+.graph-editor .graph-canvas {
+  position: absolute;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  flex: none;
+  background: white;
+  filter: none;
+}
+.graph-axis-controls {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+}
+.graph-axis-controls button {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #b8c8d8;
+  border-radius: 10px;
+  background: white;
+  color: #19334c;
+  font-size: 26px;
+  box-shadow: 0 2px 3px #173c6522;
+}
+.graph-axis-controls button:focus-visible {
+  outline: 3px solid #1766ca;
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  .graph-editor .graph-stage {
+    height: 430px;
+  }
+  .booklet-editor .resource-preview-bar {
+    align-items: flex-start;
+  }
+  .booklet-editor .resource-preview-bar label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

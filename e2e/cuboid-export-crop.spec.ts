@@ -1,3 +1,4 @@
+import { clickResourceAction } from "./resource-actions";
 import { test, expect } from "./release-fixtures";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -145,9 +146,7 @@ test("tight vector crops preserve every label and shape across the supported lay
         .getByRole("button", { name: "Download options", exact: true })
         .click();
     const download = page.waitForEvent("download");
-    await page
-      .getByRole("button", { name: "Download SVG", exact: true })
-      .click();
+    await clickResourceAction(page, "Download SVG");
     const exported = await download;
     expect(await exported.failure()).toBeNull();
     const image = readFileSync((await exported.path())!, "utf8");
@@ -229,13 +228,15 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
     ["Save editable file", "editable.json"],
   ]) {
     const dl = page.waitForEvent("download");
-    await page.getByRole("button", { name, exact: true }).click();
+    await clickResourceAction(page, name);
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page
     .getByRole("button", { name: "Copy to clipboard", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("Resource ready");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    /Image copied\. Paste with Ctrl\+V\./,
+  );
   await expect
     .poll(() =>
       page.evaluate(async () =>
@@ -269,7 +270,9 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
   await page
     .getByRole("button", { name: "Copy for Word", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("Resource ready");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    /Copied for Word at/,
+  );
   await expect
     .poll(() =>
       page.evaluate(
@@ -306,7 +309,7 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
       .getByRole("button", { name: "Download options", exact: true })
       .click();
   const dl = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download SVG", exact: true }).click();
+  await clickResourceAction(page, "Download SVG");
   await (await dl).saveAs(join(report, "exports/zoom-mobile.svg"));
 });
 
@@ -325,8 +328,6 @@ test("largest separated resource still exports every layer at 600 ppi", async ({
     .getByRole("button", { name: "Download options", exact: true })
     .click();
   const dl = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Download PNG (600 ppi)", exact: true })
-    .click();
+  await clickResourceAction(page, "Download PNG (600 ppi)");
   await (await dl).saveAs(join(report, "exports/maximum-layers.png"));
 });

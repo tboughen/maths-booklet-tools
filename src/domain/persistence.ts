@@ -8,12 +8,12 @@ import {
 } from "../../packages/graph-core/src/interchange";
 export { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
 export const ENVELOPE_STORAGE_KEY = "maths-booklet-tools:graph-envelope:v1";
-export function loadDiagramRecovery(): {
+export function loadDiagramRecovery(newDocument = cloneDefaultDocument): {
   document: DiagramDocumentV1;
   conflict: boolean;
 } {
   if (typeof localStorage === "undefined")
-    return { document: cloneDefaultDocument(), conflict: false };
+    return { document: newDocument(), conflict: false };
   let conflict = false;
   try {
     const envelope = localStorage.getItem(ENVELOPE_STORAGE_KEY);
@@ -37,7 +37,7 @@ export function loadDiagramRecovery(): {
   } catch {
     /* Keep unreadable or inaccessible data untouched. */
   }
-  return { document: cloneDefaultDocument(), conflict };
+  return { document: newDocument(), conflict };
 }
 export function loadDiagram(): DiagramDocumentV1 {
   return loadDiagramRecovery().document;
