@@ -501,7 +501,7 @@ test("newer-tab work is protected and storage failure offers editable saving", a
   await page.reload();
   await expect(
     page.getByText(
-      "Save unavailable — download editable file · Improved preview",
+      "Save unavailable — download editable file",
       {
         exact: true,
       },
