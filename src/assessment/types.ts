@@ -7,6 +7,8 @@ export interface Settings extends Profile {
   marksLimit: number | null;
   calculator: "all" | "yes" | "no";
   common: boolean;
+  /** Whole assessment labels (e.g. Q17); their mapped topics are excluded. */
+  excludedQuestions?: string[];
 }
 export const defaults: Settings = { year: 10, tier: "H", strength: "secure", pageLimit: 4, marksLimit: null, calculator: "all", common: false };
 export interface AssessmentItem { label: string; marks: number; codes: string[]; questionId?: string }
