@@ -154,7 +154,7 @@ describe("deterministic class selection and print limits", () => {
     const q = bank.questions.find(q => q.tier === "H")!;
     const easier = { ...q, performance: { kind: "measured" as const, percentage: 90 } }, harder = { ...q, performance: { kind: "measured" as const, percentage: 10 } };
     expect(accessibility(easier, bank, defaults, 0)).toBeGreaterThan(accessibility(harder, bank, defaults, 0));
-    expect(accessibility({ ...q, number: 1, performance: { kind: "estimated", percentage: 5 } }, bank, defaults, 0)).toBeGreaterThan(accessibility({ ...q, number: 20, performance: { kind: "estimated", percentage: 90 } }, bank, defaults, 0));
+    expect(accessibility({ ...q, number: 1, performance: { kind: "estimated", percentage: 90 } }, bank, defaults, 0)).toBeGreaterThan(accessibility({ ...q, number: 20, performance: { kind: "estimated", percentage: 5 } }, bank, defaults, 0));
   });
   it.each([1, 2, 4, 8] as const)("fits complete questions, working and answers into %i A4 pages", pageLimit => {
     const plan = generateClass(bank, mappings, [makePupil("S001", 0)], { ...defaults, pageLimit });

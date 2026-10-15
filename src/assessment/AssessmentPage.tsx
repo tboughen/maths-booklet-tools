@@ -7,7 +7,7 @@ import { assetUrl, downloadBlob } from "../bank/pdf";
 import { importMappings, importPupils, mappingsCsv, paperMappings, parseDelimited, readSpreadsheet, resultsCsv, type Detection, type ResultOptions } from "./import";
 import { assessmentPresets } from "./presets";
 import { defaults, type AssessmentItem, type ClassPlan, type Pupil, type Settings, type TableSheet } from "./types";
-import { generateClass } from "./select";
+import { assessmentQuestion, generateClass } from "./select";
 import { exportClass } from "./export";
 import { layoutPack } from "./layout";
 import { Preview } from "./Preview";
@@ -51,7 +51,9 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
     if (items.length && resultRows.length) { const imported = importPupils(resultRows, items, resultOptions); pupils = imported.rows; detection = imported.detection; warnings.push(...imported.warnings); }
   } catch (e) { importError = e instanceof Error ? e.message : "Check the imported data."; }
   const presets = catalogue ? assessmentPresets(catalogue) : [], selectedPreset = presets.find(p => p.id === paper);
+  const questionGroups = [...new Set(items.map(item => assessmentQuestion(item.label)))].map(label => ({ label, codes: [...new Set(items.filter(item => assessmentQuestion(item.label) === label).flatMap(item => item.codes))] }));
   function choosePaper(id: string, parts = partScores) {
+    if (id !== paper) setSettings(old => ({ ...old, excludedQuestions: [] }));
     invalidate(); setPaper(id); if (!id) { setMappingText(""); setMappingRows([]); return; } if (!catalogue) return;
     const preset = presets.find(p => p.id === id); if (!preset) return;
     const text = mappingsCsv(parts ? preset.parts : preset.items); setMappingText(text); setMappingRows(parseDelimited(text));
@@ -104,6 +106,10 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         {items.length > 0 && <p className="af-assessment-summary">{items.length} score columns expected</p>}
         {selectedPreset && <details><summary>View or edit mapping</summary>{mappingEditor}<div className="af-table"><table><thead><tr><th>Question</th><th>Marks</th><th>Sparx</th></tr></thead><tbody>{items.map(item => <tr key={item.label}><td>{item.label}</td><td>{item.marks}</td><td>{item.codes.join(", ")}</td></tr>)}</tbody></table></div></details>}
         {paper === "custom" && mappingEditor}
+        {items.length > 0 && <details><summary>Not yet taught{settings.excludedQuestions?.length ? ` · ${settings.excludedQuestions.length} skipped` : ""}</summary>
+          <p className="af-help">Tick questions to skip their topics throughout the pack. Keep all mark columns.</p>
+          <div className="af-topic-exclusions">{questionGroups.map(group => <label className="af-check" key={group.label}><input type="checkbox" disabled={busy} checked={settings.excludedQuestions?.includes(group.label) || false} onChange={e => updateSettings({ excludedQuestions: e.target.checked ? [...(settings.excludedQuestions || []), group.label] : settings.excludedQuestions?.filter(label => label !== group.label) })} />{group.label} · {group.codes.map(code => catalogue?.topics.find(topic => topic.code === code)?.title || code).join(" / ")}</label>)}</div>
+        </details>}
       </Panel>
       <Panel className="af-panel"><h2>2. Paste marks</h2>
         <TableInput key={`results-${resetKey}`} title="Student marks" headersOptional disabled={busy} value={resultText} onChange={setResultText} onRows={rows => { invalidate(); setResultRows(rows); }} template={{ disabled: !items.length, download: () => downloadText(resultsCsv(items), "assessment-results-template.csv") }} />
@@ -128,9 +134,9 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <details><summary>Why these questions?</summary>{plan.packs.map(pack => <div key={pack.pupil.key}><h3>{pack.pupil.identifier}</h3><ol>{pack.entries.map(entry => <li key={entry.question.id}>{entry.question.source} — follow-up to {entry.references.join(", ")} · {entry.reason}</li>)}</ol></div>)}</details>
       </Panel>}
     </div><aside className="af-inspector"><Panel className="af-panel"><h2>Class settings</h2><fieldset disabled={busy}>
-      <label>Year<select value={settings.year} onChange={e => updateSettings({ year: Number(e.target.value) })}>{[7, 8, 9, 10, 11, 12, 13].map(year => <option key={year}>{year}</option>)}</select></label>
-      <label>Tier<select value={settings.tier} onChange={e => updateSettings({ tier: e.target.value as Settings["tier"] })}><option value="H">Higher</option><option value="F">Foundation</option></select></label>
-      <label>Class strength<select value={settings.strength} onChange={e => updateSettings({ strength: e.target.value as Settings["strength"] })}><option value="developing">Developing</option><option value="secure">Secure</option><option value="strong">Strong</option></select></label>
+      <label>Year<select aria-label="Year" value={settings.year} onChange={e => updateSettings({ year: Number(e.target.value) })}>{[7, 8, 9, 10, 11, 12, 13].map(year => <option key={year}>{year}</option>)}</select></label>
+      <label>Tier<select aria-label="Tier" value={settings.tier} onChange={e => updateSettings({ tier: e.target.value as Settings["tier"] })}><option value="H">Higher</option><option value="F">Foundation</option></select></label>
+      <label>Class strength<select aria-label="Class strength" value={settings.strength} onChange={e => updateSettings({ strength: e.target.value as Settings["strength"] })}><option value="developing">Developing</option><option value="secure">Secure</option><option value="strong">Strong</option></select></label>
       {settings.pageLimit !== null ? <label>Pages per student<select aria-label="Pages per student" value={settings.pageLimit} onChange={e => updateSettings({ pageLimit: Number(e.target.value) as Settings["pageLimit"] })}>{[1, 2, 4, 8].map(n => <option key={n}>{n}</option>)}</select><span className="af-help">A4 · Answers included</span></label> : <p className="af-help">No page limit</p>}
       <label className="af-check"><input type="checkbox" checked={settings.common} onChange={e => updateSettings({ common: e.target.checked })} />Same questions for everyone</label>
       <details><summary>More options</summary>
@@ -139,7 +145,7 @@ export default function AssessmentPage({ active = true }: { active?: boolean }) 
         <label className="af-check"><input type="checkbox" checked={settings.marksLimit !== null} onChange={e => updateSettings({ marksLimit: e.target.checked ? 20 : null })} />Limit marks</label>{settings.marksLimit !== null && <label>Maximum marks<input type="number" min={1} max={200} value={settings.marksLimit} onChange={e => updateSettings({ marksLimit: Number(e.target.value) })} /></label>}
         <p className="af-help">With both limits enabled, the pack stops at the first limit. Pages include working space and answers.</p>
         <p className="af-help">Shared packs use the class’s most commonly selected questions and class settings.</p>
-        <details><summary>How questions are chosen</summary><p className="af-help">Earlier questions are preferred. Exam averages guide difficulty: developing 70–100%, secure 55–80%, strong 0–65%, adjusted for year and results. These are preferences, not exclusions.</p></details>
+        <details><summary>How questions are chosen</summary><p className="af-help">Earlier assessment gaps come first. Parts testing the same skill count together; packs cover up to three priority skills before repeating. Difficulty uses exam averages or estimates: developing 70–100%, secure 55–80%, strong 0–65%, adjusted for year and results. These are preferences, not exclusions.</p></details>
       </details>
     </fieldset></Panel><details className="af-data-help"><summary>How your data is handled</summary><p className="af-help">Marks stay on this device. They are never uploaded or saved, and reset or reload clears them. Paste marks only to generate student identifiers; existing identifier columns also work.</p></details></aside></div>
   </main>;
