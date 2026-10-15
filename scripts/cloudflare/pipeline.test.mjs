@@ -10,6 +10,7 @@ import { inventoryPlan, inventoryDigest, verificationRecord, sampleAssets, valid
 import { browserEvidence, vitestEvidence, sealQualification, validateQualification } from './evidence.mjs';
 import { promoteRelease } from './deployment.mjs';
 import { verifyInventory, verifyRange } from './network.mjs';
+import { validateWorkflowOrigin } from './github-trust.mjs';
 
 const roots = [];
 function temporary() { const path = mkdtempSync(resolve(tmpdir(), 'mathsdock-publisher-test-')); roots.push(path); return path; }
@@ -116,6 +117,12 @@ test('wrong-release or incomplete qualification cannot authorise publication', (
   const broken = { ...receipt, checks: [] }; broken.checksDigest = digestObject(broken.checks);
   assert.throws(() => validateQualification(release, broken), /Required check/);
 });
+test('workflow provenance rejects fork, wrong workflow, unfinished run and different commit', () => {
+  const expected = { path: '.github/workflows/graph-checks.yml', commit: 'approved' };
+  const good = { repository: { full_name: repository }, head_repository: { full_name: repository }, status: 'completed', conclusion: 'success', path: expected.path, head_sha: expected.commit };
+  validateWorkflowOrigin(good, expected);
+  for (const change of [{ head_repository: { full_name: 'fork/project' } }, { path: 'untrusted.yml' }, { status: 'in_progress' }, { head_sha: 'other' }, { conclusion: 'cancelled' }]) assert.throws(() => validateWorkflowOrigin({ ...good, ...change }, expected));
+});
 function deploymentFixture(overrides = {}) {
   const { release } = packageFixture(), journalPath = resolve(temporary(), 'attempt.json');
   let version = 'old', deploys = 0;
@@ -137,6 +144,13 @@ test('post-deployment failure retains an unverified attempt and never writes suc
   const f = deploymentFixture({ smoke: async () => { throw new Error('Browser failure'); } });
   await assert.rejects(promoteRelease(f), /deployed-unverified/);
   assert.equal(json(f.journalPath).deployedVersion, 'new'); assert.equal(json(f.journalPath).status, 'deployed-unverified');
+});
+test('a lost deployment response requires matching immutable version provenance and live bytes', async () => {
+  let f; f = deploymentFixture({ deploy: async () => { f.setVersion('new'); throw new Error('Lost response'); }, ownsVersion: async () => true });
+  assert.equal((await promoteRelease(f)).status, 'live-verified');
+  let uncertain; uncertain = deploymentFixture({ deploy: async () => { uncertain.setVersion('unrelated'); throw new Error('Lost response'); }, ownsVersion: async () => false });
+  await assert.rejects(promoteRelease(uncertain), /deployment-uncertain/);
+  assert.equal(json(uncertain.journalPath).observedVersion, 'unrelated');
 });
 test('confirmed failures restore the captured version, while network outages do not speculate', async () => {
   const f = deploymentFixture({ smoke: async () => { throw new Error('Confirmed application failure'); } });

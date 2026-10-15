@@ -20,8 +20,11 @@ export async function promoteRelease({ release, qualification, adapter, expected
     event('deploying');
     try { deployedVersion = await adapter.deploy(); }
     catch (error) {
+      event('deployment-uncertain', { deployError: error.message });
       const observed = await adapter.current();
-      if (observed === expectedVersion) throw error;
+      if (observed === expectedVersion) { event('deployment-not-accepted'); throw error; }
+      event('deployment-uncertain', { observedVersion: observed });
+      if (!await adapter.ownsVersion?.(observed, release.releaseId)) throw new Error('Interrupted deployment has no matching release annotation; investigate the observed version before retrying');
       // Lost responses cannot be equated with an accepted upload. Establish that
       // the actual served bytes are this release before attributing the version.
       await adapter.verifyBytes();
@@ -36,7 +39,7 @@ export async function promoteRelease({ release, qualification, adapter, expected
     event('live-verified', { completedAt: new Date().toISOString() });
     return record;
   } catch (error) {
-    event(deployedVersion ? 'deployed-unverified' : 'failed', { error: error.message, completedAt: new Date().toISOString() });
+    event(deployedVersion ? 'deployed-unverified' : record.status === 'deployment-uncertain' ? 'deployment-uncertain' : 'failed', { error: error.message, completedAt: new Date().toISOString() });
     if (deployedVersion && rollbackOnFailure && adapter.confirmedApplicationFailure?.(error) && await adapter.current() === deployedVersion) {
       event('rolling-back');
       try {
