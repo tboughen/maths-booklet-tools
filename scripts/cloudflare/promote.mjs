@@ -104,9 +104,14 @@ async function main() {
     try {
       const adapter = {
         current: () => current(configuration),
+        ownsVersion: async (version, releaseId) => {
+          const result = await run(root, wrangler, ['versions', 'view', version, '--config', configuration.config, '--json'], { capture: true });
+          return JSON.parse(result.stdout).annotations?.['workers/message'] === `MathsDock ${releaseId}`;
+        },
         validate: async () => { verifyPackage(directory); validateSource(root, release); },
         inventory: () => inventory(false),
         deploy: async () => {
+          verifyPackage(directory); validateSource(root, release);
           await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
           return current(configuration);
         },

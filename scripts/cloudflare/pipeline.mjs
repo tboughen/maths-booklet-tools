@@ -13,6 +13,14 @@ const evidence = resolve(root, option('evidence') || 'cloudflare-release/evidenc
 const nodeTool = (name, args, extra) => run(root, `node_modules/${name}`, args, extra);
 const metrics = timer(resolve(evidence, `${process.argv[2] || 'qualify'}-${process.pid}-timing.json`));
 const playwright = 'node_modules/@playwright/test/cli.js';
+async function availablePort() {
+  const { createServer } = await import('node:net');
+  const reservation = createServer();
+  await new Promise(r => reservation.listen(0, '127.0.0.1', r));
+  const port = reservation.address().port;
+  await new Promise(r => reservation.close(r));
+  return String(port);
+}
 
 async function prepare() {
   const started = performance.now();
@@ -65,7 +73,7 @@ async function check(name, { preparedService = false } = {}) {
       if (!preparedService) await serviceBuild();
       const fixtures = resolve(root, 'cloudflare-release/fixtures', name);
       await run(root, 'service-dist/verify-consumption.js', [fixtures]);
-      const output = resolve(evidence, `${name}-playwright.json`), shard = name.slice(-1), port = String(5230 + Number(shard));
+      const output = resolve(evidence, `${name}-playwright.json`), shard = name.slice(-1), port = await availablePort();
       await run(root, playwright, ['test', '--config', 'playwright.release.config.ts', `--shard=${shard}/2`, '--reporter=json'], { env: {
         MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_BUILT_PACKAGE: '1', MATHSDOCK_TEST_PORT: port,
         MATHSDOCK_TEST_OUTPUT: resolve(root, 'test-results', name), MCP_CONSUMPTION_DIR: fixtures, PLAYWRIGHT_JSON_OUTPUT_FILE: output,
@@ -74,7 +82,7 @@ async function check(name, { preparedService = false } = {}) {
     } else if (name === 'built') {
       copyFileSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
       const output = resolve(evidence, 'built-playwright.json');
-      await run(root, playwright, ['test', '--config', 'playwright.cloudflare.config.ts', '--reporter=json'], { env: { MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_PACKAGE_REHEARSAL: '1', PLAYWRIGHT_JSON_OUTPUT_FILE: output } });
+      await run(root, playwright, ['test', '--config', 'playwright.cloudflare.config.ts', '--reporter=json'], { env: { MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_PACKAGE_REHEARSAL: '1', MATHSDOCK_TEST_PORT: await availablePort(), PLAYWRIGHT_JSON_OUTPUT_FILE: output } });
       result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2 rehearsal' };
     } else if (name === 'service') {
       if (!preparedService) await serviceBuild();
