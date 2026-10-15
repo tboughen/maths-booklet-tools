@@ -429,7 +429,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           title="Cuboids"
           description="Draw and label cuboids, show their cubes, and reveal each layer."
         >
-          <span role="status">{saveState} · Improved preview</span>
+          <span role="status">{saveState}</span>
         </PageHeading>
         <section className="workspace">
           <Panel className="editor-card">
@@ -537,7 +537,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               </label>
               <span>
                 {m
-                  ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm print size`
+                  ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size`
                   : "Adjust settings to restore the diagram"}
               </span>
               <span>Click a label to edit</span>
