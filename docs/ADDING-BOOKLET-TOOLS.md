@@ -1,5 +1,7 @@
 # Adding a booklet tool
 
+Use the [shared booklet editor contract](BOOKLET-CONSISTENCY.md) for toolbar/menu adapters, independently mounted file inputs, keyboard/focus behaviour, pending/recovery guards and actual-size readouts. Mathematical settings remain specific to the tool. A successful menu action closes it, so browser tests must reopen the real menu for each subsequent action.
+
 Before implementing an editor, read [Creating MathsDock tools](TOOL-CREATION-GUIDE.md) and complete the [new tool brief](TOOL-BRIEF-TEMPLATE.md). Those documents cover the teaching purpose, direct editing, control placement, recovery, print output and compatibility lessons from [Graph tool and Ratio tables](TOOL-EVOLUTION.md). This page covers integration with the shared site.
 
 The website has two main sections: **Question bank** and **Booklet tools**. Graph tool and Ratio tables belong to Booklet tools. `src/site/SiteApp.tsx` owns the common header, query-based navigation and page lifetime; an editor owns its controls, working document and exports.

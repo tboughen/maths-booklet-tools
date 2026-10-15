@@ -1,3 +1,4 @@
+import { clickResourceAction } from "./resource-actions";
 import { editorBase, test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
@@ -230,9 +231,7 @@ test("source grid, exam-size axis values and actual SVG/PNG downloads", async ({
     .click();
   for (const format of ["SVG", "PNG (600 ppi)"]) {
     const waiting = page.waitForEvent("download");
-    await page
-      .getByRole("menuitem", { name: `Download ${format}`, exact: true })
-      .click();
+    await clickResourceAction(page, `Download ${format}`);
     const download = await waiting,
       path = info.outputPath(
         format.startsWith("SVG") ? "scaffold.svg" : "scaffold.png",

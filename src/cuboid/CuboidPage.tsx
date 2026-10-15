@@ -1,3 +1,10 @@
+import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+} from "../site/EditorDownloadMenu";
+import { ResourceSize } from "../site/ResourceSize";
+import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appearance,
@@ -36,7 +43,13 @@ import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
-import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
+import {
+  prepareImage,
+  printPng,
+  downloadImage,
+  copyWord,
+  downloadEditable,
+} from "./export";
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
@@ -121,6 +134,43 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   } catch {
     /*Keep the document and correction controls available.*/
   }
+  const cropCache = useRef(
+    new Map<string, Promise<{ width: number; height: number }>>(),
+  );
+  const [cropSize, setCropSize] = useState<{
+    key: string;
+    width?: number;
+    height?: number;
+    error?: boolean;
+  }>({ key: "" });
+  const cropKey = canonical(e);
+  useEffect(() => {
+    if (!active || issue) return;
+    let alive = true;
+    setCropSize({ key: cropKey });
+    let measured = cropCache.current.get(cropKey);
+    if (!measured) {
+      measured = prepareImage(e).then(({ width, height }) => ({
+        width,
+        height,
+      }));
+      cropCache.current.set(cropKey, measured);
+      if (cropCache.current.size > 12)
+        cropCache.current.delete(cropCache.current.keys().next().value!);
+    }
+    measured.then(
+      (size) => {
+        if (alive) setCropSize({ key: cropKey, ...size });
+      },
+      () => {
+        cropCache.current.delete(cropKey);
+        if (alive) setCropSize({ key: cropKey, error: true });
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [active, cropKey, e, issue]);
   function commit(value: Envelope) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
@@ -299,12 +349,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (active && inline)
       document.querySelector<HTMLInputElement>(".cb-inline input")?.focus();
   }, [inline, selected, active]);
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void | string>) {
     if (blocked || issue) return;
     setBusy(true);
     try {
-      await action();
-      setMessage("Resource ready.");
+      const success = await action();
+      setMessage(success || "Image copied. Paste with Ctrl+V.");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     } finally {
@@ -429,7 +479,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           title="Cuboids"
           description="Draw and label cuboids, show their cubes, and reveal each layer."
         >
-          <span role="status">{saveState}</span>
+          <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
           <Panel className="editor-card">
@@ -441,60 +491,72 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onReset={() => replacement(newDocument(), "Reset these cuboids?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
+              menuDisabled={blocked}
               busy={busy}
-              onCopy={() => void run(() => copyWord(e))}
+              onCopy={() =>
+                void run(async () => {
+                  const m = await prepareImage(e);
+                  await copyWord(e);
+                  return (
+                    "Copied for Word at " +
+                    formatResourceSize(m.width, m.height) +
+                    ". Paste with Ctrl+V."
+                  );
+                })
+              }
               onCopyClipboard={() =>
                 void run(() => copyPngToClipboard(() => printPng(e)))
               }
+              menuId="cuboids-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
-            {menu && (
-              <div className="cb-downloads">
-                <button
-                  disabled={blocked || !!issue}
-                  onClick={() => void run(() => downloadImage(e, "png"))}
-                >
-                  Download PNG (600 ppi)
-                </button>
-                <button
-                  disabled={blocked || !!issue}
-                  onClick={() => void run(() => downloadImage(e, "svg"))}
-                >
-                  Download SVG
-                </button>
-                <button
-                  disabled={busy || dirty.size > 0}
-                  onClick={() => downloadEditable(e)}
-                >
-                  Save editable file
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={() => file.current?.click()}
-                >
-                  Open editable file
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={() => {
-                    void navigator.clipboard
-                      .writeText(
-                        editorLink(e, location.origin + location.pathname),
-                      )
-                      .then(
-                        () => setMessage("Editor link copied."),
-                        () =>
-                          setMessage(
-                            "Copying the link was blocked. Save an editable file instead.",
-                          ),
-                      );
-                  }}
-                >
-                  Copy editor link
-                </button>
-              </div>
-            )}
+            <EditorDownloadMenu
+              id="cuboids-downloads"
+              open={menu}
+              active={active}
+              onClose={() => setMenu(false)}
+              onBusyChange={setBusy}
+              onMessage={setMessage}
+              actions={[
+                {
+                  label: "Download SVG",
+                  action: () => downloadImage(e, "svg"),
+                  disabled: blocked || !!issue,
+                  success: "SVG download started.",
+                },
+                {
+                  label: "Download PNG (600 ppi)",
+                  action: () => downloadImage(e, "png"),
+                  disabled: blocked || !!issue,
+                  success: "PNG download started.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () => downloadEditable(e),
+                  disabled: blocked,
+                  success: "Editable file download started.",
+                  separator: true,
+                },
+                {
+                  label: "Open editable file",
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                  success: "",
+                  picker: true,
+                },
+                {
+                  label: "Copy editable link",
+                  action: () =>
+                    navigator.clipboard.writeText(
+                      editorLink(e, location.origin + location.pathname),
+                    ),
+                  disabled: blocked,
+                  success: "Editable link copied.",
+                  description: LINK_DESCRIPTION,
+                },
+              ]}
+            />
             <div className="cb-preview-bar">
               <label>
                 View{" "}
@@ -535,11 +597,16 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   ))}
                 </select>
               </label>
-              <span>
-                {m
-                  ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size`
-                  : "Adjust settings to restore the diagram"}
-              </span>
+              <ResourceSize
+                width={cropSize.key === cropKey ? cropSize.width : undefined}
+                height={cropSize.key === cropKey ? cropSize.height : undefined}
+                pending={
+                  !issue &&
+                  (cropSize.key !== cropKey ||
+                    (!cropSize.error && cropSize.width === undefined))
+                }
+                error={!!issue || cropSize.error}
+              />
               <span>Click a label to edit</span>
             </div>
             {issue && (
@@ -659,7 +726,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               </p>
             )}
             {message && (
-              <p className="cb-message" role="status">
+              <p className="resource-feedback" role="status">
                 {message}
               </p>
             )}
@@ -1167,6 +1234,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               </div>
               <details className="cb-settings-footer">
                 <summary>Print settings</summary>
+                <p className="cb-note">
+                  {m
+                    ? `${(m.width / 10).toFixed(1)} × ${(m.height / 10).toFixed(1)} cm layout size; actual export crops closely around the artwork.`
+                    : "Review the resource settings."}
+                </p>
                 {field("Print width (cm)", d.widthCm, (v) =>
                   commit({ ...e, document: { ...d, widthCm: Number(v) } }),
                 )}

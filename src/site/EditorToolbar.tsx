@@ -22,6 +22,8 @@ interface EditorToolbarProps {
   onCopyClipboard: () => void;
   menuOpen: boolean;
   onToggleMenu: () => void;
+  menuId?: string;
+  menuDisabled?: boolean;
 }
 
 /** Common document actions; specialist editing controls belong to the inspector. */
@@ -104,10 +106,23 @@ export function EditorToolbar(props: EditorToolbarProps) {
           </button>
           <button
             className="copy-more"
-            disabled={props.exportDisabled || props.busy}
+            disabled={
+              (props.menuDisabled ?? props.exportDisabled) || props.busy
+            }
             aria-label="Download options"
             aria-haspopup="menu"
             aria-expanded={props.menuOpen}
+            aria-controls={props.menuId}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                event.currentTarget.dataset.menuFocus =
+                  event.key === "ArrowUp" ? "last" : "first";
+                if (!props.menuOpen) props.onToggleMenu();
+              }
+              if (event.key === "Enter" || event.key === " ")
+                event.currentTarget.dataset.menuFocus = "first";
+            }}
             onClick={props.onToggleMenu}
           >
             <ChevronDown size={16} aria-hidden="true" />

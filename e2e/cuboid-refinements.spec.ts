@@ -1,3 +1,4 @@
+import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -21,9 +22,7 @@ async function load(p: Page, e: ReturnType<typeof create>) {
   await p
     .getByRole("button", { name: "Download options", exact: true })
     .click();
-  await p
-    .getByRole("button", { name: "Open editable file", exact: true })
-    .click();
+  await clickResourceAction(p, "Open editable file");
   await p.getByLabel("Open cuboids file", { exact: true }).setInputFiles({
     name: "fixture.json",
     mimeType: "application/json",
@@ -377,7 +376,7 @@ test("shading and area save through editable exports and real greyscale image do
     ["Save editable file", "grey-faces.json"],
   ]) {
     const dl = page.waitForEvent("download");
-    await page.getByRole("button", { name, exact: true }).click();
+    await clickResourceAction(page, name);
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page.reload();
@@ -390,7 +389,9 @@ test("shading and area save through editable exports and real greyscale image do
   await page
     .getByRole("button", { name: "Copy to clipboard", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("Resource ready");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    /Image copied\. Paste with Ctrl\+V\./,
+  );
   await page
     .getByRole("button", { name: "Download options", exact: true })
     .click();
@@ -400,7 +401,7 @@ test("shading and area save through editable exports and real greyscale image do
     ["Save editable file", "base-area.json"],
   ]) {
     const dl = page.waitForEvent("download");
-    await page.getByRole("button", { name, exact: true }).click();
+    await clickResourceAction(page, name);
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page.screenshot({

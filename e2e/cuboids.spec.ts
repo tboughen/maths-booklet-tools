@@ -1,3 +1,4 @@
+import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -153,7 +154,9 @@ test("non-dividing cube view is refused and original dimensions are retained", a
   await page
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("whole number");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    "whole number",
+  );
   await expect(page.getByLabel("View", { exact: true })).toHaveValue("plain");
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
@@ -328,9 +331,7 @@ test("editable file and editor link reopening require confirmation", async ({
   await page
     .getByRole("button", { name: "Download options", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Open editable file", exact: true })
-    .click();
+  await clickResourceAction(page, "Open editable file");
   await page.getByLabel("Open cuboids file", { exact: true }).setInputFiles({
     name: "cuboids.json",
     mimeType: "application/json",
@@ -341,9 +342,7 @@ test("editable file and editor link reopening require confirmation", async ({
     .click();
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
   const dl = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Save editable file", exact: true })
-    .click();
+  await clickResourceAction(page, "Save editable file");
   await (await dl).saveAs(join(report, "exports/reopened.json"));
   await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -358,7 +357,9 @@ test("real PNG SVG and clipboard outputs contain only monochrome artwork", async
   await page
     .getByRole("button", { name: "Copy to clipboard", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("Resource ready");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    /Image copied\. Paste with Ctrl\+V\./,
+  );
   const bytes = await page.evaluate(async () => {
     const items = await navigator.clipboard.read();
     const png = await items[0].getType("image/png");
@@ -378,13 +379,15 @@ test("real PNG SVG and clipboard outputs contain only monochrome artwork", async
     ["Download SVG", "actual-grid.svg"],
   ]) {
     const dl = page.waitForEvent("download");
-    await page.getByRole("button", { name, exact: true }).click();
+    await clickResourceAction(page, name);
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page
     .getByRole("button", { name: "Copy for Word", exact: true })
     .click();
-  await expect(page.locator(".cb-message")).toContainText("Resource ready");
+  await expect(page.locator(".resource-feedback")).toContainText(
+    /Copied for Word at/,
+  );
 });
 test("maximum separated structure remains complete and has no control overlap", async ({
   page,
@@ -500,12 +503,9 @@ test("newer-tab work is protected and storage failure offers editable saving", a
   });
   await page.reload();
   await expect(
-    page.getByText(
-      "Save unavailable — download editable file",
-      {
-        exact: true,
-      },
-    ),
+    page.getByText("Save unavailable — download editable file", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Copy to clipboard", exact: true }),
@@ -566,9 +566,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
     .getByRole("button", { name: "Download options", exact: true })
     .click();
   const dl = page.waitForEvent("download", { timeout: 85000 });
-  await page
-    .getByRole("button", { name: "Download PNG (600 ppi)", exact: true })
-    .click();
+  await clickResourceAction(page, "Download PNG (600 ppi)");
   await (await dl).saveAs(join(report, "exports/maximum-layers.png"));
 });
 test("source question link opens the matching published diagram", async ({
