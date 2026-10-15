@@ -1,0 +1,2038 @@
+[
+  {
+    "id": "layers-1",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "1"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "aa4f338982991bfd82ca9eca2452eb81de90de5b2bebbeb77f6dec6cb8279cac",
+    "svgSha256": "6994704f7722c1525d01be71cb66b6610a727e04d05fe59049bb12a963fe5b5e"
+  },
+  {
+    "id": "layers-1",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "1"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": true,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "ff766ff826433cad9412bc40486e79329d691d05652cc0c7a589ae19300562b4",
+    "svgSha256": "62786d214c71606e2fa584e3d0ef3c8100db550a263d477624461f190ea301fe"
+  },
+  {
+    "id": "layers-2",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "c4aea527ad1d83b0d4634e82ffb9153e7a8708df7bcf1e60168815695870b74a",
+    "svgSha256": "1db29dfbd0f4352fd83eaa986f6216e8e28a2bfc89211db1d5b2aa5241be23dd"
+  },
+  {
+    "id": "layers-2",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": true,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "6951915e21d4be03948ad3a09d10ef1fa5376a2f7c2e7d9eff6397a4db7e8df1",
+    "svgSha256": "0f00965c12b6865b5413440434e256bdbec6107e6b049864580fb8a36e4cfb17"
+  },
+  {
+    "id": "layers-3",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "3"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "20283bf7ab4fe8746dc13f1d6ca6d7eb5dff912c01e2b863a2429d1c18aeb998",
+    "svgSha256": "a2771e218a2efdfc20bd0c6f61a9f2ed3a926427172244afdd4c6eef39b82536"
+  },
+  {
+    "id": "layers-3",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "4",
+              "depth": "3",
+              "height": "3"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": true,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "ce00aa48eac2e60bc23e78248e304ad3ed644aa43290cf78c5a68bf7ec444b8a",
+    "svgSha256": "78d15cbbc977a2c13999a2506bea7ec717d1e44472d043d83821414ad1cb0c46"
+  },
+  {
+    "id": "missing-height",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "5",
+              "depth": "3",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "blank",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "e519d7c35536ee9045dcf082c428c9b589c32f8451587edabbdec2c552506711",
+    "svgSha256": "c135f1bf85c27fe1da0f9a870e0f908f37dd6f1acf2bf0b07c61d2c4cc47447d"
+  },
+  {
+    "id": "missing-height",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "5",
+              "depth": "3",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "52c1c07abfd4a9a4e2159c4cc268b84c5fedf3096fb540e9937f60b8c92bcb44",
+    "svgSha256": "dec6d5101b6713f4f506b61f1b117abe4e05e7549b8260b4c632f7c7d073f5d4"
+  },
+  {
+    "id": "1MA1_NOV_2020_2F_Q11",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "10",
+              "depth": "15",
+              "height": "4"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "6b143cb451f720f6980cc5a0893a6a78242b410a2b04f6ce7d0c04430585e7e5",
+    "svgSha256": "a8249d9f469055f56b0faed913721841df874ef4a639196a6bb8349bee2d3fb8"
+  },
+  {
+    "id": "1MA1_NOV_2020_2F_Q11",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "10",
+              "depth": "15",
+              "height": "4"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "d93a94e3e52820e295671edf416412c19f7f89ec05191664409a7ffc497f82b8",
+    "svgSha256": "7af55f150bf02c34864e44f0aef6066b1ec7ed656b45ca0b0ec55702fd9dbe99"
+  },
+  {
+    "id": "1MA1_MOCK_SET_06_3F_Q15",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "cube",
+            "title": "Cube",
+            "dimensions": {
+              "width": "2",
+              "depth": "2",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": true,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "cuboid",
+            "title": "Cuboid",
+            "dimensions": {
+              "width": "8",
+              "depth": "2",
+              "height": "6"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "2",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": true,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "2811da0bad5c12c1448d55cc232fe600adeae04dc7bafd4e0e4f6cdc18137e2f",
+    "svgSha256": "e6627835e4b39fa1c30564be08a744e0994ffbf1973bd0abcc851940536922fc"
+  },
+  {
+    "id": "1MA1_MOCK_SET_06_3F_Q15",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "cube",
+            "title": "Cube",
+            "dimensions": {
+              "width": "2",
+              "depth": "2",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": true,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "cuboid",
+            "title": "Cuboid",
+            "dimensions": {
+              "width": "8",
+              "depth": "2",
+              "height": "6"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "2",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": true,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": true,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "12307340af2ecf528aff8b96a1e3f6bdc0a69f957312840db1c3689b8de93d1a",
+    "svgSha256": "141332a4af3f895c0b649455703679ab9fcb9b4116b83024071f915b17196642"
+  },
+  {
+    "id": "1MA1_MOCK_SET_08_3F_Q13",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "box",
+            "title": "Box",
+            "dimensions": {
+              "width": "32",
+              "depth": "20",
+              "height": "8"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "4",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "brick",
+            "title": "Brick",
+            "dimensions": {
+              "width": "4",
+              "depth": "4",
+              "height": "4"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "3dc26461ee107759104b73886081415e47a009489b93de423f38d1d71637a2c3",
+    "svgSha256": "5d0e1559be113a2b9afdabeedf0b4479c9a67a4c5ab4217d24fcad6d2b988735"
+  },
+  {
+    "id": "1MA1_MOCK_SET_08_3F_Q13",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "box",
+            "title": "Box",
+            "dimensions": {
+              "width": "32",
+              "depth": "20",
+              "height": "8"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "4",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": true,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "brick",
+            "title": "Brick",
+            "dimensions": {
+              "width": "4",
+              "depth": "4",
+              "height": "4"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "1fba845f5e71f4380db06414c36266e76a2ac45d928a5ef65ea78bb3a43b6129",
+    "svgSha256": "bad69e36416a4a6b531bf239a31e88103f809ff0d24c94a493f71377243709b1"
+  },
+  {
+    "id": "1MA1_JUN_2017_3F_Q12",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "6",
+              "depth": "4",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "blank",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "blank",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "blank",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "2",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "39dbc56e825feeec32b2eac1087b67ab0c70a2d23c6c40f9099fd592b4e464d2",
+    "svgSha256": "b2a69fd8682e58bf4a3e3116e71deefd2e8dc7974dacc8a38764eb2e63bc8d7b"
+  },
+  {
+    "id": "1MA1_JUN_2017_3F_Q12",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "6",
+              "depth": "4",
+              "height": "2"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "cubes",
+            "cubeSideCm": "2",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": true,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "74e2375f51c04e02f2c2c23f7e248675c75cd235518f61628088e20a446f1f77",
+    "svgSha256": "1ba376415a53c2e4d3198fc2ecbf922a6a96958b86efd92c8522eb243100bcd2"
+  },
+  {
+    "id": "1MA1_NOV_2019_2H_Q9",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "cube",
+            "title": "Cube",
+            "dimensions": {
+              "width": "10",
+              "depth": "10",
+              "height": "10"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": true,
+            "proportions": {
+              "width": "3",
+              "depth": "3",
+              "height": "3"
+            },
+            "hiddenEdges": true,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "cuboid",
+            "title": "Cuboid",
+            "dimensions": {
+              "width": "8",
+              "depth": "18",
+              "height": "6"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": true,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "899d1e3e8fffd30d2d47a520f9c2f4c89e888f85861ac0a260ee7db7b7400ac4",
+    "svgSha256": "75e9a316cab531cf9c858876ad896e7432d3095a3407d6848952f0a39a80c363"
+  },
+  {
+    "id": "1MA1_NOV_2019_2H_Q9",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 16,
+        "shapes": [
+          {
+            "id": "cube",
+            "title": "Cube",
+            "dimensions": {
+              "width": "10",
+              "depth": "10",
+              "height": "10"
+            },
+            "unit": "cm",
+            "cube": true,
+            "labels": {
+              "width": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": true,
+            "proportions": {
+              "width": "3",
+              "depth": "3",
+              "height": "3"
+            },
+            "hiddenEdges": true,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          },
+          {
+            "id": "cuboid",
+            "title": "Cuboid",
+            "dimensions": {
+              "width": "8",
+              "depth": "18",
+              "height": "6"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": false,
+            "proportions": {
+              "width": "4",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": true,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": true,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "3aa41f43d664c91ad05a629eee33adb7c6d1a03a1750a6f623ff8c778a99f2ee",
+    "svgSha256": "b2e1a5d6e2cbfebf06d68ab28c306ece62457c68771a83c0422b185fb7844011"
+  },
+  {
+    "id": "1MA1_NOV_2018_3H_Q8",
+    "worked": false,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "9",
+              "depth": "3",
+              "height": "5"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "hidden",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": true,
+            "proportions": {
+              "width": "5",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": false,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "07768c5277e4933b106ce0d5f88fbe521cc2439e30fa8194644de094735aaa6e",
+    "svgSha256": "99b5aa3ff38251f470d99494ae145f58d367473390614e2a9cf2190e0fbb0ffe"
+  },
+  {
+    "id": "1MA1_NOV_2018_3H_Q8",
+    "worked": true,
+    "envelope": {
+      "tool": "cuboids",
+      "schemaVersion": 1,
+      "rendererVersion": "cuboids-1",
+      "document": {
+        "widthCm": 10,
+        "shapes": [
+          {
+            "id": "cuboid-1",
+            "title": "",
+            "dimensions": {
+              "width": "9",
+              "depth": "3",
+              "height": "5"
+            },
+            "unit": "cm",
+            "cube": false,
+            "labels": {
+              "width": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "depth": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "height": {
+                "mode": "value",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "front": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "top": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              },
+              "side": {
+                "mode": "area",
+                "text": "",
+                "x": 0,
+                "y": 0
+              }
+            },
+            "view": "plain",
+            "cubeSideCm": "1",
+            "direction": "right",
+            "projection": "standard",
+            "schematic": true,
+            "proportions": {
+              "width": "5",
+              "depth": "3",
+              "height": "2"
+            },
+            "hiddenEdges": false,
+            "arrows": false,
+            "workedVolume": true,
+            "workedArea": false,
+            "counts": false,
+            "layerNumbers": false,
+            "caption": ""
+          }
+        ]
+      }
+    },
+    "canonicalSha256": "d82916344b2df569dee6cb03b97b81766b422b2837339ad9becf09120dd74f17",
+    "svgSha256": "13df042cc3eef148c6bb62ca63f92f9265992ac929c29931256014d0170935ac"
+  }
+]
