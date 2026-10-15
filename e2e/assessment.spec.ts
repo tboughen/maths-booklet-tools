@@ -304,4 +304,43 @@ test("home entry, keyboard navigation and tablet widths remain usable", async ({
   await expect(page.getByText("3 students", { exact: false })).toBeVisible();
 });
 
-
+test("untaught topics are optional, preserve mark columns and invalidate generated packs", async ({ page }) => {
+  await page.goto("/?tool=assessment-follow-up");
+  await page.getByLabel("Choose assessment", { exact: true }).selectOption("custom");
+  await page.getByRole("group", { name: "Assessment questions", exact: true }).getByRole("textbox").fill("Question,Max marks,Sparx codes\nQ1,3,U168\nQ2,3,U753");
+  const exclusions = page.getByText("Not yet taught", { exact: true }).locator("..");
+  await expect(exclusions).not.toHaveAttribute("open", "");
+  await page.getByLabel("Paste marks", { exact: true }).fill("0\t0\n\t");
+  await expect(page.locator("div.af-import-summary")).toContainText("2/2 columns matched");
+  await page.getByRole("button", { name: "Generate class pack", exact: true }).click();
+  const download = page.getByRole("button", { name: "Download class PDF" }).first();
+  await expect(download).toBeEnabled({ timeout: 60000 });
+  await page.getByText("Why these questions?", { exact: true }).click();
+  await expect(page.getByText("Why these questions?", { exact: true }).locator("..")).toContainText("follow-up to Q1");
+  await exclusions.locator("summary").click();
+  await page.getByRole("checkbox", { name: /^Q1 ·/ }).check();
+  await expect(download).toBeDisabled();
+  await expect(page.getByText("Changes made — generate again")).toBeVisible();
+  await expect(page.getByText("Not yet taught · 1 skipped", { exact: true })).toBeVisible();
+  await expect(page.locator("div.af-import-summary")).toContainText("2/2 columns matched");
+  for (const common of [false, true]) {
+    await page.getByLabel("Same questions for everyone").setChecked(common);
+    await page.getByRole("button", { name: "Generate class pack", exact: true }).click();
+    await expect(download).toBeEnabled({ timeout: 60000 });
+    const reasons = page.getByText("Why these questions?", { exact: true }).locator("..");
+    if (!(await reasons.getAttribute("open"))) await reasons.locator("summary").click();
+    await expect(reasons).not.toContainText("follow-up to Q1");
+    await expect(reasons).toContainText("follow-up to Q2");
+  }
+  await page.setViewportSize({ width: 320, height: 950 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "Reset and clear data" }).click();
+  await page.getByLabel("Choose assessment", { exact: true }).selectOption("HPP3-4_H");
+  await page.getByText("Not yet taught", { exact: true }).click();
+  expect(await page.locator(".af-topic-exclusions input:checked").count()).toBe(0);
+  await page.getByRole("checkbox", { name: /^Q17 ·/ }).check();
+  await page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true }).uncheck();
+  await expect(page.getByRole("checkbox", { name: /^Q17 ·/ })).toBeChecked();
+  await page.getByLabel("Choose assessment", { exact: true }).selectOption("MM1_H");
+  expect(await page.locator(".af-topic-exclusions input:checked").count()).toBe(0);
+});
