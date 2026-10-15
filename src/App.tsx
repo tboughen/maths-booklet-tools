@@ -784,9 +784,6 @@ export default function App({ active = true }: { active?: boolean }) {
         </div>
       )}
       <div className="sr-only" aria-live="polite">
-        {saveMessage}
-      </div>
-      <div className="sr-only" aria-live="polite">
         {document.objects.length} object
         {document.objects.length === 1 ? "" : "s"}
       </div>
