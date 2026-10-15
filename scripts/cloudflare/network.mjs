@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { digestObject, sha256 } from './common.mjs';
+import { sha256 } from './common.mjs';
 import { concurrent, ensureAsset, assertPublicHeaders, retryVerification, immutableCache } from './upload-core.mjs';
 import { inventoryPlan, verificationRecord } from './inventory.mjs';
 import { assetFile } from './release.ts';
+import { corsIdentity } from './cors-policy.mjs';
 
-export async function storage(manifest, metrics) {
+export async function storage(manifest, metrics, { readCors } = {}) {
   const sdk = await import('@aws-sdk/client-s3');
   const account = process.env.CLOUDFLARE_ACCOUNT_ID;
   if (!/^[a-f0-9]{32}$/.test(account || '') || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) throw new Error('Configure the existing encrypted R2 credentials before auditing or publishing.');
@@ -15,9 +16,12 @@ export async function storage(manifest, metrics) {
       metrics.count('r2Policy');
       try {
         const result = await s3.send(new sdk.GetBucketCorsCommand({ Bucket: manifest.bucket }));
-        return { verified: true, digest: digestObject(result.CORSRules || []) };
+        return { verified: true, digest: corsIdentity(result.CORSRules || []) };
       } catch (error) {
-        if ([401, 403, 501].includes(error.$metadata?.httpStatusCode)) return { verified: false, digest: null };
+        if ([401, 403, 501].includes(error.$metadata?.httpStatusCode)) {
+          if (readCors) { try { return await readCors(); } catch { /* Fail closed to complete checking. */ } }
+          return { verified: false, digest: null };
+        }
         throw new Error('Could not establish the live R2 CORS policy; no cached inventory will be trusted.');
       }
     },

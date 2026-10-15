@@ -58,8 +58,10 @@ rewrites the original catalogue or source PDFs/PNGs.
 
 Publication reuses a complete stored/public metadata audit for up to seven days
 only when the live bucket CORS policy, bucket, origins, cache policy and verifier
-identity match. Lack of permission to read the live policy selects a full audit;
-a checked-in CORS template cannot establish the live setting.
+identity match. The reader first tries S3, then the existing authenticated
+Wrangler read command. The Wrangler parser is pinned and fails closed on unknown
+or truncated output. If neither existing credential can establish the live
+policy, use a full audit; a checked-in template cannot establish the live setting.
 
 An eligible unchanged release makes no question-object writes or stored-object
 HEAD sweep. It checks 32 fixed/rotating public assets plus real rendering, PDF
