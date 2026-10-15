@@ -1,4 +1,12 @@
-import { create, newShape, validate, type Envelope, type Shape } from "./index";
+import {
+  create,
+  newShape,
+  validate,
+  upgrade,
+  appearance,
+  type Envelope,
+  type Shape,
+} from "./index";
 export interface Example {
   id: string;
   title: string;
@@ -20,6 +28,37 @@ function resource(shapes: Shape[], widthCm = 10) {
   return validate({ ...create(), document: { widthCm, shapes } });
 }
 export const examples: Example[] = [
+  ...(["grey-faces", "base-area", "cross-section-face"] as const).map((id) => ({
+    id,
+    title:
+      id === "grey-faces"
+        ? "Greyscale faces"
+        : id === "base-area"
+          ? "Shaded base area"
+          : "Cross-sectional face area",
+    description:
+      id === "grey-faces"
+        ? "Three neutral face tones with black outlines. Calculations are only in the worked choice."
+        : "One existing face is shaded. The scaffold retains an area answer line; the worked choice supplies the exact area.",
+    create: (worked: boolean) => {
+      const e = upgrade(create()),
+        s = e.document.shapes[0];
+      s.appearance = {
+        ...appearance(s),
+        mode: id === "grey-faces" ? "faces" : "one",
+        face: id === "cross-section-face" ? "right" : "bottom",
+        area: {
+          ...appearance(s).area,
+          mode: id === "grey-faces" ? "hidden" : worked ? "value" : "blank",
+          heading:
+            id === "cross-section-face" ? "Cross-sectional area" : "Base area",
+          expression: worked,
+        },
+      };
+      if (id === "grey-faces") s.workedVolume = worked;
+      return e;
+    },
+  })),
   ...[1, 2, 3].map((h) => ({
     id: `layers-${h}`,
     title: `${h === 1 ? "One" : h === 2 ? "Two" : "Three"} ${h === 1 ? "layer" : "layers"}`,

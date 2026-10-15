@@ -1,16 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
+export type FieldHandle = { apply: () => boolean; cancel: () => void };
 export function CuboidField({
   label,
   value,
   onApply,
   pending,
   disabled = false,
+  controlRef,
+  onApplied,
+  onCancelled,
 }: {
   label: string;
   value: string | number;
   onApply: (v: string) => void;
   pending: (label: string, dirty: boolean) => void;
   disabled?: boolean;
+  controlRef?: Ref<FieldHandle>;
+  onApplied?: () => void;
+  onCancelled?: () => void;
 }) {
   const [draft, setDraft] = useState(String(value)),
     [error, setError] = useState("");
@@ -23,16 +36,25 @@ export function CuboidField({
     pending(label, false);
   }, [value, label, pending]);
   function apply() {
-    if (draft === committed.current && !error) return;
+    if (draft === committed.current && !error) return true;
     try {
       onApply(draft);
       setError("");
       pending(label, false);
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       pending(label, true);
+      return false;
     }
   }
+  function cancel() {
+    skipBlur.current = true;
+    setDraft(committed.current);
+    setError("");
+    pending(label, false);
+  }
+  useImperativeHandle(controlRef, () => ({ apply, cancel }));
   return (
     <label className="cb-field">
       {label}
@@ -46,6 +68,9 @@ export function CuboidField({
           pending(label, true);
         }}
         onBlur={() => {
+          // Floating edits commit only through Apply/Enter, so Cancel also
+          // discards a valid draft when focus moves to its button.
+          if (controlRef) return;
           if (skipBlur.current) {
             skipBlur.current = false;
             return;
@@ -54,14 +79,12 @@ export function CuboidField({
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            apply();
+            if (apply()) onApplied?.();
             e.currentTarget.blur();
           }
           if (e.key === "Escape") {
-            skipBlur.current = true;
-            setDraft(committed.current);
-            setError("");
-            pending(label, false);
+            cancel();
+            onCancelled?.();
             e.currentTarget.blur();
           }
         }}
