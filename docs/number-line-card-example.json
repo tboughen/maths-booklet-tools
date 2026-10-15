@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "number-line-1",
+  "styleProfile": "examination-v1",
+  "kind": "number-line",
+  "document": {
+    "axis": {
+      "minimum": "-4",
+      "maximum": "4",
+      "step": "1",
+      "labelEvery": 1,
+      "variable": "p",
+      "numberFormat": "decimal",
+      "variableBelow": false
+    },
+    "solution": {
+      "kind": "interval",
+      "id": "set",
+      "lower": "-3",
+      "upper": "1",
+      "lowerIncluded": true,
+      "upperIncluded": false
+    },
+    "teaching": {
+      "solutionVisible": true,
+      "labels": {},
+      "prompt": "",
+      "answer": "−3 ≤ p < 1",
+      "answerVisible": false,
+      "responseLines": 1
+    },
+    "widthCm": 8
+  }
+}

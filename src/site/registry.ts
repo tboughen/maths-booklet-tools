@@ -1,8 +1,10 @@
+import NumberLinePage from "../number-line/NumberLinePage";
+import numberLinePreview from "../assets/tool-previews/number-lines.svg";
 import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
 import ValueGraphPage from "../value-graph/ValueGraphPage";
 import CuboidPage from "../cuboid/CuboidPage";
-import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box } from "lucide-react";
+import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -14,6 +16,7 @@ export const bookletTools = [
   { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage, preview: { src: ratioPreview, alt: "Example ratio table with multiplication arrows and a blank answer space." } },
   { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage, preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
   { id: "cuboids", name: "Cuboids", description: "Draw and label cuboids, show their cubes, and reveal each layer.", icon: Box, component: CuboidPage, preview: { src: cuboidPreview, alt: "Cuboid divided into equal cubes, with two dimensions labelled and one answer space." } },
+  { id: "number-line", name: "Number lines", description: "Make exam-style number lines, intervals and inequality scaffolds.", icon: MoveHorizontal, component: NumberLinePage, preview: { src: numberLinePreview, alt: "Number line with a filled endpoint at minus three, open endpoint at one and a blank response line." } },
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];
