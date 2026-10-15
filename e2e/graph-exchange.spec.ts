@@ -1,4 +1,4 @@
-import { test, expect } from "./release-fixtures";
+import { editorBase, test, expect } from "./release-fixtures";
 import {
   createGraph,
   documentFromEnvelope,
@@ -43,7 +43,7 @@ test("link preview protects existing draft; open and undo are one history step",
   page,
 }) => {
   await seed(page);
-  await page.goto(editorLink(incoming, "http://127.0.0.1:5179/"));
+  await page.goto(editorLink(incoming, editorBase()));
   const dialog = page.getByRole("dialog", { name: "Open this graph?" });
   await expect(dialog).toBeVisible();
   expect(
@@ -60,7 +60,7 @@ test("link preview protects existing draft; open and undo are one history step",
     (hash) => {
       location.hash = hash;
     },
-    new URL(editorLink(incoming, "http://127.0.0.1:5179/")).hash,
+    new URL(editorLink(incoming, editorBase())).hash,
   );
   await expect(dialog).toBeVisible();
   await dialog
@@ -154,7 +154,7 @@ test("human creation works without a service and the bank ignores graph fragment
     "data-style-profile",
     "legacy",
   );
-  const bank = new URL(editorLink(incoming, "http://127.0.0.1:5179/"));
+  const bank = new URL(editorLink(incoming, editorBase()));
   bank.search = "?tool=question-bank";
   await page.goto(bank.href);
   await expect(page.getByRole("navigation", { name: "Main sections" }).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
@@ -179,7 +179,7 @@ test("an imported unlabelled line retains the human equation toggle", async ({
       },
     ],
   });
-  await page.goto(editorLink(graph, "http://127.0.0.1:5179/"));
+  await page.goto(editorLink(graph, editorBase()));
   await page
     .getByRole("button", { name: "Open this graph", exact: true })
     .click();
@@ -210,7 +210,7 @@ test("unreadable saved data is retained and requires recovery before linked impo
   page,
 }) => {
   await seed(page, "{broken");
-  await page.goto(editorLink(incoming, "http://127.0.0.1:5179/"));
+  await page.goto(editorLink(incoming, editorBase()));
   await expect(
     page.getByRole("dialog", { name: "Review local graph recovery" }),
   ).toBeVisible();
