@@ -2,12 +2,13 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdtempSync, mkdirSync, cpSync, existsSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { json, save, run, repository, timer, assertEqual } from './common.mjs';
+import { json, save, run, repository, timer } from './common.mjs';
 import { verifyPackage, validateSource } from './package.mjs';
 import { validateQualification } from './evidence.mjs';
 import { storage, verifyInventory, verifyLiveFiles, verifyRange } from './network.mjs';
 import { promoteRelease } from './deployment.mjs';
 import { downloadTrustedArtifact, verifyWorkflowRun } from './github-trust.mjs';
+import { parseWranglerCors } from './cors-policy.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const options = process.argv.slice(3), action = process.argv[2];
@@ -72,8 +73,12 @@ async function main() {
     if (!preview) throw new Error('Production recovery package must come from the trusted previous publication artifact');
     previousDirectory = resolve(root, option('previous-package'));
   }
-  const store = await storage(json(resolve(directory, 'inventory.json')), metrics);
   const manifest = json(resolve(directory, 'inventory.json'));
+  const store = await storage(manifest, metrics, { readCors: async () => {
+    metrics.count('wranglerPolicy');
+    const response = await run(root, wrangler, ['r2', 'bucket', 'cors', 'list', manifest.bucket], { capture: true, env: { CI: 'true' } });
+    return parseWranglerCors(response.stdout, manifest.bucket);
+  } });
   const inventory = async readOnly => {
     const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full: options.includes('--full'), audit: options.includes('--audit-inventory') || release.inputs.classification.fullInventory, readOnly, store });
     save(resolve(output, 'inventory-record.json'), result.record);

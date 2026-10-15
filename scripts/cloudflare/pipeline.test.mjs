@@ -1,6 +1,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, sep } from 'node:path';
 import { save, json, sha256, digestObject, fileManifest, inside, repository } from './common.mjs';
@@ -11,6 +11,7 @@ import { browserEvidence, vitestEvidence, sealQualification, validateQualificati
 import { promoteRelease } from './deployment.mjs';
 import { verifyInventory, verifyRange } from './network.mjs';
 import { validateWorkflowOrigin } from './github-trust.mjs';
+import { parseWranglerCors, corsIdentity } from './cors-policy.mjs';
 
 const roots = [];
 function temporary() { const path = mkdtempSync(resolve(tmpdir(), 'mathsdock-publisher-test-')); roots.push(path); return path; }
@@ -68,6 +69,15 @@ test('path traversal cannot read a file outside the release directory', () => {
 test('inventory rejects foreign buckets, overwritten keys and duplicate entries', () => {
   for (const m of [{ ...manifest, bucket: 'other-project' }, { ...manifest, assets: [{ ...asset(1), key: 'brand/logo.svg' }] }, { ...manifest, assets: [asset(1), asset(1)] }]) assert.throws(() => validateInventory(m));
   assert.equal(validateInventory(manifest), manifest);
+});
+test('observed Wrangler policy matches S3 semantics and unknown/truncated output fails closed', () => {
+  const text = "⛅️ wrangler 4.149.0\n────────────────────\nListing CORS rules for bucket 'maths-booklet-assets'...\nallowed_origins:  https://mathsdock.co.uk, https://tboughen.github.io\nallowed_methods:  GET, HEAD\nallowed_headers:  Range\nexposed_headers:  ETag, Content-Length\nmax_age_seconds:  3600\n";
+  const expected = [{ AllowedOrigins: ['https://tboughen.github.io', 'https://mathsdock.co.uk'], AllowedMethods: ['HEAD', 'GET'], AllowedHeaders: ['Range'], ExposeHeaders: ['Content-Length', 'ETag'], MaxAgeSeconds: 3600 }];
+  assert.equal(parseWranglerCors(text, 'maths-booklet-assets').digest, corsIdentity(expected));
+  assert.equal(parseWranglerCors(text.replace('4.149.0', '4.149.0 (update available 4.151.0)'), 'maths-booklet-assets').digest, corsIdentity(expected));
+  assert.throws(() => parseWranglerCors(text.replace('4.149.0', '5.0.0'), 'maths-booklet-assets'));
+  assert.throws(() => parseWranglerCors(text.split('max_age_seconds')[0], 'maths-booklet-assets'));
+  assert.throws(() => parseWranglerCors(text, 'another-bucket'));
 });
 test('fresh unchanged inventory requests a bounded sample and zero stored objects', () => {
   const plan = inventoryPlan(manifest, baseline(), scope, { now });

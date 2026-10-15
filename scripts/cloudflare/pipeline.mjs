@@ -1,6 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync, readFileSync, copyFileSync, mkdirSync } from 'node:fs';
+import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { run, json, save, timer, digestObject } from './common.mjs';
 import { packageRelease, verifyPackage, validateSource } from './package.mjs';
 import { browserCases, browserEvidence, vitestEvidence, sealQualification } from './evidence.mjs';

@@ -6,7 +6,7 @@ import { validateInventory } from './inventory.mjs';
 
 export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
-export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
+export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
 export function packageRelease(root, { base, directory = resolve(root, 'cloudflare-release/package') } = {}) {
   const source = cleanSource(root);
   if (existsSync(resolve(directory, 'release.json'))) throw new Error('Release package already exists; choose a fresh output directory');
