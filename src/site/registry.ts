@@ -1,13 +1,16 @@
 import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
 import ValueGraphPage from "../value-graph/ValueGraphPage";
-import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2 } from "lucide-react";
+import CuboidPage from "../cuboid/CuboidPage";
+import cuboidPreview from "../assets/tool-previews/cuboids.svg";
+import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box } from "lucide-react";
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
   { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage },
   { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage },
   { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: Grid3X3, component: ValueGraphPage },
+  { id: "cuboids", name: "Cuboids", description: "Draw and label cuboids, show their cubes, and reveal each layer.", icon: Box, component: CuboidPage, preview: { src: cuboidPreview, alt: "Cuboid divided into equal cubes, with two dimensions labelled and one answer space." } },
 ] as const;
 
 export type ToolId = typeof bookletTools[number]["id"];

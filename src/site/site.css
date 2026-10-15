@@ -208,3 +208,5 @@ body { background: #f2f5f8; }
 .source-example-actions button { min-height: 38px; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; color: var(--ink); cursor: pointer; font-size: 12px; }
 .source-example-actions button:hover:not(:disabled) { background: var(--blue-soft); }
 .source-example-actions button:disabled { opacity: .5; cursor: default; }
+
+.overview-tool-preview { display: block; width: 100%; max-width: 320px; height: auto; aspect-ratio: 1; object-fit: contain; align-self: center; margin-top: 20px; }
