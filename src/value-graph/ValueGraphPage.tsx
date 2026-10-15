@@ -1,3 +1,12 @@
+import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
+import { QuadraticExamples } from "./QuadraticExamples";
+import { workedQuadraticExample } from "./examples";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+} from "../site/EditorDownloadMenu";
+import { ResourceSize } from "../site/ResourceSize";
+import { formatResourceSize } from "../site/resourceSizeFormat";
 import {
   useCallback,
   useEffect,
@@ -5,7 +14,6 @@ import {
   useState,
   type PointerEvent,
 } from "react";
-import { Copy, Download } from "lucide-react";
 import {
   apply,
   canonical,
@@ -16,7 +24,6 @@ import {
   number,
   parseFile,
   preset,
-  PRESETS,
   rangeColumns,
   tableDomain,
   renderSvg,
@@ -785,7 +792,28 @@ export default function ValueGraphPage({
                 ]),
             )}
             <div className="vg-fields">
-              {(axis === "x" ? ["xMin", "xMax"] as const : ["yMin", "yMax"] as const).map(key => field(({xMin:"Left x endpoint",xMax:"Right x endpoint",yMin:"Bottom y endpoint",yMax:"Top y endpoint"})[key], g.bounds[key], value => change([{op:"set_graph",settings:{bounds:{...g.bounds,[key]:value}}}]), key))}
+              {(axis === "x"
+                ? (["xMin", "xMax"] as const)
+                : (["yMin", "yMax"] as const)
+              ).map((key) =>
+                field(
+                  {
+                    xMin: "Left x endpoint",
+                    xMax: "Right x endpoint",
+                    yMin: "Bottom y endpoint",
+                    yMax: "Top y endpoint",
+                  }[key],
+                  g.bounds[key],
+                  (value) =>
+                    change([
+                      {
+                        op: "set_graph",
+                        settings: { bounds: { ...g.bounds, [key]: value } },
+                      },
+                    ]),
+                  key,
+                ),
+              )}
             </div>
             <p>The printed axis values keep their exam size: 12 pt.</p>
           </>
@@ -880,26 +908,35 @@ export default function ValueGraphPage({
         );
       case "examples":
         return (
-          <>
-            {PRESETS.map((name) => (
-              <button
-                key={name}
-                disabled={blocked}
-                onClick={() =>
-                  ask(
-                    "Replace with this example?",
-                    name + " replaces the current resource. You can undo this.",
-                    () => {
-                      commit(preset(name));
-                      setSelection(null);
-                    },
-                  )
-                }
-              >
-                {name}
-              </button>
-            ))}
-          </>
+          <QuadraticExamples
+            disabled={blocked}
+            onUse={(name) =>
+              ask(
+                "Replace with this example?",
+                name + " replaces the current resource. You can undo this.",
+                () => {
+                  commit(preset(name));
+                  setSelection(null);
+                },
+              )
+            }
+            onWorked={(name) =>
+              ask(
+                name === "November 2017 error"
+                  ? "Open a separate corrected copy?"
+                  : "Open a separate worked copy?",
+                "Your current resource and pupil blanks remain saved. The new copy opens separately.",
+                () => {
+                  const url = new URL(location.href);
+                  url.searchParams.set("draft", uniqueId("worked-"));
+                  window.open(
+                    editorLink(workedQuadraticExample(name), url.href),
+                    "_blank",
+                  );
+                },
+              )
+            }
+          />
         );
       case "graph":
         return (
@@ -1289,12 +1326,9 @@ export default function ValueGraphPage({
           title="Plotting quadratics"
           description="Click the equation, table or graph to edit your resource."
         >
-          <div
-            className={`save-indicator save-indicator--${saved ? "saved" : "error"}`}
-          >
-            <span />
-            {saved ? "Saved on this device" : "Not saved on device"}
-          </div>
+          <ResourceSaveStatus
+            text={saved ? "Saved on this device" : "Not saved on device"}
+          />
         </PageHeading>
         <section className="workspace">
           <Panel className="editor-card">
@@ -1315,69 +1349,72 @@ export default function ValueGraphPage({
               }
               resetDisabled={blocked}
               exportDisabled={blocked || !!renderError}
+              menuDisabled={blocked}
               busy={busy}
               onCopyClipboard={() =>
                 void exportAction(
                   () => copyPngToClipboard(() => printPng(envelope)),
-                  "Image copied to clipboard. Paste with Ctrl+V.",
+                  "Image copied. Paste with Ctrl+V.",
                 )
               }
-              onCopy={() => void exportAction(() => copyForWord(envelope))}
+              onCopy={() =>
+                void exportAction(
+                  () => copyForWord(envelope),
+                  "Copied for Word at " +
+                    formatResourceSize(m.widthCm, m.heightCm) +
+                    ". Paste with Ctrl+V.",
+                )
+              }
+              menuId="quadratics-downloads"
               menuOpen={exportOpen}
               onToggleMenu={() => setExportOpen(!exportOpen)}
             />
-            <div className="editor-export-popover" hidden={!exportOpen}>
-              {exportOpen && (
-                <div className="export-menu" role="menu">
-                  {(["svg", "png", "json"] as const).map((format) => (
-                    <button
-                      key={format}
-                      role="menuitem"
-                      disabled={blocked || !!renderError}
-                      onClick={() =>
-                        void exportAction(() => download(envelope, format))
-                      }
-                    >
-                      <Download size={17} aria-hidden="true" />
-                      <span>
-                        Download{" "}
-                        {format === "png"
-                          ? "PNG (600 ppi)"
-                          : format === "json"
-                            ? "editable JSON"
-                            : "SVG"}
-                      </span>
-                    </button>
-                  ))}
-                  <button
-                    role="menuitem"
-                    disabled={blocked}
-                    onClick={() =>
-                      act(() => {
-                        file.current?.click();
-                      })
-                    }
-                  >
-                    <Copy size={17} aria-hidden="true" />
-                    <span>Open editable file</span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    disabled={blocked}
-                    onClick={() =>
-                      void exportAction(async () => {
-                        await navigator.clipboard.writeText(
-                          editorLink(envelope, location.href),
-                        );
-                      })
-                    }
-                  >
-                    <Copy size={17} aria-hidden="true" />
-                    <span>Copy editable link</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            <EditorDownloadMenu
+              id="quadratics-downloads"
+              open={exportOpen}
+              active={active}
+              onClose={() => setExportOpen(false)}
+              onBusyChange={setBusy}
+              onMessage={setMessage}
+              actions={[
+                {
+                  label: "Download SVG",
+                  action: () => download(envelope, "svg"),
+                  disabled: blocked || !!renderError,
+                  success: "SVG download started.",
+                },
+                {
+                  label: "Download PNG (600 ppi)",
+                  action: () => download(envelope, "png"),
+                  disabled: blocked || !!renderError,
+                  success: "PNG download started.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () => download(envelope, "json"),
+                  disabled: blocked,
+                  success: "Editable file download started.",
+                  separator: true,
+                },
+                {
+                  label: "Open editable file",
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                  success: "",
+                  picker: true,
+                },
+                {
+                  label: "Copy editable link",
+                  action: () =>
+                    navigator.clipboard.writeText(
+                      editorLink(envelope, location.href),
+                    ),
+                  disabled: blocked,
+                  success: "Editable link copied.",
+                  description: LINK_DESCRIPTION,
+                },
+              ]}
+            />
             <input
               type="file"
               accept=".json,application/json"
@@ -1404,6 +1441,7 @@ export default function ValueGraphPage({
               }}
             />
             <div className="ratio-preview-controls">
+              <ResourceSize width={m.widthCm} height={m.heightCm} />
               <label>
                 Preview zoom{" "}
                 <select
@@ -1418,7 +1456,7 @@ export default function ValueGraphPage({
               </label>
             </div>
             {!!message && (
-              <p role="status" className="vg-message">
+              <p role="status" className="resource-feedback">
                 {message}
               </p>
             )}
@@ -1477,7 +1515,8 @@ export default function ValueGraphPage({
               <div
                 className="vg-editor-frame"
                 style={{
-                  width: m.width * pxPerMm + paperLeft + (m.withTable ? 228 : 160),
+                  width:
+                    m.width * pxPerMm + paperLeft + (m.withTable ? 228 : 160),
                   height:
                     Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) +
                     paperTop +
@@ -1553,9 +1592,13 @@ export default function ValueGraphPage({
                     title="Click to edit equation"
                     disabled={blocked}
                     style={{
-                      left: d.presentation.showEquation ? 0 : m.width * pxPerMm + 24,
+                      left: d.presentation.showEquation
+                        ? 0
+                        : m.width * pxPerMm + 24,
                       top: d.presentation.showEquation ? 0 : -38,
-                      width: d.presentation.showEquation ? m.width * pxPerMm : 120,
+                      width: d.presentation.showEquation
+                        ? m.width * pxPerMm
+                        : 120,
                       height: d.presentation.showEquation ? 9 * pxPerMm : 32,
                     }}
                     onClick={(e) =>

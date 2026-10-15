@@ -59,13 +59,13 @@ for (const width of [1440, 1024, 900, 375, 320]) {
       await bar
         .getByRole("button", { name: "Download options", exact: true })
         .click();
-      const popover = current.locator(".editor-export-popover");
+      const popover = page.getByRole("menu");
       await expect(popover).toBeVisible();
       const menuBox = await popover.boundingBox();
       expect(menuBox!.x).toBeGreaterThanOrEqual(0);
       expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(width);
       await expect(
-        current.getByRole("menuitem", { name: /Download SVG/ }),
+        page.getByRole("menuitem", { name: /Download SVG/ }),
       ).toBeVisible();
       const lastAction = popover.getByRole("menuitem").last();
       await lastAction.scrollIntoViewIfNeeded();

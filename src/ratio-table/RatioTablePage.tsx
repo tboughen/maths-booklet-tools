@@ -1,16 +1,16 @@
+import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+} from "../site/EditorDownloadMenu";
+import { ResourceSize } from "../site/ResourceSize";
+import { formatResourceSize } from "../site/resourceSizeFormat";
 import { SourceExamples } from "../examples/PastPaperExamples";
 import { ratioExamples } from "../examples/sourceExamples";
 import { copyPngToClipboard } from "../export/clipboard";
 import { ratioPrintPng } from "./export";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Copy,
-  Download,
-  ArrowDown,
-  MousePointer2,
-  Type,
-  Table2,
-} from "lucide-react";
+import { ArrowDown, MousePointer2, Type } from "lucide-react";
 import {
   applyRatioOperations,
   createRatioTable,
@@ -292,6 +292,7 @@ export default function RatioTablePage({
     return () => window.removeEventListener("keydown", keyboard);
   }, [active, undo, redo]);
   async function runExport(action: () => Promise<void>, success = "") {
+    if (exportDisabled) return;
     setBusy(true);
     setExportsOpen(false);
     try {
@@ -526,21 +527,30 @@ export default function RatioTablePage({
           title="Ratio tables"
           description="Choose values, add scaling arrows and copy a clean table into Word."
         >
-          <div
-            role="status"
-            className={`save-indicator save-indicator--${saveState}`}
-          >
-            <span />
-            {recovery
-              ? "Recovery needed"
-              : pendingInputs.size
-                ? "Finish editing to save"
-                : saveState === "saving"
-                  ? "Saving…"
-                  : saveState === "error"
-                    ? "Not saved on device"
-                    : "Saved on this device"}
-          </div>
+          <ResourceSaveStatus
+            text={
+              recovery
+                ? "Recovery needed"
+                : pendingInputs.size
+                  ? "Finish editing to save"
+                  : saveState === "saving"
+                    ? "Saving…"
+                    : saveState === "error"
+                      ? "Not saved on device"
+                      : "Saved on this device"
+            }
+            state={
+              recovery
+                ? "error"
+                : pendingInputs.size
+                  ? "pending"
+                  : saveState === "saving"
+                    ? "saving"
+                    : saveState === "error"
+                      ? "error"
+                      : "saved"
+            }
+          />
         </PageHeading>
         {recovery !== null && (
           <section className="ratio-recovery" role="alert">
@@ -575,7 +585,7 @@ export default function RatioTablePage({
           </section>
         )}
         {message && (
-          <p role="status" className="ratio-message">
+          <p role="status" className="resource-feedback">
             {message}
           </p>
         )}
@@ -593,98 +603,84 @@ export default function RatioTablePage({
               onCopyClipboard={() =>
                 void runExport(
                   () => copyPngToClipboard(() => ratioPrintPng(envelope)),
-                  "Image copied to clipboard. Paste with Ctrl+V.",
+                  "Image copied. Paste with Ctrl+V.",
                 )
               }
               onCopy={() =>
                 void runExport(
                   () => copyRatioForWord(envelope),
-                  "Copied at its print size. Paste into Word with Ctrl+V.",
+                  "Copied for Word at " +
+                    formatResourceSize(metrics.widthCm, metrics.heightCm) +
+                    ". Paste with Ctrl+V.",
                 )
               }
+              menuId="ratio-table-downloads"
               menuOpen={exportsOpen}
               onToggleMenu={() => setExportsOpen((v) => !v)}
             />
-            <div className="editor-export-popover" hidden={!exportsOpen}>
-              {exportsOpen && (
-                <div className="export-menu ratio-export-menu" role="menu">
-                  <button
-                    role="menuitem"
-                    onClick={() =>
-                      void runExport(() => downloadRatioImage(envelope, "svg"))
-                    }
-                  >
-                    <Download size={18} />
-                    <span>
-                      <strong>Download SVG</strong>
-                      <small>Scalable vector with bundled fonts</small>
-                    </span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    onClick={() =>
-                      void runExport(() => downloadRatioImage(envelope, "png"))
-                    }
-                  >
-                    <Download size={18} />
-                    <span>
-                      <strong>Download PNG</strong>
-                      <small>600 ppi · print-ready image</small>
-                    </span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    onClick={() => {
-                      downloadBlob(
-                        new Blob([JSON.stringify(envelope, null, 2)], {
-                          type: "application/json",
-                        }),
-                        "maths-ratio-table.json",
-                      );
-                      setExportsOpen(false);
-                    }}
-                  >
-                    <Download size={18} />
-                    <span>
-                      <strong>Save editable table</strong>
-                      <small>Reopen to change values and scaffolds</small>
-                    </span>
-                  </button>
-                  <button role="menuitem" onClick={() => file.current?.click()}>
-                    <Table2 size={18} />
-                    <span>
-                      <strong>Open saved table</strong>
-                      <small>Preview before replacing your draft</small>
-                    </span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    onClick={() =>
-                      void runExport(async () => {
-                        await navigator.clipboard.writeText(
-                          ratioEditorLink(envelope, location.href),
-                        );
-                      }, "Editable link copied. Anyone with the link can open this table.")
-                    }
-                  >
-                    <Copy size={18} />
-                    <span>
-                      <strong>Copy editable link</strong>
-                      <small>Share this table for further editing</small>
-                    </span>
-                  </button>
-                </div>
-              )}
-            </div>
+            <EditorDownloadMenu
+              id="ratio-table-downloads"
+              open={exportsOpen}
+              active={active}
+              onClose={() => setExportsOpen(false)}
+              onBusyChange={setBusy}
+              onMessage={setMessage}
+              actions={[
+                {
+                  label: "Download SVG",
+                  action: () => downloadRatioImage(envelope, "svg"),
+                  disabled: exportDisabled,
+                  success: "SVG download started.",
+                },
+                {
+                  label: "Download PNG (600 ppi)",
+                  action: () => downloadRatioImage(envelope, "png"),
+                  disabled: exportDisabled,
+                  success: "PNG download started.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () =>
+                    downloadBlob(
+                      new Blob([JSON.stringify(envelope, null, 2)], {
+                        type: "application/json",
+                      }),
+                      "maths-ratio-table.json",
+                    ),
+                  disabled: exportDisabled,
+                  success: "Editable file download started.",
+                  separator: true,
+                },
+                {
+                  label: "Open editable file",
+                  action: () => file.current?.click(),
+                  disabled: exportDisabled,
+                  success: "",
+                  picker: true,
+                },
+                {
+                  label: "Copy editable link",
+                  action: () =>
+                    navigator.clipboard.writeText(
+                      ratioEditorLink(envelope, location.href),
+                    ),
+                  disabled: exportDisabled,
+                  success: "Editable link copied.",
+                  description: LINK_DESCRIPTION,
+                },
+              ]}
+            />
             <input
               ref={file}
               className="sr-only"
+              hidden
               type="file"
               accept=".json,application/json"
               aria-label="Open editable ratio-table file"
               onChange={(e) => void openFile(e.target.files?.[0])}
             />
             <div className="ratio-preview-controls">
+              <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
               <label>
                 Preview zoom{" "}
                 <select
@@ -739,10 +735,6 @@ export default function RatioTablePage({
               removalColumnIndex={removalColumn}
             />
             <div className="ratio-preview-footer">
-              <span>
-                Print size: {metrics.widthCm.toFixed(2)} ×{" "}
-                {metrics.heightCm.toFixed(2)} cm
-              </span>
               <span>Zoom and editing guides do not appear in exports.</span>
             </div>
             {pendingInputs.size > 0 && (
@@ -814,7 +806,13 @@ export default function RatioTablePage({
                   beside its edges.
                 </p>
               </section>
-              <SourceExamples examples={ratioExamples} disabled={structureDisabled || busy} onUse={(resource,title) => replace(resource, `Replace with ${title}?`)} />
+              <SourceExamples
+                examples={ratioExamples}
+                disabled={structureDisabled || busy}
+                onUse={(resource, title) =>
+                  replace(resource, `Replace with ${title}?`)
+                }
+              />
               <RatioInspector
                 document={document}
                 selection={selection}

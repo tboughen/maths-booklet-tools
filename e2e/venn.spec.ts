@@ -1,3 +1,4 @@
+import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -166,9 +167,11 @@ test("overflow is correctable and editable download remains available", async ({
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
+  await openResourceMenu(page);
   await expect(
-    page.getByRole("button", { name: "Save editable file", exact: true }),
+    page.getByRole("menuitem", { name: "Save editable file", exact: true }),
   ).toBeEnabled();
+  await page.keyboard.press("Escape");
   await edit(page, 7, "1/2", "number");
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
@@ -237,9 +240,7 @@ for (const ex of examples)
       .getByRole("button", { name: "Download options", exact: true })
       .click();
     const download = page.waitForEvent("download");
-    await page
-      .getByRole("button", { name: "Download SVG", exact: true })
-      .click();
+    await clickResourceAction(page, "Download SVG");
     const result = await download;
     const path = resolve(report, `example-${ex.id}.svg`);
     await result.saveAs(path);
@@ -260,9 +261,7 @@ test("actual PNG, editable-file roundtrip and cancelled import", async ({
     .getByRole("button", { name: "Download options", exact: true })
     .click();
   const pngPromise = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Download PNG (600 ppi)", exact: true })
-    .click();
+  await clickResourceAction(page, "Download PNG (600 ppi)");
   const png = await pngPromise,
     path = resolve(report, "three-set-600ppi.png");
   await png.saveAs(path);
@@ -287,9 +286,7 @@ test("actual PNG, editable-file roundtrip and cancelled import", async ({
   expect(meta.horizontalPixelsPerMetre).toBe(23622);
   expect(meta.verticalPixelsPerMetre).toBe(23622);
   const editablePromise = page.waitForEvent("download");
-  await page
-    .getByRole("button", { name: "Save editable file", exact: true })
-    .click();
+  await clickResourceAction(page, "Save editable file");
   const editable = await editablePromise,
     filePath = resolve(report, "three-set-editable.json");
   await editable.saveAs(filePath);
@@ -317,7 +314,7 @@ test("actual image clipboard and Word physical HTML", async ({
     .getByRole("button", { name: "Copy to clipboard", exact: true })
     .click();
   await expect(
-    page.getByText("Resource ready.", { exact: true }),
+    page.getByText(/Image copied\. Paste with Ctrl\+V\./, { exact: true }),
   ).toBeVisible();
   const types = await page.evaluate(async () =>
     (await navigator.clipboard.read()).flatMap((x) => x.types),
@@ -414,9 +411,11 @@ test("storage failure leaves an editable-file fallback", async ({ page }) => {
     }),
   ).toBeVisible();
   await edit(page, 1, "10");
+  await openResourceMenu(page);
   await expect(
-    page.getByRole("button", { name: "Save editable file", exact: true }),
+    page.getByRole("menuitem", { name: "Save editable file", exact: true }),
   ).toBeEnabled();
+  await page.keyboard.press("Escape");
 });
 test("source preset cancellation, focus trap and undo", async ({ page }) => {
   await boot(page);
@@ -502,9 +501,7 @@ for (const sets of [2, 3] as const)
         .getByRole("button", { name: "Download options", exact: true })
         .click();
       const promise = page.waitForEvent("download");
-      await page
-        .getByRole("button", { name: "Download SVG", exact: true })
-        .click();
+      await clickResourceAction(page, "Download SVG");
       const path = resolve(report, `mask-${sets}-${mask}.svg`);
       await (await promise).saveAs(path);
       const svg = readFileSync(path, "utf8"),
