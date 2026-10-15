@@ -51,7 +51,7 @@ export function assertEqual(actual, expected, message) {
 }
 export function run(root, file, args = [], { env = {}, capture = false } = {}) {
   return new Promise((resolveRun, reject) => {
-    const node = file.endsWith('.js') || file.endsWith('.mjs') || file.endsWith('.ts');
+    const node = file.endsWith('.js') || file.endsWith('.mjs') || file.endsWith('.ts') || file.endsWith('/typescript/bin/tsc');
     const child = spawn(node ? process.execPath : file, node ? [resolve(root, file), ...args] : args, {
       cwd: root, env: { ...process.env, ...env }, stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', windowsHide: true,
     });
