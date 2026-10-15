@@ -37,6 +37,8 @@ For text and number fields, use Enter to apply, Escape to restore, and predictab
 
 Direct manipulation needs an accessible equivalent. Every essential operation should work by keyboard and have a labelled control; a drag gesture or a tiny visual target cannot be the only way to perform it.
 
+Direct-edit popovers must not be clipped by the white resource, scroll container or editor card. Render them in a separate UI layer, measure the whole editor, and keep its input, error message and actions within the visual viewport after zooming, scrolling, resizing and mobile keyboard changes. Retain unfinished drafts when the anchor scrolls away or the teacher changes tools; inactive overlays must be hidden and inert. Specify Apply/Enter and Cancel/Escape explicitly so focusing Cancel cannot commit the draft first. Check focused editors at each resource edge, not just the unfocused layout.
+
 ## Group controls by their purpose
 
 Use the existing shared header, tool navigation, page heading, workspace and settings panels. The Question bank's white panels, pale blue-grey background, navy text and blue actions became the common interface style. Keep the current MathsDock branding and shared tokens rather than copying an older screenshot's header.

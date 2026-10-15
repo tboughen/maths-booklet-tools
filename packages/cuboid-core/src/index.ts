@@ -1,4 +1,5 @@
 import { z } from "zod";
+import * as legacy from "./legacy";
 import {
   parseNumber,
   canonicalNumber,
@@ -20,7 +21,7 @@ const labelSchema = z
     y: z.number().min(-8).max(8),
   })
   .strict();
-const shapeSchema = z
+const baseShapeSchema = z
   .object({
     id: z.string().regex(/^[a-zA-Z0-9-]{1,48}$/),
     title: z.string().max(40),
@@ -56,11 +57,37 @@ const shapeSchema = z
     caption: z.string().max(100),
   })
   .strict();
+export const faceNames = [
+  "top",
+  "bottom",
+  "front",
+  "back",
+  "left",
+  "right",
+] as const;
+const appearanceSchema = z
+  .object({
+    mode: z.enum(["outline", "faces", "one"]),
+    tone: z.enum(["light", "strong"]),
+    face: z.enum(faceNames),
+    area: z
+      .object({
+        mode: z.enum(["hidden", "blank", "value", "text"]),
+        heading: z.enum(["Base area", "Cross-sectional area", "Face area"]),
+        text: z.string().max(80),
+        expression: z.boolean(),
+      })
+      .strict(),
+  })
+  .strict();
+const shapeSchema = baseShapeSchema.extend({
+  appearance: appearanceSchema.optional(),
+});
 const envelopeSchema = z
   .object({
     tool: z.literal("cuboids"),
-    schemaVersion: z.literal(1),
-    rendererVersion: z.literal("cuboids-1"),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    rendererVersion: z.enum(["cuboids-1", "cuboids-2"]),
     document: z
       .object({
         widthCm: z.number().min(4).max(18),
@@ -72,6 +99,61 @@ const envelopeSchema = z
 export type Shape = z.infer<typeof shapeSchema>;
 export type Label = z.infer<typeof labelSchema>;
 export type Envelope = z.infer<typeof envelopeSchema>;
+export type Appearance = z.infer<typeof appearanceSchema>;
+export type FaceName = (typeof faceNames)[number];
+export function appearance(s: Shape): Appearance {
+  return (
+    s.appearance ?? {
+      mode: "outline",
+      tone: "light",
+      face: "bottom",
+      area: {
+        mode: "hidden",
+        heading: "Base area",
+        text: "",
+        expression: false,
+      },
+    }
+  );
+}
+export function upgrade(e: Envelope): Envelope {
+  return validate({
+    ...e,
+    schemaVersion: 2,
+    rendererVersion: "cuboids-2",
+    document: {
+      ...e.document,
+      shapes: e.document.shapes.map((s) => ({
+        ...s,
+        appearance: appearance(s),
+      })),
+    },
+  });
+}
+export function faceArea(s: Shape, face: FaceName) {
+  const a =
+    face === "top" || face === "bottom"
+      ? ["width", "depth"]
+      : face === "front" || face === "back"
+        ? ["width", "height"]
+        : ["depth", "height"];
+  return {
+    value: fractionString(
+      times(
+        parseNumber(s.dimensions[a[0] as Axis]),
+        parseNumber(s.dimensions[a[1] as Axis]),
+      ),
+    ),
+    factors: a.map((k) => s.dimensions[k as Axis]),
+  };
+}
+export function faceAreaLabel(s: Shape) {
+  const a = appearance(s);
+  if (a.mode !== "one" || a.area.mode === "hidden") return "";
+  if (a.area.mode === "text") return a.area.text;
+  const result = faceArea(s, a.face);
+  return `${a.area.heading} = ${a.area.mode === "blank" ? "…………" : `${a.area.expression ? result.factors.join(" × ") + " = " : ""}${result.value}`} ${s.unit}²`;
+}
 const factor = { cm: 1n, mm: 10n, m: 100n };
 function gcd(a: bigint, b: bigint): bigint {
   while (b) [a, b] = [b, a % b];
@@ -235,9 +317,22 @@ export function create(): Envelope {
   };
 }
 export function validate(value: unknown): Envelope {
+  if (
+    value &&
+    typeof value === "object" &&
+    "schemaVersion" in value &&
+    value.schemaVersion === 1
+  )
+    return legacy.validate(value);
   const e = envelopeSchema.parse(value),
     ids = new Set<string>();
+  if (e.schemaVersion !== 2 || e.rendererVersion !== "cuboids-2")
+    throw Error("Unsupported cuboid version.");
   for (const s of e.document.shapes) {
+    if (s.view === "layers" && appearance(s).mode === "one")
+      throw Error(
+        "One face uses an assembled cuboid. Choose Outline or Grey faces before separating layers.",
+      );
     if (ids.has(s.id)) throw Error("Cuboid IDs must be distinct.");
     ids.add(s.id);
     for (const a of axes) {
@@ -339,10 +434,11 @@ export function labelText(s: Shape, k: LabelKey) {
 type Point = [number, number];
 export type Target = {
   shapeId: string;
-  key: LabelKey;
+  key: LabelKey | "area";
   x: number;
   y: number;
   width: number;
+  height?: number;
 };
 export type Layout = {
   width: number;
@@ -372,6 +468,8 @@ function wrap(s: string, width: number): string[] {
   return lines;
 }
 export function layout(envelope: Envelope): Layout {
+  if (envelope.schemaVersion === 1)
+    return legacy.layout(envelope as legacy.Envelope);
   const e = validate(envelope),
     width = e.document.widthCm * 10,
     shapes = e.document.shapes;
@@ -387,17 +485,27 @@ export function layout(envelope: Envelope): Layout {
     const [rw, rd, rh] = dims,
       p =
         s.projection === "compact" ? 0.34 : s.projection === "deep" ? 0.7 : 0.5;
+    const arrowMode = s.arrows && s.view !== "layers";
+    const heightWidth = textWidth(labelText(s, "height")),
+      depthWidth = textWidth(labelText(s, "depth"));
     const left = Math.max(
-        7,
-        textWidth(labelText(s, s.direction === "right" ? "height" : "depth")) +
-          5,
-      ),
-      right = Math.max(
-        7,
-        textWidth(labelText(s, s.direction === "right" ? "depth" : "height")) +
-          5,
-      ),
-      available = slot - left - right - 8;
+      7,
+      arrowMode && s.direction === "left"
+        ? Math.max(heightWidth, depthWidth) + 8
+        : (s.direction === "right"
+            ? arrowMode
+              ? 0
+              : heightWidth
+            : depthWidth) + 5,
+    );
+    const right = Math.max(
+      7,
+      arrowMode && s.direction === "right"
+        ? Math.max(heightWidth, depthWidth) + 8
+        : (s.direction === "right" ? depthWidth : arrowMode ? 0 : heightWidth) +
+            5,
+    );
+    const available = slot - left - right - 8;
     if (available < 14 || textWidth(labelText(s, "width")) > slot - 10)
       throw Error(
         "Labels need more print width. Increase Print width or shorten the labels.",
@@ -426,6 +534,9 @@ export function layout(envelope: Envelope): Layout {
   const path = (a: Point, b: Point, stroke = 0.25, dash = false, extra = "") =>
     `<path d="M${a.join(",")}L${b.join(",")}" fill="none" stroke="black" stroke-width="${stroke}" ${dash ? 'stroke-dasharray="1.5 1"' : ""} ${extra}/>`;
   shapes.forEach((s, index) => {
+    const style = appearance(s);
+    let areaAt: Point | null = null;
+    let areaRoom = [0, 0];
     const col = index % cols;
     if (col === 0 && index > 0) {
       yOffset += rowHeight + 8;
@@ -482,14 +593,63 @@ export function layout(envelope: Envelope): Layout {
         J: Point = [baseX + (dx > 0 ? w + dx : dx), bottom + v];
       const sideFront = dx > 0 ? B : A,
         sideTop = dx > 0 ? C : D;
-      const poly = (ps: Point[]) =>
-        `<polygon points="${ps.map((p) => p.join(",")).join(" ")}" fill="white"/>`;
+      const poly = (ps: Point[], fill = "white", face = "") =>
+        `<polygon points="${ps.map((p) => p.join(",")).join(" ")}" fill="${fill}"${face ? ` data-face="${face}"` : ""}/>`;
+      const E: Point = [baseX + dx, bottom + v],
+        H: Point = [baseX + w + dx, bottom + v];
+      const allFaces: Record<FaceName, Point[]> = {
+        top: [D, C, G, F],
+        bottom: [A, B, H, E],
+        front: [A, B, C, D],
+        back: [E, H, G, F],
+        left: [A, E, F, D],
+        right: [B, H, G, C],
+      };
+      const tones =
+        style.tone === "light"
+          ? ["#f2f2f2", "#dedede", "#bfbfbf"]
+          : ["#e6e6e6", "#c6c6c6", "#999999"];
       body.push(
         `<g data-layer="${l + 1}">`,
-        poly([D, C, G, F]),
-        poly([sideFront, J, dx > 0 ? G : F, sideTop]),
-        poly([A, B, C, D]),
+        ...(style.mode === "one"
+          ? [
+              poly(
+                allFaces[style.face],
+                style.tone === "light" ? "#dedede" : "#bfbfbf",
+                style.face,
+              ),
+            ]
+          : [
+              poly(
+                [D, C, G, F],
+                style.mode === "faces" ? tones[0] : "white",
+                "top",
+              ),
+              poly(
+                [sideFront, J, dx > 0 ? G : F, sideTop],
+                style.mode === "faces" ? tones[2] : "white",
+                dx > 0 ? "right" : "left",
+              ),
+              poly(
+                [A, B, C, D],
+                style.mode === "faces" ? tones[1] : "white",
+                "front",
+              ),
+            ]),
       );
+      if (style.mode === "one") {
+        const ps = allFaces[style.face];
+        areaAt = [
+          ps.reduce((n, p) => n + p[0], 0) / 4,
+          ps.reduce((n, p) => n + p[1], 0) / 4 + 1.2,
+        ];
+        areaRoom =
+          style.face === "top" || style.face === "bottom"
+            ? [w - 4, Math.abs(v) - 4]
+            : style.face === "front" || style.face === "back"
+              ? [w - 4, h - 4]
+              : [Math.abs(dx) * 0.65 - 4, h * 0.5 - 4];
+      }
       if (c) {
         const gridH = s.view === "layers" ? 1 : c.height;
         for (let n = 1; n < c.width; n++) {
@@ -523,7 +683,7 @@ export function layout(envelope: Envelope): Layout {
           );
         }
       }
-      if (s.view === "plain" && s.hiddenEdges) {
+      if ((s.view === "plain" && s.hiddenEdges) || style.mode === "one") {
         const rear: Point = [baseX + (dx > 0 ? dx : w + dx), bottom + v];
         body.push(
           path(dx > 0 ? A : B, rear, 0.15, true),
@@ -562,8 +722,12 @@ export function layout(envelope: Envelope): Layout {
           bottom + v / 2 + 4,
         ];
         localTargets.height = [
-          baseX + (dx > 0 ? -4 : w + 4),
-          s.view === "layers" ? top + height / 2 : bottom - h / 2 + 1,
+          s.arrows && s.view !== "layers"
+            ? baseX + (dx > 0 ? w + dx + 6 : dx - 6)
+            : baseX + (dx > 0 ? -4 : w + 4),
+          s.view === "layers"
+            ? top + height / 2
+            : bottom - h / 2 + 1 + (s.arrows ? v : 0),
         ];
       }
       body.push("</g>");
@@ -577,7 +741,7 @@ export function layout(envelope: Envelope): Layout {
       y += l.y;
       let anchor =
         k === "height"
-          ? dx > 0
+          ? (s.arrows && s.view !== "layers" ? dx < 0 : dx > 0)
             ? "end"
             : "start"
           : k === "depth"
@@ -626,14 +790,14 @@ export function layout(envelope: Envelope): Layout {
           'marker-start="url(#arrow)" marker-end="url(#arrow)"',
         ),
       );
-      const sideX = baseX + (dx > 0 ? -2 : w + 2);
+      const sideX = baseX + (dx > 0 ? w + dx + 2 : dx - 2);
       body.push(
         path(
-          [sideX, shapeY],
-          [sideX, shapeY - h],
+          [sideX, shapeY + v],
+          [sideX, shapeY - h + v],
           0.18,
           false,
-          'marker-start="url(#arrow)" marker-end="url(#arrow)"',
+          'data-dimension="height" marker-start="url(#arrow)" marker-end="url(#arrow)"',
         ),
         path(
           [baseX + (dx > 0 ? w : 0) + 2 * Math.sign(dx), shapeY + 2],
@@ -646,6 +810,37 @@ export function layout(envelope: Envelope): Layout {
     }
     body.push("</g>");
     const captions: string[] = [];
+    const areaText = faceAreaLabel(s);
+    if (areaText && areaAt) {
+      const onFace =
+        textWidth(areaText) <= areaRoom[0] &&
+        font + 2 <= areaRoom[1] &&
+        faces.every((k) => !labelText(s, k));
+      if (onFace) {
+        body.push(
+          `<rect data-area-label="background" x="${areaAt[0] - textWidth(areaText) / 2 - 0.8}" y="${areaAt[1] - font + 0.3}" width="${textWidth(areaText) + 1.6}" height="${font + 1}" fill="white"/>`,
+          text(areaAt[0], areaAt[1], areaText),
+        );
+        targets.push({
+          shapeId: s.id,
+          key: "area",
+          x: areaAt[0],
+          y: areaAt[1] - 1.4,
+          width: Math.max(8, textWidth(areaText) + 2),
+        });
+      } else {
+        const lines = wrap(areaText, slot - 8);
+        lines.forEach((line) => captions.push(line));
+        targets.push({
+          shapeId: s.id,
+          key: "area",
+          x: origin + slot / 2,
+          y: shapeY + 16 - 1.4 + (lines.length - 1) * 2.5,
+          width: Math.min(slot - 4, textWidth(lines[0]) + 2),
+          height: lines.length * 5 + 1,
+        });
+      }
+    }
     if (s.view === "layers" && heightLabel)
       captions.push(`Full height: ${heightLabel}`);
     if (s.caption) captions.push(s.caption);
