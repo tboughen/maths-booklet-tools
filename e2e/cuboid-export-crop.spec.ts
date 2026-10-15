@@ -136,9 +136,14 @@ test("tight vector crops preserve every label and shape across the supported lay
     await page
       .getByRole("button", { name: "Use these cuboids", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Download options", exact: true })
-      .click();
+    if (
+      !(await page
+        .getByRole("button", { name: "Download SVG", exact: true })
+        .isVisible())
+    )
+      await page
+        .getByRole("button", { name: "Download options", exact: true })
+        .click();
     const download = page.waitForEvent("download");
     await page
       .getByRole("button", { name: "Download SVG", exact: true })
