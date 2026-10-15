@@ -118,6 +118,8 @@ Check the actual exported files. PNG dimensions and density metadata, SVG centim
 
 ## Design narrow layouts alongside desktop layouts
 
+Follow the [shared booklet editor contract](BOOKLET-CONSISTENCY.md) for the common download menu, operation-specific feedback, actual export size, safe draft handling and browser compatibility. Use the shared components rather than copying a tool's older menu. New browser Graph documents are portable; existing absent-profile documents remain legacy. Keep these browser defaults distinct from service defaults.
+
 Check desktop, tablet and 320–375 px screens while implementing the controls. Ratio-table work needed follow-up fixes for font metrics, factor editors and column controls at narrow widths; default two-column screenshots would not have exposed the three-column problems.
 
 Keep controls usable rather than shrinking the complete editor to fit. Stack settings and structure controls when needed. Where the mathematical diagram cannot fit legibly, contain horizontal scrolling within its workspace and keep essential actions reachable. Test the largest supported structure with long valid values and fractions, including focused inline fields and validation messages.

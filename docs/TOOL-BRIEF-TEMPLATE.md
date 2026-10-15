@@ -62,6 +62,8 @@ Specify the default state, Enter/Escape/Tab behaviour, click-away selection clea
 
 ## Saving and outputs
 
+Apply the [shared editor contract](BOOKLET-CONSISTENCY.md): common file/action labels, one bounded keyboard menu, retained invalid drafts with guarded exports, actual export dimensions and explicit hidden-answer link information. Identify compatibility/default rules separately for fresh browser resources, imported files and services.
+
 - **Print contract:** Dimensions, typography, line weights, margins and overflow behaviour.
 - **Exports:** Image-only Copy to clipboard first, Copy for Word, SVG, PNG and editable file; explain any variation from the existing pattern.
 - **Saving:** Distinct storage key, document version, recovery and import confirmation.

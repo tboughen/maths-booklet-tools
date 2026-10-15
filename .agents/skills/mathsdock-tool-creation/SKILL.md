@@ -15,6 +15,8 @@ When running from a portable installation, prefer the current versions in an acc
 
 ## Apply the relevant decisions
 
+- Follow the current [shared booklet editor contract](../../../docs/BOOKLET-CONSISTENCY.md): reuse the bounded download menu and actual-size readout, retain invalid drafts with guarded actions, preserve file/default compatibility and distinguish browser preview verification from publication.
+
 - Start from what the teacher needs to produce and what the pupil should see, including print dimensions and deliberate blanks.
 - Use the shared MathsDock shell, styles and tool registry. Make common values and labels editable on the diagram, with labelled keyboard alternatives and contextual settings.
 - Reuse EditorToolbar for common utilities. Put specialist modes and settings in the right-hand inspector, retaining useful direct value editing and paired structure controls beside the resource.

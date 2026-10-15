@@ -44,6 +44,8 @@ The reusable lesson is to include a discoverable example in each new tool's firs
 
 ## Shared direction
 
+The 15 October consistency preview applies this direction across all six editors: a shared menu and print-size information, retained invalid Graph drafts, fixed-size Graph controls beyond the complete white artwork, source-linked quadratic examples, compatible portable browser defaults and bounded editable Venn links. The [shared contract](BOOKLET-CONSISTENCY.md) records the reusable behaviour; this entry does not claim that the preview was published.
+
 The [11 October site organisation change](https://github.com/tboughen/maths-booklet-tools/commit/493f6b00) brought both editors into the Question bank's visual language and introduced shared navigation and a tool registry. This made consistency an implementation default and preserved drafts and undo history while switching pages.
 
 The resulting design direction is a specialist mathematical editor inside a familiar shell. Reuse the shared navigation, visual hierarchy, editing conventions, recovery and export behaviour. Design each new representation around its own mathematics and classroom use.

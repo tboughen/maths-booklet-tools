@@ -152,12 +152,16 @@ test("human creation works without a service and the bank ignores graph fragment
   await expect(page.locator(".graph-straight")).toHaveCount(1);
   await expect(page.locator(".graph-canvas")).toHaveAttribute(
     "data-style-profile",
-    "legacy",
+    "portable-v1",
   );
   const bank = new URL(editorLink(incoming, editorBase()));
   bank.search = "?tool=question-bank";
   await page.goto(bank.href);
-  await expect(page.getByRole("navigation", { name: "Main sections" }).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Main sections" })
+      .getByRole("link", { name: "Question bank", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByRole("dialog", { name: "Open this graph?" }),
   ).toHaveCount(0);
@@ -251,7 +255,7 @@ test("invalid files and mobile import never replace the current graph", async ({
     ),
   });
   await expect(page.getByRole("status")).toContainText(
-    "Graph could not be opened",
+    "Choose a supported editable graph JSON file.",
   );
   expect(
     JSON.parse(await page.evaluate((key) => localStorage.getItem(key)!, key))

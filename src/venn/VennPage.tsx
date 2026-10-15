@@ -1,3 +1,11 @@
+import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
+import { vennEditorLink, parseVennLink } from "./links";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+} from "../site/EditorDownloadMenu";
+import { ResourceSize } from "../site/ResourceSize";
+import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useEffect, useRef, useState } from "react";
 import {
   create,
@@ -414,18 +422,56 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
-  async function run(action: () => Promise<void>, allowOverflow = false) {
+  async function run(
+    action: () => Promise<void>,
+    allowOverflow = false,
+    success = "Image copied. Paste with Ctrl+V.",
+  ) {
     if (blocked || (!allowOverflow && issue)) return;
     setBusy(true);
     setMessage("");
     try {
       await action();
-      setMessage("Resource ready.");
+      setMessage(success);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
     }
+  }
+  const linkPending = useRef(false);
+  const linkSeen = useRef("");
+  useEffect(() => {
+    if (!active) return;
+    const inspect = () => {
+      if (
+        !location.hash.startsWith("#venn=") ||
+        linkSeen.current === location.href ||
+        blocked
+      )
+        return;
+      linkSeen.current = location.href;
+      try {
+        const incoming = parseVennLink(location.href);
+        linkPending.current = true;
+        replacement(incoming, "Open the linked Venn diagram?");
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : String(error));
+      }
+    };
+    inspect();
+    window.addEventListener("hashchange", inspect);
+    return () => window.removeEventListener("hashchange", inspect);
+  });
+  function consumeVennLink() {
+    if (linkPending.current && location.hash.startsWith("#venn="))
+      window.history.replaceState(
+        null,
+        "",
+        location.pathname + location.search,
+      );
+    linkPending.current = false;
+    linkSeen.current = "";
   }
   async function importFile(upload: File) {
     try {
@@ -446,7 +492,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
           title="Venn diagrams"
           description="Build blank, populated and shaded diagrams for your teaching resources."
         >
-          <span role="status">{saveState}</span>
+          <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
           <Panel className="editor-card">
@@ -458,57 +504,70 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onReset={() => replacement(create(), "Reset the Venn diagram?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
+              menuDisabled={blocked}
               busy={busy}
-              onCopy={() => void run(() => copyWord(displayed))}
+              onCopy={() =>
+                void run(
+                  () => copyWord(displayed),
+                  false,
+                  "Copied for Word at " +
+                    formatResourceSize(g.width / 10, g.height / 10) +
+                    ". Paste with Ctrl+V.",
+                )
+              }
               onCopyClipboard={() =>
                 void run(() => copyPngToClipboard(() => printPng(displayed)))
               }
+              menuId="venn-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
-            <div className="vn-files">
-              <button disabled={blocked} onClick={() => downloadEditable(e)}>
-                Save editable file
-              </button>
-              <button disabled={blocked} onClick={() => file.current?.click()}>
-                Open editable file
-              </button>
-              <label className="vn-answer-toggle">
-                <input
-                  type="checkbox"
-                  disabled={blocked}
-                  checked={view === "answer"}
-                  onChange={(ev) =>
-                    setView(ev.target.checked ? "answer" : "pupil")
-                  }
-                />
-                Show saved answers
-              </label>
-            </div>
-            {menu && (
-              <div
-                className="vn-downloads"
-                role="group"
-                aria-label="Download formats"
-              >
-                <button
-                  disabled={blocked || !!issue}
-                  onClick={() =>
-                    void run(() => downloadImage(displayed, "svg"))
-                  }
-                >
-                  Download SVG
-                </button>
-                <button
-                  disabled={blocked || !!issue}
-                  onClick={() =>
-                    void run(() => downloadImage(displayed, "png"))
-                  }
-                >
-                  Download PNG (600 ppi)
-                </button>
-              </div>
-            )}
+            <EditorDownloadMenu
+              id="venn-downloads"
+              open={menu}
+              active={active}
+              onClose={() => setMenu(false)}
+              onBusyChange={setBusy}
+              onMessage={setMessage}
+              actions={[
+                {
+                  label: "Download SVG",
+                  action: () => downloadImage(displayed, "svg"),
+                  disabled: blocked || !!issue,
+                  success: "SVG download started.",
+                },
+                {
+                  label: "Download PNG (600 ppi)",
+                  action: () => downloadImage(displayed, "png"),
+                  disabled: blocked || !!issue,
+                  success: "PNG download started.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () => downloadEditable(e),
+                  disabled: blocked,
+                  success: "Editable file download started.",
+                  separator: true,
+                },
+                {
+                  label: "Open editable file",
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                  success: "",
+                  picker: true,
+                },
+                {
+                  label: "Copy editable link",
+                  action: () =>
+                    navigator.clipboard.writeText(
+                      vennEditorLink(e, location.href),
+                    ),
+                  disabled: blocked,
+                  success: "Editable link copied.",
+                  description: LINK_DESCRIPTION,
+                },
+              ]}
+            />
             <input
               ref={file}
               type="file"
@@ -535,10 +594,18 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   ))}
                 </select>
               </label>
-              <span>
-                {(g.width / 10).toFixed(2)} × {(g.height / 10).toFixed(2)} cm
-                export size
-              </span>
+              <label className="vn-answer-toggle">
+                <input
+                  type="checkbox"
+                  disabled={blocked}
+                  checked={view === "answer"}
+                  onChange={(ev) =>
+                    setView(ev.target.checked ? "answer" : "pupil")
+                  }
+                />
+                Show saved answers
+              </label>
+              <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
             <div className="vn-structure">
               <div
@@ -733,7 +800,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             </div>
             {(message || draft || issue || note.length > 0) && (
               <div className="vn-status" aria-live="polite">
-                {message && <p>{message}</p>}
+                {message && (
+                  <p className="resource-feedback" role="status">
+                    {message}
+                  </p>
+                )}
                 {draft && (
                   <p>
                     Apply or cancel the open editor before another edit or
@@ -1173,8 +1244,13 @@ export default function VennPage({ active = true }: { active?: boolean }) {
           <RatioDialog
             title={pending.title}
             confirmLabel="Use this diagram"
-            onCancel={() => setPending(null)}
+            onCancel={() => {
+              consumeVennLink();
+              setPending(null);
+            }}
             onConfirm={() => {
+              if (busy || recovery !== null || draft !== null) return;
+              consumeVennLink();
               commit(pending.e);
               setPending(null);
               setSelected(null);
@@ -1182,6 +1258,12 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             }}
           >
             <p>{pending.explanation}</p>
+            <div
+              className="ratio-import-preview"
+              dangerouslySetInnerHTML={{
+                __html: renderSvg(forView(pending.e, "pupil")),
+              }}
+            />
           </RatioDialog>
         )}
         {draft && (
