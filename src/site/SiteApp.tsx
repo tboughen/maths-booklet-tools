@@ -30,7 +30,7 @@ export default function SiteApp() {
     return () => { window.removeEventListener("popstate", back); window.removeEventListener("maths-tools:route", remember); };
   }, []);
   useEffect(() => {
-    document.title = `${sectionName(section)} · Maths Tools`;
+    document.title = `${sectionName(section)} · Maths Dock`;
     if (firstPage.current) { firstPage.current = false; return; }
     if (host.current?.querySelector(".site-page:not([hidden]) [aria-modal=true]")) return;
     const visible = host.current?.querySelector(".site-page:not([hidden])");

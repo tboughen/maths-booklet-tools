@@ -1,5 +1,16 @@
 # MathsDock project guidance
 
+## Website release pipeline implementation
+
+The publishing improvements are implemented for review in the publishing branch.
+Read `docs/RELEASE-PIPELINE.md` and `docs/CLOUDFLARE-PUBLISHING.md` before release
+work. Do not declare this source production or main canonical until a reviewed
+cutover actually succeeds. Preserve the workspace's latest verified production
+pointer and any newer concurrent release. Qualification, merge, deployment and
+live verification are distinct. Normal promotion consumes an exact qualified
+package; it does not rebuild or bypass missing checks. Pages automation remains
+unchanged until the cutover gate and Tim's authorisation are satisfied.
+
 ## Booklet tool development
 
 Before planning, creating or substantially changing a MathsDock booklet tool or its MCP integration, read:

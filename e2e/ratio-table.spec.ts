@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
+import type { Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
   createRatioTable,

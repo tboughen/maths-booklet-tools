@@ -9,3 +9,8 @@ test-results
 playwright-report
 tmp/diagram-consumption
 .env
+dist-cloudflare
+cloudflare-release
+.wrangler
+.dev.vars*
+*.credentials.xml

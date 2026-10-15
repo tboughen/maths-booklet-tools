@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
 import { defaultEnvelope, rangeColumns } from "../packages/value-graph-core/src/interchange";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 import { readFile } from "node:fs/promises";

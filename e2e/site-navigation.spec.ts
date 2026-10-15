@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
 
@@ -15,13 +15,21 @@ async function addLine(page: Page) {
 
 test("home and overview keep the two sections distinct; bare and existing URLs still work", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Graph tool", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Maths Tools home" }).click();
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await page.reload();
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await current(page).getByRole("link", { name: /Explore booklet tools/ }).click();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
+  await page.goto("/?tool=home");
   await expect(page).toHaveURL(/tool=home$/);
+  await expect(page.getByRole("main", { name: "Home", exact: true })).toBeVisible();
   await current(page).getByRole("link", { name: /Explore booklet tools/ }).click();
   await expect(page.getByRole("heading", { name: "Booklet tools", exact: true })).toBeVisible();
   await current(page).getByRole("link", { name: /Open Ratio tables/ }).click();
-  await expect(page).toHaveTitle("Ratio tables · Maths Tools");
+  await expect(page).toHaveTitle("Ratio tables · Maths Dock");
   await expect(tools(page).getByRole("link", { name: "Ratio tables" })).toHaveAttribute("aria-current", "page");
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Booklet tools", exact: true })).toBeVisible();
@@ -129,7 +137,8 @@ test("layouts fit laptop, tablet and narrow screens; mobile navigation supports 
     await page.setViewportSize({ width, height: width < 620 ? 812 : 800 });
     for (const id of ["home", "booklet-tools", "graph", "ratio-table", "question-bank"]) {
       await page.goto(`/?tool=${id}`);
-      await expect(current(page).getByRole("heading", { level: 1 })).toBeVisible();
+      if (id === "home") await expect(current(page).getByRole("main", {name: "Home", exact: true})).toBeVisible();
+      else await expect(current(page).getByRole("heading", { level: 1 })).toBeVisible();
       if (id === "question-bank") {
         await expect(current(page).locator(".qb-canvas-host canvas")).toBeVisible();
         await expect(current(page).locator(".qb-view-error")).toHaveCount(0);

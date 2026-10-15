@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
 import { readFile, mkdir } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
 test.describe.configure({ timeout: 90000 });
