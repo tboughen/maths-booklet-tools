@@ -22,3 +22,18 @@ export const test = base.extend({
   },
 });
 export { expect };
+export type { Page } from '@playwright/test';
+export function editorBase() {
+  const base = test.info().project.use.baseURL;
+  if (!base) throw new Error('Editor-link tests require the configured test origin');
+  return base.endsWith('/') ? base : base + '/';
+}
+export async function sourceAssetMatcher(suffix: string) {
+  const keys = new Set<string>();
+  if (process.env.MATHSDOCK_BUILT_PACKAGE) {
+    const directory = process.env.MATHSDOCK_RELEASE_PACKAGE || 'cloudflare-release/package';
+    const manifest = JSON.parse(await readFile(resolve(directory, 'inventory.json'), 'utf8')) as ReleaseManifest;
+    for (const asset of manifest.assets) if (asset.sources.some(path => path.endsWith(suffix))) keys.add('/' + asset.key);
+  }
+  return (url: URL) => url.pathname.endsWith(suffix) || keys.has(url.pathname);
+}
