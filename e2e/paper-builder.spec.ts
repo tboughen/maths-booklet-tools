@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, sourceAssetMatcher } from "./release-fixtures";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { PDFDocument } from "pdf-lib";
@@ -102,10 +102,11 @@ test("failed scheme fetch has no partial pair; retry and cancellation retain sel
   await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
   await page.getByRole("button",{name:"Review paper",exact:true}).click();
   const dialog=page.getByRole("dialog");
-  await page.route("**/scheme.pdf",route=>route.fulfill({status:503,body:"Unavailable in test"}));
+  const schemeRoute = await sourceAssetMatcher('/scheme.pdf');
+  await page.route(schemeRoute,route=>route.fulfill({status:503,body:"Unavailable in test"}));
   await dialog.getByRole("button",{name:"Prepare both PDFs"}).click();
   await expect(dialog.getByRole("alert")).toBeVisible();await expect(dialog.getByRole("button",{name:"Questions PDF",exact:true})).toHaveCount(0);
-  await page.unroute("**/scheme.pdf");await dialog.getByRole("button",{name:"Prepare both PDFs"}).click();
+  await page.unroute(schemeRoute);await dialog.getByRole("button",{name:"Prepare both PDFs"}).click();
   await expect(dialog.getByText("Both PDFs are ready")).toBeVisible();
   await dialog.getByRole("button",{name:"Close paper review"}).click();
   await page.getByRole("button",{name:"Clear paper",exact:true}).click();

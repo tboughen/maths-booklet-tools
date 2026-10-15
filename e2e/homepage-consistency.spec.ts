@@ -1,11 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
 
 const names = ["Question bank", "Paper builder", "Assessment follow-up", "Booklet tools"];
 const tagline = "Turn question-level assessment results into personalised practice for each pupil.";
 const nav = (page: import("@playwright/test").Page) => page.getByRole("navigation", { name: "Main sections" });
 
 test("home and navigation share four destinations and plain, equally sized cards", async ({ page }) => {
-  await page.goto("/?tool=home");
+  await page.goto("/");
   await expect(nav(page).getByRole("link")).toHaveText(names);
   await expect(page.locator(".overview-card h2")).toHaveText(names);
   await expect(page.locator(".overview-card img")).toHaveCount(0);
@@ -28,7 +28,7 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(page.getByRole("region", { name: "Your paper", exact: true }).getByRole("status").first()).toContainText("1 distinct question");
   await page.getByRole("combobox", { name: "Tier", exact: true }).selectOption("F");
   const builderUrl = page.url();
-  await expect(page).toHaveTitle("Paper builder · Maths Tools");
+  await expect(page).toHaveTitle("Paper builder · Maths Dock");
   await nav(page).getByRole("link", { name: "Question bank", exact: true }).click();
   await expect(page).toHaveURL(bankUrl);
   await expect(page.getByRole("button", { name: "Review paper (1)", exact: true })).toBeVisible();
@@ -42,7 +42,7 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(page).toHaveURL(builderUrl);
   await page.getByRole("button", { name: "Browse questions", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page).toHaveTitle("Question bank · Maths Tools");
+  await expect(page).toHaveTitle("Question bank · Maths Dock");
   await page.getByRole("button", { name: "Build by topic", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Paper builder", exact: true })).toHaveAttribute("aria-current", "page");
 });
@@ -51,7 +51,7 @@ test("four destinations fit desktop and mobile; menus support keyboard navigatio
   test.setTimeout(90000);
   for (const width of [1440, 1280, 1201, 1100, 1024, 768, 621, 620, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/?tool=home");
+    await page.goto("/");
     if (width <= 620) await page.getByRole("button", { name: "Sections", exact: true }).click();
     await expect(nav(page)).toBeVisible();
     await expect(nav(page).getByRole("link")).toHaveText(names);

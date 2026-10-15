@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { create, canonical, encode, layout } from "../packages/cuboid-core/src";
@@ -414,11 +414,7 @@ test("responsive controls and real card preview remain reachable", async ({
     has: page.getByRole("heading", { name: "Cuboids", exact: true }),
   });
   await expect(card.locator("img")).toBeVisible();
-  expect(
-    await card
-      .locator("img")
-      .evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0),
-  ).toBe(true);
+  await expect.poll(() => card.locator('img').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
   await page.screenshot({ path: join(report, "overview.png"), fullPage: true });
 });
 test("corrupt saved data is protected until recovery is downloaded", async ({

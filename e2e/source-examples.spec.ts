@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
   verifyPrintBytes,
