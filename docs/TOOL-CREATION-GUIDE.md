@@ -35,6 +35,8 @@ Keep an ordinary edit available immediately. Use a mode only when it disambiguat
 
 For text and number fields, use Enter to apply, Escape to restore, and predictable Tab navigation. Clicking away should clear obsolete selection highlights. Specify separately what happens to a valid edit and an invalid draft on blur; losing selection must not silently discard invalid text.
 
+In browser keyboard tests, observe any intentional deferred focus after adding structure before directing a shortcut to another surface. Assert the intended target is focused before sending the key; a visible new field does not prove its scheduled focus has completed. Keep the original content and Undo assertions, without sleeps or wider timeouts.
+
 Direct manipulation needs an accessible equivalent. Every essential operation should work by keyboard and have a labelled control; a drag gesture or a tiny visual target cannot be the only way to perform it.
 
 Direct-edit popovers must not be clipped by the white resource, scroll container or editor card. Render them in a separate UI layer, measure the whole editor, and keep its input, error message and actions within the visual viewport after zooming, scrolling, resizing and mobile keyboard changes. Retain unfinished drafts when the anchor scrolls away or the teacher changes tools; inactive overlays must be hidden and inert. Specify Apply/Enter and Cancel/Escape explicitly so focusing Cancel cannot commit the draft first. Check focused editors at each resource edge, not just the unfocused layout.
