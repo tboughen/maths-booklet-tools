@@ -6,6 +6,8 @@ For new tools, start with [Creating MathsDock tools](docs/TOOL-CREATION-GUIDE.md
 
 [Using the guidance in future conversations](docs/USING-TOOL-GUIDANCE.md) explains the project instructions and reusable development/diagram skills in `.agents/skills`.
 
+For new or changed MCP connectors, use [MCP connector acceptance and incidents](docs/MCP-CONNECTOR-ACCEPTANCE.md). It covers the confirmed ratio-schema rejection, the later missing-SVG catalogue delay, actual target-chat/file acceptance and evidence-based troubleshooting while preserving existing tools and resources.
+
 New editors should follow [Adding a booklet tool](docs/ADDING-BOOKLET-TOOLS.md) so they inherit the shared layout and navigation. Drafts and undo history are retained while switching pages in the same session; the existing browser-storage recovery and editable files handle saved work.
 
 Each new tool also needs an accurate output image beside its existing All tools icon. Follow [All tools card previews](docs/TOOL-CARD-PREVIEWS.md) for example selection, SVG generation, shared cards and desktop/mobile checks.

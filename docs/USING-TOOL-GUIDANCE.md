@@ -4,6 +4,8 @@ The project `AGENTS.md` directs tool-development work to the design guide, evolu
 
 ## Start a development task
 
+For MCP work, also read [connector acceptance and incidents](MCP-CONNECTOR-ACCEPTANCE.md). The development skill requires it for new/changed calls and missing-tool investigations. Plan actual intended-chat import, execution and verified file saving early; retain separate evidence for service, package, connection and consumer stages.
+
 Start the task in the MathsDock repository or a worktree containing the current documentation and `AGENTS.md`. Codex reads project instructions from its working-directory hierarchy; a different project does not automatically inherit this repository's instructions.
 
 The `mathsdock-tool-creation` skill is suitable for a new booklet tool or a substantial change to an existing editor or MCP integration. It reads the guide and relevant examples, uses the brief for new tools, and applies the acceptance checklist during review. Small fixes use the relevant principles without requiring a full new-tool proposal.

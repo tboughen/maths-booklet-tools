@@ -130,6 +130,17 @@ answers or full signed URLs in operational diagnostics.
 
 ## Qualification and release
 
+Apply [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) as well as the byte
+transport checks below. On 16 October the live service advertised this call while
+existing and fresh chats still exposed only the previous 20 calls after refresh.
+The exact unchanged definition later became available. Actual Codex connector
+tests saved eight SVGs across 15 chunks, and Tim subsequently supplied successful
+original-worksheet ChatGPT verification: 19,272 bytes, independently matching
+checksum, two-page A3 landscape vector PDF, zero raster images. The original
+worksheet files were not independently inspected in the development chat.
+The prior catalogue delay's cause remains unknown; do not claim a schema/cache
+repair, fixed waiting period or intended-client all-six/idle-wake acceptance.
+
 The consumer qualification saves original SVGs for all six families, explicit
 Venn answer artwork, and a plotted quadratic with retained blank/answer-line/zero
 states. Its SDK transport deliberately refuses non-MCP paths; independent control

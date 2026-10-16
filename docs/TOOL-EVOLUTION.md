@@ -1,8 +1,10 @@
 # Lessons from Graph tool and Ratio tables
 
-These examples explain the design choices behind the [tool creation guide](TOOL-CREATION-GUIDE.md). They cover development through 14 October 2026. Commit links identify the relevant changes; the principles describe how to apply those changes to future tools.
+These examples explain the design choices behind the [tool creation guide](TOOL-CREATION-GUIDE.md). They include connector acceptance follow-up through 16 October 2026. Commit links identify the relevant changes; the principles describe how to apply those changes to future tools.
 
 ## Graph tool
+
+For connector incidents, read [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md): the 9 October tuple-schema rejection required a code correction, while the 16 October missing SVG call later worked with unchanged code. Both showed why actual host discovery, execution and saved-file checks are separate from direct SDK qualification. The later original-worksheet success is recorded as Tim's supplied verification report, not an independent inspection of its files.
 
 The first graph editor already supported mathematical objects, equations, grid controls, persistence and export. Subsequent work refined the full teacher workflow: matching exam conventions, making controls easier to use, aligning pointer input, improving object selection and ensuring the diagram arrived in Word at a useful size.
 
