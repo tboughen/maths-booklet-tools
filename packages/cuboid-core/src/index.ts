@@ -13,7 +13,7 @@ export const faces = ["front", "top", "side"] as const;
 export const keys = [...axes, ...faces] as const;
 export type Axis = (typeof axes)[number];
 export type LabelKey = (typeof keys)[number];
-const labelSchema = z
+export const labelSchema = z
   .object({
     mode: z.enum(["hidden", "value", "blank", "text", "area"]),
     text: z.string().max(48),
@@ -65,7 +65,7 @@ export const faceNames = [
   "left",
   "right",
 ] as const;
-const appearanceSchema = z
+export const appearanceSchema = z
   .object({
     mode: z.enum(["outline", "faces", "one"]),
     tone: z.enum(["light", "strong"]),
@@ -80,10 +80,10 @@ const appearanceSchema = z
       .strict(),
   })
   .strict();
-const shapeSchema = baseShapeSchema.extend({
+export const shapeSchema = baseShapeSchema.extend({
   appearance: appearanceSchema.optional(),
 });
-const envelopeSchema = z
+export const envelopeSchema = z
   .object({
     tool: z.literal("cuboids"),
     schemaVersion: z.union([z.literal(1), z.literal(2)]),

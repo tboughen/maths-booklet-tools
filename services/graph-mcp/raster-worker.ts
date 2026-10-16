@@ -15,7 +15,8 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
-    artifactKind?: "graph" | "ratio-table" | "value-graph";
+    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn";
+    measureCrop?: boolean;
     archive?: Record<string, Uint8Array>;
   }) => {
     try {
@@ -23,6 +24,22 @@ process.once(
         const zip = packArchive(job.archive);
         process.send?.({ zip }, () => process.exit(0));
         return;
+      }
+      if (job.measureCrop) {
+        const view = job.svg.match(/viewBox="([^"]+)"/)?.[1].split(/\s+/).map(Number);
+        if (!view || view.length !== 4 || !view.every(Number.isFinite)) throw Error("Invalid artwork bounds.");
+        // Work in original millimetre coordinates. Remove only the generated outer background.
+        const art = job.svg.replace(/(<svg\b[^>]*\bwidth=")[^"]+"/, `$1${view[2]}px"`).replace(/(<svg\b[^>]*\bheight=")[^"]+"/, `$1${view[3]}px"`).replace(/<rect\s+width="[^"]+"\s+height="[^"]+"\s+fill="white"\/>/, "");
+        const r = new Resvg(art, { font: { loadSystemFonts: false, fontFiles: ["STIXTwoText-Regular.otf", "STIXTwoText-Italic.otf", "STIXTwoMath-Regular.otf"].map(f => join(job.fontRoot, f)), defaultFontFamily: "STIX Two Text" }, logLevel: "off" });
+        const b = r.getBBox();
+        if (!b || ![b.x, b.y, b.width, b.height].every(Number.isFinite) || b.width <= 0 || b.height <= 0) throw Error("The image boundaries could not be measured.");
+        // Native vector bounds include ink, strokes and arrow markers; retain 2 mm whitespace.
+        const x = Math.floor((b.x - 2) * 100) / 100, y = Math.floor((b.y - 2) * 100) / 100;
+        const right = Math.ceil((b.x + b.width + 2) * 100) / 100, bottom = Math.ceil((b.y + b.height + 2) * 100) / 100;
+        const widthCm = (right - x) / 10, heightCm = (bottom - y) / 10;
+        let svg = job.svg.replace(/viewBox="[^"]+"/, `viewBox="${x} ${y} ${right - x} ${bottom - y}"`).replace(/(<svg\b[^>]*\bwidth=")[^"]+"/, `$1${widthCm}cm"`).replace(/(<svg\b[^>]*\bheight=")[^"]+"/, `$1${heightCm}cm"`);
+        svg = svg.replace(/<rect\s+width="[^"]+"\s+height="[^"]+"\s+fill="white"\/>/, `<rect x="${x}" y="${y}" width="${right - x}" height="${bottom - y}" fill="white"/>`);
+        process.send?.({ crop: { svg, widthCm, heightCm } }, () => process.exit(0)); return;
       }
       // Round each dimension independently at 600 ppi; keep the original viewBox.
       const input = job.outlined
@@ -53,7 +70,10 @@ process.once(
           svg = svg
             .replace(/\bwidth="[^"]+"/, `width="${width}"`)
             .replace(/\bheight="[^"]+"/, `height="${height}"`);
-        const metadata = job.artifactKind === "value-graph"
+        const metadata = job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
+          : job.artifactKind === "number-line" ? "<title>Number line</title><desc>Use the accompanying JSON for editing.</desc>"
+          : job.artifactKind === "venn" ? "<title>Venn diagram</title><desc>Use the accompanying JSON for editing.</desc>"
+          : job.artifactKind === "value-graph"
           ? "<title>Table of values and quadratic graph</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "ratio-table"
           ? "<title>Ratio table</title><desc>Outlined lesson ratio table; use the accompanying JSON for editing.</desc>"

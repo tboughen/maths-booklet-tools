@@ -44,7 +44,7 @@ const service = graphService({
   publicUrl,
   editorUrl:
     process.env.GRAPH_EDITOR_URL ??
-    "https://tboughen.github.io/maths-booklet-tools/",
+    "https://mathsdock.co.uk/",
   keys: { ...previous, [activeKey]: signingKey },
   activeKey,
   dailyBytes,

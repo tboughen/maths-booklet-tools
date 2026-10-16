@@ -6,6 +6,9 @@ COPY tsconfig.service.json ./
 COPY packages/graph-core packages/graph-core
 COPY packages/ratio-table-core packages/ratio-table-core
 COPY packages/value-graph-core packages/value-graph-core
+COPY packages/cuboid-core packages/cuboid-core
+COPY packages/number-line-core packages/number-line-core
+COPY packages/venn-core packages/venn-core
 COPY services/graph-mcp services/graph-mcp
 COPY assets/graph-fonts assets/graph-fonts
 RUN npm run build:service
@@ -19,5 +22,5 @@ COPY --from=build --chown=node:node /app/service-dist ./service-dist
 COPY --chown=node:node assets/graph-fonts ./assets/graph-fonts
 USER node
 EXPOSE 8787
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/healthz',{headers:{host:new URL(process.env.GRAPH_PUBLIC_URL).host}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/healthz',{headers:{host:new URL(process.env.GRAPH_PUBLIC_URL||process.env.RENDER_EXTERNAL_URL||'http://127.0.0.1:8787').host}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "service-dist/cli.js"]

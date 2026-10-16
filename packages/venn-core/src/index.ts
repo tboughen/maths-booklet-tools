@@ -12,10 +12,10 @@ export const kinds = [
   "algebra",
   "text",
 ] as const;
-const labelSchema = z
+export const labelSchema = z
   .object({ text: z.string().max(24), visibility: z.enum(visibility) })
   .strict();
-const regionSchema = z
+export const regionSchema = z
   .object({
     kind: z.enum(kinds),
     text: z.string().max(660),
@@ -58,11 +58,11 @@ const extendedSchema = legacySchema.extend({
     caption: z.enum(["off", "relationship", "line"]),
   }),
 });
-const schema = z.discriminatedUnion("schemaVersion", [
+export const envelopeSchema = z.discriminatedUnion("schemaVersion", [
   legacySchema,
   extendedSchema,
 ]);
-export type Envelope = z.infer<typeof schema>;
+export type Envelope = z.infer<typeof envelopeSchema>;
 export type ExtendedEnvelope = z.infer<typeof extendedSchema>;
 export type Region = Envelope["document"]["regions"][number];
 export type Label = Envelope["document"]["labels"][number];
@@ -167,7 +167,7 @@ export function members(text: string) {
     .filter(Boolean);
 }
 export function validate(input: unknown): Envelope {
-  const parsed = schema.safeParse(input);
+  const parsed = envelopeSchema.safeParse(input);
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("labels"))
