@@ -1,6 +1,6 @@
 # Free-only graph service. Use a free workspace without a payment method.
 # Review that Render lists one Free web service and no paid resources.
-# Website deployments continue through the existing GitHub Pages workflow.
+# Website publication is separate; follow the current Cloudflare release runbook.
 services:
   - type: web
     name: maths-booklet-graph-mcp
