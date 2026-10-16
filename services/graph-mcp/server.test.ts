@@ -120,6 +120,7 @@ describe("actual MCP transport and print downloads", () => {
       "revise_venn",
       "check_diagram_placement",
       "download_diagram_bundle",
+      "get_diagram_svg",
     ]);
     const reply = await client.callTool({
       name: "create_graph",

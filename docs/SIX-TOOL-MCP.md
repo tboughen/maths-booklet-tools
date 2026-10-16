@@ -14,7 +14,9 @@ service deployment or client acceptance. Check the actual discovered tools.
 | Venn | venn_capabilities | create_venn | revise_venn |
 
 The catalogue also includes `check_diagram_placement` and
-`download_diagram_bundle`. Their six source kinds are `graph`, `ratio-table`,
+`download_diagram_bundle`, plus optional `get_diagram_svg` (21 calls in this
+source). See [original SVG delivery](DIRECT-SVG-DELIVERY.md) for verified saving
+when external downloads are blocked. Their six source kinds are `graph`, `ratio-table`,
 `value-graph`, `cuboids`, `number-line` and `venn`. Do not reconstruct signed URLs.
 
 ## Common create, revise and output contract

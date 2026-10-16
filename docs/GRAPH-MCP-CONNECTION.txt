@@ -53,3 +53,11 @@ Refresh the custom connection after metadata changes and rerun affected cases.
 
 Once connected, ChatGPT calls the graph tools directly. It needs neither
 computer use nor the ability to click the website.
+Original SVG fallback (source support; verify actual discovery)
+If an SVG download is blocked by the consumer's URL rules or DNS, record the
+actual error rather than attributing an HTTP failure to MathsDock. When the
+optional get_diagram_svg is discovered, use the unchanged envelope and view.
+Follow docs/DIRECT-SVG-DELIVERY.md for bounded chunks and exact UTF-8/full-hash
+verification before inserting the saved original SVG into a vector PDF.
+Refresh the existing connection/fresh conversation if the tool is absent.
+Source tests do not establish target-account availability or file saving.
