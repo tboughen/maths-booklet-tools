@@ -6,6 +6,8 @@ Dependencies belong to the consumer test environment, not the MCP service.
 import argparse
 import json
 import os
+import subprocess
+import sys
 from io import BytesIO
 from pathlib import Path
 import re
@@ -176,3 +178,5 @@ for case in shading_cases:
 report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 5, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
 (root / "vector-proof.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report))
+if (root / "svg-delivery-proof.json").exists():
+    subprocess.run([sys.executable, str(Path(__file__).with_name("verify-direct-svg-consumption.py")), str(root)], check=True)

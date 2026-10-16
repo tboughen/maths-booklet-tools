@@ -190,3 +190,15 @@ a fresh export. After manually deploying the qualified commit on the same
 Free Render service, verify its Linux buildId and actual HTTPS downloads.
 Refresh ChatGPT's connection metadata and check a real unlabelled creation
 and label-removal revision; renderer tests do not prove model behaviour.
+Direct original SVG retrieval
+The additive get_diagram_svg source is documented in DIRECT-SVG-DELIVERY.md.
+Keep all20 existing calls and normal signed/embedded artifacts unchanged.
+Qualification must compare original bytes across all six families, pupil/answer
+Venn and legacy files, with restricted-consumer simulation clearly labelled.
+Run verify-consumption.js followed by scripts/verify-diagram-consumption.py;
+the latter also verifies reconstructed SVG checksums/native vector PDFs.
+Stage the existing private plugin patch without changing App configuration.
+After separately authorised release, verify21 actual discovered tools, retained
+old links/settings and an intended-client exact-saving/vector-PDF handoff.
+Do not infer client acceptance from local SDK tests or publish to obtain it
+before the reviewed candidate is qualified. Inline ZIP remains deferred.

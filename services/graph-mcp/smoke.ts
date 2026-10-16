@@ -7,6 +7,7 @@ import { graphHash } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import { receiveSvg } from "./svg-consumer";
 import { contentHash as valueHash, type ValueEnvelope } from "../../packages/value-graph-core/src/interchange";
 const base = process.argv[2];
 if (!base)
@@ -34,6 +35,7 @@ try {
   );
   const tools = await client.listTools();
   const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "cuboid_capabilities", "create_cuboid", "revise_cuboid", "number_line_capabilities", "create_number_line", "revise_number_line", "venn_capabilities", "create_venn", "revise_venn", "check_diagram_placement", "download_diagram_bundle"];
+  expected.push("get_diagram_svg");
   if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected all six booklet-tool trios and optional output tools.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
@@ -83,6 +85,13 @@ try {
     physicalSizeCm: {width: number; height: number};
   };
   if (!data.printVerified) throw Error("Print verification is missing.");
+  const direct = await receiveSvg(async input => {
+    const r = await client.callTool({ name: "get_diagram_svg", arguments: input });
+    if (r.isError) throw Error(JSON.stringify(r.content));
+    return r.structuredContent;
+  }, { kind: "graph", envelope: data.envelope }, { expectedSourceContentHash: data.contentHash, expectedPhysicalSizeCm: data.physicalSizeCm });
+  const directControl = await request(data.downloads.svg.url);
+  if (!directControl.ok || !direct.body.equals(Buffer.from(await directControl.arrayBuffer()))) throw Error("Original SVG MCP delivery differs from the download.");
   const advice = await client.callTool({name: "check_diagram_placement", arguments: {kind: "graph", envelope: data.envelope, widthMm: data.physicalSizeCm.width * 7.5}});
   if (advice.isError || Math.abs((advice.structuredContent as {uniformScale: number}).uniformScale - 0.75) > 1e-10) throw Error("Placement advice failed.");
   const bundleReply = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "graph", envelope: data.envelope}});
@@ -302,6 +311,7 @@ try {
       newToolsVerified: true,
       placementVerified: true,
       bundleVerified: true,
+      directSvgVerified: true,
       buildId: health.buildId,
     }) + "\n",
   );

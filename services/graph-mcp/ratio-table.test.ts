@@ -252,6 +252,7 @@ describe("ratio tools on the shared real MCP service", () => {
       "revise_venn",
       "check_diagram_placement",
       "download_diagram_bundle",
+      "get_diagram_svg",
     ]);
     const caps = await client.callTool({
       name: "ratio_table_capabilities",

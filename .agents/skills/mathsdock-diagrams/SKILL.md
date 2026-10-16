@@ -76,6 +76,40 @@ create_value_graph/revise_value_graph tools. Preserve blank/answer-line/zero
 states, hidden labels and deliberate plotting errors. Calculating answers and
 plotting worked variants remain explicit actions.
 
+## Recover an original SVG when downloads are blocked
+
+Try the exact returned SVG URL through the environment's supported download
+workflow, including its required URL-opening step where available. Record the
+actual tool error or HTTP response. A local URL-view restriction or DNS failure
+does not demonstrate a MathsDock HTTP failure. Do not invent container.download.
+
+If `get_diagram_svg` is actually discovered, call it with kind and the unchanged
+returned envelope; no URL or baseHash. Venn defaults pupil; request answer only
+explicitly and repeat that outputView for every chunk. First omit offsetBytes;
+maxChunkBytes is 1024..49152 (default49152). Continue using nextOffsetBytes and
+expectedSvgSha256 copied from the first result's svgSha256. Keep source and view
+unchanged. Read one representation of the result: structuredContent or decoded
+JSON text. Save decoded svgChunk as exact UTF-8 without BOM, added newline,
+normalization or literal JSON escapes.
+
+Before appending, verify contiguous offsetBytes, chunkBytes and chunkSha256.
+Require stable kind,rendererVersion,sourceContentHash,physicalSizeCm,outputView,
+totalBytes and svgSha256. Reject missing,duplicate,truncated or changed chunks.
+The last chunk has complete:true and nextOffsetBytes:null; verify complete byte
+count/hash and parse as SVG before saving/embedding. sourceContentHash is the
+revision hash; svgSha256 is the rendered-file checksum. They differ in meaning.
+Use bounded continuation and respect quotas; a smaller chunk may be needed if
+the serialized response exceeds256KiB. Never loop/retry indefinitely.
+
+Place the verified saved SVG at physicalSizeCm, preserving aspect ratio. Inspect
+the resulting vector PDF before claiming success. complete means delivery, not
+that a file was saved or a worksheet finished. If exact saving fails, explain
+the client limitation. Do not silently redraw. A600ppi PNG is an explicitly
+disclosed alternative only when suitable for the request; the preview is not it.
+If the tool is absent, explain the discovery gap and refresh/fresh-chat step.
+Instructions alone do not make it available. Actual ChatGPT acceptance requires
+the full saved-SVG-to-vector-PDF test in that client.
+
 ## Return usable artifacts
 
 Show the returned preview and concise links to the actual SVG, verified print PNG, editable JSON and website editor where supplied. Use only tool-returned URLs or embedded resources; never construct signed download links. Editor links should target `mathsdock.co.uk`; report a different returned target rather than rewriting a signed or encoded URL by guesswork.
