@@ -1,0 +1,638 @@
+.tr-editor .workspace {
+  grid-template-columns: minmax(0, 1fr) 316px;
+}
+.tr-editor .editor-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.tr-editor .inspector-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+.tr-panel {
+  padding: 14px;
+}
+.tr-panel h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.tr-editor h3 {
+  font-size: 14px;
+  margin: 12px 0 8px;
+}
+.tr-editor h4 {
+  margin: 0 0 7px;
+  font-size: 13px;
+}
+.tr-preview-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.tr-editor .tr-preview-bar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.tr-editor .tr-preview-bar select {
+  width: auto;
+  flex: 0 0 auto;
+}
+.tr-preview-bar .resource-size {
+  margin-left: auto;
+}
+.tr-guidance {
+  margin: 0;
+  padding: 0 14px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.tr-scroll {
+  background: var(--blue-soft);
+  overflow: auto;
+  padding: 24px;
+  min-height: 260px;
+  max-height: calc(100dvh - 320px);
+  overscroll-behavior: contain;
+}
+.tr-stage {
+  position: relative;
+}
+.tr-resource {
+  position: relative;
+  background: white;
+  margin: auto;
+  box-shadow: 0 2px 12px #15335110;
+  flex-shrink: 0;
+}
+.tr-art,
+.tr-art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.tr-editor .tr-hit {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 28px;
+  min-height: 28px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: text;
+  border-radius: 3px;
+  touch-action: none;
+  box-shadow: none;
+}
+.tr-editor .tr-hit:hover {
+  outline: 1px dashed #6487aa;
+  background: transparent;
+}
+.tr-editor .tr-hit:focus-visible {
+  outline: 2px solid var(--blue);
+}
+.tr-editor .tr-hit.tr-selected {
+  outline: 1px dashed #6487aa;
+}
+.tr-editor .tr-hit:disabled {
+  opacity: 1;
+}
+.tr-editor .tr-vertex {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  height: 30px;
+  min-width: 30px;
+  padding: 2px 5px;
+  border-radius: 50%;
+  background: #eaf3ffcc;
+  border: 1px solid var(--blue);
+  color: #0c4f9e;
+  cursor: move;
+  touch-action: none;
+  font-size: 12px;
+}
+.tr-section {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-width: 0;
+}
+.tr-section > summary {
+  padding: 13px 14px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.tr-section-body {
+  padding: 0 14px 14px;
+  display: grid;
+  gap: 9px;
+}
+.tr-editor label,
+.tr-floating label {
+  font-size: 12px;
+  line-height: 1.45;
+  display: grid;
+  gap: 5px;
+}
+.tr-editor :is(input:not([type="checkbox"]), select),
+.tr-floating :is(input:not([type="checkbox"]), select) {
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.tr-editor .inspector-stack button,
+.tr-editor .tr-preview-bar button,
+.tr-editor .tr-structure button,
+.tr-floating button {
+  min-height: 36px;
+  font-size: 13px;
+  white-space: normal;
+}
+.tr-editor button:not([class]),
+.tr-floating button {
+  padding: 7px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tr-editor button:disabled,
+.tr-floating button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tr-primary,
+.tr-floating .tr-primary {
+  background: var(--blue) !important;
+  color: white !important;
+  border: 1px solid var(--blue) !important;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-weight: 600;
+}
+.tr-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+.tr-two button {
+  width: 100%;
+}
+.tr-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.tr-modes button {
+  flex: 1;
+  padding: 6px 4px;
+  white-space: nowrap !important;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+}
+.tr-modes button[aria-pressed="true"] {
+  background: var(--blue-soft);
+  color: #174e90;
+  border-color: #7a9fc4;
+}
+.tr-context {
+  margin-top: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+.tr-context h3 {
+  margin-bottom: 0;
+}
+.tr-nudges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tr-note,
+.tr-source-context {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.tr-source-context {
+  padding: 8px 10px;
+}
+.tr-error {
+  color: #9b302d;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.tr-banner {
+  padding: 10px 14px;
+  background: #e6f0ff;
+  color: #234c78;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+.tr-feedback {
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.tr-warnings {
+  background: #fff7e6;
+  color: #79531b;
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 5px 14px;
+}
+.tr-warnings p {
+  margin: 6px 0;
+}
+.tr-file {
+  display: none;
+}
+.tr-recovery {
+  padding: 15px;
+  background: #fff4e6;
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+}
+.tr-height-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+}
+.tr-height-row > * {
+  flex: 1;
+}
+.tr-example {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.tr-example p,
+.tr-example a {
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.tr-example .tr-two {
+  margin-top: 10px;
+}
+.tr-result {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.tr-result p {
+  font-size: 12px;
+}
+.tr-results {
+  display: grid;
+  gap: 10px;
+}
+.tr-import-preview {
+  max-height: 40vh;
+  overflow: auto;
+  background: var(--blue-soft);
+  padding: 12px;
+}
+.tr-import-preview svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 38vh;
+  margin: auto;
+}
+.tr-floating {
+  position: fixed;
+  z-index: 150;
+  width: min(340px, calc(100vw - 24px));
+  padding: 15px;
+  border: 1px solid #8faac4;
+  border-radius: 8px;
+  box-shadow: 0 8px 36px #102b4f38;
+  background: white;
+  color: var(--ink);
+  overflow: auto;
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+.tr-floating-title {
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 12px;
+}
+.tr-floating form {
+  display: grid;
+  gap: 10px;
+}
+.tr-floating .tr-check,
+.tr-context label:has(input[type="checkbox"]),
+.tr-section label:has(input[type="checkbox"]) {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tr-floating input[type="checkbox"],
+.tr-editor input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.tr-floating .tr-note {
+  font-size: 12px;
+}
+.tr-floating summary {
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.tr-floating :is(button, input, select):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.tr-draft-actions {
+  position: sticky;
+  bottom: -15px;
+  background: white;
+  padding: 8px 0 2px;
+}
+@media (max-width: 1100px) {
+  .tr-editor .workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}
+@media (max-width: 900px) {
+  .tr-editor .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tr-scroll {
+    max-height: 65dvh;
+  }
+  .tr-editor .inspector-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tr-editor .inspector-stack > .tr-panel {
+    grid-column: 1 / -1;
+  }
+  .tr-source-context {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 620px) {
+  .tr-editor .inspector-stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tr-scroll {
+    padding: 20px;
+    min-height: 260px;
+  }
+  .tr-preview-bar {
+    padding: 8px 10px;
+  }
+  .tr-editor .page-heading {
+    align-items: flex-start;
+  }
+  .tr-floating {
+    padding: 12px;
+  }
+  .tr-floating .tr-two {
+    gap: 7px;
+  }
+  .tr-editor .tr-two {
+    gap: 6px;
+  }
+}
+
+.tr-settings-body,
+.tr-inner-body {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  min-width: 0;
+}
+.tr-settings-body > [hidden] {
+  display: none;
+}
+.tr-inner-section {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  min-width: 0;
+}
+.tr-inner-section > summary {
+  min-height: 32px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  align-content: center;
+}
+.tr-editor .tr-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  margin-top: 4px;
+}
+.tr-editor .tr-tabs button {
+  min-height: 40px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: white;
+  padding: 8px;
+  font-size: 14px;
+}
+.tr-editor .tr-tabs button[aria-selected="true"] {
+  color: var(--blue);
+  font-weight: 600;
+  border-bottom-color: var(--blue);
+}
+.tr-structure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: var(--blue-soft);
+}
+.tr-structure-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+.tr-editor .tr-structure label {
+  min-width: 70px;
+}
+.tr-editor .tr-structure select {
+  width: auto;
+  min-height: 38px;
+}
+.tr-editor .tr-structure button {
+  min-height: 38px;
+}
+.tr-source-context {
+  background: var(--blue-soft);
+  padding: 10px 14px;
+}
+.tr-source-context summary {
+  cursor: pointer;
+}
+.tr-source-context p {
+  margin: 8px 0 0;
+}
+.tr-geometry {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+.tr-geometry polygon,
+.tr-geometry line {
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+.tr-triangle-selection {
+  fill: #0065ff0c;
+  stroke: #185db1;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+.tr-edge-selection {
+  stroke: #185db1;
+  stroke-width: 3;
+  stroke-dasharray: 5 3;
+}
+.tr-proposed {
+  fill: #1764a40c;
+  stroke: #1764a4;
+  stroke-width: 2;
+  stroke-dasharray: 7 4;
+}
+.tr-editor .tr-hit {
+  z-index: 2;
+}
+.tr-editor .tr-vertex {
+  z-index: 3;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  padding: 0;
+}
+.tr-editor .tr-vertex:hover,
+.tr-editor .tr-vertex:focus-visible,
+.tr-editor .tr-vertex.tr-selected {
+  background: #dcecff88;
+  color: #185db1;
+  outline: 1px dashed #185db1;
+}
+.tr-choice {
+  padding: 12px;
+  background: var(--blue-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+}
+.tr-choice p {
+  margin: 0;
+  font-size: 13px;
+}
+.tr-context-sources ul {
+  margin: 6px 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.tr-context-calculation {
+  display: grid;
+  gap: 10px;
+}
+.tr-context-calculation h2 {
+  margin: 0;
+}
+.tr-editor .editor-toolbar button {
+  touch-action: manipulation;
+}
+.tr-editor .editor-toolbar button svg {
+  pointer-events: none;
+}
+.tr-structure .tr-note {
+  flex: 1 1 220px;
+  margin: 0;
+}
+@media (pointer: coarse) {
+  .tr-editor .tr-vertex {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+  }
+  .tr-editor .tr-hit {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .tr-editor .inspector-stack button,
+  .tr-editor .tr-structure button,
+  .tr-editor .tr-structure select,
+  .tr-floating button {
+    min-height: 44px;
+  }
+}
+.tr-more-tools > .tr-section-body > .tr-section {
+  box-shadow: none;
+}
+.tr-editor .tr-modes button {
+  min-height: 40px;
+  font-size: 12px;
+}
+.tr-floating .tr-inner-section {
+  padding-top: 5px;
+}
+.tr-floating .tr-inner-section > summary {
+  margin: 0;
+  min-height: 30px;
+}
+.tr-floating .tr-inner-body {
+  padding-top: 7px;
+}
+.tr-editor .tr-preview-bar label {
+  flex: 0 0 auto;
+}
+.tr-editor .tr-preview-bar label select {
+  width: auto;
+}
