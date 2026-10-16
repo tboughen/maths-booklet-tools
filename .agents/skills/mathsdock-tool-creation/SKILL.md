@@ -32,6 +32,7 @@ When running from a portable installation, prefer the current versions in an acc
 - Keep browser editing independent of the optional service. Share schemas, mathematics and rendering between delivery routes, and preserve compatible older files and links.
 - If adding MCP access, document complete payloads and version/default distinctions; check actual discovery, create/revise, downloads and reopening in the editor. Website, service and client acceptance are distinct stages.
 - For MCP print output, follow docs/MCP-DIAGRAM-OUTPUTS.md: keep print facts outside the definition/hash, qualify actual vector consumption, and keep placement advice and bundles optional, bounded and stateless. The consuming AI owns booklet assembly and saving.
+- For original SVG delivery when a client cannot fetch signed downloads, follow [direct SVG retrieval](../../../docs/DIRECT-SVG-DELIVERY.md). Preserve exact artifact bytes and verify checksums through saved SVG into vector PDF. A restricted local SDK simulation does not establish actual ChatGPT acceptance.
 
 Briefly identify which principles shape the proposed design, then use the task's scope to decide the necessary detail and checks. A small existing-tool fix does not require a full new-tool brief. A plan request remains a plan; skill invocation does not grant merge, deployment, hosting changes or expenditure.
 

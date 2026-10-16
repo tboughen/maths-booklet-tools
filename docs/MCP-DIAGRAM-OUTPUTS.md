@@ -4,6 +4,12 @@ MathsDock produces deterministic diagrams. The consuming AI owns booklet
 assembly, final placement and saving. Use the returned artifacts and keep the
 definition for revisions; do not reconstruct a diagram from its preview.
 
+When a client cannot retrieve an SVG URL, use the discovered `get_diagram_svg`
+fallback with the exact source and view. Follow [original SVG delivery and
+verification](DIRECT-SVG-DELIVERY.md). Local URL restrictions and DNS failures
+are not HTTP errors from MathsDock. Verify the saved bytes before PDF assembly;
+never silently redraw or claim client acceptance from a returned chunk.
+
 ## Files and measurements
 
 Create/revise retains the envelope, contentHash, renderer/style versions,
