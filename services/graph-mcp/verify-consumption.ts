@@ -11,6 +11,8 @@ import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { unzipSync } from "fflate";
 import { activeMasks, geometry } from "../../packages/venn-core/src/index";
 import type { Envelope as VennEnvelope } from "../../packages/venn-core/src/index";
+import { receiveSvg } from "./svg-consumer";
+import type { SvgDeliveryInput } from "./svg-delivery";
 const output = resolve(process.argv[2] ?? "test-results/diagram-consumption");
 await mkdir(output, { recursive: true });
 let base = process.argv[3];
@@ -41,6 +43,29 @@ async function call(name: string, args: Record<string, unknown>): Promise<Result
   return result.structuredContent as unknown as Result;
 }
 const items: Record<string, Result> = {};
+const delivered: Array<Record<string, unknown>> = [];
+await mkdir(resolve(output, "direct-svg"), { recursive: true });
+async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Result, outputView?: "answer") {
+  const before = JSON.stringify(data.envelope);
+  const chunks: Array<Record<string, unknown>> = [];
+  const file = await receiveSvg(async input => {
+    const r = await client.callTool({ name: "get_diagram_svg", arguments: input });
+    assert.notEqual(r.isError, true, JSON.stringify(r.content));
+    const part = r.structuredContent as { offsetBytes: number; chunkBytes: number; chunkSha256: string; nextOffsetBytes: number | null };
+    chunks.push({ offsetBytes: part.offsetBytes, chunkBytes: part.chunkBytes, chunkSha256: part.chunkSha256, nextOffsetBytes: part.nextOffsetBytes });
+    return part;
+  }, { kind, envelope: data.envelope as SvgDeliveryInput["envelope"], ...(outputView ? { outputView } : {}), maxChunkBytes: 16384 },
+  { expectedSourceContentHash: data.contentHash, expectedPhysicalSizeCm: data.physicalSizeCm });
+  const control = await request(data.downloads.svg.url); assert(control.ok);
+  assert.deepEqual(file.body, Buffer.from(await control.arrayBuffer()), `${name}: MCP bytes equal independent download`);
+  assert.equal(JSON.stringify(data.envelope), before);
+  await writeFile(resolve(output, "direct-svg", `${name}.svg`), file.body);
+  await writeFile(resolve(output, "direct-svg", `${name}.json`), JSON.stringify(data.envelope, null, 2));
+  delivered.push({ name, kind, rendererVersion: data.envelope.rendererVersion, outputView: outputView ?? (kind === "venn" ? "pupil" : undefined),
+    sourceContentHash: file.sourceContentHash, svgSha256: file.svgSha256, totalBytes: file.body.length,
+    physicalSizeCm: file.physicalSizeCm, chunks, matchesControl: true, unchangedSource: true });
+  await writeFile(resolve(output, "svg-delivery-proof.json"), JSON.stringify({ passed: true, simulation: "SDK transport refuses every path except /mcp; independent download controls use a separate fetch", actualChatGPTAcceptance: false, files: delivered }, null, 2));
+}
 async function save(name: string, data: Result) {
   for (const format of ["svg", "json", "png"]) {
     const response = await request(data.downloads[format].url);
@@ -54,7 +79,10 @@ async function save(name: string, data: Result) {
   items[name] = { ...data, downloads: {} };
 }
 try {
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`), {fetch: request}));
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`), {fetch: async (input, init) => {
+    assert.equal(new URL(input instanceof Request ? input.url : String(input)).pathname, "/mcp", "Simulated restricted MCP consumer cannot fetch artifact URLs");
+    return request(input, init);
+  }}));
   const tools = (await client.listTools()).tools;
   for (const name of ["graph_capabilities", "ratio_table_capabilities", "value_graph_capabilities"])
     await client.callTool({name, arguments: {}});
@@ -88,6 +116,10 @@ try {
   value.document.columns[4].y = {kind: "value", value: "1/2"};
   value.document.graph.series = [{id: "mistake", source: "custom", connection: "straight-joins", points: [{id: "p1", x: "-2", y: "2"}, {id: "p2", x: "1", y: "1/2"}]}];
   const combined = await call("create_value_graph", {envelope: value}); await save("quadratic-combined", combined);
+  const plotted = structuredClone(value);
+  plotted.document.graph.curves = [{ id: "original-quadratic", equation: plotted.document.equation, min: "-2", max: "2" }];
+  const originalQuadratic = await call("create_value_graph", { envelope: plotted });
+  await saveDirect("quadratic-original", "value-graph", originalQuadratic);
   const graphOnly = await call("revise_value_graph", {envelope: combined.envelope, baseHash: combined.contentHash, operations: [{op: "set_presentation", settings: {composition: "graph"}}]});
   assert.deepEqual((graphOnly.envelope.document as {columns: unknown}).columns, value.document.columns);
   await save("quadratic-graph", graphOnly);
@@ -135,7 +167,12 @@ try {
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
   }
-  assert.equal(tools.length,20);
+  assert.equal(tools.length,21);
+  for (const [name, kind, data, view] of [
+    ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
+    ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],
+    ["venn-pupil", "venn", vennRevised], ["venn-answer", "venn", answer, "answer"],
+  ] as const) await saveDirect(name, kind, data, view);
   const shading=[];
   for(const [sets,arrangement] of [[1,"overlap"],[2,"overlap"],[2,"separate"],[2,"b-inside-a"],[2,"a-inside-b"],[3,"overlap"]] as const){
     const scaffold=await call("create_venn",{spec:{sets,arrangement,labels:["universe","A","B","C"].map(set=>({set,label:{visibility:"hidden"}}))}});
