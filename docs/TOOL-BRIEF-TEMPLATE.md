@@ -75,6 +75,8 @@ Apply the [shared editor contract](BOOKLET-CONSISTENCY.md): common file/action l
 
 State whether AI-assisted creation is part of this release. If it is, define capabilities, creation and revision payloads, returned artifacts, hash checking, version handling and exact preservation of pupil blanks. Identify the existing core and service code to reuse. Include one complete create → revise → open in editor example and how it will be checked in the actual consuming client.
 
+Complete the [MCP connector acceptance record](MCP-CONNECTOR-ACCEPTANCE.md#completion-record-for-each-connector-change). Specify the expected new/changed tool names, retained catalogue/control, exact endpoint/App identities and intended chat surface. Plan an early real import/call trial, actual file saving/checksum and final-consumer review; include maximum/multi-chunk and error cases when relevant. State the fallback if artifact URLs cannot be fetched or the new call is not exposed. Preserve the resource and report the specific gap; a refresh spinner or SDK simulation is not target-client acceptance.
+
 ## Acceptance examples
 
 Write observable outcomes, including failure behaviour. For example:

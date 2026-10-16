@@ -15,6 +15,8 @@ When running from a portable installation, prefer the current versions in an acc
 
 ## Apply the relevant decisions
 
+- For every new/changed MCP call or missing-tool investigation, read [MCP connector acceptance and incidents](../../../docs/MCP-CONNECTOR-ACCEPTANCE.md). Plan actual intended-chat import, named execution and verified file saving early. Record service, package, connection, chat and final-output evidence separately. A refresh spinner or SDK success does not prove import acceptance; preserve the existing connection and source and investigate the actual emitted schema/response before changing code.
+
 - Follow the current [shared booklet editor contract](../../../docs/BOOKLET-CONSISTENCY.md): reuse the bounded download menu and actual-size readout, retain invalid drafts with guarded actions, preserve file/default compatibility and distinguish browser preview verification from publication.
 
 - Start from what the teacher needs to produce and what the pupil should see, including print dimensions and deliberate blanks.

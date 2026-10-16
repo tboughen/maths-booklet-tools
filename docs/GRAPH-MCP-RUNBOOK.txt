@@ -1,4 +1,11 @@
 GRAPH INTEGRATION — OPERATIONS AND RELEASE
+For every new/changed MCP call, follow MCP-CONNECTOR-ACCEPTANCE.md before closing
+the connector release. It records the October schema/import and missing-SVG
+incidents, distinct service/package/connection/chat/file gates, a bounded
+missing-tool diagnosis and actual target-client acceptance evidence. A returned
+Refresh tools button does not prove adoption; SDK success does not clear import
+compatibility. Preserve existing connection identity, keys and saved files.
+
 Optional print measurements, placement advice, source bundles and the vector
 consumer qualification are documented in MCP-DIAGRAM-OUTPUTS.md. These are
 diagram outputs for another AI project; the service does not assemble booklets.

@@ -1,5 +1,15 @@
 CONNECT MATHS BOOKLET TOOLS TO CHATGPT
 
+For current all-family connector acceptance and missing-tool diagnosis, read
+MCP-CONNECTOR-ACCEPTANCE.md. Older graph-only examples below are historical
+starting cases, not a complete current catalogue. Check expected tool names and
+definitions in the actual consuming chat. Plugin package version and the
+connected development App's Manage app > Refresh tools are separate surfaces.
+Record the refresh result and one fresh-chat comparison if needed; if still
+missing, inspect emitted schemas/import evidence instead of repeating blindly.
+The 21st call added on 16 October later worked with unchanged code; no delay cause or
+universal refresh time was established. Keep the original connection/resource.
+
 This connection is made after the service has a verified public HTTPS URL and
 the human website has its new import support. A GitHub Pages URL alone cannot
 serve the MCP endpoint. No OpenAI API key is required by this renderer.
