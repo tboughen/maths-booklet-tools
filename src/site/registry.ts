@@ -1,4 +1,6 @@
 import VennPage from "../venn/VennPage";
+import TrianglePage from "../triangle/TrianglePage";
+import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import NumberLinePage from "../number-line/NumberLinePage";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
@@ -6,7 +8,7 @@ import GraphPage from "../App";
 import RatioTablePage from "../ratio-table/RatioTablePage";
 import ValueGraphPage from "../value-graph/ValueGraphPage";
 import CuboidPage from "../cuboid/CuboidPage";
-import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal } from "lucide-react";
+import { BookOpen, FileSpreadsheet, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -14,6 +16,7 @@ import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graph
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
+  { id: "triangle", name: "Triangles", description: "Create triangle diagrams for Pythagoras, trigonometry, sine rule, cosine rule and area.", icon: Triangle, component: TrianglePage, preview: { src: trianglePreview, alt: "Right-angled triangle with 6 cm and 8 cm sides and an unknown hypotenuse labelled x." } },
   { id: "venn", name: "Venn diagrams", description: "Build blank, populated and shaded diagrams with one, two or three sets.", icon: Shapes, component: VennPage, preview: { src: vennPreview, alt: "Two overlapping sets with member lists, an intersection and a pupil answer line." } },
   { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage, preview: { src: graphPreview, alt: "Example coordinate grid with a straight line and three plotted points." } },
   { id: "ratio-table", name: "Ratio tables", description: "Build tables with values, answer spaces and scaling arrows.", icon: Table2, component: RatioTablePage, preview: { src: ratioPreview, alt: "Example ratio table with multiplication arrows and a blank answer space." } },
