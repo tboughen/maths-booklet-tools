@@ -2,7 +2,8 @@ import { fork } from "node:child_process";
 import { resolve } from "node:path";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { validateArchiveMembers } from "./archive";
-type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array };
+export type Crop = { svg: string; widthCm: number; heightCm: number };
+type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop };
 export class RasterQueue {
   private active = false;
   private waiting: Array<() => void> = [];
@@ -18,7 +19,7 @@ export class RasterQueue {
     print = false,
     outlined = false,
     signal?: AbortSignal,
-    artifactKind: "graph" | "ratio-table" | "value-graph" = "graph",
+    artifactKind: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" = "graph",
   ): Promise<{ png?: Uint8Array; svg?: string }> {
     if (
       !Number.isSafeInteger(width) ||
@@ -38,6 +39,11 @@ export class RasterQueue {
     const result = await this.run({ archive: members }, signal);
     if (!result.zip) throw new GraphError("render_failed", "No archive was generated.");
     return result.zip;
+  }
+  async crop(svg: string, signal?: AbortSignal): Promise<Crop> {
+    const result = await this.run({ svg, measureCrop: true, fontRoot: this.fontRoot }, signal);
+    if (!result.crop) throw new GraphError("render_failed", "No cropped artwork was generated.");
+    return result.crop;
   }
   private async run(job: Record<string, unknown>, signal?: AbortSignal): Promise<WorkerResult> {
     if (this.waiting.length >= 3)
@@ -119,7 +125,7 @@ export class RasterQueue {
               finish(new GraphError(message.code ?? "render_failed", message.error));
             else if (
               (message.zip?.byteLength ?? message.png?.byteLength ??
-                Buffer.byteLength(message.svg ?? "")) >
+                Buffer.byteLength(message.svg ?? message.crop?.svg ?? "")) >
               10 * 1024 * 1024
             )
               finish(

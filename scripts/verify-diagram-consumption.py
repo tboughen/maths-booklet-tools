@@ -119,7 +119,7 @@ assert (bbox[3] - bbox[1]) / (2 * 96 / 25.4) < 10, "unrelated vertical artwork c
 # One A3 qualification artifact: graph/ratio pair, then two quadratic variants.
 background = root / "specimen-background.pdf"
 c = canvas.Canvas(str(background), pagesize=(297 * mm, 420 * mm))
-titles = ["MCP diagram print qualification", "Quadratic scaffold and deliberate plotting error", "Quadratic graph-only output"]
+titles = ["MCP diagram print qualification", "Quadratic scaffold and deliberate plotting error", "Quadratic graph-only output", "Cuboids and number-line pupil resources", "Venn pupil scaffold and explicit answer output"]
 for title in titles:
     c.setFont("Helvetica-Bold", 17); c.drawString(20 * mm, 397 * mm, title)
     c.setFont("Helvetica", 10); c.drawString(20 * mm, 388 * mm, "Actual MCP downloads placed at native size. Print at Actual size / 100%.")
@@ -130,7 +130,7 @@ c.save()
 writer = PdfWriter()
 for page in PdfReader(background).pages:
     writer.add_page(page)
-placements = [(0, "graph", 20, 350), (0, "ratio", 150, 350), (1, "quadratic-combined", 20, 350), (2, "quadratic-graph", 20, 350)]
+placements = [(0, "graph", 20, 350), (0, "ratio", 150, 350), (1, "quadratic-combined", 20, 350), (2, "quadratic-graph", 20, 350), (3, "cuboids-revised", 20, 350), (3, "number-line-revised", 20, 230), (4, "venn-revised", 20, 350), (4, "venn-answer", 150, 350)]
 for page_number, name, x_mm, top_mm in placements:
     component = PdfReader(root / f"{name}.component.pdf").pages[0]
     height = float(component.mediabox.height)
@@ -141,11 +141,38 @@ writer.add_metadata({"/Title": "MathsDock MCP vector consumption qualification"}
 with (root / "a3-diagram-consumption.pdf").open("wb") as f:
     writer.write(f)
 final = PdfReader(root / "a3-diagram-consumption.pdf")
-assert len(final.pages) == 3
+assert len(final.pages) == 5
 for p in final.pages:
     assert abs(float(p.mediabox.width) - 297 * mm) < 0.1 * mm
     assert abs(float(p.mediabox.height) - 420 * mm) < 0.1 * mm
 counts = check_vectors(final)
-report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 3, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
+shading_cases = json.loads((root / "shading.json").read_text())
+shading_samples = 0
+for case in shading_cases:
+    native = Image.open(root / f'{case["name"]}.png').convert("RGB")
+    converted = Image.open(BytesIO(cairosvg.svg2png(bytestring=(root / f'{case["name"]}.svg').read_bytes(), output_width=native.width, output_height=native.height))).convert("RGB")
+    box = case["box"]
+    sample_count = 0
+    for iy in range(int(box["y"] + 3), int(box["y"] + box["height"] - 2), 3):
+        for ix in range(int(box["x"] + 3), int(box["x"] + box["width"] - 2), 3):
+            membership = 0
+            safe = True
+            for bit, circle in enumerate(case["circles"]):
+                q = ((ix-circle["x"])/circle["rx"])**2 + ((iy-circle["y"])/circle["ry"])**2
+                if abs(q-1) < .15:
+                    safe = False
+                if q < 1:
+                    membership |= 1 << bit
+            if not safe:
+                continue
+            expected = 216 if membership == case["mask"] else 255
+            point = (round(ix / (case["physicalSizeCm"]["width"]*10) * native.width), round(iy / (case["physicalSizeCm"]["height"]*10) * native.height))
+            for label, image in [("native PNG", native), ("independent SVG consumer", converted)]:
+                actual = image.getpixel(point)
+                assert all(abs(channel-expected) <= 2 for channel in actual), (case["name"], label, point, membership, actual, expected)
+            sample_count += 1
+    assert sample_count > 20, (case["name"], "insufficient shading samples")
+    shading_samples += sample_count
+report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 5, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
 (root / "vector-proof.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report))

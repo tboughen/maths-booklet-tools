@@ -37,6 +37,8 @@ import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
 import { ValueDownloads } from "./value-downloads";
 import { valueGraphTools } from "./value-graph-tools";
+import { ResourceDownloads } from "./resource-downloads";
+import { resourceTools } from "./resource-tools";
 import { BundleDownloads } from "./bundle-downloads";
 import { diagramOutputTools } from "./diagram-output-tools";
 import { PRINT_INSTRUCTIONS } from "./placement";
@@ -103,6 +105,8 @@ export function graphService(options: ServiceOptions) {
   const ratios = ratioTools(raster, ratioDownloads, limits, options.editorUrl);
   const valueDownloads = new ValueDownloads(base.href, options.keys, options.activeKey);
   const values = valueGraphTools(raster, valueDownloads, limits, options.editorUrl);
+  const resourceDownloads = new ResourceDownloads(base.href, options.keys, options.activeKey);
+  const resources = resourceTools(raster, resourceDownloads, limits, options.editorUrl);
   const artifacts = async (
     envelope: GraphEnvelope,
     format: DownloadFormat,
@@ -145,6 +149,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
+      case "cuboids": case "number-line": case "venn": return resources.artifacts(source, format, signal);
     }
   });
   async function result(raw: GraphEnvelope, signal?: AbortSignal) {
@@ -250,7 +255,7 @@ export function graphService(options: ServiceOptions) {
       { name: "Maths Booklet Tools", version: "1.0.0" },
       {
         instructions:
-          "Create and revise coordinate graphs and ratio tables with these tools. Use returned envelopes and contentHash for revisions. Do not use computer use. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. For ratio tables, use create_ratio_table/revise_ratio_table and preserve empty and answer-line cells. Do not fill pupil answers unless explicitly requested. Show the image, download links and editor link returned by the tool. Do not claim print PNG succeeded until its download succeeds. Explain warnings and unsupported requests.",
+          "Create and revise all six MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines and Venn diagrams. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests.",
       },
     );
     const annotations = {
@@ -354,6 +359,7 @@ export function graphService(options: ServiceOptions) {
     );
     ratios.register(server, connectionSignal);
     values.register(server, connectionSignal);
+    resources.register(server, connectionSignal);
     diagramOutputs.register(server, connectionSignal);
     return server;
   }
@@ -396,11 +402,24 @@ export function graphService(options: ServiceOptions) {
           rendererVersion: RENDERER_VERSION,
           ratioRendererVersion: RATIO_RENDERER_VERSION,
           valueGraphRendererVersion: "value-graph-1",
+          cuboidRendererVersions: ["cuboids-1", "cuboids-2"],
+          numberLineRendererVersion: "number-line-1",
+          vennRendererVersions: ["venn-1", "venn-2"],
           buildId: options.buildId ?? "development",
         });
         return;
       }
       limits.request(req.socket.remoteAddress ?? "unknown");
+      if (req.method === "GET" && url.pathname === "/resource/download") {
+        const {source, format} = resourceDownloads.verify(url);
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        const abort = new AbortController();
+        res.once("close", () => {if (!res.writableFinished) abort.abort();});
+        const file = await resources.artifacts(source, format, abort.signal);
+        limits.output(file.body.length); bytes = file.body.length;
+        res.writeHead(200, {"Content-Type":file.type,"Content-Disposition":`attachment; filename="mathsdock-${source.kind}.${format}"`,"Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; sandbox"});
+        res.end(file.body); return;
+      }
       if (req.method === "GET" && url.pathname === "/diagram-bundle/download") {
         const source = bundles.verify(url);
         const abort = new AbortController();
