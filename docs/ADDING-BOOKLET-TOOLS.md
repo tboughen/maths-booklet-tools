@@ -58,6 +58,8 @@ Session retention does not promise undo or invalid-input persistence after a rel
 
 ## Verify the new page
 
+If this release includes MCP access, also follow [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md). Preserve the existing service/connection and qualify the emitted schemas, expected named catalogue delta, actual target-chat call and verified saved file. Website tests, a newer plugin package and direct SDK success do not establish that ChatGPT imported the new call. Record each release/acceptance stage separately.
+
 Check direct links, the overview and active navigation labels; Back/Forward; keyboard operation; leaving immediately after an edit and returning; pending input; storage failure/recovery; and interaction with another mounted editor's shortcuts. Check desktop, tablet and 320–375 px layouts without horizontal page overflow. Verify copy/download/export size and content independently from interface styling.
 
 Review the tool's output preview in the overview at its actual display size. Check the retained icon, SVG load, alternative text, full image and text click target, responsive placement and unchanged Home cards. For an authorised website release, verify the served SVG matches the reviewed bytes.

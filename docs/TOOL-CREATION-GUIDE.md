@@ -163,6 +163,8 @@ Treat tool descriptions as a usable interface. List complete operation payloads,
 
 Test the schemas exposed by actual discovery as well as internal validators. Ratio-table tuple arrays passed internal use but failed ChatGPT import; homogeneous array schemas plus server-side shape checks resolved that incident. Check the real consuming client and a fresh conversation when connector definitions change. Do not substitute a plausible image or Markdown table for a failed tool call.
 
+Follow [MCP connector acceptance and incidents](MCP-CONNECTOR-ACCEPTANCE.md) for every new or changed call. Record the expected named catalogue delta and qualify the actual target chat early. Service discovery, plugin package updates, connection import, tool execution and exact saved output each need their own evidence. The 16 October SVG call remained absent after refresh in existing and fresh chats, then worked with unchanged code; its delay's cause is unknown. A completed spinner and successful SDK tests cannot establish client acceptance. Diagnose a persistent gap once using the emitted definitions and actual import response; preserve the original connection and saved resources.
+
 Retain existing hosting and cost constraints. Reuse the existing service when appropriate; adding another tool does not by itself justify a new paid service, database or model API dependency. Keep documents and pupil information out of service logs.
 
 ## Build and review in small complete steps
@@ -191,6 +193,7 @@ Use the following as an acceptance checklist, marking irrelevant checks with a r
 - [ ] Real Word insertion is checked for a new or changed clipboard/export path, or the outstanding check is recorded.
 - [ ] Older saved files and links retain their agreed meaning and appearance.
 - [ ] If included, connector discovery, create/revise, downloads and editor reopening work in the target client.
+- [ ] For each MCP change, expected tool names/definitions are actually exposed in the intended chat; a named call and exact saved-output check pass. Record any pending stage using the [connector acceptance record](MCP-CONNECTOR-ACCEPTANCE.md#completion-record-for-each-connector-change), including test provenance and maximum/multi-chunk cases where applicable.
 - [ ] Relevant lint, unit, type, build and browser checks pass; actual visual review covers the difficult examples.
 - [ ] Release evidence names the intended production domain and distinguishes merged code, deployed website, deployed service and refreshed client definitions.
 
