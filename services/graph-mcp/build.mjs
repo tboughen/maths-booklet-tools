@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 await build({
   entryPoints: [
     "services/graph-mcp/cli.ts",
+    "services/graph-mcp/healthcheck.ts",
     "services/graph-mcp/raster-worker.ts",
     "services/graph-mcp/smoke.ts",
     "services/graph-mcp/verify-consumption.ts",
