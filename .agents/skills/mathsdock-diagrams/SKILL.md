@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable coordinate graphs and lesson-style ratio tables with the existing MathsDock or Maths Booklet Tools MCP connector, preserving pupil blanks and returning real print downloads and editor links. Use for making teaching resources, not implementing new website tools.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines and Venn diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
@@ -11,6 +11,12 @@ Use the existing connected Maths Booklet Tools MCP tools to produce editable tea
 
 - For coordinate graphs, read `graph_capabilities`, then use `create_graph` or `revise_graph`.
 - For lesson-style ratio tables, read `ratio_table_capabilities`, then use `create_ratio_table` or `revise_ratio_table`.
+- For quadratic graphs and tables of values, read `value_graph_capabilities`, then use `create_value_graph` or `revise_value_graph`.
+- For one or more cuboids, cubes, cube grids or separated layers, read `cuboid_capabilities`, then use `create_cuboid` or `revise_cuboid`.
+- For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
+- For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
+
+Only call tools actually discovered in this conversation. A newer skill does not establish that the service or client exposes newer integrations. Use capabilities and the discovered schemas for complete payloads. Cuboids, Number lines and Venn accept either a concise `spec` or an existing `envelope`; never supply both. Older Graph/Ratio/value-graph calls keep their existing payloads.
 
 Treat current capabilities and input schemas as authoritative for support limits and payload shapes. A legacy default is not necessarily a limit: ratio `columns: 2` and `rendererVersion: ratio-1` coexist with supported column counts and renderer versions. Structural changes can normalize the returned version; reuse the returned envelope rather than imposing the original version.
 
@@ -23,6 +29,12 @@ Preserve explicitly entered numbers, headings, blank cells and answer lines. Emp
 One ratio scaling transition applies across every column. Preserve that shared factor and its displayed copies. Keep teacher-entered mathematical disagreements if the tool permits them, and explain returned warnings without silently correcting the exercise or adding warnings to the pupil diagram.
 
 Graph scale and physical grid size are separate choices. Preserve specified coordinates, axis scales and equation-label visibility; do not add equation labels or solutions the user did not ask to show. Let the tool validate geometry and print layout.
+
+Cuboid dimension edits respect cube locking; enabling it requires an explicit referenceAxis. Unit changes convert the existing physical object. Worked volume/area, counts and area values are explicit teaching choices, independent of blank labels and custom captions. Keep the returned crop dimensions; layout width is not necessarily the exported image width. Service pixel/cube limits may reject a demanding combination without changing its mathematics.
+
+Number-line filled/hollow endpoints, rays, point joins, hidden solutions and tick answer lines must remain as requested. Do not silently extend the axis or delete points to make an edit valid. A truncated ray requires explicit intentional-error settings.
+
+Venn membership uses stable masks: 0 outside; A=1, B=2, C=4. Labels may change without changing membership or set-expression IDs. Only active regions exist in a layout. Do not supply discardIncompatible:true unless the user requested discarding the affected saved contents; a loss warning is not permission. Preserve reverse nesting and never merge values. outputView defaults pupil; request answer only explicitly. Answer artwork retains the same canonical pupil envelope/hash. Editable JSON and links may contain hidden answers. If a separately editable worked copy is requested, create that copy explicitly rather than replacing the pupil source.
 
 ## Revise the exact returned document
 

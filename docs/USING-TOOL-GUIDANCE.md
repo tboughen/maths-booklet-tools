@@ -20,7 +20,7 @@ The answer should identify the actual documents read and the relevant decisions.
 
 ## Use the existing connector
 
-For a resource-making conversation, use `mathsdock-diagrams` with the connected Maths Booklet Tools plugin. The skill selects the graph or ratio capabilities, preserves pupil scaffolds, revises the returned envelope and hash, and returns real downloads and editor links. Plugin skill updates and service tool-definition updates are separate; a new release does not rewrite definitions already cached in an existing conversation.
+For a resource-making conversation, use `mathsdock-diagrams` with the connected Maths Booklet Tools plugin. Its guidance covers Graph, Ratio tables, Plotting quadratics, Cuboids, Number lines and Venn; actual discovery decides which calls are available in a conversation. It preserves pupil scaffolds, revises the returned envelope and hash, and returns real downloads and editor links. See [Six-tool MCP](SIX-TOOL-MCP.md) for the source contracts and release gates. Plugin skill updates and service tool-definition updates are separate; a new release does not rewrite definitions already cached in an existing conversation.
 
 An explicit prompt is:
 

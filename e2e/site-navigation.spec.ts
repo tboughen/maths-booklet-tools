@@ -78,9 +78,17 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
   await expect(
     current(page).getByLabel("Row 3 x cell type", { exact: true }),
   ).toBeVisible();
-  await current(page)
-    .getByRole("region", { name: "Ratio table workspace" })
-    .focus();
+  // Add row intentionally focuses its new cell on the next animation frame.
+  // Observe that completed interaction before directing the keyboard shortcut
+  // to the workspace; otherwise its pending focus can steal Control+z.
+  await expect(
+    current(page).getByLabel("Row 3 x value", { exact: true }),
+  ).toBeFocused();
+  const ratioWorkspace = current(page).getByRole("region", {
+    name: "Ratio table workspace",
+  });
+  await ratioWorkspace.focus();
+  await expect(ratioWorkspace).toBeFocused();
   await page.keyboard.press("Control+z");
   await expect(
     current(page).getByLabel("Row 3 x cell type", { exact: true }),

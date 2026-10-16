@@ -21,13 +21,13 @@ export const placementOutputSchema = z.object({
   effectivePngDpi: z.number().finite(),
   warnings: z.array(z.object({ code: z.string(), message: z.string() })),
 }).strict();
-export function checkPlacement(raw: unknown) {
+export function checkPlacement(raw: unknown, preparedInfo?: ReturnType<typeof diagramPrintInfo>) {
   const input = placementInputSchema.safeParse(raw);
   if (!input.success) throw new GraphError("invalid_placement", "Use a supported source and finite positive widthMm and/or heightMm.");
-  const { kind, envelope, widthMm, heightMm } = input.data;
+  const { kind, envelope, outputView, widthMm, heightMm } = input.data;
   if (widthMm === undefined && heightMm === undefined)
     throw new GraphError("invalid_placement", "Supply widthMm and/or heightMm.");
-  const info = diagramPrintInfo(diagramSource({ kind, envelope }));
+  const info = preparedInfo ?? diagramPrintInfo(diagramSource({ kind, envelope, outputView }));
   const nativeSizeMm = { width: info.physicalSizeCm.width * 10, height: info.physicalSizeCm.height * 10 };
   const requestedSizeMm = {
     width: widthMm ?? heightMm! * nativeSizeMm.width / nativeSizeMm.height,

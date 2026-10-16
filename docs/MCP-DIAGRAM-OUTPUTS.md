@@ -32,7 +32,7 @@ Call `check_diagram_placement` when considering a resize. Input:
 
 ```js
 {
-  kind: "graph", // or "ratio-table" / "value-graph"
+  kind: "graph", // also ratio-table, value-graph, cuboids, number-line, venn
   envelope: previousResult.envelope,
   widthMm: 80 // heightMm is optional; at least one dimension is required
 }
@@ -129,6 +129,16 @@ printing remains a separate check. Existing Copy for Word is unchanged.
 Saved schemas, renderer versions and artwork styles stay unchanged. Metadata is
 additive. Qualify the real discovered schemas and target client after authorised
 service deployment. Website, service release and client refresh are distinct.
+
+The six-family service source is documented in [Six-tool MCP](SIX-TOOL-MCP.md).
+Cuboid physical facts use its actual close-cropped artwork; print layout width
+is a different measurement. Native outlined ink bounds can give different white
+margins from browser font layout bounds, while the artwork scale is retained.
+Venn placement and bundles accept optional `outputView: "pupil" | "answer"`.
+The default is pupil. Answer artwork never replaces saved pupil visibility:
+`source.json` and editor links retain the canonical pupil document and may
+contain hidden answers. The signed artifact binds its requested output view.
+PNG verification, limits and print facts refer to the selected artwork view.
 Existing SVG/PNG/JSON links keep their signing and validation conventions.
 Rollback should retain new bundle-link support until expiry where possible;
 otherwise explain that affected links need regeneration.
