@@ -1,0 +1,27 @@
+import { build } from 'esbuild';
+import { createRequire } from 'node:module';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+import { Resvg } from '@resvg/resvg-js';
+const directory=resolve(process.argv[2] || '../reports/mathsdock-usability-implementation-2026-10-17/baseline-outputs');
+mkdirSync('tmp/usability',{recursive:true});
+await build({entryPoints:['src/examples/galleryCatalogue.ts'],bundle:true,platform:'node',format:'cjs',outfile:'tmp/usability/verification.cjs'});
+const catalogue=createRequire(import.meta.url)(resolve('tmp/usability/verification.cjs'));
+const examples=Object.values(catalogue).filter(Array.isArray).flat();
+const records=JSON.parse(readFileSync(resolve(directory,'index.json'),'utf8'));
+const font={fontFiles:['STIXTwoText-Regular.otf','STIXTwoText-Italic.otf','STIXTwoMath-Regular.otf'].map(name=>resolve('assets/graph-fonts',name)),loadSystemFonts:false};
+const sha=text=>createHash('sha256').update(text).digest('hex');
+const results=records.map(record=>{
+ const example=examples.find(item=>item.id===record.id) || (record.id === "venn-reverse-nested" ? catalogue.vennGallery[0] : null);
+ if(!example) throw Error(`Missing example ${record.id}`);
+ const name=`${record.id}-${record.worked?'worked':'scaffold'}`;
+ const resource=JSON.parse(readFileSync(resolve(directory,name+'.json'),'utf8'));
+ const svg=new Resvg(example.render(resource),{font}).toString();
+ const result={id:record.id,worked:record.worked,jsonUnchanged:sha(JSON.stringify(resource))===record.jsonHash,svgUnchanged:svg===readFileSync(resolve(directory,name+'.svg'),'utf8') && sha(svg)===record.svgHash};
+ if(!result.jsonUnchanged || !result.svgUnchanged) throw Error(JSON.stringify(result));
+ return result;
+});
+const proof={controls:results.length,unchanged:true,results};
+writeFileSync(resolve(directory,'../final-control-comparison.json'),JSON.stringify(proof,null,2)+'\n');
+console.log(JSON.stringify({controls:results.length,unchanged:true}));

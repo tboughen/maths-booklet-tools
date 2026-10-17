@@ -1,3 +1,4 @@
+import { resourceCopyId } from "./copyDocument";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import QuestionBank from "../bank/QuestionBank";
 import AssessmentPage from "../assessment/AssessmentPage";
@@ -13,6 +14,7 @@ import {
 } from "./registry";
 import "./site.css";
 import "./resource-utilities.css";
+import "./usability.css";
 
 /** Editors mount on first use and remain mounted so drafts and undo survive navigation. */
 export default function SiteApp() {
@@ -94,10 +96,15 @@ export default function SiteApp() {
     const sectionLink =
       url.searchParams.size === 1 ||
       (nextSection === "paper-builder" && url.searchParams.size === 2);
-    const href =
+    let href =
       sectionLink && !url.hash
         ? (remembered.current[nextSection] ?? url.search)
         : url.search + url.hash;
+    if (resourceCopyId) {
+      const destination = new URL(href, location.href);
+      destination.searchParams.set("resourceCopy", resourceCopyId);
+      href = destination.search + destination.hash;
+    }
     if (location.search + location.hash !== href)
       window.history.pushState({}, "", location.pathname + href);
     setVisited((previous) =>

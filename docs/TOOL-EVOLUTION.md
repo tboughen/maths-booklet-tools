@@ -71,3 +71,8 @@ The 14 October [three-editor layout audit](EDITOR-LAYOUT-AUDIT.md) extends this 
 - [Ratio reference artwork](ratio-table-examples/review-preview.png): simple and worked lesson styles, alongside saved examples in the same directory.
 
 For this guide's baseline, repository main was [3e7c4d91](https://github.com/tboughen/maths-booklet-tools/commit/3e7c4d91c8e305b64e4e33bec63ed0215c002578). The live [Graph tool](https://mathsdock.co.uk/?tool=graph) and [Ratio tables](https://mathsdock.co.uk/?tool=ratio-table) were also inspected for their shared layout and visible controls. These observations support the design examples; they are not a fresh release qualification of either tool.
+
+
+## Eight-editor usability pass, 17 October — local review candidate
+
+The local usability candidate puts renderer-derived examples at the start of all eight workflows, fits the complete resource in both screen dimensions, and supplies consistent preview and inspector navigation. Worked examples use separate browser documents. Number-line notation and straight-line equation input are bounded adapters to existing mathematical models. Core renderers, file versions and physical writing dimensions remain the compatibility boundary. See [the shared contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace). This is a local implementation record, not a merge or publication claim.

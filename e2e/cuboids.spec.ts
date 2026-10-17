@@ -1,3 +1,4 @@
+import { showExamples, galleryCard, chooseExample } from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
@@ -41,19 +42,24 @@ async function useExample(
   worked = false,
   _source = false,
 ) {
-  await p.getByText("Examples", { exact: true }).click();
-  const card = p
-    .locator(".cb-example")
-    .filter({ has: p.getByRole("heading", { name: title, exact: true }) });
-  await card
-    .getByRole("button", {
-      name: worked ? "Use worked example" : "Use scaffold",
-      exact: true,
-    })
-    .click();
-  await p
-    .getByRole("button", { name: "Use these cuboids", exact: true })
-    .click();
+  if (worked) {
+    await showExamples(p);
+    const popup = p.waitForEvent("popup");
+    await galleryCard(p, title)
+      .getByRole("button", { name: "Open worked copy", exact: true })
+      .click();
+    const copy = await popup;
+    await copy.waitForLoadState();
+    const url = copy.url();
+    await copy.close();
+    await p.goto(url);
+  } else {
+    await chooseExample(p, title);
+    await p
+      .getByRole("dialog")
+      .getByRole("button", { name: "Use these cuboids", exact: true })
+      .click();
+  }
 }
 test.beforeEach(async ({ page }) => {
   await page.goto("/?tool=cuboids");
@@ -275,13 +281,13 @@ test("examples require confirmation and cancellation preserves work", async ({
   page,
 }) => {
   await field(page, "Width", "7");
-  await page.getByText("Examples", { exact: true }).click();
+  await showExamples(page);
   await page
-    .locator(".cb-example")
+    .locator(".example-card")
     .filter({
       has: page.getByRole("heading", { name: "One layer", exact: true }),
     })
-    .getByRole("button", { name: "Use scaffold", exact: true })
+    .getByRole("button", { name: "Open scaffold", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(
@@ -528,6 +534,9 @@ test("three shapes, layer numbers and focused label editing fit narrow layouts",
   await expect(resource(page)).toContainText("Layer 1");
   await expect(resource(page)).toContainText("Layer 2");
   await page.setViewportSize({ width: 320, height: 900 });
+  await page
+    .getByRole("combobox", { name: "Preview zoom", exact: true })
+    .selectOption("1");
   const id = await page
     .getByLabel("Selected cuboid", { exact: true })
     .inputValue();
@@ -573,8 +582,8 @@ test("source question link opens the matching published diagram", async ({
   page,
   context,
 }) => {
-  await page.getByText("Examples", { exact: true }).click();
-  const card = page.locator(".cb-example").filter({
+  await showExamples(page);
+  const card = page.locator(".example-card").filter({
     has: page.getByRole("heading", { name: "Three face areas", exact: true }),
   });
   const pop = context.waitForEvent("page");

@@ -99,3 +99,6 @@ Add cases for a clean snip area at every composition/zoom, actual image clipboar
 - **What Tim needs to review or decide:**
 
 The brief does not grant implementation or deployment permission. Follow the current request and the repository's existing approval rules.
+
+
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.

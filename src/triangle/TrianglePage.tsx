@@ -1,3 +1,8 @@
+import { fitResource } from "../site/useResourceFit";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { triangleGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import {
   useEffect,
   useRef,
@@ -72,7 +77,7 @@ import {
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
 
-const STORAGE = "maths-booklet-tools:triangle:v1",
+const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
 function initial() {
   let key = STORAGE,
@@ -256,13 +261,13 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   committed.current = e;
   const viewScale =
       zoom === "fit"
-        ? Math.max(
-            0.1,
-            Math.min(
-              1.4,
-              (available - 48) / ((g.width * 96) / 25.4),
-              (availableHeight - 48) / ((g.height * 96) / 25.4),
-            ),
+        ? fitResource(
+            (g.width * 96) / 25.4,
+            (g.height * 96) / 25.4,
+            available,
+            availableHeight,
+            48,
+            48,
           )
         : Number(zoom),
     px = (96 / 25.4) * viewScale;
@@ -887,20 +892,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               }}
             />
             <div className="tr-preview-bar">
-              <label>
-                Preview zoom
-                <select
-                  value={zoom}
-                  disabled={!!dragged}
-                  onChange={(ev) => setZoom(ev.target.value)}
-                >
-                  <option value="fit">Fit</option>
-                  <option value=".8">80%</option>
-                  <option value="1">100%</option>
-                  <option value="1.5">150%</option>
-                  <option value="2">200%</option>
-                </select>
-              </label>
+              <PreviewControls
+                zoom={zoom === "fit" ? 0 : Number(zoom)}
+                onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              />
 
               <label>
                 <input
@@ -1526,6 +1521,21 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Triangle settings">
+            <ExampleGallery
+              examples={triangleGallery}
+              active={active}
+              disabled={blocked}
+              onUse={(resource, title) =>
+                replacement(resource, `Open ${title}?`)
+              }
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "triangle",
+                  "maths-booklet-tools:triangle:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card tr-panel specialist-tools">
               <h2>Selected object</h2>
               <label>
@@ -2238,59 +2248,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     {fieldError}
                   </p>
                 )}
-              </div>
-            </details>
-            <details className="tr-section">
-              <summary>Examples</summary>
-              <div className="tr-section-body">
-                {[
-                  { title: "Teaching examples", items: teachingExamples },
-                  { title: "Past-paper examples", items: sourceExamples },
-                ].map((group) => (
-                  <div key={group.title}>
-                    <h3>{group.title}</h3>
-                    {group.items.map((ex) => (
-                      <article className="tr-example" key={ex.key}>
-                        <h4>{ex.title}</h4>
-                        <p>{ex.description}</p>
-                        {ex.sourceId && (
-                          <a
-                            href={`https://mathsdock.co.uk/?tool=question-bank&question=${ex.sourceId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {ex.source}
-                          </a>
-                        )}
-                        <div className="tr-two">
-                          <button
-                            disabled={blocked}
-                            onClick={() =>
-                              replacement(
-                                ex.build(),
-                                `Open ${ex.title.toLowerCase()}?`,
-                              )
-                            }
-                          >
-                            Use scaffold
-                          </button>
-                          <button
-                            disabled={
-                              blocked ||
-                              ex.key === "bisector" ||
-                              ex.key === "ssa" ||
-                              ex.key === "deliberate-error" ||
-                              ex.key === "external-height"
-                            }
-                            onClick={() => fork(ex.build())}
-                          >
-                            Open worked copy
-                          </button>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ))}
               </div>
             </details>
             <details className="tr-section tr-more-tools">

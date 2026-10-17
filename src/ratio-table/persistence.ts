@@ -1,3 +1,4 @@
+import { copyStorageKey } from "../site/copyDocument";
 import {
   emptyRatioTable,
   parseRatioFile,
@@ -5,7 +6,9 @@ import {
 } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 
-export const RATIO_STORAGE_KEY = "maths-booklet-tools:ratio-table-envelope:v1";
+export const RATIO_STORAGE_KEY = copyStorageKey(
+  "maths-booklet-tools:ratio-table-envelope:v1",
+);
 export function loadRatioRecovery(): {
   envelope: RatioEnvelope;
   recovery: string | null;

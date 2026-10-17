@@ -1,6 +1,9 @@
+import { useResourceFit } from "../site/useResourceFit";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { quadraticGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { QuadraticExamples } from "./QuadraticExamples";
-import { workedQuadraticExample } from "./examples";
 import {
   EditorDownloadMenu,
   LINK_DESCRIPTION,
@@ -23,7 +26,6 @@ import {
   metrics,
   number,
   parseFile,
-  preset,
   rangeColumns,
   tableDomain,
   renderSvg,
@@ -89,7 +91,7 @@ export default function ValueGraphPage({
     const draft = new URL(location.href).searchParams.get("draft");
     return draft && /^[a-zA-Z0-9_-]{1,40}$/.test(draft)
       ? `${STORAGE_KEY}:${draft}`
-      : STORAGE_KEY;
+      : copyStorageKey(STORAGE_KEY);
   });
   const [startup] = useState(() => recovery(storageKey));
   const [history, setHistory] = useState<History>({
@@ -101,6 +103,9 @@ export default function ValueGraphPage({
     [message, setMessage] = useState(startup.error);
   const [saved, setSaved] = useState(!startup.error),
     [pending, setPending] = useState<Pending | null>(null);
+  const [examplePreview, setExamplePreview] = useState<ValueEnvelope | null>(
+    null,
+  );
   const [pendingFields, setPendingFields] = useState<Set<string>>(new Set());
   const [selection, setSelection] = useState<Selection>(null),
     [busy, setBusy] = useState(false);
@@ -109,7 +114,7 @@ export default function ValueGraphPage({
     [linkedPolicy, setLinkedPolicy] = useState<"detach" | "update-table">(
       "detach",
     );
-  const [zoom, setZoom] = useState(1),
+  const [zoom, setZoom] = useState(0),
     [exportOpen, setExportOpen] = useState(false);
   const [pointDraft, setPointDraft] = useState({ x: "0", y: "0" });
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -188,6 +193,7 @@ export default function ValueGraphPage({
     );
   }
   function ask(title: string, description: string, action: () => void) {
+    setExamplePreview(null);
     if (blocked) return;
     setPending({ title, description, action });
   }
@@ -296,8 +302,15 @@ export default function ValueGraphPage({
   } catch (e) {
     renderError = errorText(e);
   }
-  const m = metrics(shown),
-    pxPerMm = (96 / 25.4) * zoom;
+  const m = metrics(shown);
+  const fitted = useResourceFit(
+    (m.width * 96) / 25.4,
+    (m.height * 96) / 25.4,
+    zoom,
+    (width) => (width < 600 ? 144 : m.withTable ? 372 : 304),
+    (width) => (width < 600 && m.withTable ? 224 : 136),
+  );
+  const pxPerMm = (96 / 25.4) * fitted.scale;
   const selectedColumn =
     selection?.kind === "cell"
       ? d.columns.find((c) => c.id === selection.id)
@@ -391,7 +404,8 @@ export default function ValueGraphPage({
       setBusy(false);
     }
   }
-  const paperLeft = 144,
+  const compact = fitted.width < 600;
+  const paperLeft = compact ? 72 : 144,
     paperTop = 64;
   const ids = d.columns.map((c) => c.id);
   function calculate(all = false) {
@@ -906,38 +920,6 @@ export default function ValueGraphPage({
             {toggle("showEquation", "Equation heading")}
           </>
         );
-      case "examples":
-        return (
-          <QuadraticExamples
-            disabled={blocked}
-            onUse={(name) =>
-              ask(
-                "Replace with this example?",
-                name + " replaces the current resource. You can undo this.",
-                () => {
-                  commit(preset(name));
-                  setSelection(null);
-                },
-              )
-            }
-            onWorked={(name) =>
-              ask(
-                name === "November 2017 error"
-                  ? "Open a separate corrected copy?"
-                  : "Open a separate worked copy?",
-                "Your current resource and pupil blanks remain saved. The new copy opens separately.",
-                () => {
-                  const url = new URL(location.href);
-                  url.searchParams.set("draft", uniqueId("worked-"));
-                  window.open(
-                    editorLink(workedQuadraticExample(name), url.href),
-                    "_blank",
-                  );
-                },
-              )
-            }
-          />
-        );
       case "graph":
         return (
           <>
@@ -1442,18 +1424,7 @@ export default function ValueGraphPage({
             />
             <div className="ratio-preview-controls">
               <ResourceSize width={m.widthCm} height={m.heightCm} />
-              <label>
-                Preview zoom{" "}
-                <select
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                >
-                  <option value={0.75}>75%</option>
-                  <option value={1}>100%</option>
-                  <option value={1.25}>125%</option>
-                  <option value={1.5}>150%</option>
-                </select>
-              </label>
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
             </div>
             {!!message && (
               <p role="status" className="resource-feedback">
@@ -1511,16 +1482,17 @@ export default function ValueGraphPage({
             )}
             {!!renderError && <p role="alert">{renderError}</p>}
 
-            <div className="vg-scroll">
+            <div className="vg-scroll" ref={fitted.ref}>
               <div
-                className="vg-editor-frame"
+                className={`vg-editor-frame${compact ? " is-compact" : ""}`}
                 style={{
                   width:
-                    m.width * pxPerMm + paperLeft + (m.withTable ? 228 : 160),
+                    m.width * pxPerMm +
+                    (compact ? 144 : paperLeft + (m.withTable ? 228 : 160)),
                   height:
-                    Math.max(m.height * pxPerMm, m.withGraph ? 500 : 250) +
+                    m.height * pxPerMm +
                     paperTop +
-                    64,
+                    (compact && m.withTable ? 160 : 64),
                 }}
               >
                 <div
@@ -1779,8 +1751,12 @@ export default function ValueGraphPage({
                   <div
                     className="vg-table-tools"
                     style={{
-                      left: paperLeft + m.width * pxPerMm + 128,
-                      top: paperTop + m.table.top * pxPerMm,
+                      left: compact
+                        ? paperLeft
+                        : paperLeft + m.width * pxPerMm + 128,
+                      top: compact
+                        ? paperTop + m.height * pxPerMm + 76
+                        : paperTop + m.table.top * pxPerMm,
                     }}
                   >
                     <div className="vg-actions">
@@ -1854,6 +1830,7 @@ export default function ValueGraphPage({
                         <div
                           key={key}
                           className="vg-axis-end"
+                          data-axis={vertical ? "y" : "x"}
                           style={{ left, top, transform }}
                           aria-label={side + " endpoint"}
                         >
@@ -1911,6 +1888,26 @@ export default function ValueGraphPage({
             className="inspector-stack"
             aria-label="Table and graph settings"
           >
+            <ExampleGallery
+              examples={quadraticGallery}
+              active={active}
+              disabled={blocked || !!pending}
+              onUse={(resource, title) => {
+                ask(
+                  `Open ${title}?`,
+                  "This replaces the current resource. You can undo this.",
+                  () => commit(resource),
+                );
+                setExamplePreview(resource);
+              }}
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "value-table-graph",
+                  "mathsdock:value-table-graph:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card specialist-tools">
               <h2>Table and graph tools</h2>
               <div className="specialist-actions">
@@ -1918,7 +1915,7 @@ export default function ValueGraphPage({
                   disabled={blocked}
                   onClick={(e) => choose({ kind: "table" }, e.currentTarget)}
                 >
-                  Table options
+                  Table settings
                 </button>
                 <button
                   disabled={blocked}
@@ -1949,13 +1946,13 @@ export default function ValueGraphPage({
                   disabled={blocked}
                   onClick={(e) => choose({ kind: "plot" }, e.currentTarget)}
                 >
-                  Plot
+                  Plot table values
                 </button>
                 <button
                   disabled={blocked}
                   onClick={(e) => choose({ kind: "add" }, e.currentTarget)}
                 >
-                  Add
+                  Add point or segment
                 </button>
                 <button
                   disabled={blocked}
@@ -1970,7 +1967,7 @@ export default function ValueGraphPage({
                     );
                   }}
                 >
-                  Curve
+                  Draw curve
                 </button>
                 <button
                   disabled={blocked}
@@ -2002,12 +1999,6 @@ export default function ValueGraphPage({
                   onClick={(e) => choose({ kind: "layout" }, e.currentTarget)}
                 >
                   Layout
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={(e) => choose({ kind: "examples" }, e.currentTarget)}
-                >
-                  Examples
                 </button>
               </div>
             </section>
@@ -2048,6 +2039,12 @@ export default function ValueGraphPage({
             disabled={blocked}
           >
             <p>{pending.description}</p>
+            {examplePreview && (
+              <div
+                className="ratio-import-preview"
+                dangerouslySetInnerHTML={{ __html: renderSvg(examplePreview) }}
+              />
+            )}
           </RatioDialog>
         )}
       </main>
