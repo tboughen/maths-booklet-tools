@@ -11,10 +11,12 @@ import * as cuboid from "../../packages/cuboid-core/src/index";
 import { printFacts as cuboidPrintFacts } from "../../packages/cuboid-core/src/interchange";
 import * as numberLine from "../../packages/number-line-core/src/index";
 import * as venn from "../../packages/venn-core/src/index";
+import * as algebra from "../../packages/algebra-grid-core/src/index";
+import { printFacts as algebraPrintFacts } from "../../packages/algebra-grid-core/src/interchange";
 import { assertPrintable, printFacts as vennPrintFacts } from "../../packages/venn-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
 
-export const diagramKind = z.enum(["graph", "ratio-table", "value-graph", "cuboids", "number-line", "venn"]);
+export const diagramKind = z.enum(["graph", "ratio-table", "value-graph", "cuboids", "number-line", "venn", "algebra-grid"]);
 export type DiagramKind = z.infer<typeof diagramKind>;
 // The outer discovery schema is homogeneous; each core validates the exact envelope.
 export const diagramSourceSchema = z.object({
@@ -31,12 +33,14 @@ export type DiagramSource =
   | { kind: "value-graph"; envelope: ValueEnvelope }
   | { kind: "cuboids"; envelope: cuboid.Envelope }
   | { kind: "number-line"; envelope: numberLine.Envelope }
-  | { kind: "venn"; envelope: venn.Envelope; outputView?: "pupil" | "answer" };
+  | { kind: "venn"; envelope: venn.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "algebra-grid"; envelope: algebra.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
     const s = diagramSourceSchema.parse(raw);
     if (s.outputView !== undefined && s.kind !== "venn") throw Error("outputView applies only to Venn diagrams.");
     switch (s.kind) {
+      case "algebra-grid": { const envelope=algebra.validate(s.envelope);const issue=algebra.exportIssue(envelope);if(issue)throw Error(issue);return {kind:s.kind,envelope}; }
       case "graph": return { kind: s.kind, envelope: validateEnvelope(s.envelope, true) };
       case "ratio-table": {
         const envelope = validateRatioEnvelope(s.envelope);
@@ -54,6 +58,7 @@ export function diagramSource(raw: unknown): DiagramSource {
   }
 }
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
+  if(source.kind==="algebra-grid") { const g=algebra.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:algebraPrintFacts(source.envelope)}; }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");
     return { physicalSizeCm: { width: crop.widthCm, height: crop.heightCm }, printGuidance: cuboidPrintFacts(source.envelope) };

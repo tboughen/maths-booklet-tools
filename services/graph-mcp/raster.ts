@@ -19,7 +19,7 @@ export class RasterQueue {
     print = false,
     outlined = false,
     signal?: AbortSignal,
-    artifactKind: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" = "graph",
+    artifactKind: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" = "graph",
   ): Promise<{ png?: Uint8Array; svg?: string }> {
     if (
       !Number.isSafeInteger(width) ||

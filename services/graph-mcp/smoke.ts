@@ -35,6 +35,7 @@ try {
   );
   const tools = await client.listTools();
   const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "cuboid_capabilities", "create_cuboid", "revise_cuboid", "number_line_capabilities", "create_number_line", "revise_number_line", "venn_capabilities", "create_venn", "revise_venn", "check_diagram_placement", "download_diagram_bundle"];
+  expected.splice(expected.indexOf("check_diagram_placement"),0,"algebra_grid_capabilities","create_algebra_grid","revise_algebra_grid");
   expected.push("get_diagram_svg");
   if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected all six booklet-tool trios and optional output tools.");
   // ChatGPT imports every advertised array schema, including nested unions.

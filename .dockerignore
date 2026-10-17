@@ -12,6 +12,9 @@
 !packages/value-graph-core
 !packages/value-graph-core/src
 !packages/value-graph-core/src/**
+!packages/algebra-grid-core
+!packages/algebra-grid-core/src
+!packages/algebra-grid-core/src/**
 !services
 !services/graph-mcp
 !services/graph-mcp/**

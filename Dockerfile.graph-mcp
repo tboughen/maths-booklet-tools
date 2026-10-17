@@ -9,6 +9,7 @@ COPY packages/value-graph-core packages/value-graph-core
 COPY packages/cuboid-core packages/cuboid-core
 COPY packages/number-line-core packages/number-line-core
 COPY packages/venn-core packages/venn-core
+COPY packages/algebra-grid-core packages/algebra-grid-core
 COPY services/graph-mcp services/graph-mcp
 COPY assets/graph-fonts assets/graph-fonts
 RUN npm run build:service
