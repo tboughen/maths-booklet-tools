@@ -74,7 +74,11 @@ for (const [tool, key, paper, stage] of tools) {
     // second localhost server or a machine-specific report directory in CI.
     const fixture = resolve("e2e/fixtures/usability-refinement");
     const source = await readFile(resolve(fixture, `${tool}.json`));
-    const controls = JSON.parse(await readFile(resolve(fixture, "manifest.json"), "utf8"))[tool];
+    const recorded = JSON.parse(await readFile(resolve(fixture, "manifest.json"), "utf8"))[tool];
+    // Cuboids already measures text bounds through browser getBBox. Its exact
+    // Linux crop differs from Windows; the retained platform control changes
+    // only the root/background crop, with every drawable/font byte identical.
+    const controls = { ...recorded, ...recorded.platforms?.[process.platform] };
     expect(hash(source)).toBe(controls.source);
     const originalBox = controls.before;
     await page.goto(`/?tool=${tool}`);
