@@ -49,3 +49,18 @@ Question images and complete scheme rows were inspected from the existing review
 Check desktop through 320 px, scrolling, large structures, long labels, fractions, focus/error visibility, keyboard/touch and view zoom. Inspect actual SVG/600 ppi PNG and clipboard/Word HTML size and pixels, and compare existing resources with retained outputs. Native Word insertion and physical monochrome printing require their own evidence; browser checks do not establish them.
 
 For publication, reconcile current main/production and follow `RELEASE-PIPELINE.md` on the exact committed candidate. A local build or test pass does not establish hosted qualification, merge, deployment or live acceptance.
+
+
+## Eight-editor usability workspace
+
+Use `PreviewControls` and the shared viewport fit calculation with a small renderer-specific adapter. Fit whole resource contains the complete export bounds plus fixed-size control gutters in both dimensions, with a 400% preview ceiling. Explicit percentages scroll inside the preview. Neither choice belongs in a resource definition, hash, writing-cell size or export. Measure hidden editors only when their viewport is nonzero. Keep labelled Edit settings / Return to diagram focus routes on stacked layouts.
+
+Keep a single visible Start from an example entry point for each editor. `ExampleGallery` uses local renderer-derived pupil SVG thumbnails from `galleryCatalogue`; regenerate with `node scripts/generate-example-previews.mjs` after changing an example. Preserve intentional errors, adaptation notes and verified source links. The native modal is mounted only while open and active, so it cannot interfere with inactive-editor shortcuts. Close/Escape restores its trigger.
+
+Open scaffold follows the editor's existing pupil-preview replacement confirmation and one-step Undo. Open worked copy saves a distinct browser document before opening a new tab and provides a retry link if the popup is blocked. The copy has isolated storage after reload, clearly says Separate worked copy, and must never overwrite its parent scaffold. Test opening another worked copy from a worked tab as well as from the original editor. A resource without an automatic worked variant explains that limit.
+
+Number-line quick input is a bounded interaction adapter for a single ray, interval or included point. It accepts exact finite numbers/fractions and the current single-letter variable, preserves teaching annotations and saved visibility, and never solves expressions or silently extends the axis. Range edits are a draft; the combined range/drawing change is atomic. Replacing an existing drawing shows a pupil preview. The visible summary is derived from the actual model, with Custom drawing for unsupported combinations.
+
+Graph Type equation is an alternative within Line by equation, retaining Use m and c. Accept only y=mx+c, y=mx, y=c and x=a with bounded finite coefficients. Unsupported syntax remains a correctable draft; adding/updating commits the existing straight-object model once. A link to Plotting quadratics preserves the graph rather than transferring mathematical content.
+
+Keep shared copy actions and menu order unchanged. Qualify all eight editors, including blank/zero/hidden-answer states, maximum structures, legacy files, exact exports, grouped cancellation, focus, transformed pointer mapping, storage failures and separate worked reloads. Automated checks establish behaviour; teacher completion times, native Word insertion, physical printing and a real phone keyboard require their own observations.

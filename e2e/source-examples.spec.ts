@@ -1,3 +1,4 @@
+import { showExamples, closeExamples } from "./example-gallery";
 import { test, expect } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
@@ -19,6 +20,7 @@ for (const [tool, examples, key, confirm] of [
 ] as const) {
   test(`${tool} source examples protect edits, preserve scaffolds and offer explicit worked output`, async ({
     page,
+    context,
   }, info) => {
     test.setTimeout(90000);
     await page.goto(`/?tool=${tool}`);
@@ -37,8 +39,9 @@ for (const [tool, examples, key, confirm] of [
           );
     const stored = () =>
       page.evaluate((k) => localStorage.getItem(k), storageKey);
-    await page.getByText("Past-paper examples", { exact: true }).click();
+    await showExamples(page);
     for (const example of examples) {
+      await showExamples(page);
       const card = page.getByRole("article", {
         name: example.title,
         exact: true,
@@ -49,7 +52,7 @@ for (const [tool, examples, key, confirm] of [
       const before = await stored();
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Use blank grid" : "Use scaffold",
+          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
           exact: true,
         })
         .click();
@@ -60,9 +63,10 @@ for (const [tool, examples, key, confirm] of [
         .getByRole("button", { name: "Cancel", exact: true })
         .click();
       expect(await stored()).toBe(before);
+      await showExamples(page);
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Use blank grid" : "Use scaffold",
+          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
           exact: true,
         })
         .click();
@@ -79,27 +83,36 @@ for (const [tool, examples, key, confirm] of [
             .flatMap((r: { cells: { kind: string }[] }) => r.cells)
             .some((c: { kind: string }) => c.kind === "answer-line"),
         ).toBe(true);
+      const scaffoldText = await stored();
+      await showExamples(page);
+      const opening = context.waitForEvent("page");
       await card
-        .getByRole("button", {
-          name: tool === "graph" ? "Use worked graph" : "Use worked table",
-          exact: true,
-        })
+        .getByRole("button", { name: "Open worked copy", exact: true })
         .click();
-      await page
-        .getByRole("dialog")
-        .getByRole("button", { name: confirm, exact: true })
-        .click();
-      await expect
-        .poll(async () => {
-          const d = JSON.parse((await stored())!).document;
-          return tool === "graph"
-            ? d.objects.length === 1
-            : d.rows.every((r: { cells: { kind: string }[] }) =>
-                r.cells.every((c) => c.kind === "number"),
-              );
-        })
-        .toBe(true);
+      const worked = await opening;
+      await worked.waitForLoadState();
+      const result = await worked.evaluate(
+        (base) =>
+          JSON.parse(
+            localStorage.getItem(
+              `${base}:worked:${new URL(location.href).searchParams.get("resourceCopy")}`,
+            )!,
+          ).document,
+        storageKey,
+      );
+      expect(
+        tool === "graph"
+          ? result.objects.length === 1
+          : result.rows.every((r: { cells: { kind: string }[] }) =>
+              r.cells.every((c) => c.kind === "number"),
+            ),
+      ).toBe(true);
+      expect(await stored()).toBe(scaffoldText);
+      await worked.close();
+      await closeExamples(page);
       await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await expect.poll(stored).toBe(before);
+      await page.getByRole("button", { name: "Redo", exact: true }).click();
       await expect
         .poll(async () => JSON.parse((await stored())!).document)
         .toEqual(scaffold);
@@ -134,6 +147,7 @@ for (const [tool, examples, key, confirm] of [
         size.height,
       );
     }
+    await showExamples(page);
     await page.screenshot({
       path: info.outputPath(`${tool}-past-paper-examples.png`),
       fullPage: true,
@@ -153,7 +167,7 @@ test("source question links open the real published question without changing th
 }) => {
   test.setTimeout(60000);
   await page.goto("/?tool=ratio-table");
-  await page.getByText("Past-paper examples", { exact: true }).click();
+  await showExamples(page);
   const card = page.getByRole("article", { name: "Apple prices", exact: true });
   const opening = page.waitForEvent("popup");
   await card
@@ -197,8 +211,10 @@ test("quadratic controls match the clear Graph design and keep exact bounds in a
     expect(style).toEqual({ size: 48, font: "24px", radius: "8px" });
   }
   await expect(page.locator(".vg-bound-value")).toHaveCount(0);
-  for(const button of await page.locator(".vg-table-tools button").all()){
-    expect(await button.evaluate(b=>b.getBoundingClientRect().width)).toBe(48);
+  for (const button of await page.locator(".vg-table-tools button").all()) {
+    expect(await button.evaluate((b) => b.getBoundingClientRect().width)).toBe(
+      48,
+    );
   }
   await page
     .getByRole("button", { name: "Edit x axis scale", exact: true })

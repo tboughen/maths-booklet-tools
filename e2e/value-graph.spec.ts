@@ -17,7 +17,7 @@ test("direct equation and axis editing retain snapshots and have one control loc
 }) => {
   await open(page);
   const initial = await stored(page);
-  await page.getByRole("button", { name: "Curve", exact: true }).click();
+  await page.getByRole("button", { name: "Draw curve", exact: true }).click();
   await page.getByRole("button", { name: "Close editor", exact: true }).click();
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
@@ -62,6 +62,9 @@ test("direct equation and axis editing retain snapshots and have one control loc
     .getByRole("textbox", { name: "x units per cm", exact: true })
     .press("Enter");
   expect((await stored(page)).document.graph.xUnitsPer10mm).toBe("1");
+  await page
+    .getByRole("combobox", { name: "Preview zoom", exact: true })
+    .selectOption("1");
   const fontPx = await page
     .locator('[data-layer="axis-values"] text')
     .first()
@@ -79,7 +82,7 @@ test("hidden objects open the same curve and point editors without filling pupil
   page,
 }) => {
   await open(page);
-  await page.getByRole("button", { name: "Curve", exact: true }).click();
+  await page.getByRole("button", { name: "Draw curve", exact: true }).click();
   const drawn = page.getByRole("textbox", {
     name: "Drawn curve equation",
     exact: true,
@@ -114,7 +117,9 @@ test("hidden objects open the same curve and point editors without filling pupil
     (await stored(page)).document.equation,
   );
   await page.getByRole("button", { name: "Close editor", exact: true }).click();
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add point or segment", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "New point x", exact: true })
     .fill("10");
@@ -148,7 +153,9 @@ test("local line and layout controls remain reachable on a 320px screen", async 
 }, info) => {
   await page.setViewportSize({ width: 320, height: 812 });
   await open(page);
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add point or segment", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "New horizontal line y", exact: true })
     .fill("2");
@@ -312,7 +319,7 @@ test("explicit calculations, true curve and straight-join error remain separate"
 }, info) => {
   await open(page);
   await page
-    .getByRole("button", { name: "Table options", exact: true })
+    .getByRole("button", { name: "Table settings", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Calculate whole row", exact: true })
@@ -322,12 +329,14 @@ test("explicit calculations, true curve and straight-join error remain separate"
     .getByRole("button", { name: "Continue", exact: true })
     .click();
   await page.getByRole("button", { name: "Close editor", exact: true }).click();
-  await page.getByRole("button", { name: "Plot", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Plot table values", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Plot entered table pairs", exact: true })
     .click();
   await page.getByRole("button", { name: "Close editor", exact: true }).click();
-  await page.getByRole("button", { name: "Curve", exact: true }).click();
+  await page.getByRole("button", { name: "Draw curve", exact: true }).click();
   await expect(page.locator("[data-curve]")).toHaveCount(1);
   await page
     .locator(".vg-paper")
@@ -354,7 +363,9 @@ test("point dragging is one reversible edit and does not overwrite the pupil tab
   page,
 }) => {
   await open(page);
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add point or segment", exact: true })
+    .click();
   await page.getByRole("button", { name: "Add point", exact: true }).click();
   await page.getByRole("button", { name: "Close editor", exact: true }).click();
   const before = await stored(page),
@@ -460,7 +471,7 @@ test("newer valid draft is not overwritten and worked copies use separate storag
 test("worked copy keeps the pupil's saved blank cells", async ({ page }) => {
   await open(page);
   await page
-    .getByRole("button", { name: "Table options", exact: true })
+    .getByRole("button", { name: "Table settings", exact: true })
     .click();
   await page
     .getByRole("button", {

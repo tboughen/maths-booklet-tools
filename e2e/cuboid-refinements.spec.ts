@@ -1,3 +1,4 @@
+import { showExamples } from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
@@ -100,13 +101,13 @@ test("replacement confirmation hides the non-modal editor and cancellation resto
   await page
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
-  await page.getByText("Examples", { exact: true }).click();
+  await showExamples(page);
   await page
-    .locator(".cb-example")
+    .locator(".example-card")
     .filter({
       has: page.getByRole("heading", { name: "Shaded base area", exact: true }),
     })
-    .getByRole("button", { name: "Use scaffold", exact: true })
+    .getByRole("button", { name: "Open scaffold", exact: true })
     .click();
   await expect(page.locator("[aria-modal=true]")).toBeVisible();
   await expect(
@@ -250,6 +251,9 @@ test("a scrolled-away full-height editor docks and retains its invalid draft", a
   e.document.shapes[0].view = "layers";
   e.document.shapes[0].dimensions = { width: "20", depth: "20", height: "20" };
   await load(page, e);
+  await page
+    .getByRole("combobox", { name: "Preview zoom", exact: true })
+    .selectOption("1");
   await page
     .getByRole("button", { name: "Edit height label on cuboid-1", exact: true })
     .click();

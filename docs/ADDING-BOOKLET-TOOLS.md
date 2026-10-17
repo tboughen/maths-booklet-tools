@@ -63,3 +63,6 @@ Check direct links, the overview and active navigation labels; Back/Forward; key
 Review the tool's output preview in the overview at its actual display size. Check the retained icon, SVG load, alternative text, full image and text click target, responsive placement and unchanged Home cards. For an authorised website release, verify the served SVG matches the reviewed bytes.
 
 Run the existing lint, unit, typecheck, build and browser checks. Navigation regression coverage is in `e2e/site-navigation.spec.ts`; graph and ratio export checks remain in their existing test suites.
+
+
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.

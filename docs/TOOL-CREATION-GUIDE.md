@@ -203,3 +203,6 @@ Production website checks should target **mathsdock.co.uk**. GitHub Pages and th
 ## Keep the guidance useful
 
 When review uncovers a reusable lesson, update this guide and the corresponding example or regression check. Keep tool-specific limits and operating details in that tool's documentation. Record the problem, resulting behaviour and reason for the choice so future tools inherit the decision rather than repeating the same correction.
+
+
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.

@@ -1,3 +1,4 @@
+import { showExamples } from "./example-gallery";
 import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
 import { resolve } from "node:path";
@@ -434,7 +435,7 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
   page,
 }) => {
   await boot(page);
-  await page.getByText("Examples", { exact: true }).click();
+  await showExamples(page);
   const card = page
     .locator("article")
     .filter({ hasText: "One set · even numbers" });
@@ -605,31 +606,30 @@ test("combined Examples has teaching first, all six verified source links and no
   await expect(
     page.getByText("Teaching examples", { exact: true }),
   ).toBeHidden();
-  await page.getByText("Examples", { exact: true }).click();
-  const examplesPanel = page
-    .locator("details")
-    .filter({ has: page.locator("summary").filter({ hasText: /^Examples$/ }) });
+  await showExamples(page);
+  const examplesPanel = page.locator("dialog.example-gallery[open]");
   expect(
-    await examplesPanel.locator(".vn-example-group > h3").allTextContents(),
-  ).toEqual(["Teaching examples", "Exam questions"]);
+    await examplesPanel
+      .locator(".example-gallery-group-title")
+      .allTextContents(),
+  ).toEqual(["Teaching examples", "Past-paper examples"]);
   await expect(examplesPanel.locator("article")).toHaveCount(11);
   await expect(
     examplesPanel.getByRole("link", {
-      name: "View source question ↗",
+      name: "View source question",
       exact: true,
     }),
   ).toHaveCount(6);
   await expect(
     examplesPanel.getByText("A inside B · reverse the labels", { exact: true }),
   ).toHaveCount(0);
-  const card = examplesPanel
-    .locator("article")
-    .filter({ hasText: "Nested sets · multiples of 4" });
+  const card = examplesPanel.locator('[data-example-id="venn-nested"]');
   await card
     .getByRole("button", { name: "Open scaffold", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   expect((await saved(page)).schemaVersion).toBe(1);
+  await showExamples(page);
   await card
     .getByRole("button", { name: "Open scaffold", exact: true })
     .click();

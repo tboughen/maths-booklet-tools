@@ -1,3 +1,4 @@
+import { chooseExample, showExamples } from "./example-gallery";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
@@ -112,11 +113,7 @@ async function section(page: Page, title: string) {
   return item;
 }
 async function loadExample(page: Page, title: string) {
-  const panel = await section(page, "Examples");
-  const card = panel
-    .locator("article")
-    .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
-  await card.getByRole("button", { name: "Use scaffold", exact: true }).click();
+  await chooseExample(page, title);
   await expect(page.getByRole("dialog")).toBeVisible();
   await page
     .getByRole("button", { name: "Use this diagram", exact: true })
@@ -243,7 +240,8 @@ test("all ten example cards preserve declared scaffolds and production source UR
   for (const ex of sourceExamples) {
     await loadExample(page, ex.title);
     expect(canonical(await saved(page))).toBe(canonical(ex.build()));
-    const card = page.locator("article.tr-example").filter({
+    await showExamples(page);
+    const card = page.locator("article.example-card").filter({
       has: page.getByRole("heading", { name: ex.title, exact: true }),
     });
     await expect(card.getByRole("link")).toHaveAttribute(
@@ -1285,8 +1283,9 @@ test("coarse-pointer editing leaves the keyboard optional and supports deliberat
   });
   await boot(page, example("missing-side"));
   let before = canonical(await saved(page));
-  const hit = page.locator('[data-tr-anchor="e:AB"]'),
-    box = (await hit.boundingBox())!;
+  const hit = page.locator('[data-tr-anchor="e:AB"]');
+  await hit.scrollIntoViewIfNeeded();
+  const box = (await hit.boundingBox())!;
   await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.locator(".tr-floating")).toBeVisible();
   await expect(page.locator("[data-tr-label-text]")).not.toBeFocused();
@@ -1298,10 +1297,12 @@ test("coarse-pointer editing leaves the keyboard optional and supports deliberat
   await page.locator('[data-tr-anchor="e:AB"]').tap();
   await page.getByRole("button", { name: "Cancel label", exact: true }).tap();
   const handle = page.getByRole("button", {
-      name: "Move vertex C",
-      exact: true,
-    }),
-    b = (await handle.boundingBox())!;
+    name: "Move vertex C",
+    exact: true,
+  });
+  await handle.scrollIntoViewIfNeeded();
+  await expect(handle).toBeInViewport();
+  const b = (await handle.boundingBox())!;
   const cdp = await context.newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", {
     type: "touchStart",
