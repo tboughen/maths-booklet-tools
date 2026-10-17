@@ -2,6 +2,7 @@ import { test, expect, type Page } from "./release-fixtures";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 
 const report = resolve(
   process.env.MATHSDOCK_REFINEMENT_REPORT || "test-results/usability-refinement",
@@ -69,7 +70,7 @@ for (const [tool, key, paper, stage] of tools) {
   }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     // Controls were captured from the independently retained, qualified baseline.
-    // Hash actual downloads to retain byte-exact SVG/PNG acceptance without a
+    // Hash actual SVG downloads to retain byte-exact artwork acceptance without a
     // second localhost server or a machine-specific report directory in CI.
     const fixture = resolve("e2e/fixtures/usability-refinement");
     const source = await readFile(resolve(fixture, `${tool}.json`));
@@ -89,7 +90,31 @@ for (const [tool, key, paper, stage] of tools) {
     const finalSvg = await download(page, "Download SVG"),
       finalPng = await download(page, "Download PNG (600 ppi)");
     expect(hash(finalSvg)).toBe(controls.svg);
-    expect(hash(finalPng)).toBe(controls.png);
+    verifyPrintBytes(finalPng, controls.pngWidth, controls.pngHeight);
+    // PNG encoding varies across browser/OS builds. Compare every RGBA byte
+    // against the independently hash-verified baseline SVG in this browser,
+    // retaining the original physical raster dimensions and 600ppi metadata.
+    const differentChannels = await page.evaluate(async ({ svg, png, width, height }) => {
+      async function pixels(blob: Blob) {
+        const image = new Image(), url = URL.createObjectURL(blob);
+        try {
+          image.src = url;
+          await image.decode();
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext("2d")!;
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(image, 0, 0, width, height);
+          return ctx.getImageData(0, 0, width, height).data;
+        } finally { URL.revokeObjectURL(url); }
+      }
+      const reference = await pixels(new Blob([svg], {type:"image/svg+xml;charset=utf-8"}));
+      const actual = await pixels(await (await fetch(`data:image/png;base64,${png}`)).blob());
+      let differences = 0;
+      for (let i = 0; i < reference.length; i++) if (reference[i] !== actual[i]) differences++;
+      return differences;
+    }, { svg: finalSvg.toString(), png: finalPng.toString("base64"), width: controls.pngWidth, height: controls.pngHeight });
+    expect(differentChannels).toBe(0);
     const box = await page.locator(paper).first().boundingBox();
     if (["graph", "value-table-graph"].includes(tool))
       expect(box!.height).toBeGreaterThan(originalBox!.height * 1.1);
@@ -105,7 +130,8 @@ for (const [tool, key, paper, stage] of tools) {
           svg: hash(finalSvg),
           png: hash(finalPng),
           svgEqual: true,
-          pngEqual: true,
+          pngPixelsMatchBaselineSvg: true,
+          pngBytesMatchRecordedPlatform: hash(finalPng) === controls.png,
           before: originalBox,
           after: box,
         },

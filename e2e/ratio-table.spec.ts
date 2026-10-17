@@ -586,6 +586,7 @@ test("three-column image and editable exports survive reopening without editor d
     .getByRole("group", { name: "Table structure" })
     .getByRole("button", { name: "Add column", exact: true })
     .click();
+  await expect(page.getByRole("textbox", { name: "Edit column 3 heading", exact: true })).toBeFocused();
   await page.getByLabel("Row 1 z value", { exact: true }).fill("6");
   await page.getByLabel("Row 1 z value", { exact: true }).press("Enter");
   await page.getByLabel("Editing guides", { exact: true }).check();
