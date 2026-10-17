@@ -1,3 +1,4 @@
+import { copyStorageKey } from "../site/copyDocument";
 import { cloneDefaultDocument, STORAGE_KEY } from "./diagram";
 import type { DiagramDocumentV1 } from "./types";
 import { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
@@ -7,7 +8,9 @@ import {
   validateEnvelope,
 } from "../../packages/graph-core/src/interchange";
 export { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
-export const ENVELOPE_STORAGE_KEY = "maths-booklet-tools:graph-envelope:v1";
+export const ENVELOPE_STORAGE_KEY = copyStorageKey(
+  "maths-booklet-tools:graph-envelope:v1",
+);
 export function loadDiagramRecovery(newDocument = cloneDefaultDocument): {
   document: DiagramDocumentV1;
   conflict: boolean;

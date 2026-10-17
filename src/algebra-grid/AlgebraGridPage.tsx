@@ -1,4 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useResourceViewport, fitResource } from "../site/useResourceFit";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { algebraGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
+import { useEffect, useRef, useState } from "react";
 import {
   answerBelow,
   canonical,
@@ -35,7 +40,7 @@ import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
 
-const STORAGE = "maths-booklet-tools:algebra-grid:v1";
+const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 function initial() {
   let key = STORAGE,
@@ -114,9 +119,7 @@ export default function AlgebraGridPage({
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
     [showAnswers, setShowAnswers] = useState(false),
-    [zoom, setZoom] = useState("fit"),
-    [available, setAvailable] = useState(650),
-    [preset, setPreset] = useState("double");
+    [zoom, setZoom] = useState("fit");
   const file = useRef<HTMLInputElement>(null),
     scroll = useRef<HTMLDivElement>(null),
     expected = useRef(startup.raw),
@@ -130,6 +133,7 @@ export default function AlgebraGridPage({
   fieldRef.current = field;
   documentRef.current = e;
   activeRef.current = active;
+  const available = useResourceViewport(scroll);
   const pendingInput = !!draft || !!field,
     blocked =
       pendingInput || recovery !== null || conflict || busy || !!pending;
@@ -138,9 +142,13 @@ export default function AlgebraGridPage({
     notes = warnings(e),
     scale =
       zoom === "fit"
-        ? Math.min(
-            1.65,
-            Math.max(0.25, (available - 150) / ((g.width * 96) / 25.4)),
+        ? fitResource(
+            (g.width * 96) / 25.4,
+            (g.height * 96) / 25.4,
+            available.width,
+            available.height,
+            150,
+            140,
           )
         : Number(zoom),
     px = (scale * 96) / 25.4;
@@ -208,14 +216,6 @@ export default function AlgebraGridPage({
       setSaveState("Not saved on device");
     }
   }, [e, recovery, conflict, startup.key]);
-  useLayoutEffect(() => {
-    if (!active || !scroll.current) return;
-    const measure = () => setAvailable(scroll.current?.clientWidth ?? 650);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(scroll.current);
-    return () => ro.disconnect();
-  }, [active]);
   useEffect(() => {
     if (!active) return;
     const keys = (event: KeyboardEvent) => {
@@ -593,19 +593,10 @@ export default function AlgebraGridPage({
               }}
             />
             <div className="ag-preview-bar">
-              <label>
-                Preview zoom{" "}
-                <select
-                  value={zoom}
-                  onChange={(ev) => setZoom(ev.target.value)}
-                >
-                  <option value="fit">Fit</option>
-                  <option value=".75">75%</option>
-                  <option value="1">100%</option>
-                  <option value="1.5">150%</option>
-                  <option value="2">200%</option>
-                </select>
-              </label>
+              <PreviewControls
+                zoom={zoom === "fit" ? 0 : Number(zoom)}
+                onZoom={(value) => setZoom(value ? String(value) : "fit")}
+              />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
             <p className="ag-guidance">
@@ -857,6 +848,19 @@ export default function AlgebraGridPage({
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Algebra grid settings">
+            <ExampleGallery
+              examples={algebraGallery}
+              active={active}
+              disabled={blocked}
+              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "expanding-factorising",
+                  "maths-booklet-tools:algebra-grid:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card ag-panel">
               <h2>Teaching resource</h2>
               <label>
@@ -963,6 +967,17 @@ export default function AlgebraGridPage({
                   {d.mode === "factorise"
                     ? "Read factors"
                     : "Collect like terms"}
+                </button>
+                <button
+                  disabled={blocked}
+                  onClick={() =>
+                    replace(
+                      create(d.rows.length, d.columns.length),
+                      "Open a blank grid?",
+                    )
+                  }
+                >
+                  Blank grid
                 </button>
                 <button disabled={blocked} onClick={openWorked}>
                   Create worked copy ↗
@@ -1093,84 +1108,7 @@ export default function AlgebraGridPage({
                 10.6 mm. Paper choice and preview zoom never resize cells.
               </p>
             </section>
-            <section className="panel-card ag-panel">
-              <h2>Examples</h2>
-              <label>
-                Departmental example
-                <select
-                  disabled={blocked}
-                  value={preset}
-                  onChange={(ev) => setPreset(ev.target.value)}
-                >
-                  {[
-                    ["single", "Single bracket"],
-                    ["double", "Double brackets"],
-                    ["signed", "Negative terms"],
-                    ["cubic", "Three terms × two terms"],
-                    ["factor", "Factorise x²+5x+6"],
-                    ["negative", "Factorise x²+3x−10"],
-                    ["common", "Common factor"],
-                  ].map(([v, label]) => (
-                    <option key={v} value={v}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="ag-actions">
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    replace(example(preset), "Open example scaffold?")
-                  }
-                >
-                  Open scaffold
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    replace(
-                      create(d.rows.length, d.columns.length),
-                      "Open a blank grid?",
-                    )
-                  }
-                >
-                  Blank grid
-                </button>
-              </div>
-              <details>
-                <summary>Past-paper examples</summary>
-                <p className="ag-note">
-                  Adapted grid steps for November 2018, Paper 2F, question 26.
-                  The original question has no grid.
-                </p>
-                <a
-                  href="?tool=question-bank&question=1MA1_NOV_2018_2F_Q26"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open source question ↗
-                </a>
-                <div className="ag-actions">
-                  <button
-                    disabled={blocked}
-                    onClick={() =>
-                      replace(example("source-expand"), "Open Q26(a) scaffold?")
-                    }
-                  >
-                    Q26(a): expand
-                  </button>
-                  <button
-                    disabled={blocked}
-                    onClick={() =>
-                      replace(example("source-factor"), "Open Q26(b) scaffold?")
-                    }
-                  >
-                    Q26(b): factorise
-                  </button>
-                </div>
-              </details>
-            </section>
+
             <details className="panel-card ag-panel">
               <summary>Notation and help</summary>
               <p>

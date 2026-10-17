@@ -3,6 +3,8 @@ import { Plus, X } from "lucide-react";
 import { equationFromPoints, parseNumericInput } from "../domain/equations";
 import type { LineEquation } from "../domain/equations";
 import type { StraightObject } from "../domain/types";
+import { parseLineInput } from "./lineInput";
+import { formatEquation } from "../domain/equations";
 
 interface EquationPanelProps {
   editing?: StraightObject;
@@ -39,6 +41,12 @@ export function EquationPanel({
   );
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [inputMethod, setInputMethod] = useState<"structured" | "typed">(
+    "structured",
+  );
+  const [typed, setTyped] = useState(
+    formatEquation(existing ?? { kind: "slope", slope: 1, intercept: 0 }),
+  );
   const changed = () => {
     setPending(true);
     onPending(true);
@@ -55,11 +63,23 @@ export function EquationPanel({
       setIntercept(String(next.intercept));
     } else if (next?.kind === "vertical") setVerticalX(String(next.x));
     setShowEquation(editing?.equationVisible ?? true);
+    setTyped(formatEquation(next ?? { kind: "slope", slope: 1, intercept: 0 }));
+    setPending(false);
     setError("");
   }, [editing]);
 
   function submit() {
     if (disabled) return;
+    if (inputMethod === "typed") {
+      try {
+        const equation = parseLineInput(typed);
+        onPending(false);
+        onSubmit(equation, showEquation);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : String(cause));
+      }
+      return;
+    }
     if (mode === "vertical") {
       const x = parseNumericInput(verticalX);
       if (x === null) {
@@ -116,82 +136,133 @@ export function EquationPanel({
         </button>
       </div>
       <div
-        className="segmented equation-modes"
+        className="segmented equation-input-method"
         role="group"
-        aria-label="Equation form"
+        aria-label="Equation entry method"
       >
         <button
-          className={mode === "slope" ? "active" : ""}
           disabled={disabled || pending}
-          onClick={() => setMode("slope")}
+          aria-pressed={inputMethod === "typed"}
+          onClick={() => setInputMethod("typed")}
         >
-          y = mx + c
+          Type equation
         </button>
         <button
-          className={mode === "vertical" ? "active" : ""}
           disabled={disabled || pending}
-          onClick={() => setMode("vertical")}
+          aria-pressed={inputMethod === "structured"}
+          onClick={() => setInputMethod("structured")}
         >
-          x = a
+          Use m and c
         </button>
       </div>
-      {mode === "slope" ? (
-        <div className="equation-fields">
-          <span className="math-prefix">y =</span>
+      {inputMethod === "typed" ? (
+        <div className="quick-input-panel">
           <label>
-            <span className="sr-only">Gradient m</span>
+            Line equation
             <input
-              value={slope}
+              aria-label="Line equation"
+              aria-describedby={
+                error
+                  ? "graph-equation-help graph-equation-error"
+                  : "graph-equation-help"
+              }
+              value={typed}
+              maxLength={161}
               aria-invalid={!!error}
-              aria-describedby={error ? "graph-equation-error" : undefined}
               disabled={disabled}
               onChange={(event) => {
-                setSlope(event.target.value);
+                setTyped(event.target.value);
                 changed();
               }}
-              inputMode="decimal"
-              aria-label="Gradient m"
             />
-            <small>m</small>
           </label>
-          <span className="math-symbol">x +</span>
-          <label>
-            <span className="sr-only">Intercept c</span>
-            <input
-              value={intercept}
-              aria-invalid={!!error}
-              aria-describedby={error ? "graph-equation-error" : undefined}
-              disabled={disabled}
-              onChange={(event) => {
-                setIntercept(event.target.value);
-                changed();
-              }}
-              inputMode="decimal"
-              aria-label="Intercept c"
-            />
-            <small>c</small>
-          </label>
+          <p>
+            For example y = 2x + 1 or x = -3.{" "}
+            <a href="?tool=value-table-graph">Open Plotting quadratics</a> for
+            quadratic resources; this graph stays saved.
+          </p>
         </div>
       ) : (
-        <div className="equation-fields equation-fields--vertical">
-          <span className="math-prefix">x =</span>
-          <label>
-            <span className="sr-only">Value a</span>
-            <input
-              value={verticalX}
-              aria-invalid={!!error}
-              aria-describedby={error ? "graph-equation-error" : undefined}
-              disabled={disabled}
-              onChange={(event) => {
-                setVerticalX(event.target.value);
-                changed();
-              }}
-              inputMode="decimal"
-              aria-label="Value a"
-            />
-            <small>a</small>
-          </label>
-        </div>
+        <>
+          <div
+            className="segmented equation-modes"
+            role="group"
+            aria-label="Equation form"
+          >
+            <button
+              className={mode === "slope" ? "active" : ""}
+              disabled={disabled || pending}
+              onClick={() => setMode("slope")}
+            >
+              y = mx + c
+            </button>
+            <button
+              className={mode === "vertical" ? "active" : ""}
+              disabled={disabled || pending}
+              onClick={() => setMode("vertical")}
+            >
+              x = a
+            </button>
+          </div>
+          {mode === "slope" ? (
+            <div className="equation-fields">
+              <span className="math-prefix">y =</span>
+              <label>
+                <span className="sr-only">Gradient m</span>
+                <input
+                  value={slope}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "graph-equation-error" : undefined}
+                  disabled={disabled}
+                  onChange={(event) => {
+                    setSlope(event.target.value);
+                    changed();
+                  }}
+                  inputMode="decimal"
+                  aria-label="Gradient m"
+                />
+                <small>m</small>
+              </label>
+              <span className="math-symbol">x +</span>
+              <label>
+                <span className="sr-only">Intercept c</span>
+                <input
+                  value={intercept}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "graph-equation-error" : undefined}
+                  disabled={disabled}
+                  onChange={(event) => {
+                    setIntercept(event.target.value);
+                    changed();
+                  }}
+                  inputMode="decimal"
+                  aria-label="Intercept c"
+                />
+                <small>c</small>
+              </label>
+            </div>
+          ) : (
+            <div className="equation-fields equation-fields--vertical">
+              <span className="math-prefix">x =</span>
+              <label>
+                <span className="sr-only">Value a</span>
+                <input
+                  value={verticalX}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "graph-equation-error" : undefined}
+                  disabled={disabled}
+                  onChange={(event) => {
+                    setVerticalX(event.target.value);
+                    changed();
+                  }}
+                  inputMode="decimal"
+                  aria-label="Value a"
+                />
+                <small>a</small>
+              </label>
+            </div>
+          )}
+        </>
       )}
       <label className="check-row">
         <input

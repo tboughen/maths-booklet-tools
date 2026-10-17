@@ -41,3 +41,6 @@ Briefly identify which principles shape the proposed design, then use the task's
 ## Handover
 
 State what changed, the actual checks and results, repository/branch/PR where known, remaining decisions and the exact completed release stages. Use the guide's acceptance checklist and explain meaningful deviations. When improving a reusable convention, update the canonical guidance and any portable skill copies delivered with it.
+
+
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](../../../docs/BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.

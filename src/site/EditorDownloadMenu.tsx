@@ -216,17 +216,25 @@ export function EditorDownloadMenu({
         }
       }}
     >
-      {actions.map((item) => (
+      {actions.map((item, index) => (
         <div key={item.label}>
           {item.separator && <div role="separator" />}
           <button
             role="menuitem"
+            aria-label={item.label}
+            aria-describedby={
+              item.description ? `${id}-description-${index}` : undefined
+            }
             tabIndex={-1}
             disabled={busy || item.disabled}
             onClick={() => void invoke(item)}
           >
             <strong>{item.label}</strong>
-            {item.description && <small>{item.description}</small>}
+            {item.description && (
+              <small id={`${id}-description-${index}`}>
+                {item.description}
+              </small>
+            )}
           </button>
         </div>
       ))}

@@ -1,3 +1,4 @@
+import { showExamples, galleryCard, chooseExample } from "./example-gallery";
 import { test, expect } from "./release-fixtures";
 import type { Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -898,22 +899,20 @@ test("past-paper presets use the inspected source and actual question-bank link"
   page,
 }) => {
   await page.goto("/?tool=expanding-factorising");
-  await page.getByText("Past-paper examples", { exact: true }).click();
+  await showExamples(page);
   const popup = page.waitForEvent("popup");
-  await page.getByRole("link", { name: /Open source question/ }).click();
+  await galleryCard(page, "Q26(a): expand")
+    .getByRole("link", { name: "View source question", exact: true })
+    .click();
   const source = await popup;
   await expect(source.locator(".qb-source-heading")).toContainText(
     "November 2018 2F Q26",
   );
   await source.close();
-  await page
-    .getByRole("button", { name: "Q26(a): expand", exact: true })
-    .click();
+  await chooseExample(page, "Q26(a): expand");
   await page.getByRole("button", { name: "Apply replacement" }).click();
   expect((await saved(page)).document.expression).toBe("(5x+2)(2x-3)");
-  await page
-    .getByRole("button", { name: "Q26(b): factorise", exact: true })
-    .click();
+  await chooseExample(page, "Q26(b): factorise");
   await page.getByRole("button", { name: "Apply replacement" }).click();
   expect((await saved(page)).document.expression).toBe("x^2+4x+3");
 });

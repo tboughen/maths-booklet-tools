@@ -1,3 +1,4 @@
+import { fitResource } from "../site/useResourceFit";
 import { getExportMetrics } from "../export/svg";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
@@ -251,20 +252,25 @@ export function GraphCanvas({
     width: metrics.width * 0.6,
     height: metrics.height * 0.6,
   };
+  const compact = availableWidth < 600;
   const scale =
     zoom ||
-    Math.max(
-      0.35,
-      Math.min(
-        1.2,
-        (availableWidth - 264) / paper.width,
-        (availableHeight - 144) / paper.height,
-      ),
+    fitResource(
+      paper.width,
+      paper.height,
+      availableWidth,
+      availableHeight,
+      compact ? 168 : 264,
+      144,
     );
   const paperWidth = paper.width * scale,
     paperHeight = paper.height * scale;
-  const left = 120,
-    top = 72;
+  // Small/tall fitted artwork still needs room for native-size button pairs.
+  const controlWidth = Math.max(paperWidth, 104),
+    controlHeight = Math.max(paperHeight, compact ? 112 : 64),
+    gutter = compact ? 72 : 120,
+    left = gutter + (controlWidth - paperWidth) / 2,
+    top = 72 + (controlHeight - paperHeight) / 2;
   const axisX =
     left + (coordinateToSvg({ x: 0, y: 0 }, layout).x - paper.x) * scale;
   const axisY =
@@ -283,14 +289,17 @@ export function GraphCanvas({
       axis === "x"
         ? end === "negative"
           ? 8
-          : left + paperWidth + 12
-        : Math.max(8, Math.min(left + paperWidth + 12, axisX - 50)),
+          : gutter + controlWidth + 12
+        : Math.max(gutter, Math.min(gutter + controlWidth - 100, axisX - 50)),
     y:
       axis === "x"
-        ? Math.max(top, Math.min(top + paperHeight - 48, axisY - 24))
+        ? Math.max(
+            72,
+            Math.min(72 + controlHeight - (compact ? 100 : 48), axisY - 24),
+          )
         : end === "positive"
           ? 8
-          : top + paperHeight + 16,
+          : 72 + controlHeight + 16,
   }));
   const origin = coordinateToSvg({ x: 0, y: 0 }, layout);
   const horizontalSquares =
@@ -540,8 +549,11 @@ export function GraphCanvas({
   return (
     <div ref={stage} className="graph-stage" data-tool={tool}>
       <div
-        className="graph-board"
-        style={{ width: paperWidth + 240, height: paperHeight + 144 }}
+        className={`graph-board${compact ? " is-compact" : ""}`}
+        style={{
+          width: controlWidth + (compact ? 144 : 240),
+          height: controlHeight + 144,
+        }}
       >
         <svg
           ref={svgRef}
@@ -758,6 +770,7 @@ export function GraphCanvas({
         {controls.map(({ axis, end, x, y }) => (
           <div
             className="graph-axis-controls"
+            data-axis={axis}
             key={axis + end}
             style={{ left: x, top: y }}
             role="group"

@@ -1,3 +1,8 @@
+import { useResourceFit } from "../site/useResourceFit";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { vennGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
@@ -33,10 +38,6 @@ import {
   type Envelope,
   type Region,
 } from "../../packages/venn-core/src";
-import {
-  examples,
-  teachingExamples,
-} from "../../packages/venn-core/src/examples";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
@@ -45,7 +46,7 @@ import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
 
-const STORAGE = "maths-booklet-tools:venn:v1";
+const STORAGE = copyStorageKey("maths-booklet-tools:venn:v1");
 const arrangementNames: Record<Arrangement, string> = {
   overlap: "Overlap",
   separate: "Separate",
@@ -136,7 +137,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     [tab, setTab] = useState("Diagram"),
     [mode, setMode] = useState("edit"),
     [shade, setShade] = useState<Region["shade"]>("grey"),
-    [zoom, setZoom] = useState(1),
+    [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
@@ -152,6 +153,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     displayed = forView(e, view),
     g = layout(displayed),
     blocked = busy || recovery !== null || draft !== null || pending !== null;
+  const fitted = useResourceFit(
+    (g.width * 96) / 25.4,
+    (g.height * 96) / 25.4,
+    zoom,
+  );
   const issue = g.issues.join(" "),
     note = warnings(e);
   const nested = d.sets === 2 && arrangement(e).includes("inside");
@@ -580,20 +586,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               }}
             />
             <div className="vn-preview-bar">
-              <label>
-                Preview zoom
-                <select
-                  aria-label="Preview zoom"
-                  value={zoom}
-                  onChange={(ev) => setZoom(Number(ev.target.value))}
-                >
-                  {[0.6, 0.8, 1, 1.25, 1.5, 2].map((v) => (
-                    <option key={v} value={v}>
-                      {Math.round(v * 100)}%
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
               <label className="vn-answer-toggle">
                 <input
                   type="checkbox"
@@ -699,6 +692,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             </p>
             <div
               className="vn-scroll"
+              ref={fitted.ref}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget && !draft) setSelected(null);
               }}
@@ -707,8 +701,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 className="vn-resource"
                 data-testid="venn-resource"
                 style={{
-                  width: ((g.width * 96) / 25.4) * zoom,
-                  height: ((g.height * 96) / 25.4) * zoom,
+                  width: ((g.width * 96) / 25.4) * fitted.scale,
+                  height: ((g.height * 96) / 25.4) * fitted.scale,
                 }}
                 onClick={(ev) => {
                   if (blocked || (ev.target as HTMLElement).closest("button"))
@@ -823,6 +817,21 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Venn diagram settings">
+            <ExampleGallery
+              examples={vennGallery}
+              active={active}
+              disabled={blocked}
+              onUse={(resource, title) =>
+                replacement(resource, `Open ${title}?`)
+              }
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "venn",
+                  "maths-booklet-tools:venn:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card vn-inspector">
               {mode === "edit" && (
                 <div
@@ -1111,72 +1120,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 )}
               </div>
             </section>
-            <section className="panel-card vn-inspector">
-              <details>
-                <summary>Examples</summary>
-                {[
-                  {
-                    heading: "Teaching examples",
-                    note: "Original MathsDock examples. Scaffolds retain pupil blanks; Show saved answers reveals any supplied answers.",
-                    items: [
-                      ...teachingExamples.filter(
-                        (ex) => ex.id !== "reverse-nested",
-                      ),
-                      ...examples.filter((ex) => !ex.url),
-                    ],
-                  },
-                  {
-                    heading: "Exam questions",
-                    note: "Verified source links. Scaffolds retain pupil blanks; worked copies are an explicit choice.",
-                    items: examples.filter((ex) => ex.url),
-                  },
-                ].map((group) => (
-                  <div className="vn-example-group" key={group.heading}>
-                    <h3>{group.heading}</h3>
-                    <p className="vn-note">{group.note}</p>
-                    {group.items.map((ex) => (
-                      <article className="vn-example" key={ex.id}>
-                        <h4>
-                          {ex.id === "nested"
-                            ? "Nested sets · multiples of 4"
-                            : ex.title}
-                        </h4>
-                        <p>{ex.note}</p>
-                        <div>
-                          <button
-                            disabled={blocked}
-                            onClick={() =>
-                              replacement(
-                                ex.make(false),
-                                "Open " + ex.title + " scaffold?",
-                              )
-                            }
-                          >
-                            Open scaffold
-                          </button>
-                          <button
-                            disabled={blocked}
-                            onClick={() =>
-                              replacement(
-                                ex.make(true),
-                                "Open " + ex.title + " worked copy?",
-                              )
-                            }
-                          >
-                            Open worked copy
-                          </button>
-                        </div>
-                        {ex.url && (
-                          <a href={ex.url} target="_blank" rel="noreferrer">
-                            View source question ↗
-                          </a>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                ))}
-              </details>
-            </section>
+
             <section className="panel-card vn-inspector">
               <details>
                 <summary>Editing and printing help</summary>

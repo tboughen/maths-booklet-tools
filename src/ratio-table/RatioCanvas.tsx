@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
+import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import type { CSSProperties } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import {
@@ -71,26 +72,19 @@ export function RatioCanvas({
   const document = envelope.document,
     m = ratioMetrics(document);
   const stage = useRef<HTMLDivElement>(null);
-  const [availableWidth, setAvailableWidth] = useState(800);
-  useEffect(() => {
-    if (!stage.current) return;
-    const element = stage.current;
-    const observer = new ResizeObserver(() => {
-      const padding =
-        parseFloat(getComputedStyle(element).paddingLeft) +
-        parseFloat(getComputedStyle(element).paddingRight);
-      setAvailableWidth(element.clientWidth - padding - 16);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+  const available = useResourceViewport(stage);
+  const availableWidth = available.width;
   const edgeControlsWidth = availableWidth < 560 ? 0 : 170;
-  const physicalWidth = m.widthCm * 37.7952756;
+  const physicalWidth = (m.widthCm * 96) / 2.54;
   const displayZoom =
     zoom ||
-    Math.max(
-      1,
-      Math.min(2, (availableWidth - edgeControlsWidth) / physicalWidth),
+    fitResource(
+      physicalWidth,
+      (m.heightCm * 96) / 2.54,
+      available.width,
+      available.height,
+      edgeControlsWidth + 16,
+      availableWidth < 560 ? 150 : 80,
     );
   const position = (
     x: number,
