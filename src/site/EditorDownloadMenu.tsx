@@ -167,7 +167,7 @@ export function EditorDownloadMenu({
       id={id}
       className="resource-download-menu"
       role="menu"
-      aria-label="Download options"
+      aria-label="File"
       aria-busy={busy}
       style={position}
       onKeyDown={(e) => {

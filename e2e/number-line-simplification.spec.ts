@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
   );
   await page.reload();
 });
-test("default settings fit a compact panel with optional sections closed", async ({
+test("default settings show notation and scale within the inspector with optional sections closed", async ({
   page,
 }) => {
   await expect(page.getByRole("region", { name: "Selected item" })).toHaveCount(
@@ -40,7 +40,10 @@ test("default settings fit a compact panel with optional sections closed", async
   const box = await page
     .getByRole("complementary", { name: "Number line settings" })
     .boundingBox();
-  expect(box!.height).toBeLessThan(450);
+  await expect(
+    page.getByRole("textbox", { name: "Inequality or value", exact: true }),
+  ).toBeVisible();
+  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
   await page.screenshot({
     path: test.info().outputPath("compact-default.png"),
     fullPage: true,
@@ -163,9 +166,7 @@ test("toggled endpoints agree in actual SVG, print PNG, clipboard, Word HTML and
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await interval(page);
   await endpoint(page, "-2").click();
-  await page
-    .getByRole("button", { name: "Download options", exact: true })
-    .click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
   const outputs: Record<string, string> = {};
   for (const [label, filename] of [
     ["Download SVG", "toggled.svg"],
@@ -193,14 +194,10 @@ test("toggled endpoints agree in actual SVG, print PNG, clipboard, Word HTML and
     size.width,
     size.height,
   );
-  await page
-    .getByRole("button", { name: "Download options", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
-    .click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
+  await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await expect(
     page.getByText(/Image copied\. Paste with Ctrl\+V\./),
@@ -269,13 +266,11 @@ test("toggled endpoints agree in actual SVG, print PNG, clipboard, Word HTML and
     .getByRole("button", { name: "Open resource", exact: true })
     .click();
   await expect(resource(page).locator("circle")).toHaveCount(0);
-  await page
-    .locator('.nl-editor input[type="file"]')
-    .setInputFiles({
-      name: "toggled.json",
-      mimeType: "application/json",
-      buffer: await readFile(outputs["toggled.json"]),
-    });
+  await page.locator('.nl-editor input[type="file"]').setInputFiles({
+    name: "toggled.json",
+    mimeType: "application/json",
+    buffer: await readFile(outputs["toggled.json"]),
+  });
   await page
     .getByRole("button", { name: "Open resource", exact: true })
     .click();
@@ -377,11 +372,11 @@ test("invalid collapsed draft stays visible and blocks drawing and exports until
   await endpoint(page, "-2").click();
   await expect(circle(page, "-2")).toHaveAttribute("fill", "#111");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page.getByLabel("Width (cm)", { exact: true }).press("Escape");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("collapsed question settings preserve zero, hidden answers and pupil blanks through save and reload", async ({

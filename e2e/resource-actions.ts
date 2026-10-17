@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 /** Follow the same common menu route a person uses; successful actions close it. */
 export async function openResourceMenu(page: Page) {
   const trigger = page.getByRole("button", {
-    name: "Download options",
+    name: "File",
     exact: true,
   });
   if ((await trigger.getAttribute("aria-expanded")) !== "true")

@@ -65,7 +65,7 @@ Specify the default state, Enter/Escape/Tab behaviour, click-away selection clea
 Apply the [shared editor contract](BOOKLET-CONSISTENCY.md): common file/action labels, one bounded keyboard menu, retained invalid drafts with guarded exports, actual export dimensions and explicit hidden-answer link information. Identify compatibility/default rules separately for fresh browser resources, imported files and services.
 
 - **Print contract:** Dimensions, typography, line weights, margins and overflow behaviour.
-- **Exports:** Image-only Copy to clipboard first, Copy for Word, SVG, PNG and editable file; explain any variation from the existing pattern.
+- **Exports:** Image-only Copy image first, Copy for Word, SVG, PNG and editable file; explain any variation from the existing pattern.
 - **Saving:** Distinct storage key, document version, recovery and import confirmation.
 - **Compatibility:** Existing files or links to preserve and fixtures to prove it.
 - **Navigation:** What survives changing tools, reloads and browser Back/Forward.
@@ -101,4 +101,9 @@ Add cases for a clean snip area at every composition/zoom, actual image clipboar
 The brief does not grant implementation or deployment permission. Follow the current request and the repository's existing approval rules.
 
 
-For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, immediate worked-version replacement with one-step Undo and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+
+
+## Usability refinement, 17 October — local candidate
+
+Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.
