@@ -76,3 +76,8 @@ For this guide's baseline, repository main was [3e7c4d91](https://github.com/tbo
 ## Eight-editor usability pass, 17 October — local review candidate
 
 The local usability candidate puts renderer-derived examples at the start of all eight workflows, fits the complete resource in both screen dimensions, and supplies consistent preview and inspector navigation. Worked examples use separate browser documents. Number-line notation and straight-line equation input are bounded adapters to existing mathematical models. Core renderers, file versions and physical writing dimensions remain the compatibility boundary. See [the shared contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace). This is a local implementation record, not a merge or publication claim.
+
+
+## Follow-up usability refinement, 17 October — local candidate
+
+The follow-up retains white breathing room and exact exported margins, while giving the resource more space through measured preview sizing and simpler interface hierarchy. Triangle grouped editing moves beside the resource; mathematical input is initially visible. The toolbar uses Copy image, Copy for Word and an independent File menu with existing payloads. Tim explicitly changed worked-version behaviour: replace the current resource without confirmation and use one-step Undo/Redo, retaining earlier history. Older separate worked documents remain compatible. Existing search, thumbnails and scaffold replacement protections stay. This is an implementation record for local review, not a merge or publication claim.

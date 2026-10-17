@@ -1,0 +1,162 @@
+{
+  "graph": {
+    "source": "32fd4c53d5c9b263feb1b4b3b7fe1bcc23804ec5f77168be7210e8b67ad0980b",
+    "svg": "39b4ecb193cd04a43fef5e011047de130a83d4d1b34638670241bdbad2941319",
+    "png": "a5feb11ee41675f318e08886b098b823fbb4e5cab8107d9280461da399a20bfc",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 339.953125,
+      "y": 375,
+      "width": 257.09375,
+      "height": 251
+    },
+    "after": {
+      "x": 325.609375,
+      "y": 349,
+      "width": 285.765625,
+      "height": 279
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "ratio-table": {
+    "source": "7aa18e7b8cddf5b34d90a9a14633e617ff6464a3448a44551421b3a8712af685",
+    "svg": "f40fcf9cbdd737b6a37da8ad308fd1c7d03bcd953bd8061f1ff753baa80d056e",
+    "png": "defdb29a2a0afab98cea9a48abd869dbc478b79f474cab31d47ec8ce45075ddd",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 252.171875,
+      "y": 420.5,
+      "width": 267,
+      "height": 267
+    },
+    "after": {
+      "x": 258.171875,
+      "y": 394.5,
+      "width": 255,
+      "height": 255
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "value-table-graph": {
+    "source": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",
+    "svg": "8a68efc7be80a9ad679ea724f5d6cbc07cfc8b2604b4c6cdc3da766048b75639",
+    "png": "5e09248a30918e6c3f93fbbd033d31573e608246a5a5ef373e421d8ec0206fe0",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 342.546875,
+      "y": 427.5,
+      "width": 167.890625,
+      "height": 231
+    },
+    "after": {
+      "x": 332.75,
+      "y": 356,
+      "width": 187.5,
+      "height": 258
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "cuboids": {
+    "source": "4616db56d0be2f2ab7efaac97dca0d681cafc463fb59bd50031d286b3aa2f22e",
+    "svg": "f3effc8446550a04b39c46de6fcb614c55f77e19c5f67abfdffc705a9f1a991c",
+    "png": "97523e2f70c78216285e3b39265f227a02f0e95e0eeae2623bb97f8ddad0f6a5",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 213.421875,
+      "y": 354,
+      "width": 510.15625,
+      "height": 315
+    },
+    "after": {
+      "x": 209.375,
+      "y": 324,
+      "width": 518.25,
+      "height": 320
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "number-line": {
+    "source": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
+    "svg": "3661200c8f08f86e1f78ebd5dc4cca9d243310faa73ca62628f178d0556ab0a0",
+    "png": "b410d8408792f7784403293c613d3c046f1bf45b57c9c58dd3f5af516c166e07",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 93,
+      "y": 327,
+      "width": 751,
+      "height": 123.375
+    },
+    "after": {
+      "x": 93,
+      "y": 301,
+      "width": 751,
+      "height": 123.375
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "venn": {
+    "source": "a6bacf81728839fe9b3e38df9bfcb1f415a282e40d622bb18be02beb20d06fc4",
+    "svg": "477c4ea56711683dab3ebe3ee1eed9e82de96dbd5784a2163f55b28107954efa",
+    "png": "93f61938f0e1ac2b53cfc1d3a111b7d20d5e41fdacabfb98c7c5cec5cfe97165",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 262.375,
+      "y": 495,
+      "width": 412.234375,
+      "height": 292
+    },
+    "after": {
+      "x": 262.375,
+      "y": 305,
+      "width": 412.234375,
+      "height": 292
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "triangle": {
+    "source": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
+    "svg": "ecc80667dd9a88aa926de90c46bac28f316cafdf37802389f4bd6977f1825c1e",
+    "png": "588a3c746b8b93ba3c1ff014e9feed3846a833bdd56abd0996d7f70f94ce1a36",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 281.46875,
+      "y": 351.1875,
+      "width": 374.0625,
+      "height": 257.8125
+    },
+    "after": {
+      "x": 262.46875,
+      "y": 325,
+      "width": 412.0625,
+      "height": 284
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  },
+  "expanding-factorising": {
+    "source": "73528044ff6dbf2bd18bcf3b8c2427e217dd42ce5ca926ea4b0fc463c8fc7047",
+    "svg": "c7189b84a12376337b86edeb9263e6958cdfd17df788b90547f1d52fa2161400",
+    "png": "9bb6f9eaa712551d192f79f77e2c506a44b9dce6b2ea35d0540f06bf0c869060",
+    "svgEqual": true,
+    "pngEqual": true,
+    "before": {
+      "x": 314,
+      "y": 410,
+      "width": 199,
+      "height": 199
+    },
+    "after": {
+      "x": 314.5,
+      "y": 384,
+      "width": 198,
+      "height": 198
+    },
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+  }
+}

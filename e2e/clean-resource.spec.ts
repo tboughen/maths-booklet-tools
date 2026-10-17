@@ -146,7 +146,7 @@ for (const tool of ["graph", "ratio-table", "value-table-graph"]) {
       Object.fromEntries(Object.entries(localStorage)),
     );
     await current
-      .getByRole("button", { name: "Copy to clipboard", exact: true })
+      .getByRole("button", { name: "Copy image", exact: true })
       .click();
     await expect(
       current.getByRole("status").filter({ hasText: /Image copied/ }),
@@ -176,7 +176,7 @@ for (const tool of ["graph", "ratio-table", "value-table-graph"]) {
       current.getByRole("button", { name: "Copy for Word", exact: true }),
     ).toBeEnabled();
     await current
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: /Download PNG/ }).click();
@@ -198,13 +198,13 @@ test("denied image copy offers a fallback and invalid drafts cannot copy", async
     }),
   );
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText(
     "Use Copy for Word or Download PNG",
   );
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await page
     .getByRole("button", { name: "Edit y for column 1", exact: true })
@@ -213,7 +213,7 @@ test("denied image copy offers a fallback and invalid drafts cannot copy", async
     .getByRole("textbox", { name: "Edit y for column 1", exact: true })
     .fill("invalid");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),

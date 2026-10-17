@@ -19,11 +19,10 @@ export function ExampleGallery<T>({
   active: boolean;
   disabled: boolean;
   onUse: (resource: T, title: string) => void;
-  onWorked: (resource: T, title: string) => string;
+  onWorked: (resource: T, title: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
-  const [copyLink, setCopyLink] = useState("");
   const trigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -45,7 +44,6 @@ export function ExampleGallery<T>({
           className="example-launch-button"
           onClick={() => {
             setError("");
-            setCopyLink("");
             setOpen(true);
           }}
         >
@@ -84,10 +82,7 @@ export function ExampleGallery<T>({
             <header>
               <div>
                 <h2 id={titleId}>Start from an example</h2>
-                <p>
-                  Choose a pupil resource to edit. Worked copies open
-                  separately.
-                </p>
+                <p>Choose a pupil resource or a worked version.</p>
               </div>
               <button onClick={() => close()}>Close</button>
             </header>
@@ -176,13 +171,10 @@ export function ExampleGallery<T>({
                                 disabled={disabled}
                                 onClick={() => {
                                   try {
-                                    setCopyLink(
-                                      onWorked(
-                                        example.make(true),
-                                        example.title,
-                                      ),
-                                    );
+                                    const resource = example.make(true);
+                                    onWorked(resource, example.title);
                                     setError("");
+                                    close();
                                   } catch (cause) {
                                     setError(
                                       cause instanceof Error
@@ -192,7 +184,7 @@ export function ExampleGallery<T>({
                                   }
                                 }}
                               >
-                                {example.workedLabel ?? "Open worked copy"}
+                                {example.workedLabel ?? "Use worked version"}
                               </button>
                             ) : (
                               <p className="example-unavailable">
@@ -207,22 +199,9 @@ export function ExampleGallery<T>({
                   </div>
                 </section>
               ))}
-            {(error || copyLink) && (
+            {error && (
               <footer aria-live="polite">
                 {error && <p role="alert">{error}</p>}
-                {copyLink && (
-                  <p>
-                    The separate worked copy is saved.{" "}
-                    <a
-                      href={copyLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open worked copy if it did not open
-                    </a>
-                    . Your pupil resource is unchanged.
-                  </p>
-                )}
               </footer>
             )}
           </dialog>,

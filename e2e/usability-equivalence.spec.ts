@@ -14,6 +14,7 @@ test("typed and structured Graph inputs produce the same actual SVG and 600ppi p
   await page
     .getByRole("button", { name: "Line by equation", exact: true })
     .click();
+  await page.getByRole("button", { name: "Use m and c", exact: true }).click();
   await page
     .getByRole("textbox", { name: "Gradient m", exact: true })
     .fill("1/2");
@@ -72,9 +73,6 @@ test("notation and direct interval drawing produce equal real pupil exports", as
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page
-    .getByRole("button", { name: "Enter inequality or value", exact: true })
-    .click();
-  await page
     .getByRole("textbox", { name: "Inequality or value", exact: true })
     .fill("-3 < x <= 1");
   await page
@@ -87,86 +85,51 @@ test("notation and direct interval drawing produce equal real pupil exports", as
   expect(await download(page, "Download SVG")).toEqual(svg);
   expect(await download(page, "Download PNG (600 ppi)")).toEqual(png);
 });
-test("blocked worked popup has a retry link; another worked tab remains independent after reload", async ({
+test("legacy separate worked documents retain their storage and navigation context", async ({
   page,
-  context,
 }) => {
   await page.goto("/?tool=graph");
-  const key = "maths-booklet-tools:graph-envelope:v1";
+  const key = "maths-booklet-tools:graph-envelope:v1",
+    id = "11111111-1111-4111-8111-111111111111";
   await expect
     .poll(() => page.evaluate((k) => localStorage.getItem(k), key))
     .not.toBeNull();
   const original = await page.evaluate((k) => localStorage.getItem(k), key);
+  const copyKey = key + ":worked:" + id;
+  await page.evaluate(
+    ({ copyKey, original }) => localStorage.setItem(copyKey, original!),
+    { copyKey, original },
+  );
+  await page.goto("/?tool=graph&resourceCopy=" + id);
+  await expect(
+    page.getByText("Separate worked copy", { exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Start from an example", exact: true })
     .click();
-  await page.evaluate(() => {
-    window.open = () => null;
-  });
   await page
     .locator(".example-card")
     .first()
-    .getByRole("button", { name: "Open worked copy", exact: true })
+    .getByRole("button", { name: "Use worked version", exact: true })
     .click();
-  const retry = page.getByRole("link", {
-    name: "Open worked copy if it did not open",
-    exact: true,
-  });
-  await expect(retry).toBeVisible();
-  const opening = context.waitForEvent("page");
-  await retry.click();
-  const copy = await opening;
-  await copy.waitForLoadState();
-  await copy
-    .getByRole("button", { name: "Start from an example", exact: true })
-    .click();
-  const nextOpening = context.waitForEvent("page");
-  await copy
-    .locator(".example-card")
-    .last()
-    .getByRole("button", { name: "Open worked copy", exact: true })
-    .click();
-  const next = await nextOpening;
-  await next.waitForLoadState();
-  expect(new URL(next.url()).searchParams.get("resourceCopy")).not.toBe(
-    new URL(copy.url()).searchParams.get("resourceCopy"),
-  );
-  const copyKey =
-    key + ":worked:" + new URL(next.url()).searchParams.get("resourceCopy");
-  const saved = await next.evaluate((k) => localStorage.getItem(k), copyKey);
-  expect(saved).not.toBeNull();
-  await next.reload();
   await expect
-    .poll(() => next.evaluate((k) => localStorage.getItem(k), copyKey))
-    .toBe(saved);
+    .poll(() => page.evaluate((k) => localStorage.getItem(k), copyKey))
+    .not.toBe(original);
+  const worked = await page.evaluate((k) => localStorage.getItem(k), copyKey);
   expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe(
     original,
   );
-  await copy
-    .locator("dialog.example-gallery[open]")
-    .getByRole("button", { name: "Close", exact: true })
-    .click();
-  const firstCopyId = new URL(copy.url()).searchParams.get("resourceCopy");
-  const firstCopyKey = key + ":worked:" + firstCopyId;
-  const firstSaved = await copy.evaluate(
-    (k) => localStorage.getItem(k),
-    firstCopyKey,
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate((k) => localStorage.getItem(k), copyKey))
+    .toBe(worked);
+  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
+  await page.reload();
+  await page.getByRole("link", { name: "Graph tool", exact: true }).click();
+  expect(await page.evaluate((k) => localStorage.getItem(k), copyKey)).toBe(
+    worked,
   );
-  await copy.getByRole("link", { name: "Ratio tables", exact: true }).click();
-  expect(new URL(copy.url()).searchParams.get("resourceCopy")).toBe(
-    firstCopyId,
-  );
-  await expect(
-    copy.locator(".site-page:not([hidden]) .worked-copy-badge"),
-  ).toBeVisible();
-  await copy.reload();
-  await copy.getByRole("link", { name: "Graph tool", exact: true }).click();
-  expect(
-    await copy.evaluate((k) => localStorage.getItem(k), firstCopyKey),
-  ).toBe(firstSaved);
-  expect(await copy.evaluate((k) => localStorage.getItem(k), key)).toBe(
+  expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe(
     original,
   );
-  await next.close();
-  await copy.close();
 });

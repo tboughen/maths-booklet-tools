@@ -25,7 +25,7 @@ When running from a portable installation, prefer the current versions in an acc
 - Include an actual output preview on every new tool's All tools card while preserving its small icon. Follow [All tools card previews](../../../docs/TOOL-CARD-PREVIEWS.md) for editable examples, renderer-derived SVGs, registry integration and responsive acceptance checks.
 - Keep the white resource rectangle clean for snipping; visible utilities belong beyond it in blue space, aligned with their effect.
 - Include editable examples linked to verified past-paper questions wherever suitable sources exist, preserving pupil blanks and making worked variants explicit.
-- Put image-only Copy to clipboard first, keeping Copy for Word for physical-size insertion and a download fallback.
+- Put image-only Copy image first, keeping Copy for Word for physical-size insertion and a download fallback.
 - Group structural controls beside their effect and pair adding with removing. Keep Copy for Word prominent. Check the largest supported structure and focused inputs on narrow screens.
 - Distinguish mathematical content, teaching presentation and temporary editor state. Preserve empty cells, answer lines and zero as different states. Supply answers only through an explicit requested calculation action.
 - Use one stored value for representations that share meaning. A repeated scaling factor must stay synchronized without silently changing the table values.
@@ -43,4 +43,9 @@ Briefly identify which principles shape the proposed design, then use the task's
 State what changed, the actual checks and results, repository/branch/PR where known, remaining decisions and the exact completed release stages. Use the guide's acceptance checklist and explain meaningful deviations. When improving a reusable convention, update the canonical guidance and any portable skill copies delivered with it.
 
 
-For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](../../../docs/BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](../../../docs/BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, immediate worked-version replacement with one-step Undo and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+
+
+## Usability refinement, 17 October — local candidate
+
+Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.

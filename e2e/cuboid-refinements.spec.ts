@@ -21,7 +21,7 @@ async function input(p: Page, name: string, value: string) {
 }
 async function load(p: Page, e: ReturnType<typeof create>) {
   await p
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   await clickResourceAction(p, "Open editable file");
   await p.getByLabel("Open cuboids file", { exact: true }).setInputFiles({
@@ -50,7 +50,7 @@ test("a valid floating draft can be cancelled without a blur committing it", asy
   await expect(resource(page)).toContainText("4 cm");
   await expect(resource(page)).not.toContainText("9 cm");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("invalid floating drafts survive navigation while inactive overlays stay hidden", async ({
@@ -76,7 +76,7 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
     page.getByRole("textbox", { name: "Edit width", exact: true }),
   ).toHaveValue("bad");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
 });
@@ -143,7 +143,7 @@ test("starting afresh after protected recovery clears an invalid draft deliberat
   await (await dl).saveAs(join(report, "exports/newer-tab-recovery.json"));
   await page.getByRole("button", { name: "Start afresh", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await tab(page, "Shape");
   await expect(
@@ -218,7 +218,7 @@ test("invalid floating input remains visible, cancels safely and restores focus"
     page.getByRole("textbox", { name: "Edit height", exact: true }),
   ).toHaveAttribute("aria-invalid", "true");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page.setViewportSize({ width: 375, height: 300 });
   const dialog = page.getByRole("dialog", { name: "Edit height", exact: true });
@@ -240,7 +240,7 @@ test("invalid floating input remains visible, cancels safely and restores focus"
     }),
   ).toBeFocused();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("a scrolled-away full-height editor docks and retains its invalid draft", async ({
@@ -372,7 +372,7 @@ test("shading and area save through editable exports and real greyscale image do
   await tab(page, "Shading");
   await page.getByRole("button", { name: "Grey faces", exact: true }).click();
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   for (const [name, file] of [
     ["Download PNG (600 ppi)", "grey-faces.png"],
@@ -391,13 +391,13 @@ test("shading and area save through editable exports and real greyscale image do
   await page.getByRole("button", { name: "One face", exact: true }).click();
   await page.getByLabel("Area label", { exact: true }).selectOption("value");
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(page.locator(".resource-feedback")).toContainText(
     /Image copied\. Paste with Ctrl\+V\./,
   );
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   for (const [name, file] of [
     ["Download PNG (600 ppi)", "base-area.png"],

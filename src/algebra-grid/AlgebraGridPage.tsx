@@ -1,7 +1,7 @@
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { algebraGallery } from "../examples/galleryCatalogue";
-import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -387,22 +387,8 @@ export default function AlgebraGridPage({
   function openWorked() {
     if (blocked) return;
     try {
-      const n = workedCopy(e),
-        id = crypto.randomUUID(),
-        key = STORAGE + ":copy:" + id;
-      localStorage.setItem(key, canonical(n));
-      const url = new URL(location.href);
-      url.search = `?tool=expanding-factorising&algebraCopy=${id}`;
-      url.hash = "";
-      if (!window.open(url.href, "_blank")) {
-        setMessage(
-          "The worked copy is saved. Allow pop-ups and try again, or download its editable file.",
-        );
-        downloadEditable(n);
-      } else
-        setMessage(
-          "Worked copy opened in a separate tab. Your pupil scaffold is preserved.",
-        );
+      commit(workedCopy(e));
+      setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
       setMessage(errorText(err));
     }
@@ -853,13 +839,7 @@ export default function AlgebraGridPage({
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "expanding-factorising",
-                  "maths-booklet-tools:algebra-grid:v1",
-                  canonical(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
             <section className="panel-card ag-panel">
               <h2>Teaching resource</h2>
@@ -980,12 +960,11 @@ export default function AlgebraGridPage({
                   Blank grid
                 </button>
                 <button disabled={blocked} onClick={openWorked}>
-                  Create worked copy ↗
+                  Use worked version
                 </button>
               </div>
               <p className="ag-note">
-                Calculations use saved entries, including hidden answers. A
-                worked copy opens separately.
+                Calculations use saved entries, including hidden answers.
               </p>
             </section>
             <section className="panel-card ag-panel">

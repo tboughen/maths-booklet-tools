@@ -33,9 +33,9 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         "Undo",
         "Redo",
         tool === "graph" ? "Reset diagram" : "Reset",
-        "Copy to clipboard",
+        "Copy image",
         "Copy for Word",
-        "Download options",
+        "File",
       ]);
       await expect(
         current
@@ -57,7 +57,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
       if (commonStyle) expect(style).toEqual(commonStyle);
       else commonStyle = style;
       await bar
-        .getByRole("button", { name: "Download options", exact: true })
+        .getByRole("button", { name: "File", exact: true })
         .click();
       const popover = page.getByRole("menu");
       await expect(popover).toBeVisible();
@@ -76,7 +76,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
       );
       await lastAction.press("Escape");
       await expect(
-        bar.getByRole("button", { name: "Download options", exact: true }),
+        bar.getByRole("button", { name: "File", exact: true }),
       ).toHaveAttribute("aria-expanded", "false");
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),

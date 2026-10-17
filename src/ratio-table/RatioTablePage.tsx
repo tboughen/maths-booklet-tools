@@ -3,7 +3,6 @@ import {
   ratioGallery,
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
-import { openWorkedDocument } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -18,7 +17,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, MousePointer2, Type } from "lucide-react";
 import {
   applyRatioOperations,
-  canonicalRatio,
   decodeRatio,
   describeRatio,
   emptyRatioTable,
@@ -705,13 +703,7 @@ export default function RatioTablePage({
               active={active}
               disabled={exportDisabled || !!pending}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "ratio-table",
-                  "maths-booklet-tools:ratio-table-envelope:v1",
-                  canonicalRatio(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card specialist-tools">
