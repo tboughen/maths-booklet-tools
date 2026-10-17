@@ -50,7 +50,7 @@ test("hollow existing points can be joined without losing other points; Undo and
     "white",
   );
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const event = page.waitForEvent("download");
   await clickResourceAction(page, "Save editable file");
@@ -61,7 +61,7 @@ test("hollow existing points can be joined without losing other points; Undo and
   expect(saved.document.solution.points).toHaveLength(3);
   expect(saved.document.solution.points[0].included).toBe(false);
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   await page.getByRole("button", { name: /^Endpoint -2,/ }).click();
   await page.screenshot({

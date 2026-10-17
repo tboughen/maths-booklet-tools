@@ -1,7 +1,7 @@
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
-import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -602,34 +602,30 @@ export default function ValueGraphPage({
     ]);
   }
   function workedCopy() {
-    ask(
-      "Create a separate worked version?",
-      "Your pupil resource remains saved with its unanswered cells. The worked copy opens separately.",
-      () => {
-        const next = apply(envelope, [
-          { op: "calculate_cells", columnIds: ids, overwrite: true },
-          {
-            op: "plot_series",
-            id: "points",
-            source: "table",
-            columnIds: ids,
-            connection: "none",
+    act(() => {
+      const next = apply(envelope, [
+        { op: "calculate_cells", columnIds: ids, overwrite: true },
+        {
+          op: "plot_series",
+          id: "points",
+          source: "table",
+          columnIds: ids,
+          connection: "none",
+        },
+        {
+          op: "set_curve",
+          curve: {
+            id: "quadratic",
+            equation: d.equation,
+            ...tableDomain(d.columns),
           },
-          {
-            op: "set_curve",
-            curve: {
-              id: "quadratic",
-              equation: d.equation,
-              ...tableDomain(d.columns),
-            },
-          },
-        ]);
-        const url = new URL(location.href);
-        url.searchParams.set("draft", uniqueId("worked-"));
-        window.open(editorLink(next, url.href), "_blank");
-      },
-    );
+        },
+      ]);
+      commit(next);
+      setMessage("Worked version applied. Undo restores your pupil resource.");
+    });
   }
+
   const option = (
     label: string,
     value: string,
@@ -856,7 +852,7 @@ export default function ValueGraphPage({
               Calculate whole row
             </button>
             <button disabled={blocked} onClick={workedCopy}>
-              Create separate worked version
+              Use worked version
             </button>
             {option(
               "Table number display",
@@ -1900,23 +1896,31 @@ export default function ValueGraphPage({
                 );
                 setExamplePreview(resource);
               }}
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "value-table-graph",
-                  "mathsdock:value-table-graph:v1",
-                  canonical(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
-            <section className="panel-card specialist-tools">
-              <h2>Table and graph tools</h2>
+            <section className="panel-card specialist-tools vg-workflow">
+              <h2>Table and graph</h2>
               <div className="specialist-actions">
+                <button
+                  disabled={blocked}
+                  onClick={(event) =>
+                    choose({ kind: "equation" }, event.currentTarget)
+                  }
+                >
+                  Equation
+                </button>
                 <button
                   disabled={blocked}
                   onClick={(e) => choose({ kind: "table" }, e.currentTarget)}
                 >
                   Table settings
                 </button>
+              </div>
+              <div
+                className="vg-workflow-primary"
+                role="group"
+                aria-label="Complete and plot"
+              >
                 <button
                   disabled={blocked}
                   onClick={() =>
@@ -1940,19 +1944,11 @@ export default function ValueGraphPage({
                 >
                   Fill blank values
                 </button>
-              </div>
-              <div className="specialist-actions">
                 <button
                   disabled={blocked}
                   onClick={(e) => choose({ kind: "plot" }, e.currentTarget)}
                 >
                   Plot table values
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={(e) => choose({ kind: "add" }, e.currentTarget)}
-                >
-                  Add point or segment
                 </button>
                 <button
                   disabled={blocked}
@@ -1969,38 +1965,46 @@ export default function ValueGraphPage({
                 >
                   Draw curve
                 </button>
-                <button
-                  disabled={blocked}
-                  onClick={(e) => choose({ kind: "graph" }, e.currentTarget)}
-                >
-                  Graph options
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={(e) => choose({ kind: "objects" }, e.currentTarget)}
-                >
-                  Select object
-                </button>
-                {mode === "point" && (
-                  <>
-                    <p>Click the grid to place a point.</p>
-                    <button onClick={() => setMode("select")}>
-                      Cancel placement
-                    </button>
-                  </>
-                )}
               </div>
-            </section>
-            <section className="panel-card specialist-tools">
-              <h2>Resource settings</h2>
-              <div className="specialist-actions">
-                <button
-                  disabled={blocked}
-                  onClick={(e) => choose({ kind: "layout" }, e.currentTarget)}
-                >
-                  Layout
-                </button>
+              <div className="vg-secondary-tools">
+                <h3>More graph tools</h3>
+                <div className="specialist-actions">
+                  <button
+                    disabled={blocked}
+                    onClick={(e) => choose({ kind: "add" }, e.currentTarget)}
+                  >
+                    Add point or segment
+                  </button>
+                  <button
+                    disabled={blocked}
+                    onClick={(e) => choose({ kind: "graph" }, e.currentTarget)}
+                  >
+                    Graph options
+                  </button>
+                  <button
+                    disabled={blocked}
+                    onClick={(e) =>
+                      choose({ kind: "objects" }, e.currentTarget)
+                    }
+                  >
+                    Select object
+                  </button>
+                  <button
+                    disabled={blocked}
+                    onClick={(e) => choose({ kind: "layout" }, e.currentTarget)}
+                  >
+                    Layout
+                  </button>
+                </div>
               </div>
+              {mode === "point" && (
+                <div>
+                  <p>Click the grid to place a point.</p>
+                  <button onClick={() => setMode("select")}>
+                    Cancel placement
+                  </button>
+                </div>
+              )}
             </section>
             {selection && !localSelection ? (
               <InspectorEditor
@@ -2012,13 +2016,9 @@ export default function ValueGraphPage({
                 <div key={JSON.stringify(selection)}>{contextContent()}</div>
               </InspectorEditor>
             ) : (
-              <section className="panel-card">
-                <h2>Edit resource</h2>
-                <p>
-                  Click the equation, a table cell, an axis label or a plotted
-                  object to edit it. Use the tools above for other settings.
-                </p>
-              </section>
+              <p className="inspector-hint">
+                Click a value or object to edit it.
+              </p>
             )}
           </aside>
         </section>

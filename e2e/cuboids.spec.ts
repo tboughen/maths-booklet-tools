@@ -44,15 +44,8 @@ async function useExample(
 ) {
   if (worked) {
     await showExamples(p);
-    const popup = p.waitForEvent("popup");
-    await galleryCard(p, title)
-      .getByRole("button", { name: "Open worked copy", exact: true })
-      .click();
-    const copy = await popup;
-    await copy.waitForLoadState();
-    const url = copy.url();
-    await copy.close();
-    await p.goto(url);
+    await galleryCard(p, title).getByRole("button", { name: "Use worked version", exact: true }).click();
+    await expect(p.locator('dialog.example-gallery[open]')).toHaveCount(0);
   } else {
     await chooseExample(p, title);
     await p
@@ -182,7 +175,7 @@ test("invalid draft blocks exports and remains correctable with Escape", async (
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("0");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
@@ -194,7 +187,7 @@ test("invalid draft blocks exports and remains correctable with Escape", async (
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("4");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("unit conversions retain physical shape and grid", async ({ page }) => {
@@ -335,7 +328,7 @@ test("editable file and editor link reopening require confirmation", async ({
   e.document.shapes[0].dimensions.height = "3";
   e.document.shapes[0].view = "layers";
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   await clickResourceAction(page, "Open editable file");
   await page.getByLabel("Open cuboids file", { exact: true }).setInputFiles({
@@ -361,7 +354,7 @@ test("real PNG SVG and clipboard outputs contain only monochrome artwork", async
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(page.locator(".resource-feedback")).toContainText(
     /Image copied\. Paste with Ctrl\+V\./,
@@ -378,7 +371,7 @@ test("real PNG SVG and clipboard outputs contain only monochrome artwork", async
     new Uint8Array(bytes),
   );
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   for (const [name, file] of [
     ["Download PNG (600 ppi)", "actual-grid.png"],
@@ -409,7 +402,7 @@ test("maximum separated structure remains complete and has no control overlap", 
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(20);
   expect(layout(e).minCell).toBeGreaterThanOrEqual(2);
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   for (const n of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width: n, height: 900 });
@@ -466,7 +459,7 @@ test("corrupt saved data is protected until recovery is downloaded", async ({
   );
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Start afresh", exact: true }),
@@ -478,7 +471,7 @@ test("corrupt saved data is protected until recovery is downloaded", async ({
   await (await download).saveAs(join(report, "exports/recovery.json"));
   await page.getByRole("button", { name: "Start afresh", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("newer-tab work is protected and storage failure offers editable saving", async ({
@@ -492,7 +485,7 @@ test("newer-tab work is protected and storage failure offers editable saving", a
     page.getByRole("button", { name: "Download recovery data", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   expect(
     await page.evaluate(
@@ -514,7 +507,7 @@ test("newer-tab work is protected and storage failure offers editable saving", a
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("three shapes, layer numbers and focused label editing fit narrow layouts", async ({
@@ -572,7 +565,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
     .getByRole("button", { name: "Use these cuboids", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const dl = page.waitForEvent("download", { timeout: 85000 });
   await clickResourceAction(page, "Download PNG (600 ppi)");
@@ -615,7 +608,7 @@ test("an invalid inline draft is protected from a second editor", async ({
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page
     .getByRole("textbox", { name: "Edit width", exact: true })

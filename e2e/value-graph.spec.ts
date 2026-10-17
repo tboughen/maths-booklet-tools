@@ -233,9 +233,7 @@ test("source grid, exam-size axis values and actual SVG/PNG downloads", async ({
       .first()
       .getAttribute("font-size"),
   ).toBe(String((12 * 25.4) / 72));
-  await page
-    .getByRole("button", { name: "Download options", exact: true })
-    .click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
   for (const format of ["SVG", "PNG (600 ppi)"]) {
     const waiting = page.waitForEvent("download");
     await clickResourceAction(page, `Download ${format}`);
@@ -468,36 +466,28 @@ test("newer valid draft is not overwritten and worked copies use separate storag
   await open(pupil); // The preserved external draft is intentionally invalid.
   await pupil.close();
 });
-test("worked copy keeps the pupil's saved blank cells", async ({ page }) => {
+test("worked version replaces immediately and restores pupil blank cells through Undo", async ({
+  page,
+}) => {
   await open(page);
+  const original = await stored(page);
   await page
     .getByRole("button", { name: "Table settings", exact: true })
     .click();
   await page
-    .getByRole("button", {
-      name: "Create separate worked version",
-      exact: true,
-    })
+    .getByRole("button", { name: "Use worked version", exact: true })
     .click();
-  const popupPromise = page.waitForEvent("popup");
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Continue", exact: true })
-    .click();
-  const popup = await popupPromise;
-  await popup.waitForLoadState();
-  await popup
-    .getByRole("dialog")
-    .getByRole("button", { name: "Continue", exact: true })
-    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(
-    (await stored(page)).document.columns.filter(
-      (c: { y: { kind: string } }) => c.y.kind === "blank",
+    (await stored(page)).document.columns.every(
+      (c: { y: { kind: string } }) => c.y.kind === "value",
     ),
-  ).toHaveLength(5);
-  await expect(popup.locator("[data-curve]")).toHaveCount(1);
-  await popup.close();
+  ).toBe(true);
+  await expect(page.locator("[data-curve]")).toHaveCount(1);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  expect(await stored(page)).toEqual(original);
 });
+
 test("paired axis controls extend the grid without enlarging the exam numbers", async ({
   page,
 }) => {

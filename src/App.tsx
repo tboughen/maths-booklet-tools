@@ -1,6 +1,5 @@
 import { ExampleGallery } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
-import { openWorkedDocument } from "./site/copyDocument";
 import { PreviewControls } from "./site/PreviewControls";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
 import { createEnvelope } from "../packages/graph-core/src/interchange";
@@ -97,6 +96,7 @@ export default function App({ active = true }: { active?: boolean }) {
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
   const [equationOpen, setEquationOpen] = useState(false);
+  const [equationRevision, setEquationRevision] = useState(0);
   const [editingEquationId, setEditingEquationId] = useState<string | null>(
     null,
   );
@@ -535,28 +535,12 @@ export default function App({ active = true }: { active?: boolean }) {
               active={active}
               disabled={blocked}
               onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "graph",
-                  "maths-booklet-tools:graph-envelope:v1",
-                  JSON.stringify(createEnvelope(resource, false)),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
-            <fieldset className="graph-control-group" disabled={blocked}>
-              <GraphTools
-                tool={tool}
-                onToolChange={(next) => {
-                  if (locked()) return;
-                  setTool(next);
-                  setEquationOpen(false);
-                  setEditingEquationId(null);
-                }}
-                onEquation={() => openEquationEditor()}
-              />
-            </fieldset>
-            {equationOpen ? (
+            {equationOpen || !selectedObject ? (
               <EquationPanel
+                key={`${editingEquationId ?? "new"}-${equationRevision}`}
+                persistent={!selectedObject && !equationOpen}
                 disabled={recoveryConflict || copying}
                 onPending={(pending) =>
                   pending
@@ -569,6 +553,7 @@ export default function App({ active = true }: { active?: boolean }) {
                   drafts.cancel("equation");
                   setEquationOpen(false);
                   setEditingEquationId(null);
+                  setEquationRevision((revision) => revision + 1);
                 }}
               />
             ) : (
@@ -581,6 +566,18 @@ export default function App({ active = true }: { active?: boolean }) {
                 onEditEquation={openEquationEditor}
               />
             )}
+            <fieldset className="graph-control-group" disabled={blocked}>
+              <GraphTools
+                tool={tool}
+                onToolChange={(next) => {
+                  if (locked()) return;
+                  setTool(next);
+                  setEquationOpen(false);
+                  setEditingEquationId(null);
+                }}
+                onEquation={() => openEquationEditor()}
+              />
+            </fieldset>
             <AxisSettings
               document={document}
               drafts={drafts}

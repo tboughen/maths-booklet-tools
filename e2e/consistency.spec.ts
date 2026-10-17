@@ -16,7 +16,6 @@ import { quadraticSources } from "../src/value-graph/examples";
 
 test("all five quadratic source links open the matching published question without replacing the resource", async ({
   page,
-  context,
 }, info) => {
   test.setTimeout(90000);
   await page.goto("/?tool=value-table-graph");
@@ -27,7 +26,7 @@ test("all five quadratic source links open the matching published question witho
       name: example.source,
       exact: true,
     });
-    const event = context.waitForEvent("page");
+    const event = page.context().waitForEvent("page");
     await card
       .getByRole("link", { name: "View source question", exact: true })
       .click();
@@ -109,7 +108,7 @@ const tools = [
 ];
 async function openMenu(page: Page) {
   const trigger = page.getByRole("button", {
-    name: "Download options",
+    name: "File",
     exact: true,
   });
   if ((await trigger.getAttribute("aria-expanded")) !== "true")
@@ -170,7 +169,7 @@ for (const tool of tools) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/?tool=${tool}`);
       const trigger = page.getByRole("button", {
-        name: "Download options",
+        name: "File",
         exact: true,
       });
       await trigger.focus();
@@ -224,10 +223,11 @@ for (const tool of tools) {
   });
   test(`${tool}: real files, both clipboard routes and editable round trip agree`, async ({
     page,
-    context,
   }, info) => {
     test.setTimeout(90000);
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto(`/?tool=${tool}`);
     const initial = await download(page, "Save editable file"),
       svg = await download(page, "Download SVG"),
@@ -263,11 +263,9 @@ for (const tool of tools) {
       page,
       "data:image/png;base64," + png.toString("base64"),
     );
-    await page
-      .getByRole("button", { name: "Copy to clipboard", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Copy image", exact: true }).click();
     await expect(
-      page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+      page.getByRole("button", { name: "Copy image", exact: true }),
     ).toBeEnabled();
     const image = await clipboard(page, "image/png");
     expect(await pixelHash(page, image)).toEqual(expected);
@@ -292,7 +290,7 @@ for (const tool of tools) {
     expect(word.height).toBe(dimensions.height);
     expect(await pixelHash(page, word.src)).toEqual(expected);
     const styles = await page
-      .getByRole("button", { name: "Copy to clipboard", exact: true })
+      .getByRole("button", { name: "Copy image", exact: true })
       .evaluate((el) => {
         const s = getComputedStyle(el);
         return { size: s.fontSize, weight: s.fontWeight };
@@ -341,6 +339,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
   await page
     .getByRole("button", { name: "Edit equation", exact: true })
     .click();
+  await page.getByRole("button", { name: "Use m and c", exact: true }).click();
   await openMenu(page);
   const gradient = page.getByRole("textbox", {
     name: "Gradient m",
@@ -355,9 +354,9 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
   ).toBeDisabled();
   await page.getByRole("heading", { level: 1 }).click();
   for (const name of [
-    "Copy to clipboard",
+    "Copy image",
     "Copy for Word",
-    "Download options",
+    "File",
     "Undo",
     "Redo",
     "Reset diagram",
@@ -367,7 +366,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     ).toBeDisabled();
   await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await page.getByRole("link", { name: "Graph tool", exact: true }).click();
   await expect(gradient).toHaveValue("1/0");
@@ -382,7 +381,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
   await x.press("Tab");
   await expect(x).toHaveValue("1/0");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await x.press("Escape");
   await expect(x).toHaveValue(before);
@@ -555,10 +554,9 @@ test("Graph precise ranges validate supported steps and pointer mapping survives
 
 test("Venn editable links preserve reverse nesting, Unicode and pupil state despite answer preview", async ({
   page,
-  context,
   browser,
 }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   const e = parseVenn(
     await readFile(
       "docs/venn-layout-examples/reverse-nested-scaffold.json",
@@ -663,9 +661,8 @@ test("new Graph documents are portable and an old legacy document keeps its font
   );
 });
 
-test("quadratic source cards keep scaffolds and intentional errors, and worked copies open separately", async ({
+test("quadratic source cards keep scaffolds and intentional errors, and worked versions replace with Undo", async ({
   page,
-  context,
 }, info) => {
   test.setTimeout(90000);
   await page.goto("/?tool=value-table-graph");
@@ -700,17 +697,15 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
         ),
       ).toBe(true);
     await showExamples(page);
-    const opened = context.waitForEvent("page");
     await card
       .getByRole("button", {
-        name: "Open worked copy",
+        name: "Use worked version",
         exact: true,
       })
       .click();
-    const worked = await opened;
-    await worked.waitForLoadState();
+
     const result = JSON.parse(
-      (await download(worked, "Save editable file")).toString(),
+      (await download(page, "Save editable file")).toString(),
     ).document;
     expect(
       result.columns.every(
@@ -719,8 +714,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
     ).toBe(true);
     expect(result.graph.series[0].connection).toBe("none");
     expect(result.graph.curves).toHaveLength(1);
-    await worked.close();
-    await closeExamples(page);
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
     expect(await download(page, "Save editable file")).toEqual(saved);
     await showExamples(page);
   }
@@ -732,7 +726,6 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
 
 test("Graph protects a newer tab's draft until its original bytes are backed up", async ({
   page,
-  context,
 }) => {
   await page.goto("/?tool=graph");
   await expect(
@@ -745,7 +738,7 @@ test("Graph protects a newer tab's draft until its original bytes are backed up"
       ),
     )
     .not.toBeNull();
-  const other = await context.newPage();
+  const other = await page.context().newPage();
   await other.goto(editorBase() + "?tool=graph");
   await other
     .getByRole("button", {
@@ -778,16 +771,15 @@ test("Graph protects a newer tab's draft until its original bytes are backed up"
   );
   expect(retained).toContain(newer);
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await other.close();
 });
 
 test("failed copy/link operations keep a useful fallback and valid-file saving survives storage refusal", async ({
   page,
-  context,
 }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/?tool=venn");
   await page.evaluate(() =>
     Object.defineProperty(navigator.clipboard, "writeText", {
@@ -885,7 +877,7 @@ test("busy link copying prevents duplicate requests and late completion cannot s
   await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
   await expect(page.getByRole("menu")).toHaveCount(0);
   const focus = page.getByRole("button", {
-    name: "Copy to clipboard",
+    name: "Copy image",
     exact: true,
   });
   await focus.focus();

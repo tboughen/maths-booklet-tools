@@ -1,7 +1,7 @@
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
-import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
@@ -600,96 +600,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               </label>
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
-            <div className="vn-structure">
-              <div
-                className="vn-mode-switch"
-                role="group"
-                aria-label="Diagram mode"
-              >
-                <button
-                  disabled={blocked}
-                  aria-pressed={mode === "edit"}
-                  onClick={() => {
-                    setMode("edit");
-                    setSelected(null);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  disabled={blocked}
-                  aria-pressed={mode === "shade"}
-                  onClick={() => {
-                    setMode("shade");
-                    setSelected(null);
-                  }}
-                >
-                  Shade
-                </button>
-              </div>
-              <span>
-                {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
-                {mode === "shade"
-                  ? "Click a region to shade or clear it"
-                  : "Click a region or label to edit"}
-              </span>
-              <label>
-                Number of sets
-                <select
-                  aria-label="Number of sets"
-                  disabled={blocked}
-                  value={d.sets}
-                  onChange={(ev) =>
-                    selectCount(Number(ev.target.value) as 1 | 2 | 3)
-                  }
-                >
-                  {[1, 2, 3].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            {d.sets === 2 && (
-              <div
-                className="vn-arrangements"
-                role="group"
-                aria-label="Set arrangement"
-              >
-                {layoutChoices.map((value) => (
-                  <button
-                    key={value}
-                    aria-pressed={
-                      value === "b-inside-a" ? nested : arrangement(e) === value
-                    }
-                    disabled={blocked}
-                    onClick={() =>
-                      selectArrangement(
-                        value === "b-inside-a" &&
-                          arrangement(e) === "a-inside-b"
-                          ? "a-inside-b"
-                          : value,
-                      )
-                    }
-                  >
-                    <ArrangementIcon
-                      value={
-                        value === "b-inside-a" && nested
-                          ? arrangement(e)
-                          : value
-                      }
-                    />
-                    <span>{arrangementNames[value]}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <p className="vn-view-note">
-              {view === "pupil"
-                ? "Pupil view · exports keep your pupil blanks and hidden answers."
-                : "Answer view · exports reveal saved answers only. Editable files keep the pupil settings."}
-            </p>
             <div
               className="vn-scroll"
               ref={fitted.ref}
@@ -824,14 +734,103 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "venn",
-                  "maths-booklet-tools:venn:v1",
-                  canonical(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
+            <section className="panel-card vn-layout-tools">
+              <h2>Diagram tools</h2>
+              <div className="vn-structure">
+                <div
+                  className="vn-mode-switch"
+                  role="group"
+                  aria-label="Diagram mode"
+                >
+                  <button
+                    disabled={blocked}
+                    aria-pressed={mode === "edit"}
+                    onClick={() => {
+                      setMode("edit");
+                      setSelected(null);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    disabled={blocked}
+                    aria-pressed={mode === "shade"}
+                    onClick={() => {
+                      setMode("shade");
+                      setSelected(null);
+                    }}
+                  >
+                    Shade
+                  </button>
+                </div>
+                <span>
+                  {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
+                  {mode === "shade"
+                    ? "Click a region to shade or clear it"
+                    : "Click a region or label to edit"}
+                </span>
+                <label>
+                  Number of sets
+                  <select
+                    aria-label="Number of sets"
+                    disabled={blocked}
+                    value={d.sets}
+                    onChange={(ev) =>
+                      selectCount(Number(ev.target.value) as 1 | 2 | 3)
+                    }
+                  >
+                    {[1, 2, 3].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {d.sets === 2 && (
+                <div
+                  className="vn-arrangements"
+                  role="group"
+                  aria-label="Set arrangement"
+                >
+                  {layoutChoices.map((value) => (
+                    <button
+                      key={value}
+                      aria-pressed={
+                        value === "b-inside-a"
+                          ? nested
+                          : arrangement(e) === value
+                      }
+                      disabled={blocked}
+                      onClick={() =>
+                        selectArrangement(
+                          value === "b-inside-a" &&
+                            arrangement(e) === "a-inside-b"
+                            ? "a-inside-b"
+                            : value,
+                        )
+                      }
+                    >
+                      <ArrangementIcon
+                        value={
+                          value === "b-inside-a" && nested
+                            ? arrangement(e)
+                            : value
+                        }
+                      />
+                      <span>{arrangementNames[value]}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="vn-view-note">
+                {view === "pupil"
+                  ? "Pupil view · exports keep your pupil blanks and hidden answers."
+                  : "Answer view · exports reveal saved answers only. Editable files keep the pupil settings."}
+              </p>
+            </section>
             <section className="panel-card vn-inspector">
               {mode === "edit" && (
                 <div

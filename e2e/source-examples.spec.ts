@@ -1,4 +1,4 @@
-import { showExamples, closeExamples } from "./example-gallery";
+import { showExamples } from "./example-gallery";
 import { test, expect } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import {
@@ -20,7 +20,6 @@ for (const [tool, examples, key, confirm] of [
 ] as const) {
   test(`${tool} source examples protect edits, preserve scaffolds and offer explicit worked output`, async ({
     page,
-    context,
   }, info) => {
     test.setTimeout(90000);
     await page.goto(`/?tool=${tool}`);
@@ -85,21 +84,11 @@ for (const [tool, examples, key, confirm] of [
         ).toBe(true);
       const scaffoldText = await stored();
       await showExamples(page);
-      const opening = context.waitForEvent("page");
       await card
-        .getByRole("button", { name: "Open worked copy", exact: true })
+        .getByRole("button", { name: "Use worked version", exact: true })
         .click();
-      const worked = await opening;
-      await worked.waitForLoadState();
-      const result = await worked.evaluate(
-        (base) =>
-          JSON.parse(
-            localStorage.getItem(
-              `${base}:worked:${new URL(location.href).searchParams.get("resourceCopy")}`,
-            )!,
-          ).document,
-        storageKey,
-      );
+      await expect.poll(stored).not.toBe(scaffoldText);
+      const result = JSON.parse((await stored())!).document;
       expect(
         tool === "graph"
           ? result.objects.length === 1
@@ -107,18 +96,15 @@ for (const [tool, examples, key, confirm] of [
               r.cells.every((c) => c.kind === "number"),
             ),
       ).toBe(true);
-      expect(await stored()).toBe(scaffoldText);
-      await worked.close();
-      await closeExamples(page);
+      await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await expect.poll(stored).toBe(scaffoldText);
       await page.getByRole("button", { name: "Undo", exact: true }).click();
       await expect.poll(stored).toBe(before);
       await page.getByRole("button", { name: "Redo", exact: true }).click();
       await expect
         .poll(async () => JSON.parse((await stored())!).document)
         .toEqual(scaffold);
-      await page
-        .getByRole("button", { name: "Download options", exact: true })
-        .click();
+      await page.getByRole("button", { name: "File", exact: true }).click();
       const downloading = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: /Download SVG/ }).click();
       const download = await downloading,
@@ -127,9 +113,7 @@ for (const [tool, examples, key, confirm] of [
       expect(svg).not.toMatch(
         /Use scaffold|Past-paper examples|axis-end-control/,
       );
-      await page
-        .getByRole("button", { name: "Download options", exact: true })
-        .click();
+      await page.getByRole("button", { name: "File", exact: true }).click();
       const preparingPng = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: /Download PNG/ }).click();
       const png = await preparingPng;

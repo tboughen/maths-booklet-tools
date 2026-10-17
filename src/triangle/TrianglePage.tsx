@@ -1,7 +1,7 @@
 import { fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
-import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import {
   useEffect,
@@ -463,18 +463,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   function fork(next: Envelope) {
     if (blocked) return;
     try {
-      const url = new URL(triangleEditorLink(workedCopy(next), location.href));
-      url.searchParams.set("triangleCopy", crypto.randomUUID());
-      const child = window.open("about:blank", "_blank");
-      if (!child)
-        throw Error(
-          "The browser blocked a new tab. Allow this site's worked-copy tab, or save an editable file.",
-        );
-      child.opener = null;
-      child.location.href = url.href;
-      setMessage(
-        "Worked copy opened in a separate tab. This pupil resource is unchanged.",
-      );
+      commit(workedCopy(next));
+      setShowAnswers(false);
+      setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
       setMessage(errorText(err));
     }
@@ -914,13 +905,13 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 disabled={blocked || !labels.some((v) => v.label.answer)}
                 onClick={() => fork(e)}
               >
-                Open worked copy
+                Use worked version
               </button>
             </div>
             {showAnswers && (
               <p className="tr-banner">
                 Answer preview only. Copy and image downloads use saved pupil
-                visibility. Open a worked copy to export the answers.
+                visibility. Use a worked version to export the answers.
               </p>
             )}
             <p className="tr-guidance">
@@ -1046,10 +1037,26 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                               }
                             }}
                             onClick={(ev) => {
+                              ev.stopPropagation();
+                              if (labelBlocked) return;
                               if (ev.detail === 0) {
-                                ev.stopPropagation();
                                 open(ref);
+                                return;
                               }
+                              const rect =
+                                resource.current!.getBoundingClientRect();
+                              const hits = geometryHits(
+                                e,
+                                g,
+                                {
+                                  x: (ev.clientX - rect.left) / px,
+                                  y: (ev.clientY - rect.top) / px,
+                                },
+                                7 / px,
+                              ).filter((hit) => hit.startsWith("a:"));
+                              // A named wedge remains its own target after fit/
+                              // scroll changes; retain named choices at overlaps.
+                              choose([...new Set([ref, ...hits])], true);
                             }}
                           >
                             <title>
@@ -1528,14 +1535,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "triangle",
-                  "maths-booklet-tools:triangle:v1",
-                  canonical(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
+            <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
               <h2>Selected object</h2>
               <label>
@@ -2261,7 +2263,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Choose Show saved answers to preview it, or open a worked copy.",
+                        "Answer saved and hidden. Choose Show saved answers to preview it, or use a worked version.",
                       );
                     }
                   }}
@@ -2314,8 +2316,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </p>
                 <p className="tr-note">
                   Show saved answers is a temporary preview. Downloads keep
-                  saved pupil visibility; Open worked copy creates an
-                  independent answer resource.
+                  saved pupil visibility. Use worked version replaces the
+                  current resource; Undo restores it.
                 </p>
               </div>
             </details>
@@ -2399,63 +2401,54 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 ev.preventDefault();
                 applyDraft();
               }}
-              onBlur={(ev) => {
-                if (
-                  ev.relatedTarget instanceof Node &&
-                  !ev.currentTarget.contains(ev.relatedTarget) &&
-                  !(
-                    ev.relatedTarget instanceof Element &&
-                    ev.relatedTarget.closest("[data-tr-anchor]")
-                  )
-                )
-                  applyDraft();
-              }}
             >
-              {draft.ref.startsWith("r:") && (
-                <p className="tr-note">
-                  Area label for{" "}
-                  {objectName(e, "t:" + draft.ref.slice(2)).replace(
-                    /^Triangle /,
-                    "triangle ",
-                  )}
-                  . Enter a given or an unknown; calculation is a separate
-                  action.
-                </p>
-              )}
-              <TriangleLabelFields
-                e={e}
-                draft={draft}
-                showAnswers={showAnswers}
-                update={updateDraft}
-              />
-              {draft.ref.startsWith("r:") &&
-                d.triangles.some(
-                  (t) => "r:" + t.id === draft.ref && t.area,
-                ) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const n = structuredClone(committed.current);
-                      delete n.document.triangles.find(
-                        (t) => "r:" + t.id === draft.ref,
-                      )!.area;
-                      if (!n.document.triangles.some((t) => t.area)) {
-                        n.schemaVersion = 1;
-                        n.rendererVersion = "triangle-1";
-                      }
-                      commit(n);
-                      closeDraft();
-                      setSelected(null);
-                    }}
-                  >
-                    Remove area label
-                  </button>
+              <div className="tr-draft-body">
+                {draft.ref.startsWith("r:") && (
+                  <p className="tr-note">
+                    Area label for{" "}
+                    {objectName(e, "t:" + draft.ref.slice(2)).replace(
+                      /^Triangle /,
+                      "triangle ",
+                    )}
+                    . Enter a given or an unknown; calculation is a separate
+                    action.
+                  </p>
                 )}
-              {draftError && (
-                <p className="tr-error" role="alert">
-                  {draftError}
-                </p>
-              )}
+                <TriangleLabelFields
+                  e={e}
+                  draft={draft}
+                  showAnswers={showAnswers}
+                  update={updateDraft}
+                />
+                {draft.ref.startsWith("r:") &&
+                  d.triangles.some(
+                    (t) => "r:" + t.id === draft.ref && t.area,
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const n = structuredClone(committed.current);
+                        delete n.document.triangles.find(
+                          (t) => "r:" + t.id === draft.ref,
+                        )!.area;
+                        if (!n.document.triangles.some((t) => t.area)) {
+                          n.schemaVersion = 1;
+                          n.rendererVersion = "triangle-1";
+                        }
+                        commit(n);
+                        closeDraft();
+                        setSelected(null);
+                      }}
+                    >
+                      Remove area label
+                    </button>
+                  )}
+                {draftError && (
+                  <p className="tr-error" role="alert">
+                    {draftError}
+                  </p>
+                )}
+              </div>
               <div className="tr-two tr-draft-actions">
                 <button type="submit" className="tr-primary">
                   Apply label

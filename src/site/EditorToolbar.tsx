@@ -33,16 +33,31 @@ export function EditorToolbar(props: EditorToolbarProps) {
     const element = bar.current;
     const parent = element?.parentElement;
     if (!element || !parent) return;
-    const measure = () =>
+    const measure = () => {
       parent.style.setProperty(
         "--editor-toolbar-height",
         `${element.getBoundingClientRect().height}px`,
       );
+      const stage = parent.querySelector<HTMLElement>(
+        ".graph-stage,.ratio-stage,.tr-scroll,.ag-scroll,.vn-scroll,.nl-scroll,.cb-scroll,.vg-scroll",
+      );
+      if (!stage?.clientWidth) return;
+      const top = stage.getBoundingClientRect().top + window.scrollY;
+      parent.style.setProperty(
+        "--resource-stage-height",
+        `${Math.max(320, window.innerHeight - top - 20)}px`,
+      );
+    };
     measure();
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(element);
-    return () => observer.disconnect();
+    observer.observe(parent);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
   return (
     <div
@@ -88,9 +103,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
           onClick={props.onCopyClipboard}
         >
           <Copy size={17} aria-hidden="true" />
-          Copy to clipboard
+          Copy image
         </button>
-        <div className="copy-split">
+        <div className="editor-file-actions">
           <button
             className="copy-main"
             disabled={props.exportDisabled || props.busy}
@@ -105,11 +120,11 @@ export function EditorToolbar(props: EditorToolbarProps) {
             {props.busy ? "Preparing…" : "Copy for Word"}
           </button>
           <button
-            className="copy-more"
+            className="file-menu-button"
             disabled={
               (props.menuDisabled ?? props.exportDisabled) || props.busy
             }
-            aria-label="Download options"
+            aria-label="File"
             aria-haspopup="menu"
             aria-expanded={props.menuOpen}
             aria-controls={props.menuId}
@@ -125,7 +140,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }}
             onClick={props.onToggleMenu}
           >
-            <ChevronDown size={16} aria-hidden="true" />
+            File <ChevronDown size={16} aria-hidden="true" />
           </button>
         </div>
       </div>

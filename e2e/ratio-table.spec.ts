@@ -191,12 +191,12 @@ test("long headings cannot leave a stale export enabled", async ({ page }) => {
   await heading.press("Enter");
   await expect(heading).toHaveAttribute("aria-invalid", "true");
   await expect(
-    page.getByRole("button", { name: "Download options", exact: true }),
+    page.getByRole("button", { name: "File", exact: true }),
   ).toBeDisabled();
   await heading.press("Escape");
   await expect(heading).toHaveValue("x →");
   await expect(
-    page.getByRole("button", { name: "Download options", exact: true }),
+    page.getByRole("button", { name: "File", exact: true }),
   ).toBeEnabled();
 });
 test("actual PNG, embedded-font SVG and editable JSON export preserve print size and exclude guides", async ({
@@ -219,7 +219,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -600,7 +600,7 @@ test("three-column image and editable exports survive reopening without editor d
     ["Save editable file", "json"],
   ]) {
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const downloading = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
@@ -899,7 +899,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   const single = await stored(page),
     singleMetrics = ratioMetrics(single.document);
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const singleDownloading = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /Download PNG/ }).click();

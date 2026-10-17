@@ -73,7 +73,7 @@ for (const c of cases) {
     const bytes = await readFile(resolve(directory!, `${c.name}.json`));
     const expected = JSON.parse(bytes.toString());
     await page.goto(`/?tool=${c.route}`);
-    await page.getByRole("button", { name: "Download options" }).click();
+    await page.getByRole("button", { name: "File" }).click();
     const input = c.input
       ? page.getByLabel(c.input, { exact: true })
       : page.locator('input[type="file"]');
@@ -191,7 +191,7 @@ test("an actual ZIP's editable source opens in the existing ratio editor", async
   );
   const expected = JSON.parse(Buffer.from(zip["source.json"]).toString());
   await page.goto("/?tool=ratio-table");
-  await page.getByRole("button", { name: "Download options" }).click();
+  await page.getByRole("button", { name: "File" }).click();
   await page
     .getByLabel("Open editable ratio-table file", { exact: true })
     .setInputFiles({
@@ -314,7 +314,7 @@ for (const c of cases.filter((c) =>
       expected = JSON.parse(bytes.toString());
     await page.goto(`/?tool=${c.route}`);
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const input = c.input
       ? page.getByLabel(c.input, { exact: true })

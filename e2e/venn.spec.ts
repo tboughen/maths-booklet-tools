@@ -243,7 +243,7 @@ for (const ex of examples)
       page.getByRole("button", { name: "Copy for Word", exact: true }),
     ).toBeEnabled();
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const download = page.waitForEvent("download");
     await clickResourceAction(page, "Download SVG");
@@ -264,7 +264,7 @@ test("actual PNG, editable-file roundtrip and cancelled import", async ({
 }) => {
   await boot(page, examples.find((x) => x.id === "2018")!.make(true));
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const pngPromise = page.waitForEvent("download");
   await clickResourceAction(page, "Download PNG (600 ppi)");
@@ -317,7 +317,7 @@ test("actual image clipboard and Word physical HTML", async ({
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await boot(page, examples.find((x) => x.id === "2019")!.make(true));
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(
     page.getByText(/Image copied\. Paste with Ctrl\+V\./, { exact: true }),
@@ -359,7 +359,7 @@ test("clipboard refusal gives useful fallback", async ({ page }) => {
   );
   await boot(page);
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(page.getByText(/browser blocked image copying/)).toBeVisible();
 });
@@ -437,15 +437,14 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   await page.keyboard.press("Escape");
   expect((await saved(page)).document.regions[1].text).toBe("4");
   await showExamples(page);
-  const opening = page.waitForEvent("popup");
   await article
-    .getByRole("button", { name: "Open worked copy", exact: true })
+    .getByRole("button", { name: "Use worked version", exact: true })
     .click();
-  const worked = await opening;
-  await worked.waitForLoadState();
+  const worked = page;
   expect((await saved(worked)).document.regions[7].text).toBe("8");
+  await page.getByRole("button",{name:"Undo",exact:true}).click();
   expect((await saved(page)).document.regions[1].text).toBe("4");
-  await worked.close();
+  await showExamples(page);
   await article
     .getByRole("button", { name: "Open scaffold", exact: true })
     .click();
@@ -513,7 +512,7 @@ for (const sets of [2, 3] as const)
       e.document.regions[mask].shade = "grey";
       await boot(page, e);
       await page
-        .getByRole("button", { name: "Download options", exact: true })
+        .getByRole("button", { name: "File", exact: true })
         .click();
       const promise = page.waitForEvent("download");
       await clickResourceAction(page, "Download SVG");

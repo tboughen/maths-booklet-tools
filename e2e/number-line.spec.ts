@@ -1,9 +1,4 @@
-import {
-  showExamples,
-  galleryCard,
-  chooseExample,
-  closeExamples,
-} from "./example-gallery";
+import { showExamples, galleryCard, chooseExample } from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -45,12 +40,12 @@ test("invalid draft blocks actual exports and Escape restores", async ({
   await page.getByLabel("Tick step", { exact: true }).fill("1/0");
   await page.getByLabel("Tick step", { exact: true }).press("Enter");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(page.getByText("zero denominator")).toBeVisible();
   await page.getByLabel("Tick step", { exact: true }).press("Escape");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
 });
 test("source error remains; replacement cancellation, corrected variant and Undo", async ({
@@ -73,12 +68,10 @@ test("source error remains; replacement cancellation, corrected variant and Undo
     page.getByTestId("number-line-resource").locator("circle"),
   ).toHaveCount(1);
   await showExamples(page);
-  const opening = page.waitForEvent("popup");
   await galleryCard(page, title)
-    .getByRole("button", { name: "Open worked copy", exact: true })
+    .getByRole("button", { name: "Use worked version", exact: true })
     .click();
-  const corrected = await opening;
-  await corrected.waitForLoadState();
+  const corrected = page;
   await expect(
     corrected.getByText("This drawing intentionally disagrees", {
       exact: false,
@@ -87,8 +80,7 @@ test("source error remains; replacement cancellation, corrected variant and Undo
   await expect(
     corrected.getByTestId("number-line-resource").locator("circle"),
   ).toHaveCount(1);
-  await corrected.close();
-  await closeExamples(page);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(
     page.getByText("This drawing intentionally disagrees", { exact: false }),
   ).toBeVisible();
@@ -102,10 +94,7 @@ test("source error remains; replacement cancellation, corrected variant and Undo
   ).toBeVisible();
 });
 test("actual PNG, SVG and editable downloads", async ({ page }) => {
-  await page
-    .getByRole("button", { name: /Download|More|Export/ })
-    .first()
-    .click();
+  await page.getByRole("button", { name: "File", exact: true }).first().click();
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Download PNG (600 ppi)");
   expect((await dl).suggestedFilename()).toBe("maths-number-line.png");
@@ -141,9 +130,7 @@ test("actual clipboard PNG and both editable/vector downloads", async ({
   context,
 }, info) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(
     page.getByText(/Image copied\. Paste with Ctrl\+V\./),
   ).toBeVisible();
@@ -159,9 +146,7 @@ test("actual clipboard PNG and both editable/vector downloads", async ({
   const dimensions = new DataView(ihdr.buffer, ihdr.byteOffset, ihdr.length);
   expect(dimensions.getUint32(0)).toBe(size.width);
   expect(dimensions.getUint32(4)).toBe(size.height);
-  await page
-    .getByRole("button", { name: "Download options", exact: true })
-    .click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
   for (const [label, name] of [
     ["Download SVG", "diagram.svg"],
     ["Save editable file", "source.json"],

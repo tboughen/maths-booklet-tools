@@ -217,7 +217,7 @@ export const algebraGallery = algebraNames.map(([name, title]) => ({
   title,
   description: name.startsWith("source-")
     ? "Adapted grid step from November 2018 2F Q26. The original question has no grid."
-    : "Pupil writing cells stay blank until an explicit calculation. Worked output opens separately.",
+    : "Pupil writing cells stay blank until an explicit calculation. Choose a worked version to reveal the completed resource.",
   sourceHref: name.startsWith("source-")
     ? source("1MA1_NOV_2018_2F_Q26")
     : undefined,

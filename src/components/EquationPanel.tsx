@@ -12,6 +12,7 @@ interface EquationPanelProps {
   onClose: () => void;
   onPending: (pending: boolean) => void;
   disabled?: boolean;
+  persistent?: boolean;
 }
 
 export function EquationPanel({
@@ -20,6 +21,7 @@ export function EquationPanel({
   onClose,
   onPending,
   disabled = false,
+  persistent = false,
 }: EquationPanelProps) {
   const existing = editing
     ? equationFromPoints(editing.start, editing.end)
@@ -42,7 +44,7 @@ export function EquationPanel({
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [inputMethod, setInputMethod] = useState<"structured" | "typed">(
-    "structured",
+    "typed",
   );
   const [typed, setTyped] = useState(
     formatEquation(existing ?? { kind: "slope", slope: 1, intercept: 0 }),
@@ -126,14 +128,16 @@ export function EquationPanel({
             {editing ? "Edit line equation" : "Line by equation"}
           </h2>
         </div>
-        <button
-          className="icon-button"
-          aria-label="Close equation panel"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={onClose}
-        >
-          <X size={18} />
-        </button>
+        {!persistent && (
+          <button
+            className="icon-button"
+            aria-label="Close equation panel"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onClose}
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
       <div
         className="segmented equation-input-method"
@@ -176,11 +180,11 @@ export function EquationPanel({
               }}
             />
           </label>
-          <p>
-            For example y = 2x + 1 or x = -3.{" "}
-            <a href="?tool=value-table-graph">Open Plotting quadratics</a> for
-            quadratic resources; this graph stays saved.
-          </p>
+          <p id="graph-equation-help">For example y = 2x + 1 or x = -3.</p>
+          <details>
+            <summary>Other graphs</summary>
+            <a href="?tool=value-table-graph">Open Plotting quadratics</a>
+          </details>
         </div>
       ) : (
         <>
@@ -289,14 +293,15 @@ export function EquationPanel({
         <Plus size={17} />
         {editing ? "Update selected line" : "Add line"}
       </button>
-      <button
-        className="secondary-panel-button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={onClose}
-      >
-        Cancel equation edit
-      </button>
-      <p className="panel-note">Fractions such as 1/2 are accepted.</p>
+      {(!persistent || pending) && (
+        <button
+          className="secondary-panel-button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onClose}
+        >
+          Cancel equation edit
+        </button>
+      )}
     </section>
   );
 }

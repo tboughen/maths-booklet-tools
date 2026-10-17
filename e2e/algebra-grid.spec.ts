@@ -610,28 +610,19 @@ test("explicit products/answers use undo and heading edits preserve products wit
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   expect((await saved(page)).document.rows[1].cells[2].value).toBe("+3x");
 });
-test("factorising accepts reverse trials only when the entire expression matches and opens a separate solved copy", async ({
+test("factorising accepts reverse trials only when the entire expression matches and replaces with an undoable solved version", async ({
   page,
 }) => {
   await load(page, example("factor"));
   const original = await saved(page);
-  const popup = page.waitForEvent("popup");
-  await page.getByRole("button", { name: /Create worked copy/ }).click();
-  const worked = await popup;
-  await expect(worked.locator(".ag-resource")).toBeVisible();
-  expect(
-    await worked.evaluate(
-      () =>
-        JSON.parse(
-          localStorage.getItem(
-            "maths-booklet-tools:algebra-grid:v1:copy:" +
-              new URL(location.href).searchParams.get("algebraCopy"),
-          ) || "null",
-        ).document.answer,
-    ),
-  ).toMatch(/\(x\+2\)\(x\+3\)|\(x\+3\)\(x\+2\)/);
+  await page
+    .getByRole("button", { name: "Use worked version", exact: true })
+    .click();
+  expect((await saved(page)).document.answer).toMatch(
+    /\(x\+2\)\(x\+3\)|\(x\+3\)\(x\+2\)/,
+  );
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(await saved(page)).toEqual(original);
-  await worked.close();
   await edit(page, 0, 2, "+1");
   await edit(page, 2, 0, "+6");
   await expect(
@@ -717,9 +708,7 @@ test("image clipboard and Word HTML use the same physical export with recoverabl
     });
   });
   await page.goto("/?tool=expanding-factorising");
-  await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Image copied");
   const data = await page.evaluate(
     () =>
@@ -747,9 +736,7 @@ test("image clipboard and Word HTML use the same physical export with recoverabl
       configurable: true,
     }),
   );
-  await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Download PNG");
 });
 for (const width of [1440, 768, 375, 320])
