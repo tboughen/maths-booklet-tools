@@ -1,3 +1,9 @@
+import { useResourceFit } from "../site/useResourceFit";
+import { NotationPanel } from "./NotationPanel";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { numberLineGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -25,17 +31,13 @@ import {
   type Envelope,
   type Operation,
 } from "../../packages/number-line-core/src";
-import {
-  examples,
-  example,
-} from "../../packages/number-line-core/src/examples";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-const STORAGE = "maths-booklet-tools:number-line:v1";
+const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -175,7 +177,7 @@ export default function NumberLinePage({
     } | null>(null),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
-    [zoom, setZoom] = useState(1),
+    [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set()),
     [dragValue, setDragValue] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null),
@@ -183,7 +185,6 @@ export default function NumberLinePage({
     expected = useRef<string | null>(null),
     current = useRef(history.present);
   const [rayDirection, setRayDirection] = useState<"left" | "right">("right");
-  const [exampleIndex, setExampleIndex] = useState(0);
   const pointer = useRef<{
     key: string;
     x: number;
@@ -204,8 +205,15 @@ export default function NumberLinePage({
   );
   const d = history.present.document,
     m = metrics(d),
-    unit = (96 / 25.4) * zoom,
     blocked = busy || !!recovery || dirty.size > 0;
+  const fitted = useResourceFit(
+    (m.width * 96) / 25.4,
+    (m.height * 96) / 25.4,
+    zoom,
+    144,
+    32,
+  );
+  const unit = (96 / 25.4) * fitted.scale;
   function commit(e: Envelope) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
@@ -716,7 +724,6 @@ export default function NumberLinePage({
     selection?.startsWith("connection:") && s?.kind === "points"
       ? s.intervals?.find((line) => line.id === selection.slice(11))
       : undefined;
-  const chosenExample = examples[exampleIndex];
   function removeSelectedLine() {
     if (connection) safe([{ op: "remove_interval", id: connection.id }]);
     else if (s?.kind === "interval")
@@ -837,20 +844,7 @@ export default function NumberLinePage({
             />
             <div className="nl-preview-bar">
               <ResourceSize width={m.widthCm} height={m.heightCm} />
-              <label>
-                Preview zoom{" "}
-                <select
-                  aria-label="Preview zoom"
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                >
-                  {[0.75, 1, 1.25, 1.5].map((v) => (
-                    <option key={v} value={v}>
-                      {v * 100}%
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
               <span>
                 {mode === "select"
                   ? "Click a circle to change its type; drag to move it."
@@ -873,6 +867,7 @@ export default function NumberLinePage({
             </div>
             <div
               className="nl-scroll"
+              ref={fitted.ref}
               onClick={(e) => {
                 if (e.target === e.currentTarget && !blocked)
                   setSelection(null);
@@ -1077,6 +1072,21 @@ export default function NumberLinePage({
             className="inspector-stack nl-inspector"
             aria-label="Number line settings"
           >
+            <ExampleGallery
+              examples={numberLineGallery}
+              active={active}
+              disabled={blocked || !!pending}
+              onUse={(resource, title) =>
+                replacement(resource, `Open ${title}?`)
+              }
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "number-line",
+                  "maths-booklet-tools:number-line:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card">
               <h2>Draw</h2>
               <div className="nl-actions nl-draw-actions">
@@ -1136,6 +1146,24 @@ export default function NumberLinePage({
                   </select>
                 </label>
               )}
+              <NotationPanel
+                envelope={history.present}
+                active={active}
+                disabled={
+                  busy ||
+                  !!recovery ||
+                  [...dirty].some((key) => key !== "Inequality or value")
+                }
+                onPending={(value) =>
+                  inputPending("Inequality or value", value)
+                }
+                onApply={(next) => {
+                  commit(next);
+                  setSelection(null);
+                  setMode("select");
+                  setFirst(null);
+                }}
+              />
             </section>
             {selection && (
               <section
@@ -1495,69 +1523,6 @@ export default function NumberLinePage({
                       </p>
                     </div>
                   </details>
-                </div>
-              </details>
-            </section>
-            <section className="panel-card nl-compact-card">
-              <details>
-                <summary>Examples</summary>
-                <div className="nl-settings-body">
-                  <label>
-                    Past-paper example{" "}
-                    <select
-                      aria-label="Past-paper example"
-                      value={exampleIndex}
-                      disabled={blocked}
-                      onChange={(e) => setExampleIndex(Number(e.target.value))}
-                    >
-                      {examples.map((x, i) => (
-                        <option key={`${x.id}-${x.part}`} value={i}>
-                          {x.title}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="nl-example">
-                    <p>{chosenExample.prompt}</p>
-                    {chosenExample.adaptation && (
-                      <p>{chosenExample.adaptation}</p>
-                    )}
-                    <a
-                      href={`https://mathsdock.co.uk/?tool=question-bank&question=${chosenExample.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open source question
-                    </a>
-                    <div className="nl-actions">
-                      <button
-                        disabled={blocked}
-                        onClick={() =>
-                          replacement(
-                            example(exampleIndex),
-                            `Replace with ${chosenExample.title}?`,
-                          )
-                        }
-                      >
-                        {chosenExample.shown
-                          ? "Source drawing"
-                          : "Blank / scaffold"}
-                      </button>
-                      <button
-                        disabled={blocked}
-                        onClick={() =>
-                          replacement(
-                            example(exampleIndex, true),
-                            `Replace with worked ${chosenExample.title}?`,
-                          )
-                        }
-                      >
-                        {exampleIndex === 8
-                          ? "Corrected version"
-                          : "Worked version"}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </details>
             </section>

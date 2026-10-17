@@ -1,3 +1,9 @@
+import {
+  showExamples,
+  galleryCard,
+  chooseExample,
+  closeExamples,
+} from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -50,20 +56,13 @@ test("invalid draft blocks actual exports and Escape restores", async ({
 test("source error remains; replacement cancellation, corrected variant and Undo", async ({
   page,
 }) => {
-  await page
-    .locator("summary")
-    .filter({ hasText: /^Examples$/ })
-    .click();
-  await page
-    .getByLabel("Past-paper example", { exact: true })
-    .selectOption("8");
-  const source = page.locator(".nl-example").last();
-  await source.getByRole("button", { name: "Source drawing" }).click();
+  const title = "Mock set 08 · 2H · Q4(a)";
+  await chooseExample(page, title);
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(
     page.getByTestId("number-line-resource").locator("circle"),
   ).toHaveCount(0);
-  await source.getByRole("button", { name: "Source drawing" }).click();
+  await chooseExample(page, title);
   await page
     .getByRole("button", { name: "Open resource", exact: true })
     .click();
@@ -73,14 +72,31 @@ test("source error remains; replacement cancellation, corrected variant and Undo
   await expect(
     page.getByTestId("number-line-resource").locator("circle"),
   ).toHaveCount(1);
-  await source.getByRole("button", { name: "Corrected version" }).click();
-  await page
-    .getByRole("button", { name: "Open resource", exact: true })
+  await showExamples(page);
+  const opening = page.waitForEvent("popup");
+  await galleryCard(page, title)
+    .getByRole("button", { name: "Open worked copy", exact: true })
     .click();
+  const corrected = await opening;
+  await corrected.waitForLoadState();
+  await expect(
+    corrected.getByText("This drawing intentionally disagrees", {
+      exact: false,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    corrected.getByTestId("number-line-resource").locator("circle"),
+  ).toHaveCount(1);
+  await corrected.close();
+  await closeExamples(page);
   await expect(
     page.getByText("This drawing intentionally disagrees", { exact: false }),
-  ).toHaveCount(0);
+  ).toBeVisible();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(
+    page.getByTestId("number-line-resource").locator("circle"),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
   await expect(
     page.getByText("This drawing intentionally disagrees", { exact: false }),
   ).toBeVisible();

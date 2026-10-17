@@ -1,3 +1,4 @@
+import { showExamples, closeExamples } from "./example-gallery";
 import { test, expect, editorBase, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { cloneDefaultDocument } from "../packages/graph-core/src/diagram";
@@ -20,7 +21,7 @@ test("all five quadratic source links open the matching published question witho
   test.setTimeout(90000);
   await page.goto("/?tool=value-table-graph");
   const original = await download(page, "Save editable file");
-  await page.getByRole("button", { name: "Examples", exact: true }).click();
+  await showExamples(page);
   for (const example of quadraticSources) {
     const card = page.getByRole("article", {
       name: example.source,
@@ -41,6 +42,7 @@ test("all five quadratic source links open the matching published question witho
     });
     await source.close();
   }
+  await closeExamples(page);
   expect(await download(page, "Save editable file")).toEqual(original);
 });
 
@@ -667,7 +669,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
 }, info) => {
   test.setTimeout(90000);
   await page.goto("/?tool=value-table-graph");
-  await page.getByRole("button", { name: "Examples", exact: true }).click();
+  await showExamples(page);
   for (const example of quadraticSources) {
     const card = page.getByRole("article", {
       name: example.source,
@@ -682,10 +684,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
     await expect(card.getByRole("link")).toHaveAttribute("target", "_blank");
     await card
       .getByRole("button", {
-        name:
-          example.name === "November 2017 error"
-            ? "Use intentional error"
-            : "Use scaffold",
+        name: "Open scaffold",
         exact: true,
       })
       .click();
@@ -700,22 +699,16 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
           (c: { y: { kind: string } }) => c.y.kind === "blank",
         ),
       ).toBe(true);
-    await page.getByRole("button", { name: "Examples", exact: true }).click();
+    await showExamples(page);
+    const opened = context.waitForEvent("page");
     await card
       .getByRole("button", {
-        name:
-          example.name === "November 2017 error"
-            ? "Open corrected copy"
-            : "Open worked copy",
+        name: "Open worked copy",
         exact: true,
       })
       .click();
-    const opened = context.waitForEvent("page");
-    await page.getByRole("dialog").getByRole("button").last().click();
     const worked = await opened;
     await worked.waitForLoadState();
-    await expect(worked.getByRole("dialog")).toBeVisible();
-    await worked.getByRole("dialog").getByRole("button").last().click();
     const result = JSON.parse(
       (await download(worked, "Save editable file")).toString(),
     ).document;
@@ -727,8 +720,9 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked c
     expect(result.graph.series[0].connection).toBe("none");
     expect(result.graph.curves).toHaveLength(1);
     await worked.close();
+    await closeExamples(page);
     expect(await download(page, "Save editable file")).toEqual(saved);
-    await page.getByRole("button", { name: "Examples", exact: true }).click();
+    await showExamples(page);
   }
   await page.screenshot({
     path: info.outputPath("source-cards.png"),

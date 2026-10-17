@@ -1,3 +1,10 @@
+import { ExampleGallery } from "../examples/ExampleGallery";
+import {
+  ratioGallery,
+  ratioTeachingGallery,
+} from "../examples/galleryCatalogue";
+import { openWorkedDocument } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -5,15 +12,13 @@ import {
 } from "../site/EditorDownloadMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { SourceExamples } from "../examples/PastPaperExamples";
-import { ratioExamples } from "../examples/sourceExamples";
 import { copyPngToClipboard } from "../export/clipboard";
 import { ratioPrintPng } from "./export";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, MousePointer2, Type } from "lucide-react";
 import {
   applyRatioOperations,
-  createRatioTable,
+  canonicalRatio,
   decodeRatio,
   describeRatio,
   emptyRatioTable,
@@ -57,44 +62,6 @@ type Pending = {
   fromLink?: boolean;
   description?: string;
 };
-function example(kind: "simple" | "worked" | "fraction") {
-  const values =
-    kind === "simple"
-      ? [
-          ["4", "8"],
-          ["1", null],
-        ]
-      : kind === "worked"
-        ? [
-            ["2", "4"],
-            ["1", "2"],
-          ]
-        : [
-            ["3", "2"],
-            ["1", null],
-          ];
-  return createRatioTable({
-    schemaVersion: 1,
-    rows: values.map((pair, i) => ({
-      id: `row-${i + 1}`,
-      cells: pair.map((value) =>
-        value === null ? { kind: "answer-line" } : { kind: "number", value },
-      ),
-    })),
-    mode: kind === "simple" ? "simple" : "annotated",
-    transitions:
-      kind === "simple"
-        ? []
-        : [
-            {
-              from: "row-1",
-              to: "row-2",
-              operation: "divide",
-              factor: kind === "worked" ? "2" : "3",
-            },
-          ],
-  });
-}
 export default function RatioTablePage({
   active = true,
 }: {
@@ -681,19 +648,7 @@ export default function RatioTablePage({
             />
             <div className="ratio-preview-controls">
               <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
-              <label>
-                Preview zoom{" "}
-                <select
-                  aria-label="Preview zoom"
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                >
-                  <option value={0}>Fit to screen</option>
-                  <option value={1}>100%</option>
-                  <option value={2}>200%</option>
-                  <option value={3}>300%</option>
-                </select>
-              </label>
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
               <label>
                 <input
                   type="checkbox"
@@ -745,6 +700,19 @@ export default function RatioTablePage({
             )}
           </Panel>
           <aside className="inspector-stack" aria-label="Ratio-table settings">
+            <ExampleGallery
+              examples={[...ratioTeachingGallery, ...ratioGallery]}
+              active={active}
+              disabled={exportDisabled || !!pending}
+              onUse={(resource, title) => replace(resource, `Open ${title}?`)}
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "ratio-table",
+                  "maths-booklet-tools:ratio-table-envelope:v1",
+                  canonicalRatio(resource),
+                )
+              }
+            />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card specialist-tools">
                 <h2>Table tools</h2>
@@ -806,13 +774,6 @@ export default function RatioTablePage({
                   beside its edges.
                 </p>
               </section>
-              <SourceExamples
-                examples={ratioExamples}
-                disabled={structureDisabled || busy}
-                onUse={(resource, title) =>
-                  replace(resource, `Replace with ${title}?`)
-                }
-              />
               <RatioInspector
                 document={document}
                 selection={selection}
@@ -827,41 +788,6 @@ export default function RatioTablePage({
                 onAction={(ops) => attempt(() => operations(ops))}
                 onFill={fill}
               />
-              <section className="panel-card">
-                <details className="ratio-examples">
-                  <summary>Start from an example</summary>
-                  <button
-                    onClick={() =>
-                      replace(
-                        example("simple"),
-                        "Replace with the simple example?",
-                      )
-                    }
-                  >
-                    Simple: 4, 8 → 1, answer line
-                  </button>
-                  <button
-                    onClick={() =>
-                      replace(
-                        example("worked"),
-                        "Replace with the worked example?",
-                      )
-                    }
-                  >
-                    Worked: divide both columns by 2
-                  </button>
-                  <button
-                    onClick={() =>
-                      replace(
-                        example("fraction"),
-                        "Replace with the fraction scaffold?",
-                      )
-                    }
-                  >
-                    Scaffold: divide both columns by 3
-                  </button>
-                </details>
-              </section>
             </fieldset>
             {warnings.length > 0 && (
               <section className="panel-card ratio-warnings">

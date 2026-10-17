@@ -1,3 +1,4 @@
+import { showExamples } from "./example-gallery";
 import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -32,7 +33,12 @@ async function boot(page: Page, e?: Envelope) {
   ).toBeVisible();
 }
 async function saved(page: Page) {
-  return page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), key);
+  return page.evaluate((base) => {
+    const copy = new URL(location.href).searchParams.get("resourceCopy");
+    return JSON.parse(
+      localStorage.getItem(copy ? `${base}:worked:${copy}` : base)!,
+    );
+  }, key);
 }
 async function edit(
   page: Page,
@@ -420,7 +426,7 @@ test("storage failure leaves an editable-file fallback", async ({ page }) => {
 test("source preset cancellation, focus trap and undo", async ({ page }) => {
   await boot(page);
   await edit(page, 1, "4");
-  await page.getByText("Examples", { exact: true }).click();
+  await showExamples(page);
   const article = page.locator("article").filter({ hasText: "November 2018" });
   await article
     .getByRole("button", { name: "Open scaffold", exact: true })
@@ -430,13 +436,22 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   ).toBeVisible();
   await page.keyboard.press("Escape");
   expect((await saved(page)).document.regions[1].text).toBe("4");
+  await showExamples(page);
+  const opening = page.waitForEvent("popup");
   await article
     .getByRole("button", { name: "Open worked copy", exact: true })
+    .click();
+  const worked = await opening;
+  await worked.waitForLoadState();
+  expect((await saved(worked)).document.regions[7].text).toBe("8");
+  expect((await saved(page)).document.regions[1].text).toBe("4");
+  await worked.close();
+  await article
+    .getByRole("button", { name: "Open scaffold", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Use this diagram", exact: true })
     .click();
-  expect((await saved(page)).document.regions[7].text).toBe("8");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect((await saved(page)).document.regions[1].text).toBe("4");
 });

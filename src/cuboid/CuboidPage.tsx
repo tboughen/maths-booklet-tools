@@ -1,3 +1,8 @@
+import { useResourceFit } from "../site/useResourceFit";
+import { ExampleGallery } from "../examples/ExampleGallery";
+import { cuboidGallery } from "../examples/galleryCatalogue";
+import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -38,7 +43,6 @@ import {
   type LabelKey,
   type Label,
 } from "../../packages/cuboid-core/src";
-import { examples } from "../../packages/cuboid-core/src/examples";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
@@ -53,7 +57,7 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
-const STORAGE = "maths-booklet-tools:cuboids:v1";
+const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 const newDocument = () => upgrade(create());
 function initial() {
   try {
@@ -100,7 +104,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     ),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
-    [zoom, setZoom] = useState(1),
+    [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<"shape" | "labels" | "shading">("shape");
   const [inputEpoch, setInputEpoch] = useState(0);
@@ -126,7 +130,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     l = s.labels[labelKey];
   const a = appearance(s);
   const blocked = busy || recovery !== null || dirty.size > 0,
-    unit = (96 / 25.4) * zoom,
     issue = exportIssue(e);
   let m: ReturnType<typeof layout> | null = null;
   try {
@@ -134,6 +137,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   } catch {
     /*Keep the document and correction controls available.*/
   }
+  const fitted = useResourceFit(
+    ((m?.width ?? 1) * 96) / 25.4,
+    ((m?.height ?? 1) * 96) / 25.4,
+    zoom,
+  );
+  const unit = (96 / 25.4) * fitted.scale;
   const cropCache = useRef(
     new Map<string, Promise<{ width: number; height: number }>>(),
   );
@@ -583,20 +592,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 Show 1 cm³ cubes
               </button>
 
-              <label>
-                Preview zoom{" "}
-                <select
-                  aria-label="Preview zoom"
-                  value={zoom}
-                  onChange={(ev) => setZoom(Number(ev.target.value))}
-                >
-                  {[0.75, 1, 1.25, 1.5].map((n) => (
-                    <option key={n} value={n}>
-                      {n * 100}%
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize
                 width={cropSize.key === cropKey ? cropSize.width : undefined}
                 height={cropSize.key === cropKey ? cropSize.height : undefined}
@@ -616,6 +612,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
             )}
             <div
               className="cb-scroll"
+              ref={fitted.ref}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget && !dirty.size)
                   setInline(null);
@@ -791,6 +788,21 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
             className="inspector-stack cb-inspector"
             aria-label="Cuboid settings"
           >
+            <ExampleGallery
+              examples={cuboidGallery}
+              active={active}
+              disabled={blocked || !!pending}
+              onUse={(resource, title) =>
+                replacement(resource, `Open ${title}?`)
+              }
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "cuboids",
+                  "maths-booklet-tools:cuboids:v1",
+                  canonical(resource),
+                )
+              }
+            />
             <section className="panel-card cb-settings">
               {d.shapes.length > 1 && (
                 <label>
@@ -1246,53 +1258,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   Width before trimming. Images keep their scale and trim unused
                   outer space. Preview zoom does not change printing.
                 </p>
-              </details>
-              <details className="cb-settings-footer">
-                <summary>Examples</summary>
-                <p className="cb-note">
-                  Scaffolds keep pupil blanks; worked examples are explicit.
-                  Source questions open separately.
-                </p>
-                {examples.map((ex) => (
-                  <article className="cb-example" key={ex.id}>
-                    <h3>{ex.title}</h3>
-                    {ex.source && <p>{ex.source}</p>}
-                    <p>{ex.description}</p>
-                    {ex.source && (
-                      <a
-                        href={`https://mathsdock.co.uk/?tool=question-bank&question=${ex.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View source question
-                      </a>
-                    )}
-                    <div className="cb-panel-actions">
-                      <button
-                        disabled={blocked}
-                        onClick={() =>
-                          replacement(
-                            upgrade(ex.create(false)),
-                            `Use ${ex.title.toLowerCase()}?`,
-                          )
-                        }
-                      >
-                        Use scaffold
-                      </button>
-                      <button
-                        disabled={blocked}
-                        onClick={() =>
-                          replacement(
-                            upgrade(ex.create(true)),
-                            `Use worked ${ex.title.toLowerCase()}?`,
-                          )
-                        }
-                      >
-                        Use worked example
-                      </button>
-                    </div>
-                  </article>
-                ))}
               </details>
             </section>
           </aside>

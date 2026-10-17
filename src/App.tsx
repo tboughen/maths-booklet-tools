@@ -1,3 +1,7 @@
+import { ExampleGallery } from "./examples/ExampleGallery";
+import { graphGallery } from "./examples/galleryCatalogue";
+import { openWorkedDocument } from "./site/copyDocument";
+import { PreviewControls } from "./site/PreviewControls";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
 import { createEnvelope } from "../packages/graph-core/src/interchange";
 import { useGraphDrafts } from "./components/useGraphDrafts";
@@ -5,8 +9,6 @@ import { newBrowserGraph } from "./domain/browserGraph";
 import { ResourceSize } from "./site/ResourceSize";
 import { formatResourceSize } from "./site/resourceSizeFormat";
 import { getExportMetrics } from "./export/svg";
-import { SourceExamples } from "./examples/PastPaperExamples";
-import { graphExamples } from "./examples/sourceExamples";
 import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -508,21 +510,7 @@ export default function App({ active = true }: { active?: boolean }) {
               </p>
             )}
             <div className="resource-preview-bar">
-              <label>
-                Preview zoom{" "}
-                <select
-                  aria-label="Preview zoom"
-                  value={previewZoom}
-                  onChange={(e) => setPreviewZoom(Number(e.target.value))}
-                >
-                  <option value={0}>Fit to screen</option>
-                  {[0.75, 1, 1.25, 1.5].map((v) => (
-                    <option key={v} value={v}>
-                      {v * 100}%
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <PreviewControls zoom={previewZoom} onZoom={setPreviewZoom} />
               <ResourceSize
                 width={exportMetrics.widthCm}
                 height={exportMetrics.heightCm}
@@ -542,6 +530,19 @@ export default function App({ active = true }: { active?: boolean }) {
           </Panel>
 
           <aside className="inspector-stack" aria-label="Graph settings">
+            <ExampleGallery
+              examples={graphGallery}
+              active={active}
+              disabled={blocked}
+              onUse={(resource) => setPendingExample(resource)}
+              onWorked={(resource) =>
+                openWorkedDocument(
+                  "graph",
+                  "maths-booklet-tools:graph-envelope:v1",
+                  JSON.stringify(createEnvelope(resource, false)),
+                )
+              }
+            />
             <fieldset className="graph-control-group" disabled={blocked}>
               <GraphTools
                 tool={tool}
@@ -554,12 +555,6 @@ export default function App({ active = true }: { active?: boolean }) {
                 onEquation={() => openEquationEditor()}
               />
             </fieldset>
-            <SourceExamples
-              examples={graphExamples}
-              graph
-              disabled={blocked}
-              onUse={(resource) => setPendingExample(resource)}
-            />
             {equationOpen ? (
               <EquationPanel
                 disabled={recoveryConflict || copying}

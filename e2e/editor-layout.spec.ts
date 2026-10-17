@@ -95,7 +95,7 @@ test("quadratic specialist settings preserve direct editing and pupil blanks", a
 }) => {
   await page.goto("/?tool=value-table-graph");
   await page
-    .getByRole("button", { name: "Table options", exact: true })
+    .getByRole("button", { name: "Table settings", exact: true })
     .click();
   await expect(
     page
