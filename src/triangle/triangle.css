@@ -145,8 +145,8 @@
   display: grid;
   gap: 5px;
 }
-.tr-editor :is(input:not([type="checkbox"]), select),
-.tr-floating :is(input:not([type="checkbox"]), select) {
+.tr-editor :is(input:not([type="checkbox"]):not([type="radio"]), select),
+.tr-floating :is(input:not([type="checkbox"]):not([type="radio"]), select) {
   min-width: 0;
   width: 100%;
   min-height: 36px;
@@ -354,6 +354,121 @@
 .tr-floating form {
   display: grid;
   gap: 10px;
+}
+.tr-floating .tr-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.tr-floating .tr-options legend {
+  padding: 0 0 5px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.tr-options-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tr-floating .tr-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+.tr-option:has(:checked) {
+  border-color: #185db1;
+  background: #eaf2ff;
+  color: #154b8e;
+}
+.tr-option:has(:focus-visible) {
+  outline: 2px solid #185db1;
+  outline-offset: 2px;
+}
+.tr-option:has(:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.tr-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #185db1;
+  flex-shrink: 0;
+}
+.tr-floating .tr-check {
+  min-height: 44px;
+}
+.tr-floating .tr-note {
+  margin: 2px 0;
+}
+.tr-angle-selection {
+  fill: #1764a418;
+  stroke: #185db1;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.tr-geometry .tr-angle-target {
+  pointer-events: auto;
+  outline: none;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0.35;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tr-angle-target:focus-visible,
+.tr-angle-target.tr-angle-active {
+  fill: #1764a425;
+  stroke: #185db1;
+  stroke-width: 0.7;
+  outline: none;
+}
+@media (hover: hover) {
+  .tr-angle-target:hover {
+    fill: #1764a425;
+    stroke: #185db1;
+    stroke-width: 0.7;
+  }
+}
+.tr-angle-target[aria-disabled="true"] {
+  pointer-events: none;
+}
+.tr-editor .tr-area-add {
+  z-index: 2;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-height: 32px;
+  padding: 4px 7px;
+  border: 1px dashed #6487aa;
+  border-radius: 5px;
+  background: #f3f8ffeb;
+  color: #184e7b;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .tr-resource:hover .tr-area-add {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+.tr-editor .tr-area-add.tr-area-revealed,
+.tr-editor .tr-area-add:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (pointer: coarse) {
+  .tr-editor .tr-area-add {
+    min-height: 40px;
+  }
 }
 .tr-floating .tr-check,
 .tr-context label:has(input[type="checkbox"]),

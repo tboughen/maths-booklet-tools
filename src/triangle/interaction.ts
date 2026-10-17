@@ -2,6 +2,7 @@ import {
   allLabels,
   nameOf,
   refName,
+  shown,
   type Envelope,
   type Metrics,
   type Point,
@@ -31,6 +32,7 @@ export function objects(e: Envelope) {
         angle: "Angles",
         height: "Heights",
         caption: "Captions",
+        area: "Areas",
       }[l.kind],
       name: refName(e, l.ref),
     })),
@@ -40,6 +42,7 @@ export function owningTriangles(e: Envelope, ref: string) {
   const [kind, id] = ref.split(":");
   return e.document.triangles.filter((t) => {
     if (kind === "t") return t.id === id;
+    if (kind === "r") return t.id === id;
     if (kind === "v") return t.vertices.includes(id);
     if (kind === "e") {
       const edge = e.document.edges.find((v) => v.id === id);
@@ -130,6 +133,17 @@ export function geometryHits(
     .map((a) => `e:${a.id}`);
   const angles = e.document.angles
     .filter((a) => {
+      if (insideWedge(e, g, `a:${a.id}`, p)) return true;
+      // Printed text remains clickable after repositioning, without a second
+      // visible rectangle or a duplicate keyboard stop.
+      const anchor = g.anchors.find((v) => v.ref === `a:${a.id}`);
+      if (
+        shown(e, a.label) &&
+        anchor &&
+        Math.abs(p.x - anchor.x) <= anchor.w / 2 &&
+        Math.abs(p.y - anchor.y) <= anchor.h / 2
+      )
+        return true;
       if (a.mark === "none") return false;
       const v = g.vertices[a.vertex],
         a1 = g.vertices[a.from],
@@ -179,4 +193,45 @@ export function geometryHits(
       return xs.every((x) => x >= 0) || xs.every((x) => x <= 0);
     })
     .map((t) => `t:${t.id}`);
+}
+
+/** Editor-only emphasis for the exact two rays of a selected angle. */
+export function wedgePoints(e: Envelope, g: Metrics, ref: string | null) {
+  const a = e.document.angles.find((a) => `a:${a.id}` === ref);
+  if (!a) return null;
+  const v = g.vertices[a.vertex],
+    p = g.vertices[a.from],
+    q = g.vertices[a.to],
+    pl = Math.hypot(p.x - v.x, p.y - v.y),
+    ql = Math.hypot(q.x - v.x, q.y - v.y),
+    r = Math.min(14, Math.min(pl, ql) * 0.35);
+  return [
+    v,
+    { x: v.x + ((p.x - v.x) * r) / pl, y: v.y + ((p.y - v.y) * r) / pl },
+    { x: v.x + ((q.x - v.x) * r) / ql, y: v.y + ((q.y - v.y) * r) / ql },
+  ];
+}
+export function angleWedge(e: Envelope, g: Metrics, ref: string | null) {
+  return (
+    wedgePoints(e, g, ref)
+      ?.map((p) => `${p.x},${p.y}`)
+      .join(" ") ?? null
+  );
+}
+function insideWedge(e: Envelope, g: Metrics, ref: string, p: Point) {
+  const points = wedgePoints(e, g, ref);
+  if (!points) return false;
+  const [a, b, c] = points;
+  const values = [cross(a, b, p), cross(b, c, p), cross(c, a, p)];
+  return values.every((v) => v >= -1e-8) || values.every((v) => v <= 1e-8);
+}
+export function triangleCentre(e: Envelope, g: Metrics, id: string) {
+  const t = e.document.triangles.find((t) => t.id === id)!;
+  return t.vertices.reduce(
+    (s, id) => ({
+      x: s.x + g.vertices[id].x / 3,
+      y: s.y + g.vertices[id].y / 3,
+    }),
+    { x: 0, y: 0 },
+  );
 }

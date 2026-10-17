@@ -27,13 +27,16 @@ export function build(
     equalAt?: string | null;
     equilateral?: boolean;
     role?: Triangle["role"];
+    area?: Label;
   }[],
   layout: Envelope["document"]["layout"] = "single",
 ): Envelope {
   const e: Envelope = {
     kind: "triangle",
-    schemaVersion: 1,
-    rendererVersion: "triangle-1",
+    schemaVersion: definitions.some((t) => t.area) ? 2 : 1,
+    rendererVersion: definitions.some((t) => t.area)
+      ? "triangle-2"
+      : "triangle-1",
     styleProfile: "exam-v1",
     document: {
       layout,

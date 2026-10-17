@@ -369,7 +369,7 @@ export function saveAnswer(
     (r.dimension === "angle" && item.kind !== "angle") ||
     (r.dimension === "length" &&
       !["edge", "height", "caption"].includes(item.kind)) ||
-    (r.dimension === "area" && item.kind !== "caption")
+    (r.dimension === "area" && !["caption", "area"].includes(item.kind))
   )
     throw Error("Choose a target of the same kind as this result.");
   if ((l.answer || l.state === "value") && !overwrite)

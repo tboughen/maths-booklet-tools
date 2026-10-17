@@ -325,6 +325,15 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
         labels.push(textSvg(h.footName, c, FONT, true));
       }
     }
+    // Area annotations follow their own triangle, including after reshape/rotation.
+    for (const t of d.triangles) {
+      if (!t.area) continue;
+      const centre = mul(
+        t.vertices.map(p).reduce((a, b) => add(a, b), { x: 0, y: 0 }),
+        1 / 3,
+      );
+      place(`r:${t.id}`, centre);
+    }
     // A later height can cross an earlier annotation; check all final construction lines.
     if (
       boxes.some((b) => lines.some((line) => intersectsLine(b, line.a, line.b)))

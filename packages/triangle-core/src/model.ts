@@ -71,6 +71,7 @@ const triangleSchema = z
     rightAt: id.nullable(),
     equalAt: id.nullable(),
     equilateral: z.boolean(),
+    area: labelSchema.optional(),
   })
   .strict();
 const heightSchema = z
@@ -105,8 +106,8 @@ export const documentSchema = z
 export const envelopeSchema = z
   .object({
     kind: z.literal("triangle"),
-    schemaVersion: z.literal(1),
-    rendererVersion: z.literal("triangle-1"),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    rendererVersion: z.enum(["triangle-1", "triangle-2"]),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
   })
@@ -161,12 +162,10 @@ export function projection(p: Point, a: Point, b: Point) {
   const t = dot(sub(p, a), ab) / dot(ab, ab);
   return { point: add(a, mul(ab, t)), t };
 }
-export function allLabels(
-  e: Envelope,
-): {
+export function allLabels(e: Envelope): {
   ref: string;
   label: Label;
-  kind: "vertex" | "edge" | "angle" | "height" | "caption";
+  kind: "vertex" | "edge" | "angle" | "height" | "caption" | "area";
 }[] {
   const d = e.document;
   return [
@@ -195,6 +194,11 @@ export function allLabels(
       label: v.label,
       kind: "caption" as const,
     })),
+    ...d.triangles.flatMap((t) =>
+      t.area
+        ? [{ ref: `r:${t.id}`, label: t.area, kind: "area" as const }]
+        : [],
+    ),
   ];
 }
 export function getLabel(e: Envelope, ref: string) {
@@ -222,6 +226,10 @@ export function refName(e: Envelope, ref: string) {
   }
   if (kind === "h")
     return `Height ${d.heights.findIndex((v) => v.id === id) + 1}`;
+  if (kind === "r") {
+    const t = d.triangles.find((t) => t.id === id)!;
+    return `Area of triangle ${t.vertices.map((v) => nameOf(e, v)).join("")}${t.role === "outer" ? " (outer)" : ""}`;
+  }
   return `Caption ${d.captions.findIndex((v) => v.id === id) + 1}`;
 }
 export const basis = (e: Envelope) =>
@@ -259,6 +267,13 @@ export function numeric(text: string): number {
 export function validate(raw: unknown): Envelope {
   const e = envelopeSchema.parse(raw),
     d = e.document;
+  if (
+    (e.schemaVersion === 1 &&
+      (e.rendererVersion !== "triangle-1" ||
+        d.triangles.some((t) => t.area))) ||
+    (e.schemaVersion === 2 && e.rendererVersion !== "triangle-2")
+  )
+    throw Error("Triangle area labels need schema 2 and renderer triangle-2.");
   const unique = (ids: string[]) => new Set(ids).size === ids.length;
   for (const list of [
     d.vertices,
@@ -452,6 +467,8 @@ export function validate(raw: unknown): Envelope {
       throw Error("A height needs a vertex and its opposite base.");
   }
   for (const { kind, label: l } of allLabels(e)) {
+    if (kind === "area" && !["", "mm²", "cm²", "m²"].includes(l.unit))
+      throw Error("Use square units or no unit for an area label.");
     if (kind === "angle" && !["", "°"].includes(l.unit))
       throw Error("Use degrees or no unit for an angle label.");
     if (
@@ -467,7 +484,9 @@ export function validate(raw: unknown): Envelope {
           throw Error(
             kind === "angle"
               ? "An interior angle must be greater than 0° and less than 180°."
-              : "Use a positive length. Blank and zero are different states.",
+              : kind === "area"
+                ? "Use a positive area. Blank and zero are different states."
+                : "Use a positive length. Blank and zero are different states.",
           );
       }
     }

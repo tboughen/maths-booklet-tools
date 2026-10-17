@@ -1,4 +1,6 @@
 import {
+  allLabels,
+  basis,
   numeric,
   textOf,
   type Envelope,
@@ -6,6 +8,19 @@ import {
   type Method,
 } from "../../packages/triangle-core/src";
 import { owningTriangles, triangleName } from "./interaction";
+
+/** Prepared helper inputs depend on which givens are printed. Saved answers
+ * retain the core's existing mathematical-basis/visibility compatibility. */
+export const printedInputBasis = (e: Envelope) =>
+  JSON.stringify({
+    maths: basis(e),
+    givens: allLabels(e)
+      .filter((l) => l.kind !== "vertex" && l.label.state === "value")
+      .map((l) => l.ref),
+    rightMarks: e.document.angles
+      .filter((a) => a.mark === "right")
+      .map((a) => a.id),
+  });
 
 export type CalculationContext = {
   target: string;
@@ -176,8 +191,11 @@ export function calculationContexts(
     const areas = e.document.captions.filter(
       (c) => number(e, c.label) && c.label.unit === `${unit}²`,
     );
-    const area =
-      e.document.layout === "single" && areas.length === 1
+    const area = t.area
+      ? t.area.unit === `${unit}²`
+        ? { label: t.area }
+        : undefined
+      : e.document.layout === "single" && areas.length === 1
         ? areas[0]
         : undefined;
     if (area)
@@ -187,7 +205,7 @@ export function calculationContexts(
         `Area = ${number(e, area.label)} ${area.label.unit}`,
       ]);
   }
-  if (kind === "c") {
+  if (kind === "c" || kind === "r") {
     const h = e.document.heights.find((h) => h.triangleId === triangle),
       base = h && e.document.edges.find((a) => a.id === h.base);
     add(
@@ -217,8 +235,11 @@ export function calculationContexts(
     const areas = e.document.captions.filter(
       (c) => number(e, c.label) && c.label.unit === `${unit}²`,
     );
-    const area =
-      e.document.layout === "single" && areas.length === 1
+    const area = t.area
+      ? t.area.unit === `${unit}²`
+        ? { label: t.area }
+        : undefined
+      : e.document.layout === "single" && areas.length === 1
         ? areas[0]
         : undefined;
     add(
