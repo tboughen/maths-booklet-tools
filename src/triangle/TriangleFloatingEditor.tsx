@@ -103,8 +103,9 @@ export function TriangleFloatingEditor({
   useEffect(() => {
     if (!active || matchMedia("(pointer: coarse)").matches) return;
     const frame = requestAnimationFrame(() => {
-      const input =
-        box.current?.querySelector<HTMLInputElement>("input,textarea");
+      const input = box.current?.querySelector<HTMLInputElement>(
+        "[data-tr-label-text]",
+      );
       input?.focus({ preventScroll: true });
       input?.select();
     });

@@ -1,4 +1,57 @@
-MathsDock Triangles — local review implementation, 16 October 2026
+MathsDock Triangles — editor and print behaviour
+
+Wedge and area refinement, 17 October 2026 (local review)
+The interior shaded wedge is the angle control, including Blank/Hidden and
+None-mark angles. Wedges are invisible at rest, with feedback only for the
+hovered angle or keyboard focus/named chooser; selection alone does not shade
+them. Angle rectangles are removed. Wedges support click, touch,
+Tab and Enter/Space; named choices resolve genuinely overlapping angles.
+The round vertex drag handles and vertex-name/side-length text targets remain.
+Precise angle-label offsets remain in Label position. Editor wedges never print.
+
+Hover a triangle, focus its centre target, or select its triangle to reveal
++ Area. On touch, tap the triangle interior to select it first. The named
+centre target opens an optional label for that triangle alone: given, unknown,
+blank, answer line or hidden. Square units or None are available. Applying is
+one Undo action; Cancel does not add a label. The resulting text is editable
+and draggable; offsets are physical mm from the triangle's centroid. Remove
+area label is undoable. No numerical area is inferred from drawn proportions.
+The existing explicit calculation helpers can save an area answer to this
+label; connected givens and calculation ownership use its exact triangle.
+
+Old files and presets retain schemaVersion 1 / triangle-1 and identical output.
+Adding a centre area uses schemaVersion 2 / triangle-2: each triangle may have
+an optional area: Label, reached as r:<triangle-id>. Captions keep their original
+meaning and two-caption limit. Both versions are validated; version/renderer
+mismatches and area fields in version 1 are rejected. Old clients cannot open
+version 2. Removal of the last area in this editor returns to version 1. Area
+labels follow reshape, transforms, split/restore and worked-copy operations.
+
+Visible label controls, 17 October 2026 (local review refinement)
+The underlying tool was published in PR34; these refinements are local only.
+Label display and units use visible native radio choices. Angle marker is
+immediately available: None, Arc, Double arc, Triple arc or Right angle.
+Click an angle position or a printed arc to edit that exact named angle.
+An overlapping wedge offers named alternatives and a visual highlight.
+Choose Arc and Blank for an unlabelled arc. Labels and marks stay independent:
+typing or changing label type never inserts a mark; None stays None on reopen.
+Right angle is enabled only on perpendicular rays and never reshapes geometry.
+Show degree symbol, Dashed side and saved-answer visibility are checkboxes.
+Vertex names open directly in a text field; uncommon styles remain in More
+label options and survive no-op edits. All existing caption units are retained.
+Given / expression, Unknown (x), Blank, Answer line and Hidden retain existing
+label semantics and text. Unknown suggests x only for empty unlinked labels.
+An already printed saved answer has a visible explanation and checkbox; hidden
+labels do not erase answers or change saved visibility. Saved mathematical
+answers retain the existing visibility-independent validity rule. Loaded helper
+inputs/results separately detect changed printed givens and require a reload.
+Apply/Enter or valid click-away commits the complete edit once. Cancel/Escape
+restores it; a valid draft can hand off to another label with one click. Invalid
+drafts stay available and continue to block conflicting operations and export.
+Radio choices do not summon the touch keyboard. Native keyboard grouping and
+focus, measured popup bounds and existing drag/history/recovery guards remain.
+That label-control-only refinement did not change the saved format or artwork;
+the later optional centre-area extension is described above.
 
 Direct-interaction refinement, 16 October 2026
 Ordinary editing is mode-free: click/tap labels to edit, drag labels to move
@@ -28,7 +81,7 @@ schema, renderer and saved pupil states are retained. The shared mathematical
 helper adds the explicit inverse-area height method h = 2A/base; existing
 methods and exported preset artwork remain unchanged.
 
-Route: ?tool=triangle. Renderer: triangle-1; file kind triangle, schemaVersion 1,
+Route: ?tool=triangle. Renderers: triangle-1/triangle-2; file kind triangle, schemaVersion 1/2,
 style exam-v1. Core: packages/triangle-core/src. Browser: src/triangle.
 This implementation is local and uncommitted. No MCP adapter is included.
 

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   allLabels,
-  basis,
   calculate,
   formatResult,
   measuredLabels,
@@ -19,6 +18,7 @@ import {
 
 import {
   calculationContexts,
+  printedInputBasis,
   type CalculationContext,
 } from "./calculationContext";
 
@@ -116,20 +116,20 @@ export function MathsPanel({
     [unit, setUnit] = useState<"cm" | "mm" | "m">(context?.unit ?? "cm"),
     [target, setTarget] = useState(context?.target ?? ""),
     [prepared, setPrepared] = useState(context),
-    [preparedBasis, setPreparedBasis] = useState(basis(e));
+    [preparedBasis, setPreparedBasis] = useState(printedInputBasis(e));
   const t =
       e.document.triangles.find((t) => t.id === triangle) ??
       e.document.triangles[0],
     chosen = target || selected || "",
     r = results[0],
-    resultStale = results.length > 0 && resultBasis !== basis(e);
+    resultStale = results.length > 0 && resultBasis !== printedInputBasis(e);
   const targets = allLabels(e)
     .filter((v) => !context || v.ref === context.target)
     .filter((v) =>
       r?.dimension === "angle"
         ? v.kind === "angle"
         : r?.dimension === "area"
-          ? v.kind === "caption"
+          ? ["caption", "area"].includes(v.kind)
           : ["edge", "height", "caption"].includes(v.kind),
     );
   const targetRef = targets.some((x) => x.ref === chosen)
@@ -139,7 +139,7 @@ export function MathsPanel({
   const run = () => {
     setError("");
     try {
-      if (context && preparedBasis !== basis(e))
+      if (context && preparedBasis !== printedInputBasis(e))
         throw Error(
           "Diagram givens changed. Reload the selected context before calculating.",
         );
@@ -171,7 +171,7 @@ export function MathsPanel({
           "Use one consistent length unit. Match the helper unit to the diagram, or explicitly convert the entered givens first.",
         );
       setResults(calculate(method, raw));
-      setResultBasis(basis(e));
+      setResultBasis(printedInputBasis(e));
     } catch (err) {
       setResults([]);
       setError(err instanceof Error ? err.message : String(err));
@@ -194,7 +194,7 @@ export function MathsPanel({
       setRaw(next.raw);
       setUnit(next.unit);
       setPrepared(next);
-      setPreparedBasis(basis(e));
+      setPreparedBasis(printedInputBasis(e));
       setResults([]);
       setError("Loaded printed givens. Enter any remaining fields explicitly.");
       return;
@@ -272,7 +272,7 @@ export function MathsPanel({
                   setRaw(next.raw);
                   setUnit(next.unit);
                   setPrepared(next);
-                  setPreparedBasis(basis(e));
+                  setPreparedBasis(printedInputBasis(e));
                 }
               }
               setResults([]);
@@ -474,7 +474,7 @@ export function MathsPanel({
                     }
                     onClick={() => {
                       try {
-                        if (resultBasis !== basis(e))
+                        if (resultBasis !== printedInputBasis(e))
                           throw Error(
                             "Diagram givens changed. Calculate again before saving a result.",
                           );
