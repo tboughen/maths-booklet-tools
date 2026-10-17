@@ -149,7 +149,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
-      case "cuboids": case "number-line": case "venn": return resources.artifacts(source, format, signal);
+      case "cuboids": case "number-line": case "venn": case "algebra-grid": return resources.artifacts(source, format, signal);
     }
   });
   async function result(raw: GraphEnvelope, signal?: AbortSignal) {
@@ -255,7 +255,7 @@ export function graphService(options: ServiceOptions) {
       { name: "Maths Booklet Tools", version: "1.0.0" },
       {
         instructions:
-          "Create and revise all six MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines and Venn diagrams. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
+          "Create and revise all seven MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines, Venn diagrams and expanding/factorising algebra grids. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
       },
     );
     const annotations = {
@@ -405,6 +405,7 @@ export function graphService(options: ServiceOptions) {
           cuboidRendererVersions: ["cuboids-1", "cuboids-2"],
           numberLineRendererVersion: "number-line-1",
           vennRendererVersions: ["venn-1", "venn-2"],
+          algebraGridRendererVersion: "algebra-grid-1",
           buildId: options.buildId ?? "development",
         });
         return;
@@ -412,7 +413,7 @@ export function graphService(options: ServiceOptions) {
       limits.request(req.socket.remoteAddress ?? "unknown");
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
-        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid") throw new GraphError("invalid_download", "Use the original download route for this resource.");
         const abort = new AbortController();
         res.once("close", () => {if (!res.writableFinished) abort.abort();});
         const file = await resources.artifacts(source, format, abort.signal);

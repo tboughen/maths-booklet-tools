@@ -6,6 +6,9 @@ import * as ci from "../../packages/cuboid-core/src/interchange";
 import * as line from "../../packages/number-line-core/src/index";
 import * as venn from "../../packages/venn-core/src/index";
 import * as vi from "../../packages/venn-core/src/interchange";
+import * as algebra from "../../packages/algebra-grid-core/src/index";
+import * as ai from "../../packages/algebra-grid-core/src/interchange";
+import { algebraConfig } from "./algebra-config";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
@@ -21,7 +24,7 @@ import type { DownloadFormat } from "./downloads";
 import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
 type NewSource = Extract<
   DiagramSource,
-  { kind: "cuboids" | "number-line" | "venn" }
+  { kind: "cuboids" | "number-line" | "venn" | "algebra-grid" }
 >;
 const lineCreateSchema = z
   .object({
@@ -119,6 +122,7 @@ const configs = [
     createDescription: `Create editable one/two/three-set Venn diagrams. Supply spec with sets,shape,arrangement,widthCm,fontPt,labels:[{set,label}],definitions:[{set,text}],regions:[{mask,region}],showDefinitions,caption; or an existing envelope, never both. Region mask0 is outside; bits A=1 B=2 C=4. arrangements overlap/separate/b-inside-a/a-inside-b (non-overlap only two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView defaults pupil; answer must be explicitly requested. Returned JSON/editor source always preserves pupil visibility and can include hidden answers. ${commonDescription}`,
     reviseDescription: `Revise Venn envelope/baseHash atomically (max30). set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?}; upgrade_document {}. Expressions use stable A/B/C IDs, union/intersection/complement and brackets. Lossy layout changes require the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need explicit upgrade for new layouts. outputView pupil|answer affects artwork only; retain returned pupil source/hash. Empty operations refresh links. ${commonDescription}`,
   },
+  algebraConfig,
 ];
 export function resourceTools(
   raster: RasterQueue,
@@ -138,7 +142,7 @@ export function resourceTools(
       };
     const info = await prepareDiagram(source, raster, signal);
     const svg =
-      source.kind === "cuboids"
+      source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -175,7 +179,7 @@ export function resourceTools(
     const info = await prepareDiagram(source, raster, signal);
     const print = await artifacts(source, "png", signal);
     const svg =
-      source.kind === "cuboids"
+      source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -207,13 +211,13 @@ export function resourceTools(
       source.kind,
     );
     const hash =
-      source.kind === "cuboids"
+      source.kind === "algebra-grid" ? await ai.hash(source.envelope) : source.kind === "cuboids"
         ? await ci.hash(source.envelope)
         : source.kind === "number-line"
           ? await line.hash(source.envelope)
           : await vi.hash(source.envelope);
     const warnings =
-      source.kind === "cuboids"
+      source.kind === "algebra-grid" ? algebra.warnings(source.envelope) : source.kind === "cuboids"
         ? source.envelope.document.shapes.flatMap((s) => cuboid.warnings(s))
         : source.kind === "number-line"
           ? line.warnings(source.envelope)
@@ -257,7 +261,7 @@ export function resourceTools(
       }
     }
     let editorUrl: string | null =
-      source.kind === "cuboids"
+      source.kind === "algebra-grid" ? ai.editorLink(source.envelope,editorBase) : source.kind === "cuboids"
         ? cuboid.editorLink(source.envelope, editorBase)
         : source.kind === "number-line"
           ? line.editorLink(source.envelope, editorBase)
@@ -271,7 +275,7 @@ export function resourceTools(
       warnings.push(
         "Open the editable JSON file rather than an editor link for this resource.",
       );
-    if (source.kind === "venn")
+    if (source.kind === "venn" || source.kind === "algebra-grid")
       warnings.push(
         "Editable JSON and editor links retain the pupil document and may contain hidden answers.",
       );
@@ -371,7 +375,8 @@ export function resourceTools(
         ) => {
           try {
             let envelope: unknown;
-            if (c.kind === "cuboids") envelope = ci.createCuboid(args);
+            if (c.kind === "algebra-grid") envelope = ai.create(args);
+            else if (c.kind === "cuboids") envelope = ci.createCuboid(args);
             else if (c.kind === "venn") envelope = vi.createVenn(args);
             else {
               const v = lineCreateSchema.parse(args);
@@ -410,7 +415,7 @@ export function resourceTools(
         ) => {
           try {
             const envelope =
-              c.kind === "cuboids"
+              c.kind === "algebra-grid" ? await ai.revise(args) : c.kind === "cuboids"
                 ? await ci.reviseCuboid(args)
                 : c.kind === "venn"
                   ? await vi.reviseVenn(args)

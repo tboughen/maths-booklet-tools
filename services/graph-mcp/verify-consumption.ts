@@ -162,16 +162,22 @@ try {
   await save("venn-revised",vennRevised);
   const answer=await call("revise_venn",{envelope:vennRevised.envelope,baseHash:vennRevised.contentHash,operations:[],outputView:"answer"});
   assert.deepEqual(answer.envelope,vennRevised.envelope);assert.equal(answer.contentHash,vennRevised.contentHash);await save("venn-answer",answer);
-  for(const [kind,data] of [["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised]] as const){
+  const algebra=await call("create_algebra_grid",{spec:{example:"double"}});await save("algebra-grid",algebra);
+  const algebraFactor=await call("create_algebra_grid",{spec:{example:"factor",settings:{questionVisible:true}}});await save("algebra-factor",algebraFactor);
+  const algebraAnswer=await call("revise_algebra_grid",{envelope:algebraFactor.envelope,baseHash:algebraFactor.contentHash,operations:[{op:"calculate_answer"}]});await save("algebra-answer",algebraAnswer);
+  assert.deepEqual((algebraAnswer.envelope.document as {rows:unknown}).rows,(algebraFactor.envelope.document as {rows:unknown}).rows);
+  const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum);
+  for(const [kind,data] of [["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
   }
-  assert.equal(tools.length,21);
+  assert.equal(tools.length,24);
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
     ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],
     ["venn-pupil", "venn", vennRevised], ["venn-answer", "venn", answer, "answer"],
+    ["algebra-grid", "algebra-grid", algebra], ["algebra-answer", "algebra-grid", algebraAnswer],
   ] as const) await saveDirect(name, kind, data, view);
   const shading=[];
   for(const [sets,arrangement] of [[1,"overlap"],[2,"overlap"],[2,"separate"],[2,"b-inside-a"],[2,"a-inside-b"],[3,"overlap"]] as const){

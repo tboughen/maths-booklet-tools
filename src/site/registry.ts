@@ -1,5 +1,7 @@
 import VennPage from "../venn/VennPage";
 import TrianglePage from "../triangle/TrianglePage";
+import AlgebraGridPage from "../algebra-grid/AlgebraGridPage";
+import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import NumberLinePage from "../number-line/NumberLinePage";
@@ -16,6 +18,7 @@ import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graph
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
+  { id: "expanding-factorising", name: "Expanding and factorising", description: "Make multiplication grids with blank writing cells for expanding and factorising.", icon: Table2, component: AlgebraGridPage, preview: { src: algebraPreview, alt: "Multiplication grid with x and signed number headings and blank product cells for pupil working." } },
   { id: "triangle", name: "Triangles", description: "Create triangle diagrams for Pythagoras, trigonometry, sine rule, cosine rule and area.", icon: Triangle, component: TrianglePage, preview: { src: trianglePreview, alt: "Right-angled triangle with 6 cm and 8 cm sides and an unknown hypotenuse labelled x." } },
   { id: "venn", name: "Venn diagrams", description: "Build blank, populated and shaded diagrams with one, two or three sets.", icon: Shapes, component: VennPage, preview: { src: vennPreview, alt: "Two overlapping sets with member lists, an intersection and a pupil answer line." } },
   { id: "graph", name: "Graph tool", description: "Draw points, segments and lines on a 1 cm coordinate grid.", icon: Grid3X3, component: GraphPage, preview: { src: graphPreview, alt: "Example coordinate grid with a straight line and three plotted points." } },

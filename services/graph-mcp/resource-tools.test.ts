@@ -130,7 +130,7 @@ describe("three new families through actual MCP/HTTP", () => {
   it("discovers twenty-one tools with typed operations, bounded homogeneous arrays and no tuple items", async () => {
     const { client } = await start(),
       tools = (await client.listTools()).tools;
-    expect(tools).toHaveLength(21);
+    expect(tools).toHaveLength(24);
     for (const c of cases) {
       const tool = tools.find((t) => t.name === `revise_${c.name}`)!;
       expect(tool.inputSchema.properties).toHaveProperty("operations");

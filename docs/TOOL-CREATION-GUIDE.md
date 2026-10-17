@@ -150,6 +150,10 @@ Version the saved document, renderer and style deliberately. Retain representati
 
 Where an MCP connector is in scope, reuse the capabilities/create/revise pattern. Return the canonical document envelope, its content hash, a preview, real downloads, warnings, physical dimensions and an editor link. Revisions should operate on stable IDs, check the supplied base hash and apply all operations atomically.
 
+Follow [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) for actual host
+discovery and saved-file checks. The [algebra-grid contract](ALGEBRA-GRID-MCP.md)
+records the expanding/factorising integration and its explicit calculation rules.
+
 For portable print outputs, follow [MCP diagram outputs](MCP-DIAGRAM-OUTPUTS.md).
 Return physical facts as response metadata outside the saved definition/hash;
 qualify actual SVG consumption into vector PDFs rather than trusting extensions
