@@ -9,6 +9,14 @@ test.skip(
   "Run verify-consumption.js and set MCP_CONSUMPTION_DIR to its output directory.",
 );
 const cases = [
+  ...["algebra-grid", "algebra-factor", "algebra-answer"].map((name) => ({
+    name,
+    route: "expanding-factorising",
+    input: "Open algebra grid file",
+    confirm: "Apply replacement",
+    key: "maths-booklet-tools:algebra-grid:v1",
+    selector: '[data-testid="algebra-resource"]',
+  })),
   {
     name: "graph",
     route: "graph",
@@ -103,6 +111,78 @@ for (const c of cases) {
       .toEqual(expected);
   });
 }
+test("actual algebra MCP link retains pupil blanks through a mobile edit and Undo", async ({
+  page,
+}, info) => {
+  const evidence = JSON.parse(
+      await readFile(resolve(directory!, "retrieval.json"), "utf8"),
+    ),
+    item = evidence.items["algebra-factor"],
+    u = new URL(item.editorUrl);
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto(`/?${u.searchParams}${u.hash}`);
+  await page
+    .getByRole("button", { name: "Apply replacement", exact: true })
+    .click();
+  const key = "maths-booklet-tools:algebra-grid:v1";
+  await expect
+    .poll(async () =>
+      JSON.parse(await page.evaluate((k) => localStorage.getItem(k)!, key)),
+    )
+    .toEqual(item.envelope);
+  await page.locator('[data-ag-cell="0-2"]').click();
+  await page.getByLabel("Cell entry", { exact: true }).fill("+3");
+  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        JSON.parse(await page.evaluate((k) => localStorage.getItem(k)!, key))
+          .document.rows[0].cells[2].value,
+    )
+    .toBe("+3");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect
+    .poll(async () =>
+      JSON.parse(await page.evaluate((k) => localStorage.getItem(k)!, key)),
+    )
+    .toEqual(item.envelope);
+  await page.screenshot({
+    path: info.outputPath("algebra-mcp-mobile.png"),
+    fullPage: true,
+  });
+});
+test("actual algebra bundle source reopens with every pupil blank", async ({
+  page,
+}) => {
+  const files = unzipSync(
+    new Uint8Array(
+      await readFile(resolve(directory!, "algebra-grid-bundle.zip")),
+    ),
+  );
+  const bytes = Buffer.from(files["source.json"]),
+    expected = JSON.parse(bytes.toString("utf8"));
+  await page.goto("/?tool=expanding-factorising");
+  await page
+    .getByLabel("Open algebra grid file", { exact: true })
+    .setInputFiles({
+      name: "source.json",
+      mimeType: "application/json",
+      buffer: bytes,
+    });
+  await page
+    .getByRole("button", { name: "Apply replacement", exact: true })
+    .click();
+  await expect
+    .poll(async () =>
+      JSON.parse(
+        await page.evaluate(
+          () => localStorage.getItem("maths-booklet-tools:algebra-grid:v1")!,
+        ),
+      ),
+    )
+    .toEqual(expected);
+});
+
 test("an actual ZIP's editable source opens in the existing ratio editor", async ({
   page,
 }) => {

@@ -38,7 +38,7 @@ Call `check_diagram_placement` when considering a resize. Input:
 
 ```js
 {
-  kind: "graph", // also ratio-table, value-graph, cuboids, number-line, venn
+  kind: "graph", // also ratio-table, value-graph, cuboids, number-line, venn, algebra-grid
   envelope: previousResult.envelope,
   widthMm: 80 // heightMm is optional; at least one dimension is required
 }

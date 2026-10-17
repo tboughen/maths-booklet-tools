@@ -15,6 +15,13 @@ Use the existing connected Maths Booklet Tools MCP tools to produce editable tea
 - For one or more cuboids, cubes, cube grids or separated layers, read `cuboid_capabilities`, then use `create_cuboid` or `revise_cuboid`.
 - For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
 - For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
+- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
+
+Algebra grids retain integer terms in x, explicit signs, true blanks and hidden
+answers. Product cells are12..18mm independent of paper choice. Supply spec or
+exact envelope,never both. Revisions use returned IDs and baseHash. Calculate,
+fill and worked-copy actions require explicit user intent; calculate_answer
+retains the pupil scaffold. Editable files/links may contain hidden answers.
 
 Only call tools actually discovered in this conversation. A newer skill does not establish that the service or client exposes newer integrations. Use capabilities and the discovered schemas for complete payloads. Cuboids, Number lines and Venn accept either a concise `spec` or an existing `envelope`; never supply both. Older Graph/Ratio/value-graph calls keep their existing payloads.
 
