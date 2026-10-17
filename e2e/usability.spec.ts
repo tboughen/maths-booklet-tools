@@ -125,7 +125,9 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       await zoom.selectOption("0");
       await expect.poll(() => saved(page, key)).toBe(before);
       if (tool === "expanding-factorising" && width === 320) {
-        expect((await page.locator(".ag-preview-bar").boundingBox())!.height).toBeLessThan(240);
+        expect(
+          (await page.locator(".ag-preview-bar").boundingBox())!.height,
+        ).toBeLessThan(240);
       }
       if (width === 320) {
         await page.getByRole("button", { name: "Edit settings ↓" }).click();
@@ -135,9 +137,8 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       }
     });
 
-  test(`${tool}: real gallery, safe replacement, Undo and isolated worked reload`, async ({
+  test(`${tool}: real gallery, safe replacement, Undo and immediate worked replacement`, async ({
     page,
-    context,
   }) => {
     await page.goto(`/?tool=${tool}`);
     await expect.poll(() => saved(page, key)).not.toBeNull();
@@ -156,13 +157,15 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       tool === "value-table-graph"
         ? gallery.locator('[data-example-id="quadratic-1MA1_NOV_2018_3H_Q3"]')
         : gallery.locator("article").first();
-    expect(
-      await card
-        .locator("img")
-        .evaluate(
-          (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
-        ),
-    ).toBe(true);
+    await expect
+      .poll(() =>
+        card
+          .locator("img")
+          .evaluate(
+            (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+          ),
+      )
+      .toBe(true);
     await card
       .getByRole("button", {
         name: /Open scaffold|Open blank grid|Open diagram/,
@@ -195,38 +198,30 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       .locator("article")
       .filter({
         has: page.getByRole("button", {
-          name: "Open worked copy",
+          name: "Use worked version",
           exact: true,
         }),
       })
       .first();
-    const opening = context.waitForEvent("page");
+    const pagesBefore = page.context().pages().length;
     await workedCard
-      .getByRole("button", { name: "Open worked copy", exact: true })
+      .getByRole("button", { name: "Use worked version", exact: true })
       .click();
-    const copy = await opening;
-    await copy.waitForLoadState();
-    await expect(
-      copy.getByText("Separate worked copy", { exact: true }),
-    ).toBeVisible();
+    await expect(gallery).not.toBeVisible();
+    await expect.poll(() => saved(page, key)).not.toBe(scaffold);
+    const worked = await saved(page, key);
+    expect(page.context().pages()).toHaveLength(pagesBefore);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect.poll(() => saved(page, key)).toBe(scaffold);
-    const copyKeys = await copy.evaluate(
-      (base) =>
-        Object.keys(localStorage).filter((key) =>
-          key.startsWith(base + ":worked:"),
-        ),
-      key,
-    );
-    expect(copyKeys).toHaveLength(1);
-    const original = await saved(copy, key),
-      copied = await saved(copy, copyKeys[0]);
-    expect(copied).not.toBeNull();
-    await copy.reload();
-    await expect.poll(() => saved(copy, copyKeys[0])).toBe(copied);
-    expect(await saved(copy, key)).toBe(original);
-    await copy.close();
-    await gallery.getByRole("button", { name: "Close", exact: true }).click();
-    await expect(launch).toBeFocused();
+    await page.getByRole("button", { name: "Redo", exact: true }).click();
+    await expect.poll(() => saved(page, key)).toBe(worked);
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect.poll(() => saved(page, key)).toBe(scaffold);
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect.poll(() => saved(page, key)).toBe(before);
+    await page.getByRole("button", { name: "Redo", exact: true }).click();
+    await expect.poll(() => saved(page, key)).toBe(scaffold);
     const downloadPromise = page.waitForEvent("download");
     await clickResourceAction(page, "Save editable file");
     const raw = await readFile((await (await downloadPromise).path())!, "utf8");
@@ -242,12 +237,11 @@ test("number-line quick input preserves teaching state, supports exact range dra
   const key = "maths-booklet-tools:number-line:v1";
   await expect.poll(() => saved(page, key)).not.toBeNull();
   const original = await saved(page, key);
-  await page.getByRole("button", { name: "Enter inequality or value" }).click();
   await page
     .getByRole("textbox", { name: "Inequality or value", exact: true })
     .fill("-3 < x <= 1");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await page
     .getByRole("button", { name: "Apply drawing", exact: true })
@@ -256,7 +250,6 @@ test("number-line quick input preserves teaching state, supports exact range dra
     page.getByText("Drawing: -3 < x ≤ 1", { exact: false }),
   ).toBeVisible();
   const first = await saved(page, key);
-  await page.getByRole("button", { name: "Enter inequality or value" }).click();
   await page
     .getByRole("textbox", { name: "Inequality or value", exact: true })
     .fill("x >= 8");
@@ -303,7 +296,6 @@ test("invalid notation survives tool navigation; Escape restores exports and mod
   page,
 }) => {
   await page.goto("/?tool=number-line");
-  await page.getByRole("button", { name: "Enter inequality or value" }).click();
   const field = page.getByRole("textbox", {
     name: "Inequality or value",
     exact: true,
@@ -356,7 +348,7 @@ test("typed straight-line input edits existing models, rejects nonlinear drafts 
   await field.press("Enter");
   await expect(page.getByRole("alert")).toContainText("not supported");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await field.fill("y = 1/2x - 2");
   await field.press("Enter");

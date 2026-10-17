@@ -143,7 +143,7 @@ test("tight vector crops preserve every label and shape across the supported lay
         .isVisible())
     )
       await page
-        .getByRole("button", { name: "Download options", exact: true })
+        .getByRole("button", { name: "File", exact: true })
         .click();
     const download = page.waitForEvent("download");
     await clickResourceAction(page, "Download SVG");
@@ -220,7 +220,7 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
     .locator(".cb-art svg")
     .getAttribute("viewBox");
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   for (const [name, file] of [
     ["Download PNG (600 ppi)", "download.png"],
@@ -232,7 +232,7 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
+    .getByRole("button", { name: "Copy image", exact: true })
     .click();
   await expect(page.locator(".resource-feedback")).toContainText(
     /Image copied\. Paste with Ctrl\+V\./,
@@ -306,7 +306,7 @@ test("real downloads and both clipboard routes use the same cropped dimensions",
       .isVisible())
   )
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Download SVG");
@@ -325,7 +325,7 @@ test("largest separated resource still exports every layer at 600 ppi", async ({
     page.getByTestId("cuboid-resource").locator("g[data-layer]"),
   ).toHaveCount(20);
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Download PNG (600 ppi)");

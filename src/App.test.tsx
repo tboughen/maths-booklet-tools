@@ -35,6 +35,7 @@ describe("graph builder", () => {
 
     expect(screen.getByText("0 objects")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Line by equation" }));
+    await user.click(screen.getByRole("button", { name: "Use m and c" }));
     await user.clear(screen.getByRole("textbox", { name: "Gradient m" }));
     await user.type(screen.getByRole("textbox", { name: "Gradient m" }), "2");
     await user.clear(screen.getByRole("textbox", { name: "Intercept c" }));
@@ -42,6 +43,7 @@ describe("graph builder", () => {
     await user.click(screen.getByRole("button", { name: "Add line" }));
 
     await user.click(screen.getByRole("button", { name: "Line by equation" }));
+    await user.click(screen.getByRole("button", { name: "Use m and c" }));
     await user.click(screen.getByRole("button", { name: "x = a" }));
     await user.clear(screen.getByRole("textbox", { name: "Value a" }));
     await user.type(screen.getByRole("textbox", { name: "Value a" }), "-2");
@@ -80,6 +82,7 @@ describe("graph builder", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Line by equation" }));
+    await user.click(screen.getByRole("button", { name: "Use m and c" }));
     await user.clear(screen.getByRole("textbox", { name: "Gradient m" }));
     await user.type(
       screen.getByRole("textbox", { name: "Gradient m" }),
@@ -299,7 +302,7 @@ describe("graph builder", () => {
       "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
     );
     expect(screen.getByText("0 objects")).toBeInTheDocument();
-    expect(screen.getByText("Nothing selected")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Line equation" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByText("1 object")).toBeInTheDocument();
@@ -310,7 +313,7 @@ describe("graph builder", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Download options" }));
+    await user.click(screen.getByRole("button", { name: "File" }));
     await user.click(
       screen.getByRole("menuitem", { name: /First-time Word setup/ }),
     );
@@ -351,8 +354,10 @@ describe("graph builder", () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole("button", { name: "Line by equation" }));
+    await user.click(screen.getByRole("button", { name: "Use m and c" }));
     await user.click(screen.getByRole("button", { name: "Add line" }));
     await user.click(screen.getByRole("button", { name: "Edit equation" }));
+    await user.click(screen.getByRole("button", { name: "Use m and c" }));
     const input = screen.getByRole("textbox", { name: "Gradient m" });
     await user.clear(input);
     await user.type(input, "1/0");
@@ -362,18 +367,18 @@ describe("graph builder", () => {
     expect(input).toHaveValue("1/0");
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(
-      screen.getByRole("button", { name: "Copy to clipboard" }),
+      screen.getByRole("button", { name: "Copy image" }),
     ).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Copy for Word" }),
     ).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Download options" }),
+      screen.getByRole("button", { name: "File" }),
     ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Undo" })).toBeDisabled();
     await user.keyboard("{Escape}");
     expect(
-      screen.getByRole("button", { name: "Copy to clipboard" }),
+      screen.getByRole("button", { name: "Copy image" }),
     ).toBeEnabled();
     expect(screen.getByText("1 object")).toBeInTheDocument();
   });

@@ -21,7 +21,7 @@ export function NotationPanel({
   onPending: (value: boolean) => void;
   onApply: (next: Envelope) => void;
 }) {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(true),
     [draft, setDraft] = useState(""),
     [edited, setEdited] = useState(false);
   const [rangeOpen, setRangeOpen] = useState(false),
@@ -29,7 +29,9 @@ export function NotationPanel({
   const [error, setError] = useState(""),
     [proposed, setProposed] = useState<Envelope | null>(null);
   function cancel() {
-    setOpen(false);
+    setOpen(true);
+    setDraft("");
+    setRangeOpen(false);
     setEdited(false);
     onPending(false);
     setError("");
@@ -96,7 +98,7 @@ export function NotationPanel({
           <label>
             Inequality or value
             <input
-              autoFocus
+              placeholder="-3 < x <= 1"
               aria-label="Inequality or value"
               aria-invalid={!!error}
               aria-describedby="number-notation-help number-notation-error"
@@ -133,6 +135,7 @@ export function NotationPanel({
             onClick={() => {
               setRangeOpen(!rangeOpen);
               if (!rangeOpen) {
+                setRange(envelope.document.axis);
                 setEdited(true);
                 onPending(true);
               }

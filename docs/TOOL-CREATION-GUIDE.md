@@ -29,7 +29,7 @@ Use these defaults:
 | Extend or shorten the structure | Paired controls next to the affected edge | Explain the affected row, column, interval or object in its accessible name |
 | Add a relationship | Choose the relationship action, then its endpoints | Explicit endpoint and operation fields where useful |
 | Change a repeated label | Edit any displayed copy | All copies derive from one stored value |
-| Finish the resource | Image-only **Copy to clipboard** first, then **Copy for Word** | A nearby download menu for alternative formats and editable files |
+| Finish the resource | Image-only **Copy image** first, then **Copy for Word** | A nearby download menu for alternative formats and editable files |
 
 Keep an ordinary edit available immediately. Use a mode only when it disambiguates actions such as selecting, drawing or adding a relationship. Show the active mode and provide a clear exit.
 
@@ -47,7 +47,7 @@ Use the existing shared header, tool navigation, page heading, workspace and set
 
 Within the editor:
 
-- Use `EditorToolbar` for the same Undo, Redo, Reset, **Copy to clipboard**, **Copy for Word** and download bar across editors. Keep save status in the page heading and preview-only controls immediately above the resource.
+- Use `EditorToolbar` for the same Undo, Redo, Reset, **Copy image**, **Copy for Word** and download bar across editors. Keep save status in the page heading and preview-only controls immediately above the resource.
 - Put specialist modes and actions in labelled right-hand panels, followed by contextual and whole-resource settings. On narrow screens these panels move below the resource. Use local editors for small values or labels when proximity aids editing; broader configuration belongs in the inspector.
 - Place structure controls beside the diagram. Ratio tables pairs Add/Remove row below the table and stacks Add/Remove column at its right. Avoid duplicating those controls in the toolbar.
 - Keep selected-object settings in a predictable place. Separate these from whole-diagram settings such as print size and annotation visibility.
@@ -109,7 +109,7 @@ Specify physical output size before polishing the preview. Graph tool's 1 cm squ
 
 For comparable diagram tools, follow the existing output pattern:
 
-- Image-only **Copy to clipboard** as the first copy action; reuse the verified print PNG and give a useful download fallback when the browser denies access.
+- Image-only **Copy image** as the first copy action; reuse the verified print PNG and give a useful download fallback when the browser denies access.
 - **Copy for Word** with an image and physical-size information.
 - SVG for scalable artwork, and verified 600 ppi PNG for dependable insertion and printing.
 - Editable JSON for later changes in MathsDock, with a compatible editor link where supported.
@@ -205,4 +205,9 @@ Production website checks should target **mathsdock.co.uk**. GitHub Pages and th
 When review uncovers a reusable lesson, update this guide and the corresponding example or regression check. Keep tool-specific limits and operating details in that tool's documentation. Record the problem, resulting behaviour and reason for the choice so future tools inherit the decision rather than repeating the same correction.
 
 
-For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, isolated worked-copy storage and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+For the eight-editor usability workspace, follow [the shared preview, example and quick-input contract](BOOKLET-CONSISTENCY.md#eight-editor-usability-workspace): whole-resource fit with fixed control gutters, real pupil thumbnails, confirmed scaffold replacement, immediate worked-version replacement with one-step Undo and bounded input adapters. Preview choices never change saved mathematics or physical output. Preserve grouped Apply/Cancel and inactive-editor guards.
+
+
+## Usability refinement, 17 October — local candidate
+
+Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.

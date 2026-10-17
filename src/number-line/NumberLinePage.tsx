@@ -2,7 +2,7 @@ import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
-import { openWorkedDocument, copyStorageKey } from "../site/copyDocument";
+import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -966,7 +966,7 @@ export default function NumberLinePage({
                   <div
                     key={side}
                     className={`nl-range nl-${side}`}
-                    style={{ top: 16 + m.axisY * unit - 50 }}
+                    style={{ top: Math.max(8, 16 + m.axisY * unit - 50) }}
                   >
                     <button
                       className="axis-button"
@@ -1079,13 +1079,7 @@ export default function NumberLinePage({
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) =>
-                openWorkedDocument(
-                  "number-line",
-                  "maths-booklet-tools:number-line:v1",
-                  canonical(resource),
-                )
-              }
+              onWorked={(resource) => commit(resource)}
             />
             <section className="panel-card">
               <h2>Draw</h2>

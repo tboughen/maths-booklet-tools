@@ -140,7 +140,7 @@ async function pixels(page: Page, src: string) {
   }, src);
 }
 
-test("direct edits, symbols, valid blur, cancel, history and reload", async ({
+test("direct edits, symbols, explicit Apply, cancel, history and reload", async ({
   page,
 }) => {
   await boot(page);
@@ -155,6 +155,9 @@ test("direct edits, symbols, valid blur, cancel, history and reload", async ({
   await page.locator('[data-tr-anchor="e:AB"]').click();
   await page.locator("[data-tr-label-text]").fill("9");
   await page.getByLabel("Preview zoom").focus();
+  await expect(page.locator(".tr-floating")).toHaveCount(1);
+  expect(canonical(await saved(page))).toBe(original);
+  await page.getByRole("button", { name: "Apply label", exact: true }).click();
   await expect(page.locator(".tr-floating")).toHaveCount(0);
   expect(
     (await saved(page)).document.edges.find((e) => e.id === "AB")!.label.text,
@@ -176,15 +179,15 @@ test("invalid draft stays available, guards actions, and is inert while another 
   await page.getByRole("button", { name: "Apply label", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText(/zero/);
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Download options", exact: true }),
+    page.getByRole("button", { name: "File", exact: true }),
   ).toBeDisabled();
   await page.getByRole("link", { name: "Graph tool", exact: true }).click();
   await expect(page.locator(".tr-floating")).toBeHidden();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await page.getByRole("link", { name: "Triangles", exact: true }).click();
   await expect(page.locator("[data-tr-label-text]")).toHaveValue("1/0");
@@ -250,39 +253,32 @@ test("all ten example cards preserve declared scaffolds and production source UR
     );
   }
 });
-test("worked copy opens independent storage and never changes the pupil scaffold", async ({
+test("worked version replaces immediately and Undo restores the complete pupil scaffold", async ({
   page,
-  context,
 }) => {
   await boot(page, example("right-trig"));
   const original = canonical(await saved(page));
   await page.getByLabel("Show saved answers", { exact: true }).check();
   await expect(page.locator(".tr-art")).toContainText("33.6°");
-  const pupilSvg = (await download(page, "Download SVG")).toString();
-  expect(pupilSvg).not.toContain("33.6°");
-  expect(canonical(await saved(page))).toBe(original);
-  const event = context.waitForEvent("page");
+  expect((await download(page, "Download SVG")).toString()).not.toContain(
+    "33.6°",
+  );
+  const pages = page.context().pages().length;
   await page
-    .getByRole("button", { name: "Open worked copy", exact: true })
+    .getByRole("button", { name: "Use worked version", exact: true })
     .first()
     .click();
-  const child = await event;
-  await expect(
-    child.getByRole("heading", { name: "Triangles", exact: true }),
-  ).toBeVisible();
-  await expect(child.locator(".tr-art")).toContainText("33.6°");
-  expect((await download(child, "Download SVG")).toString()).toContain("33.6°");
-  await child
-    .getByRole("combobox", { name: "Selected object", exact: true })
-    .selectOption("t:T1");
-  await child
-    .getByRole("button", { name: "Rotate right", exact: true })
-    .click();
-  expect(canonical(await saved(page))).toBe(original);
-  await child.reload();
-  await expect(child.locator(".tr-art")).toContainText("33.6°");
-  await child.close();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(page.context().pages()).toHaveLength(pages);
+  await expect(page.locator(".tr-art")).toContainText("33.6°");
+  expect((await download(page, "Download SVG")).toString()).toContain("33.6°");
+  const worked = canonical(await saved(page));
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => canonical(await saved(page))).toBe(original);
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect.poll(async () => canonical(await saved(page))).toBe(worked);
 });
+
 test("editable link replacement can be cancelled and accepted without losing hidden answers", async ({
   page,
 }) => {
@@ -346,7 +342,7 @@ test("joined, separate and split structures preview, cancel, remove and undo", a
         .click();
       expect(canonical(await saved(page))).toBe(original);
       await expect(
-        page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+        page.getByRole("button", { name: "Copy image", exact: true }),
       ).toBeDisabled();
       await page
         .getByRole("button", { name: "Cancel preview", exact: true })
@@ -547,7 +543,7 @@ test("print-width draft validation, image clipboard and Word physical-size clipb
     .getByRole("button", { name: "Apply print width", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await panel
     .getByRole("button", { name: "Cancel print width", exact: true })
@@ -556,9 +552,7 @@ test("print-width draft validation, image clipboard and Word physical-size clipb
     metrics = layout(example("fractions")),
     data = "data:image/png;base64," + png.toString("base64"),
     expected = await pixels(page, data);
-  await page
-    .getByRole("button", { name: "Copy to clipboard", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(page.locator(".tr-feedback")).toContainText("Image copied");
   const copied = await page.evaluate(async () => {
     const all = await navigator.clipboard.read(),
@@ -969,7 +963,7 @@ for (const width of [1440, 1100, 1000, 900, 768, 620, 375, 320])
     await expect(page.getByRole("menuitem").first()).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(
-      page.getByRole("button", { name: "Download options", exact: true }),
+      page.getByRole("button", { name: "File", exact: true }),
     ).toBeFocused();
   });
 
@@ -1067,7 +1061,7 @@ test("Escape and pointer cancellation restore a gesture and consume no Undo acti
     { steps: 4 },
   );
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await handle.dispatchEvent("pointercancel", {
     pointerId: 1,

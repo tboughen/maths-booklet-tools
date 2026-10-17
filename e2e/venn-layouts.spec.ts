@@ -153,7 +153,7 @@ test("one-set default complement and absent-set errors; impossible intersection 
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator(".vn-floating [role=alert]")).toContainText("A");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await expect(
     page.getByLabel("Number of sets", { exact: true }),
@@ -190,7 +190,7 @@ test("caption choices, nested label edits, view export and editable-file present
   await expect(page.locator('.vn-art [data-region="1"]')).toHaveText("2,6,10");
   expect(canonical(await saved(page))).toBe(original);
   await page
-    .getByRole("button", { name: "Download options", exact: true })
+    .getByRole("button", { name: "File", exact: true })
     .click();
   const svg = readFileSync(
     await download(page, "Download SVG", "answer-view.svg"),
@@ -248,7 +248,7 @@ for (const ex of teachingExamples)
     await boot(page, e);
     await expect(page.getByRole("alert")).toHaveCount(0);
     await page
-      .getByRole("button", { name: "Download options", exact: true })
+      .getByRole("button", { name: "File", exact: true })
       .click();
     const svgPath = await download(page, "Download SVG", `${ex.id}.svg`);
     const svg = readFileSync(svgPath, "utf8");
@@ -280,7 +280,7 @@ for (const ex of teachingExamples)
     const file = await download(page, "Save editable file", `${ex.id}.json`);
     expect(readFileSync(file, "utf8")).toBe(canonical(e));
     await page
-      .getByRole("button", { name: "Copy to clipboard", exact: true })
+      .getByRole("button", { name: "Copy image", exact: true })
       .click();
     await expect(
       page.getByText(/Image copied\. Paste with Ctrl\+V\./, { exact: true }),
@@ -390,7 +390,7 @@ for (const value of ["one", "separate", "b-inside-a", "a-inside-b"] as const)
         );
         await page.reload();
         await page
-          .getByRole("button", { name: "Download options", exact: true })
+          .getByRole("button", { name: "File", exact: true })
           .click();
         const path = await download(
           page,
@@ -475,14 +475,14 @@ test("answer-view label overflow is retained and correctable without exposing pu
   };
   await boot(page, e);
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await page
     .getByRole("checkbox", { name: "Show saved answers", exact: true })
     .check();
   await expect(page.getByRole("alert")).toContainText("inner set label");
   await expect(
-    page.getByRole("button", { name: "Copy to clipboard", exact: true }),
+    page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeDisabled();
   await openResourceMenu(page);
   await expect(
@@ -533,7 +533,7 @@ test("actual 40-member nested exports fit around both labels in circles and oval
     await expect(page.getByRole("alert")).toHaveCount(0);
     if (shape === "circles")
       await page
-        .getByRole("button", { name: "Download options", exact: true })
+        .getByRole("button", { name: "File", exact: true })
         .click();
     const path = await download(page, "Download SVG", `nested-40-${shape}.svg`);
     const raster = new Resvg(readFileSync(path, "utf8"), {

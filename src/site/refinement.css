@@ -1,0 +1,277 @@
+/* Screen furniture only. Renderer bounds, white margins and print sizes stay exact. */
+.booklet-editor .editor-card {
+  display: flex;
+  flex-direction: column;
+}
+.booklet-editor .editor-card > * {
+  flex-shrink: 0;
+}
+/* Completion feedback must not shrink/recentre the figure after each copy. */
+.booklet-editor .editor-card > .resource-feedback {
+  order: 1;
+}
+.booklet-editor .main-content {
+  padding-top: 10px;
+}
+.booklet-editor .page-heading {
+  margin-bottom: 10px;
+  gap: 12px;
+}
+.booklet-editor .page-heading p {
+  margin-top: 3px;
+}
+.booklet-editor .editor-toolbar {
+  min-height: 52px;
+  padding-block: 5px;
+  gap: 8px;
+}
+.booklet-editor .editor-copy-actions {
+  gap: 8px;
+}
+.booklet-editor .editor-file-actions {
+  display: contents;
+}
+.booklet-editor .editor-copy-actions .copy-main {
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.booklet-editor .editor-copy-actions .editor-file-actions > .copy-main {
+  background: white;
+  color: var(--blue);
+  border: 1px solid var(--line-strong);
+}
+.booklet-editor .file-menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+  font:
+    650 14px/1.3 "IBM Plex Sans",
+    "Segoe UI",
+    sans-serif;
+  cursor: pointer;
+}
+.booklet-editor .file-menu-button:hover:not(:disabled) {
+  background: var(--blue-soft);
+}
+.booklet-editor
+  :is(
+    .resource-preview-bar,
+    .ratio-preview-controls,
+    .nl-preview-bar,
+    .cb-preview-bar,
+    .vn-preview-bar,
+    .ag-preview-bar,
+    .tr-preview-bar
+  ) {
+  min-height: 48px;
+  padding: 6px 12px;
+  gap: 6px 12px;
+}
+.booklet-editor .preview-detail {
+  padding: 6px 10px;
+}
+.booklet-editor .panel-card {
+  padding: 14px;
+}
+.booklet-editor .inspector-stack {
+  gap: 10px;
+}
+.booklet-editor .tr-label-editor-slot:empty {
+  display: none;
+}
+.booklet-editor .tr-floating.tr-docked {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  max-height: none;
+  box-shadow: none;
+  margin: 0;
+  z-index: auto;
+  scroll-margin-top: 120px;
+}
+.booklet-editor .tr-docked .tr-floating-title {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+.booklet-editor .tr-docked .tr-draft-actions {
+  flex: none;
+  background: white;
+  padding-top: 10px;
+  margin-top: 0;
+}
+.booklet-editor .tr-floating.tr-docked {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 250px);
+}
+.booklet-editor .tr-docked form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.booklet-editor .tr-draft-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 3px;
+  margin: -3px;
+}
+.booklet-editor .inspector-hint {
+  margin: 0;
+  padding: 6px 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.booklet-editor .tr-docked .tr-options-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.booklet-editor .tr-docked .tr-option {
+  flex: 1 1 auto;
+}
+.booklet-editor
+  :is(
+    .graph-canvas,
+    .vg-paper,
+    .ratio-paper,
+    .tr-resource,
+    .ag-resource,
+    .vn-resource,
+    .nl-resource,
+    .cb-resource
+  ) {
+  box-shadow: 0 0 0 8px white;
+}
+.booklet-editor .vn-layout-tools {
+  display: grid;
+  gap: 12px;
+}
+.booklet-editor .vn-layout-tools h2 {
+  margin: 0;
+  font:
+    600 17px/1.3 "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  color: #213c59;
+}
+.booklet-editor .vn-layout-tools .vn-structure {
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.booklet-editor .vn-layout-tools .vn-structure > span {
+  display: none;
+}
+.booklet-editor .vn-layout-tools .vn-arrangements {
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.booklet-editor .vn-layout-tools .vn-arrangements button {
+  min-height: 44px;
+}
+.booklet-editor .vn-layout-tools .vn-view-note {
+  margin: 0;
+  padding: 0;
+}
+.booklet-editor .quick-input-panel {
+  margin-top: 8px;
+  padding-top: 10px;
+  gap: 8px;
+}
+.booklet-editor .vg-workflow {
+  display: grid;
+  gap: 8px;
+}
+.booklet-editor .vg-workflow .specialist-actions {
+  margin-top: 0;
+}
+.booklet-editor .vg-workflow-primary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.booklet-editor .vg-workflow-primary button {
+  text-align: left;
+  justify-content: flex-start;
+}
+.booklet-editor .vg-workflow details {
+  margin: 4px 0 0;
+}
+.booklet-editor .vg-workflow details summary {
+  margin: 0;
+  min-height: 36px;
+  padding-block: 8px;
+}
+@media (min-width: 901px) {
+  .booklet-editor
+    :is(
+      .graph-stage,
+      .ratio-stage,
+      .tr-scroll,
+      .ag-scroll,
+      .vn-scroll,
+      .nl-scroll,
+      .cb-scroll,
+      .vg-scroll
+    ) {
+    height: var(--resource-stage-height, calc(100dvh - 280px));
+    min-height: 320px;
+  }
+  .booklet-editor .inspector-stack {
+    max-height: calc(100dvh - 180px);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+@media (max-width: 900px) {
+  .booklet-editor .tr-label-editor-slot {
+    grid-column: 1 / -1;
+  }
+  .booklet-editor .tr-docked {
+    scroll-margin-top: 140px;
+  }
+  .booklet-editor .tr-floating.tr-docked {
+    max-height: max(360px, 75dvh);
+  }
+}
+@media (max-width: 620px) {
+  .booklet-editor .editor-copy-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+  }
+  .booklet-editor .editor-copy-actions > .clipboard-copy {
+    width: auto;
+    min-width: 0;
+  }
+  .booklet-editor .editor-copy-actions .copy-main {
+    padding-inline: 8px;
+    justify-content: center;
+    font-size: 13px;
+  }
+  .booklet-editor .editor-copy-actions .copy-main svg {
+    display: none;
+  }
+  .booklet-editor .file-menu-button {
+    padding-inline: 8px;
+    gap: 4px;
+  }
+}
+@media (pointer: coarse) {
+  .booklet-editor .editor-toolbar button {
+    min-height: 44px;
+  }
+}

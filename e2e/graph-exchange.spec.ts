@@ -92,7 +92,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
   page,
 }, testInfo) => {
   await page.goto("/?tool=graph");
-  await page.getByRole("button", { name: "Download options" }).click();
+  await page.getByRole("button", { name: "File" }).click();
   await page.getByLabel("Open editable graph file").setInputFiles({
     name: "graph.json",
     mimeType: "application/json",
@@ -111,7 +111,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
     path: testInfo.outputPath("portable-editor.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Download options" }).click();
+  await page.getByRole("button", { name: "File" }).click();
   const svgDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /SVG/ }).click();
   const svgFile = await svgDownload,
@@ -127,7 +127,7 @@ test("file import, self-contained SVG and 600ppi PNG work in a real browser", as
   await expect(check.locator("parsererror")).toHaveCount(0);
   await check.screenshot({ path: testInfo.outputPath("portable-svg.png") });
   await check.close();
-  await page.getByRole("button", { name: "Download options" }).click();
+  await page.getByRole("button", { name: "File" }).click();
   const pngDownload = page.waitForEvent("download");
   await page.getByRole("menuitem", { name: /PNG/ }).click();
   const png = await readFile((await (await pngDownload).path())!);
@@ -246,7 +246,7 @@ test("invalid files and mobile import never replace the current graph", async ({
   await seed(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/?tool=graph");
-  await page.getByRole("button", { name: "Download options" }).click();
+  await page.getByRole("button", { name: "File" }).click();
   await page.getByLabel("Open editable graph file").setInputFiles({
     name: "bad.json",
     mimeType: "application/json",
