@@ -29,7 +29,6 @@ import {
   warnings,
   workedCopy,
   type Envelope,
-  type Label,
   type Metrics,
   type Point,
 } from "../../packages/triangle-core/src";
@@ -51,10 +50,18 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { parseTriangleLink, triangleEditorLink } from "./links";
 import { TriangleFloatingEditor } from "./TriangleFloatingEditor";
+import { TriangleLabelFields } from "./TriangleLabelFields";
+import {
+  labelDraft,
+  applyLabelDraft,
+  type LabelDraft as Draft,
+} from "./labelDraft";
 import { MathsPanel } from "./MathsPanel";
 import { ConstructionPanel } from "./ConstructionPanel";
 import {
   geometryHits,
+  angleWedge,
+  triangleCentre,
   objectName,
   objects,
   oppositeEdge,
@@ -141,15 +148,6 @@ function initial() {
     };
   }
 }
-type Draft = {
-  ref: string;
-  value: Label;
-  text: string;
-  mark: string;
-  ticks: number;
-  dashed: boolean;
-  footName: string;
-};
 type Drag = {
   kind: "vertex" | "label";
   id: string;
@@ -191,6 +189,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       apex: string;
     } | null>(null),
     [choices, setChoices] = useState<string[]>([]),
+    [editChoice, setEditChoice] = useState(false),
+    [hoverAngle, setHoverAngle] = useState<string | null>(null),
     [calcTarget, setCalcTarget] = useState<string | null>(null),
     [hoverTriangle, setHoverTriangle] = useState<string | null>(null),
     [zoom, setZoom] = useState("fit"),
@@ -222,6 +222,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     handledTouchHistory = useRef<number | null>(null),
     structureControls = useRef<HTMLDivElement>(null),
     draftRef = useRef(draft),
+    committed = useRef(startup.e),
     linkSeen = useRef(""),
     linkPending = useRef(false),
     initialCopy = useRef(startup.consume);
@@ -242,14 +243,17 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     exportMetrics = layout(e),
     pendingInput =
       draft !== null || widthDraft !== null || positionDraft !== null,
-    blocked =
+    labelBlocked =
       busy ||
       recovery !== null ||
-      pendingInput ||
+      widthDraft !== null ||
+      positionDraft !== null ||
       pending !== null ||
       recoveryConfirm ||
       dragged !== null ||
-      structure !== null;
+      structure !== null,
+    blocked = labelBlocked || draft !== null;
+  committed.current = e;
   const viewScale =
       zoom === "fit"
         ? Math.max(
@@ -274,6 +278,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   function commit(next: Envelope) {
     if (recovery !== null) return;
     const n = validate(next);
+    committed.current = n;
     setHistory((h) =>
       canonical(h.present) === canonical(n)
         ? h
@@ -303,13 +308,16 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       setVertexId(owners[0].vertices[0]);
   }
   function choose(refs: string[], edit = false) {
-    if (blocked) return;
+    if (blocked && (!edit || labelBlocked)) return;
+    if (edit && refs.length === 1 && draftRef.current?.ref === refs[0]) return;
+    if (edit && draftRef.current && !applyDraft()) return;
     if (refs.length > 1) {
       setChoices(refs);
+      setEditChoice(edit);
       return;
     }
-    selectObject(refs[0] ?? null);
     if (edit && refs[0]) open(refs[0]);
+    else selectObject(refs[0] ?? null);
   }
   function beginStructure(kind: "joined" | "split") {
     if (blocked || d.layout !== "single") return;
@@ -397,45 +405,32 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       });
   }
   function open(ref: string) {
-    if (blocked) return;
-    const l = getLabel(e, ref),
-      [type, id] = ref.split(":"),
-      a = d.angles.find((a) => a.id === id),
-      edge = d.edges.find((a) => a.id === id),
-      h = d.heights.find((h) => h.id === id);
-    const next = {
-      ref,
-      value: structuredClone(l),
-      text: textOf(e, l),
-      mark: type === "a" ? a!.mark : "none",
-      ticks: type === "e" ? edge!.ticks : 0,
-      dashed: type === "e" ? edge!.dashed : false,
-      footName: type === "h" ? h!.footName : "",
-    };
+    if (labelBlocked) return;
+    let source = committed.current;
+    if (draftRef.current) {
+      if (draftRef.current.ref === ref) return;
+      const next = applyDraft();
+      if (!next) return;
+      source = next;
+    }
+    const next = labelDraft(source, ref);
     draftRef.current = next;
     setDraft(next);
     setDraftError("");
     setSelected(ref);
+    setChoices([]);
   }
-  function applyDraft() {
-    const draft = draftRef.current;
-    if (!draft || recovery !== null) return;
+  function applyDraft(): Envelope | null {
+    const current = draftRef.current;
+    if (!current || recovery !== null) return null;
     try {
-      const n = editLabel(e, draft.ref, { ...draft.value, text: draft.text }),
-        [kind, id] = draft.ref.split(":");
-      if (kind === "a")
-        n.document.angles.find((a) => a.id === id)!.mark = draft.mark as "arc";
-      if (kind === "e") {
-        const edge = n.document.edges.find((a) => a.id === id)!;
-        edge.ticks = draft.ticks;
-        edge.dashed = draft.dashed;
-      }
-      if (kind === "h")
-        n.document.heights.find((a) => a.id === id)!.footName = draft.footName;
-      commit(validate(n));
+      const n = applyLabelDraft(committed.current, current);
+      commit(n);
       closeDraft();
+      return n;
     } catch (err) {
       setDraftError(errorText(err));
+      return null;
     }
   }
   function updateDraft(update: Partial<Draft>) {
@@ -446,9 +441,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       return n;
     });
     setDraftError("");
-  }
-  function patchLabel(update: Partial<Label>) {
-    updateDraft({ value: { ...draft!.value, ...update } });
   }
   async function run(action: () => Promise<void>, success: string) {
     if (blocked || exportMetrics.issues.length) return;
@@ -937,8 +929,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               </p>
             )}
             <p className="tr-guidance">
-              Click a label to edit; drag a vertex to reshape or a label to move
-              it.
+              Click a wedge to edit an angle, or a label to edit its text. Drag
+              a vertex to reshape. Select a triangle to add its area.
             </p>
             <div
               className="tr-scroll"
@@ -968,22 +960,45 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   <svg
                     className="tr-geometry"
                     viewBox={`0 0 ${g.width} ${g.height}`}
-                    aria-hidden="true"
+                    aria-label="Triangle angle controls"
                     onClick={(ev) => {
-                      if (blocked) return;
+                      if (labelBlocked) return;
                       const r = resource.current!.getBoundingClientRect();
+                      const refs = geometryHits(
+                        e,
+                        g,
+                        {
+                          x: (ev.clientX - r.left) / px,
+                          y: (ev.clientY - r.top) / px,
+                        },
+                        7 / px,
+                      );
                       choose(
-                        geometryHits(
-                          e,
-                          g,
-                          {
-                            x: (ev.clientX - r.left) / px,
-                            y: (ev.clientY - r.top) / px,
-                          },
-                          7 / px,
-                        ),
+                        refs,
+                        refs.length > 0 &&
+                          refs.every((ref) => ref.startsWith("a:")),
                       );
                     }}
+                    onPointerMove={(ev) => {
+                      if (ev.pointerType === "touch") return;
+                      if (blocked) return;
+                      const r = resource.current!.getBoundingClientRect();
+                      const refs = geometryHits(
+                        e,
+                        g,
+                        {
+                          x: (ev.clientX - r.left) / px,
+                          y: (ev.clientY - r.top) / px,
+                        },
+                        4 / px,
+                      );
+                      setHoverAngle(
+                        refs.length === 1 && refs[0].startsWith("a:")
+                          ? refs[0]
+                          : null,
+                      );
+                    }}
+                    onPointerLeave={() => setHoverAngle(null)}
                   >
                     <rect
                       width={g.width}
@@ -1012,6 +1027,42 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                           }
                         />
                       ))}
+                    {!structure &&
+                      d.angles.map((a) => {
+                        const ref = "a:" + a.id;
+                        return (
+                          <polygon
+                            key={ref}
+                            points={angleWedge(e, g, ref)!}
+                            className={
+                              "tr-angle-target" +
+                              (hoverAngle === ref ? " tr-angle-active" : "")
+                            }
+                            data-tr-anchor={ref}
+                            role="button"
+                            tabIndex={labelBlocked ? -1 : 0}
+                            aria-label={"Edit " + refName(e, ref).toLowerCase()}
+                            aria-disabled={labelBlocked}
+                            onKeyDown={(ev) => {
+                              if (ev.key === "Enter" || ev.key === " ") {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                open(ref);
+                              }
+                            }}
+                            onClick={(ev) => {
+                              if (ev.detail === 0) {
+                                ev.stopPropagation();
+                                open(ref);
+                              }
+                            }}
+                          >
+                            <title>
+                              {refName(e, ref)}: click to edit angle
+                            </title>
+                          </polygon>
+                        );
+                      })}
                     {selected?.startsWith("e:") &&
                       (() => {
                         const edge = display.document.edges.find(
@@ -1029,51 +1080,102 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                       })()}
                   </svg>
                   {!structure &&
-                    g.anchors.map((a) => (
-                      <button
-                        key={a.ref}
-                        type="button"
-                        className={`tr-hit${selected === a.ref ? " tr-selected" : ""}`}
-                        style={{
-                          left: a.x * px,
-                          top: a.y * px,
-                          width: Math.max(28, a.w * px),
-                          height: Math.max(28, a.h * px),
-                        }}
-                        data-tr-anchor={a.ref}
-                        aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
-                        title={`${refName(display, a.ref)}: click to edit, drag to move label`}
-                        disabled={blocked && !drag.current}
-                        onClick={() => {
-                          if (suppressClick.current) {
-                            suppressClick.current = false;
-                            return;
-                          }
-                          const overlaps = g.anchors
-                            .filter(
-                              (b) =>
-                                Math.abs(b.x - a.x) * px < 12 &&
-                                Math.abs(b.y - a.y) * px < 12,
-                            )
-                            .filter(
-                              (b) => getLabel(e, b.ref).state !== "hidden",
+                    g.anchors
+                      .filter((a) => !a.ref.startsWith("a:"))
+                      .map((a) => (
+                        <button
+                          key={a.ref}
+                          type="button"
+                          className={`tr-hit${selected === a.ref ? " tr-selected" : ""}`}
+                          style={{
+                            left: a.x * px,
+                            top: a.y * px,
+                            width: Math.max(28, a.w * px),
+                            height: Math.max(28, a.h * px),
+                          }}
+                          data-tr-anchor={a.ref}
+                          aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
+                          title={`${refName(display, a.ref)}: click to edit, drag to move label`}
+                          disabled={labelBlocked && !drag.current}
+                          onClick={(event) => {
+                            if (suppressClick.current) {
+                              suppressClick.current = false;
+                              return;
+                            }
+                            if (a.ref.startsWith("a:") && event.detail > 0) {
+                              const r =
+                                resource.current!.getBoundingClientRect();
+                              const marks = geometryHits(
+                                e,
+                                g,
+                                {
+                                  x: (event.clientX - r.left) / px,
+                                  y: (event.clientY - r.top) / px,
+                                },
+                                7 / px,
+                              ).filter((ref) => ref.startsWith("a:"));
+                              if (marks.length) {
+                                choose(marks, true);
+                                return;
+                              }
+                            }
+                            const overlaps = g.anchors
+                              .filter((b) => !b.ref.startsWith("a:"))
+                              .filter(
+                                (b) =>
+                                  Math.abs(b.x - a.x) * px < 12 &&
+                                  Math.abs(b.y - a.y) * px < 12,
+                              )
+                              .filter(
+                                (b) => getLabel(e, b.ref).state !== "hidden",
+                              );
+                            choose(
+                              overlaps.length > 1
+                                ? overlaps.map((b) => b.ref)
+                                : [a.ref],
+                              true,
                             );
-                          choose(
-                            overlaps.length > 1
-                              ? overlaps.map((b) => b.ref)
-                              : [a.ref],
-                            true,
-                          );
-                        }}
-                        onPointerDown={(ev) => dragStart(ev, "label", a.ref)}
-                        onPointerMove={dragMove}
-                        onPointerUp={dragEnd}
-                        onPointerCancel={cancelDrag}
-                        onLostPointerCapture={() => {
-                          if (drag.current) cancelDrag();
-                        }}
-                      />
-                    ))}
+                          }}
+                          onPointerDown={(ev) => dragStart(ev, "label", a.ref)}
+                          onPointerMove={dragMove}
+                          onPointerUp={dragEnd}
+                          onPointerCancel={cancelDrag}
+                          onLostPointerCapture={() => {
+                            if (drag.current) cancelDrag();
+                          }}
+                        />
+                      ))}
+                  {!structure &&
+                    d.triangles
+                      .filter(
+                        (t) =>
+                          !t.area ||
+                          !g.anchors.some((a) => a.ref === "r:" + t.id),
+                      )
+                      .map((t) => {
+                        const p = triangleCentre(e, g, t.id),
+                          ref = "r:" + t.id;
+                        return (
+                          <button
+                            key={ref}
+                            type="button"
+                            className={
+                              "tr-area-add" +
+                              (selected === "t:" + t.id || selected === ref
+                                ? " tr-area-revealed"
+                                : "")
+                            }
+                            style={{ left: p.x * px, top: p.y * px }}
+                            data-tr-anchor={ref}
+                            aria-label={"Add " + refName(e, ref).toLowerCase()}
+                            title={refName(e, ref)}
+                            disabled={labelBlocked}
+                            onClick={() => open(ref)}
+                          >
+                            + Area{t.role === "outer" ? " (outer)" : ""}
+                          </button>
+                        );
+                      })}
                   {!structure &&
                     Object.entries(g.vertices).map(([id, p]) => (
                       <button
@@ -1325,8 +1427,18 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 {choices.map((ref) => (
                   <button
                     key={ref}
+                    onMouseEnter={() =>
+                      setHoverAngle(ref.startsWith("a:") ? ref : null)
+                    }
+                    onFocus={() =>
+                      setHoverAngle(ref.startsWith("a:") ? ref : null)
+                    }
+                    onMouseLeave={() => setHoverAngle(null)}
+                    onBlur={() => setHoverAngle(null)}
                     onClick={() => {
-                      selectObject(ref);
+                      setHoverAngle(null);
+                      if (editChoice) open(ref);
+                      else selectObject(ref);
                     }}
                   >
                     {objectName(e, ref)}
@@ -1438,6 +1550,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     "Angles",
                     "Heights",
                     "Captions",
+                    "Areas",
                   ].map((group) => (
                     <optgroup key={group} label={group}>
                       {objects(e)
@@ -1611,7 +1724,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   (selected.startsWith("e:") ||
                     selected.startsWith("a:") ||
                     selected.startsWith("h:") ||
-                    selected.startsWith("c:")) && (
+                    selected.startsWith("c:") ||
+                    selected.startsWith("r:")) && (
                     <button
                       disabled={blocked}
                       onClick={() => setCalcTarget(selected)}
@@ -1622,6 +1736,16 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                       )}
                     </button>
                   )}
+                {selected?.startsWith("t:") && (
+                  <button
+                    disabled={labelBlocked}
+                    onClick={() => open("r:" + selected.slice(2))}
+                  >
+                    {d.triangles.find((t) => "t:" + t.id === selected)?.area
+                      ? "Edit area label"
+                      : "Add area label"}
+                  </button>
+                )}
                 {selected &&
                   (selected.startsWith("v:") || selected.startsWith("t:")) && (
                     <>
@@ -2210,6 +2334,17 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   object chooser also lists every label for keyboard access.
                 </p>
                 <p className="tr-note">
+                  Click an interior angle wedge or its arc, choose Arc in Angle
+                  marker, and leave Label display as Blank for an unlabelled
+                  arc. Marker and label choices are independent. None removes
+                  only the mark.
+                </p>
+                <p className="tr-note">
+                  Hover or select a triangle to reveal + Area at its centre. On
+                  touch, tap inside the triangle first. Enter a given or an
+                  unknown; the label follows that triangle as it reshapes.
+                </p>
+                <p className="tr-note">
                   Drag vertices to reshape while preserving geometry locks.
                   Printed lengths stay as entered. Drag labels to reposition
                   them. Arrow keys on a focused vertex and the contextual
@@ -2310,243 +2445,55 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onBlur={(ev) => {
                 if (
                   ev.relatedTarget instanceof Node &&
-                  !ev.currentTarget.contains(ev.relatedTarget)
+                  !ev.currentTarget.contains(ev.relatedTarget) &&
+                  !(
+                    ev.relatedTarget instanceof Element &&
+                    ev.relatedTarget.closest("[data-tr-anchor]")
+                  )
                 )
                   applyDraft();
               }}
             >
-              <label>
-                Printed state
-                <select
-                  value={draft.value.state}
-                  onChange={(ev) => {
-                    const state = ev.target.value as Label["state"];
-                    patchLabel({ state });
-                    if (
-                      draft.ref.startsWith("a:") &&
-                      draft.mark === "none" &&
-                      (state === "value" || state === "symbol")
-                    )
-                      updateDraft({
-                        value: { ...draft.value, state },
-                        mark: "arc",
-                      });
-                  }}
-                >
-                  {(
-                    [
-                      ["value", "Given value / expression"],
-                      ["symbol", "Unknown symbol"],
-                      ["blank", "Blank"],
-                      ["answer-line", "Answer line"],
-                      ["hidden", "Hidden"],
-                    ] as const
-                  ).map(([value, title]) => (
-                    <option key={value} value={value}>
-                      {title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {draft.ref.startsWith("v:")
-                  ? "Vertex name"
-                  : draft.value.shared
-                    ? "Linked label text"
-                    : "Label text"}
-                <input
-                  autoComplete="off"
-                  value={draft.text}
-                  maxLength={
-                    draft.ref.startsWith("v:")
-                      ? 8
-                      : draft.ref.startsWith("c:")
-                        ? 120
-                        : 40
-                  }
-                  onChange={(ev) => {
-                    const text = ev.target.value;
-                    updateDraft({
-                      text,
-                      value: {
-                        ...draft.value,
-                        state:
-                          draft.value.state === "blank" && text
-                            ? "value"
-                            : draft.value.state,
-                      },
-                    });
-                  }}
-                />
-              </label>
-              {!draft.ref.startsWith("v:") && (
-                <>
-                  <label>
-                    Unit
-                    <select
-                      value={draft.value.unit}
-                      onChange={(ev) =>
-                        patchLabel({ unit: ev.target.value as Label["unit"] })
-                      }
-                    >
-                      {Array.from(
-                        new Set([
-                          ...(draft.ref.startsWith("a:")
-                            ? ["", "°"]
-                            : draft.ref.startsWith("c:")
-                              ? ["", "mm", "cm", "m", "°", "mm²", "cm²", "m²"]
-                              : ["", "mm", "cm", "m"]),
-                          draft.value.unit,
-                        ]),
-                      ).map((u) => (
-                        <option value={u} key={u}>
-                          {u || "No unit"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <details className="tr-inner-section">
-                    <summary>Saved answer</summary>
-                    <div className="tr-inner-body">
-                      <label>
-                        Saved answer (optional)
-                        <input
-                          value={draft.value.answer}
-                          maxLength={40}
-                          onChange={(ev) =>
-                            patchLabel({
-                              answer: ev.target.value,
-                              calculation: null,
-                            })
-                          }
-                        />
-                      </label>
-                      <label className="tr-check">
-                        <input
-                          type="checkbox"
-                          checked={draft.value.answerVisible}
-                          onChange={(ev) =>
-                            patchLabel({ answerVisible: ev.target.checked })
-                          }
-                        />{" "}
-                        Show answer in saved pupil resource
-                      </label>
-                    </div>
-                  </details>
-                </>
-              )}
-              {!draft.ref.startsWith("v:") && (
-                <details className="tr-inner-section">
-                  <summary>Presentation and marks</summary>
-                  <div className="tr-inner-body">
-                    {!draft.ref.startsWith("v:") && (
-                      <>
-                        <label>
-                          Prefix
-                          <input
-                            value={draft.value.prefix}
-                            maxLength={16}
-                            onChange={(ev) =>
-                              patchLabel({ prefix: ev.target.value })
-                            }
-                          />
-                        </label>
-                      </>
-                    )}{" "}
-                    {draft.ref.startsWith("e:") && (
-                      <>
-                        <label>
-                          Equal-side ticks
-                          <select
-                            value={draft.ticks}
-                            onChange={(ev) =>
-                              updateDraft({ ticks: Number(ev.target.value) })
-                            }
-                          >
-                            {[0, 1, 2, 3].map((v) => (
-                              <option key={v}>{v}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="tr-check">
-                          <input
-                            type="checkbox"
-                            checked={draft.dashed}
-                            onChange={(ev) =>
-                              updateDraft({ dashed: ev.target.checked })
-                            }
-                          />{" "}
-                          Dashed side
-                        </label>
-                      </>
-                    )}
-                    {draft.ref.startsWith("a:") && (
-                      <label>
-                        Angle marking
-                        <select
-                          value={draft.mark}
-                          onChange={(ev) =>
-                            updateDraft({ mark: ev.target.value })
-                          }
-                        >
-                          <option value="none">No mark</option>
-                          <option value="arc">One arc</option>
-                          <option value="double">Two equal-angle arcs</option>
-                          <option value="triple">Three equal-angle arcs</option>
-                          <option value="right">
-                            Right-angle square (perpendicular sides)
-                          </option>
-                        </select>
-                      </label>
-                    )}
-                    {draft.ref.startsWith("h:") && (
-                      <label>
-                        Foot name (optional)
-                        <input
-                          value={draft.footName}
-                          maxLength={8}
-                          onChange={(ev) =>
-                            updateDraft({ footName: ev.target.value })
-                          }
-                        />
-                      </label>
-                    )}
-                  </div>
-                </details>
-              )}
-              {draft.value.shared && (
+              {draft.ref.startsWith("r:") && (
                 <p className="tr-note">
-                  This symbol is shared. Editing its text updates every linked
-                  copy; visibility stays independent.
+                  Area label for{" "}
+                  {objectName(e, "t:" + draft.ref.slice(2)).replace(
+                    /^Triangle /,
+                    "triangle ",
+                  )}
+                  . Enter a given or an unknown; calculation is a separate
+                  action.
                 </p>
               )}
-              <details>
-                <summary>Label position (mm)</summary>
-                <div className="tr-two">
-                  <label>
-                    Horizontal offset
-                    <input
-                      type="number"
-                      step=".5"
-                      value={draft.value.dx}
-                      onChange={(ev) =>
-                        patchLabel({ dx: Number(ev.target.value) })
+              <TriangleLabelFields
+                e={e}
+                draft={draft}
+                showAnswers={showAnswers}
+                update={updateDraft}
+              />
+              {draft.ref.startsWith("r:") &&
+                d.triangles.some(
+                  (t) => "r:" + t.id === draft.ref && t.area,
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const n = structuredClone(committed.current);
+                      delete n.document.triangles.find(
+                        (t) => "r:" + t.id === draft.ref,
+                      )!.area;
+                      if (!n.document.triangles.some((t) => t.area)) {
+                        n.schemaVersion = 1;
+                        n.rendererVersion = "triangle-1";
                       }
-                    />
-                  </label>
-                  <label>
-                    Vertical offset
-                    <input
-                      type="number"
-                      step=".5"
-                      value={draft.value.dy}
-                      onChange={(ev) =>
-                        patchLabel({ dy: Number(ev.target.value) })
-                      }
-                    />
-                  </label>
-                </div>
-              </details>
+                      commit(n);
+                      closeDraft();
+                      setSelected(null);
+                    }}
+                  >
+                    Remove area label
+                  </button>
+                )}
               {draftError && (
                 <p className="tr-error" role="alert">
                   {draftError}
