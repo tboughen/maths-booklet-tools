@@ -9,5 +9,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["services/graph-mcp/**/*.ts", "packages/graph-core/src/**/*.ts", "packages/ratio-table-core/src/**/*.ts", "packages/value-graph-core/src/**/*.ts", "packages/cuboid-core/src/**/*.ts", "packages/number-line-core/src/**/*.ts", "packages/venn-core/src/**/*.ts"]
+  "include": ["services/graph-mcp/**/*.ts", "packages/graph-core/src/**/*.ts", "packages/ratio-table-core/src/**/*.ts", "packages/value-graph-core/src/**/*.ts", "packages/cuboid-core/src/**/*.ts", "packages/number-line-core/src/**/*.ts", "packages/venn-core/src/**/*.ts", "packages/algebra-grid-core/src/interchange.ts"]
 }
