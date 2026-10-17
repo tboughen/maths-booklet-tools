@@ -17,7 +17,9 @@
       "width": 285.765625,
       "height": 279
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 2691,
+    "pngHeight": 2627
   },
   "ratio-table": {
     "source": "7aa18e7b8cddf5b34d90a9a14633e617ff6464a3448a44551421b3a8712af685",
@@ -37,7 +39,9 @@
       "width": 255,
       "height": 255
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 780,
+    "pngHeight": 780
   },
   "value-table-graph": {
     "source": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",
@@ -57,7 +61,9 @@
       "width": 187.5,
       "height": 258
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 3331,
+    "pngHeight": 4583
   },
   "cuboids": {
     "source": "4616db56d0be2f2ab7efaac97dca0d681cafc463fb59bd50031d286b3aa2f22e",
@@ -77,7 +83,9 @@
       "width": 518.25,
       "height": 320
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 2219,
+    "pngHeight": 1195
   },
   "number-line": {
     "source": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
@@ -97,7 +105,9 @@
       "width": 751,
       "height": 123.375
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 3307,
+    "pngHeight": 543
   },
   "venn": {
     "source": "a6bacf81728839fe9b3e38df9bfcb1f415a282e40d622bb18be02beb20d06fc4",
@@ -117,7 +127,9 @@
       "width": 412.234375,
       "height": 292
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 2835,
+    "pngHeight": 2008
   },
   "triangle": {
     "source": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
@@ -137,7 +149,9 @@
       "width": 412.0625,
       "height": 284
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 2835,
+    "pngHeight": 1954
   },
   "expanding-factorising": {
     "source": "73528044ff6dbf2bd18bcf3b8c2427e217dd42ce5ca926ea4b0fc463c8fc7047",
@@ -157,6 +171,8 @@
       "width": 198,
       "height": 198
     },
-    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f"
+    "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
+    "pngWidth": 921,
+    "pngHeight": 921
   }
 }

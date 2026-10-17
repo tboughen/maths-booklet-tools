@@ -65,13 +65,12 @@ test("direct equation and axis editing retain snapshots and have one control loc
   await page
     .getByRole("combobox", { name: "Preview zoom", exact: true })
     .selectOption("1");
-  const fontPx = await page
+  await expect.poll(async () => page
     .locator('[data-layer="axis-values"] text')
     .first()
     .evaluate(
       (t) => parseFloat(getComputedStyle(t).fontSize) * t.getScreenCTM()!.a,
-    );
-  expect(fontPx).toBeCloseTo(16, 2);
+    )).toBeCloseTo(16, 2);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect((await stored(page)).document.graph.xUnitsPer10mm).toBe(
     initial.document.graph.xUnitsPer10mm,
