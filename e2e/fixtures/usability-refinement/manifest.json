@@ -85,7 +85,14 @@
     },
     "baselineCommit": "7f0a8151c0a2ae42f8874e685487b897eeba311f",
     "pngWidth": 2219,
-    "pngHeight": 1195
+    "pngHeight": 1195,
+    "platforms": {
+      "linux": {
+        "svg": "3ef26034a9db79e91c5cc3b0d6950083d0e66117412fe17589ae353f13032a85",
+        "pngWidth": 2200,
+        "pngHeight": 1176
+      }
+    }
   },
   "number-line": {
     "source": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
