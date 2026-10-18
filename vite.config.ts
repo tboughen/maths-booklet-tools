@@ -28,15 +28,18 @@ export default defineConfig(({ command, mode }) => ({
       if (mode === "cloudflare") {
         const commit = execFileSync("git", ["rev-parse", "HEAD"], {encoding: "utf8"}).trim();
         let cached;
+        let cacheReason = 'No verified reusable package supplied';
         if (process.env.MATHSDOCK_REUSE_PACKAGE) {
-          try { cached = verifyReusableCatalogue(".", process.env.MATHSDOCK_REUSE_PACKAGE); }
-          catch { console.log('Cached bank inventory is inapplicable; recomputing from the source assets.'); }
+          try { cached = verifyReusableCatalogue(".", process.env.MATHSDOCK_REUSE_PACKAGE); cacheReason = 'Matching package, bank tree and transformation identity'; }
+          catch { cacheReason = 'Supplied package failed identity or integrity checks'; console.log('Cached bank inventory is inapplicable; recomputing from the source assets.'); }
         }
         const release = cached ? { ...cached, manifest: { ...cached.manifest, sourceFingerprint: sourceFingerprint(".") } } : prepareRelease("public", commit, sourceFingerprint("."));
         this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
         this.emitFile({type: "asset", fileName: "_headers", source: "/bank/catalogue.json\n  Cache-Control: no-cache\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n"});
         mkdirSync("cloudflare-release", {recursive: true});
         writeFileSync("cloudflare-release/manifest.json", JSON.stringify(release.manifest, null, 2));
+        mkdirSync("cloudflare-release/evidence", {recursive: true});
+        writeFileSync("cloudflare-release/evidence/catalogue-build.json", JSON.stringify({ status: cached ? 'reused' : 'cold', reason: cacheReason }));
       } else {
         add("bank/catalogue.json");
         for (const asset of catalogueAssetPaths(catalogue)) add(asset);

@@ -4,7 +4,7 @@ import { cleanSource, fileManifest, assertEqual, json, save, sha256, digestObjec
 import { classify } from './classify.mjs';
 import { validateInventory } from './inventory.mjs';
 
-export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts'];
+export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
 export function packageRelease(root, { base, directory = resolve(root, 'cloudflare-release/package') } = {}) {
@@ -47,9 +47,17 @@ export function validateSource(root, release) {
   return source;
 }
 export function verifyReusableCatalogue(root, cache) {
-  const source = cleanSource(root), metadata = json(resolve(cache, 'release.json'));
-  verifyPackage(cache);
-  if (source.bankTree !== metadata.inputs.bankTree || transformationId(root) !== metadata.inputs.transformationId) throw new Error('Reusable bank inventory has changed inputs');
+  const source = cleanSource(root), metadata = verifyPackage(cache);
+  validateReusableInputs(metadata.inputs, {
+    bankTree: source.bankTree, transformationId: transformationId(root),
+    lockfile: sha256(readFileSync(resolve(root, 'package-lock.json'))), node: process.versions.node,
+  });
   const manifest = json(resolve(cache, 'inventory.json'));
   return { catalogueJson: readFileSync(resolve(cache, 'site/bank/catalogue.json'), 'utf8'), manifest: { ...manifest, sourceCommit: source.commit } };
+}
+export function validateReusableInputs(actual, expected) {
+  for (const name of ['bankTree', 'transformationId', 'lockfile']) {
+    if (!actual[name] || actual[name] !== expected[name]) throw new Error(`Reusable bank inventory has changed ${name}`);
+  }
+  if (!/^\d+\./.test(actual.node || '') || actual.node.split('.')[0] !== expected.node.split('.')[0]) throw new Error('Reusable bank inventory has changed Node major version');
 }

@@ -49,11 +49,11 @@ export function fileManifest(root) {
 export function assertEqual(actual, expected, message) {
   if (canonical(actual) !== canonical(expected)) throw new Error(message);
 }
-export function run(root, file, args = [], { env = {}, capture = false } = {}) {
+export function run(root, file, args = [], { env = {}, capture = false, timeoutMs } = {}) {
   return new Promise((resolveRun, reject) => {
     const node = file.endsWith('.js') || file.endsWith('.mjs') || file.endsWith('.ts') || file.endsWith('/typescript/bin/tsc');
     const child = spawn(node ? process.execPath : file, node ? [resolve(root, file), ...args] : args, {
-      cwd: root, env: { ...process.env, ...env }, stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', windowsHide: true,
+      cwd: root, env: { ...process.env, ...env }, stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit', windowsHide: true, timeout: timeoutMs,
     });
     let stdout = '', stderr = '';
     if (capture) {

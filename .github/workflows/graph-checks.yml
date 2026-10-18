@@ -6,6 +6,9 @@ on:
       base:
         description: Exact comparison baseline (missing evidence selects full checks)
         type: string
+      reuse_run:
+        description: Optional exact trusted prior publication for catalogue reuse (otherwise discover recent main publications)
+        type: string
 permissions:
   contents: read
   actions: read
@@ -33,7 +36,13 @@ jobs:
         name: Prepare one exact website package
         env:
           BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
-        run: node scripts/cloudflare/pipeline.mjs prepare ${BASE:+--base=$BASE}
+          REUSE: ${{ inputs.reuse_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=()
+          if [ -n "$BASE" ]; then args+=("--base=$BASE"); fi
+          if [ -n "$REUSE" ]; then args+=("--reuse-run=$REUSE"); fi
+          node scripts/cloudflare/pipeline.mjs prepare "${args[@]}"
       - uses: actions/upload-artifact@v6
         with:
           name: prepared-release

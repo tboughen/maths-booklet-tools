@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { sha256 } from './common.mjs';
 import { concurrent, ensureAsset, assertPublicHeaders, retryVerification, immutableCache } from './upload-core.mjs';
-import { inventoryPlan, verificationRecord } from './inventory.mjs';
+import { inventoryPlan, inventoryPreflight, verificationRecord } from './inventory.mjs';
 import { assetFile } from './release.ts';
 import { corsIdentity } from './cors-policy.mjs';
 
@@ -53,10 +53,16 @@ export async function publicAsset(manifest, asset, origin, { full = false, metri
   assertPublicHeaders(response, asset, origin);
   if (full && sha256(Buffer.from(await response.arrayBuffer())) !== asset.sha256) throw new Error(`Public bytes differ: ${asset.key}`);
 }
-export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, store, fetcher = fetch }) {
+export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, store, fetcher = fetch, onPlan = () => {} }) {
   const policy = await store.policy();
   const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin, policyVerified: policy.verified, corsDigest: policy.digest, cachePolicy: immutableCache, verifier: release.inputs.verifierId };
-  const plan = inventoryPlan(manifest, baseline, scope, { full, audit });
+  const classification = release.inputs.classification || {};
+  const forcedReason = classification.fullInventory
+    ? `Release classification requires a complete audit: ${(classification.inventoryReasons?.length ? classification.inventoryReasons : ['legacy broad classification']).join('; ')}`
+    : undefined;
+  const plan = inventoryPlan(manifest, baseline, scope, { full, audit, forcedReason });
+  // Report the policy decision before the first object HEAD, GET or PUT.
+  await onPlan(inventoryPreflight(manifest, release, baseline, scope, plan));
   let uploaded = 0, reused = 0;
   await metrics.stage('stored-assets', async () => concurrent(plan.added, async asset => {
     if (readOnly) {
