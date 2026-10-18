@@ -4,6 +4,8 @@ import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { run, json, save, timer, digestObject } from './common.mjs';
 import { packageRelease, verifyPackage, validateSource } from './package.mjs';
 import { browserCases, browserEvidence, vitestEvidence, sealQualification } from './evidence.mjs';
+import { classify } from './classify.mjs';
+import { prepareCatalogueCache } from './catalogue-cache.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const options = process.argv.slice(3);
@@ -24,8 +26,20 @@ async function availablePort() {
 
 async function prepare() {
   const started = performance.now();
+  const classification = classify(root, option('base'));
+  const plan = { comparison: classification.base, categories: classification.categories, required: classification.required, fullInventory: classification.fullInventory, inventoryReasons: classification.inventoryReasons };
+  save(resolve(evidence, 'qualification-plan.json'), plan);
+  console.log(JSON.stringify({ stage: 'qualification-plan', ...plan }));
+  let reuse = { status: 'cold', reason: 'Local build; no automatic remote package discovery' };
+  if (process.env.MATHSDOCK_REUSE_PACKAGE) {
+    reuse = { status: 'provided', reason: 'Builder will verify explicitly supplied package', packagePath: process.env.MATHSDOCK_REUSE_PACKAGE };
+  } else if (process.env.GITHUB_ACTIONS === 'true') {
+    reuse = await metrics.stage('catalogue-cache', () => prepareCatalogueCache(root, { output: resolve(root, 'cloudflare-release/cache'), runId: option('reuse-run') }));
+  }
+  save(resolve(evidence, 'catalogue-cache.json'), reuse);
+  console.log(JSON.stringify({ stage: 'catalogue-cache', status: reuse.status, reason: reuse.reason, runId: reuse.runId, attempts: reuse.attempts }));
   await metrics.stage('typecheck', () => nodeTool('typescript/bin/tsc', ['-b', '--pretty', 'false']));
-  await metrics.stage('build-website', () => nodeTool('vite/bin/vite.js', ['build', '--mode', 'cloudflare']));
+  await metrics.stage('build-website', () => nodeTool('vite/bin/vite.js', ['build', '--mode', 'cloudflare'], { env: { MATHSDOCK_REUSE_PACKAGE: reuse.packagePath || '' } }));
   const release = packageRelease(root, { base: option('base'), directory });
   const expected = await run(root, playwright, ['test', '--config', 'playwright.release.config.ts', '--list', '--reporter=json'], { capture: true, env: { MATHSDOCK_RELEASE_PACKAGE: directory } });
   const cases = browserCases(JSON.parse(expected.stdout)).map(c => c.id).sort();
@@ -70,14 +84,14 @@ async function check(name, { preparedService = false } = {}) {
       if (!result.passed) throw new Error('Publisher tests did not run');
       save(resolve(evidence, 'publisher-tap.json'), { stdout: report.stdout });
     } else if (name.startsWith('browser-')) {
-      if (!preparedService) await serviceBuild();
+      if (!preparedService) await metrics.stage('service-build', serviceBuild);
       const fixtures = resolve(root, 'cloudflare-release/fixtures', name);
-      await run(root, 'service-dist/verify-consumption.js', [fixtures]);
+      await metrics.stage('browser-fixtures', () => run(root, 'service-dist/verify-consumption.js', [fixtures]));
       const output = resolve(evidence, `${name}-playwright.json`), shard = name.slice(-1), port = await availablePort();
-      await run(root, playwright, ['test', '--config', 'playwright.release.config.ts', `--shard=${shard}/2`, '--reporter=json'], { env: {
+      await metrics.stage('browser-tests', () => run(root, playwright, ['test', '--config', 'playwright.release.config.ts', `--shard=${shard}/2`, '--reporter=json'], { env: {
         MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_BUILT_PACKAGE: '1', MATHSDOCK_TEST_PORT: port,
         MATHSDOCK_TEST_OUTPUT: resolve(root, 'test-results', name), MCP_CONSUMPTION_DIR: fixtures, PLAYWRIGHT_JSON_OUTPUT_FILE: output,
-      } });
+      } }));
       result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2; real MCP fixture round trip' };
     } else if (name === 'built') {
       copyFileSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
@@ -85,13 +99,13 @@ async function check(name, { preparedService = false } = {}) {
       await run(root, playwright, ['test', '--config', 'playwright.cloudflare.config.ts', '--reporter=json'], { env: { MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_PACKAGE_REHEARSAL: '1', MATHSDOCK_TEST_PORT: await availablePort(), PLAYWRIGHT_JSON_OUTPUT_FILE: output } });
       result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2 rehearsal' };
     } else if (name === 'service') {
-      if (!preparedService) await serviceBuild();
+      if (!preparedService) await metrics.stage('service-build', serviceBuild);
       result = await vitest(['services/graph-mcp']);
       const fixtures = resolve(root, 'cloudflare-release/fixtures/service');
-      await run(root, 'service-dist/verify-consumption.js', [fixtures]);
-      await run(root, process.env.MATHSDOCK_PYTHON || 'python', ['scripts/verify-diagram-consumption.py', fixtures]);
+      await metrics.stage('service-fixtures', () => run(root, 'service-dist/verify-consumption.js', [fixtures]));
+      await metrics.stage('vector-consumer', () => run(root, process.env.MATHSDOCK_PYTHON || 'python', ['scripts/verify-diagram-consumption.py', fixtures]));
       const container = `mathsdock-qualification-${process.env.GITHUB_RUN_ID || process.pid}`;
-      await run(root, 'docker', ['build', '-f', 'Dockerfile.graph-mcp', '-t', container, '.']);
+      await metrics.stage('service-image', () => run(root, 'docker', ['build', '-f', 'Dockerfile.graph-mcp', '-t', container, '.']));
       const { createServer } = await import('node:net');
       const reservation = createServer();
       await new Promise(r => reservation.listen(0, '127.0.0.1', r));
