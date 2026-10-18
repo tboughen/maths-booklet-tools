@@ -1,15 +1,19 @@
 # MathsDock project guidance
 
-## Website release pipeline implementation
+## Website release work
 
-The publishing improvements are implemented for review in the publishing branch.
-Read `docs/RELEASE-PIPELINE.md` and `docs/CLOUDFLARE-PUBLISHING.md` before release
-work. Do not declare this source production or main canonical until a reviewed
-cutover actually succeeds. Preserve the workspace's latest verified production
-pointer and any newer concurrent release. Qualification, merge, deployment and
-live verification are distinct. Normal promotion consumes an exact qualified
-package; it does not rebuild or bypass missing checks. Pages automation remains
-unchanged until the cutover gate and Tim's authorisation are satisfied.
+Read `docs/RELEASE-PIPELINE.md` before release work. Use the current main workflow,
+an exact comparison baseline and the prior trusted publication. Keep qualification,
+merge, deployment and live verification distinct; promote the exact qualified
+package. Preserve newer concurrent work and the recorded live version. A request
+for local implementation or review does not authorise publication.
+
+Use the guide's compact release context and bounded `watch-run.mjs` command.
+Read relevant evidence once, keep verbose logs on disk and report changed states.
+Do not repeatedly read full histories or poll unchanged runs through model turns.
+Explain preflight audit reasons; never remove required checks to obtain sampling.
+Workflow changes require review and a separately authorised release before becoming
+active on GitHub. Keep historical detail in linked reports.
 
 ## Booklet tool development
 

@@ -28,9 +28,10 @@ export function sampleAssets(assets, cursor = 0, count = 32) {
   while (chosen.size < Math.min(count, sorted.length) && visited++ < sorted.length) { add(sorted[offset]); offset = (offset + 1) % sorted.length; }
   return { assets: [...chosen.values()], nextCursor: offset };
 }
-export function inventoryPlan(manifest, baseline, scope, { now = Date.now(), full = false, audit = false } = {}) {
+export function inventoryPlan(manifest, baseline, scope, { now = Date.now(), full = false, audit = false, forcedReason } = {}) {
   const all = reason => ({ mode: 'complete', reason, added: manifest.assets, sample: [], nextCursor: 0 });
   if (full || audit) return all(full ? 'Explicit full public byte verification' : 'Explicit inventory audit');
+  if (forcedReason) return all(forcedReason);
   if (!scope.policyVerified || !baseline || baseline.schemaVersion !== auditVersion) return all('Missing trusted inventory evidence or observed live policy');
   try {
     assertEqual(baseline.scope, scope, 'Inventory policy/origin/bucket changed');
@@ -44,6 +45,21 @@ export function inventoryPlan(manifest, baseline, scope, { now = Date.now(), ful
     const sample = sampleAssets(manifest.assets.filter(a => old.has(a.key)), baseline.cursor);
     return { mode: added.length ? 'delta' : 'sampled', reason: 'Fresh full baseline and matching observed policy', added, sample: sample.assets, nextCursor: sample.nextCursor };
   } catch { return all('Inapplicable or malformed inventory baseline'); }
+}
+export function inventoryPreflight(manifest, release, baseline, scope, plan, now = Date.now()) {
+  const classification = release.inputs.classification || {};
+  const completed = Date.parse(baseline?.fullAuditAt);
+  return {
+    schemaVersion: 1, releaseId: release.releaseId, comparison: classification.base ?? null,
+    bankTree: release.inputs.bankTree, categories: classification.categories || [],
+    requiredChecks: classification.required || [],
+    inventoryReasons: classification.inventoryReasons || (classification.fullInventory ? ['Legacy broad classification requires a complete audit'] : []),
+    policyVerified: scope.policyVerified, fullAuditAt: baseline?.fullAuditAt ?? null,
+    auditAgeSeconds: Number.isFinite(completed) ? Math.round((now - completed) / 1000) : null,
+    mode: plan.mode, reason: plan.reason, objects: manifest.assets.length,
+    storedPlanned: plan.added.length, publicPlanned: plan.mode === 'complete' ? manifest.assets.length : plan.added.length + plan.sample.length,
+    newKeys: plan.mode === 'delta' ? plan.added.length : null,
+  };
 }
 export function verificationRecord(manifest, scope, plan, previous, now = new Date().toISOString()) {
   const verifiedAssets = plan.mode === 'complete' ? manifest.assets : [...new Map([...previous.verifiedAssets, ...plan.added].map(a => [a.key, a])).values()];

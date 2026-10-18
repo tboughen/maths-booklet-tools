@@ -1,10 +1,64 @@
 # MathsDock release pipeline
 
 Website publication uses one identified build and complete qualification evidence.
-GitHub main becomes the canonical production source only after the reconciled
-candidate is reviewed, published and verified. Until that receipt exists, retain
-the latest production pointer in the workspace release records. Implementing this
-pipeline does not deploy the website, MCP service or client definitions.
+The controlled main workflow was activated on 15 October 2026. Retain the latest
+verified production pointer; main, a successful qualification and a live deployment
+are distinct states. Implementing workflow changes does not activate them, deploy
+the website or service, or refresh client definitions. Honour review-only requests.
+
+## Keep the release context compact
+
+Start release work with these facts, and links to existing evidence:
+
+```text
+Requested scope and approval: implementation / qualification / publication
+Checkout and candidate commit/tree:
+Exact comparison commit and changed paths:
+Prior verified publication run, package and current Worker version:
+Required checks; inventory preflight mode/reasons and last full audit:
+Current run ID, watcher record, next action or blocker:
+```
+
+Read the applicable guide and relevant evidence once; keep full logs and historical
+detail in files. Use one watcher per exact qualification/publication run rather than
+repeated `gh run view` calls through model turns:
+
+```powershell
+node scripts/cloudflare/watch-run.mjs --run=EXACT_RUN_ID --commit=EXACT_RUN_HEAD_SHA --output=cloudflare-release/watch-UNIQUE.json
+```
+
+It queries read-only, backs off from 30 to 60 seconds, prints changed states only,
+and ends within 45 minutes by default (maximum 60). Each API query has a deadline;
+timeout or failure never reports success. In an agent terminal, launch it once as
+an ongoing process and inspect incremental output at bounded intervals, continuing
+independent work and concise user updates. Do not start parallel watchers or keep
+fetching the same full run. The output file must be new; a fresh invocation can
+watch the same run after a timeout. Its success means workflow success only:
+inspect qualification or deployment receipts before claiming qualified/live.
+
+The compact context reduces repeated input, but no fixed token saving or automatic
+token-budget enforcement is claimed. Measure comparable real releases separately
+from test runs; do not deploy merely to benchmark.
+
+### Existing chats and older checkouts
+
+Publishing the repository workflows does not rewrite existing chat context or
+update an older worktree. An existing chat can use these fixes: explicitly ask it
+to read current main's `AGENTS.md` and this guide, reconcile its intended changes
+into an isolated checkout based on current main, supply the previous verified
+publication as `BaselineRun`, and use the bounded watcher. Preserve its original
+worktree and unfinished changes. Do not reset it merely to get newer tooling.
+
+Automatic instruction discovery happens when Codex builds a run's instruction
+chain; do not assume an already-running chat silently reloads changed files.
+Explicitly reading the current files supplies them to that chat. A new chat in the
+updated repository is an alternative for a compact context; it is not required
+for the GitHub workflow fixes to work. No MCP/plugin refresh or sign-in is needed
+for these repository changes. See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
+
+For audit reuse, the baseline must still be trusted, at most seven days old and
+match the observed policy and verifier. Omitting `BaselineRun` deliberately selects
+a cold/full audit. Catalogue reuse during preparation is a separate optimisation.
 
 ## Prepare and qualify
 
@@ -56,6 +110,19 @@ bank Git tree and transformation code before reusing the rewritten catalogue.
 Changed bank inputs require recomputation. A content-addressed inventory never
 rewrites the original catalogue or source PDFs/PNGs.
 
+Hosted preparation now discovers at most three recent successful main publication
+runs, or uses the exact `reuse_run` input. It requires the successful repository
+workflow on main with workflow_dispatch, a unique unexpired artifact, a matching
+live-verified receipt/source tree, full package integrity, bank tree, transformation
+identity (including Vite), lockfile and Node major version. It uses the existing
+read-only GitHub token, without deployment credentials. Missing permissions,
+unavailable/inapplicable artifacts or changed inputs fall back to a cold build.
+Downloads are bounded and kept outside the evidence/package artifacts, avoiding
+recursive cache copies. `catalogue-cache.json` records selection/fallback and
+`catalogue-build.json` records what the builder actually used. This never reuses
+qualification passes. A local explicit MATHSDOCK_REUSE_PACKAGE receives the same
+builder identity checks.
+
 Publication reuses a complete stored/public metadata audit for up to seven days
 only when the live bucket CORS policy, bucket, origins, cache policy and verifier
 identity match. The reader first tries S3, then the existing authenticated
@@ -79,6 +146,26 @@ blocks publication and requires investigating/refreshing the audit before reuse.
 `--full` retains its original meaning: GET and hash every public object. It never
 means sampled verification. No background or scheduled audit is created; the
 freshness gate runs when publication is requested.
+
+The classifier separates code qualification from bank-audit invalidation. Known
+Playwright configs and the explicitly listed example/consumer-check helpers keep
+broad code checks without forcing a bank sweep. Docker context and service tsconfig
+remain service inputs. Changes to publisher/verifier/transform scripts, dependency
+or deployment configuration, unknown paths or a missing comparison remain
+conservative and require a complete audit. Bank-content changes use delta checks
+only with valid policy-bound evidence; additions still receive complete new-key
+verification. Unlisted helper scripts are conservative, not implicitly trusted.
+
+`qualification-plan.json` records code obligations before the build. Immediately
+after observing live policy, `inventory-preflight.json` records the comparison,
+bank tree, baseline age, mode, planned request counts and exact forcing reasons
+before object requests begin. Classifier-forced audits are distinct from explicit
+`--audit-inventory` and `--full` requests. A reporting failure stops the attempt.
+Legacy qualified packages with fullInventory=true continue to force a full audit.
+
+The first release of these workflow fixes changes the verifier/transform identity
+and therefore needs a new complete audit and cold catalogue build. Subsequent
+eligible isolated updates can reuse that evidence; do not retrofit old receipts.
 
 Read-only full metadata audit using the Windows-encrypted credentials:
 
@@ -175,13 +262,12 @@ If the failure concerns shared R2/CORS policy, investigate it; reverting website
 code alone may not repair it. For versions outside retained Cloudflare history,
 verify and redeploy the retained package through the controlled recovery route.
 
-## Pages transition and reporting
+## Pages fallback and reporting
 
-The existing Pages workflow remains automatic until the Cloudflare cutover is
-accepted. After Tim authorises that change, set repository variable
-`MATHSDOCK_PAGES_MANUAL=true` through the normal settings process. The last Pages
-deployment remains available; manual dispatch can refresh it. This implementation
-does not set that variable, delete the fallback or change DNS.
+The accepted cutover recorded `MATHSDOCK_PAGES_MANUAL=true`. Preserve that policy
+and the retained manual Pages fallback; recheck actual state at an authorised
+release rather than changing it as part of an isolated tool update. These fixes
+do not change repository settings, the fallback or DNS.
 
 Report source/tree/release identity, checks actually passed, sampled/delta/full
 inventory counts, last complete audit time, stage durations, previous/new Worker
@@ -189,3 +275,8 @@ versions and live output proofs. Count queue and human review time separately
 from machine work, and distinguish code written, qualified, merged, deployed and
 verified. The 4–6 minute qualification and 1–3 minute promotion figures are targets
 until demonstrated by real runs. No monitoring after a session is implied.
+
+Timing records now distinguish service compilation, browser fixture generation,
+browser execution, service fixture/vector consumption and image build, as well as
+website prepare and publication stages. Preserve complete browser coverage and
+isolated fixtures; fixture caching or reduced coverage is not part of these fixes.
