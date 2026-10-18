@@ -80,7 +80,12 @@ async function main() {
     return parseWranglerCors(response.stdout, manifest.bucket);
   } });
   const inventory = async readOnly => {
-    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full: options.includes('--full'), audit: options.includes('--audit-inventory') || release.inputs.classification.fullInventory, readOnly, store });
+    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full: options.includes('--full'), audit: options.includes('--audit-inventory'), readOnly, store,
+      onPlan: plan => {
+        save(resolve(output, 'inventory-preflight.json'), plan);
+        console.log(JSON.stringify({ stage: 'inventory-preflight', ...plan }));
+      },
+    });
     save(resolve(output, 'inventory-record.json'), result.record);
     return result.summary;
   };

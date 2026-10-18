@@ -1,10 +1,13 @@
 # MathsDock hosting and publishing
 
-The qualified-package implementation and current commands are documented in
-[Release pipeline](RELEASE-PIPELINE.md). Production cutover remains a separate
-reviewed release. The sequence below records the original full publisher for
-transition/recovery reference; its direct deployment entry point is now guarded.
-Normal publication uses the exact qualified package through the main workflow.
+Use [Release pipeline](RELEASE-PIPELINE.md) for the current commands, compact
+release context, inventory preflight, trusted catalogue reuse and status watcher.
+The controlled main-workflow cutover was accepted on 15 October 2026. Review-only
+workflow changes still need a separately authorised release before activation.
+The sequence below is historical full-publisher recovery reference, not the normal
+release checklist. Its direct deployment entry point is guarded. Normal publication
+uses the exact qualified package through the main workflow; do not rerun the legacy
+build/test/audit sequence for an isolated tool update.
 
 The browser app is served by Workers Static Assets. Reviewed PDFs and PNG previews live in the `maths-booklet-assets` R2 bucket at `https://assets.mathsdock.co.uk`. GitHub remains the source repository. The existing Pages workflow is retained during the migration for rollback.
 
