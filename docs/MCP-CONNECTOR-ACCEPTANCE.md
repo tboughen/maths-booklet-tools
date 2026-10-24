@@ -1,3 +1,7 @@
+Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+applicable; historical family/tool counts are snapshots, not discovery evidence.
+
 # MCP connector acceptance and missing-tool incidents
 
 Use this guide when adding or changing any MathsDock MCP call. Check it before

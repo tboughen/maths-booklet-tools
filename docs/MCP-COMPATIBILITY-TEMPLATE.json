@@ -1,0 +1,7 @@
+[
+  {"pair":"current-current","websiteIdentity":"CURRENT_WEBSITE_ID","serviceIdentity":"CURRENT_SERVICE_ID","status":"pending","evidence":["Record actual bound proof"]},
+  {"pair":"current-new","websiteIdentity":"CURRENT_WEBSITE_ID","serviceIdentity":"NEW_SERVICE_ID","status":"pending","evidence":["Record actual bound proof"]},
+  {"pair":"new-current","websiteIdentity":"NEW_WEBSITE_ID","serviceIdentity":"CURRENT_SERVICE_ID","status":"pending","evidence":["Record actual bound proof"]},
+  {"pair":"new-new","websiteIdentity":"NEW_WEBSITE_ID","serviceIdentity":"NEW_SERVICE_ID","status":"pending","evidence":["Record actual bound proof"]},
+  {"pair":"saved-legacy","websiteIdentity":"CURRENT_WEBSITE_ID","serviceIdentity":"CURRENT_SERVICE_ID","status":"pending","evidence":["Record actual bound old-resource proof"]}
+]

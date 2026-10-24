@@ -1,11 +1,13 @@
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
+import { existsSync, copyFileSync, cpSync, mkdirSync, readFileSync } from 'node:fs';
 import { run, json, save, timer, digestObject } from './common.mjs';
-import { packageRelease, verifyPackage, validateSource } from './package.mjs';
+import { packageRelease, packageSourceQualification, verifyQualificationPackage as verifyPackage, validateSource } from './package.mjs';
 import { browserCases, browserEvidence, vitestEvidence, sealQualification } from './evidence.mjs';
 import { classify } from './classify.mjs';
 import { prepareCatalogueCache } from './catalogue-cache.mjs';
+import { sealFixtures, verifyFixtures, writeServiceArtifact, verifyServiceArtifact } from './mcp-evidence.mjs';
+import { verifyGuidance } from './mcp-release.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const options = process.argv.slice(3);
@@ -30,6 +32,17 @@ async function prepare() {
   const plan = { comparison: classification.base, categories: classification.categories, required: classification.required, fullInventory: classification.fullInventory, inventoryReasons: classification.inventoryReasons };
   save(resolve(evidence, 'qualification-plan.json'), plan);
   console.log(JSON.stringify({ stage: 'qualification-plan', ...plan }));
+  save(resolve(evidence, 'guidance.json'), verifyGuidance(root, classification));
+  if (!classification.website) {
+    const release = packageSourceQualification(root, { base: option('base'), directory });
+    save(resolve(evidence, 'expected-browser.json'), { releaseId: release.releaseId, cases: [] });
+    save(resolve(evidence, 'prepare.json'), { releaseId: release.releaseId, sourceTree: release.inputs.sourceTree, elapsedMs: Math.round(performance.now() - started), websiteBuilt: false });
+    if (process.env.GITHUB_OUTPUT) {
+      const { appendFileSync } = await import('node:fs');
+      appendFileSync(process.env.GITHUB_OUTPUT, `service=${classification.service}\nwebsite=false\nrelease_id=${release.releaseId}\n`);
+    }
+    return release;
+  }
   let reuse = { status: 'cold', reason: 'Local build; no automatic remote package discovery' };
   if (process.env.MATHSDOCK_REUSE_PACKAGE) {
     reuse = { status: 'provided', reason: 'Builder will verify explicitly supplied package', packagePath: process.env.MATHSDOCK_REUSE_PACKAGE };
@@ -86,13 +99,16 @@ async function check(name, { preparedService = false } = {}) {
     } else if (name.startsWith('browser-')) {
       if (!preparedService) await metrics.stage('service-build', serviceBuild);
       const fixtures = resolve(root, 'cloudflare-release/fixtures', name);
-      await metrics.stage('browser-fixtures', () => run(root, 'service-dist/verify-consumption.js', [fixtures]));
+      await metrics.stage('browser-fixtures', () => run(root, 'service-dist/verify-consumption.js', [fixtures, '--profile=browser']));
+      const identity = fixtureIdentity(release);
+      const fixtureManifest = sealFixtures(fixtures, identity, 'browser');
       const output = resolve(evidence, `${name}-playwright.json`), shard = name.slice(-1), port = await availablePort();
       await metrics.stage('browser-tests', () => run(root, playwright, ['test', '--config', 'playwright.release.config.ts', `--shard=${shard}/2`, '--reporter=json'], { env: {
         MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_BUILT_PACKAGE: '1', MATHSDOCK_TEST_PORT: port,
         MATHSDOCK_TEST_OUTPUT: resolve(root, 'test-results', name), MCP_CONSUMPTION_DIR: fixtures, PLAYWRIGHT_JSON_OUTPUT_FILE: output,
       } }));
-      result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2; real MCP fixture round trip' };
+      verifyFixtures(fixtures, identity, 'browser');
+      result = { ...browserEvidence(json(output)), fixtureDigest: fixtureManifest.filesDigest, fixtureProfile: 'browser', transport: 'built package; locally intercepted R2; real MCP fixture round trip' };
     } else if (name === 'built') {
       copyFileSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
       const output = resolve(evidence, 'built-playwright.json');
@@ -100,10 +116,17 @@ async function check(name, { preparedService = false } = {}) {
       result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2 rehearsal' };
     } else if (name === 'service') {
       if (!preparedService) await metrics.stage('service-build', serviceBuild);
+      await nodeTool('eslint/bin/eslint.js', ['services/graph-mcp', 'packages']);
       result = await vitest(['services/graph-mcp']);
       const fixtures = resolve(root, 'cloudflare-release/fixtures/service');
       await metrics.stage('service-fixtures', () => run(root, 'service-dist/verify-consumption.js', [fixtures]));
-      await metrics.stage('vector-consumer', () => run(root, process.env.MATHSDOCK_PYTHON || 'python', ['scripts/verify-diagram-consumption.py', fixtures]));
+      const identity = fixtureIdentity(release);
+      const fixtureManifest = sealFixtures(fixtures, identity, 'full');
+      const vectorFixtures = fixtures + '-vector';
+      if (existsSync(vectorFixtures)) throw Error('Vector attempt already exists');
+      cpSync(fixtures, vectorFixtures, { recursive: true });
+      verifyFixtures(vectorFixtures, identity, 'full');
+      await metrics.stage('vector-consumer', () => run(root, process.env.MATHSDOCK_PYTHON || 'python', ['scripts/verify-diagram-consumption.py', vectorFixtures]));
       const container = `mathsdock-qualification-${process.env.GITHUB_RUN_ID || process.pid}`;
       await metrics.stage('service-image', () => run(root, 'docker', ['build', '-f', 'Dockerfile.graph-mcp', '-t', container, '.']));
       const { createServer } = await import('node:net');
@@ -120,7 +143,8 @@ async function check(name, { preparedService = false } = {}) {
         if (!port) throw new Error('Could not identify the isolated service smoke port');
         await run(root, 'service-dist/smoke.js', [`http://127.0.0.1:${port}`]);
       } finally { if (created) await run(root, 'docker', ['rm', '-f', container]); }
-      result = { ...result, vectorConsumer: 'passed', linuxImage: 'passed', memoryMiB: 512, pidLimit: 64 };
+      const serviceArtifact = writeServiceArtifact(root, release, fixtures, identity, vectorFixtures, fixtureManifest);
+      result = { ...result, serviceLint: 'passed', serviceTypes: 'passed', serviceArtifactDigest: serviceArtifact.filesDigest, vectorConsumer: 'passed', linuxImage: 'passed', memoryMiB: 512, pidLimit: 64 };
     } else throw new Error('Unknown qualification check');
     verifyPackage(directory); validateSource(root, release);
     const record = { schemaVersion: 1, name, releaseId: release.releaseId, status: 'passed', startedAt, completedAt: new Date().toISOString(), elapsedMs: Math.round(performance.now() - start), evidence: result };
@@ -130,10 +154,19 @@ async function check(name, { preparedService = false } = {}) {
     throw error;
   }
 }
+function fixtureIdentity(release) {
+  return { sourceTree: release.inputs.sourceTree, buildId: json(resolve(root, 'service-dist/manifest.json')).buildId,
+    producer: digestObject(['services/graph-mcp/verify-consumption.ts', 'scripts/cloudflare/mcp-evidence.mjs'].map(p => [p, readFileSync(resolve(root, p), 'utf8')])),
+    run: process.env.GITHUB_RUN_ID || 'local', attempt: process.env.GITHUB_RUN_ATTEMPT || '1' };
+}
 function seal() {
   const release = verifyPackage(directory), expected = json(resolve(evidence, 'expected-browser.json'));
   validateSource(root, release);
   if (expected.releaseId !== release.releaseId) throw new Error('Browser inventory is for another release');
+  if (release.inputs.classification.service) {
+    const artifact = verifyServiceArtifact(resolve(root, 'cloudflare-release/service-package'), release);
+    if (json(resolve(evidence, 'service.json')).evidence.serviceArtifactDigest !== artifact.filesDigest) throw Error('Service artifact differs from qualification');
+  }
   const receipt = sealQualification(directory, evidence, expected.cases);
   console.log(JSON.stringify({ status: receipt.status, releaseId: receipt.releaseId, checks: receipt.required, checksDigest: digestObject(receipt.checks) }));
   return receipt;
