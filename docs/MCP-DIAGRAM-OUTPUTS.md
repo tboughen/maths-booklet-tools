@@ -148,3 +148,10 @@ PNG verification, limits and print facts refer to the selected artwork view.
 Existing SVG/PNG/JSON links keep their signing and validation conventions.
 Rollback should retain new bundle-link support until expiry where possible;
 otherwise explain that affected links need regeneration.
+
+## Triangle adapter
+
+The Triangle candidate adds kind `triangle` to the three generic output tools.
+See [Triangle MCP](TRIANGLE-MCP.md) for exact payloads and release stages. It uses
+saved visibility and explicit answer/worked revisions, with no outputView.
+Preserve actual layout dimensions, whitespace, v1/v2 source and hidden answers.

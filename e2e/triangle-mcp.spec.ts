@@ -1,0 +1,38 @@
+import { test, expect } from "@playwright/test";
+import { readFileSync, mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { canonical, type Envelope } from "../packages/triangle-core/src/index";
+import { triangleEditorLink } from "../src/triangle/links";
+import { clickResourceAction } from "./resource-actions";
+const key="maths-booklet-tools:triangle:v1";
+const names=["scaffold","hidden-answer","area-v2","split"];
+const fixtures=resolve("services/graph-mcp/fixtures/triangle");
+for(const width of [1280,375])for(const name of names)test(`${name}: actual MCP source opens by link at ${width}px and remains editable`,async({page})=>{
+  const e=JSON.parse(readFileSync(resolve(fixtures,name+".json"),"utf8")) as Envelope;
+  await page.setViewportSize({width,height:900});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  await page.goto("/?tool=triangle");
+  await page.goto(triangleEditorLink(e,page.url()));
+  await page.getByRole("button",{name:"Use this diagram",exact:true}).click();
+  await expect.poll(async()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)!),key)).toEqual(e);
+  await page.getByRole("combobox",{name:"Selected object",exact:true}).selectOption("t:T1");
+  await page.getByRole("button",{name:"Rotate right",exact:true}).click();
+  await expect.poll(async()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)!),key)).not.toEqual(e);
+  await page.getByRole("button",{name:"Undo",exact:true}).click();
+  await expect.poll(async()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)!),key)).toEqual(e);
+  const download=page.waitForEvent("download");await clickResourceAction(page,"Save editable file");
+  const saved=await download;expect(await saved.failure()).toBe(null);
+  expect(canonical(JSON.parse(readFileSync((await saved.path())!,"utf8")))).toBe(canonical(e));
+  const out=resolve(process.env.TRIANGLE_MCP_SCREENSHOTS || "test-results/triangle-mcp-screenshots");mkdirSync(out,{recursive:true});
+  await page.screenshot({path:resolve(out,`${name}-${width}.png`),fullPage:true});
+  expect(errors).toEqual([]);
+});
+test("actual MCP JSON import preserves the hidden answer and pupil state",async({page})=>{
+  await page.goto("/?tool=triangle");
+  const choose=page.waitForEvent("filechooser");await clickResourceAction(page,"Open editable file");
+  await (await choose).setFiles(resolve(fixtures,"hidden-answer.json"));
+  await page.getByRole("button",{name:"Use this diagram",exact:true}).click();
+  const e=JSON.parse(readFileSync(resolve(fixtures,"hidden-answer.json"),"utf8"));
+  await expect.poll(async()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)!),key)).toEqual(e);
+  expect(e.document.edges.find((v:{id:string})=>v.id==="BC").label).toMatchObject({answer:"5",answerVisible:false,state:"symbol",text:"x"});
+});

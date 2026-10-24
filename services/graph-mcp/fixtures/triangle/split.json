@@ -1,0 +1,423 @@
+{
+  "kind": "triangle",
+  "schemaVersion": 1,
+  "rendererVersion": "triangle-1",
+  "styleProfile": "exam-v1",
+  "document": {
+    "layout": "split",
+    "vertices": [
+      {
+        "id": "A",
+        "x": 0,
+        "y": 60,
+        "label": {
+          "state": "value",
+          "text": "A",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      },
+      {
+        "id": "B",
+        "x": 0,
+        "y": 0,
+        "label": {
+          "state": "value",
+          "text": "B",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      },
+      {
+        "id": "C",
+        "x": 80,
+        "y": 60,
+        "label": {
+          "state": "value",
+          "text": "C",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      },
+      {
+        "id": "D",
+        "x": 40,
+        "y": 60,
+        "label": {
+          "state": "value",
+          "text": "D",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "AB",
+        "from": "A",
+        "to": "B",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "BC",
+        "from": "B",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "AC",
+        "from": "C",
+        "to": "A",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": false
+      },
+      {
+        "id": "CD",
+        "from": "C",
+        "to": "D",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "BD",
+        "from": "D",
+        "to": "B",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "AD",
+        "from": "D",
+        "to": "A",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      }
+    ],
+    "angles": [
+      {
+        "id": "T1-A",
+        "from": "B",
+        "vertex": "A",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "right"
+      },
+      {
+        "id": "T1-B",
+        "from": "A",
+        "vertex": "B",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T1-C",
+        "from": "A",
+        "vertex": "C",
+        "to": "B",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T2-B",
+        "from": "C",
+        "vertex": "B",
+        "to": "D",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T2-C",
+        "from": "B",
+        "vertex": "C",
+        "to": "D",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T2-D",
+        "from": "B",
+        "vertex": "D",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T3-B",
+        "from": "D",
+        "vertex": "B",
+        "to": "A",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T3-D",
+        "from": "B",
+        "vertex": "D",
+        "to": "A",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T3-A",
+        "from": "B",
+        "vertex": "A",
+        "to": "D",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      }
+    ],
+    "triangles": [
+      {
+        "id": "T1",
+        "vertices": [
+          "A",
+          "B",
+          "C"
+        ],
+        "role": "outer",
+        "rightAt": "A",
+        "equalAt": null,
+        "equilateral": false
+      },
+      {
+        "id": "T2",
+        "vertices": [
+          "B",
+          "C",
+          "D"
+        ],
+        "role": "component",
+        "rightAt": null,
+        "equalAt": null,
+        "equilateral": false
+      },
+      {
+        "id": "T3",
+        "vertices": [
+          "B",
+          "D",
+          "A"
+        ],
+        "role": "component",
+        "rightAt": null,
+        "equalAt": null,
+        "equilateral": false
+      }
+    ],
+    "heights": [],
+    "captions": [],
+    "sharedLabels": [],
+    "split": {
+      "point": "D",
+      "from": "C",
+      "to": "A"
+    },
+    "widthCm": 16,
+    "notToScale": false,
+    "sourceId": null
+  }
+}

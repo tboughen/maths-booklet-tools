@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines and Venn diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids and Triangle diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
@@ -124,3 +124,7 @@ Show the returned preview and concise links to the actual SVG, verified print PN
 Keep physical dimensions distinct from preview zoom. Word exports are images; further mathematical edits require reopening the editable document in MathsDock. Expired downloads can be refreshed through the supported revision operation with the same returned document, without changing content.
 
 Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
+
+## Triangle MCP integration
+
+Read [the Triangle MCP contract](../../../docs/TRIANGLE-MCP.md) for triangle_capabilities, create_triangle and revise_triangle, plus kind triangle in placement, bundles and original SVG delivery. Only call actually discovered tools; source implementation or newer skill text does not establish deployment/client import. Preserve pupil labels, blanks, v1/v2 files and hidden answers. Use returned calculationContexts for named target/owner/input mappings; calculate or reveal answers only explicitly. Never measure drawn proportions. Keep actual host discovery, execution and exact file saving separate from SDK qualification.

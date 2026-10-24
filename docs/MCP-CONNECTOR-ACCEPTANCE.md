@@ -211,3 +211,13 @@ Checked 16 October 2026; verify again when the host surface changes:
 - [Connect, refresh metadata and test](https://developers.openai.com/plugins/deploy/connect-chatgpt)
 - [Published-distribution MCP scans and held changes](https://developers.openai.com/plugins/deploy/submission)
 - [Tool/server troubleshooting](https://developers.openai.com/plugins/deploy/troubleshooting)
+
+## Triangle adapter qualification
+
+The Triangle contract is [TRIANGLE-MCP.md](TRIANGLE-MCP.md). Its saved vertex
+tuple is retained internally; the adapter advertises homogeneous bounded arrays
+in both input and output schemas. The service container compiles the shared link
+decoder and calculation-context helpers without importing browser source. Build
+provenance includes triangle-core. These are independent regression checks, not
+a claim that an actual host has accepted the new tools. Preserve existing family
+schemas and compare the exact 24-name baseline against the expected 27 names.

@@ -1,0 +1,32 @@
+import * as ti from "../../packages/triangle-core/src/interchange";
+import { methods } from "../../packages/triangle-core/src/maths";
+export const triangleConfig = {
+  kind: "triangle" as const,
+  name: "triangle",
+  schema: ti.wireEnvelopeSchema,
+  createInput: ti.createSchema,
+  revision: ti.revisionSchema,
+  capabilities: {
+    schemaVersions: [1, 2], rendererVersions: ["triangle-1", "triangle-2"], styleProfile: "exam-v1",
+    layouts: ["single", "separate", "joined", "split"], shapes: ["right", "scalene", "isosceles", "equilateral"],
+    widthCm: { minimum: 6, maximum: 18, singleDefault: 12, pairedDefault: 16 }, fontPt: 11,
+    maximumComponentTriangles: 2, maximumTriangleRecords: 3, maximumVertices: 6, maximumEdges: 7, maximumAngles: 9, maximumHeights: 2, maximumCaptions: 2,
+    maximumSourceBytes: 64000, maximumEditorLinkCharacters: 16000, maximumDownloadLinkCharacters: 7500,
+    maximumRevisionOperations: 30, maximumPrintPixels: 32000000,
+    labelStates: ["value", "symbol", "blank", "answer-line", "hidden"],
+    labelRefs: "v:vertexId, e:edgeId, a:angleId, h:heightId, c:captionId, r:triangleId (created area). Read returned stable IDs.",
+    operations: ti.operationSchema.options.map(o => o.shape.op.value),
+    operationPayloads: ti.operationSchema.options.map(o => JSON.parse(JSON.stringify(o.toJSONSchema()))),
+    calculations: methods,
+    calculationInputKeys: {"pythagoras-hypotenuse":["p","q"],"pythagoras-leg":["h","p"],"right-side":["angle","known","knownSide","targetSide"],"right-angle":["numerator","denominator","ratio"],"sine-side":["a","A","B"],"sine-angle":["a","A","b"],"cosine-side":["b","c","A"],"cosine-angle":["a","b","c"],"area-height":["base","height"],"height-area":["area","base"],"area-sine":["b","c","A"],"area-angle":["b","c","area"],"angle-sum":["A","B"]},
+    resultContexts: "Every create/revise returns calculationContexts: target, triangle, method, raw named inputs, unit, sources and missing. These are mappings, not calculated answers. Fill only missing raw inputs; never override a printed given implicitly.",
+    branches: {"sine-angle":["Acute B","Obtuse B","Only valid triangle"],"area-angle":["Acute included angle","Obtuse included angle","Right angle"]},
+    examples: ti.examples.map(e => ({ key: e.key, title: e.title, sourceId: e.sourceId, description: e.description })),
+    creation: "spec or envelope, never both; omit both for unworked right triangle. spec shape OR example; optional labels and max30 initial operations. Geometry coordinates are numbers; mathematical inputs/labels are strings.",
+    calculationsPolicy: "Explicit calculate_and_store only. Actual owning triangle and printed givens; named inputs fill missing fields only. No drawn/hidden measurements, automatic solving or silent answer revelation. Ambiguous branches require explicit branch. Reuse browser contextual mappings; edit givens explicitly before overriding them.",
+    versions: "Area labels require schema2/triangle-2. Area removal follows browser version rules. No-op refresh and imported envelopes preserve versions.",
+    hiddenAnswers: "Editable JSON and editor links can retain hidden answers. Artwork follows saved visibility; explicitly request worked_copy to reveal valid saved answers in a returned copy.",
+  },
+  createDescription: "Create editable Triangle diagrams using the existing MathsDock core. Supply spec OR exact envelope. spec:{shape:right|scalene|isosceles|equilateral OR example:key,widthCm:6..18,notToScale?,labels:[{ref,label:{state?,text?,prefix?,unit?,dx?,dy?}}],operations?:max30}. Omit both for unworked right triangle,12cm. Default IDs A/B/C,T1,edges AB/BC/AC; right angle at A. Mathematical labels/inputs are strings; geometry coordinates are numbers. See triangle_capabilities for complete operation schemas, example keys and limits. Never infer pupil answers or reshape geometry from printed labels. Returns preview,outlined SVG,verified600ppi PNG,editable JSON,hash,native size,print facts and bounded editor link. JSON/links can contain hidden answers.",
+  reviseDescription: "Atomically revise exact Triangle envelope with baseHash:contentHash and max30 operations. set_label {ref,patch}; set_angle_mark {id,mark}; set_edge_style {id,ticks?,dashed?}; move_vertex {id,x,y}; transform {kind:left|right|reflect|vertical}; set_constraint {triangleId,type:right|equal|equilateral|none,vertex}; add_triangle {layout:separate|joined|split,edgeId?} (edge required for joined/split); remove_second {}; add_height {triangleId,apex}; remove_height {id}; set_area {triangleId,label:patch|null}; add_caption {label}; remove_caption {id}; set_shared_label {id,text}; link_label {ref,sharedId:string|null}; set_print {widthCm}; set_not_to_scale {visible}; construct {triangleId,method:SSS|SAS|ASA|AAS|right,inputs}; calculate_and_store {ref,triangleId,method,inputs?,branch?,rounding:{kind:dp|sf|exact,digits},overwrite:false}; set_saved_answer {ref,answer,overwrite:false}; keep_answer_manual {ref}; set_answer_visibility {ref?,visible}; worked_copy {}. Read complete payload schemas in triangle_capabilities and use returned calculationContexts for exact target/input mapping. Explicit calculations use named contextual inputs, preserve blanks,save answers hidden; multiple branches require branch. No general symbolic solver. Right marks require perpendicular rays; labels never reshape. Empty operations refresh links without changing source/hash. Existing v1/v2 files remain editable. Retain the returned source/hash; JSON/editor links can contain hidden answers.",
+};

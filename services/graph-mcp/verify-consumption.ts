@@ -172,7 +172,7 @@ try {
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
   }
-  assert.equal(tools.length,24);
+  assert.equal(tools.length,27);
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
     ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],

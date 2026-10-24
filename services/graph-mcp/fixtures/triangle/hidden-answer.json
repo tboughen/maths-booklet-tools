@@ -1,0 +1,207 @@
+{
+  "kind": "triangle",
+  "schemaVersion": 1,
+  "rendererVersion": "triangle-1",
+  "styleProfile": "exam-v1",
+  "document": {
+    "layout": "single",
+    "vertices": [
+      {
+        "id": "A",
+        "x": 0,
+        "y": 60,
+        "label": {
+          "state": "value",
+          "text": "A",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      },
+      {
+        "id": "B",
+        "x": 0,
+        "y": 0,
+        "label": {
+          "state": "value",
+          "text": "B",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      },
+      {
+        "id": "C",
+        "x": 80,
+        "y": 60,
+        "label": {
+          "state": "value",
+          "text": "C",
+          "prefix": "",
+          "unit": "",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "AB",
+        "from": "A",
+        "to": "B",
+        "label": {
+          "state": "value",
+          "text": "3",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "BC",
+        "from": "B",
+        "to": "C",
+        "label": {
+          "state": "symbol",
+          "text": "x",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "5",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": {
+            "basis": "{\"labels\":[[\"e:AB\",\"3\",\"cm\"],[\"e:BC\",\"x\",\"cm\"],[\"e:AC\",\"4\",\"cm\"],[\"a:T1-A\",\"\",\"°\"],[\"a:T1-B\",\"\",\"°\"],[\"a:T1-C\",\"\",\"°\"]],\"triangles\":[[\"T1\",[\"A\",\"B\",\"C\"],\"A\"]]}",
+            "formula": "h = √(4² + 3²)"
+          }
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      },
+      {
+        "id": "AC",
+        "from": "C",
+        "to": "A",
+        "label": {
+          "state": "value",
+          "text": "4",
+          "prefix": "",
+          "unit": "cm",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "ticks": 0,
+        "dashed": false,
+        "draw": true
+      }
+    ],
+    "angles": [
+      {
+        "id": "T1-A",
+        "from": "B",
+        "vertex": "A",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "right"
+      },
+      {
+        "id": "T1-B",
+        "from": "A",
+        "vertex": "B",
+        "to": "C",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      },
+      {
+        "id": "T1-C",
+        "from": "A",
+        "vertex": "C",
+        "to": "B",
+        "label": {
+          "state": "blank",
+          "text": "",
+          "prefix": "",
+          "unit": "°",
+          "answer": "",
+          "answerVisible": false,
+          "shared": null,
+          "dx": 0,
+          "dy": 0,
+          "calculation": null
+        },
+        "mark": "none"
+      }
+    ],
+    "triangles": [
+      {
+        "id": "T1",
+        "vertices": [
+          "A",
+          "B",
+          "C"
+        ],
+        "role": "component",
+        "rightAt": "A",
+        "equalAt": null,
+        "equilateral": false
+      }
+    ],
+    "heights": [],
+    "captions": [],
+    "sharedLabels": [],
+    "split": null,
+    "widthCm": 12,
+    "notToScale": false,
+    "sourceId": null
+  }
+}
