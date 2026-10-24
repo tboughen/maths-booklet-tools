@@ -8,6 +8,7 @@ import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import { receiveSvg } from "./svg-consumer";
+import { discoverTools } from "./discovery";
 import { contentHash as valueHash, type ValueEnvelope } from "../../packages/value-graph-core/src/interchange";
 const base = process.argv[2];
 if (!base)
@@ -33,11 +34,11 @@ try {
   await client.connect(
     new StreamableHTTPClientTransport(new URL("/mcp", base), {fetch:request}),
   );
-  const tools = await client.listTools();
+  const tools = { tools: await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined)) };
   const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "cuboid_capabilities", "create_cuboid", "revise_cuboid", "number_line_capabilities", "create_number_line", "revise_number_line", "venn_capabilities", "create_venn", "revise_venn", "check_diagram_placement", "download_diagram_bundle"];
   expected.splice(expected.indexOf("check_diagram_placement"),0,"algebra_grid_capabilities","create_algebra_grid","revise_algebra_grid");
   expected.push("get_diagram_svg");
-  if (JSON.stringify(tools.tools.map(tool => tool.name)) !== JSON.stringify(expected)) throw Error("Expected all six booklet-tool trios and optional output tools.");
+  if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the reviewed named catalogue and optional output tools.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
     if (!value || typeof value !== "object") return;

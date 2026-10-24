@@ -280,3 +280,26 @@ Timing records now distinguish service compilation, browser fixture generation,
 browser execution, service fixture/vector consumption and image build, as well as
 website prepare and publication stages. Preserve complete browser coverage and
 isolated fixtures; fixture caching or reduced coverage is not part of these fixes.
+
+
+## MCP release evidence and browser fixture profiles
+
+For routine MCP work read the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Both browser shards retain their complete
+case inventory and independently produce the smaller real-protocol browser files.
+The full service collector, independent vector proof and bounded Linux smoke
+remain mandatory when applicable. Fixture manifests bind files to source, build,
+producer, run and attempt; invalid fixtures fail without silent regeneration.
+
+Service-only preparation emits a source qualification package without building
+a dummy website. Service lint/types are explicit; final qualified-service is
+retained independently of qualified-release. Source-only packages cannot be
+promoted as website packages. Full service artifacts contain compiled files,
+fonts, schemas, controls and build-input hashes, and require the matching trusted
+sealed aggregate. Existing buildId and production limits remain unchanged in
+meaning; no registry, runtime-identity migration or shared fixture cache is added.
+
+Qualification tooling changes retain broad checks. Mixed actual diff impacts
+union requirements; unknown or missing comparison remains conservative. These
+changes take effect on hosted releases only after authorised integration. An
+unmerged candidate and a passing qualification do not establish main/live state.
