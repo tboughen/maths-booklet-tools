@@ -156930,7 +156930,7 @@
   "topics": [
     {
       "availableCount": 1,
-      "bankCount": 3,
+      "bankCount": 1,
       "code": "U922",
       "pilotCount": 0,
       "strand": "Number",
@@ -156938,7 +156938,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U600",
       "pilotCount": 1,
       "strand": "Number",
@@ -156946,7 +156946,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U435",
       "pilotCount": 1,
       "strand": "Number",
@@ -156954,7 +156954,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 9,
+      "bankCount": 6,
       "code": "U417",
       "pilotCount": 2,
       "strand": "Number",
@@ -156962,7 +156962,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 7,
+      "bankCount": 5,
       "code": "U478",
       "pilotCount": 3,
       "strand": "Number",
@@ -156970,7 +156970,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U735",
       "pilotCount": 0,
       "strand": "Number",
@@ -156978,7 +156978,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 11,
+      "bankCount": 4,
       "code": "U127",
       "pilotCount": 1,
       "strand": "Number",
@@ -156986,7 +156986,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U293",
       "pilotCount": 7,
       "strand": "Number",
@@ -156994,7 +156994,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 13,
+      "bankCount": 9,
       "code": "U453",
       "pilotCount": 0,
       "strand": "Number",
@@ -157010,7 +157010,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 9,
+      "bankCount": 11,
       "code": "U947",
       "pilotCount": 2,
       "strand": "Number",
@@ -157034,7 +157034,7 @@
     },
     {
       "availableCount": 27,
-      "bankCount": 24,
+      "bankCount": 29,
       "code": "U851",
       "pilotCount": 2,
       "strand": "Number",
@@ -157042,7 +157042,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "U299",
       "pilotCount": 0,
       "strand": "Number",
@@ -157058,7 +157058,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 7,
+      "bankCount": 9,
       "code": "U772",
       "pilotCount": 0,
       "strand": "Number",
@@ -157074,7 +157074,7 @@
     },
     {
       "availableCount": 23,
-      "bankCount": 35,
+      "bankCount": 29,
       "code": "U926",
       "pilotCount": 6,
       "strand": "Number",
@@ -157090,7 +157090,7 @@
     },
     {
       "availableCount": 18,
-      "bankCount": 12,
+      "bankCount": 19,
       "code": "U694",
       "pilotCount": 0,
       "strand": "Number",
@@ -157098,7 +157098,7 @@
     },
     {
       "availableCount": 13,
-      "bankCount": 18,
+      "bankCount": 21,
       "code": "U330",
       "pilotCount": 1,
       "strand": "Number",
@@ -157106,7 +157106,7 @@
     },
     {
       "availableCount": 15,
-      "bankCount": 18,
+      "bankCount": 23,
       "code": "U534",
       "pilotCount": 2,
       "strand": "Number",
@@ -157114,7 +157114,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 11,
+      "bankCount": 16,
       "code": "U264",
       "pilotCount": 1,
       "strand": "Number",
@@ -157122,7 +157122,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U290",
       "pilotCount": 0,
       "strand": "Number",
@@ -157130,7 +157130,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 12,
+      "bankCount": 7,
       "code": "U161",
       "pilotCount": 1,
       "strand": "Number",
@@ -157138,7 +157138,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 12,
+      "bankCount": 14,
       "code": "U480",
       "pilotCount": 1,
       "strand": "Number",
@@ -157146,7 +157146,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 9,
+      "bankCount": 10,
       "code": "U298",
       "pilotCount": 2,
       "strand": "Number",
@@ -157154,7 +157154,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 6,
+      "bankCount": 5,
       "code": "U731",
       "pilotCount": 2,
       "strand": "Number",
@@ -157162,7 +157162,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 10,
+      "bankCount": 8,
       "code": "U965",
       "pilotCount": 1,
       "strand": "Number",
@@ -157170,7 +157170,7 @@
     },
     {
       "availableCount": 17,
-      "bankCount": 19,
+      "bankCount": 20,
       "code": "U225",
       "pilotCount": 3,
       "strand": "Number",
@@ -157178,7 +157178,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 16,
+      "bankCount": 18,
       "code": "U657",
       "pilotCount": 3,
       "strand": "Number",
@@ -157186,7 +157186,7 @@
     },
     {
       "availableCount": 13,
-      "bankCount": 12,
+      "bankCount": 13,
       "code": "U587",
       "pilotCount": 0,
       "strand": "Number",
@@ -157202,7 +157202,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 4,
+      "bankCount": 3,
       "code": "U301",
       "pilotCount": 0,
       "strand": "Number",
@@ -157210,7 +157210,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 3,
+      "bankCount": 6,
       "code": "U679",
       "pilotCount": 0,
       "strand": "Number",
@@ -157218,7 +157218,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 10,
+      "bankCount": 6,
       "code": "U163",
       "pilotCount": 0,
       "strand": "Number",
@@ -157226,7 +157226,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 5,
+      "bankCount": 3,
       "code": "U704",
       "pilotCount": 1,
       "strand": "Number",
@@ -157234,7 +157234,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 4,
       "code": "U646",
       "pilotCount": 1,
       "strand": "Number",
@@ -157242,7 +157242,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 8,
+      "bankCount": 7,
       "code": "U746",
       "pilotCount": 2,
       "strand": "Number",
@@ -157250,7 +157250,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 8,
+      "bankCount": 11,
       "code": "U736",
       "pilotCount": 3,
       "strand": "Number",
@@ -157258,7 +157258,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 1,
+      "bankCount": 7,
       "code": "U692",
       "pilotCount": 1,
       "strand": "Number",
@@ -157266,7 +157266,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 5,
+      "bankCount": 4,
       "code": "U793",
       "pilotCount": 0,
       "strand": "Number",
@@ -157274,7 +157274,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "U439",
       "pilotCount": 0,
       "strand": "Number",
@@ -157282,7 +157282,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 6,
       "code": "U475",
       "pilotCount": 2,
       "strand": "Number",
@@ -157290,7 +157290,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 7,
+      "bankCount": 4,
       "code": "U224",
       "pilotCount": 2,
       "strand": "Number",
@@ -157298,7 +157298,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 8,
+      "bankCount": 2,
       "code": "U544",
       "pilotCount": 0,
       "strand": "Number",
@@ -157314,7 +157314,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 0,
+      "bankCount": 6,
       "code": "U874",
       "pilotCount": 0,
       "strand": "Number",
@@ -157322,7 +157322,7 @@
     },
     {
       "availableCount": 36,
-      "bankCount": 38,
+      "bankCount": 36,
       "code": "U888",
       "pilotCount": 4,
       "strand": "Number",
@@ -157330,7 +157330,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 2,
+      "bankCount": 5,
       "code": "U594",
       "pilotCount": 1,
       "strand": "Number",
@@ -157346,7 +157346,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U689",
       "pilotCount": 0,
       "strand": "Number",
@@ -157354,7 +157354,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 16,
+      "bankCount": 15,
       "code": "U925",
       "pilotCount": 2,
       "strand": "Number",
@@ -157362,7 +157362,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 17,
+      "bankCount": 18,
       "code": "U881",
       "pilotCount": 3,
       "strand": "Number",
@@ -157370,7 +157370,7 @@
     },
     {
       "availableCount": 24,
-      "bankCount": 29,
+      "bankCount": 27,
       "code": "U916",
       "pilotCount": 3,
       "strand": "Number",
@@ -157378,7 +157378,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 10,
+      "bankCount": 9,
       "code": "U554",
       "pilotCount": 1,
       "strand": "Number",
@@ -157386,7 +157386,7 @@
     },
     {
       "availableCount": 23,
-      "bankCount": 18,
+      "bankCount": 25,
       "code": "U349",
       "pilotCount": 0,
       "strand": "Number",
@@ -157394,7 +157394,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 9,
+      "bankCount": 14,
       "code": "U773",
       "pilotCount": 3,
       "strand": "Number",
@@ -157402,7 +157402,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 13,
+      "bankCount": 12,
       "code": "U671",
       "pilotCount": 1,
       "strand": "Number",
@@ -157410,7 +157410,7 @@
     },
     {
       "availableCount": 15,
-      "bankCount": 14,
+      "bankCount": 19,
       "code": "U286",
       "pilotCount": 0,
       "strand": "Number",
@@ -157418,7 +157418,7 @@
     },
     {
       "availableCount": 13,
-      "bankCount": 17,
+      "bankCount": 19,
       "code": "U278",
       "pilotCount": 2,
       "strand": "Number",
@@ -157434,7 +157434,7 @@
     },
     {
       "availableCount": 18,
-      "bankCount": 21,
+      "bankCount": 23,
       "code": "U332",
       "pilotCount": 2,
       "strand": "Number",
@@ -157442,7 +157442,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 6,
+      "bankCount": 4,
       "code": "U988",
       "pilotCount": 1,
       "strand": "Number",
@@ -157450,7 +157450,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 13,
+      "bankCount": 14,
       "code": "U211",
       "pilotCount": 2,
       "strand": "Number",
@@ -157458,7 +157458,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 22,
+      "bankCount": 14,
       "code": "U751",
       "pilotCount": 3,
       "strand": "Number",
@@ -157466,7 +157466,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 12,
+      "bankCount": 7,
       "code": "U529",
       "pilotCount": 2,
       "strand": "Number",
@@ -157474,7 +157474,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 4,
       "code": "U125",
       "pilotCount": 0,
       "strand": "Number",
@@ -157498,7 +157498,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 7,
+      "bankCount": 10,
       "code": "U250",
       "pilotCount": 2,
       "strand": "Number",
@@ -157506,7 +157506,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U633",
       "pilotCount": 0,
       "strand": "Number",
@@ -157514,7 +157514,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 4,
+      "bankCount": 6,
       "code": "U338",
       "pilotCount": 0,
       "strand": "Number",
@@ -157538,7 +157538,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U707",
       "pilotCount": 0,
       "strand": "Number",
@@ -157546,7 +157546,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U281",
       "pilotCount": 0,
       "strand": "Number",
@@ -157554,7 +157554,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 20,
+      "bankCount": 10,
       "code": "U613",
       "pilotCount": 4,
       "strand": "Algebra",
@@ -157570,7 +157570,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 13,
+      "bankCount": 14,
       "code": "U585",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157578,7 +157578,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 7,
+      "bankCount": 6,
       "code": "U144",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157586,7 +157586,7 @@
     },
     {
       "availableCount": 25,
-      "bankCount": 21,
+      "bankCount": 26,
       "code": "U105",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -157610,7 +157610,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 13,
+      "bankCount": 12,
       "code": "U768",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -157618,7 +157618,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 10,
+      "bankCount": 11,
       "code": "U606",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157626,7 +157626,7 @@
     },
     {
       "availableCount": 16,
-      "bankCount": 15,
+      "bankCount": 17,
       "code": "U365",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -157634,7 +157634,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U178",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157650,7 +157650,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U963",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157666,7 +157666,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 1,
+      "bankCount": 3,
       "code": "U103",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157674,7 +157674,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 5,
+      "bankCount": 0,
       "code": "U437",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157682,7 +157682,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 5,
+      "bankCount": 10,
       "code": "U294",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157690,7 +157690,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 7,
+      "bankCount": 6,
       "code": "U685",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157698,7 +157698,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U457",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157722,7 +157722,7 @@
     },
     {
       "availableCount": 19,
-      "bankCount": 17,
+      "bankCount": 20,
       "code": "U181",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157738,7 +157738,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U755",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -157746,7 +157746,7 @@
     },
     {
       "availableCount": 20,
-      "bankCount": 22,
+      "bankCount": 20,
       "code": "U325",
       "pilotCount": 4,
       "strand": "Algebra",
@@ -157754,7 +157754,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 10,
+      "bankCount": 13,
       "code": "U870",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157770,7 +157770,7 @@
     },
     {
       "availableCount": 16,
-      "bankCount": 31,
+      "bankCount": 21,
       "code": "U599",
       "pilotCount": 5,
       "strand": "Algebra",
@@ -157778,7 +157778,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 10,
+      "bankCount": 11,
       "code": "U509",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -157786,7 +157786,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 7,
+      "bankCount": 8,
       "code": "U759",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157794,7 +157794,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 7,
+      "bankCount": 6,
       "code": "U738",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157802,7 +157802,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 5,
       "code": "U145",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157810,7 +157810,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "U337",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157818,7 +157818,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 7,
+      "bankCount": 8,
       "code": "U747",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157834,7 +157834,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U228",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157842,7 +157842,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U960",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157850,7 +157850,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U589",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157858,7 +157858,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 6,
+      "bankCount": 5,
       "code": "U665",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157866,7 +157866,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 1,
+      "bankCount": 10,
       "code": "U150",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157882,7 +157882,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 10,
+      "bankCount": 14,
       "code": "U760",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -157890,7 +157890,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 6,
+      "bankCount": 2,
       "code": "U757",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157914,7 +157914,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 2,
+      "bankCount": 3,
       "code": "U875",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -157938,7 +157938,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U434",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -157946,7 +157946,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 5,
+      "bankCount": 7,
       "code": "U168",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157954,7 +157954,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 9,
+      "bankCount": 8,
       "code": "U213",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157978,7 +157978,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U978",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157986,7 +157986,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 7,
+      "bankCount": 11,
       "code": "U206",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -157994,7 +157994,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U680",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158010,7 +158010,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U171",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158018,7 +158018,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U637",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158034,7 +158034,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U448",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158050,7 +158050,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 8,
+      "bankCount": 7,
       "code": "U789",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -158058,7 +158058,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 6,
+      "bankCount": 9,
       "code": "U933",
       "pilotCount": 2,
       "strand": "Algebra",
@@ -158066,7 +158066,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U889",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158074,7 +158074,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U741",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158082,7 +158082,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 3,
+      "bankCount": 6,
       "code": "U315",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158090,7 +158090,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 7,
+      "bankCount": 11,
       "code": "U669",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158098,7 +158098,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 1,
+      "bankCount": 5,
       "code": "U477",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158106,7 +158106,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 6,
+      "bankCount": 3,
       "code": "U848",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158122,7 +158122,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U898",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158138,7 +158138,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 9,
+      "bankCount": 6,
       "code": "U667",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158146,7 +158146,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "U310",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158154,7 +158154,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 6,
+      "bankCount": 7,
       "code": "U769",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158162,7 +158162,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U980",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -158178,7 +158178,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 7,
+      "bankCount": 9,
       "code": "U229",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -158186,7 +158186,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 4,
+      "bankCount": 8,
       "code": "U598",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -158194,7 +158194,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 1,
+      "bankCount": 7,
       "code": "U487",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158202,7 +158202,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 8,
+      "bankCount": 3,
       "code": "U455",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158226,7 +158226,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 10,
+      "bankCount": 9,
       "code": "U567",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -158250,7 +158250,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 13,
+      "bankCount": 10,
       "code": "U862",
       "pilotCount": 3,
       "strand": "Algebra",
@@ -158266,7 +158266,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "U681",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158282,7 +158282,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 3,
+      "bankCount": 7,
       "code": "U914",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158290,7 +158290,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U462",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158298,7 +158298,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U966",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158314,7 +158314,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 4,
       "code": "U562",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -158322,7 +158322,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 2,
+      "bankCount": 5,
       "code": "U611",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158338,7 +158338,7 @@
     },
     {
       "availableCount": 16,
-      "bankCount": 11,
+      "bankCount": 16,
       "code": "U582",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -158346,7 +158346,7 @@
     },
     {
       "availableCount": 26,
-      "bankCount": 20,
+      "bankCount": 31,
       "code": "U902",
       "pilotCount": 2,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158354,7 +158354,7 @@
     },
     {
       "availableCount": 41,
-      "bankCount": 0,
+      "bankCount": 44,
       "code": "U659",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158370,7 +158370,7 @@
     },
     {
       "availableCount": 37,
-      "bankCount": 29,
+      "bankCount": 41,
       "code": "U388",
       "pilotCount": 4,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158394,7 +158394,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "U663",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158402,7 +158402,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "U497",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158410,7 +158410,7 @@
     },
     {
       "availableCount": 22,
-      "bankCount": 29,
+      "bankCount": 33,
       "code": "U151",
       "pilotCount": 4,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158426,7 +158426,7 @@
     },
     {
       "availableCount": 13,
-      "bankCount": 14,
+      "bankCount": 16,
       "code": "U910",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158434,7 +158434,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 9,
+      "bankCount": 7,
       "code": "U527",
       "pilotCount": 1,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158442,7 +158442,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "U842",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158450,7 +158450,7 @@
     },
     {
       "availableCount": 17,
-      "bankCount": 21,
+      "bankCount": 18,
       "code": "U687",
       "pilotCount": 4,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158458,7 +158458,7 @@
     },
     {
       "availableCount": 28,
-      "bankCount": 17,
+      "bankCount": 33,
       "code": "U753",
       "pilotCount": 2,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158466,7 +158466,7 @@
     },
     {
       "availableCount": 27,
-      "bankCount": 23,
+      "bankCount": 29,
       "code": "U176",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158474,7 +158474,7 @@
     },
     {
       "availableCount": 21,
-      "bankCount": 35,
+      "bankCount": 30,
       "code": "U577",
       "pilotCount": 3,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158482,7 +158482,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 0,
+      "bankCount": 6,
       "code": "U595",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158490,7 +158490,7 @@
     },
     {
       "availableCount": 17,
-      "bankCount": 16,
+      "bankCount": 22,
       "code": "U921",
       "pilotCount": 1,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158498,7 +158498,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 6,
+      "bankCount": 8,
       "code": "U676",
       "pilotCount": 2,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158506,7 +158506,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 5,
       "code": "U865",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158514,7 +158514,7 @@
     },
     {
       "availableCount": 35,
-      "bankCount": 49,
+      "bankCount": 38,
       "code": "U721",
       "pilotCount": 6,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158522,7 +158522,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 7,
+      "bankCount": 8,
       "code": "U357",
       "pilotCount": 1,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158530,7 +158530,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 9,
+      "bankCount": 10,
       "code": "U610",
       "pilotCount": 2,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158538,7 +158538,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "U640",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158546,7 +158546,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 4,
+      "bankCount": 7,
       "code": "U407",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158554,7 +158554,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 1,
+      "bankCount": 4,
       "code": "U364",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -158578,7 +158578,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 13,
+      "bankCount": 6,
       "code": "U993",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -158586,7 +158586,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 0,
+      "bankCount": 9,
       "code": "U970",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158594,7 +158594,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 3,
+      "bankCount": 8,
       "code": "U351",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158602,7 +158602,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 13,
+      "bankCount": 15,
       "code": "U226",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158610,7 +158610,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 5,
+      "bankCount": 4,
       "code": "U934",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158618,7 +158618,7 @@
     },
     {
       "availableCount": 13,
-      "bankCount": 7,
+      "bankCount": 16,
       "code": "U945",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158626,7 +158626,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 6,
       "code": "U575",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158650,7 +158650,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 3,
+      "bankCount": 2,
       "code": "U343",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158658,7 +158658,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 1,
+      "bankCount": 3,
       "code": "U904",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158666,7 +158666,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 9,
+      "bankCount": 5,
       "code": "U121",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158674,7 +158674,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 3,
+      "bankCount": 2,
       "code": "U849",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158682,7 +158682,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U719",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158698,7 +158698,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 12,
+      "bankCount": 14,
       "code": "U390",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -158706,7 +158706,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 3,
       "code": "U730",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158714,7 +158714,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 11,
+      "bankCount": 10,
       "code": "U628",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158722,7 +158722,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "U732",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158730,7 +158730,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 8,
+      "bankCount": 4,
       "code": "U655",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158738,7 +158738,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 10,
+      "bankCount": 6,
       "code": "U826",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158746,7 +158746,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 9,
+      "bankCount": 6,
       "code": "U329",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158762,7 +158762,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 4,
       "code": "U605",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158770,7 +158770,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 25,
+      "bankCount": 18,
       "code": "U283",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158778,7 +158778,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U545",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158786,7 +158786,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 5,
+      "bankCount": 4,
       "code": "U627",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158794,7 +158794,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 1,
+      "bankCount": 5,
       "code": "U319",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158810,7 +158810,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U170",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158826,7 +158826,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 0,
+      "bankCount": 5,
       "code": "U156",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158834,7 +158834,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 8,
+      "bankCount": 5,
       "code": "U450",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -158842,7 +158842,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 10,
+      "bankCount": 12,
       "code": "U952",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158858,7 +158858,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 11,
+      "bankCount": 7,
       "code": "U592",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158866,7 +158866,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U790",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158874,7 +158874,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 4,
+      "bankCount": 1,
       "code": "U551",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158890,7 +158890,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 6,
+      "bankCount": 5,
       "code": "U866",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158898,7 +158898,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U578",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -158906,7 +158906,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U630",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158914,7 +158914,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 11,
+      "bankCount": 10,
       "code": "U110",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -158922,7 +158922,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 4,
       "code": "U767",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158930,7 +158930,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 4,
+      "bankCount": 3,
       "code": "U604",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158938,7 +158938,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 13,
+      "bankCount": 16,
       "code": "U950",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -158954,7 +158954,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 12,
+      "bankCount": 11,
       "code": "U373",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158962,7 +158962,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U459",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158970,7 +158970,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 8,
+      "bankCount": 6,
       "code": "U251",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158978,7 +158978,7 @@
     },
     {
       "availableCount": 7,
-      "bankCount": 6,
+      "bankCount": 7,
       "code": "U489",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158986,7 +158986,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U130",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -158994,7 +158994,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 5,
+      "bankCount": 10,
       "code": "U808",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159002,7 +159002,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 4,
+      "bankCount": 1,
       "code": "U807",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159010,7 +159010,7 @@
     },
     {
       "availableCount": 11,
-      "bankCount": 23,
+      "bankCount": 15,
       "code": "U385",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -159018,7 +159018,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 0,
+      "bankCount": 8,
       "code": "U828",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159026,7 +159026,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 4,
+      "bankCount": 3,
       "code": "U541",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159042,7 +159042,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U743",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -159050,7 +159050,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 9,
+      "bankCount": 8,
       "code": "U929",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159090,7 +159090,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "U523",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159106,7 +159106,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "U771",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159114,7 +159114,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "U334",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159138,7 +159138,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 9,
+      "bankCount": 8,
       "code": "U174",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159170,7 +159170,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 2,
+      "bankCount": 4,
       "code": "U617",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159178,7 +159178,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "U426",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159194,7 +159194,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U543",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159202,7 +159202,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 3,
+      "bankCount": 1,
       "code": "U632",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159210,7 +159210,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 6,
+      "bankCount": 11,
       "code": "U903",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159218,7 +159218,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 6,
+      "bankCount": 8,
       "code": "U564",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159226,7 +159226,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 11,
+      "bankCount": 10,
       "code": "U781",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159234,7 +159234,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "U660",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159242,7 +159242,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 7,
+      "bankCount": 8,
       "code": "U196",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -159250,7 +159250,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 14,
+      "bankCount": 15,
       "code": "U799",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -159258,7 +159258,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 6,
+      "bankCount": 11,
       "code": "U696",
       "pilotCount": 2,
       "strand": "Geometry",
@@ -159266,7 +159266,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 6,
+      "bankCount": 8,
       "code": "U519",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159282,7 +159282,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 9,
+      "bankCount": 7,
       "code": "U766",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159298,7 +159298,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "U187",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159346,7 +159346,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 6,
+      "bankCount": 7,
       "code": "U525",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159354,7 +159354,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 2,
+      "bankCount": 1,
       "code": "U107",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159362,7 +159362,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 1,
+      "bankCount": 11,
       "code": "U471",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159370,7 +159370,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 3,
+      "bankCount": 9,
       "code": "U887",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -159378,7 +159378,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 2,
+      "bankCount": 8,
       "code": "U560",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -159394,7 +159394,7 @@
     },
     {
       "availableCount": 28,
-      "bankCount": 20,
+      "bankCount": 30,
       "code": "U408",
       "pilotCount": 5,
       "strand": "Probability",
@@ -159402,7 +159402,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 14,
+      "bankCount": 13,
       "code": "U510",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159410,7 +159410,7 @@
     },
     {
       "availableCount": 18,
-      "bankCount": 23,
+      "bankCount": 22,
       "code": "U683",
       "pilotCount": 1,
       "strand": "Probability",
@@ -159418,7 +159418,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 13,
+      "bankCount": 12,
       "code": "U166",
       "pilotCount": 2,
       "strand": "Probability",
@@ -159426,7 +159426,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 7,
+      "bankCount": 3,
       "code": "U104",
       "pilotCount": 1,
       "strand": "Probability",
@@ -159434,7 +159434,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 0,
+      "bankCount": 8,
       "code": "U714",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159442,7 +159442,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 10,
+      "bankCount": 5,
       "code": "U476",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159450,7 +159450,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U748",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159458,7 +159458,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 6,
+      "bankCount": 2,
       "code": "U296",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159474,7 +159474,7 @@
     },
     {
       "availableCount": 15,
-      "bankCount": 22,
+      "bankCount": 19,
       "code": "U558",
       "pilotCount": 1,
       "strand": "Probability",
@@ -159482,7 +159482,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 17,
+      "bankCount": 14,
       "code": "U729",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159490,7 +159490,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 5,
+      "bankCount": 7,
       "code": "U580",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159498,7 +159498,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U369",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159514,7 +159514,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 1,
+      "bankCount": 3,
       "code": "U699",
       "pilotCount": 1,
       "strand": "Probability",
@@ -159522,7 +159522,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "U821",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159530,7 +159530,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 1,
+      "bankCount": 4,
       "code": "U806",
       "pilotCount": 0,
       "strand": "Probability",
@@ -159538,7 +159538,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 5,
+      "bankCount": 11,
       "code": "U526",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159546,7 +159546,7 @@
     },
     {
       "availableCount": 14,
-      "bankCount": 6,
+      "bankCount": 15,
       "code": "U456",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159554,7 +159554,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "U260",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159562,7 +159562,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 13,
+      "bankCount": 12,
       "code": "U291",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159570,7 +159570,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 8,
+      "bankCount": 5,
       "code": "U569",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159578,7 +159578,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 2,
+      "bankCount": 0,
       "code": "U854",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159586,7 +159586,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 12,
+      "bankCount": 13,
       "code": "U877",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159594,7 +159594,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 4,
+      "bankCount": 5,
       "code": "U717",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159602,7 +159602,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 0,
+      "bankCount": 6,
       "code": "U961",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159618,7 +159618,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 1,
+      "bankCount": 7,
       "code": "U312",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159626,7 +159626,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 2,
+      "bankCount": 3,
       "code": "U653",
       "pilotCount": 1,
       "strand": "Statistics",
@@ -159634,7 +159634,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 10,
+      "bankCount": 9,
       "code": "U506",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159642,7 +159642,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 5,
+      "bankCount": 6,
       "code": "U363",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159650,7 +159650,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 11,
+      "bankCount": 9,
       "code": "U557",
       "pilotCount": 1,
       "strand": "Statistics",
@@ -159658,7 +159658,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 6,
+      "bankCount": 9,
       "code": "U508",
       "pilotCount": 1,
       "strand": "Statistics",
@@ -159674,7 +159674,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "U590",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159690,7 +159690,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 4,
+      "bankCount": 6,
       "code": "U199",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159706,7 +159706,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 14,
+      "bankCount": 8,
       "code": "U128",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159722,7 +159722,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 8,
+      "bankCount": 5,
       "code": "U909",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159738,7 +159738,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 5,
+      "bankCount": 4,
       "code": "U814",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159746,7 +159746,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 9,
+      "bankCount": 12,
       "code": "U983",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159762,7 +159762,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 11,
+      "bankCount": 13,
       "code": "U840",
       "pilotCount": 1,
       "strand": "Statistics",
@@ -159770,7 +159770,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 7,
+      "bankCount": 6,
       "code": "U182",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159778,7 +159778,7 @@
     },
     {
       "availableCount": 12,
-      "bankCount": 11,
+      "bankCount": 12,
       "code": "U642",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159786,7 +159786,7 @@
     },
     {
       "availableCount": 9,
-      "bankCount": 8,
+      "bankCount": 9,
       "code": "U879",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159794,7 +159794,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 6,
+      "bankCount": 8,
       "code": "U837",
       "pilotCount": 4,
       "strand": "Statistics",
@@ -159802,7 +159802,7 @@
     },
     {
       "availableCount": 8,
-      "bankCount": 7,
+      "bankCount": 8,
       "code": "U507",
       "pilotCount": 2,
       "strand": "Statistics",
@@ -159834,7 +159834,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 2,
+      "bankCount": 0,
       "code": "U571",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159850,7 +159850,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 7,
+      "bankCount": 5,
       "code": "U162",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159858,7 +159858,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 1,
+      "bankCount": 3,
       "code": "U328",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -159866,7 +159866,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M763",
       "pilotCount": 0,
       "strand": "Number",
@@ -159874,7 +159874,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 0,
+      "bankCount": 4,
       "code": "M704",
       "pilotCount": 0,
       "strand": "Number",
@@ -159882,7 +159882,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M522",
       "pilotCount": 0,
       "strand": "Number",
@@ -159890,7 +159890,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M928",
       "pilotCount": 0,
       "strand": "Number",
@@ -159906,7 +159906,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M347",
       "pilotCount": 0,
       "strand": "Number",
@@ -159922,7 +159922,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M113",
       "pilotCount": 0,
       "strand": "Number",
@@ -159946,7 +159946,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M803",
       "pilotCount": 0,
       "strand": "Number",
@@ -159970,7 +159970,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "M873",
       "pilotCount": 0,
       "strand": "Number",
@@ -159978,7 +159978,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M262",
       "pilotCount": 0,
       "strand": "Number",
@@ -160018,7 +160018,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M135",
       "pilotCount": 0,
       "strand": "Number",
@@ -160026,7 +160026,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M521",
       "pilotCount": 0,
       "strand": "Number",
@@ -160066,7 +160066,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M608",
       "pilotCount": 0,
       "strand": "Number",
@@ -160074,7 +160074,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M150",
       "pilotCount": 0,
       "strand": "Number",
@@ -160098,7 +160098,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M111",
       "pilotCount": 0,
       "strand": "Number",
@@ -160122,7 +160122,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M131",
       "pilotCount": 0,
       "strand": "Number",
@@ -160130,7 +160130,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M878",
       "pilotCount": 0,
       "strand": "Number",
@@ -160162,7 +160162,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M410",
       "pilotCount": 0,
       "strand": "Number",
@@ -160186,7 +160186,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M835",
       "pilotCount": 0,
       "strand": "Number",
@@ -160226,7 +160226,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 2,
+      "bankCount": 9,
       "code": "M216",
       "pilotCount": 0,
       "strand": "Number",
@@ -160282,7 +160282,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M553",
       "pilotCount": 0,
       "strand": "Number",
@@ -160306,7 +160306,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M235",
       "pilotCount": 0,
       "strand": "Number",
@@ -160330,7 +160330,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M437",
       "pilotCount": 0,
       "strand": "Number",
@@ -160346,7 +160346,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M476",
       "pilotCount": 0,
       "strand": "Number",
@@ -160354,7 +160354,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M533",
       "pilotCount": 0,
       "strand": "Number",
@@ -160362,7 +160362,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M528",
       "pilotCount": 0,
       "strand": "Number",
@@ -160370,7 +160370,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 1,
+      "bankCount": 6,
       "code": "M777",
       "pilotCount": 0,
       "strand": "Number",
@@ -160378,7 +160378,7 @@
     },
     {
       "availableCount": 10,
-      "bankCount": 0,
+      "bankCount": 10,
       "code": "M752",
       "pilotCount": 1,
       "strand": "Number",
@@ -160386,7 +160386,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M823",
       "pilotCount": 0,
       "strand": "Number",
@@ -160402,7 +160402,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M698",
       "pilotCount": 0,
       "strand": "Number",
@@ -160410,7 +160410,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M322",
       "pilotCount": 0,
       "strand": "Number",
@@ -160418,7 +160418,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M108",
       "pilotCount": 0,
       "strand": "Number",
@@ -160442,7 +160442,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 1,
+      "bankCount": 2,
       "code": "M830",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160450,7 +160450,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 3,
+      "bankCount": 4,
       "code": "M175",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160474,7 +160474,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M327",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160482,7 +160482,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M208",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160498,7 +160498,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M795",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160506,7 +160506,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M531",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160514,7 +160514,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M949",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160522,7 +160522,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M120",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160610,7 +160610,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M902",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160642,7 +160642,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M957",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160650,7 +160650,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M852",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160666,7 +160666,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M384",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160698,7 +160698,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M983",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160706,7 +160706,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M568",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160770,7 +160770,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M418",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160786,7 +160786,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M618",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160810,7 +160810,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M311",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160818,7 +160818,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 2,
+      "bankCount": 3,
       "code": "M797",
       "pilotCount": 1,
       "strand": "Algebra",
@@ -160826,7 +160826,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M932",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160858,7 +160858,7 @@
     },
     {
       "availableCount": 5,
-      "bankCount": 0,
+      "bankCount": 5,
       "code": "M771",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160898,7 +160898,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M247",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160906,7 +160906,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M221",
       "pilotCount": 0,
       "strand": "Algebra",
@@ -160922,7 +160922,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M627",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -160946,7 +160946,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M515",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161002,7 +161002,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 2,
+      "bankCount": 0,
       "code": "M772",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161010,7 +161010,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M530",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161018,7 +161018,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M761",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161042,7 +161042,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M465",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161074,7 +161074,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M801",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161082,7 +161082,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M267",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161090,7 +161090,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M525",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161098,7 +161098,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M543",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161106,7 +161106,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M478",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161114,7 +161114,7 @@
     },
     {
       "availableCount": 6,
-      "bankCount": 1,
+      "bankCount": 6,
       "code": "M681",
       "pilotCount": 0,
       "strand": "Ratio, Proportion and Rates of Change",
@@ -161146,7 +161146,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M900",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161162,7 +161162,7 @@
     },
     {
       "availableCount": 4,
-      "bankCount": 0,
+      "bankCount": 4,
       "code": "M390",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161170,7 +161170,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 2,
+      "bankCount": 3,
       "code": "M635",
       "pilotCount": 1,
       "strand": "Geometry",
@@ -161178,7 +161178,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M269",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161186,7 +161186,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M690",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161194,7 +161194,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M610",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161218,7 +161218,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M705",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161242,7 +161242,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M276",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161298,7 +161298,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M818",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161314,7 +161314,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M351",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161322,7 +161322,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M679",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161330,7 +161330,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M319",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161338,7 +161338,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M606",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161346,7 +161346,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M393",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161354,7 +161354,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M653",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161370,7 +161370,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M377",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161378,7 +161378,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M324",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161394,7 +161394,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M169",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161402,7 +161402,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M231",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161418,7 +161418,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M430",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161426,7 +161426,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M677",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161434,7 +161434,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M480",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161450,7 +161450,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M380",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161458,7 +161458,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M212",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161466,7 +161466,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M646",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161482,7 +161482,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M229",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161530,7 +161530,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M722",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161554,7 +161554,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M290",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161562,7 +161562,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M910",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161586,7 +161586,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M985",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161602,7 +161602,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M565",
       "pilotCount": 0,
       "strand": "Geometry",
@@ -161666,7 +161666,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M941",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161690,7 +161690,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M206",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161698,7 +161698,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 3,
+      "bankCount": 1,
       "code": "M718",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161722,7 +161722,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M419",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161730,7 +161730,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M834",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161738,7 +161738,7 @@
     },
     {
       "availableCount": 3,
-      "bankCount": 0,
+      "bankCount": 3,
       "code": "M299",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161746,7 +161746,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M572",
       "pilotCount": 0,
       "strand": "Probability",
@@ -161810,7 +161810,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M440",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -161842,7 +161842,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M644",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -161858,7 +161858,7 @@
     },
     {
       "availableCount": 0,
-      "bankCount": 1,
+      "bankCount": 0,
       "code": "M738",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -161890,7 +161890,7 @@
     },
     {
       "availableCount": 2,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M183",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -161906,7 +161906,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 2,
       "code": "M596",
       "pilotCount": 0,
       "strand": "Statistics",
@@ -161946,7 +161946,7 @@
     },
     {
       "availableCount": 1,
-      "bankCount": 0,
+      "bankCount": 1,
       "code": "M450",
       "pilotCount": 0,
       "strand": "Statistics",

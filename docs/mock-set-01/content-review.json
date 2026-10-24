@@ -3853,6 +3853,12 @@
       "actual": "True",
       "expected": "True",
       "passed": true
+    },
+    {
+      "check": "All 628 full-bank topic counts match reviewed source appearances",
+      "actual": "True",
+      "expected": "True",
+      "passed": true
     }
   ],
   "fullEvidenceDirectory": "reports/mock-set-01-publication-2026-10-24",
