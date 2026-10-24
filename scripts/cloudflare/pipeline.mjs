@@ -91,7 +91,12 @@ async function check(name, { preparedService = false } = {}) {
     else if (name === 'publisher') {
       const { readdirSync } = await import('node:fs');
       const files = readdirSync(resolve(root, 'scripts/cloudflare')).filter(f => f.endsWith('.test.mjs')).map(f => `scripts/cloudflare/${f}`);
-      const report = await run(root, process.execPath, ['--test', '--test-reporter=tap', ...files], { capture: true });
+      let report;
+      try { report = await run(root, process.execPath, ['--test', '--test-reporter=tap', ...files], { capture: true }); }
+      catch (error) {
+        save(resolve(evidence, 'publisher-tap.json'), { status: 'failed', stdout: error.stdout || '', stderr: error.stderr || '', exitCode: error.exitCode });
+        throw error;
+      }
       if (!/^# fail 0$/m.test(report.stdout) || !/^# skipped 0$/m.test(report.stdout) || !/^# cancelled 0$/m.test(report.stdout)) throw new Error('Publisher test report is incomplete');
       result = { passed: Number(report.stdout.match(/^# pass (\d+)$/m)?.[1]) };
       if (!result.passed) throw new Error('Publisher tests did not run');
