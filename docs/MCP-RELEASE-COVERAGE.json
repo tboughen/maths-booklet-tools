@@ -41,7 +41,8 @@
     ],
     "metadata": [
       "retrieval.json",
-      "tool-catalogue.json"
+      "tool-catalogue.json",
+      "server-instructions.json"
     ]
   },
   "assertionOwners": [

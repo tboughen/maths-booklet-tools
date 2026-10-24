@@ -94,6 +94,9 @@ try {
   }}));
   const tools = await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined));
   await writeFile(resolve(output, "tool-catalogue.json"), JSON.stringify({ tools }, null, 2));
+  const instructions = client.getInstructions();
+  assert(instructions?.includes("bar models") && instructions.includes("one shared unit width"));
+  await writeFile(resolve(output, "server-instructions.json"), JSON.stringify({ instructions }, null, 2));
   if (full) for (const name of ["graph_capabilities", "ratio_table_capabilities", "value_graph_capabilities"])
     await client.callTool({name, arguments: {}});
   const graphSpec = JSON.parse(await readFile("services/graph-mcp/fixtures/print-consumption/graph.json", "utf8"));

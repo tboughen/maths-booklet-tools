@@ -60,6 +60,11 @@ it("advertises complete bar schemas with homogeneous arrays and preserves named 
   const client = await start(),
     tools = (await client.listTools()).tools;
   const names = tools.map((t) => t.name);
+  const instructions = client.getInstructions();
+  expect(instructions).toContain("bar models");
+  expect(instructions).toContain("one shared unit width");
+  expect(instructions).toContain("Do not fill pupil answers");
+  expect(instructions).toContain("Do not silently redraw");
   for (const family of [
     "graph",
     "ratio_table",
