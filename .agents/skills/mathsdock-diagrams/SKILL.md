@@ -1,11 +1,13 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines and Venn diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids and Triangle diagrams through the connected Mathsdock MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
 
-Use the existing connected Maths Booklet Tools MCP tools to produce editable teaching diagrams. Inspect the tools available in this conversation; do not infer availability from a previous conversation or create another connection.
+Use the existing connected Mathsdock MCP tools to produce editable teaching diagrams. Inspect the tools available in this conversation; do not infer availability from a previous conversation or create another connection.
+
+The current private plugin is [Mathsdock](https://chatgpt.com/plugins/plugins_6add11f74e3481919ab062a02431b29f) (`plugins_6add11f74e3481919ab062a02431b29f`). It reuses the existing App connection; preserve its technical App ID and mapping keys. The original plugin remains a historical copy; target Mathsdock for future plugin guidance updates.
 
 ## Choose and inspect the tool
 
@@ -124,3 +126,7 @@ Show the returned preview and concise links to the actual SVG, verified print PN
 Keep physical dimensions distinct from preview zoom. Word exports are images; further mathematical edits require reopening the editable document in MathsDock. Expired downloads can be refreshed through the supported revision operation with the same returned document, without changing content.
 
 Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
+
+## Triangle MCP integration
+
+Read [the Triangle MCP contract](../../../docs/TRIANGLE-MCP.md) for triangle_capabilities, create_triangle and revise_triangle, plus kind triangle in placement, bundles and original SVG delivery. Only call actually discovered tools; source implementation or newer skill text does not establish deployment/client import. Preserve pupil labels, blanks, v1/v2 files and hidden answers. Use returned calculationContexts for named target/owner/input mappings; calculate or reveal answers only explicitly. Never measure drawn proportions. Keep actual host discovery, execution and exact file saving separate from SDK qualification.

@@ -22,3 +22,7 @@
 !assets/graph-fonts
 !assets/graph-fonts/**
 !Dockerfile.graph-mcp
+
+!packages/triangle-core
+!packages/triangle-core/src
+!packages/triangle-core/src/**

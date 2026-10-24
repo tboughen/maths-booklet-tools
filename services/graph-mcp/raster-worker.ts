@@ -15,7 +15,7 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
-    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid";
+    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "triangle";
     measureCrop?: boolean;
     archive?: Record<string, Uint8Array>;
   }) => {
@@ -70,7 +70,7 @@ process.once(
           svg = svg
             .replace(/\bwidth="[^"]+"/, `width="${width}"`)
             .replace(/\bheight="[^"]+"/, `height="${height}"`);
-        const metadata = job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
+        const metadata = job.artifactKind === "triangle" ? "<title>Triangle diagram</title><desc>Use the accompanying editable JSON; pupil blanks and saved answer visibility are retained.</desc>" : job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "number-line" ? "<title>Number line</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "venn" ? "<title>Venn diagram</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "value-graph"

@@ -7,6 +7,8 @@ description: Plan, build or substantially improve MathsDock booklet tools and th
 
 Make a complete teacher workflow: create a mathematically precise resource, edit it, preserve pupil scaffolds, export at a dependable physical size, save and reopen.
 
+The current private plugin is [Mathsdock](https://chatgpt.com/plugins/plugins_6add11f74e3481919ab062a02431b29f) (`plugins_6add11f74e3481919ab062a02431b29f`). It reuses the existing App connection; preserve its technical App ID and mapping keys. The original plugin remains a historical copy; target Mathsdock for future plugin guidance updates.
+
 ## Read the project guidance
 
 Read [Creating MathsDock tools](../../../docs/TOOL-CREATION-GUIDE.md) before proposing a new tool or a substantial tool change. Read the relevant examples in [Tool evolution](../../../docs/TOOL-EVOLUTION.md). For a new tool, use [the brief](../../../docs/TOOL-BRIEF-TEMPLATE.md) to define reference outputs, interactions and acceptance cases. For repository implementation, read [Adding a booklet tool](../../../docs/ADDING-BOOKLET-TOOLS.md).
@@ -55,3 +57,7 @@ For the eight-editor usability workspace, follow [the shared preview, example an
 ## Usability refinement, 17 October — local candidate
 
 Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.
+
+## Triangle MCP integration
+
+Read [the Triangle MCP contract](../../../docs/TRIANGLE-MCP.md) for triangle_capabilities, create_triangle and revise_triangle, plus kind triangle in placement, bundles and original SVG delivery. Only call actually discovered tools; source implementation or newer skill text does not establish deployment/client import. Preserve pupil labels, blanks, v1/v2 files and hidden answers. Use returned calculationContexts for named target/owner/input mappings; calculate or reveal answers only explicitly. Never measure drawn proportions. Keep actual host discovery, execution and exact file saving separate from SDK qualification.

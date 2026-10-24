@@ -1,3 +1,8 @@
+Triangle MCP candidate, 24 October 2026
+The connector implementation and tests are described in TRIANGLE-MCP.md.
+This is source implementation, not a deployment/client-import claim. The earlier
+local-review wording below records the original editor development stages.
+
 MathsDock Triangles — editor and print behaviour
 
 Wedge and area refinement, 17 October 2026 (local review)
