@@ -7,12 +7,12 @@ import { execFileSync } from 'node:child_process';
 import { browserFixtureFiles, sealFixtures, verifyFixtures, compareCatalogues, verifyServiceArtifact } from './mcp-evidence.mjs';
 import { guardedOverlay, stageDecision, recordStage, verifyCompatibility, verifyGuidance, createReleaseRecord, freezeRecord } from './mcp-release.mjs';
 import { classifyPaths } from './classify.mjs';
-import { digestObject, fileManifest, save, sha256, repository } from './common.mjs';
+import { digestObject, fileManifest, run, save, sha256, repository } from './common.mjs';
 import { verifyQualificationPackage, verifyPackage, packageSourceQualification } from './package.mjs';
 const temporary = [];
 const temp = () => { const d = mkdtempSync(resolve(tmpdir(), 'md-mcp-')); temporary.push(d); return d; };
 afterEach(() => { for (const path of temporary.splice(0)) rmSync(path, { recursive: true, force: true }); });
-const identity = { sourceTree: 'tree', buildId: 'build', producer: 'producer', run: '1', attempt: '1' };
+const identity = { sourceTree: 'tree', buildId: 'build', producer: 'producer', run: process.env.GITHUB_RUN_ID || 'local', attempt: process.env.GITHUB_RUN_ATTEMPT || '1' };
 function fixtures() { const d = temp(); for (const p of browserFixtureFiles) writeFileSync(resolve(d, p), p); return d; }
 test('fixture manifest binds complete consumer inventory and source/run/attempt', () => {
   const d = fixtures(); sealFixtures(d, identity, 'browser'); verifyFixtures(d, identity, 'browser');
@@ -179,4 +179,10 @@ for (const mode of ['service', 'documentation']) test(`actual pipeline prepares 
 test('CLI refuses a record bound to a different checkout root', () => {
   const f = gitFixture();
   assert.throws(() => execFileSync(process.execPath, [resolve(import.meta.dirname, 'mcp-release.mjs'), 'plan', `--root=${f.root}`, '--purpose=test', `--output=${resolve(temp(), 'record.json')}`], { encoding: 'utf8', windowsHide: true, stdio: 'pipe' }), /own checkout/);
+});
+test('failed captured subprocess retains diagnostics without printing stdout in the error', async () => {
+  await assert.rejects(run(temp(), process.execPath, ['-e', "process.stdout.write('synthetic failing assertion'); process.stderr.write('synthetic stderr'); process.exit(2)"], { capture: true }), error => {
+    assert.equal(error.exitCode, 2); assert.equal(error.stdout, 'synthetic failing assertion'); assert.equal(error.stderr, 'synthetic stderr');
+    assert(!error.message.includes('synthetic failing assertion')); return true;
+  });
 });

@@ -81,6 +81,8 @@ Use focused local checks while developing. See the shared pipeline for the full
 optional local rehearsal and mandatory trusted hosted aggregate. A draft PR also
 triggers CI: inspect an existing exact-head run before dispatching another.
 Use the bounded watcher, save full logs and report changed states only.
+Failed publisher subprocesses retain stdout/stderr in `publisher-tap.json` as
+well as their failed check receipt; inspect that artifact before repeating tests.
 
 No cross-candidate test-pass cache exists. Reuse a successful identical-tree
 qualification only with the same applicable policy, required checks and trusted

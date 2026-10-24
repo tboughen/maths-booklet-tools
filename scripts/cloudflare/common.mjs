@@ -61,7 +61,14 @@ export function run(root, file, args = [], { env = {}, capture = false, timeoutM
       child.stderr.on('data', b => { stderr += b; });
     }
     child.on('error', reject);
-    child.on('exit', code => code === 0 ? resolveRun({ stdout, stderr }) : reject(new Error(`${file} failed (exit ${code})${capture ? ': ' + stderr.slice(-2000) : ''}`)));
+    child.on('exit', code => {
+      if (code === 0) return resolveRun({ stdout, stderr });
+      const error = new Error(`${file} failed (exit ${code})${capture ? ': ' + stderr.slice(-2000) : ''}`);
+      // Retain captured diagnostics for an explicit caller-owned evidence file;
+      // do not automatically print arbitrary stdout in an exception message.
+      if (capture) { error.stdout = stdout; error.stderr = stderr; error.exitCode = code; }
+      reject(error);
+    });
   });
 }
 export function timer(output) {
