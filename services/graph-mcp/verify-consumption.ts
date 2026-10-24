@@ -167,13 +167,16 @@ try {
   const algebraAnswer=await call("revise_algebra_grid",{envelope:algebraFactor.envelope,baseHash:algebraFactor.contentHash,operations:[{op:"calculate_answer"}]});await save("algebra-answer",algebraAnswer);
   assert.deepEqual((algebraAnswer.envelope.document as {rows:unknown}).rows,(algebraFactor.envelope.document as {rows:unknown}).rows);
   const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum);
-  for(const [kind,data] of [["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
+  const triangle=await call("create_triangle",{spec:{labels:[{ref:"e:AB",label:{state:"value",text:"3"}},{ref:"e:AC",label:{state:"value",text:"4"}},{ref:"e:BC",label:{state:"symbol",text:"x"}}]}});await save("triangle",triangle);
+  const triangleArea=await call("revise_triangle",{envelope:triangle.envelope,baseHash:triangle.contentHash,operations:[{op:"set_area",triangleId:"T1",label:{state:"answer-line",prefix:"Area = "}}]});await save("triangle-area-v2",triangleArea);
+  for(const [kind,data] of [["triangle",triangle],["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
   }
   assert.equal(tools.length,27);
   for (const [name, kind, data, view] of [
+    ["triangle", "triangle", triangle], ["triangle-area-v2", "triangle", triangleArea],
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
     ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],
     ["venn-pupil", "venn", vennRevised], ["venn-answer", "venn", answer, "answer"],
