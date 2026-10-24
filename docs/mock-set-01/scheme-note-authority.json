@@ -1,0 +1,42 @@
+{
+  "kind": "mock-set-01-source-mathematics-review",
+  "sourceRegisterSHA256": "906ea2edc0f11fc2af82da795edeb79a2a36660d9cac2cd9ff131c232ba280bb",
+  "mathematicsSHA256": "f56f48b14afee981e46daf81ec43d4fb6dff52d90d1f86fcfdf429f090c11af1",
+  "decisions": {
+    "1MA1_MOCK_SET_01_2H_Q21": {
+      "original": "The later repeated XY method line prints -b + 1/2(a - 3b).",
+      "correction": "Use XY = XB + BY = b + 1/2(a - 3b), which simplifies to 1/2(a - b). The later repeated method line prints -b + 1/2(a - 3b); that minus sign is a misprint. YZ = 3/2(a - b) and XZ = 2(a - b), so the vectors are parallel and share points.",
+      "explanation": "XB = b and BY = 1/2 BA = 1/2(a - 3b). The first method line and final simplified vectors are correct; the later repeated XY line must start with positive b."
+    },
+    "1MA1_MOCK_SET_01_3H_Q19": {
+      "original": "The final trigonometric method line prints tan DAC = DC/AD.",
+      "correction": "Use sin DAC = DC/AD because AD is the hypotenuse of right-angled triangle ACD. With CD = 20 tan 34 degrees, BD = 20/cos 34 degrees and AD = BD sin 60 degrees/sin 75 degrees, angle DAC is 38.6 degrees to one decimal place. The source final answer is correct.",
+      "explanation": "CD is opposite angle DAC and AD is the hypotenuse. The printed tangent ratio is therefore a source method-line error."
+    },
+    "1MA1_MOCK_SET_01_1H_Q19": {
+      "original": "CAD = ACB = 90 degrees (given)",
+      "correction": "The right angle in triangle ABD is BAD, not CAD. Use BAD = ACB = 90 degrees; ABD = CBA is the common angle at B. The third angles are equal, so the triangles are similar by AAA.",
+      "explanation": "The question gives ABD right-angled at A. AC is an internal altitude, so CAD is not the whole right angle."
+    },
+    "1MA1_MOCK_SET_01_2F_Q15": {
+      "original": "6 x 4 x 2 x 3.65 (= 175.2), or 6 x 4 x 3.65 (= 87.6)",
+      "correction": "For part (b), the drawn narrow path uses 24 large stones and costs GBP 87.60. Half the part (a) cost is GBP 67.90, so Harry is not correct. The alternative GBP 175.20 in the source scheme doubles the required number of stones.",
+      "explanation": "The diagram shows six large stones per 1.5 m length, repeated four times to make 6 m. The official scheme also includes the consistent GBP 87.60 comparison."
+    },
+    "1MA1_MOCK_SET_01_2F_Q18": {
+      "original": "Integer > 21",
+      "correction": "A positive integer greater than 21 satisfies the inequality. As the question says integer without restricting the sign, any negative integer also makes 2/7 > 6/N true. Zero is excluded because division by zero is undefined.",
+      "explanation": "For N positive, cross multiplication gives N > 21. For N negative, 6/N is negative while 2/7 is positive. Retain valid explanations for either case."
+    },
+    "1MA1_MOCK_SET_01_1F_Q17": {
+      "original": "The alternative conversion is printed as 18/30 - 25/30.",
+      "correction": "Use 13/5 - 11/6 = 78/30 - 55/30 = 23/30. The official final answer and the first improper-fraction example are correct; both numerators in the alternative denominator-30 example are misprinted.",
+      "explanation": "Multiplying 13/5 by 6/6 gives 78/30, and multiplying 11/6 by 5/5 gives 55/30. The original embedded Word equation preview also contains 18 and 25, so this is a source error, not a PDF conversion change."
+    },
+    "1MA1_MOCK_SET_01_1H_Q1": {
+      "original": "The alternative conversion is printed as 18/30 - 25/30.",
+      "correction": "Use 13/5 - 11/6 = 78/30 - 55/30 = 23/30. The official final answer and the first improper-fraction example are correct; both numerators in the alternative denominator-30 example are misprinted.",
+      "explanation": "Multiplying 13/5 by 6/6 gives 78/30, and multiplying 11/6 by 5/5 gives 55/30. The original embedded Word equation preview also contains 18 and 25, so this is a source error, not a PDF conversion change."
+    }
+  }
+}

@@ -1,0 +1,6419 @@
+{
+  "schemaVersion": 1,
+  "id": "pearson-mock-set-01-report",
+  "source": {
+    "file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+    "sha256": "8b5179c3b43afdcfe64bd5cbd1a20bd8bdc5ec0e002969454e5492c1a98862f5",
+    "pages": [
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "cohort": "Historical teacher-marked Mock Set 1 ResultsPlus submissions: report introduction states 115000 students, 780 centres, around35000 all Foundation papers and nearly60000 all Higher papers. Not a current national examination cohort."
+  },
+  "metric": "Average percentage of available marks achieved; whole questions calculated from disjoint rounded published part mean marks.",
+  "aggregation": "100 * sum(working part means) / source question maximum; explicit source corrections retained in provenance.",
+  "scores": {
+    "1MA1_MOCK_SET_01_1F/1": {
+      "percentage": 95.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/2": {
+      "percentage": 62.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2(a)",
+        "2(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/3": {
+      "percentage": 39.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/4": {
+      "percentage": 57.49999999999999,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/5": {
+      "percentage": 73.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5(a)",
+        "5(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/6": {
+      "percentage": 20.333333333333332,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/7": {
+      "percentage": 71.19999999999999,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7(a)",
+        "7(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/8": {
+      "percentage": 25.666666666666668,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8(a)",
+        "8(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/9": {
+      "percentage": 24.333333333333332,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/10": {
+      "percentage": 29.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10(a)",
+        "10(b)",
+        "10(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/11": {
+      "percentage": 64.0,
+      "marks": 6,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11(a)",
+        "11(b)",
+        "11(c)",
+        "11(d)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/12": {
+      "percentage": 60.0,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12(a)",
+        "12(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/13": {
+      "percentage": 27.0,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13(a)",
+        "13(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/14": {
+      "percentage": 34.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/15": {
+      "percentage": 2.25,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/16": {
+      "percentage": 8.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/17": {
+      "percentage": 15.666666666666666,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/18": {
+      "percentage": 2.2,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18(ai)",
+        "18(aii)",
+        "18(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/19": {
+      "percentage": 7.6,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/20": {
+      "percentage": 4.0,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/21": {
+      "percentage": 10.833333333333334,
+      "marks": 6,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21(a)",
+        "21(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/22": {
+      "percentage": 6.75,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "22"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/23": {
+      "percentage": 2.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "23"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1F/24": {
+      "percentage": 22.333333333333332,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "24"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/1": {
+      "percentage": 80.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/2": {
+      "percentage": 41.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/3": {
+      "percentage": 32.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/4": {
+      "percentage": 39.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/5": {
+      "percentage": 72.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/6": {
+      "percentage": 56.00000000000001,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6(a)",
+        "6(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/7": {
+      "percentage": 52.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/8": {
+      "percentage": 14.666666666666666,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/9": {
+      "percentage": 62.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/10": {
+      "percentage": 72.66666666666667,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/11": {
+      "percentage": 44.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11(a)",
+        "11(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/12": {
+      "percentage": 33.333333333333336,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/13": {
+      "percentage": 58.666666666666664,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/14": {
+      "percentage": 31.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/15": {
+      "percentage": 47.166666666666664,
+      "marks": 6,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15(a)",
+        "15(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/16": {
+      "percentage": 26.333333333333332,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/17": {
+      "percentage": 55.00000000000001,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/18": {
+      "percentage": 16.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/19": {
+      "percentage": 39.666666666666664,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/20": {
+      "percentage": 2.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/21": {
+      "percentage": 4.0,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/22": {
+      "percentage": 20.75,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "22"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/23": {
+      "percentage": 49.0,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "23"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/24": {
+      "percentage": 19.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "24"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/25": {
+      "percentage": 37.75,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "25(a)",
+        "25(b)",
+        "25(c)",
+        "25(d)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/26": {
+      "percentage": 3.8,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "26"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/27": {
+      "percentage": 5.666666666666667,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "27"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/28": {
+      "percentage": 36.5,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "28(a)",
+        "28(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2F/29": {
+      "percentage": 12.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "29"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/1": {
+      "percentage": 72.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/2": {
+      "percentage": 47.0,
+      "marks": 1,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/3": {
+      "percentage": 72.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3(a)",
+        "3(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/4": {
+      "percentage": 69.33333333333333,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/5": {
+      "percentage": 62.79999999999999,
+      "marks": 5,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5(a)",
+        "5(b)",
+        "5(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/6": {
+      "percentage": 22.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/7": {
+      "percentage": 61.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7(a)",
+        "7(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/8": {
+      "percentage": 40.666666666666664,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/9": {
+      "percentage": 25.666666666666668,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/10": {
+      "percentage": 52.666666666666664,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/11": {
+      "percentage": 35.0,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/12": {
+      "percentage": 19.5,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/13": {
+      "percentage": 17.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/14": {
+      "percentage": 32.333333333333336,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/15": {
+      "percentage": 27.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15(a)",
+        "15(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/16": {
+      "percentage": 66.99999999999999,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/17": {
+      "percentage": 9.75,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17(a)",
+        "17(b)",
+        "17(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/18": {
+      "percentage": 32.333333333333336,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/19": {
+      "percentage": 7.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/20": {
+      "percentage": 3.75,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/21": {
+      "percentage": 8.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/22": {
+      "percentage": 14.499999999999998,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "22"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/23": {
+      "percentage": 9.333333333333334,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "23"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/24": {
+      "percentage": 17.166666666666668,
+      "marks": 6,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "24(a)",
+        "24(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/25": {
+      "percentage": 6.0,
+      "marks": 4,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "25(a)",
+        "25(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/26": {
+      "percentage": 13.0,
+      "marks": 3,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "26(a)",
+        "26(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3F/27": {
+      "percentage": 9.5,
+      "marks": 2,
+      "tier": "F",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "27"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/1": {
+      "percentage": 61.666666666666664,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/2": {
+      "percentage": 19.4,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2(a)(i)",
+        "2(a)(ii)",
+        "2(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/3": {
+      "percentage": 40.4,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/4": {
+      "percentage": 35.5,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/5": {
+      "percentage": 44.166666666666664,
+      "marks": 6,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5(a)",
+        "5(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/6": {
+      "percentage": 35.25,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/7": {
+      "percentage": 44.333333333333336,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/8": {
+      "percentage": 31.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/9": {
+      "percentage": 35.333333333333336,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/10": {
+      "percentage": 17.0,
+      "marks": 1,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/11": {
+      "percentage": 50.0,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/12": {
+      "percentage": 65.33333333333333,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/13": {
+      "percentage": 6.666666666666667,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/14": {
+      "percentage": 15.333333333333334,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/15": {
+      "percentage": 2.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/16": {
+      "percentage": 23.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16(a)",
+        "16(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/17": {
+      "percentage": 26.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/18": {
+      "percentage": 18.999999999999996,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/19": {
+      "percentage": 7.333333333333333,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/20": {
+      "percentage": 9.0,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/21": {
+      "percentage": 7.0,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/22": {
+      "percentage": 16.0,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "22(a)",
+        "22(b)",
+        "22(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/23": {
+      "percentage": 11.666666666666666,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "23"
+      ]
+    },
+    "1MA1_MOCK_SET_01_1H/24": {
+      "percentage": 6.0,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "24"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/1": {
+      "percentage": 82.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1(a)",
+        "1(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/2": {
+      "percentage": 44.0,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/3": {
+      "percentage": 70.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3(a)",
+        "3(b)",
+        "3(c)",
+        "3(d)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/4": {
+      "percentage": 29.2,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/5": {
+      "percentage": 47.666666666666664,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/6": {
+      "percentage": 87.5,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6(a)",
+        "6(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/7": {
+      "percentage": 66.5,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7(a)",
+        "7(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/8": {
+      "percentage": 26.666666666666668,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/9": {
+      "percentage": 65.00000000000001,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9(a)",
+        "9(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/10": {
+      "percentage": 27.250000000000004,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/11": {
+      "percentage": 27.0,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11(a)",
+        "11(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/12": {
+      "percentage": 33.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12(a)",
+        "12(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/13": {
+      "percentage": 26.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/14": {
+      "percentage": 4.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/15": {
+      "percentage": 14.0,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/16": {
+      "percentage": 23.0,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/17": {
+      "percentage": 14.833333333333334,
+      "marks": 6,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17(a)",
+        "17(b)",
+        "17(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/18": {
+      "percentage": 7.333333333333333,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/19": {
+      "percentage": 7.4,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/20": {
+      "percentage": 6.25,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20"
+      ]
+    },
+    "1MA1_MOCK_SET_01_2H/21": {
+      "percentage": 6.0,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/1": {
+      "percentage": 74.00000000000001,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "1"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/2": {
+      "percentage": 56.00000000000001,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "2"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/3": {
+      "percentage": 38.0,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "3"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/4": {
+      "percentage": 35.0,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "4"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/5": {
+      "percentage": 51.0,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "5"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/6": {
+      "percentage": 57.666666666666664,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "6"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/7": {
+      "percentage": 67.16666666666667,
+      "marks": 6,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "7(a)",
+        "7(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/8": {
+      "percentage": 51.24999999999999,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "8(a)",
+        "8(b)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/9": {
+      "percentage": 39.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "9"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/10": {
+      "percentage": 69.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "10"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/11": {
+      "percentage": 52.33333333333332,
+      "marks": 6,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "11(a)",
+        "11(b)",
+        "11(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/12": {
+      "percentage": 23.5,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "12"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/13": {
+      "percentage": 17.857142857142858,
+      "marks": 7,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "13(a)",
+        "13(b)",
+        "13(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/14": {
+      "percentage": 4.666666666666667,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "14"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/15": {
+      "percentage": 17.5,
+      "marks": 2,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "15"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/16": {
+      "percentage": 23.4,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "16"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/17": {
+      "percentage": 7.0,
+      "marks": 3,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "17"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/18": {
+      "percentage": 17.75,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "18"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/19": {
+      "percentage": 5.6000000000000005,
+      "marks": 5,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "19"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/20": {
+      "percentage": 12.42857142857143,
+      "marks": 7,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "20(a)",
+        "20(b)",
+        "20(c)"
+      ]
+    },
+    "1MA1_MOCK_SET_01_3H/21": {
+      "percentage": 3.0,
+      "marks": 4,
+      "tier": "H",
+      "source": "pearson-mock-set-01-report",
+      "rows": [
+        "21"
+      ]
+    }
+  },
+  "paperQuestionCounts": {
+    "1MA1_MOCK_SET_01_1F": 24,
+    "1MA1_MOCK_SET_01_2F": 29,
+    "1MA1_MOCK_SET_01_3F": 27,
+    "1MA1_MOCK_SET_01_1H": 24,
+    "1MA1_MOCK_SET_01_2H": 21,
+    "1MA1_MOCK_SET_01_3H": 21
+  },
+  "provenance": [
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q1",
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "1",
+          "question_number": 1,
+          "max_marks": 1,
+          "mean_mark": 0.95,
+          "published_mean_percentage": 95.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.95
+        }
+      ],
+      "sumWorkingMeanMarks": 0.95,
+      "marks": 1,
+      "percentage": 95.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q2",
+      "parts": [
+        {
+          "label": "2(a)",
+          "marks": 1
+        },
+        {
+          "label": "2(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "2(a)",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.9,
+          "published_mean_percentage": 90.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.9
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "2(b)",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 35.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        }
+      ],
+      "sumWorkingMeanMarks": 1.25,
+      "marks": 2,
+      "percentage": 62.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q3",
+      "parts": [
+        {
+          "label": "3",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "3",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.39,
+          "published_mean_percentage": 39.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.39
+        }
+      ],
+      "sumWorkingMeanMarks": 0.39,
+      "marks": 1,
+      "percentage": 39.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 2,
+          "mean_mark": 1.15,
+          "published_mean_percentage": 57.5,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.15
+        }
+      ],
+      "sumWorkingMeanMarks": 1.15,
+      "marks": 2,
+      "percentage": 57.49999999999999,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q5",
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 1
+        },
+        {
+          "label": "5(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "5(a)",
+          "question_number": 5,
+          "max_marks": 1,
+          "mean_mark": 0.83,
+          "published_mean_percentage": 83.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.83
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "5(b)",
+          "question_number": 5,
+          "max_marks": 1,
+          "mean_mark": 0.64,
+          "published_mean_percentage": 64.0,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.64
+        }
+      ],
+      "sumWorkingMeanMarks": 1.47,
+      "marks": 2,
+      "percentage": 73.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q6",
+      "parts": [
+        {
+          "label": "6",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "6",
+          "question_number": 6,
+          "max_marks": 3,
+          "mean_mark": 0.61,
+          "published_mean_percentage": 20.3,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.61
+        }
+      ],
+      "sumWorkingMeanMarks": 0.61,
+      "marks": 3,
+      "percentage": 20.333333333333332,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q7",
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 2
+        },
+        {
+          "label": "7(b)",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "7(a)",
+          "question_number": 7,
+          "max_marks": 2,
+          "mean_mark": 1.65,
+          "published_mean_percentage": 82.5,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.65
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "7(b)",
+          "question_number": 7,
+          "max_marks": 3,
+          "mean_mark": 1.91,
+          "published_mean_percentage": 63.7,
+          "source_page": 28,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.91
+        }
+      ],
+      "sumWorkingMeanMarks": 3.5599999999999996,
+      "marks": 5,
+      "percentage": 71.19999999999999,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q8",
+      "parts": [
+        {
+          "label": "8(a)",
+          "marks": 1
+        },
+        {
+          "label": "8(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "8(a)",
+          "question_number": 8,
+          "max_marks": 1,
+          "mean_mark": 0.42,
+          "published_mean_percentage": 42.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.42
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "8(b)",
+          "question_number": 8,
+          "max_marks": 2,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 17.5,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        }
+      ],
+      "sumWorkingMeanMarks": 0.77,
+      "marks": 3,
+      "percentage": 25.666666666666668,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q9",
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "9",
+          "question_number": 9,
+          "max_marks": 3,
+          "mean_mark": 0.73,
+          "published_mean_percentage": 24.3,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.73
+        }
+      ],
+      "sumWorkingMeanMarks": 0.73,
+      "marks": 3,
+      "percentage": 24.333333333333332,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q10",
+      "parts": [
+        {
+          "label": "10(a)",
+          "marks": 1
+        },
+        {
+          "label": "10(b)",
+          "marks": 1
+        },
+        {
+          "label": "10(c)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "10(a)",
+          "question_number": 10,
+          "max_marks": 1,
+          "mean_mark": 0.33,
+          "published_mean_percentage": 33.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.33
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "10(b)",
+          "question_number": 10,
+          "max_marks": 1,
+          "mean_mark": 0.31,
+          "published_mean_percentage": 31.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.31
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "10(c)",
+          "question_number": 10,
+          "max_marks": 1,
+          "mean_mark": 0.44,
+          "published_mean_percentage": 23.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.23
+        }
+      ],
+      "sumWorkingMeanMarks": 0.87,
+      "marks": 3,
+      "percentage": 29.0,
+      "correction": "Part (c): source p29 prints mean 0.44 but mean percentage 23.0. The one-mark distribution p31 has 23.2% scoring one and supports approximately 0.23, not 0.44. Use working mean 0.23 from the printed mean percentage; retain all printed evidence. Whole-question mean is 0.33+0.31+0.23=0.87 of 3.",
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q11",
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1
+        },
+        {
+          "label": "11(b)",
+          "marks": 2
+        },
+        {
+          "label": "11(c)",
+          "marks": 1
+        },
+        {
+          "label": "11(d)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "11(a)",
+          "question_number": 11,
+          "max_marks": 1,
+          "mean_mark": 0.72,
+          "published_mean_percentage": 72.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.72
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "11(b)",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 1.22,
+          "published_mean_percentage": 61.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.22
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "11(c)",
+          "question_number": 11,
+          "max_marks": 1,
+          "mean_mark": 0.58,
+          "published_mean_percentage": 58.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.58
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "11(d)",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 1.32,
+          "published_mean_percentage": 66.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.32
+        }
+      ],
+      "sumWorkingMeanMarks": 3.84,
+      "marks": 6,
+      "percentage": 64.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q12",
+      "parts": [
+        {
+          "label": "12(a)",
+          "marks": 3
+        },
+        {
+          "label": "12(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "12(a)",
+          "question_number": 12,
+          "max_marks": 3,
+          "mean_mark": 2.18,
+          "published_mean_percentage": 72.7,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.18
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "12(b)",
+          "question_number": 12,
+          "max_marks": 2,
+          "mean_mark": 0.82,
+          "published_mean_percentage": 41.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.82
+        }
+      ],
+      "sumWorkingMeanMarks": 3.0,
+      "marks": 5,
+      "percentage": 60.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q13",
+      "parts": [
+        {
+          "label": "13(a)",
+          "marks": 3
+        },
+        {
+          "label": "13(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "13(a)",
+          "question_number": 13,
+          "max_marks": 3,
+          "mean_mark": 0.8,
+          "published_mean_percentage": 26.7,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.8
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "13(b)",
+          "question_number": 13,
+          "max_marks": 1,
+          "mean_mark": 0.28,
+          "published_mean_percentage": 28.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.28
+        }
+      ],
+      "sumWorkingMeanMarks": 1.08,
+      "marks": 4,
+      "percentage": 27.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 2,
+          "mean_mark": 0.68,
+          "published_mean_percentage": 34.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.68
+        }
+      ],
+      "sumWorkingMeanMarks": 0.68,
+      "marks": 2,
+      "percentage": 34.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q15",
+      "parts": [
+        {
+          "label": "15",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "15",
+          "question_number": 15,
+          "max_marks": 4,
+          "mean_mark": 0.09,
+          "published_mean_percentage": 2.3,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.09
+        }
+      ],
+      "sumWorkingMeanMarks": 0.09,
+      "marks": 4,
+      "percentage": 2.25,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q16",
+      "parts": [
+        {
+          "label": "16",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "16",
+          "question_number": 16,
+          "max_marks": 2,
+          "mean_mark": 0.16,
+          "published_mean_percentage": 8.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.16
+        }
+      ],
+      "sumWorkingMeanMarks": 0.16,
+      "marks": 2,
+      "percentage": 8.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q17",
+      "parts": [
+        {
+          "label": "17",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "17",
+          "question_number": 17,
+          "max_marks": 3,
+          "mean_mark": 0.47,
+          "published_mean_percentage": 15.7,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.47
+        }
+      ],
+      "sumWorkingMeanMarks": 0.47,
+      "marks": 3,
+      "percentage": 15.666666666666666,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q18",
+      "parts": [
+        {
+          "label": "18(a)(i)",
+          "marks": 1
+        },
+        {
+          "label": "18(a)(ii)",
+          "marks": 1
+        },
+        {
+          "label": "18(b)",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "18(ai)",
+          "question_number": 18,
+          "max_marks": 1,
+          "mean_mark": 0.03,
+          "published_mean_percentage": 3.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.03
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "18(aii)",
+          "question_number": 18,
+          "max_marks": 1,
+          "mean_mark": 0.03,
+          "published_mean_percentage": 3.0,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.03
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "18(b)",
+          "question_number": 18,
+          "max_marks": 3,
+          "mean_mark": 0.05,
+          "published_mean_percentage": 1.7,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.05
+        }
+      ],
+      "sumWorkingMeanMarks": 0.11,
+      "marks": 5,
+      "percentage": 2.2,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 5,
+          "mean_mark": 0.38,
+          "published_mean_percentage": 7.6,
+          "source_page": 29,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.38
+        }
+      ],
+      "sumWorkingMeanMarks": 0.38,
+      "marks": 5,
+      "percentage": 7.6,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q20",
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "20",
+          "question_number": 20,
+          "max_marks": 4,
+          "mean_mark": 0.16,
+          "published_mean_percentage": 4.0,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.16
+        }
+      ],
+      "sumWorkingMeanMarks": 0.16,
+      "marks": 4,
+      "percentage": 4.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q21",
+      "parts": [
+        {
+          "label": "21(a)",
+          "marks": 5
+        },
+        {
+          "label": "21(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "21(a)",
+          "question_number": 21,
+          "max_marks": 5,
+          "mean_mark": 0.31,
+          "published_mean_percentage": 6.2,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.31
+        },
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "21(b)",
+          "question_number": 21,
+          "max_marks": 1,
+          "mean_mark": 0.34,
+          "published_mean_percentage": 34.0,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.34
+        }
+      ],
+      "sumWorkingMeanMarks": 0.65,
+      "marks": 6,
+      "percentage": 10.833333333333334,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q22",
+      "parts": [
+        {
+          "label": "22",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "22",
+          "question_number": 22,
+          "max_marks": 4,
+          "mean_mark": 0.27,
+          "published_mean_percentage": 6.8,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.27
+        }
+      ],
+      "sumWorkingMeanMarks": 0.27,
+      "marks": 4,
+      "percentage": 6.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q23",
+      "parts": [
+        {
+          "label": "23",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "23",
+          "question_number": 23,
+          "max_marks": 2,
+          "mean_mark": 0.05,
+          "published_mean_percentage": 2.5,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.05
+        }
+      ],
+      "sumWorkingMeanMarks": 0.05,
+      "marks": 2,
+      "percentage": 2.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q24",
+      "parts": [
+        {
+          "label": "24",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1F",
+          "report_part_label": "24",
+          "question_number": 24,
+          "max_marks": 4,
+          "mean_mark": 0.67,
+          "published_mean_percentage": 22.3,
+          "source_page": 30,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.67
+        }
+      ],
+      "sumWorkingMeanMarks": 0.67,
+      "marks": 3,
+      "percentage": 22.333333333333332,
+      "correction": "Report p30 prints maximum 4; original QP p19 and official scheme p13 give 3. Mean 0.67 and printed 22.3% agree with 3. Distribution p31 last table omits 18(b) from its headings and shifts later headings; its final Q24 column actually matches Q23. Do not use that mislabeled column as Q24 evidence.",
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q1",
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "1",
+          "question_number": 1,
+          "max_marks": 1,
+          "mean_mark": 0.8,
+          "published_mean_percentage": 80.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.8
+        }
+      ],
+      "sumWorkingMeanMarks": 0.8,
+      "marks": 1,
+      "percentage": 80.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q2",
+      "parts": [
+        {
+          "label": "2",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "2",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.41,
+          "published_mean_percentage": 41.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.41
+        }
+      ],
+      "sumWorkingMeanMarks": 0.41,
+      "marks": 1,
+      "percentage": 41.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q3",
+      "parts": [
+        {
+          "label": "3",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "3",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.32,
+          "published_mean_percentage": 32.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.32
+        }
+      ],
+      "sumWorkingMeanMarks": 0.32,
+      "marks": 1,
+      "percentage": 32.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 1,
+          "mean_mark": 0.39,
+          "published_mean_percentage": 39.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.39
+        }
+      ],
+      "sumWorkingMeanMarks": 0.39,
+      "marks": 1,
+      "percentage": 39.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q5",
+      "parts": [
+        {
+          "label": "5",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "5",
+          "question_number": 5,
+          "max_marks": 2,
+          "mean_mark": 1.44,
+          "published_mean_percentage": 72.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.44
+        }
+      ],
+      "sumWorkingMeanMarks": 1.44,
+      "marks": 2,
+      "percentage": 72.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q6",
+      "parts": [
+        {
+          "label": "6(a)",
+          "marks": 1
+        },
+        {
+          "label": "6(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "6(a)",
+          "question_number": 6,
+          "max_marks": 1,
+          "mean_mark": 0.54,
+          "published_mean_percentage": 54.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.54
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "6(b)",
+          "question_number": 6,
+          "max_marks": 1,
+          "mean_mark": 0.58,
+          "published_mean_percentage": 58.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.58
+        }
+      ],
+      "sumWorkingMeanMarks": 1.12,
+      "marks": 2,
+      "percentage": 56.00000000000001,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q7",
+      "parts": [
+        {
+          "label": "7",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "7",
+          "question_number": 7,
+          "max_marks": 2,
+          "mean_mark": 1.05,
+          "published_mean_percentage": 52.5,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.05
+        }
+      ],
+      "sumWorkingMeanMarks": 1.05,
+      "marks": 2,
+      "percentage": 52.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q8",
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "8",
+          "question_number": 8,
+          "max_marks": 3,
+          "mean_mark": 0.44,
+          "published_mean_percentage": 14.7,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.44
+        }
+      ],
+      "sumWorkingMeanMarks": 0.44,
+      "marks": 3,
+      "percentage": 14.666666666666666,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q9",
+      "parts": [
+        {
+          "label": "9",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "9",
+          "question_number": 9,
+          "max_marks": 2,
+          "mean_mark": 1.25,
+          "published_mean_percentage": 62.5,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.25
+        }
+      ],
+      "sumWorkingMeanMarks": 1.25,
+      "marks": 2,
+      "percentage": 62.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q10",
+      "parts": [
+        {
+          "label": "10",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "10",
+          "question_number": 10,
+          "max_marks": 3,
+          "mean_mark": 2.18,
+          "published_mean_percentage": 72.7,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.18
+        }
+      ],
+      "sumWorkingMeanMarks": 2.18,
+      "marks": 3,
+      "percentage": 72.66666666666667,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q11",
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1
+        },
+        {
+          "label": "11(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "11(a)",
+          "question_number": 11,
+          "max_marks": 1,
+          "mean_mark": 0.76,
+          "published_mean_percentage": 76.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.76
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "11(b)",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 0.56,
+          "published_mean_percentage": 28.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.56
+        }
+      ],
+      "sumWorkingMeanMarks": 1.32,
+      "marks": 3,
+      "percentage": 44.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q12",
+      "parts": [
+        {
+          "label": "12",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "12",
+          "question_number": 12,
+          "max_marks": 3,
+          "mean_mark": 1.0,
+          "published_mean_percentage": 33.3,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.0
+        }
+      ],
+      "sumWorkingMeanMarks": 1.0,
+      "marks": 3,
+      "percentage": 33.333333333333336,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q13",
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "13",
+          "question_number": 13,
+          "max_marks": 3,
+          "mean_mark": 1.76,
+          "published_mean_percentage": 58.7,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.76
+        }
+      ],
+      "sumWorkingMeanMarks": 1.76,
+      "marks": 3,
+      "percentage": 58.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 3,
+          "mean_mark": 0.93,
+          "published_mean_percentage": 31.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.93
+        }
+      ],
+      "sumWorkingMeanMarks": 0.93,
+      "marks": 3,
+      "percentage": 31.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q15",
+      "parts": [
+        {
+          "label": "15(a)",
+          "marks": 4
+        },
+        {
+          "label": "15(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "15(a)",
+          "question_number": 15,
+          "max_marks": 4,
+          "mean_mark": 2.03,
+          "published_mean_percentage": 50.8,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.03
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "15(b)",
+          "question_number": 15,
+          "max_marks": 2,
+          "mean_mark": 0.8,
+          "published_mean_percentage": 40.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.8
+        }
+      ],
+      "sumWorkingMeanMarks": 2.83,
+      "marks": 6,
+      "percentage": 47.166666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q16",
+      "parts": [
+        {
+          "label": "16",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "16",
+          "question_number": 16,
+          "max_marks": 3,
+          "mean_mark": 0.79,
+          "published_mean_percentage": 26.3,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.79
+        }
+      ],
+      "sumWorkingMeanMarks": 0.79,
+      "marks": 3,
+      "percentage": 26.333333333333332,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q17",
+      "parts": [
+        {
+          "label": "17",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "17",
+          "question_number": 17,
+          "max_marks": 1,
+          "mean_mark": 0.55,
+          "published_mean_percentage": 55.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.55
+        }
+      ],
+      "sumWorkingMeanMarks": 0.55,
+      "marks": 1,
+      "percentage": 55.00000000000001,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q18",
+      "parts": [
+        {
+          "label": "18",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "18",
+          "question_number": 18,
+          "max_marks": 2,
+          "mean_mark": 0.32,
+          "published_mean_percentage": 16.0,
+          "source_page": 32,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.32
+        }
+      ],
+      "sumWorkingMeanMarks": 0.32,
+      "marks": 2,
+      "percentage": 16.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 3,
+          "mean_mark": 1.19,
+          "published_mean_percentage": 39.7,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.19
+        }
+      ],
+      "sumWorkingMeanMarks": 1.19,
+      "marks": 3,
+      "percentage": 39.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q20",
+      "parts": [
+        {
+          "label": "20",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "20",
+          "question_number": 20,
+          "max_marks": 3,
+          "mean_mark": 0.06,
+          "published_mean_percentage": 2.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.06
+        }
+      ],
+      "sumWorkingMeanMarks": 0.06,
+      "marks": 3,
+      "percentage": 2.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q21",
+      "parts": [
+        {
+          "label": "21",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "21",
+          "question_number": 21,
+          "max_marks": 4,
+          "mean_mark": 0.16,
+          "published_mean_percentage": 4.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.16
+        }
+      ],
+      "sumWorkingMeanMarks": 0.16,
+      "marks": 4,
+      "percentage": 4.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q22",
+      "parts": [
+        {
+          "label": "22(a)",
+          "marks": 2
+        },
+        {
+          "label": "22(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "22",
+          "question_number": 22,
+          "max_marks": 4,
+          "mean_mark": 0.83,
+          "published_mean_percentage": 20.8,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.83
+        }
+      ],
+      "sumWorkingMeanMarks": 0.83,
+      "marks": 4,
+      "percentage": 20.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q23",
+      "parts": [
+        {
+          "label": "23(a)",
+          "marks": 3
+        },
+        {
+          "label": "23(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "23",
+          "question_number": 23,
+          "max_marks": 4,
+          "mean_mark": 1.96,
+          "published_mean_percentage": 49.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.96
+        }
+      ],
+      "sumWorkingMeanMarks": 1.96,
+      "marks": 4,
+      "percentage": 49.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q24",
+      "parts": [
+        {
+          "label": "24",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "24",
+          "question_number": 24,
+          "max_marks": 2,
+          "mean_mark": 0.38,
+          "published_mean_percentage": 19.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.38
+        }
+      ],
+      "sumWorkingMeanMarks": 0.38,
+      "marks": 2,
+      "percentage": 19.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q25",
+      "parts": [
+        {
+          "label": "25(a)",
+          "marks": 1
+        },
+        {
+          "label": "25(b)",
+          "marks": 1
+        },
+        {
+          "label": "25(c)",
+          "marks": 1
+        },
+        {
+          "label": "25(d)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "25(a)",
+          "question_number": 25,
+          "max_marks": 1,
+          "mean_mark": 0.27,
+          "published_mean_percentage": 27.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.27
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "25(b)",
+          "question_number": 25,
+          "max_marks": 1,
+          "mean_mark": 0.49,
+          "published_mean_percentage": 49.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.49
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "25(c)",
+          "question_number": 25,
+          "max_marks": 1,
+          "mean_mark": 0.54,
+          "published_mean_percentage": 54.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.54
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "25(d)",
+          "question_number": 25,
+          "max_marks": 1,
+          "mean_mark": 0.21,
+          "published_mean_percentage": 21.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.21
+        }
+      ],
+      "sumWorkingMeanMarks": 1.51,
+      "marks": 4,
+      "percentage": 37.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q26",
+      "parts": [
+        {
+          "label": "26",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "26",
+          "question_number": 26,
+          "max_marks": 5,
+          "mean_mark": 0.19,
+          "published_mean_percentage": 3.8,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.19
+        }
+      ],
+      "sumWorkingMeanMarks": 0.19,
+      "marks": 5,
+      "percentage": 3.8,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q27",
+      "parts": [
+        {
+          "label": "27",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "27",
+          "question_number": 27,
+          "max_marks": 3,
+          "mean_mark": 0.17,
+          "published_mean_percentage": 5.7,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.17
+        }
+      ],
+      "sumWorkingMeanMarks": 0.17,
+      "marks": 3,
+      "percentage": 5.666666666666667,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q28",
+      "parts": [
+        {
+          "label": "28(a)",
+          "marks": 2
+        },
+        {
+          "label": "28(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "28(a)",
+          "question_number": 28,
+          "max_marks": 2,
+          "mean_mark": 0.84,
+          "published_mean_percentage": 42.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.84
+        },
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "28(b)",
+          "question_number": 28,
+          "max_marks": 2,
+          "mean_mark": 0.62,
+          "published_mean_percentage": 31.0,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.62
+        }
+      ],
+      "sumWorkingMeanMarks": 1.46,
+      "marks": 4,
+      "percentage": 36.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q29",
+      "parts": [
+        {
+          "label": "29",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2F",
+          "report_part_label": "29",
+          "question_number": 29,
+          "max_marks": 2,
+          "mean_mark": 0.25,
+          "published_mean_percentage": 12.5,
+          "source_page": 33,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.25
+        }
+      ],
+      "sumWorkingMeanMarks": 0.25,
+      "marks": 2,
+      "percentage": 12.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q1",
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "1",
+          "question_number": 1,
+          "max_marks": 1,
+          "mean_mark": 0.72,
+          "published_mean_percentage": 72.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.72
+        }
+      ],
+      "sumWorkingMeanMarks": 0.72,
+      "marks": 1,
+      "percentage": 72.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q2",
+      "parts": [
+        {
+          "label": "2",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "2",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.47,
+          "published_mean_percentage": 47.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.47
+        }
+      ],
+      "sumWorkingMeanMarks": 0.47,
+      "marks": 1,
+      "percentage": 47.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q3",
+      "parts": [
+        {
+          "label": "3(a)",
+          "marks": 1
+        },
+        {
+          "label": "3(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "3(a)",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.89,
+          "published_mean_percentage": 89.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.89
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "3(b)",
+          "question_number": 3,
+          "max_marks": 2,
+          "mean_mark": 1.27,
+          "published_mean_percentage": 63.5,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.27
+        }
+      ],
+      "sumWorkingMeanMarks": 2.16,
+      "marks": 3,
+      "percentage": 72.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 3,
+          "mean_mark": 2.08,
+          "published_mean_percentage": 69.3,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.08
+        }
+      ],
+      "sumWorkingMeanMarks": 2.08,
+      "marks": 3,
+      "percentage": 69.33333333333333,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q5",
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 1
+        },
+        {
+          "label": "5(b)",
+          "marks": 2
+        },
+        {
+          "label": "5(c)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "5(a)",
+          "question_number": 5,
+          "max_marks": 1,
+          "mean_mark": 0.86,
+          "published_mean_percentage": 86.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.86
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "5(b)",
+          "question_number": 5,
+          "max_marks": 2,
+          "mean_mark": 1.46,
+          "published_mean_percentage": 73.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.46
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "5(c)",
+          "question_number": 5,
+          "max_marks": 2,
+          "mean_mark": 0.82,
+          "published_mean_percentage": 41.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.82
+        }
+      ],
+      "sumWorkingMeanMarks": 3.1399999999999997,
+      "marks": 5,
+      "percentage": 62.79999999999999,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q6",
+      "parts": [
+        {
+          "label": "6",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "6",
+          "question_number": 6,
+          "max_marks": 2,
+          "mean_mark": 0.45,
+          "published_mean_percentage": 22.5,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.45
+        }
+      ],
+      "sumWorkingMeanMarks": 0.45,
+      "marks": 2,
+      "percentage": 22.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q7",
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 1
+        },
+        {
+          "label": "7(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "7(a)",
+          "question_number": 7,
+          "max_marks": 1,
+          "mean_mark": 0.55,
+          "published_mean_percentage": 55.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.55
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "7(b)",
+          "question_number": 7,
+          "max_marks": 2,
+          "mean_mark": 1.28,
+          "published_mean_percentage": 64.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.28
+        }
+      ],
+      "sumWorkingMeanMarks": 1.83,
+      "marks": 3,
+      "percentage": 61.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q8",
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "8",
+          "question_number": 8,
+          "max_marks": 3,
+          "mean_mark": 1.22,
+          "published_mean_percentage": 40.7,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.22
+        }
+      ],
+      "sumWorkingMeanMarks": 1.22,
+      "marks": 3,
+      "percentage": 40.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q9",
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "9",
+          "question_number": 9,
+          "max_marks": 3,
+          "mean_mark": 0.77,
+          "published_mean_percentage": 25.7,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.77
+        }
+      ],
+      "sumWorkingMeanMarks": 0.77,
+      "marks": 3,
+      "percentage": 25.666666666666668,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q10",
+      "parts": [
+        {
+          "label": "10",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "10",
+          "question_number": 10,
+          "max_marks": 3,
+          "mean_mark": 1.58,
+          "published_mean_percentage": 52.7,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.58
+        }
+      ],
+      "sumWorkingMeanMarks": 1.58,
+      "marks": 3,
+      "percentage": 52.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q11",
+      "parts": [
+        {
+          "label": "11",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "11",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 0.7,
+          "published_mean_percentage": 35.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.7
+        }
+      ],
+      "sumWorkingMeanMarks": 0.7,
+      "marks": 2,
+      "percentage": 35.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q12",
+      "parts": [
+        {
+          "label": "12",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "12",
+          "question_number": 12,
+          "max_marks": 4,
+          "mean_mark": 0.78,
+          "published_mean_percentage": 19.5,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.78
+        }
+      ],
+      "sumWorkingMeanMarks": 0.78,
+      "marks": 4,
+      "percentage": 19.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q13",
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "13",
+          "question_number": 13,
+          "max_marks": 3,
+          "mean_mark": 0.51,
+          "published_mean_percentage": 17.0,
+          "source_page": 35,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.51
+        }
+      ],
+      "sumWorkingMeanMarks": 0.51,
+      "marks": 3,
+      "percentage": 17.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 3,
+          "mean_mark": 0.97,
+          "published_mean_percentage": 32.3,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.97
+        }
+      ],
+      "sumWorkingMeanMarks": 0.97,
+      "marks": 3,
+      "percentage": 32.333333333333336,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q15",
+      "parts": [
+        {
+          "label": "15(a)",
+          "marks": 2
+        },
+        {
+          "label": "15(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "15(a)",
+          "question_number": 15,
+          "max_marks": 2,
+          "mean_mark": 0.56,
+          "published_mean_percentage": 28.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.56
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "15(b)",
+          "question_number": 15,
+          "max_marks": 1,
+          "mean_mark": 0.25,
+          "published_mean_percentage": 25.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.25
+        }
+      ],
+      "sumWorkingMeanMarks": 0.81,
+      "marks": 3,
+      "percentage": 27.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q16",
+      "parts": [
+        {
+          "label": "16",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "16",
+          "question_number": 16,
+          "max_marks": 3,
+          "mean_mark": 2.01,
+          "published_mean_percentage": 67.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.01
+        }
+      ],
+      "sumWorkingMeanMarks": 2.01,
+      "marks": 3,
+      "percentage": 66.99999999999999,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q17",
+      "parts": [
+        {
+          "label": "17(a)",
+          "marks": 1
+        },
+        {
+          "label": "17(b)",
+          "marks": 1
+        },
+        {
+          "label": "17(c)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "17(a)",
+          "question_number": 17,
+          "max_marks": 1,
+          "mean_mark": 0.09,
+          "published_mean_percentage": 9.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.09
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "17(b)",
+          "question_number": 17,
+          "max_marks": 1,
+          "mean_mark": 0.09,
+          "published_mean_percentage": 9.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.09
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "17(c)",
+          "question_number": 17,
+          "max_marks": 2,
+          "mean_mark": 0.21,
+          "published_mean_percentage": 10.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.21
+        }
+      ],
+      "sumWorkingMeanMarks": 0.39,
+      "marks": 4,
+      "percentage": 9.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q18",
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "18",
+          "question_number": 18,
+          "max_marks": 3,
+          "mean_mark": 0.97,
+          "published_mean_percentage": 32.3,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.97
+        }
+      ],
+      "sumWorkingMeanMarks": 0.97,
+      "marks": 3,
+      "percentage": 32.333333333333336,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 2,
+          "mean_mark": 0.15,
+          "published_mean_percentage": 7.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.15
+        }
+      ],
+      "sumWorkingMeanMarks": 0.15,
+      "marks": 2,
+      "percentage": 7.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q20",
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "20",
+          "question_number": 20,
+          "max_marks": 4,
+          "mean_mark": 0.15,
+          "published_mean_percentage": 3.8,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.15
+        }
+      ],
+      "sumWorkingMeanMarks": 0.15,
+      "marks": 4,
+      "percentage": 3.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q21",
+      "parts": [
+        {
+          "label": "21",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "21",
+          "question_number": 21,
+          "max_marks": 2,
+          "mean_mark": 0.17,
+          "published_mean_percentage": 8.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.17
+        }
+      ],
+      "sumWorkingMeanMarks": 0.17,
+      "marks": 2,
+      "percentage": 8.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q22",
+      "parts": [
+        {
+          "label": "22",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "22",
+          "question_number": 22,
+          "max_marks": 2,
+          "mean_mark": 0.29,
+          "published_mean_percentage": 14.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.29
+        }
+      ],
+      "sumWorkingMeanMarks": 0.29,
+      "marks": 2,
+      "percentage": 14.499999999999998,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q23",
+      "parts": [
+        {
+          "label": "23",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "23",
+          "question_number": 23,
+          "max_marks": 3,
+          "mean_mark": 0.28,
+          "published_mean_percentage": 9.3,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.28
+        }
+      ],
+      "sumWorkingMeanMarks": 0.28,
+      "marks": 3,
+      "percentage": 9.333333333333334,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q24",
+      "parts": [
+        {
+          "label": "24(a)",
+          "marks": 5
+        },
+        {
+          "label": "24(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "24(a)",
+          "question_number": 24,
+          "max_marks": 5,
+          "mean_mark": 0.69,
+          "published_mean_percentage": 13.8,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.69
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "24(b)",
+          "question_number": 24,
+          "max_marks": 1,
+          "mean_mark": 0.34,
+          "published_mean_percentage": 34.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.34
+        }
+      ],
+      "sumWorkingMeanMarks": 1.03,
+      "marks": 6,
+      "percentage": 17.166666666666668,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q25",
+      "parts": [
+        {
+          "label": "25(a)",
+          "marks": 2
+        },
+        {
+          "label": "25(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "25(a)",
+          "question_number": 25,
+          "max_marks": 2,
+          "mean_mark": 0.18,
+          "published_mean_percentage": 9.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.18
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "25(b)",
+          "question_number": 25,
+          "max_marks": 2,
+          "mean_mark": 0.06,
+          "published_mean_percentage": 3.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.06
+        }
+      ],
+      "sumWorkingMeanMarks": 0.24,
+      "marks": 4,
+      "percentage": 6.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q26",
+      "parts": [
+        {
+          "label": "26(a)",
+          "marks": 1
+        },
+        {
+          "label": "26(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "26(a)",
+          "question_number": 26,
+          "max_marks": 1,
+          "mean_mark": 0.16,
+          "published_mean_percentage": 16.0,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.16
+        },
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "26(b)",
+          "question_number": 26,
+          "max_marks": 2,
+          "mean_mark": 0.23,
+          "published_mean_percentage": 11.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.23
+        }
+      ],
+      "sumWorkingMeanMarks": 0.39,
+      "marks": 3,
+      "percentage": 13.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q27",
+      "parts": [
+        {
+          "label": "27",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3F",
+          "report_part_label": "27",
+          "question_number": 27,
+          "max_marks": 2,
+          "mean_mark": 0.19,
+          "published_mean_percentage": 9.5,
+          "source_page": 36,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.19
+        }
+      ],
+      "sumWorkingMeanMarks": 0.19,
+      "marks": 2,
+      "percentage": 9.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q1",
+      "parts": [
+        {
+          "label": "1",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "1",
+          "question_number": 1,
+          "max_marks": 3,
+          "mean_mark": 1.85,
+          "published_mean_percentage": 61.7,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.85
+        }
+      ],
+      "sumWorkingMeanMarks": 1.85,
+      "marks": 3,
+      "percentage": 61.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q2",
+      "parts": [
+        {
+          "label": "2(a)(i)",
+          "marks": 1
+        },
+        {
+          "label": "2(a)(ii)",
+          "marks": 1
+        },
+        {
+          "label": "2(b)",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "2(a)(i)",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.12,
+          "published_mean_percentage": 12.0,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.12
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "2(a)(ii)",
+          "question_number": 2,
+          "max_marks": 1,
+          "mean_mark": 0.09,
+          "published_mean_percentage": 9.0,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.09
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "2(b)",
+          "question_number": 2,
+          "max_marks": 3,
+          "mean_mark": 0.76,
+          "published_mean_percentage": 25.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.76
+        }
+      ],
+      "sumWorkingMeanMarks": 0.97,
+      "marks": 5,
+      "percentage": 19.4,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q3",
+      "parts": [
+        {
+          "label": "3",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "3",
+          "question_number": 3,
+          "max_marks": 5,
+          "mean_mark": 2.02,
+          "published_mean_percentage": 40.4,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.02
+        }
+      ],
+      "sumWorkingMeanMarks": 2.02,
+      "marks": 5,
+      "percentage": 40.4,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 4,
+          "mean_mark": 1.42,
+          "published_mean_percentage": 35.5,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.42
+        }
+      ],
+      "sumWorkingMeanMarks": 1.42,
+      "marks": 4,
+      "percentage": 35.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q5",
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 5
+        },
+        {
+          "label": "5(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "5(a)",
+          "question_number": 5,
+          "max_marks": 5,
+          "mean_mark": 1.94,
+          "published_mean_percentage": 38.8,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.94
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "5(b)",
+          "question_number": 5,
+          "max_marks": 1,
+          "mean_mark": 0.71,
+          "published_mean_percentage": 71.0,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.71
+        }
+      ],
+      "sumWorkingMeanMarks": 2.65,
+      "marks": 6,
+      "percentage": 44.166666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q6",
+      "parts": [
+        {
+          "label": "6",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "6",
+          "question_number": 6,
+          "max_marks": 4,
+          "mean_mark": 1.41,
+          "published_mean_percentage": 35.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.41
+        }
+      ],
+      "sumWorkingMeanMarks": 1.41,
+      "marks": 4,
+      "percentage": 35.25,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q7",
+      "parts": [
+        {
+          "label": "7",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "7",
+          "question_number": 7,
+          "max_marks": 3,
+          "mean_mark": 1.33,
+          "published_mean_percentage": 44.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.33
+        }
+      ],
+      "sumWorkingMeanMarks": 1.33,
+      "marks": 3,
+      "percentage": 44.333333333333336,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q8",
+      "parts": [
+        {
+          "label": "8",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "8",
+          "question_number": 8,
+          "max_marks": 2,
+          "mean_mark": 0.63,
+          "published_mean_percentage": 31.5,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.63
+        }
+      ],
+      "sumWorkingMeanMarks": 0.63,
+      "marks": 2,
+      "percentage": 31.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q9",
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "9",
+          "question_number": 9,
+          "max_marks": 3,
+          "mean_mark": 1.06,
+          "published_mean_percentage": 35.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.06
+        }
+      ],
+      "sumWorkingMeanMarks": 1.06,
+      "marks": 3,
+      "percentage": 35.333333333333336,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q10",
+      "parts": [
+        {
+          "label": "10",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "10",
+          "question_number": 10,
+          "max_marks": 1,
+          "mean_mark": 0.17,
+          "published_mean_percentage": 17.0,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.17
+        }
+      ],
+      "sumWorkingMeanMarks": 0.17,
+      "marks": 1,
+      "percentage": 17.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q11",
+      "parts": [
+        {
+          "label": "11",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "11",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 1.0,
+          "published_mean_percentage": 50.0,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.0
+        }
+      ],
+      "sumWorkingMeanMarks": 1.0,
+      "marks": 2,
+      "percentage": 50.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q12",
+      "parts": [
+        {
+          "label": "12",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "12",
+          "question_number": 12,
+          "max_marks": 3,
+          "mean_mark": 1.96,
+          "published_mean_percentage": 65.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.96
+        }
+      ],
+      "sumWorkingMeanMarks": 1.96,
+      "marks": 3,
+      "percentage": 65.33333333333333,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q13",
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "13",
+          "question_number": 13,
+          "max_marks": 3,
+          "mean_mark": 0.2,
+          "published_mean_percentage": 6.7,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.2
+        }
+      ],
+      "sumWorkingMeanMarks": 0.2,
+      "marks": 3,
+      "percentage": 6.666666666666667,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 3,
+          "mean_mark": 0.46,
+          "published_mean_percentage": 15.3,
+          "source_page": 38,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.46
+        }
+      ],
+      "sumWorkingMeanMarks": 0.46,
+      "marks": 3,
+      "percentage": 15.333333333333334,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q15",
+      "parts": [
+        {
+          "label": "15",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "15",
+          "question_number": 15,
+          "max_marks": 4,
+          "mean_mark": 0.11,
+          "published_mean_percentage": 2.8,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.11
+        }
+      ],
+      "sumWorkingMeanMarks": 0.11,
+      "marks": 4,
+      "percentage": 2.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q16",
+      "parts": [
+        {
+          "label": "16(a)",
+          "marks": 1
+        },
+        {
+          "label": "16(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "16(a)",
+          "question_number": 16,
+          "max_marks": 1,
+          "mean_mark": 0.23,
+          "published_mean_percentage": 23.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.23
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "16(b)",
+          "question_number": 16,
+          "max_marks": 1,
+          "mean_mark": 0.24,
+          "published_mean_percentage": 24.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.24
+        }
+      ],
+      "sumWorkingMeanMarks": 0.47,
+      "marks": 2,
+      "percentage": 23.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q17",
+      "parts": [
+        {
+          "label": "17",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "17",
+          "question_number": 17,
+          "max_marks": 4,
+          "mean_mark": 1.07,
+          "published_mean_percentage": 26.8,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.07
+        }
+      ],
+      "sumWorkingMeanMarks": 1.07,
+      "marks": 4,
+      "percentage": 26.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q18",
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "18",
+          "question_number": 18,
+          "max_marks": 3,
+          "mean_mark": 0.57,
+          "published_mean_percentage": 19.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.57
+        }
+      ],
+      "sumWorkingMeanMarks": 0.57,
+      "marks": 3,
+      "percentage": 18.999999999999996,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 3,
+          "mean_mark": 0.22,
+          "published_mean_percentage": 7.3,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.22
+        }
+      ],
+      "sumWorkingMeanMarks": 0.22,
+      "marks": 3,
+      "percentage": 7.333333333333333,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q20",
+      "parts": [
+        {
+          "label": "20",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "20",
+          "question_number": 20,
+          "max_marks": 5,
+          "mean_mark": 0.45,
+          "published_mean_percentage": 9.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.45
+        }
+      ],
+      "sumWorkingMeanMarks": 0.45,
+      "marks": 5,
+      "percentage": 9.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q21",
+      "parts": [
+        {
+          "label": "21",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "21",
+          "question_number": 21,
+          "max_marks": 3,
+          "mean_mark": 0.21,
+          "published_mean_percentage": 7.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.21
+        }
+      ],
+      "sumWorkingMeanMarks": 0.21,
+      "marks": 3,
+      "percentage": 7.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q22",
+      "parts": [
+        {
+          "label": "22(a)",
+          "marks": 1
+        },
+        {
+          "label": "22(b)",
+          "marks": 1
+        },
+        {
+          "label": "22(c)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "22(a)",
+          "question_number": 22,
+          "max_marks": 1,
+          "mean_mark": 0.16,
+          "published_mean_percentage": 16.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.16
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "22(b)",
+          "question_number": 22,
+          "max_marks": 1,
+          "mean_mark": 0.2,
+          "published_mean_percentage": 20.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.2
+        },
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "22(c)",
+          "question_number": 22,
+          "max_marks": 1,
+          "mean_mark": 0.12,
+          "published_mean_percentage": 12.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.12
+        }
+      ],
+      "sumWorkingMeanMarks": 0.48,
+      "marks": 3,
+      "percentage": 16.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q23",
+      "parts": [
+        {
+          "label": "23",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "23",
+          "question_number": 23,
+          "max_marks": 3,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 11.7,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        }
+      ],
+      "sumWorkingMeanMarks": 0.35,
+      "marks": 3,
+      "percentage": 11.666666666666666,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q24",
+      "parts": [
+        {
+          "label": "24",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "1H",
+          "report_part_label": "24",
+          "question_number": 24,
+          "max_marks": 3,
+          "mean_mark": 0.18,
+          "published_mean_percentage": 6.0,
+          "source_page": 39,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.18
+        }
+      ],
+      "sumWorkingMeanMarks": 0.18,
+      "marks": 3,
+      "percentage": 6.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q1",
+      "parts": [
+        {
+          "label": "1(a)",
+          "marks": 3
+        },
+        {
+          "label": "1(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "1(a)",
+          "question_number": 1,
+          "max_marks": 3,
+          "mean_mark": 2.54,
+          "published_mean_percentage": 84.7,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.54
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "1(b)",
+          "question_number": 1,
+          "max_marks": 1,
+          "mean_mark": 0.77,
+          "published_mean_percentage": 77.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.77
+        }
+      ],
+      "sumWorkingMeanMarks": 3.31,
+      "marks": 4,
+      "percentage": 82.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q2",
+      "parts": [
+        {
+          "label": "2",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "2",
+          "question_number": 2,
+          "max_marks": 2,
+          "mean_mark": 0.88,
+          "published_mean_percentage": 44.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.88
+        }
+      ],
+      "sumWorkingMeanMarks": 0.88,
+      "marks": 2,
+      "percentage": 44.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q3",
+      "parts": [
+        {
+          "label": "3(a)",
+          "marks": 1
+        },
+        {
+          "label": "3(b)",
+          "marks": 1
+        },
+        {
+          "label": "3(c)",
+          "marks": 1
+        },
+        {
+          "label": "3(d)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "3(a)",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.57,
+          "published_mean_percentage": 57.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.57
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "3(b)",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.89,
+          "published_mean_percentage": 89.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.89
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "3(c)",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.87,
+          "published_mean_percentage": 87.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.87
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "3(d)",
+          "question_number": 3,
+          "max_marks": 1,
+          "mean_mark": 0.5,
+          "published_mean_percentage": 50.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.5
+        }
+      ],
+      "sumWorkingMeanMarks": 2.83,
+      "marks": 4,
+      "percentage": 70.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 5,
+          "mean_mark": 1.46,
+          "published_mean_percentage": 29.2,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.46
+        }
+      ],
+      "sumWorkingMeanMarks": 1.46,
+      "marks": 5,
+      "percentage": 29.2,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q5",
+      "parts": [
+        {
+          "label": "5",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "5",
+          "question_number": 5,
+          "max_marks": 3,
+          "mean_mark": 1.43,
+          "published_mean_percentage": 47.7,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.43
+        }
+      ],
+      "sumWorkingMeanMarks": 1.43,
+      "marks": 3,
+      "percentage": 47.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q6",
+      "parts": [
+        {
+          "label": "6(a)",
+          "marks": 2
+        },
+        {
+          "label": "6(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "6(a)",
+          "question_number": 6,
+          "max_marks": 2,
+          "mean_mark": 1.85,
+          "published_mean_percentage": 92.5,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.85
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "6(b)",
+          "question_number": 6,
+          "max_marks": 2,
+          "mean_mark": 1.65,
+          "published_mean_percentage": 82.5,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.65
+        }
+      ],
+      "sumWorkingMeanMarks": 3.5,
+      "marks": 4,
+      "percentage": 87.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q7",
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 3
+        },
+        {
+          "label": "7(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "7(a)",
+          "question_number": 7,
+          "max_marks": 3,
+          "mean_mark": 1.94,
+          "published_mean_percentage": 64.7,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.94
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "7(b)",
+          "question_number": 7,
+          "max_marks": 1,
+          "mean_mark": 0.72,
+          "published_mean_percentage": 72.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.72
+        }
+      ],
+      "sumWorkingMeanMarks": 2.66,
+      "marks": 4,
+      "percentage": 66.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q8",
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "8",
+          "question_number": 8,
+          "max_marks": 3,
+          "mean_mark": 0.8,
+          "published_mean_percentage": 26.7,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.8
+        }
+      ],
+      "sumWorkingMeanMarks": 0.8,
+      "marks": 3,
+      "percentage": 26.666666666666668,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q9",
+      "parts": [
+        {
+          "label": "9(a)",
+          "marks": 1
+        },
+        {
+          "label": "9(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "9(a)",
+          "question_number": 9,
+          "max_marks": 1,
+          "mean_mark": 0.93,
+          "published_mean_percentage": 93.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.93
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "9(b)",
+          "question_number": 9,
+          "max_marks": 2,
+          "mean_mark": 1.02,
+          "published_mean_percentage": 51.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.02
+        }
+      ],
+      "sumWorkingMeanMarks": 1.9500000000000002,
+      "marks": 3,
+      "percentage": 65.00000000000001,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q10",
+      "parts": [
+        {
+          "label": "10(i)",
+          "marks": 1
+        },
+        {
+          "label": "10(ii)",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "10",
+          "question_number": 10,
+          "max_marks": 4,
+          "mean_mark": 1.09,
+          "published_mean_percentage": 27.3,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.09
+        }
+      ],
+      "sumWorkingMeanMarks": 1.09,
+      "marks": 4,
+      "percentage": 27.250000000000004,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q11",
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 3
+        },
+        {
+          "label": "11(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "11(a)",
+          "question_number": 11,
+          "max_marks": 3,
+          "mean_mark": 0.75,
+          "published_mean_percentage": 25.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.75
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "11(b)",
+          "question_number": 11,
+          "max_marks": 1,
+          "mean_mark": 0.33,
+          "published_mean_percentage": 33.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.33
+        }
+      ],
+      "sumWorkingMeanMarks": 1.08,
+      "marks": 4,
+      "percentage": 27.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q12",
+      "parts": [
+        {
+          "label": "12(a)",
+          "marks": 3
+        },
+        {
+          "label": "12(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "12(a)",
+          "question_number": 12,
+          "max_marks": 3,
+          "mean_mark": 1.02,
+          "published_mean_percentage": 34.0,
+          "source_page": 41,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.02
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "12(b)",
+          "question_number": 12,
+          "max_marks": 1,
+          "mean_mark": 0.33,
+          "published_mean_percentage": 33.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.33
+        }
+      ],
+      "sumWorkingMeanMarks": 1.35,
+      "marks": 4,
+      "percentage": 33.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q13",
+      "parts": [
+        {
+          "label": "13(i)",
+          "marks": 3
+        },
+        {
+          "label": "13(ii)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "13",
+          "question_number": 13,
+          "max_marks": 4,
+          "mean_mark": 1.07,
+          "published_mean_percentage": 26.8,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.07
+        }
+      ],
+      "sumWorkingMeanMarks": 1.07,
+      "marks": 4,
+      "percentage": 26.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 2,
+          "mean_mark": 0.09,
+          "published_mean_percentage": 4.5,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.09
+        }
+      ],
+      "sumWorkingMeanMarks": 0.09,
+      "marks": 2,
+      "percentage": 4.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q15",
+      "parts": [
+        {
+          "label": "15",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "15",
+          "question_number": 15,
+          "max_marks": 5,
+          "mean_mark": 0.7,
+          "published_mean_percentage": 14.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.7
+        }
+      ],
+      "sumWorkingMeanMarks": 0.7,
+      "marks": 5,
+      "percentage": 14.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q16",
+      "parts": [
+        {
+          "label": "16",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "16",
+          "question_number": 16,
+          "max_marks": 2,
+          "mean_mark": 0.46,
+          "published_mean_percentage": 23.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.46
+        }
+      ],
+      "sumWorkingMeanMarks": 0.46,
+      "marks": 2,
+      "percentage": 23.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q17",
+      "parts": [
+        {
+          "label": "17(a)",
+          "marks": 3
+        },
+        {
+          "label": "17(b)",
+          "marks": 2
+        },
+        {
+          "label": "17(c)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "17(a)",
+          "question_number": 17,
+          "max_marks": 3,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 11.7,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "17(b)",
+          "question_number": 17,
+          "max_marks": 2,
+          "mean_mark": 0.28,
+          "published_mean_percentage": 14.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.28
+        },
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "17(c)",
+          "question_number": 17,
+          "max_marks": 1,
+          "mean_mark": 0.26,
+          "published_mean_percentage": 26.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.26
+        }
+      ],
+      "sumWorkingMeanMarks": 0.89,
+      "marks": 6,
+      "percentage": 14.833333333333334,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q18",
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "18",
+          "question_number": 18,
+          "max_marks": 3,
+          "mean_mark": 0.22,
+          "published_mean_percentage": 7.3,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.22
+        }
+      ],
+      "sumWorkingMeanMarks": 0.22,
+      "marks": 3,
+      "percentage": 7.333333333333333,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 5,
+          "mean_mark": 0.37,
+          "published_mean_percentage": 7.4,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.37
+        }
+      ],
+      "sumWorkingMeanMarks": 0.37,
+      "marks": 5,
+      "percentage": 7.4,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q20",
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "20",
+          "question_number": 20,
+          "max_marks": 4,
+          "mean_mark": 0.25,
+          "published_mean_percentage": 6.3,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.25
+        }
+      ],
+      "sumWorkingMeanMarks": 0.25,
+      "marks": 4,
+      "percentage": 6.25,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q21",
+      "parts": [
+        {
+          "label": "21",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "2H",
+          "report_part_label": "21",
+          "question_number": 21,
+          "max_marks": 5,
+          "mean_mark": 0.3,
+          "published_mean_percentage": 6.0,
+          "source_page": 42,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.3
+        }
+      ],
+      "sumWorkingMeanMarks": 0.3,
+      "marks": 5,
+      "percentage": 6.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q1",
+      "parts": [
+        {
+          "label": "1",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "1",
+          "question_number": 1,
+          "max_marks": 3,
+          "mean_mark": 2.22,
+          "published_mean_percentage": 74.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 2.22
+        }
+      ],
+      "sumWorkingMeanMarks": 2.22,
+      "marks": 3,
+      "percentage": 74.00000000000001,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q2",
+      "parts": [
+        {
+          "label": "2",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "2",
+          "question_number": 2,
+          "max_marks": 2,
+          "mean_mark": 1.12,
+          "published_mean_percentage": 56.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.12
+        }
+      ],
+      "sumWorkingMeanMarks": 1.12,
+      "marks": 2,
+      "percentage": 56.00000000000001,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q3",
+      "parts": [
+        {
+          "label": "3",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "3",
+          "question_number": 3,
+          "max_marks": 4,
+          "mean_mark": 1.52,
+          "published_mean_percentage": 35.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.52
+        }
+      ],
+      "sumWorkingMeanMarks": 1.52,
+      "marks": 4,
+      "percentage": 38.0,
+      "correction": "Report p44 prints mean 1.52 of 4 but mean percentage 35.0. Distribution p46 gives weighted mean (6.2+2*5.5+3*3.2+4*31.3)/100=1.520; use 38.0%, retaining the erroneous printed 35.0%.",
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q4",
+      "parts": [
+        {
+          "label": "4",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "4",
+          "question_number": 4,
+          "max_marks": 2,
+          "mean_mark": 0.7,
+          "published_mean_percentage": 35.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.7
+        }
+      ],
+      "sumWorkingMeanMarks": 0.7,
+      "marks": 2,
+      "percentage": 35.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q5",
+      "parts": [
+        {
+          "label": "5",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "5",
+          "question_number": 5,
+          "max_marks": 2,
+          "mean_mark": 1.02,
+          "published_mean_percentage": 51.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.02
+        }
+      ],
+      "sumWorkingMeanMarks": 1.02,
+      "marks": 2,
+      "percentage": 51.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q6",
+      "parts": [
+        {
+          "label": "6",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "6",
+          "question_number": 6,
+          "max_marks": 3,
+          "mean_mark": 1.73,
+          "published_mean_percentage": 57.7,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.73
+        }
+      ],
+      "sumWorkingMeanMarks": 1.73,
+      "marks": 3,
+      "percentage": 57.666666666666664,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q7",
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 5
+        },
+        {
+          "label": "7(b)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "7(a)",
+          "question_number": 7,
+          "max_marks": 5,
+          "mean_mark": 3.23,
+          "published_mean_percentage": 64.6,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 3.23
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "7(b)",
+          "question_number": 7,
+          "max_marks": 1,
+          "mean_mark": 0.8,
+          "published_mean_percentage": 80.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.8
+        }
+      ],
+      "sumWorkingMeanMarks": 4.03,
+      "marks": 6,
+      "percentage": 67.16666666666667,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q8",
+      "parts": [
+        {
+          "label": "8(a)",
+          "marks": 2
+        },
+        {
+          "label": "8(b)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "8(a)",
+          "question_number": 8,
+          "max_marks": 2,
+          "mean_mark": 1.15,
+          "published_mean_percentage": 57.5,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.15
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "8(b)",
+          "question_number": 8,
+          "max_marks": 2,
+          "mean_mark": 0.9,
+          "published_mean_percentage": 45.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.9
+        }
+      ],
+      "sumWorkingMeanMarks": 2.05,
+      "marks": 4,
+      "percentage": 51.24999999999999,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q9",
+      "parts": [
+        {
+          "label": "9(i)",
+          "marks": 1
+        },
+        {
+          "label": "9(ii)",
+          "marks": 1
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "9",
+          "question_number": 9,
+          "max_marks": 2,
+          "mean_mark": 0.79,
+          "published_mean_percentage": 39.5,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.79
+        }
+      ],
+      "sumWorkingMeanMarks": 0.79,
+      "marks": 2,
+      "percentage": 39.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q10",
+      "parts": [
+        {
+          "label": "10",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "10",
+          "question_number": 10,
+          "max_marks": 2,
+          "mean_mark": 1.39,
+          "published_mean_percentage": 69.5,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.39
+        }
+      ],
+      "sumWorkingMeanMarks": 1.39,
+      "marks": 2,
+      "percentage": 69.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q11",
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1
+        },
+        {
+          "label": "11(b)",
+          "marks": 3
+        },
+        {
+          "label": "11(c)",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "11(a)",
+          "question_number": 11,
+          "max_marks": 1,
+          "mean_mark": 0.52,
+          "published_mean_percentage": 52.0,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.52
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "11(b)",
+          "question_number": 11,
+          "max_marks": 3,
+          "mean_mark": 1.9,
+          "published_mean_percentage": 63.3,
+          "source_page": 44,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.9
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "11(c)",
+          "question_number": 11,
+          "max_marks": 2,
+          "mean_mark": 0.72,
+          "published_mean_percentage": 36.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.72
+        }
+      ],
+      "sumWorkingMeanMarks": 3.1399999999999997,
+      "marks": 6,
+      "percentage": 52.33333333333332,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q12",
+      "parts": [
+        {
+          "label": "12",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "12",
+          "question_number": 12,
+          "max_marks": 4,
+          "mean_mark": 0.94,
+          "published_mean_percentage": 23.5,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.94
+        }
+      ],
+      "sumWorkingMeanMarks": 0.94,
+      "marks": 4,
+      "percentage": 23.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q13",
+      "parts": [
+        {
+          "label": "13(a)",
+          "marks": 2
+        },
+        {
+          "label": "13(b)",
+          "marks": 2
+        },
+        {
+          "label": "13(c)",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "13(a)",
+          "question_number": 13,
+          "max_marks": 2,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 17.5,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "13(b)",
+          "question_number": 13,
+          "max_marks": 2,
+          "mean_mark": 0.54,
+          "published_mean_percentage": 27.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.54
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "13(c)",
+          "question_number": 13,
+          "max_marks": 3,
+          "mean_mark": 0.36,
+          "published_mean_percentage": 12.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.36
+        }
+      ],
+      "sumWorkingMeanMarks": 1.25,
+      "marks": 7,
+      "percentage": 17.857142857142858,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q14",
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "14",
+          "question_number": 14,
+          "max_marks": 3,
+          "mean_mark": 0.14,
+          "published_mean_percentage": 4.7,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.14
+        }
+      ],
+      "sumWorkingMeanMarks": 0.14,
+      "marks": 3,
+      "percentage": 4.666666666666667,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q15",
+      "parts": [
+        {
+          "label": "15",
+          "marks": 2
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "15",
+          "question_number": 15,
+          "max_marks": 2,
+          "mean_mark": 0.35,
+          "published_mean_percentage": 17.5,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.35
+        }
+      ],
+      "sumWorkingMeanMarks": 0.35,
+      "marks": 2,
+      "percentage": 17.5,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q16",
+      "parts": [
+        {
+          "label": "16",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "16",
+          "question_number": 16,
+          "max_marks": 5,
+          "mean_mark": 1.17,
+          "published_mean_percentage": 23.4,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 1.17
+        }
+      ],
+      "sumWorkingMeanMarks": 1.17,
+      "marks": 5,
+      "percentage": 23.4,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q17",
+      "parts": [
+        {
+          "label": "17",
+          "marks": 3
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "17",
+          "question_number": 17,
+          "max_marks": 3,
+          "mean_mark": 0.21,
+          "published_mean_percentage": 7.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.21
+        }
+      ],
+      "sumWorkingMeanMarks": 0.21,
+      "marks": 3,
+      "percentage": 7.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q18",
+      "parts": [
+        {
+          "label": "18",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "18",
+          "question_number": 18,
+          "max_marks": 4,
+          "mean_mark": 0.71,
+          "published_mean_percentage": 17.8,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.71
+        }
+      ],
+      "sumWorkingMeanMarks": 0.71,
+      "marks": 4,
+      "percentage": 17.75,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q19",
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "19",
+          "question_number": 19,
+          "max_marks": 5,
+          "mean_mark": 0.28,
+          "published_mean_percentage": null,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "note": "Mean percentage cell is blank in original report. Mean mark and maximum allow a measured-data calculation of 5.6 percent.",
+          "working_mean_mark": 0.28
+        }
+      ],
+      "sumWorkingMeanMarks": 0.28,
+      "marks": 5,
+      "percentage": 5.6000000000000005,
+      "correction": "Report p45 prints mean 0.28 of 5 with blank percentage. Derive 5.6%; distribution p46 weighted mean 0.279 corroborates the rounded mean.",
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q20",
+      "parts": [
+        {
+          "label": "20(a)",
+          "marks": 1
+        },
+        {
+          "label": "20(b)",
+          "marks": 2
+        },
+        {
+          "label": "20(c)",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "20(a)",
+          "question_number": 20,
+          "max_marks": 1,
+          "mean_mark": 0.27,
+          "published_mean_percentage": 27.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.27
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "20(b)",
+          "question_number": 20,
+          "max_marks": 2,
+          "mean_mark": 0.28,
+          "published_mean_percentage": 14.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.28
+        },
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "20(c)",
+          "question_number": 20,
+          "max_marks": 4,
+          "mean_mark": 0.32,
+          "published_mean_percentage": 8.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.32
+        }
+      ],
+      "sumWorkingMeanMarks": 0.8700000000000001,
+      "marks": 7,
+      "percentage": 12.42857142857143,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q21",
+      "parts": [
+        {
+          "label": "21",
+          "marks": 4
+        }
+      ],
+      "reportRows": [
+        {
+          "set": 1,
+          "component": "3H",
+          "report_part_label": "21",
+          "question_number": 21,
+          "max_marks": 4,
+          "mean_mark": 0.12,
+          "published_mean_percentage": 3.0,
+          "source_page": 45,
+          "source_file": "Report-for-GCSE-Maths-Mock-Papers_FINAL.pdf",
+          "working_mean_mark": 0.12
+        }
+      ],
+      "sumWorkingMeanMarks": 0.12,
+      "marks": 4,
+      "percentage": 3.0,
+      "correction": null,
+      "alignment": "Report disjoint parts or one whole-question aggregate reconciled to source QP and scheme; grouped report/analysis parts are not counted twice."
+    }
+  ]
+}

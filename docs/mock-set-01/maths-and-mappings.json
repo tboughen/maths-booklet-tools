@@ -1,0 +1,4704 @@
+{
+  "topicSnapshotSha256": "24bcf8f238d286a01135f971b9b7d037117343b8eb529e5fc0c38fcaf3d541f8",
+  "sourceQLAContainsSparxCodes": false,
+  "questions": [
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q1",
+      "component": "1F",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1,
+          "codes": [
+            "U947"
+          ],
+          "rationale": "Order positive and negative integers; checked against full task and official scheme: Ordering negative numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1",
+            "description": "Order positive and negative integers",
+            "marks": 1.0,
+            "cell": "B1"
+          }
+        }
+      ],
+      "solution": "-4,-2,0,1,4.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q2",
+      "component": "1F",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2(a)",
+          "marks": 1,
+          "codes": [
+            "U600"
+          ],
+          "rationale": "Use place value; checked against full task and official scheme: Understanding and ordering integers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2a",
+            "description": "Use place value",
+            "marks": 1.0,
+            "cell": "C1"
+          }
+        },
+        {
+          "label": "2(b)",
+          "marks": 1,
+          "codes": [
+            "U600",
+            "M777"
+          ],
+          "rationale": "Use place value and even numbers; checked against full task and official scheme: Understanding and ordering integers; Odd and even numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2b",
+            "description": "Use place value and even numbers",
+            "marks": 1.0,
+            "cell": "D1"
+          }
+        }
+      ],
+      "solution": "(a)9874 (b)4798: even final digit and smallest viable thousands/hundreds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q3",
+      "component": "1F",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3",
+          "marks": 1,
+          "codes": [
+            "U888"
+          ],
+          "rationale": "Convert fraction to percentage; checked against full task and official scheme: Converting between fractions, decimals and percentages",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3",
+            "description": "Convert fraction to percentage",
+            "marks": 1.0,
+            "cell": "E1"
+          }
+        }
+      ],
+      "solution": "7/20=35/100=35%.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q4",
+      "component": "1F",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 2,
+          "codes": [
+            "U554"
+          ],
+          "rationale": "Find percentage of quantity; checked against full task and official scheme: Finding percentages of amounts without a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Find percentage of quantity",
+            "marks": 2.0,
+            "cell": "F1"
+          }
+        }
+      ],
+      "solution": "10%=5.40;20%=10.80 pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q5",
+      "component": "1F",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 1,
+          "codes": [
+            "U789"
+          ],
+          "rationale": "Plot point on coordinate grid; checked against full task and official scheme: Reading and plotting coordinates",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5a",
+            "description": "Plot point on coordinate grid",
+            "marks": 1.0,
+            "cell": "G1"
+          }
+        },
+        {
+          "label": "5(b)",
+          "marks": 1,
+          "codes": [
+            "U933"
+          ],
+          "rationale": "Write down coordinates of point on grid; checked against full task and official scheme: Calculating midpoints",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5b",
+            "description": "Write down coordinates of point on grid",
+            "marks": 1.0,
+            "cell": "H1"
+          }
+        }
+      ],
+      "solution": "(a)C(-2,-3). (b)A(-4,2),B(2,2) gives midpoint(-1,2). Analysis calls this coordinates but task assesses midpoint.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q6",
+      "component": "1F",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6",
+          "marks": 3,
+          "codes": [
+            "U659",
+            "U868"
+          ],
+          "rationale": "Solve money problem; checked against full task and official scheme: Operations with money; Using a written method to divide with decimals",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6",
+            "description": "Solve money problem",
+            "marks": 3.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "Pair costs40p;1500/40=37.5;37 pens and37 pencils cost14.80,38 pairs exceed15.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q7",
+      "component": "1F",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 2,
+          "codes": [
+            "U653"
+          ],
+          "rationale": "Complete frequency table; checked against full task and official scheme: Drawing and interpreting tally charts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7a",
+            "description": "Complete frequency table",
+            "marks": 2.0,
+            "cell": "J1"
+          }
+        },
+        {
+          "label": "7(b)",
+          "marks": 3,
+          "codes": [
+            "U363"
+          ],
+          "rationale": "Draw diagram or chart to represent data; checked against full task and official scheme: Drawing bar charts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7b",
+            "description": "Draw diagram or chart to represent data",
+            "marks": 3.0,
+            "cell": "K1"
+          }
+        }
+      ],
+      "solution": "Frequencies5,2,5,1,3 sum16; grouped labelled bar chart with linear frequency scale, all5 groups.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q8",
+      "component": "1F",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8(a)",
+          "marks": 1,
+          "codes": [
+            "U909",
+            "U456"
+          ],
+          "rationale": "Find median from stem and leaf; checked against full task and official scheme: Interpreting stem-and-leaf diagrams; Calculating the median",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8a",
+            "description": "Find median from stem and leaf",
+            "marks": 1.0,
+            "cell": "L1"
+          }
+        },
+        {
+          "label": "8(b)",
+          "marks": 2,
+          "codes": [
+            "U520"
+          ],
+          "rationale": "Compare distributions of two data sets; checked against full task and official scheme: Comparing populations using diagrams",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8b",
+            "description": "Compare distributions of two data sets",
+            "marks": 2.0,
+            "cell": "M1"
+          }
+        }
+      ],
+      "solution": "21 values;11th=165cm. Boys median165>162 girls, range181-140=41<45; boys typically taller and less variable. At least one comparison contextual.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q9",
+      "component": "1F",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3,
+          "codes": [
+            "U144"
+          ],
+          "rationale": "Solve formulae money problem; checked against full task and official scheme: Substituting into real-life formulae",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9",
+            "description": "Solve formulae money problem",
+            "marks": 3.0,
+            "cell": "N1"
+          }
+        }
+      ],
+      "solution": "30-mile costs45,44.50,45.50; Speedy cheapest, all3 compared.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q10",
+      "component": "1F",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10(a)",
+          "marks": 1,
+          "codes": [
+            "U196"
+          ],
+          "rationale": "Translate shape on grid; checked against full task and official scheme: Translation",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10a",
+            "description": "Translate shape on grid",
+            "marks": 1.0,
+            "cell": "O1"
+          }
+        },
+        {
+          "label": "10(b)",
+          "marks": 1,
+          "codes": [
+            "U196"
+          ],
+          "rationale": "Translate shape on grid; checked against full task and official scheme: Translation",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10b",
+            "description": "Translate shape on grid",
+            "marks": 1.0,
+            "cell": "P1"
+          }
+        },
+        {
+          "label": "10(c)",
+          "marks": 1,
+          "codes": [
+            "U903"
+          ],
+          "rationale": "Combine two translations; checked against full task and official scheme: Adding and subtracting column vectors",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10c",
+            "description": "Combine two translations",
+            "marks": 1.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "B vertices(2,-2),(3,-2),(4,-4),(2,-3); C translates B by(-8,8). Overall(-2,3). Part(b)FT fromB, part(c)FT whenAtoC translation.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q11",
+      "component": "1F",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "rationale": "Simplify expression; checked against full task and official scheme: Simplifying expressions by collecting like terms",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11a",
+            "description": "Simplify expression",
+            "marks": 1.0,
+            "cell": "R1"
+          }
+        },
+        {
+          "label": "11(b)",
+          "marks": 2,
+          "codes": [
+            "U105"
+          ],
+          "rationale": "Simplify expression; checked against full task and official scheme: Simplifying expressions by collecting like terms",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11b",
+            "description": "Simplify expression",
+            "marks": 2.0,
+            "cell": "S1"
+          }
+        },
+        {
+          "label": "11(c)",
+          "marks": 1,
+          "codes": [
+            "U179"
+          ],
+          "rationale": "Expand brackets; checked against full task and official scheme: Expanding single brackets",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11c",
+            "description": "Expand brackets",
+            "marks": 1.0,
+            "cell": "T1"
+          }
+        },
+        {
+          "label": "11(d)",
+          "marks": 2,
+          "codes": [
+            "U325"
+          ],
+          "rationale": "Solve linear equation; checked against full task and official scheme: Solving equations with two or more steps",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11d",
+            "description": "Solve linear equation",
+            "marks": 2.0,
+            "cell": "U1"
+          }
+        }
+      ],
+      "solution": "3x+2y;2p+3q;12m-18;7f=21,f=3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q12",
+      "component": "1F",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12(a)",
+          "marks": 3,
+          "codes": [
+            "U280"
+          ],
+          "rationale": "Complete frequency tree; checked against full task and official scheme: Frequency trees",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12a",
+            "description": "Complete frequency tree",
+            "marks": 3.0,
+            "cell": "V1"
+          }
+        },
+        {
+          "label": "12(b)",
+          "marks": 2,
+          "codes": [
+            "U280",
+            "U408"
+          ],
+          "rationale": "Find probability from frequency tree; checked against full task and official scheme: Frequency trees; Writing probabilities as fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12b",
+            "description": "Find probability from frequency tree",
+            "marks": 2.0,
+            "cell": "W1"
+          }
+        }
+      ],
+      "solution": "Women21=15pass+6fail;men39=27pass+12fail; chosen man failure12/39=4/13. Condition on39, not60.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q13",
+      "component": "1F",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13(a)",
+          "marks": 3,
+          "codes": [
+            "U225",
+            "U970"
+          ],
+          "rationale": "Estimate area of compound shape; checked against full task and official scheme: Estimating calculations; Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13a",
+            "description": "Estimate area of compound shape",
+            "marks": 3.0,
+            "cell": "X1"
+          }
+        },
+        {
+          "label": "13(b)",
+          "marks": 1,
+          "codes": [
+            "U225"
+          ],
+          "rationale": "Interpret estimate of area; checked against full task and official scheme: Estimating calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13b",
+            "description": "Interpret estimate of area",
+            "marks": 1.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "Round2.05,2.15,5.02,7.37 to2,2,5,7;estimatedarea4+35=39cm2,underestimate as all dimensions rounded down.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q14",
+      "component": "1F",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 2,
+          "codes": [
+            "U753"
+          ],
+          "rationale": "Solve ratio problem; checked against full task and official scheme: Using equivalent ratios to find unknown amounts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Solve ratio problem",
+            "marks": 2.0,
+            "cell": "Z1"
+          }
+        }
+      ],
+      "solution": "80/2*5=200 cakes.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q15",
+      "component": "1F",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15",
+          "marks": 4,
+          "codes": [
+            "U329",
+            "U599"
+          ],
+          "rationale": "Use algebra to find missing angle in kite; checked against full task and official scheme: Using quadrilateral properties to find angles; Constructing and solving equations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15",
+            "description": "Use algebra to find missing angle in kite",
+            "marks": 4.0,
+            "cell": "AA1"
+          }
+        }
+      ],
+      "solution": "Kite equal oppositeB,D:5x-147=2x =>x49;B=D98;C360-116-196=48deg smallest.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q16",
+      "component": "1F",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16",
+          "marks": 2,
+          "codes": [
+            "U468"
+          ],
+          "rationale": "Convert cubic mm into cubic cm; checked against full task and official scheme: Converting units of volume",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16",
+            "description": "Convert cubic mm into cubic cm",
+            "marks": 2.0,
+            "cell": "AB1"
+          }
+        }
+      ],
+      "solution": "1000mm3=1cm3;4500/1000=4.5cm3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q17",
+      "component": "1F",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17",
+          "marks": 3,
+          "codes": [
+            "U793"
+          ],
+          "rationale": "Subtract fractions; checked against full task and official scheme: Adding and subtracting mixed numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17",
+            "description": "Subtract fractions",
+            "marks": 3.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "13/5-11/6=(78-55)/30=23/30.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q18",
+      "component": "1F",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18(a)(i)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "rationale": "Interpret y-intercept and gradient of real-life graph; checked against full task and official scheme: Using and finding equations of linear real-life graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18ai",
+            "description": "Interpret y-intercept and gradient of real-life graph",
+            "marks": 1,
+            "cell": "AD1",
+            "analysisOriginalGroupedRow": {
+              "part": "18a",
+              "description": "Interpret y-intercept and gradient of real-life graph",
+              "marks": 2.0,
+              "cell": "AD1"
+            },
+            "splitAuthority": "Original question (a)(i) and (a)(ii), one mark each"
+          }
+        },
+        {
+          "label": "18(a)(ii)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "rationale": "Interpret y-intercept and gradient of real-life graph; checked against full task and official scheme: Using and finding equations of linear real-life graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18aii",
+            "description": "Interpret y-intercept and gradient of real-life graph",
+            "marks": 1,
+            "cell": "AD1",
+            "analysisOriginalGroupedRow": {
+              "part": "18a",
+              "description": "Interpret y-intercept and gradient of real-life graph",
+              "marks": 2.0,
+              "cell": "AD1"
+            },
+            "splitAuthority": "Original question (a)(i) and (a)(ii), one mark each"
+          }
+        },
+        {
+          "label": "18(b)",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "rationale": "Find linear equation of graph; checked against full task and official scheme: Finding equations of straight line graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18b",
+            "description": "Find linear equation of graph",
+            "marks": 3.0,
+            "cell": "AE1"
+          }
+        }
+      ],
+      "solution": "Intercept fixed starting charge0.50 pounds; gradient1.50 pounds/min; y=1.5x+0.5.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q19",
+      "component": "1F",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5,
+          "codes": [
+            "U385",
+            "U575"
+          ],
+          "rationale": "Find area of pentagon; checked against full task and official scheme: Using Pythagoras' theorem in 2D; Finding the area of compound shapes containing triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Find area of pentagon",
+            "marks": 5.0,
+            "cell": "AF1"
+          }
+        }
+      ],
+      "solution": "Roof height sqrt(25-16)=3; area8*4+.5*8*3=44cm2. Source working has correct half factor as native equation.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q20",
+      "component": "1F",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4,
+          "codes": [
+            "U151",
+            "U902"
+          ],
+          "rationale": "Solve average speed problem; checked against full task and official scheme: Calculating with speed; Reading, converting and calculating with time",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20",
+            "description": "Solve average speed problem",
+            "marks": 4.0,
+            "cell": "AG1"
+          }
+        }
+      ],
+      "solution": "2.5h*110=275miles;Gill312miles/3h=104mph;difference6mph.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q21",
+      "component": "1F",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21(a)",
+          "marks": 5,
+          "codes": [
+            "U577",
+            "U970"
+          ],
+          "rationale": "Solve ratio area problem; checked against full task and official scheme: Sharing amounts in a given ratio; Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21a",
+            "description": "Solve ratio area problem",
+            "marks": 5.0,
+            "cell": "AH1"
+          }
+        },
+        {
+          "label": "21(b)",
+          "marks": 1,
+          "codes": [
+            "U970"
+          ],
+          "rationale": "Interpret area; checked against full task and official scheme: Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21b",
+            "description": "Interpret area",
+            "marks": 1.0,
+            "cell": "AI1"
+          }
+        }
+      ],
+      "solution": "10*6=60 tiles;white36;remaining24 ratio1:3 givesgreen6blue18. Gaps may reduce requiredtiles.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q22",
+      "component": "1F",
+      "number": 22,
+      "parts": [
+        {
+          "label": "22",
+          "marks": 4,
+          "codes": [
+            "U462",
+            "U914",
+            "U151"
+          ],
+          "rationale": "Use travel graph to solve time problem; checked against full task and official scheme: Calculating speed from distance-time graphs; Interpreting distance-time graphs; Calculating with speed",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22",
+            "description": "Use travel graph to solve time problem",
+            "marks": 4.0,
+            "cell": "AJ1"
+          }
+        }
+      ],
+      "solution": "First30min20miles sets axes; hospital40miles at15:00;leave15:30;40/32=1.25h;home16:45,after16:30.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q23",
+      "component": "1F",
+      "number": 23,
+      "parts": [
+        {
+          "label": "23",
+          "marks": 2,
+          "codes": [
+            "U657"
+          ],
+          "rationale": "Find error interval; checked against full task and official scheme: Finding error intervals",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "23",
+            "description": "Find error interval",
+            "marks": 2.0,
+            "cell": "AK1"
+          }
+        }
+      ],
+      "solution": "0.455<=y<0.465;lower included upper excluded.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1F_Q24",
+      "component": "1F",
+      "number": 24,
+      "parts": [
+        {
+          "label": "24",
+          "marks": 3,
+          "codes": [
+            "U739"
+          ],
+          "rationale": "Write number as product of prime factors; checked against full task and official scheme: Prime factor decomposition",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "24",
+            "description": "Write number as product of prime factors",
+            "marks": 3.0,
+            "cell": "AL1"
+          }
+        }
+      ],
+      "solution": "360=2^3*3^2*5,3marks asQP/MS. Report maximum4 erroneous;mean0.67 consistent22.3% of3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q1",
+      "component": "2F",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1,
+          "codes": [
+            "U851",
+            "U926"
+          ],
+          "rationale": "Find cube of decimal number; checked against full task and official scheme: Calculating with roots and powers; Using a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1",
+            "description": "Find cube of decimal number",
+            "marks": 1.0,
+            "cell": "B1"
+          }
+        }
+      ],
+      "solution": "1.7^3=4.913.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q2",
+      "component": "2F",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2",
+          "marks": 1,
+          "codes": [
+            "U176"
+          ],
+          "rationale": "Write ratio from given fraction; checked against full task and official scheme: Converting between ratios, fractions and percentages",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2",
+            "description": "Write ratio from given fraction",
+            "marks": 1.0,
+            "cell": "C1"
+          }
+        }
+      ],
+      "solution": "Red2/5,yellow3/5 =>2:3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q3",
+      "component": "2F",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3",
+          "marks": 1,
+          "codes": [
+            "U767"
+          ],
+          "rationale": "Draw chord of circle; checked against full task and official scheme: Identifying parts of circles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3",
+            "description": "Draw chord of circle",
+            "marks": 1.0,
+            "cell": "D1"
+          }
+        }
+      ],
+      "solution": "Any straight segment joining two circumference points; diameter also chord.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q4",
+      "component": "2F",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 1,
+          "codes": [
+            "U121"
+          ],
+          "rationale": "Complete diagram of parallelogram; checked against full task and official scheme: Line and shape properties",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Complete diagram of parallelogram",
+            "marks": 1.0,
+            "cell": "E1"
+          }
+        }
+      ],
+      "solution": "From supplied joined sides complete opposite parallel/equal sides to fourth vertex.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q5",
+      "component": "2F",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5",
+          "marks": 2,
+          "codes": [
+            "U714"
+          ],
+          "rationale": "Write down all combinations of items; checked against full task and official scheme: Systematic listing",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5",
+            "description": "Write down all combinations of items",
+            "marks": 2.0,
+            "cell": "F1"
+          }
+        }
+      ],
+      "solution": "AB,AO,AP,BO,BP,OP;6unordered distinct pairs,no permutations.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q6",
+      "component": "2F",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6(a)",
+          "marks": 1,
+          "codes": [
+            "U213",
+            "U211"
+          ],
+          "rationale": "Find if number is in sequence or not; checked against full task and official scheme: Term-to-term rules; Finding factors and using divisibility tests",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6a",
+            "description": "Find if number is in sequence or not",
+            "marks": 1.0,
+            "cell": "G1"
+          }
+        },
+        {
+          "label": "6(b)",
+          "marks": 1,
+          "codes": [
+            "U213",
+            "U211"
+          ],
+          "rationale": "Find example to disprove statement; checked against full task and official scheme: Term-to-term rules; Finding factors and using divisibility tests",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6b",
+            "description": "Find example to disprove statement",
+            "marks": 1.0,
+            "cell": "H1"
+          }
+        }
+      ],
+      "solution": "No603: allterms multiples6/even.42 is fourth/fifth? sequence18,24,30,36,42 so5th term, multiple7.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q7",
+      "component": "2F",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7",
+          "marks": 2,
+          "codes": [
+            "U351"
+          ],
+          "rationale": "Solve hexagons perimeter problem; checked against full task and official scheme: Finding the perimeter of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7",
+            "description": "Solve hexagons perimeter problem",
+            "marks": 2.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "A14 exposed unit edges versusB12;A larger.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q8",
+      "component": "2F",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3,
+          "codes": [
+            "U257",
+            "U388"
+          ],
+          "rationale": "Use scale to convert measurement; checked against full task and official scheme: Drawing and interpreting scale diagrams; Converting units of length, mass and capacity",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8",
+            "description": "Use scale to convert measurement",
+            "marks": 3.0,
+            "cell": "J1"
+          }
+        }
+      ],
+      "solution": "8.5*50000=425000cm=4.25km.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q9",
+      "component": "2F",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9",
+          "marks": 2,
+          "codes": [
+            "U390"
+          ],
+          "rationale": "Use angle properties to explain statement; checked against full task and official scheme: Angles on a line and about a point",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9",
+            "description": "Use angle properties to explain statement",
+            "marks": 2.0,
+            "cell": "K1"
+          }
+        }
+      ],
+      "solution": "146+32=178 !=180 required for straight line.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q10",
+      "component": "2F",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10",
+          "marks": 3,
+          "codes": [
+            "U659",
+            "U721"
+          ],
+          "rationale": "Solve money problem; checked against full task and official scheme: Operations with money; Solving direct proportion word problems",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10",
+            "description": "Solve money problem",
+            "marks": 3.0,
+            "cell": "L1"
+          }
+        }
+      ],
+      "solution": "120/8=15packs;15*4.35=65.25pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q11",
+      "component": "2F",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1,
+          "codes": [
+            "U211"
+          ],
+          "rationale": "Interpret calculation to show error; checked against full task and official scheme: Finding factors and using divisibility tests",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11a",
+            "description": "Interpret calculation to show error",
+            "marks": 1.0,
+            "cell": "M1"
+          }
+        },
+        {
+          "label": "11(b)",
+          "marks": 2,
+          "codes": [
+            "M175"
+          ],
+          "rationale": "Interpret use of number machine to show error; checked against full task and official scheme: Function machines with numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11b",
+            "description": "Interpret use of number machine to show error",
+            "marks": 2.0,
+            "cell": "N1"
+          }
+        }
+      ],
+      "solution": "34 notmultiple3. Inverse machine must divide2 then subtract6;Abbie wrong order and operation. Correctinput12.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q12",
+      "component": "2F",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12",
+          "marks": 3,
+          "codes": [
+            "U926",
+            "U298"
+          ],
+          "rationale": "Use calculator and round answer to 2dp; checked against full task and official scheme: Using a calculator; Rounding decimals",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12",
+            "description": "Use calculator and round answer to 2dp",
+            "marks": 3.0,
+            "cell": "O1"
+          }
+        }
+      ],
+      "solution": "(sqrt(2.7)+6.5)/(4.8-1.06)=2.1773269... =>2.18. Root only over2.7, keptnative.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q13",
+      "component": "2F",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3,
+          "codes": [
+            "U659"
+          ],
+          "rationale": "Interpret table to solve money problem; checked against full task and official scheme: Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13",
+            "description": "Interpret table to solve money problem",
+            "marks": 3.0,
+            "cell": "P1"
+          }
+        }
+      ],
+      "solution": "Highestdrink1.50,snacks1.75+1.60;4.85-3.99=0.86pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q14",
+      "component": "2F",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3,
+          "codes": [
+            "U888",
+            "U874"
+          ],
+          "rationale": "Solve fraction and percentage word problem; checked against full task and official scheme: Converting between fractions, decimals and percentages; Problem solving: Fractions and mixed numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Solve fraction and percentage word problem",
+            "marks": 3.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "3/8=37.5%;100-37.5-27=35.5%children.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q15",
+      "component": "2F",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15(a)",
+          "marks": 4,
+          "codes": [
+            "U721",
+            "U659"
+          ],
+          "rationale": "Solve area and money problem; checked against full task and official scheme: Solving direct proportion word problems; Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15a",
+            "description": "Solve area and money problem",
+            "marks": 4.0,
+            "cell": "R1"
+          }
+        },
+        {
+          "label": "15(b)",
+          "marks": 2,
+          "codes": [
+            "U721",
+            "U659"
+          ],
+          "rationale": "Interpret area and money statement; checked against full task and official scheme: Solving direct proportion word problems; Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15b",
+            "description": "Interpret area and money statement",
+            "marks": 2.0,
+            "cell": "S1"
+          }
+        }
+      ],
+      "solution": "(a)40small+12large =>92+43.80=135.80. (b)24largecost87.60>67.90 soNo; printed175.20 alternative inconsistent with drawn path, note required.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q16",
+      "component": "2F",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16",
+          "marks": 3,
+          "codes": [
+            "U349",
+            "U659"
+          ],
+          "rationale": "Solve percentage money problem; checked against full task and official scheme: Finding percentages of amounts with a calculator; Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16",
+            "description": "Solve percentage money problem",
+            "marks": 3.0,
+            "cell": "T1"
+          }
+        }
+      ],
+      "solution": "Septemberprofit780-565=215;extraOctober0.13*215=27.95<30;No.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q17",
+      "component": "2F",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17",
+          "marks": 1,
+          "codes": [
+            "U505"
+          ],
+          "rationale": "Solve linear equation; checked against full task and official scheme: Solving equations with the unknown in the denominator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17",
+            "description": "Solve linear equation",
+            "marks": 1.0,
+            "cell": "U1"
+          }
+        }
+      ],
+      "solution": "5x=100 =>x20.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q18",
+      "component": "2F",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18",
+          "marks": 2,
+          "codes": [
+            "U746"
+          ],
+          "rationale": "Solve and explain inequality fraction problem; checked against full task and official scheme: Ordering fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18",
+            "description": "Solve and explain inequality fraction problem",
+            "marks": 2.0,
+            "cell": "V1"
+          }
+        }
+      ],
+      "solution": "2/7>6/N means2N>42 for positive integerN;choose22,2/7=44/154>42/154=6/22. Negative denominators also true literally, source assumes positive box; do not claim uniqueness.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q19",
+      "component": "2F",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 3,
+          "codes": [
+            "U671"
+          ],
+          "rationale": "Find price after percentage discount; checked against full task and official scheme: Percentage change with a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Find price after percentage discount",
+            "marks": 3.0,
+            "cell": "W1"
+          }
+        }
+      ],
+      "solution": "675*.68=459pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q20",
+      "component": "2F",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20",
+          "marks": 3,
+          "codes": [
+            "U679",
+            "U874"
+          ],
+          "rationale": "Solve area problem; checked against full task and official scheme: Finding fractions of shapes; Problem solving: Fractions and mixed numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20",
+            "description": "Solve area problem",
+            "marks": 3.0,
+            "cell": "X1"
+          }
+        }
+      ],
+      "solution": "Eachsquarearea1;intersection.25,total1.75;shadedfraction1/7.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q21",
+      "component": "2F",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21",
+          "marks": 4,
+          "codes": [
+            "U172",
+            "U508"
+          ],
+          "rationale": "Solve pie chart problem; checked against full task and official scheme: Interpreting pie charts; Drawing pie charts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21",
+            "description": "Solve pie chart problem",
+            "marks": 4.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "Year7girls177/360*240=118;Year8girls126;Year8total216;126/216*360=210deg.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q22",
+      "component": "2F",
+      "number": 22,
+      "parts": [
+        {
+          "label": "22(a)",
+          "marks": 2,
+          "codes": [
+            "U509"
+          ],
+          "rationale": "Show inequality on number line; checked against full task and official scheme: Reading and drawing inequalities on number lines",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22a",
+            "description": "Show inequality on number line",
+            "marks": 2.0,
+            "cell": "Z1"
+          }
+        },
+        {
+          "label": "22(b)",
+          "marks": 2,
+          "codes": [
+            "U759"
+          ],
+          "rationale": "Solve linear inequality; checked against full task and official scheme: Solving single inequalities",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22b",
+            "description": "Solve linear inequality",
+            "marks": 2.0,
+            "cell": "AA1"
+          }
+        }
+      ],
+      "solution": "Closed-2/open3 joined;5n>24 =>n>4.8.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q23",
+      "component": "2F",
+      "number": 23,
+      "parts": [
+        {
+          "label": "23(a)",
+          "marks": 3,
+          "codes": [
+            "U476"
+          ],
+          "rationale": "Complete Venn diagram; checked against full task and official scheme: Venn diagrams",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "23a",
+            "description": "Complete Venn diagram",
+            "marks": 3.0,
+            "cell": "AB1"
+          }
+        },
+        {
+          "label": "23(b)",
+          "marks": 1,
+          "codes": [
+            "U476",
+            "U408"
+          ],
+          "rationale": "Find probability from Venn diagram; checked against full task and official scheme: Venn diagrams; Writing probabilities as fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "23b",
+            "description": "Find probability from Venn diagram",
+            "marks": 1.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "Frenchonly13,both20,Spanishonly23,neither4;Pneither4/60=1/15,FT Venn.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q24",
+      "component": "2F",
+      "number": 24,
+      "parts": [
+        {
+          "label": "24",
+          "marks": 2,
+          "codes": [
+            "U696"
+          ],
+          "rationale": "Describe rotation fully; checked against full task and official scheme: Rotation",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "24",
+            "description": "Describe rotation fully",
+            "marks": 2.0,
+            "cell": "AD1"
+          }
+        }
+      ],
+      "solution": "Rotation90deganticlockwise centre(0,-1),verified vertices(2,1)->(-2,1),(3,2)->(-3,2),(5,1)->(-2,4). No multipletransformations.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q25",
+      "component": "2F",
+      "number": 25,
+      "parts": [
+        {
+          "label": "25(a)",
+          "marks": 1,
+          "codes": [
+            "U277"
+          ],
+          "rationale": "Give reason for outlier on scatter graph; checked against full task and official scheme: Interpreting scatter graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25a",
+            "description": "Give reason for outlier on scatter graph",
+            "marks": 1.0,
+            "cell": "AE1"
+          }
+        },
+        {
+          "label": "25(b)",
+          "marks": 1,
+          "codes": [
+            "U277"
+          ],
+          "rationale": "Identify correlation; checked against full task and official scheme: Interpreting scatter graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25b",
+            "description": "Identify correlation",
+            "marks": 1.0,
+            "cell": "AF1"
+          }
+        },
+        {
+          "label": "25(c)",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "rationale": "Use line of best fit; checked against full task and official scheme: Using lines of best fit",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25c",
+            "description": "Use line of best fit",
+            "marks": 1.0,
+            "cell": "AG1"
+          }
+        },
+        {
+          "label": "25(d)",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "rationale": "Interpret line of best fit; checked against full task and official scheme: Using lines of best fit",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25d",
+            "description": "Interpret line of best fit",
+            "marks": 1.0,
+            "cell": "AH1"
+          }
+        }
+      ],
+      "solution": "Outlier(24,13) couldrain/school;positivecorrelation;19deg estimate15-25;13 outside observed18-24 range,extrapolation.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q26",
+      "component": "2F",
+      "number": 26,
+      "parts": [
+        {
+          "label": "26",
+          "marks": 5,
+          "codes": [
+            "U934",
+            "U575"
+          ],
+          "rationale": "Find shaded area in compound shape; checked against full task and official scheme: Problem solving: Area and perimeter of rectangles and compound shapes (Higher); Finding the area of compound shapes containing triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "26",
+            "description": "Find shaded area in compound shape",
+            "marks": 5.0,
+            "cell": "AI1"
+          }
+        }
+      ],
+      "solution": "Totalheight6,totalwidth8 fromperimeter;wholeL38;subtracttriangles16+9=13m2;independentunitmark.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q27",
+      "component": "2F",
+      "number": 27,
+      "parts": [
+        {
+          "label": "27",
+          "marks": 3,
+          "codes": [
+            "U760"
+          ],
+          "rationale": "Solve simultaneous equations; checked against full task and official scheme: Solving simultaneous equations using elimination",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "27",
+            "description": "Solve simultaneous equations",
+            "marks": 3.0,
+            "cell": "AJ1"
+          }
+        }
+      ],
+      "solution": "x3,y-2 satisfies12-2=10 and3+10=13.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q28",
+      "component": "2F",
+      "number": 28,
+      "parts": [
+        {
+          "label": "28(a)",
+          "marks": 2,
+          "codes": [
+            "U593"
+          ],
+          "rationale": "Complete table of values for reciprocal graph; checked against full task and official scheme: Graphs of reciprocal functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "28a",
+            "description": "Complete table of values for reciprocal graph",
+            "marks": 2.0,
+            "cell": "AK1"
+          }
+        },
+        {
+          "label": "28(b)",
+          "marks": 2,
+          "codes": [
+            "U593"
+          ],
+          "rationale": "Use table of values to draw reciprocal graph; checked against full task and official scheme: Graphs of reciprocal functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "28b",
+            "description": "Use table of values to draw reciprocal graph",
+            "marks": 2.0,
+            "cell": "AL1"
+          }
+        }
+      ],
+      "solution": "Missingy6,1,.6,.5;allsevenpointson3/x,positive decreasing smooth reciprocalcurve.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2F_Q29",
+      "component": "2F",
+      "number": 29,
+      "parts": [
+        {
+          "label": "29",
+          "marks": 2,
+          "codes": [
+            "U332"
+          ],
+          "rationale": "Use compound interest; checked against full task and official scheme: Compound interest calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "29",
+            "description": "Use compound interest",
+            "marks": 2.0,
+            "cell": "AM1"
+          }
+        }
+      ],
+      "solution": "350*1.02^3=371.4228 =>371.42pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q1",
+      "component": "3F",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1",
+          "marks": 1,
+          "codes": [
+            "U480"
+          ],
+          "rationale": "Round integer to nearest 1000; checked against full task and official scheme: Rounding integers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1",
+            "description": "Round integer to nearest 1000",
+            "marks": 1.0,
+            "cell": "B1"
+          }
+        }
+      ],
+      "solution": "41675 nearest1000=42000.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q2",
+      "component": "3F",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2",
+          "marks": 1,
+          "codes": [
+            "U435"
+          ],
+          "rationale": "Order decimals; checked against full task and official scheme: Understanding and ordering decimals",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2",
+            "description": "Order decimals",
+            "marks": 1.0,
+            "cell": "C1"
+          }
+        }
+      ],
+      "solution": "3.05<3.2<3.205<3.25.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q3",
+      "component": "3F",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3(a)",
+          "marks": 1,
+          "codes": [
+            "U557"
+          ],
+          "rationale": "Interpret dual bar chart; checked against full task and official scheme: Interpreting bar charts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3a",
+            "description": "Interpret dual bar chart",
+            "marks": 1.0,
+            "cell": "D1"
+          }
+        },
+        {
+          "label": "3(b)",
+          "marks": 2,
+          "codes": [
+            "U557"
+          ],
+          "rationale": "Interpret dual bar chart; checked against full task and official scheme: Interpreting bar charts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3b",
+            "description": "Interpret dual bar chart",
+            "marks": 2.0,
+            "cell": "E1"
+          }
+        }
+      ],
+      "solution": "Newquay<5hours4days;Margate39,Newquay32,difference7hours.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q4",
+      "component": "3F",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 3,
+          "codes": [
+            "U659",
+            "U926"
+          ],
+          "rationale": "Solve money problem; checked against full task and official scheme: Operations with money; Using a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Solve money problem",
+            "marks": 3.0,
+            "cell": "F1"
+          }
+        }
+      ],
+      "solution": "floor(45/2.85)=15packs;change45-42.75=2.25pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q5",
+      "component": "3F",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 1,
+          "codes": [
+            "M241"
+          ],
+          "rationale": "Draw pattern in sequence; checked against full task and official scheme: Term-to-term rules for sequences of patterns",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5a",
+            "description": "Draw pattern in sequence",
+            "marks": 1.0,
+            "cell": "G1"
+          }
+        },
+        {
+          "label": "5(b)",
+          "marks": 2,
+          "codes": [
+            "U978"
+          ],
+          "rationale": "Find property of pattern in sequence; checked against full task and official scheme: Position-to-term rules for sequences of patterns",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5b",
+            "description": "Find property of pattern in sequence",
+            "marks": 2.0,
+            "cell": "H1"
+          }
+        },
+        {
+          "label": "5(c)",
+          "marks": 2,
+          "codes": [
+            "U978"
+          ],
+          "rationale": "Interpret sequence of patterns; checked against full task and official scheme: Position-to-term rules for sequences of patterns",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5c",
+            "description": "Interpret sequence of patterns",
+            "marks": 2.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "Pattern4 has8grey+2white=10squares;general2n+2 =>pattern7=16;20=42 !=2*22,No.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q6",
+      "component": "3F",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6",
+          "marks": 2,
+          "codes": [
+            "U236",
+            "U851"
+          ],
+          "rationale": "Show primes and squares statement is wrong; checked against full task and official scheme: Finding prime numbers; Calculating with roots and powers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6",
+            "description": "Show primes and squares statement is wrong",
+            "marks": 2.0,
+            "cell": "J1"
+          }
+        }
+      ],
+      "solution": "2+7=9 gives two distinctprimes andsquarecounterexample.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q7",
+      "component": "3F",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 1,
+          "codes": [
+            "U526"
+          ],
+          "rationale": "Find range of small data set; checked against full task and official scheme: Calculating the range",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7a",
+            "description": "Find range of small data set",
+            "marks": 1.0,
+            "cell": "K1"
+          }
+        },
+        {
+          "label": "7(b)",
+          "marks": 2,
+          "codes": [
+            "U456"
+          ],
+          "rationale": "Find median of small data set; checked against full task and official scheme: Calculating the median",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7b",
+            "description": "Find median of small data set",
+            "marks": 2.0,
+            "cell": "L1"
+          }
+        }
+      ],
+      "solution": "Range8-1=7;sorted1,2,2,3,3,6,7,8 median3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q8",
+      "component": "3F",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3,
+          "codes": [
+            "U916"
+          ],
+          "rationale": "Solve fractions word problem; checked against full task and official scheme: Finding fractions of amounts with a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8",
+            "description": "Solve fractions word problem",
+            "marks": 3.0,
+            "cell": "M1"
+          }
+        }
+      ],
+      "solution": "Boys117;girls180*2/3=120;total237.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q9",
+      "component": "3F",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3,
+          "codes": [
+            "U388",
+            "U868"
+          ],
+          "rationale": "Solve capacity problem; checked against full task and official scheme: Converting units of length, mass and capacity; Using a written method to divide with decimals",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9",
+            "description": "Solve capacity problem",
+            "marks": 3.0,
+            "cell": "N1"
+          }
+        }
+      ],
+      "solution": "19500/210=92.857...,92fullcups.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q10",
+      "component": "3F",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10",
+          "marks": 3,
+          "codes": [
+            "U257"
+          ],
+          "rationale": "Solve scale drawing problem; checked against full task and official scheme: Drawing and interpreting scale diagrams",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10",
+            "description": "Solve scale drawing problem",
+            "marks": 3.0,
+            "cell": "O1"
+          }
+        }
+      ],
+      "solution": "Native measured drawing AB+BC-AC about3cm;scale2=>6km,tolerance4.8-7.2km. Physicallysensitive,1:1 mustremain.",
+      "scaleSensitive": true,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q11",
+      "component": "3F",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11",
+          "marks": 2,
+          "codes": [
+            "U687"
+          ],
+          "rationale": "Write ratio in simplest form; checked against full task and official scheme: Writing and simplifying ratios",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11",
+            "description": "Write ratio in simplest form",
+            "marks": 2.0,
+            "cell": "P1"
+          }
+        }
+      ],
+      "solution": "78:52 divide26=>3:2.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q12",
+      "component": "3F",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12",
+          "marks": 4,
+          "codes": [
+            "U471"
+          ],
+          "rationale": "Show that triangle is isosceles; checked against full task and official scheme: Geometric proofs with angle facts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12",
+            "description": "Show that triangle is isosceles",
+            "marks": 4.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "ABC46 verticallyopposite;BAC67 supplementary113;ACB67 trianglesum;equalangles =>isosceles,allreasons.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q13",
+      "component": "3F",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3,
+          "codes": [
+            "U925",
+            "U580"
+          ],
+          "rationale": "Compare statement with data; checked against full task and official scheme: Writing numbers as percentages of other numbers; Calculating experimental probabilities",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13",
+            "description": "Compare statement with data",
+            "marks": 3.0,
+            "cell": "R1"
+          }
+        }
+      ],
+      "solution": "43/56=76.7857% versus80%;No with comparablefigures,orYes with reasonedsmall difference asofficialschemeallows.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q14",
+      "component": "3F",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3,
+          "codes": [
+            "U741"
+          ],
+          "rationale": "Draw linear graph from equation; checked against full task and official scheme: Plotting straight line graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Draw linear graph from equation",
+            "marks": 3.0,
+            "cell": "S1"
+          }
+        }
+      ],
+      "solution": "Liney2x+1 through(-2,-3),(0,1),(3,7),wholeclosedsegmentx[-2,3].",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q15",
+      "component": "3F",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15(a)",
+          "marks": 2,
+          "codes": [
+            "U530"
+          ],
+          "rationale": "Find first three terms in quadratic sequence; checked against full task and official scheme: Substituting into position-to-term rules",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15a",
+            "description": "Find first three terms in quadratic sequence",
+            "marks": 2.0,
+            "cell": "T1"
+          }
+        },
+        {
+          "label": "15(b)",
+          "marks": 1,
+          "codes": [
+            "U530"
+          ],
+          "rationale": "Find term in quadratic sequence from value; checked against full task and official scheme: Substituting into position-to-term rules",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15b",
+            "description": "Find term in quadratic sequence from value",
+            "marks": 1.0,
+            "cell": "U1"
+          }
+        }
+      ],
+      "solution": "n1,2,3 gives8,11,16;128-7=121=>n11.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q16",
+      "component": "3F",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16",
+          "marks": 3,
+          "codes": [
+            "U721"
+          ],
+          "rationale": "Solve recipe proportion problem; checked against full task and official scheme: Solving direct proportion word problems",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16",
+            "description": "Solve recipe proportion problem",
+            "marks": 3.0,
+            "cell": "V1"
+          }
+        }
+      ],
+      "solution": "Scale50/20=2.5;butter125g,sugar250g,flour100g,walnuts125g,eggwhites5.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q17",
+      "component": "3F",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17(a)",
+          "marks": 1,
+          "codes": [
+            "U105"
+          ],
+          "rationale": "Simplify expression; checked against full task and official scheme: Simplifying expressions by collecting like terms",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17a",
+            "description": "Simplify expression",
+            "marks": 1.0,
+            "cell": "W1"
+          }
+        },
+        {
+          "label": "17(b)",
+          "marks": 1,
+          "codes": [
+            "U365"
+          ],
+          "rationale": "Factorise expression; checked against full task and official scheme: Factorising into one bracket",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17b",
+            "description": "Factorise expression",
+            "marks": 1.0,
+            "cell": "X1"
+          }
+        },
+        {
+          "label": "17(c)",
+          "marks": 2,
+          "codes": [
+            "U181"
+          ],
+          "rationale": "Change subject of formula; checked against full task and official scheme: Changing the subjects of formulae with two or more steps",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17c",
+            "description": "Change subject of formula",
+            "marks": 2.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "2y^3;m(m+1);h=(c-5)/3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q18",
+      "component": "3F",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3,
+          "codes": [
+            "U125",
+            "U902"
+          ],
+          "rationale": "Solve multiples and time problem; checked against full task and official scheme: Problem solving: Finding the HCF and LCM; Reading, converting and calculating with time",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18",
+            "description": "Solve multiples and time problem",
+            "marks": 3.0,
+            "cell": "Z1"
+          }
+        }
+      ],
+      "solution": "LCM24,20=120min;7:30+2h=9:30.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q19",
+      "component": "3F",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 2,
+          "codes": [
+            "U768"
+          ],
+          "rationale": "Intrepret statement on expanding brackets; checked against full task and official scheme: Expanding double brackets",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Intrepret statement on expanding brackets",
+            "marks": 2.0,
+            "cell": "AA1"
+          }
+        }
+      ],
+      "solution": "(x+5)^2=x2+10x+25,No;counterexamplex1 gives36 versus26.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q20",
+      "component": "3F",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4,
+          "codes": [
+            "U595",
+            "U925"
+          ],
+          "rationale": "Solve ratio money problem as percentage; checked against full task and official scheme: Solving cross-topic problems with ratios (Higher); Writing numbers as percentages of other numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20",
+            "description": "Solve ratio money problem as percentage",
+            "marks": 4.0,
+            "cell": "AB1"
+          }
+        }
+      ],
+      "solution": "105/(5-2)=35;Kim70,Molly175,Laura140;140/385*100=36.3636%,36.4%.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q21",
+      "component": "3F",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "rationale": "Find errors in frequency polygon; checked against full task and official scheme: Drawing and interpreting frequency polygons",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21",
+            "description": "Find errors in frequency polygon",
+            "marks": 2.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "Mustjoinwithstraightsegments and plotatclassmidpoints2,6,10,14,18,notupperboundaries.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q22",
+      "component": "3F",
+      "number": 22,
+      "parts": [
+        {
+          "label": "22",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "rationale": "Solve percentage increase problem; checked against full task and official scheme: Finding original values in percentage calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22",
+            "description": "Solve percentage increase problem",
+            "marks": 2.0,
+            "cell": "AD1"
+          }
+        }
+      ],
+      "solution": "5%=2.30 implies100%=46pounds.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q23",
+      "component": "3F",
+      "number": 23,
+      "parts": [
+        {
+          "label": "23",
+          "marks": 3,
+          "codes": [
+            "U427"
+          ],
+          "rationale": "Find missing angle using regular polygon; checked against full task and official scheme: Angles in polygons",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "23",
+            "description": "Find missing angle using regular polygon",
+            "marks": 3.0,
+            "cell": "AE1"
+          }
+        }
+      ],
+      "solution": "Pentagoninterior108;triangleCFD baseangles72,72;F36deg.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q24",
+      "component": "3F",
+      "number": 24,
+      "parts": [
+        {
+          "label": "24(a)",
+          "marks": 5,
+          "codes": [
+            "U950",
+            "U970",
+            "U659"
+          ],
+          "rationale": "Solve area money problem; checked against full task and official scheme: Finding the area of circles; Finding the area of compound shapes; Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "24a",
+            "description": "Solve area money problem",
+            "marks": 5.0,
+            "cell": "AF1"
+          }
+        },
+        {
+          "label": "24(b)",
+          "marks": 1,
+          "codes": [
+            "U950",
+            "U970"
+          ],
+          "rationale": "Interpret change in area; checked against full task and official scheme: Finding the area of circles; Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "24b",
+            "description": "Interpret change in area",
+            "marks": 1.0,
+            "cell": "AG1"
+          }
+        }
+      ],
+      "solution": "Area8.4*5.6+.5*pi*4.2^2=74.7488;ceil(/12)=7boxes,cost34.93;morecoveragecouldmeanfewerboxes.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q25",
+      "component": "3F",
+      "number": 25,
+      "parts": [
+        {
+          "label": "25(a)",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "rationale": "Complete probability tree diagram; checked against full task and official scheme: Tree diagrams for independent events",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25a",
+            "description": "Complete probability tree diagram",
+            "marks": 2.0,
+            "cell": "AH1"
+          }
+        },
+        {
+          "label": "25(b)",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "rationale": "Find probability using tree diagram; checked against full task and official scheme: Tree diagrams for independent events",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "25b",
+            "description": "Find probability using tree diagram",
+            "marks": 2.0,
+            "cell": "AI1"
+          }
+        }
+      ],
+      "solution": "Tree4/7,3/7 then3/8,5/8 onbothbranches;bothred15/56.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q26",
+      "component": "3F",
+      "number": 26,
+      "parts": [
+        {
+          "label": "26(a)",
+          "marks": 1,
+          "codes": [
+            "U330"
+          ],
+          "rationale": "Write number in standard form; checked against full task and official scheme: Using standard form with positive indices",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "26a",
+            "description": "Write number in standard form",
+            "marks": 1.0,
+            "cell": "AJ1"
+          }
+        },
+        {
+          "label": "26(b)",
+          "marks": 2,
+          "codes": [
+            "U161"
+          ],
+          "rationale": "Divide numbers in standard form; checked against full task and official scheme: Standard form with a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "26b",
+            "description": "Divide numbers in standard form",
+            "marks": 2.0,
+            "cell": "AK1"
+          }
+        }
+      ],
+      "solution": "3.4e8;(1.67e-7)/(9.11e-3)=0.0000183315...=>0.0000183(3sf).",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3F_Q27",
+      "component": "3F",
+      "number": 27,
+      "parts": [
+        {
+          "label": "27",
+          "marks": 2,
+          "codes": [
+            "U545"
+          ],
+          "rationale": "Use trigonometry to find angle size; checked against full task and official scheme: Finding unknown angles in right-angled triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "27",
+            "description": "Use trigonometry to find angle size",
+            "marks": 2.0,
+            "cell": "AL1"
+          }
+        }
+      ],
+      "solution": "atan(1.9/3.2)=30.6997...=>30.7deg.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q1",
+      "component": "1H",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1",
+          "marks": 3,
+          "codes": [
+            "U793"
+          ],
+          "rationale": "Subtract fractions; checked against full task and official scheme: Adding and subtracting mixed numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1",
+            "description": "Subtract fractions",
+            "marks": 3.0,
+            "cell": "B1"
+          }
+        }
+      ],
+      "solution": "23/30,see1F17.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q2",
+      "component": "1H",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2(a)(i)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "rationale": "Interpret y-intercept and gradient of real-life graph; checked against full task and official scheme: Using and finding equations of linear real-life graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2ai",
+            "description": "Interpret y-intercept and gradient of real-life graph",
+            "marks": 1,
+            "cell": "C1",
+            "analysisOriginalGroupedRow": {
+              "part": "2a",
+              "description": "Interpret y-intercept and gradient of real-life graph",
+              "marks": 2.0,
+              "cell": "C1"
+            },
+            "splitAuthority": "Original question (a)(i) and (a)(ii), one mark each"
+          }
+        },
+        {
+          "label": "2(a)(ii)",
+          "marks": 1,
+          "codes": [
+            "U862"
+          ],
+          "rationale": "Interpret y-intercept and gradient of real-life graph; checked against full task and official scheme: Using and finding equations of linear real-life graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2aii",
+            "description": "Interpret y-intercept and gradient of real-life graph",
+            "marks": 1,
+            "cell": "C1",
+            "analysisOriginalGroupedRow": {
+              "part": "2a",
+              "description": "Interpret y-intercept and gradient of real-life graph",
+              "marks": 2.0,
+              "cell": "C1"
+            },
+            "splitAuthority": "Original question (a)(i) and (a)(ii), one mark each"
+          }
+        },
+        {
+          "label": "2(b)",
+          "marks": 3,
+          "codes": [
+            "U315"
+          ],
+          "rationale": "Find linear equation of graph; checked against full task and official scheme: Finding equations of straight line graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2b",
+            "description": "Find linear equation of graph",
+            "marks": 3.0,
+            "cell": "D1"
+          }
+        }
+      ],
+      "solution": "Fixedcharge0.50,cost/min1.50,y1.5x+.5,see1F18.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q3",
+      "component": "1H",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3",
+          "marks": 5,
+          "codes": [
+            "U385",
+            "U575"
+          ],
+          "rationale": "Find area of pentagon; checked against full task and official scheme: Using Pythagoras' theorem in 2D; Finding the area of compound shapes containing triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3",
+            "description": "Find area of pentagon",
+            "marks": 5.0,
+            "cell": "E1"
+          }
+        }
+      ],
+      "solution": "44cm2,see1F19.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q4",
+      "component": "1H",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 4,
+          "codes": [
+            "U151",
+            "U902"
+          ],
+          "rationale": "Solve average speed problem; checked against full task and official scheme: Calculating with speed; Reading, converting and calculating with time",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Solve average speed problem",
+            "marks": 4.0,
+            "cell": "F1"
+          }
+        }
+      ],
+      "solution": "6mph,see1F20.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q5",
+      "component": "1H",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5(a)",
+          "marks": 5,
+          "codes": [
+            "U577",
+            "U970"
+          ],
+          "rationale": "Solve ratio area problem; checked against full task and official scheme: Sharing amounts in a given ratio; Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5a",
+            "description": "Solve ratio area problem",
+            "marks": 5.0,
+            "cell": "G1"
+          }
+        },
+        {
+          "label": "5(b)",
+          "marks": 1,
+          "codes": [
+            "U970"
+          ],
+          "rationale": "Interpret area; checked against full task and official scheme: Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5b",
+            "description": "Interpret area",
+            "marks": 1.0,
+            "cell": "H1"
+          }
+        }
+      ],
+      "solution": "36white6green18blue;gapsmayreduce,see1F21.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q6",
+      "component": "1H",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6",
+          "marks": 4,
+          "codes": [
+            "U462",
+            "U914",
+            "U151"
+          ],
+          "rationale": "Use travel graph to solve time problem; checked against full task and official scheme: Calculating speed from distance-time graphs; Interpreting distance-time graphs; Calculating with speed",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6",
+            "description": "Use travel graph to solve time problem",
+            "marks": 4.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "16:45,see1F22.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q7",
+      "component": "1H",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7",
+          "marks": 3,
+          "codes": [
+            "U225"
+          ],
+          "rationale": "Estimate value of calculation; checked against full task and official scheme: Estimating calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7",
+            "description": "Estimate value of calculation",
+            "marks": 3.0,
+            "cell": "J1"
+          }
+        }
+      ],
+      "solution": "43.2*sqrt99.05/.193 approx40*10/.2=2000. Square root preserved;round99.05to100 beforetakingroot.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q8",
+      "component": "1H",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8",
+          "marks": 2,
+          "codes": [
+            "U766",
+            "U903"
+          ],
+          "rationale": "Describe transformation after two translations; checked against full task and official scheme: Combining transformations; Adding and subtracting column vectors",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8",
+            "description": "Describe transformation after two translations",
+            "marks": 2.0,
+            "cell": "K1"
+          }
+        }
+      ],
+      "solution": "Translation(4,-7)+(-3,-2)=(1,-9).",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q9",
+      "component": "1H",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9",
+          "marks": 3,
+          "codes": [
+            "U357"
+          ],
+          "rationale": "Solve proportion word problem; checked against full task and official scheme: Solving inverse proportion word problems",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9",
+            "description": "Solve proportion word problem",
+            "marks": 3.0,
+            "cell": "L1"
+          }
+        }
+      ],
+      "solution": "40machine-days total,8usedfirst2days;32left/8=4more,total6days.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q10",
+      "component": "1H",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10",
+          "marks": 1,
+          "codes": [
+            "U772",
+            "U694"
+          ],
+          "rationale": "Use negative and fractional indices; checked against full task and official scheme: Indices of the form a/b; Index rules with negative indices",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10",
+            "description": "Use negative and fractional indices",
+            "marks": 1.0,
+            "cell": "M1"
+          }
+        }
+      ],
+      "solution": "64^(-2/3)=1/(4^2)=1/16.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q11",
+      "component": "1H",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11",
+          "marks": 2,
+          "codes": [
+            "U642",
+            "U837"
+          ],
+          "rationale": "Match cumulative frequency graphs to box plots; checked against full task and official scheme: Interpreting cumulative frequency graphs; Interpreting box plots",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11",
+            "description": "Match cumulative frequency graphs to box plots",
+            "marks": 2.0,
+            "cell": "N1"
+          }
+        }
+      ],
+      "solution": "A-Y,B-X,C-Z,D-W; comparequartiles atCF7.5,15,22.5 andendpoint140,180.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q12",
+      "component": "1H",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12",
+          "marks": 3,
+          "codes": [
+            "U278"
+          ],
+          "rationale": "Find percentage reduction in price; checked against full task and official scheme: Finding the percentage an amount has been changed by",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12",
+            "description": "Find percentage reduction in price",
+            "marks": 3.0,
+            "cell": "O1"
+          }
+        }
+      ],
+      "solution": "Reduction10.40/52*100=20%.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q13",
+      "component": "1H",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13",
+          "marks": 3,
+          "codes": [
+            "U582"
+          ],
+          "rationale": "Prove statement algebraically; checked against full task and official scheme: Writing algebraic proofs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13",
+            "description": "Prove statement algebraically",
+            "marks": 3.0,
+            "cell": "P1"
+          }
+        }
+      ],
+      "solution": "(2n+1)-(2m+1)=2(n-m),integerdifferencehenceeven;distinctoddnumbersrepresentedindependently.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q14",
+      "component": "1H",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3,
+          "codes": [
+            "U689"
+          ],
+          "rationale": "Convert recurring decimal to fraction; checked against full task and official scheme: Converting recurring decimals to fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Convert recurring decimal to fraction",
+            "marks": 3.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "0.6 recurring24:1000x-10x=618 =>x618/990=103/165. Dots over2and4 indicate24cycle,notall624.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q15",
+      "component": "1H",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15",
+          "marks": 4,
+          "codes": [
+            "U769",
+            "U681"
+          ],
+          "rationale": "Intrepret quadratic graph to solve problem; checked against full task and official scheme: Finding the turning point of a quadratic graph by completing the square; Interpreting quadratic real-life graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15",
+            "description": "Intrepret quadratic graph to solve problem",
+            "marks": 4.0,
+            "cell": "R1"
+          }
+        }
+      ],
+      "solution": "y=(x-15)^2/10-22.5;vertex(15,-22.5),depth22.5cm.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q16",
+      "component": "1H",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16(a)",
+          "marks": 1,
+          "codes": [
+            "U781"
+          ],
+          "rationale": "Evaluate working in vector problem; checked against full task and official scheme: Solving geometric problems using vectors",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16a",
+            "description": "Evaluate working in vector problem",
+            "marks": 1.0,
+            "cell": "S1"
+          }
+        },
+        {
+          "label": "16(b)",
+          "marks": 1,
+          "codes": [
+            "U606"
+          ],
+          "rationale": "Evaluate working in expansion of three brackets; checked against full task and official scheme: Expanding triple brackets",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16b",
+            "description": "Evaluate working in expansion of three brackets",
+            "marks": 1.0,
+            "cell": "T1"
+          }
+        }
+      ],
+      "solution": "BM1/3BC not1/2;constantproduct1*(-3)*2=-6,so+6wrong;fullproduct12x3-4x2-17x-6.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q17",
+      "component": "1H",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17",
+          "marks": 4,
+          "codes": [
+            "U808"
+          ],
+          "rationale": "Find missing angle using circle theorems; checked against full task and official scheme: Mixed problems: Circle theorems",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17",
+            "description": "Find missing angle using circle theorems",
+            "marks": 4.0,
+            "cell": "U1"
+          }
+        }
+      ],
+      "solution": "ODB90-57=33;OBD33 isosceles;BOD114;AODstraight=>AOB66,allreasons;alternatives retained.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q18",
+      "component": "1H",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3,
+          "codes": [
+            "U206"
+          ],
+          "rationale": "Find quadratic sequence from diagram of spiral; checked against full task and official scheme: Position-to-term rules for quadratic sequences",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18",
+            "description": "Find quadratic sequence from diagram of spiral",
+            "marks": 3.0,
+            "cell": "V1"
+          }
+        }
+      ],
+      "solution": "Sequence1.5,3,5.5,9,13.5 differences1.5,2.5,3.5,4.5 =>.5n2+1.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q19",
+      "component": "1H",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 3,
+          "codes": [
+            "U887"
+          ],
+          "rationale": "Prove two triangles are similar; checked against full task and official scheme: Geometric proofs with congruence and similarity",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Prove two triangles are similar",
+            "marks": 3.0,
+            "cell": "W1"
+          }
+        }
+      ],
+      "solution": "BAD=ACB90;ABD=CBA commonB;thirdanglesequal =>AAAsimilar. SchemeCAD=90 is genuinewronglabel;note correctBAD.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q20",
+      "component": "1H",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20",
+          "marks": 5,
+          "codes": [
+            "U547"
+          ],
+          "rationale": "Solve simultaneous equations of circle and line; checked against full task and official scheme: Solving simultaneous equations involving quadratics",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20",
+            "description": "Solve simultaneous equations of circle and line",
+            "marks": 5.0,
+            "cell": "X1"
+          }
+        }
+      ],
+      "solution": "x2+y2=18,x2y-3 =>5y2-12y-9=0 =>(5y+3)(y-3);(x,y)=(3,3),(-4.2,-.6).",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q21",
+      "component": "1H",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21",
+          "marks": 3,
+          "codes": [
+            "U281"
+          ],
+          "rationale": "Rationalise denominator to derive expression; checked against full task and official scheme: Rationalising denominators containing two terms",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21",
+            "description": "Rationalise denominator to derive expression",
+            "marks": 3.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "sqrt8=2sqrt2;multiply5-2sqrt2 gives(15-4)+(5-6)sqrt2 over25-8=(11-sqrt2)/17.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q22",
+      "component": "1H",
+      "number": 22,
+      "parts": [
+        {
+          "label": "22(a)",
+          "marks": 1,
+          "codes": [
+            "U487"
+          ],
+          "rationale": "Reflect function in y-axis; checked against full task and official scheme: Reflecting graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22a",
+            "description": "Reflect function in y-axis",
+            "marks": 1.0,
+            "cell": "Z1"
+          }
+        },
+        {
+          "label": "22(b)",
+          "marks": 1,
+          "codes": [
+            "U598"
+          ],
+          "rationale": "Translate trig function up  y-axis; checked against full task and official scheme: Translating graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22b",
+            "description": "Translate trig function up  y-axis",
+            "marks": 1.0,
+            "cell": "AA1"
+          }
+        },
+        {
+          "label": "22(c)",
+          "marks": 1,
+          "codes": [
+            "U156"
+          ],
+          "rationale": "Identify coordinates in graph of cosine; checked against full task and official scheme: Properties of trigonometric graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "22c",
+            "description": "Identify coordinates in graph of cosine",
+            "marks": 1.0,
+            "cell": "AB1"
+          }
+        }
+      ],
+      "solution": "y=f(-x);y=g(x)+1;C(180,-1).",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q23",
+      "component": "1H",
+      "number": 23,
+      "parts": [
+        {
+          "label": "23",
+          "marks": 3,
+          "codes": [
+            "U983",
+            "U408"
+          ],
+          "rationale": "Find probability of event from histogram; checked against full task and official scheme: Interpreting histograms; Writing probabilities as fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "23",
+            "description": "Find probability of event from histogram",
+            "marks": 3.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "Read histogramareasusing25-30=20;total118unitscounts,>30=61 =>61/118.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_1H_Q24",
+      "component": "1H",
+      "number": 24,
+      "parts": [
+        {
+          "label": "24",
+          "marks": 3,
+          "codes": [
+            "U729"
+          ],
+          "rationale": "Solve conditional probability problem; checked against full task and official scheme: Tree diagrams for dependent events",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "24",
+            "description": "Solve conditional probability problem",
+            "marks": 3.0,
+            "cell": "AD1"
+          }
+        }
+      ],
+      "solution": "BlackarrivesC:6/10*8/11+4/10*7/11=76/110=38/55.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q1",
+      "component": "2H",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1(a)",
+          "marks": 3,
+          "codes": [
+            "U476"
+          ],
+          "rationale": "Complete Venn diagram; checked against full task and official scheme: Venn diagrams",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1a",
+            "description": "Complete Venn diagram",
+            "marks": 3.0,
+            "cell": "B1"
+          }
+        },
+        {
+          "label": "1(b)",
+          "marks": 1,
+          "codes": [
+            "U476",
+            "U408"
+          ],
+          "rationale": "Find probability from Venn diagram; checked against full task and official scheme: Venn diagrams; Writing probabilities as fractions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1b",
+            "description": "Find probability from Venn diagram",
+            "marks": 1.0,
+            "cell": "C1"
+          }
+        }
+      ],
+      "solution": "13,20,23,4;4/60,see2F23.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q2",
+      "component": "2H",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2",
+          "marks": 2,
+          "codes": [
+            "U696"
+          ],
+          "rationale": "Describe rotation fully; checked against full task and official scheme: Rotation",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2",
+            "description": "Describe rotation fully",
+            "marks": 2.0,
+            "cell": "D1"
+          }
+        }
+      ],
+      "solution": "90deganticlockwise(0,-1),see2F24.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q3",
+      "component": "2H",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3(a)",
+          "marks": 1,
+          "codes": [
+            "U277"
+          ],
+          "rationale": "Give reason for outlier on scatter graph; checked against full task and official scheme: Interpreting scatter graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3a",
+            "description": "Give reason for outlier on scatter graph",
+            "marks": 1.0,
+            "cell": "E1"
+          }
+        },
+        {
+          "label": "3(b)",
+          "marks": 1,
+          "codes": [
+            "U277"
+          ],
+          "rationale": "Identify correlation; checked against full task and official scheme: Interpreting scatter graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3b",
+            "description": "Identify correlation",
+            "marks": 1.0,
+            "cell": "F1"
+          }
+        },
+        {
+          "label": "3(c)",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "rationale": "Use line of best fit; checked against full task and official scheme: Using lines of best fit",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3c",
+            "description": "Use line of best fit",
+            "marks": 1.0,
+            "cell": "G1"
+          }
+        },
+        {
+          "label": "3(d)",
+          "marks": 1,
+          "codes": [
+            "U128"
+          ],
+          "rationale": "Interpret line of best fit; checked against full task and official scheme: Using lines of best fit",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3d",
+            "description": "Interpret line of best fit",
+            "marks": 1.0,
+            "cell": "H1"
+          }
+        }
+      ],
+      "solution": "Outlier/positive/15-25/extrapolation,see2F25.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q4",
+      "component": "2H",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 5,
+          "codes": [
+            "U934",
+            "U575"
+          ],
+          "rationale": "Find shaded area in compound shape; checked against full task and official scheme: Problem solving: Area and perimeter of rectangles and compound shapes (Higher); Finding the area of compound shapes containing triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Find shaded area in compound shape",
+            "marks": 5.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "13m2,see2F26.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q5",
+      "component": "2H",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5",
+          "marks": 3,
+          "codes": [
+            "U760"
+          ],
+          "rationale": "Solve simultaneous equations; checked against full task and official scheme: Solving simultaneous equations using elimination",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5",
+            "description": "Solve simultaneous equations",
+            "marks": 3.0,
+            "cell": "J1"
+          }
+        }
+      ],
+      "solution": "x3,y-2,see2F27.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q6",
+      "component": "2H",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6(a)",
+          "marks": 2,
+          "codes": [
+            "U593"
+          ],
+          "rationale": "Complete table of values for reciprocal graph; checked against full task and official scheme: Graphs of reciprocal functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6a",
+            "description": "Complete table of values for reciprocal graph",
+            "marks": 2.0,
+            "cell": "K1"
+          }
+        },
+        {
+          "label": "6(b)",
+          "marks": 2,
+          "codes": [
+            "U593"
+          ],
+          "rationale": "Use table of values to draw reciprocal graph; checked against full task and official scheme: Graphs of reciprocal functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6b",
+            "description": "Use table of values to draw reciprocal graph",
+            "marks": 2.0,
+            "cell": "L1"
+          }
+        }
+      ],
+      "solution": "Reciprocal6,1,.6,.5 andcurve,see2F28.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q7",
+      "component": "2H",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 3,
+          "codes": [
+            "U610"
+          ],
+          "rationale": "Solve money conversion problem; checked against full task and official scheme: Currency conversion",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7a",
+            "description": "Solve money conversion problem",
+            "marks": 3.0,
+            "cell": "M1"
+          }
+        },
+        {
+          "label": "7(b)",
+          "marks": 1,
+          "codes": [
+            "U610"
+          ],
+          "rationale": "Interpret money conversion problem; checked against full task and official scheme: Currency conversion",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7b",
+            "description": "Interpret money conversion problem",
+            "marks": 1.0,
+            "cell": "N1"
+          }
+        }
+      ],
+      "solution": "USA134.99/1.43=94.3986pounds;Germany139.99*.73=102.1927;UK98;USAcheapest;postagemayalter.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q8",
+      "component": "2H",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8",
+          "marks": 3,
+          "codes": [
+            "U921"
+          ],
+          "rationale": "Solve ratio problem; checked against full task and official scheme: Combining ratios",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8",
+            "description": "Solve ratio problem",
+            "marks": 3.0,
+            "cell": "O1"
+          }
+        }
+      ],
+      "solution": "8:5 multiply3=>24:15;b:c3:4 multiply5=>15:20;24:15:20.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q9",
+      "component": "2H",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9(a)",
+          "marks": 1,
+          "codes": [
+            "U330"
+          ],
+          "rationale": "Convert from standard to ordinary form; checked against full task and official scheme: Using standard form with positive indices",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9a",
+            "description": "Convert from standard to ordinary form",
+            "marks": 1.0,
+            "cell": "P1"
+          }
+        },
+        {
+          "label": "9(b)",
+          "marks": 2,
+          "codes": [
+            "U161"
+          ],
+          "rationale": "Divide numbers in standard form; checked against full task and official scheme: Standard form with a calculator",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9b",
+            "description": "Divide numbers in standard form",
+            "marks": 2.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "36000;2.8e-2/4.7e5=5.9574468e-8=>5.96e-8.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q10",
+      "component": "2H",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10(i)",
+          "marks": 1,
+          "codes": [
+            "U640"
+          ],
+          "rationale": "Interpret and write formula using proportion; checked against full task and official scheme: Interpreting direct proportion equations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10i",
+            "description": "Interpret and write formula using proportion",
+            "marks": 1,
+            "cell": "R1",
+            "analysisOriginalGroupedRow": {
+              "part": "10",
+              "description": "Interpret and write formula using proportion",
+              "marks": 4.0,
+              "cell": "R1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        },
+        {
+          "label": "10(ii)",
+          "marks": 3,
+          "codes": [
+            "U407"
+          ],
+          "rationale": "Interpret and write formula using proportion; checked against full task and official scheme: Constructing direct proportion equations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10ii",
+            "description": "Interpret and write formula using proportion",
+            "marks": 3,
+            "cell": "R1",
+            "analysisOriginalGroupedRow": {
+              "part": "10",
+              "description": "Interpret and write formula using proportion",
+              "marks": 4.0,
+              "cell": "R1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        }
+      ],
+      "solution": "400/5²=576/6²=16;yx²,y=16x²,parts(i)1+(ii)3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q11",
+      "component": "2H",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 3,
+          "codes": [
+            "U545"
+          ],
+          "rationale": "Solve trigonometric problem; checked against full task and official scheme: Finding unknown angles in right-angled triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11a",
+            "description": "Solve trigonometric problem",
+            "marks": 3.0,
+            "cell": "S1"
+          }
+        },
+        {
+          "label": "11(b)",
+          "marks": 1,
+          "codes": [
+            "U283"
+          ],
+          "rationale": "Interpret trigonometric problem; checked against full task and official scheme: Finding unknown sides in right-angled triangles",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11b",
+            "description": "Interpret trigonometric problem",
+            "marks": 1.0,
+            "cell": "T1"
+          }
+        }
+      ],
+      "solution": "tanx=h/d=4=>75.9638deg=76.0;reducing75deglowersfixedladderheight.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q12",
+      "component": "2H",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12(a)",
+          "marks": 3,
+          "codes": [
+            "U206"
+          ],
+          "rationale": "Find nth term in quadratic sequence; checked against full task and official scheme: Position-to-term rules for quadratic sequences",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12a",
+            "description": "Find nth term in quadratic sequence",
+            "marks": 3.0,
+            "cell": "U1"
+          }
+        },
+        {
+          "label": "12(b)",
+          "marks": 1,
+          "codes": [
+            "U530",
+            "U680"
+          ],
+          "rationale": "Show that number is not term in quadratic sequence; checked against full task and official scheme: Substituting into position-to-term rules; Special sequences",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12b",
+            "description": "Show that number is not term in quadratic sequence",
+            "marks": 1.0,
+            "cell": "V1"
+          }
+        }
+      ],
+      "solution": "n²+2n;differentsequence2^n+5,36 wouldrequire2^n=31notapower2. Analysisdescriptionquadraticfor(b)wrong;mapexponentialsequence.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q13",
+      "component": "2H",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13(i)",
+          "marks": 3,
+          "codes": [
+            "U328"
+          ],
+          "rationale": "Use and interpret capture-recapture method; checked against full task and official scheme: Capture-recapture",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13i",
+            "description": "Use and interpret capture-recapture method",
+            "marks": 3,
+            "cell": "W1",
+            "analysisOriginalGroupedRow": {
+              "part": "13",
+              "description": "Use and interpret capture-recapture method",
+              "marks": 4.0,
+              "cell": "W1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        },
+        {
+          "label": "13(ii)",
+          "marks": 1,
+          "codes": [
+            "U328"
+          ],
+          "rationale": "Use and interpret capture-recapture method; checked against full task and official scheme: Capture-recapture",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13ii",
+            "description": "Use and interpret capture-recapture method",
+            "marks": 1,
+            "cell": "W1",
+            "analysisOriginalGroupedRow": {
+              "part": "13",
+              "description": "Use and interpret capture-recapture method",
+              "marks": 4.0,
+              "cell": "W1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        }
+      ],
+      "solution": "8/40=30/N =>N150;taglossreducesrecapturefractionand inflatesestimate.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q14",
+      "component": "2H",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 2,
+          "codes": [
+            "U694",
+            "U235"
+          ],
+          "rationale": "Solve negative indices problem; checked against full task and official scheme: Index rules with negative indices; Index rules with positive indices",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Solve negative indices problem",
+            "marks": 2.0,
+            "cell": "X1"
+          }
+        }
+      ],
+      "solution": "3^-n=.2=>3^n=5;3^(4n)=5^4=625.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q15",
+      "component": "2H",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15",
+          "marks": 5,
+          "codes": [
+            "U373",
+            "U592",
+            "U925"
+          ],
+          "rationale": "Find percentage of shaded area in a circle; checked against full task and official scheme: Finding the area of sectors; The area rule; Writing numbers as percentages of other numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15",
+            "description": "Find percentage of shaded area in a circle",
+            "marks": 5.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "Sector200pi;triangle450sin80;segment185.155...;divide900pi*100=6.5475%=>6.55.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q16",
+      "component": "2H",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16",
+          "marks": 2,
+          "codes": [
+            "U747"
+          ],
+          "rationale": "Identify errors in graph of inequalities; checked against full task and official scheme: Graphs of linear inequalities",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16",
+            "description": "Identify errors in graph of inequalities",
+            "marks": 2.0,
+            "cell": "Z1"
+          }
+        }
+      ],
+      "solution": "Helenusesx+y<=7not6,x>=0noty>=0,y>=x+2not<=;anytwo.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q17",
+      "component": "2H",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17(a)",
+          "marks": 3,
+          "codes": [
+            "U882"
+          ],
+          "rationale": "Estimate area under non-linear speed-time graph; checked against full task and official scheme: Estimating areas under non-linear graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17a",
+            "description": "Estimate area under non-linear speed-time graph",
+            "marks": 3.0,
+            "cell": "AA1"
+          }
+        },
+        {
+          "label": "17(b)",
+          "marks": 2,
+          "codes": [
+            "U611"
+          ],
+          "rationale": "Interpret area under speed-time graph; checked against full task and official scheme: Calculating distances from velocity-time graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17b",
+            "description": "Interpret area under speed-time graph",
+            "marks": 2.0,
+            "cell": "AB1"
+          }
+        },
+        {
+          "label": "17(c)",
+          "marks": 1,
+          "codes": [
+            "U882"
+          ],
+          "rationale": "Interpret estimated area under speed-time graph; checked against full task and official scheme: Estimating areas under non-linear graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17c",
+            "description": "Interpret estimated area under speed-time graph",
+            "marks": 1.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "Trapeziawidth1:.5*(3.6+9.6+2*(6.4+8.4))=21.4;distancebetween1and4secondsinmetres;underestimate,chordsbelowconcavecurve.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q18",
+      "component": "2H",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18",
+          "marks": 3,
+          "codes": [
+            "U369"
+          ],
+          "rationale": "Calculate possible outcomes; checked against full task and official scheme: Using the product rule for counting",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18",
+            "description": "Calculate possible outcomes",
+            "marks": 3.0,
+            "cell": "AD1"
+          }
+        }
+      ],
+      "solution": "95*94*87*86=66814260orderedrolesspecific,noreplacement.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q19",
+      "component": "2H",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5,
+          "codes": [
+            "U898",
+            "U477",
+            "U753"
+          ],
+          "rationale": "Solve equation of perpendicular line problem; checked against full task and official scheme: Equations of parallel and perpendicular lines; Finding the equation of a straight line from its gradient and a point; Using equivalent ratios to find unknown amounts",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Solve equation of perpendicular line problem",
+            "marks": 5.0,
+            "cell": "AE1"
+          }
+        }
+      ],
+      "solution": "PQgradient1/4;M=(-1,9);perpendicularslope-4;9=4+c=>c5;y=-4x+5.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q20",
+      "component": "2H",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20",
+          "marks": 4,
+          "codes": [
+            "U229"
+          ],
+          "rationale": "Find missing constant in exponential graph; checked against full task and official scheme: Graphs of exponential functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20",
+            "description": "Find missing constant in exponential graph",
+            "marks": 4.0,
+            "cell": "AF1"
+          }
+        }
+      ],
+      "solution": "p5;405=5q4,qpositive3;k5*3²=45.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_2H_Q21",
+      "component": "2H",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21",
+          "marks": 5,
+          "codes": [
+            "U560"
+          ],
+          "rationale": "Prove straight line using vectors; checked against full task and official scheme: Geometric proofs with vectors",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21",
+            "description": "Prove straight line using vectors",
+            "marks": 5.0,
+            "cell": "AG1"
+          }
+        }
+      ],
+      "solution": "BA=a-3b;XY=b+.5(a-3b)=.5(a-b);YZ=a+.5(a-3b)=1.5(a-b)=3XY;commonYandparallel=>XYZcollinear.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q1",
+      "component": "3H",
+      "number": 1,
+      "parts": [
+        {
+          "label": "1",
+          "marks": 3,
+          "codes": [
+            "U125",
+            "U902"
+          ],
+          "rationale": "Solve multiples and time problem; checked against full task and official scheme: Problem solving: Finding the HCF and LCM; Reading, converting and calculating with time",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "1",
+            "description": "Solve multiples and time problem",
+            "marks": 3.0,
+            "cell": "B1"
+          }
+        }
+      ],
+      "solution": "9:30,see3F18.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q2",
+      "component": "3H",
+      "number": 2,
+      "parts": [
+        {
+          "label": "2",
+          "marks": 2,
+          "codes": [
+            "U768"
+          ],
+          "rationale": "Intrepret statement on expanding brackets; checked against full task and official scheme: Expanding double brackets",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "2",
+            "description": "Intrepret statement on expanding brackets",
+            "marks": 2.0,
+            "cell": "C1"
+          }
+        }
+      ],
+      "solution": "No,see3F19.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q3",
+      "component": "3H",
+      "number": 3,
+      "parts": [
+        {
+          "label": "3",
+          "marks": 4,
+          "codes": [
+            "U595",
+            "U925"
+          ],
+          "rationale": "Solve ratio money problem as percentage; checked against full task and official scheme: Solving cross-topic problems with ratios (Higher); Writing numbers as percentages of other numbers",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "3",
+            "description": "Solve ratio money problem as percentage",
+            "marks": 4.0,
+            "cell": "D1"
+          }
+        }
+      ],
+      "solution": "36.4%,see3F20.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q4",
+      "component": "3H",
+      "number": 4,
+      "parts": [
+        {
+          "label": "4",
+          "marks": 2,
+          "codes": [
+            "U840"
+          ],
+          "rationale": "Find errors in frequency polygon; checked against full task and official scheme: Drawing and interpreting frequency polygons",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "4",
+            "description": "Find errors in frequency polygon",
+            "marks": 2.0,
+            "cell": "E1"
+          }
+        }
+      ],
+      "solution": "Straightsegments+midpoints,see3F21.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q5",
+      "component": "3H",
+      "number": 5,
+      "parts": [
+        {
+          "label": "5",
+          "marks": 2,
+          "codes": [
+            "U286"
+          ],
+          "rationale": "Solve percentage increase problem; checked against full task and official scheme: Finding original values in percentage calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "5",
+            "description": "Solve percentage increase problem",
+            "marks": 2.0,
+            "cell": "F1"
+          }
+        }
+      ],
+      "solution": "46pounds,see3F22.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q6",
+      "component": "3H",
+      "number": 6,
+      "parts": [
+        {
+          "label": "6",
+          "marks": 3,
+          "codes": [
+            "U427"
+          ],
+          "rationale": "Find missing angle using regular polygon; checked against full task and official scheme: Angles in polygons",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "6",
+            "description": "Find missing angle using regular polygon",
+            "marks": 3.0,
+            "cell": "G1"
+          }
+        }
+      ],
+      "solution": "36deg,see3F23.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q7",
+      "component": "3H",
+      "number": 7,
+      "parts": [
+        {
+          "label": "7(a)",
+          "marks": 5,
+          "codes": [
+            "U950",
+            "U970",
+            "U659"
+          ],
+          "rationale": "Solve area money problem; checked against full task and official scheme: Finding the area of circles; Finding the area of compound shapes; Operations with money",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7a",
+            "description": "Solve area money problem",
+            "marks": 5.0,
+            "cell": "H1"
+          }
+        },
+        {
+          "label": "7(b)",
+          "marks": 1,
+          "codes": [
+            "U950",
+            "U970"
+          ],
+          "rationale": "Interpret change in area; checked against full task and official scheme: Finding the area of circles; Finding the area of compound shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "7b",
+            "description": "Interpret change in area",
+            "marks": 1.0,
+            "cell": "I1"
+          }
+        }
+      ],
+      "solution": "34.93,fewerboxespossible,see3F24.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q8",
+      "component": "3H",
+      "number": 8,
+      "parts": [
+        {
+          "label": "8(a)",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "rationale": "Complete probability tree diagram; checked against full task and official scheme: Tree diagrams for independent events",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8a",
+            "description": "Complete probability tree diagram",
+            "marks": 2.0,
+            "cell": "J1"
+          }
+        },
+        {
+          "label": "8(b)",
+          "marks": 2,
+          "codes": [
+            "U558"
+          ],
+          "rationale": "Find probability using tree diagram; checked against full task and official scheme: Tree diagrams for independent events",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "8b",
+            "description": "Find probability using tree diagram",
+            "marks": 2.0,
+            "cell": "K1"
+          }
+        }
+      ],
+      "solution": "Tree4/7,3/7then3/8,5/8;15/56,see3F25.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q9",
+      "component": "3H",
+      "number": 9,
+      "parts": [
+        {
+          "label": "9(i)",
+          "marks": 1,
+          "codes": [
+            "U229"
+          ],
+          "rationale": "Match graphs to equations; checked against full task and official scheme: Graphs of exponential functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9i",
+            "description": "Match graphs to equations",
+            "marks": 1,
+            "cell": "L1",
+            "analysisOriginalGroupedRow": {
+              "part": "9",
+              "description": "Match graphs to equations",
+              "marks": 2.0,
+              "cell": "L1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        },
+        {
+          "label": "9(ii)",
+          "marks": 1,
+          "codes": [
+            "U980"
+          ],
+          "rationale": "Match graphs to equations; checked against full task and official scheme: Graphs of cubic functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "9ii",
+            "description": "Match graphs to equations",
+            "marks": 1,
+            "cell": "L1",
+            "analysisOriginalGroupedRow": {
+              "part": "9",
+              "description": "Match graphs to equations",
+              "marks": 2.0,
+              "cell": "L1"
+            },
+            "splitAuthority": "Explicit original question and official scheme parts"
+          }
+        }
+      ],
+      "solution": "y=2^x graphD,y=x³-3x graphA. Exponent2^x,notlinear2x.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q10",
+      "component": "3H",
+      "number": 10,
+      "parts": [
+        {
+          "label": "10",
+          "marks": 2,
+          "codes": [
+            "U662"
+          ],
+          "rationale": "Simplify expression; checked against full task and official scheme: Simplifying expressions using index laws",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "10",
+            "description": "Simplify expression",
+            "marks": 2.0,
+            "cell": "M1"
+          }
+        }
+      ],
+      "solution": "3m²r*4m³r6=12m5r7.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q11",
+      "component": "3H",
+      "number": 11,
+      "parts": [
+        {
+          "label": "11(a)",
+          "marks": 1,
+          "codes": [
+            "U837",
+            "U961"
+          ],
+          "rationale": "Find IQR from box plot; checked against full task and official scheme: Interpreting box plots; Calculating quartiles and interquartile range",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11a",
+            "description": "Find IQR from box plot",
+            "marks": 1.0,
+            "cell": "N1"
+          }
+        },
+        {
+          "label": "11(b)",
+          "marks": 3,
+          "codes": [
+            "U879"
+          ],
+          "rationale": "Draw box plot from data set; checked against full task and official scheme: Drawing box plots",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11b",
+            "description": "Draw box plot from data set",
+            "marks": 3.0,
+            "cell": "O1"
+          }
+        },
+        {
+          "label": "11(c)",
+          "marks": 2,
+          "codes": [
+            "U507"
+          ],
+          "rationale": "Compare distributions between box plots; checked against full task and official scheme: Comparing populations using box plots and cumulative frequency graphs",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "11c",
+            "description": "Compare distributions between box plots",
+            "marks": 2.0,
+            "cell": "P1"
+          }
+        }
+      ],
+      "solution": "IQR166-158=8g;Jack153,164,170,175,186;Tommedian162,Jack170typicallyheavier;JackIQR11>8morespread.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q12",
+      "component": "3H",
+      "number": 12,
+      "parts": [
+        {
+          "label": "12",
+          "marks": 4,
+          "codes": [
+            "U910"
+          ],
+          "rationale": "Solve density problem; checked against full task and official scheme: Calculating with density",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "12",
+            "description": "Solve density problem",
+            "marks": 4.0,
+            "cell": "Q1"
+          }
+        }
+      ],
+      "solution": "Volume7200cm3,wood8000/7200=1.111...g/cm3,seawater1030/1000=1.03;wooddenser,No.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q13",
+      "component": "3H",
+      "number": 13,
+      "parts": [
+        {
+          "label": "13(a)",
+          "marks": 2,
+          "codes": [
+            "U168"
+          ],
+          "rationale": "Show cubic equation solution is between 0 and 1; checked against full task and official scheme: Finding approximate solutions to equations using iteration",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13a",
+            "description": "Show cubic equation solution is between 0 and 1",
+            "marks": 2.0,
+            "cell": "R1"
+          }
+        },
+        {
+          "label": "13(b)",
+          "marks": 2,
+          "codes": [
+            "U181",
+            "U365"
+          ],
+          "rationale": "Rearrange cubic equation; checked against full task and official scheme: Changing the subjects of formulae with two or more steps; Factorising into one bracket",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13b",
+            "description": "Rearrange cubic equation",
+            "marks": 2.0,
+            "cell": "S1"
+          }
+        },
+        {
+          "label": "13(c)",
+          "marks": 3,
+          "codes": [
+            "U434"
+          ],
+          "rationale": "Use iteration to estimate solution; checked against full task and official scheme: Substituting into iterative formulae",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "13c",
+            "description": "Use iteration to estimate solution",
+            "marks": 3.0,
+            "cell": "T1"
+          }
+        }
+      ],
+      "solution": "f0=-4,f1=2,continuoussignchange;factorx(x²+5)=4=>x4/(x²+5);x1=.8,x2=4/5.64=100/141=.709219858.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q14",
+      "component": "3H",
+      "number": 14,
+      "parts": [
+        {
+          "label": "14",
+          "marks": 3,
+          "codes": [
+            "U988"
+          ],
+          "rationale": "Solve repeated percentage decrease problem; checked against full task and official scheme: Growth and decay",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "14",
+            "description": "Solve repeated percentage decrease problem",
+            "marks": 3.0,
+            "cell": "U1"
+          }
+        }
+      ],
+      "solution": "(1-x/100)^8=.5=>x100*(1-.5^(1/8))=8.2996=>8.3%.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q15",
+      "component": "3H",
+      "number": 15,
+      "parts": [
+        {
+          "label": "15",
+          "marks": 2,
+          "codes": [
+            "U630"
+          ],
+          "rationale": "Find area of base of similar solid; checked against full task and official scheme: Finding the perimeter and area of similar shapes",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "15",
+            "description": "Find area of base of similar solid",
+            "marks": 2.0,
+            "cell": "V1"
+          }
+        }
+      ],
+      "solution": "Arearatio(.8)^2;160*.64=102.4cm2,notvolumeratio.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q16",
+      "component": "3H",
+      "number": 16,
+      "parts": [
+        {
+          "label": "16",
+          "marks": 5,
+          "codes": [
+            "U587"
+          ],
+          "rationale": "Use bounds to find value to degree of accuracy; checked against full task and official scheme: Finding bounds for calculations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "16",
+            "description": "Use bounds to find value to degree of accuracy",
+            "marks": 5.0,
+            "cell": "W1"
+          }
+        }
+      ],
+      "solution": "a[6.425,6.435),b[5.5135,5.5145);vLBsqrt(6.425/5.5145)=1.0794...,UBsqrt(6.435/5.5135)=1.0803...;bothround1.08(2dp).",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q17",
+      "component": "3H",
+      "number": 17,
+      "parts": [
+        {
+          "label": "17",
+          "marks": 3,
+          "codes": [
+            "U915",
+            "U617",
+            "U599"
+          ],
+          "rationale": "Solve volume of cylinder and spheres problem; checked against full task and official scheme: Finding the volume of cylinders; Finding the volume of spheres; Constructing and solving equations",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "17",
+            "description": "Solve volume of cylinder and spheres problem",
+            "marks": 3.0,
+            "cell": "X1"
+          }
+        }
+      ],
+      "solution": "9pi x²h=270*(4pi/3)*(x/2)^3=45pi x³;h5x.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q18",
+      "component": "3H",
+      "number": 18,
+      "parts": [
+        {
+          "label": "18",
+          "marks": 4,
+          "codes": [
+            "U191"
+          ],
+          "rationale": "Change subject of formula; checked against full task and official scheme: Changing the subject when the subject appears more than once",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "18",
+            "description": "Change subject of formula",
+            "marks": 4.0,
+            "cell": "Y1"
+          }
+        }
+      ],
+      "solution": "5f+fm=4-3m=>m(f+3)=4-5f=>m=(4-5f)/(f+3),f!=-3.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q19",
+      "component": "3H",
+      "number": 19,
+      "parts": [
+        {
+          "label": "19",
+          "marks": 5,
+          "codes": [
+            "U170",
+            "U952"
+          ],
+          "rationale": "Find size of angle between line and plane; checked against full task and official scheme: Trigonometry in 3D shapes; The sine rule",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "19",
+            "description": "Find size of angle between line and plane",
+            "marks": 5.0,
+            "cell": "Z1"
+          }
+        }
+      ],
+      "solution": "CD20tan34,BD20/cos34;AD=BDsin60/sin75;sinDAC=CD/AD =>38.566...deg,38.6deg.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q20",
+      "component": "3H",
+      "number": 20,
+      "parts": [
+        {
+          "label": "20(a)",
+          "marks": 1,
+          "codes": [
+            "U637"
+          ],
+          "rationale": "Find value of function; checked against full task and official scheme: Substituting into functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20a",
+            "description": "Find value of function",
+            "marks": 1.0,
+            "cell": "AA1"
+          }
+        },
+        {
+          "label": "20(b)",
+          "marks": 2,
+          "codes": [
+            "U448"
+          ],
+          "rationale": "Find composite function; checked against full task and official scheme: Finding composite functions",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20b",
+            "description": "Find composite function",
+            "marks": 2.0,
+            "cell": "AB1"
+          }
+        },
+        {
+          "label": "20(c)",
+          "marks": 4,
+          "codes": [
+            "U448",
+            "U228"
+          ],
+          "rationale": "Solve composite function problem; checked against full task and official scheme: Finding composite functions; Factorising to solve quadratic equations of the form x^2+bx+c=0",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "20c",
+            "description": "Solve composite function problem",
+            "marks": 4.0,
+            "cell": "AC1"
+          }
+        }
+      ],
+      "solution": "g(-4)=18;gf=(2x-3)^2+2=4x²-12x+11;fg=2x²+1;equate=>2x²-12x+10=0=>x1,5.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    },
+    {
+      "id": "1MA1_MOCK_SET_01_3H_Q21",
+      "component": "3H",
+      "number": 21,
+      "parts": [
+        {
+          "label": "21",
+          "marks": 4,
+          "codes": [
+            "U807"
+          ],
+          "rationale": "Find proof using circle theorems; checked against full task and official scheme: Proving the circle theorems",
+          "sourceCodes": [],
+          "sourceAnalysis": {
+            "part": "21",
+            "description": "Find proof using circle theorems",
+            "marks": 4.0,
+            "cell": "AD1"
+          }
+        }
+      ],
+      "solution": "JoinAOandOC;anglesatOonoppositearcsx+y=360;ABC=x/2,ADC=y/2 =>sum180;cannotmerelycitetheconclusiontheorem.",
+      "scaleSensitive": false,
+      "state": "source mathematics and semantic mapping authored; native outputs not yet reviewed"
+    }
+  ]
+}

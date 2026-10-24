@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "actualImporterInvokedWithBothOriginalEnhancedWorkbooks": true,
+  "runtimeExactAfterReimport": true,
+  "original2542ScoresUnchanged": true,
+  "curvesUnchanged": true,
+  "mockSet01Measured": 146,
+  "importReport": "reimport-report.json"
+}
