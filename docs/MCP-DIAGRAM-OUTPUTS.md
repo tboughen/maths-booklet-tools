@@ -1,3 +1,7 @@
+Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+applicable; historical family/tool counts are snapshots, not discovery evidence.
+
 # MathsDock diagram outputs for another AI project
 
 MathsDock produces deterministic diagrams. The consuming AI owns booklet

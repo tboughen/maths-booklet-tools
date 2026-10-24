@@ -11,6 +11,7 @@ export function classifyPaths(paths, conservative = false) {
     let category;
     if (/^(docs\/|\.agents\/|AGENTS\.md$|README\.md$)/.test(path)) category = 'documentation';
     else if (/^(public\/bank\/(assets\/|catalogue\.json))/.test(path)) category = 'bank';
+    else if (/^services\/graph-mcp\/(verify-consumption\.ts|consumption-pacing(?:\.test)?\.ts|smoke\.ts)$/.test(path)) category = 'qualification';
     else if (/^(services\/|Dockerfile|render\.yaml$|\.dockerignore$|tsconfig\.service\.json$)/.test(path)) category = 'service';
     else if (/^(packages\/|assets\/graph-fonts\/)/.test(path)) category = 'shared';
     else if (/^(src\/|e2e\/|public\/brand\/|public\/favicon\.svg$|index\.html$)/.test(path)) category = 'website';
@@ -32,7 +33,14 @@ export function classifyPaths(paths, conservative = false) {
   const website = broad || ['website', 'bank', 'shared'].some(c => categories.has(c));
   const required = website ? ['units', 'catalogue', 'publisher', 'built', 'browser-1', 'browser-2'] : [];
   if (service) required.push('service');
-  return { version: 2, categories: [...categories].sort(), reasons, required, website, service, fullInventory: inventoryReasons.length > 0, inventoryReasons, inputDigest: digestObject([...paths].sort()) };
+  const impacts = {
+    guidance: categories.has('documentation'), website,
+    serviceRuntime: broad || categories.has('shared') || categories.has('service'),
+    advertisedMetadata: broad || categories.has('shared') || categories.has('service'),
+    sharedInterchange: categories.has('shared'), qualification: broad,
+    infrastructure: categories.has('infrastructure') || categories.has('unknown'),
+  };
+  return { version: 4, categories: [...categories].sort(), reasons, required, website, service, impacts, fullInventory: inventoryReasons.length > 0, inventoryReasons, inputDigest: digestObject([...paths].sort()) };
 }
 export function classify(root, base) {
   let paths = [], conservative = !base;

@@ -1,3 +1,7 @@
+Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+applicable; historical family/tool counts are snapshots, not discovery evidence.
+
 # Using MathsDock guidance in future conversations
 
 The project `AGENTS.md` directs tool-development work to the design guide, evolution examples and new-tool brief. The skills under `.agents/skills` provide focused workflows for developing tools and producing diagrams with the existing MCP connector.

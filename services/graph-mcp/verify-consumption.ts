@@ -13,9 +13,15 @@ import { activeMasks, geometry } from "../../packages/venn-core/src/index";
 import type { Envelope as VennEnvelope } from "../../packages/venn-core/src/index";
 import { receiveSvg } from "./svg-consumer";
 import type { SvgDeliveryInput } from "./svg-delivery";
+import { consumptionPacer } from "./consumption-pacing";
+import { discoverTools } from "./discovery";
+const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10) ?? "full";
+assert(["full", "browser"].includes(profile), "Unknown consumption profile");
+const full = profile === "full";
 const output = resolve(process.argv[2] ?? "test-results/diagram-consumption");
-await mkdir(output, { recursive: true });
-let base = process.argv[3];
+await mkdir(resolve(output, ".."), { recursive: true });
+await mkdir(output); // Fresh attempts cannot inherit stale files.
+let base = process.argv.slice(3).find(arg => !arg.startsWith("--"));
 let server: ReturnType<typeof graphService> | undefined;
 if (!base) {
   const reservation = createServer();
@@ -28,12 +34,10 @@ if (!base) {
 }
 const client = new Client({name: "external-diagram-consumer-test", version: "1"});
 // Keep production quotas enabled: pace actual HTTP requests, including MCP discovery.
-let requests = 0, windowStarted = Date.now();
+const pacing = consumptionPacer();
+const consumptionStarted = Date.now();
 const request: typeof fetch = async (input, init) => {
-  if (++requests >= 32) {
-    await new Promise(r => setTimeout(r, Math.max(0, 61_000 - (Date.now() - windowStarted))));
-    requests = 1; windowStarted = Date.now();
-  }
+  await pacing.beforeRequest();
   return fetch(input, init);
 };
 type Result = { envelope: Record<string, unknown>; contentHash: string; physicalSizeCm: {width: number; height: number}; printRaster: {width: number; height: number}; downloads: Record<string, {url: string}>; editorUrl: string; printGuidance?: unknown };
@@ -67,7 +71,7 @@ async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Re
   await writeFile(resolve(output, "svg-delivery-proof.json"), JSON.stringify({ passed: true, simulation: "SDK transport refuses every path except /mcp; independent download controls use a separate fetch", actualChatGPTAcceptance: false, files: delivered }, null, 2));
 }
 async function save(name: string, data: Result) {
-  for (const format of ["svg", "json", "png"]) {
+  for (const format of (full ? ["svg", "json", "png"] : ["json"])) {
     const response = await request(data.downloads[format].url);
     assert.equal(response.status, 200, `${name} ${format} retrieval`);
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -83,20 +87,22 @@ try {
     assert.equal(new URL(input instanceof Request ? input.url : String(input)).pathname, "/mcp", "Simulated restricted MCP consumer cannot fetch artifact URLs");
     return request(input, init);
   }}));
-  const tools = (await client.listTools()).tools;
-  for (const name of ["graph_capabilities", "ratio_table_capabilities", "value_graph_capabilities"])
+  const tools = await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined));
+  await writeFile(resolve(output, "tool-catalogue.json"), JSON.stringify({ tools }, null, 2));
+  if (full) for (const name of ["graph_capabilities", "ratio_table_capabilities", "value_graph_capabilities"])
     await client.callTool({name, arguments: {}});
   const graphSpec = JSON.parse(await readFile("services/graph-mcp/fixtures/print-consumption/graph.json", "utf8"));
   const ratioSpec = JSON.parse(await readFile("services/graph-mcp/fixtures/print-consumption/ratio.json", "utf8"));
   const graph = await call("create_graph", graphSpec); await save("graph", graph);
   const ratio = await call("create_ratio_table", ratioSpec); await save("ratio", ratio);
-  const labelled = await call("revise_graph", {envelope: graph.envelope, baseHash: graph.contentHash, operations: [{op: "set_label", id: "main", visible: true, position: {x: "-1", y: "7"}}]});
   // Revision image checks use SVG at constant physical dimensions.
   async function saveSvg(name: string, data: Result) {
     const r = await request(data.downloads.svg.url); assert(r.ok);
     await writeFile(resolve(output, `${name}.svg`), new Uint8Array(await r.arrayBuffer()));
     items[name] = {...data, downloads: {}};
   }
+  if (full) {
+  const labelled = await call("revise_graph", {envelope: graph.envelope, baseHash: graph.contentHash, operations: [{op: "set_label", id: "main", visible: true, position: {x: "-1", y: "7"}}]});
   await saveSvg("label-before", labelled);
   const moved = await call("revise_graph", {envelope: labelled.envelope, baseHash: labelled.contentHash, operations: [{op: "set_label", id: "main", position: {x: "1", y: "7"}}]});
   const expected = structuredClone(labelled.envelope);
@@ -110,12 +116,14 @@ try {
   const revisedRatio = await call("revise_ratio_table", {envelope: ratio.envelope, baseHash: ratio.contentHash, operations: [{op: "set_transition", transition: {from: "start", to: "target", operation: "divide", factor: "2"}}]});
   assert.deepEqual((revisedRatio.envelope.document as {rows: unknown}).rows, (ratio.envelope.document as {rows: unknown}).rows);
   await saveSvg("ratio-revised", revisedRatio);
+  }
   const value = defaultEnvelope();
   value.document.columns[1].y = {kind: "answer-line"};
   value.document.columns[2].y = {kind: "value", value: "0"};
   value.document.columns[4].y = {kind: "value", value: "1/2"};
   value.document.graph.series = [{id: "mistake", source: "custom", connection: "straight-joins", points: [{id: "p1", x: "-2", y: "2"}, {id: "p2", x: "1", y: "1/2"}]}];
   const combined = await call("create_value_graph", {envelope: value}); await save("quadratic-combined", combined);
+  if (full) {
   const plotted = structuredClone(value);
   plotted.document.graph.curves = [{ id: "original-quadratic", equation: plotted.document.equation, min: "-2", max: "2" }];
   const originalQuadratic = await call("create_value_graph", { envelope: plotted });
@@ -123,6 +131,7 @@ try {
   const graphOnly = await call("revise_value_graph", {envelope: combined.envelope, baseHash: combined.contentHash, operations: [{op: "set_presentation", settings: {composition: "graph"}}]});
   assert.deepEqual((graphOnly.envelope.document as {columns: unknown}).columns, value.document.columns);
   await save("quadratic-graph", graphOnly);
+  }
   const optionalTools = tools.some((t) => t.name === "download_diagram_bundle");
   if (optionalTools) {
     const reply = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: ratio.envelope}});
@@ -132,9 +141,12 @@ try {
     const bytes = new Uint8Array(await r.arrayBuffer()), members = unzipSync(bytes);
     assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()), ratio.envelope);
     await writeFile(resolve(output, "ratio-bundle.zip"), bytes);
+    if (full) {
     const advice = await client.callTool({name: "check_diagram_placement", arguments: {kind: "graph", envelope: graph.envelope, widthMm: graph.physicalSizeCm.width * 7.5}});
     assert.notEqual(advice.isError, true); assert.equal((advice.structuredContent as {uniformScale: number}).uniformScale, 0.75);
+    }
   }
+  if (full) {
   const maximumGraph = await call("create_graph", {...graphSpec, axes: {
     x: {negativeSquares: 9, positiveSquares: 9, unitsPerSquare: 0.5},
     y: {negativeSquares: 13, positiveSquares: 13, unitsPerSquare: 2},
@@ -148,31 +160,37 @@ try {
   for (const name of ["cuboid_capabilities", "number_line_capabilities", "venn_capabilities"]) {
     const r=await client.callTool({name,arguments:{}});assert.notEqual(r.isError,true);
   }
+  }
   const cuboids=await call("create_cuboid",{spec:{shapes:[{arrows:true,labels:{width:{mode:"blank"}},caption:"Find the volume."}]}});
-  await save("cuboids",cuboids);
+  if (full) await save("cuboids",cuboids);
   const cuboidRevised=await call("revise_cuboid",{envelope:cuboids.envelope,baseHash:cuboids.contentHash,operations:[{op:"set_dimension",id:"cuboid-1",axis:"depth",value:"5/2"}]});
   await save("cuboids-revised",cuboidRevised);
   const numberLine=await call("create_number_line",{spec:{axis:{minimum:"-5",maximum:"5",step:"1"},solution:{kind:"interval",id:"solution",lower:"-3",upper:"2",lowerIncluded:true,upperIncluded:false},teaching:{labels:{"0":"answer-line"},answer:"-3 ≤ x < 2",answerVisible:false}}});
-  await save("number-line",numberLine);
+  if (full) await save("number-line",numberLine);
   const lineRevised=await call("revise_number_line",{envelope:numberLine.envelope,baseHash:numberLine.contentHash,operations:[{op:"set_endpoint",id:"solution",endpoint:"upper",value:"5/2"}]});
   await save("number-line-revised",lineRevised);
   const venn=await call("create_venn",{spec:{regions:[{mask:1,region:{kind:"number",text:"0",visibility:"hidden"}},{mask:3,region:{kind:"number",text:"1/2",visibility:"line"}}]}});
-  await save("venn",venn);
+  if (full) await save("venn",venn);
   const vennRevised=await call("revise_venn",{envelope:venn.envelope,baseHash:venn.contentHash,operations:[{op:"shade_expression",expression:"A ∩ B",style:"hatch",mode:"replace"}]});
   await save("venn-revised",vennRevised);
-  const answer=await call("revise_venn",{envelope:vennRevised.envelope,baseHash:vennRevised.contentHash,operations:[],outputView:"answer"});
+  let answer = vennRevised;
+  if (full) {
+  answer=await call("revise_venn",{envelope:vennRevised.envelope,baseHash:vennRevised.contentHash,operations:[],outputView:"answer"});
   assert.deepEqual(answer.envelope,vennRevised.envelope);assert.equal(answer.contentHash,vennRevised.contentHash);await save("venn-answer",answer);
+  }
   const algebra=await call("create_algebra_grid",{spec:{example:"double"}});await save("algebra-grid",algebra);
   const algebraFactor=await call("create_algebra_grid",{spec:{example:"factor",settings:{questionVisible:true}}});await save("algebra-factor",algebraFactor);
   const algebraAnswer=await call("revise_algebra_grid",{envelope:algebraFactor.envelope,baseHash:algebraFactor.contentHash,operations:[{op:"calculate_answer"}]});await save("algebra-answer",algebraAnswer);
   assert.deepEqual((algebraAnswer.envelope.document as {rows:unknown}).rows,(algebraFactor.envelope.document as {rows:unknown}).rows);
-  const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum);
+  if (full) { const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum); }
   for(const [kind,data] of [["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
+    if (!full && ["graph", "value-graph"].includes(kind)) continue;
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
-    const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
+    if (full) { const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1); }
   }
   assert.equal(tools.length,24);
+  if (full) {
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
     ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],
@@ -191,9 +209,14 @@ try {
     }
   }
   await writeFile(resolve(output,"shading.json"),JSON.stringify(shading,null,2));
+  }
   await writeFile(resolve(output, "retrieval.json"), JSON.stringify({base, tools: tools.map((t) => t.name), optionalTools, items}, null, 2));
   console.log(JSON.stringify({output, downloaded: Object.keys(items), optionalTools, passed: true}));
 } finally {
   await client.close();
   if (server) await new Promise<void>((r) => server!.close(() => r()));
+  const elapsedMs = Date.now() - consumptionStarted;
+  await writeFile(resolve(output, "consumption-timing.json"), JSON.stringify({ schemaVersion: 1,
+    profile, productionQuotasUnchanged: true, elapsedMs, ...pacing.metrics,
+    nonPacingMs: Math.max(0, elapsedMs - pacing.metrics.waitMs) }, null, 2));
 }

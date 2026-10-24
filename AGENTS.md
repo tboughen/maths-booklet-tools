@@ -15,6 +15,10 @@ Explain preflight audit reasons; never remove required checks to obtain sampling
 Workflow changes require review and a separately authorised release before becoming
 active on GitHub. Keep historical detail in linked reports.
 
+For routine MCP publication read `docs/MCP-RELEASE-PLAYBOOK.md` and the short
+checklist. Keep one source-bound release record and separate website/service/
+package/client stages. Retain complete browser/full-service guarantees.
+
 ## Booklet tool development
 
 Before planning, creating or substantially changing a MathsDock booklet tool or its MCP integration, read:
