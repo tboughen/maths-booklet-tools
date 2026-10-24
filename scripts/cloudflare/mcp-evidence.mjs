@@ -7,7 +7,7 @@ export const browserFixtureFiles = [
   ...['graph', 'ratio', 'quadratic-combined', 'cuboids-revised', 'number-line-revised',
     'venn-revised', 'algebra-grid', 'algebra-factor', 'algebra-answer', 'bar-model', 'bar-model-revised'].map(n => `${n}.json`),
   ...['ratio', 'cuboids', 'number-line', 'venn', 'algebra-grid', 'bar-model'].map(n => `${n}-bundle.zip`),
-  'retrieval.json', 'tool-catalogue.json',
+  'retrieval.json', 'tool-catalogue.json', 'server-instructions.json',
 ].sort();
 const fixtureFiles = directory => {
   const files = fileManifest(directory);
