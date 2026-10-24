@@ -9,6 +9,11 @@ under AGENTS and the release pipeline. Failed publication40119746997 is ineligib
 as a successful baseline; use a complete audit unless a newer eligible successful
 baseline is established.
 
+On25 October, main advanced to `b97f3db21576399e1978e2c8e362fb3990899837`
+through Mock Set2 PR45. That complete change was merged into this branch before
+final qualification, preserving all147 new paper questions and13 browser cases.
+The bar-model change itself does not modify the bank or measured percentages.
+
 ## Purpose and scope
 
 **Bar modelling**, stable route/document kind **bar-model**, creates teacher-editable
