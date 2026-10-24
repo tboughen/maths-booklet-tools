@@ -12,6 +12,11 @@ Use the guide's compact release context and bounded `watch-run.mjs` command.
 Read relevant evidence once, keep verbose logs on disk and report changed states.
 Do not repeatedly read full histories or poll unchanged runs through model turns.
 Explain preflight audit reasons; never remove required checks to obtain sampling.
+For paper work, read the mathematics workspace's current publication rulebook and
+operator checklist. Run startup and final readiness separately, retain exact
+reviewed inputs, and avoid duplicate manual qualification beside the PR trigger.
+The workspace adapters and candidate freeze records are preparation evidence;
+only the full trusted aggregate and live receipts establish release success.
 Workflow changes require review and a separately authorised release before becoming
 active on GitHub. Keep historical detail in linked reports.
 

@@ -13,6 +13,7 @@ import { activeMasks, geometry } from "../../packages/venn-core/src/index";
 import type { Envelope as VennEnvelope } from "../../packages/venn-core/src/index";
 import { receiveSvg } from "./svg-consumer";
 import type { SvgDeliveryInput } from "./svg-delivery";
+import { consumptionPacer } from "./consumption-pacing";
 const output = resolve(process.argv[2] ?? "test-results/diagram-consumption");
 await mkdir(output, { recursive: true });
 let base = process.argv[3];
@@ -28,12 +29,10 @@ if (!base) {
 }
 const client = new Client({name: "external-diagram-consumer-test", version: "1"});
 // Keep production quotas enabled: pace actual HTTP requests, including MCP discovery.
-let requests = 0, windowStarted = Date.now();
+const pacing = consumptionPacer();
+const consumptionStarted = Date.now();
 const request: typeof fetch = async (input, init) => {
-  if (++requests >= 32) {
-    await new Promise(r => setTimeout(r, Math.max(0, 61_000 - (Date.now() - windowStarted))));
-    requests = 1; windowStarted = Date.now();
-  }
+  await pacing.beforeRequest();
   return fetch(input, init);
 };
 type Result = { envelope: Record<string, unknown>; contentHash: string; physicalSizeCm: {width: number; height: number}; printRaster: {width: number; height: number}; downloads: Record<string, {url: string}>; editorUrl: string; printGuidance?: unknown };
@@ -196,4 +195,9 @@ try {
 } finally {
   await client.close();
   if (server) await new Promise<void>((r) => server!.close(() => r()));
+  const elapsedMs = Date.now() - consumptionStarted;
+  await writeFile(resolve(output, "consumption-timing.json"), JSON.stringify({
+    schemaVersion: 1, productionQuotasUnchanged: true, elapsedMs, ...pacing.metrics,
+    nonPacingMs: Math.max(0, elapsedMs - pacing.metrics.waitMs),
+  }, null, 2));
 }
