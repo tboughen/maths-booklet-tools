@@ -1,6 +1,6 @@
 # MathsDock MCP publication playbook
 
-Version 1.0, 24 October 2026. Use this for routine MCP publication and qualification
+Version 1.0.1, 24 October 2026. Use this for routine MCP publication and qualification
 work. Read the [operator checklist](MCP-RELEASE-CHECKLIST.md) first on resumption.
 The [shared release pipeline](RELEASE-PIPELINE.md) owns website commands;
 [connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) owns actual-client incidents.
@@ -100,7 +100,10 @@ direct SVG controls and shading/vector consumers. See the
 Each producer gets a fresh output directory. A fixture manifest binds every file
 to source tree, service build, producer, workflow run and attempt. Validate before
 and after browser use. Missing, extra, corrupt or wrong-source fixtures fail;
-there is no silent regeneration. A fallback is a new explicitly recorded attempt.
+all five identity fields are mandatory. Full-profile verification independently
+requires shading and original-SVG delivery proofs even when a manifest is otherwise
+self-consistent. There is no silent regeneration. A fallback is a new explicitly
+recorded attempt.
 Shared/cross-release fixture caching is not enabled. Local signed URLs do not
 remain usable after the producing service stops; browser imports use saved files
 and MathsDock links, not those dead download URLs.
@@ -136,6 +139,8 @@ its identity placeholders. A verified row needs evidence objects with actual
 `path`, `bytes` and `sha256`. Each JSON receipt must say `status: "passed"` and
 contain matching `websiteIdentity`, `serviceIdentity` and explicit `provenance`.
 The checker reopens and hashes the receipt; strings alone cannot prove a pair.
+Exactly the five named pairs are required. Legacy-file evidence must belong to
+the recorded current/new website-service window, not an unrelated third release.
 
 ```powershell
 node scripts/cloudflare/mcp-release.mjs compatibility --matrix=cloudflare-release/compatibility.json --output=cloudflare-release/compatibility-result-UNIQUE.json
@@ -167,6 +172,9 @@ preserves unrelated edits and rejects conflicts, deletions, unsafe paths, broken
 relative links and App/presentation/audience manifest changes. Both version
 manifests must agree. Preserve the stronger connector-acceptance text; never
 replace it with an older repository snapshot. Include affected portable references.
+The expected, current and merged App mappings and manifest semantics must agree;
+`.app.json` is checked as well as both plugin manifests. Only canonical paths are
+accepted: dot segments, doubled separators and case aliases are rejected.
 
 ```powershell
 node scripts/cloudflare/mcp-release.mjs overlay --base=BASE-TEXTS.json --current=CURRENT-TEXTS.json --patch=PATCH-TEXTS.json --output=cloudflare-release/overlay-UNIQUE.json
@@ -200,6 +208,11 @@ For a stage receipt supply `stage`, `status`, `target`, `observed`, `provenance`
 and evidence objects with actual `path`, `bytes` and `sha256`. Commands recheck
 candidate/policy and refuse existing outputs. Verified publication stages need
 publication scope; a helper never grants permission to make the mutation.
+Both commands require a frozen record and recheck its classification, material
+digest and actual material files, including ignored readiness evidence. Saved
+stage receipts use absolute file paths. Reusing a verified stage reopens and
+hashes its saved evidence after observing current identity; missing or changed
+proof cannot establish a reusable verified stage.
 
 After response loss inspect actual provider/build/package state before retrying.
 Do not redeploy because a local process lost its place. Keep the prior compatible
