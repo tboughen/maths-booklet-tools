@@ -18,11 +18,9 @@ async function preset(page: Page, id: string, worked = false) {
   await visible(page)
     .getByRole("button", { name: "Start from an example", exact: true })
     .click();
-  const card = page
-    .getByRole("article")
-    .filter({
-      has: page.getByRole("heading", { name: new RegExp("^" + id + " ") }),
-    });
+  const card = page.getByRole("article").filter({
+    has: page.getByRole("heading", { name: new RegExp("^" + id + " ") }),
+  });
   await card
     .getByRole("button", {
       name: worked ? "Use worked version" : "Open scaffold",
@@ -163,6 +161,52 @@ for (const width of [320, 375, 768, 1440])
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
+    ).toBe(true);
+    const fitBounds = await visible(page)
+      .locator(".bm-scroll")
+      .evaluate((stage) => {
+        const viewport = stage.getBoundingClientRect();
+        return {
+          horizontal: stage.scrollWidth <= stage.clientWidth + 1,
+          vertical: stage.scrollHeight <= stage.clientHeight + 1,
+          controls: [
+            ...stage.querySelectorAll<HTMLElement>(
+              ".bm-side-controls button,.bm-bottom-controls button",
+            ),
+          ].every((button) => {
+            const b = button.getBoundingClientRect();
+            return (
+              b.left >= viewport.left &&
+              b.right <= viewport.right &&
+              b.top >= viewport.top &&
+              b.bottom <= viewport.bottom
+            );
+          }),
+        };
+      });
+    expect(fitBounds).toEqual({
+      horizontal: true,
+      vertical: true,
+      controls: true,
+    });
+    await page.getByLabel("Selected bar", { exact: true }).selectOption("b4");
+    expect(
+      await visible(page)
+        .locator(".bm-scroll")
+        .evaluate((stage) => {
+          const a = stage.getBoundingClientRect();
+          return [
+            ...stage.querySelectorAll<HTMLElement>(".bm-side-controls button"),
+          ].every((button) => {
+            const b = button.getBoundingClientRect();
+            return (
+              b.left >= a.left &&
+              b.right <= a.right &&
+              b.top >= a.top &&
+              b.bottom <= a.bottom
+            );
+          });
+        }),
     ).toBe(true);
     await page
       .getByRole("button", { name: "Edit quantity name", exact: true })

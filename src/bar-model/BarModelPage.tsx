@@ -100,7 +100,7 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
       (g.width * 96) / 25.4,
       (g.height * 96) / 25.4,
       zoom,
-      110,
+      120,
       100,
     ),
     px = (fit.scale * 96) / 25.4;
@@ -501,8 +501,8 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
               <div
                 className="bm-stage"
                 style={{
-                  width: g.width * px + 100,
-                  minHeight: g.height * px + 90,
+                  width: g.width * px,
+                  minHeight: Math.max(10, g.height * px),
                 }}
               >
                 <div
@@ -579,11 +579,17 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
                 <div
                   className="bm-side-controls"
                   style={{
-                    top:
-                      24 +
-                      (g.rows.find((r) => r.bar.id === currentBar.id)!.y +
-                        d.presentation.barHeightMm / 2) *
-                        px,
+                    top: Math.max(
+                      4,
+                      Math.min(
+                        24 +
+                          (g.rows.find((r) => r.bar.id === currentBar.id)!.y +
+                            d.presentation.barHeightMm / 2) *
+                            px -
+                          48,
+                        Math.max(10, g.height * px) - 10,
+                      ),
+                    ),
                   }}
                 >
                   <button
