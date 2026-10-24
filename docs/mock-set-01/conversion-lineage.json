@@ -1,0 +1,56 @@
+[
+  {
+    "component": "1F",
+    "original": "imports/mock-set-01-2026-10-24/1F/scheme.docx",
+    "originalSHA256": "6de975794bd6cbe2064615d3f34b5dc29a38be10af2d73f02d262b52096de653",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/1F/scheme.pdf",
+    "pdfSHA256": "33be5c6f9675dcdc032651e2e021a48bb013193d88b8ad0f7f91e342199866ff",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  },
+  {
+    "component": "2F",
+    "original": "imports/mock-set-01-2026-10-24/2F/scheme.docx",
+    "originalSHA256": "b3baa970f5f0a52e34dcf37459f802ca548e41626d67a72b98495ff8a6bcb5b7",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/2F/scheme.pdf",
+    "pdfSHA256": "02804a3f0734530af6c66f448ab6824aa5fa34fd2a76550cd4f14fc0e672636b",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  },
+  {
+    "component": "3F",
+    "original": "imports/mock-set-01-2026-10-24/3F/scheme.docx",
+    "originalSHA256": "a081e5739232b5207da49b0496a025b486bff4beb2bf426cb6ae7864c36203ce",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/3F/scheme.pdf",
+    "pdfSHA256": "0239688328ebf0c947c1f1ca4ee4d2c77c372f8a0374779a9ba3002aea9b68b9",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  },
+  {
+    "component": "1H",
+    "original": "imports/mock-set-01-2026-10-24/1H/scheme.docx",
+    "originalSHA256": "8e3a6e2f2e275a0dcb1b4a674f9eee054cc1f9e65c834e28771ec82bcb1d563a",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/1H/scheme.pdf",
+    "pdfSHA256": "a7db7ff0a497e54a359990e42810016bd8a73e37fc4ba953b3f2d71a5956b986",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  },
+  {
+    "component": "2H",
+    "original": "imports/mock-set-01-2026-10-24/2H/scheme.docx",
+    "originalSHA256": "8cc4fe0d16989b01c125aed376ce82c02ba26a07fc4ce9515eec42f67915719c",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/2H/scheme.pdf",
+    "pdfSHA256": "6cc909fae33e027799cde0a5288d0ba8ae2bff761ed5d978aed4248c309b584f",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  },
+  {
+    "component": "3H",
+    "original": "imports/mock-set-01-2026-10-24/3H/scheme.docx",
+    "originalSHA256": "31f441a7396fe2e7ddbf7376b3b13c535a2b7ecb76f6723c9b2b8ad74372092b",
+    "pdf": "reports/mock-set-01-publication-2026-10-24/converted/3H/scheme.pdf",
+    "pdfSHA256": "02e301a240422cbf615b085af66b5688c19aa7f3ae5a08b6dcf28f9daaf67ec7",
+    "renderer": "C:\\Users\\tjbou\\.codex\\plugins\\cache\\openai-primary-runtime\\documents\\26.1020.11127\\skills\\documents\\render_docx.py",
+    "dpi": 110
+  }
+]
