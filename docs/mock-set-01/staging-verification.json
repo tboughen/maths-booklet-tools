@@ -1,0 +1,21 @@
+{
+  "state": "staged locally",
+  "questions": 146,
+  "parts": 207,
+  "marks": 480,
+  "papers": 6,
+  "crossovers": 20,
+  "distinctNewTasks": 126,
+  "prior1787RecordsUnchanged": true,
+  "catalogueSHA256": "f234a3fdb151d91ea5425060c2e3cc092d69aa721ebe2310349f0d097e6b1b74",
+  "schemeClarifications": [
+    "1MA1_MOCK_SET_01_2H_Q21",
+    "1MA1_MOCK_SET_01_3H_Q19",
+    "1MA1_MOCK_SET_01_1H_Q19",
+    "1MA1_MOCK_SET_01_2F_Q15",
+    "1MA1_MOCK_SET_01_2F_Q18",
+    "1MA1_MOCK_SET_01_1F_Q17",
+    "1MA1_MOCK_SET_01_1H_Q1"
+  ],
+  "warning": "Staging alone does not establish actual exporter qualification, hosted qualification or publication."
+}

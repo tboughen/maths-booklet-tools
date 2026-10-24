@@ -34,6 +34,9 @@ test("all 27 filter combinations have correct table counts and preserve selected
 
 test("shared code/manual selection survives navigation, excludes once, restores and never falls back on empty filters",async({page})=>{
   await page.goto("/?tool=question-bank&bankView=topics");
+  // This journey deliberately uses the original single past-paper match. New
+  // mock questions may share either topic without changing this manual choice.
+  await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Paper type",exact:true}).selectOption("past");
   const search=page.getByRole("searchbox",{name:"Search codes or topics"}),summary=page.getByRole("region",{name:"Your paper",exact:true});
   for(const code of ["U538","U793"]){await search.fill(code);await page.getByRole("checkbox",{name:`Include questions for ${code}`,exact:true}).check();}
   await expect(summary).toContainText("2 selected codes · 1 distinct question · 4 marks");
@@ -115,7 +118,8 @@ test("failed scheme fetch has no partial pair; retry and cancellation retain sel
   await page.getByRole("button",{name:"Review paper",exact:true}).click();
   await dialog.getByRole("button",{name:"Prepare both PDFs"}).click();await dialog.getByRole("button",{name:"Cancel export",exact:true}).click();
   await expect(dialog.getByRole("alert")).toContainText("selection is unchanged");
-  await expect(dialog).toContainText("35 complete questions");await expect(dialog.getByRole("button",{name:"Questions PDF",exact:true})).toHaveCount(0);
+  const selectedCount=new Set(raw.questions.filter(q=>q.codes.includes("U388")).map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id)).size;
+  await expect(dialog).toContainText(`${selectedCount} complete questions`);await expect(dialog.getByRole("button",{name:"Questions PDF",exact:true})).toHaveCount(0);
 });
 
 test("topic controls, table and review fit narrow screens with keyboard dismissal",async({page})=>{

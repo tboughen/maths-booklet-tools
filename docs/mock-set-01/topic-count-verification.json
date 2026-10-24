@@ -1,0 +1,3777 @@
+{
+  "status": "passed",
+  "definition": "Full-bank counts are raw reviewed question appearances; availability counts deduplicate verified crossovers. Historical pilot counts are retained only as legacy metadata.",
+  "authority": "tools/prepare_web_bank_pilot.py bankCount definition; current complete source/published membership is 1933.",
+  "sourceQuestions": 1933,
+  "publishedQuestions": 1933,
+  "topics": [
+    {
+      "code": "U922",
+      "historicalCount": 3,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U600",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U435",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U417",
+      "historicalCount": 9,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U478",
+      "historicalCount": 7,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U735",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U127",
+      "historicalCount": 11,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U293",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U453",
+      "historicalCount": 13,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U868",
+      "historicalCount": 7,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U947",
+      "historicalCount": 9,
+      "reviewedAppearances": 11,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U742",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U548",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U851",
+      "historicalCount": 24,
+      "reviewedAppearances": 29,
+      "availableDistinct": 27
+    },
+    {
+      "code": "U299",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U985",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U772",
+      "historicalCount": 7,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U976",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U926",
+      "historicalCount": 35,
+      "reviewedAppearances": 29,
+      "availableDistinct": 23
+    },
+    {
+      "code": "U235",
+      "historicalCount": 13,
+      "reviewedAppearances": 13,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U694",
+      "historicalCount": 12,
+      "reviewedAppearances": 19,
+      "availableDistinct": 18
+    },
+    {
+      "code": "U330",
+      "historicalCount": 18,
+      "reviewedAppearances": 21,
+      "availableDistinct": 13
+    },
+    {
+      "code": "U534",
+      "historicalCount": 18,
+      "reviewedAppearances": 23,
+      "availableDistinct": 15
+    },
+    {
+      "code": "U264",
+      "historicalCount": 11,
+      "reviewedAppearances": 16,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U290",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U161",
+      "historicalCount": 12,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U480",
+      "historicalCount": 12,
+      "reviewedAppearances": 14,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U298",
+      "historicalCount": 9,
+      "reviewedAppearances": 10,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U731",
+      "historicalCount": 6,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U965",
+      "historicalCount": 10,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U225",
+      "historicalCount": 19,
+      "reviewedAppearances": 20,
+      "availableDistinct": 17
+    },
+    {
+      "code": "U657",
+      "historicalCount": 16,
+      "reviewedAppearances": 18,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U587",
+      "historicalCount": 12,
+      "reviewedAppearances": 13,
+      "availableDistinct": 13
+    },
+    {
+      "code": "U108",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U301",
+      "historicalCount": 4,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U679",
+      "historicalCount": 3,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U163",
+      "historicalCount": 10,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U704",
+      "historicalCount": 5,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U646",
+      "historicalCount": 3,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U746",
+      "historicalCount": 8,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U736",
+      "historicalCount": 8,
+      "reviewedAppearances": 11,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U692",
+      "historicalCount": 1,
+      "reviewedAppearances": 7,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U793",
+      "historicalCount": 5,
+      "reviewedAppearances": 4,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U439",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U475",
+      "historicalCount": 4,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U224",
+      "historicalCount": 7,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U544",
+      "historicalCount": 8,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U538",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U874",
+      "historicalCount": 0,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U888",
+      "historicalCount": 38,
+      "reviewedAppearances": 36,
+      "availableDistinct": 36
+    },
+    {
+      "code": "U594",
+      "historicalCount": 2,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U550",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U689",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U925",
+      "historicalCount": 16,
+      "reviewedAppearances": 15,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U881",
+      "historicalCount": 17,
+      "reviewedAppearances": 18,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U916",
+      "historicalCount": 29,
+      "reviewedAppearances": 27,
+      "availableDistinct": 24
+    },
+    {
+      "code": "U554",
+      "historicalCount": 10,
+      "reviewedAppearances": 9,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U349",
+      "historicalCount": 18,
+      "reviewedAppearances": 25,
+      "availableDistinct": 23
+    },
+    {
+      "code": "U773",
+      "historicalCount": 9,
+      "reviewedAppearances": 14,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U671",
+      "historicalCount": 13,
+      "reviewedAppearances": 12,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U286",
+      "historicalCount": 14,
+      "reviewedAppearances": 19,
+      "availableDistinct": 15
+    },
+    {
+      "code": "U278",
+      "historicalCount": 17,
+      "reviewedAppearances": 19,
+      "availableDistinct": 13
+    },
+    {
+      "code": "U533",
+      "historicalCount": 5,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U332",
+      "historicalCount": 21,
+      "reviewedAppearances": 23,
+      "availableDistinct": 18
+    },
+    {
+      "code": "U988",
+      "historicalCount": 6,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U211",
+      "historicalCount": 13,
+      "reviewedAppearances": 14,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U751",
+      "historicalCount": 22,
+      "reviewedAppearances": 14,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U529",
+      "historicalCount": 12,
+      "reviewedAppearances": 7,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U125",
+      "historicalCount": 0,
+      "reviewedAppearances": 4,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U236",
+      "historicalCount": 11,
+      "reviewedAppearances": 11,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U739",
+      "historicalCount": 11,
+      "reviewedAppearances": 11,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U250",
+      "historicalCount": 7,
+      "reviewedAppearances": 10,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U633",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U338",
+      "historicalCount": 4,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U872",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U499",
+      "historicalCount": 4,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U707",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U281",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U613",
+      "historicalCount": 20,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U201",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U585",
+      "historicalCount": 13,
+      "reviewedAppearances": 14,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U144",
+      "historicalCount": 7,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U105",
+      "historicalCount": 21,
+      "reviewedAppearances": 26,
+      "availableDistinct": 25
+    },
+    {
+      "code": "U662",
+      "historicalCount": 21,
+      "reviewedAppearances": 21,
+      "availableDistinct": 17
+    },
+    {
+      "code": "U179",
+      "historicalCount": 17,
+      "reviewedAppearances": 17,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U768",
+      "historicalCount": 13,
+      "reviewedAppearances": 12,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U606",
+      "historicalCount": 10,
+      "reviewedAppearances": 11,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U365",
+      "historicalCount": 15,
+      "reviewedAppearances": 17,
+      "availableDistinct": 16
+    },
+    {
+      "code": "U178",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U858",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U963",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U397",
+      "historicalCount": 4,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U103",
+      "historicalCount": 1,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U437",
+      "historicalCount": 5,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U294",
+      "historicalCount": 5,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U685",
+      "historicalCount": 7,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U457",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U824",
+      "historicalCount": 5,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U675",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U181",
+      "historicalCount": 17,
+      "reviewedAppearances": 20,
+      "availableDistinct": 19
+    },
+    {
+      "code": "U191",
+      "historicalCount": 5,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U755",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U325",
+      "historicalCount": 22,
+      "reviewedAppearances": 20,
+      "availableDistinct": 20
+    },
+    {
+      "code": "U870",
+      "historicalCount": 10,
+      "reviewedAppearances": 13,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U505",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U599",
+      "historicalCount": 31,
+      "reviewedAppearances": 21,
+      "availableDistinct": 16
+    },
+    {
+      "code": "U509",
+      "historicalCount": 10,
+      "reviewedAppearances": 11,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U759",
+      "historicalCount": 7,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U738",
+      "historicalCount": 7,
+      "reviewedAppearances": 6,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U145",
+      "historicalCount": 3,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U337",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U747",
+      "historicalCount": 7,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U133",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U228",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U960",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U589",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U665",
+      "historicalCount": 6,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U150",
+      "historicalCount": 1,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U601",
+      "historicalCount": 14,
+      "reviewedAppearances": 14,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U760",
+      "historicalCount": 10,
+      "reviewedAppearances": 14,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U757",
+      "historicalCount": 6,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U547",
+      "historicalCount": 8,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U836",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U875",
+      "historicalCount": 2,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U137",
+      "historicalCount": 7,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U269",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U434",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U168",
+      "historicalCount": 5,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U213",
+      "historicalCount": 9,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U530",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U498",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U978",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U206",
+      "historicalCount": 7,
+      "reviewedAppearances": 11,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U680",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U958",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U171",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U637",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U895",
+      "historicalCount": 6,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U448",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U996",
+      "historicalCount": 10,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U789",
+      "historicalCount": 8,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U933",
+      "historicalCount": 6,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U889",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U741",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U315",
+      "historicalCount": 3,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U669",
+      "historicalCount": 7,
+      "reviewedAppearances": 11,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U477",
+      "historicalCount": 1,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U848",
+      "historicalCount": 6,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U377",
+      "historicalCount": 4,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U898",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U989",
+      "historicalCount": 12,
+      "reviewedAppearances": 12,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U667",
+      "historicalCount": 9,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U310",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U769",
+      "historicalCount": 6,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U980",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U593",
+      "historicalCount": 12,
+      "reviewedAppearances": 12,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U229",
+      "historicalCount": 7,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U598",
+      "historicalCount": 4,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U487",
+      "historicalCount": 1,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U455",
+      "historicalCount": 8,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U800",
+      "historicalCount": 10,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U882",
+      "historicalCount": 8,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U567",
+      "historicalCount": 10,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U758",
+      "historicalCount": 5,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U652",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U862",
+      "historicalCount": 13,
+      "reviewedAppearances": 10,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U896",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U681",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U403",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U914",
+      "historicalCount": 3,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U462",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U966",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U937",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U562",
+      "historicalCount": 3,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U611",
+      "historicalCount": 2,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U378",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U582",
+      "historicalCount": 11,
+      "reviewedAppearances": 16,
+      "availableDistinct": 16
+    },
+    {
+      "code": "U902",
+      "historicalCount": 20,
+      "reviewedAppearances": 31,
+      "availableDistinct": 26
+    },
+    {
+      "code": "U659",
+      "historicalCount": 0,
+      "reviewedAppearances": 44,
+      "availableDistinct": 41
+    },
+    {
+      "code": "U102",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U388",
+      "historicalCount": 29,
+      "reviewedAppearances": 41,
+      "availableDistinct": 37
+    },
+    {
+      "code": "U248",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U468",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U663",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U497",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U151",
+      "historicalCount": 29,
+      "reviewedAppearances": 33,
+      "availableDistinct": 22
+    },
+    {
+      "code": "U256",
+      "historicalCount": 7,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U910",
+      "historicalCount": 14,
+      "reviewedAppearances": 16,
+      "availableDistinct": 13
+    },
+    {
+      "code": "U527",
+      "historicalCount": 9,
+      "reviewedAppearances": 7,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U842",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U687",
+      "historicalCount": 21,
+      "reviewedAppearances": 18,
+      "availableDistinct": 17
+    },
+    {
+      "code": "U753",
+      "historicalCount": 17,
+      "reviewedAppearances": 33,
+      "availableDistinct": 28
+    },
+    {
+      "code": "U176",
+      "historicalCount": 23,
+      "reviewedAppearances": 29,
+      "availableDistinct": 27
+    },
+    {
+      "code": "U577",
+      "historicalCount": 35,
+      "reviewedAppearances": 30,
+      "availableDistinct": 21
+    },
+    {
+      "code": "U595",
+      "historicalCount": 0,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U921",
+      "historicalCount": 16,
+      "reviewedAppearances": 22,
+      "availableDistinct": 17
+    },
+    {
+      "code": "U676",
+      "historicalCount": 6,
+      "reviewedAppearances": 8,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U865",
+      "historicalCount": 2,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U721",
+      "historicalCount": 49,
+      "reviewedAppearances": 38,
+      "availableDistinct": 35
+    },
+    {
+      "code": "U357",
+      "historicalCount": 7,
+      "reviewedAppearances": 8,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U610",
+      "historicalCount": 9,
+      "reviewedAppearances": 10,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U640",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U407",
+      "historicalCount": 4,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U364",
+      "historicalCount": 1,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U138",
+      "historicalCount": 8,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U238",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U993",
+      "historicalCount": 13,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U970",
+      "historicalCount": 0,
+      "reviewedAppearances": 9,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U351",
+      "historicalCount": 3,
+      "reviewedAppearances": 8,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U226",
+      "historicalCount": 13,
+      "reviewedAppearances": 15,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U934",
+      "historicalCount": 5,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U945",
+      "historicalCount": 7,
+      "reviewedAppearances": 16,
+      "availableDistinct": 13
+    },
+    {
+      "code": "U575",
+      "historicalCount": 2,
+      "reviewedAppearances": 6,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U424",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U265",
+      "historicalCount": 6,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U343",
+      "historicalCount": 3,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U904",
+      "historicalCount": 1,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U121",
+      "historicalCount": 9,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U849",
+      "historicalCount": 3,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U719",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U447",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U390",
+      "historicalCount": 12,
+      "reviewedAppearances": 14,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U730",
+      "historicalCount": 1,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U628",
+      "historicalCount": 11,
+      "reviewedAppearances": 10,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U732",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U655",
+      "historicalCount": 8,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U826",
+      "historicalCount": 10,
+      "reviewedAppearances": 6,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U329",
+      "historicalCount": 9,
+      "reviewedAppearances": 6,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U427",
+      "historicalCount": 13,
+      "reviewedAppearances": 13,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U605",
+      "historicalCount": 3,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U283",
+      "historicalCount": 25,
+      "reviewedAppearances": 18,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U545",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U627",
+      "historicalCount": 5,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U319",
+      "historicalCount": 1,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U967",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U170",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U164",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U156",
+      "historicalCount": 0,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U450",
+      "historicalCount": 8,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U952",
+      "historicalCount": 10,
+      "reviewedAppearances": 12,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U591",
+      "historicalCount": 10,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U592",
+      "historicalCount": 11,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U790",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U551",
+      "historicalCount": 4,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U112",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U866",
+      "historicalCount": 6,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U578",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U630",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U110",
+      "historicalCount": 11,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U767",
+      "historicalCount": 3,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U604",
+      "historicalCount": 4,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U950",
+      "historicalCount": 13,
+      "reviewedAppearances": 16,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U221",
+      "historicalCount": 6,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U373",
+      "historicalCount": 12,
+      "reviewedAppearances": 11,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U459",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U251",
+      "historicalCount": 8,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U489",
+      "historicalCount": 6,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U130",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U808",
+      "historicalCount": 5,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U807",
+      "historicalCount": 4,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U385",
+      "historicalCount": 23,
+      "reviewedAppearances": 15,
+      "availableDistinct": 11
+    },
+    {
+      "code": "U828",
+      "historicalCount": 0,
+      "reviewedAppearances": 8,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U541",
+      "historicalCount": 4,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U761",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U743",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U929",
+      "historicalCount": 9,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U259",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U871",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U142",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U464",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U523",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U893",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U771",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U334",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U561",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U786",
+      "historicalCount": 13,
+      "reviewedAppearances": 13,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U174",
+      "historicalCount": 9,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U484",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U915",
+      "historicalCount": 5,
+      "reviewedAppearances": 5,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U116",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U617",
+      "historicalCount": 2,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U426",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U350",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U543",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U632",
+      "historicalCount": 3,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U903",
+      "historicalCount": 6,
+      "reviewedAppearances": 11,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U564",
+      "historicalCount": 6,
+      "reviewedAppearances": 8,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U781",
+      "historicalCount": 11,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U660",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U196",
+      "historicalCount": 7,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U799",
+      "historicalCount": 14,
+      "reviewedAppearances": 15,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U696",
+      "historicalCount": 6,
+      "reviewedAppearances": 11,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U519",
+      "historicalCount": 6,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U134",
+      "historicalCount": 7,
+      "reviewedAppearances": 7,
+      "availableDistinct": 7
+    },
+    {
+      "code": "U766",
+      "historicalCount": 9,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U678",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U187",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U787",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U245",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U979",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U820",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U257",
+      "historicalCount": 16,
+      "reviewedAppearances": 16,
+      "availableDistinct": 15
+    },
+    {
+      "code": "U525",
+      "historicalCount": 6,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U107",
+      "historicalCount": 2,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U471",
+      "historicalCount": 1,
+      "reviewedAppearances": 11,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U887",
+      "historicalCount": 3,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U560",
+      "historicalCount": 2,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U803",
+      "historicalCount": 6,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U408",
+      "historicalCount": 20,
+      "reviewedAppearances": 30,
+      "availableDistinct": 28
+    },
+    {
+      "code": "U510",
+      "historicalCount": 14,
+      "reviewedAppearances": 13,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U683",
+      "historicalCount": 23,
+      "reviewedAppearances": 22,
+      "availableDistinct": 18
+    },
+    {
+      "code": "U166",
+      "historicalCount": 13,
+      "reviewedAppearances": 12,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U104",
+      "historicalCount": 7,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U714",
+      "historicalCount": 0,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U476",
+      "historicalCount": 10,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U748",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U296",
+      "historicalCount": 6,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U280",
+      "historicalCount": 9,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U558",
+      "historicalCount": 22,
+      "reviewedAppearances": 19,
+      "availableDistinct": 15
+    },
+    {
+      "code": "U729",
+      "historicalCount": 17,
+      "reviewedAppearances": 14,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U580",
+      "historicalCount": 5,
+      "reviewedAppearances": 7,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U369",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U246",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U699",
+      "historicalCount": 1,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U821",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U806",
+      "historicalCount": 1,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U526",
+      "historicalCount": 5,
+      "reviewedAppearances": 11,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U456",
+      "historicalCount": 6,
+      "reviewedAppearances": 15,
+      "availableDistinct": 14
+    },
+    {
+      "code": "U260",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U291",
+      "historicalCount": 13,
+      "reviewedAppearances": 12,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U569",
+      "historicalCount": 8,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U854",
+      "historicalCount": 2,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U877",
+      "historicalCount": 12,
+      "reviewedAppearances": 13,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U717",
+      "historicalCount": 4,
+      "reviewedAppearances": 5,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U961",
+      "historicalCount": 0,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U981",
+      "historicalCount": 10,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "U312",
+      "historicalCount": 1,
+      "reviewedAppearances": 7,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U653",
+      "historicalCount": 2,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U506",
+      "historicalCount": 10,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U363",
+      "historicalCount": 5,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U557",
+      "historicalCount": 11,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U508",
+      "historicalCount": 6,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U172",
+      "historicalCount": 6,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U590",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U193",
+      "historicalCount": 4,
+      "reviewedAppearances": 4,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U199",
+      "historicalCount": 4,
+      "reviewedAppearances": 6,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U277",
+      "historicalCount": 16,
+      "reviewedAppearances": 16,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U128",
+      "historicalCount": 14,
+      "reviewedAppearances": 8,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U200",
+      "historicalCount": 3,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U909",
+      "historicalCount": 8,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "U185",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U814",
+      "historicalCount": 5,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "U983",
+      "historicalCount": 9,
+      "reviewedAppearances": 12,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U267",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "U840",
+      "historicalCount": 11,
+      "reviewedAppearances": 13,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U182",
+      "historicalCount": 7,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "U642",
+      "historicalCount": 11,
+      "reviewedAppearances": 12,
+      "availableDistinct": 12
+    },
+    {
+      "code": "U879",
+      "historicalCount": 8,
+      "reviewedAppearances": 9,
+      "availableDistinct": 9
+    },
+    {
+      "code": "U837",
+      "historicalCount": 6,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U507",
+      "historicalCount": 7,
+      "reviewedAppearances": 8,
+      "availableDistinct": 8
+    },
+    {
+      "code": "U322",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U911",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U120",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U571",
+      "historicalCount": 2,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "U520",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "U162",
+      "historicalCount": 7,
+      "reviewedAppearances": 5,
+      "availableDistinct": 3
+    },
+    {
+      "code": "U328",
+      "historicalCount": 1,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M763",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M704",
+      "historicalCount": 0,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "M522",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M928",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M429",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M347",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M152",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M113",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M911",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M187",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M803",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M462",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M354",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M873",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M262",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M491",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M527",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M106",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M288",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M135",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M521",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M952",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M409",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M637",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M757",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M608",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M150",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M719",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M678",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M111",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M431",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M994",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M131",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M878",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M730",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M158",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M939",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M410",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M671",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M335",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M835",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M601",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M931",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M157",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M197",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M216",
+      "historicalCount": 2,
+      "reviewedAppearances": 9,
+      "availableDistinct": 5
+    },
+    {
+      "code": "M110",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M265",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M645",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M619",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M958",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M264",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M553",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M701",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M922",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M235",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M695",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M684",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M437",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M905",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M476",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M533",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M528",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M777",
+      "historicalCount": 1,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "M752",
+      "historicalCount": 0,
+      "reviewedAppearances": 10,
+      "availableDistinct": 10
+    },
+    {
+      "code": "M823",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M227",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M698",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M322",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M108",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M365",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M813",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M830",
+      "historicalCount": 1,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M175",
+      "historicalCount": 3,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "M428",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M417",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M327",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M208",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M979",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M795",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M531",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M949",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M120",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M237",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M792",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M960",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M100",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M908",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M707",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M634",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M647",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M855",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M401",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M902",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M387",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M509",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M554",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M957",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M852",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M658",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M384",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M118",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M732",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M242",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M983",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M568",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M754",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M336",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M381",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M241",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M166",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M991",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M866",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M418",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M981",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M618",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M230",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M622",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M311",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M797",
+      "historicalCount": 2,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M932",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M544",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M888",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M843",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M771",
+      "historicalCount": 0,
+      "reviewedAppearances": 5,
+      "availableDistinct": 5
+    },
+    {
+      "code": "M205",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M751",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M551",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M581",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M247",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M221",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M892",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M627",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M963",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M747",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M515",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M222",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M901",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M443",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M924",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M454",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M828",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M772",
+      "historicalCount": 2,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M530",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M761",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M774",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M728",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M465",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M865",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M487",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M885",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M801",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M267",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M525",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M543",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M478",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M681",
+      "historicalCount": 1,
+      "reviewedAppearances": 6,
+      "availableDistinct": 6
+    },
+    {
+      "code": "M472",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M665",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M448",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M900",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M920",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M390",
+      "historicalCount": 0,
+      "reviewedAppearances": 4,
+      "availableDistinct": 4
+    },
+    {
+      "code": "M635",
+      "historicalCount": 2,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M269",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M690",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M610",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M996",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M291",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M705",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M303",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M814",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M276",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M523",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M767",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M502",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M541",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M780",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M331",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M818",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M163",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M351",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M679",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M319",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M606",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M393",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M653",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M124",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M377",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M324",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M595",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M169",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M231",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M280",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M430",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M677",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M480",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M147",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M380",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M212",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M646",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M518",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M229",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M884",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M534",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M661",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M936",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M765",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M722",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M697",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M139",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M290",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M910",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M178",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M881",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M985",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M196",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M565",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M232",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M239",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M253",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M112",
+      "historicalCount": 2,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M260",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M416",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M655",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M941",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M938",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M755",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M206",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M718",
+      "historicalCount": 3,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M817",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M829",
+      "historicalCount": 1,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M419",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M834",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M299",
+      "historicalCount": 0,
+      "reviewedAppearances": 3,
+      "availableDistinct": 3
+    },
+    {
+      "code": "M572",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M332",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M328",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M934",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M841",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M940",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M127",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M287",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M440",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M899",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M441",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M597",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M644",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M460",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M738",
+      "historicalCount": 1,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M574",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M165",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M140",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M183",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 2
+    },
+    {
+      "code": "M769",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M596",
+      "historicalCount": 0,
+      "reviewedAppearances": 2,
+      "availableDistinct": 1
+    },
+    {
+      "code": "M648",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M210",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M493",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M945",
+      "historicalCount": 0,
+      "reviewedAppearances": 0,
+      "availableDistinct": 0
+    },
+    {
+      "code": "M450",
+      "historicalCount": 0,
+      "reviewedAppearances": 1,
+      "availableDistinct": 1
+    }
+  ]
+}
