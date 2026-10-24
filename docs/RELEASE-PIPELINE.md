@@ -280,3 +280,40 @@ Timing records now distinguish service compilation, browser fixture generation,
 browser execution, service fixture/vector consumption and image build, as well as
 website prepare and publication stages. Preserve complete browser coverage and
 isolated fixtures; fixture caching or reduced coverage is not part of these fixes.
+
+## Paper preparation and stable-candidate qualification
+
+Use the mathematics workspace's current paper publication rulebook and two-page
+operator checklist for source/content work. Its read-only readiness adapters check
+the actual candidate catalogue/runtime data with this checkout's `verifyCatalogue`,
+source hashes, exact part inventories and linked review/export evidence. They do
+not grant mathematical review, qualification or publication. Keep their generated
+reports outside the checkout and bind readiness to the clean committed tree.
+
+Do focused local checks before opening a review PR when scope permits. The
+`pull_request` trigger also runs for draft PRs. Find and watch an existing exact-head
+run before manually dispatching another. A full local `release:qualify` is an
+optional rehearsal; the complete trusted hosted aggregate remains mandatory for
+promotion. Record unavailable local vector/container prerequisites honestly.
+
+Classifier version 3 admits only these reviewed offline inputs without invalidating
+the old-object audit: `scripts/import-performance.py`,
+`scripts/performance_supplements.py`, `scripts/test_performance_supplements.py`, and
+`scripts/performance-supplements/mock-set-01.json`. They retain all seven broad code
+checks. No file-extension or directory wildcard grants that role. Unknown/new
+helpers, missing comparison, dependencies, workflows and publisher/verifier/policy
+changes remain conservative. All new keys retain complete new-key verification;
+policy-bound seven-day eligibility is unchanged. Releasing the classifier itself
+requires a fresh complete-audit baseline; later eligible changes may benefit.
+
+`verify-consumption` writes `consumption-timing.json` with request/window counts,
+actual wait time and non-wait time. Its original 32-count/61-second request pacing
+and production quotas remain enabled. This instrumentation is qualification code,
+not a deployment of the MCP service. A measured local example had 202 requests,
+six waits, 302266 ms waiting and 72011 ms other work. These are observations, not
+guarantees. Fixture sharing and cross-release cache reuse are not implemented.
+
+These source changes become active only after their actual qualification and
+authorised integration. Do not infer the active GitHub/production version from an
+unmerged local candidate. A document-only procedural update needs no dummy paper
+publication or service refresh.

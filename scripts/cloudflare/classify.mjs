@@ -1,5 +1,13 @@
 import { git, digestObject } from './common.mjs';
 
+// Reviewed offline inputs, not publisher/transform/policy code. No folder trust.
+export const offlineImportInputs = new Set([
+  'scripts/import-performance.py',
+  'scripts/performance_supplements.py',
+  'scripts/test_performance_supplements.py',
+  'scripts/performance-supplements/mock-set-01.json',
+]);
+
 export function classifyPaths(paths, conservative = false) {
   const categories = new Set(), reasons = [], inventoryReasons = [];
   if (conservative) {
@@ -22,17 +30,18 @@ export function classifyPaths(paths, conservative = false) {
       'scripts/verify-direct-svg-consumption.py',
       'scripts/verify-example-controls.mjs',
     ].includes(path)) category = 'qualification';
+    else if (offlineImportInputs.has(path)) category = 'offline-import';
     else if (/^(scripts\/|\.github\/|package(-lock)?\.json$|.*config\.|wrangler|\.nvmrc$|\.gitignore$|\.gitattributes$|bankAssets\.ts$|public\/bank\/pdfjs\/)/.test(path)) category = 'infrastructure';
     else category = 'unknown';
     categories.add(category); reasons.push(`${category}: ${path}`);
     if (category === 'infrastructure' || category === 'unknown') inventoryReasons.push(`${category}: ${path}`);
   }
-  const broad = categories.has('infrastructure') || categories.has('unknown') || categories.has('qualification');
+  const broad = categories.has('infrastructure') || categories.has('unknown') || categories.has('qualification') || categories.has('offline-import');
   const service = broad || categories.has('shared') || categories.has('service');
   const website = broad || ['website', 'bank', 'shared'].some(c => categories.has(c));
   const required = website ? ['units', 'catalogue', 'publisher', 'built', 'browser-1', 'browser-2'] : [];
   if (service) required.push('service');
-  return { version: 2, categories: [...categories].sort(), reasons, required, website, service, fullInventory: inventoryReasons.length > 0, inventoryReasons, inputDigest: digestObject([...paths].sort()) };
+  return { version: 3, categories: [...categories].sort(), reasons, required, website, service, fullInventory: inventoryReasons.length > 0, inventoryReasons, inputDigest: digestObject([...paths].sort()) };
 }
 export function classify(root, base) {
   let paths = [], conservative = !base;
