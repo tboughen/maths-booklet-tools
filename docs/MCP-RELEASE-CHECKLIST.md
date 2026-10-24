@@ -31,7 +31,8 @@ Use the [full playbook](MCP-RELEASE-PLAYBOOK.md) and
     edit/save/MCP revision and exact file verification. Keep SDK, live service,
     client and human outcomes separate. Refresh metadata only when applicable.
 11. Reconcile unknown/lost responses before retrying. Reuse verified stages only
-    after current observation; stop on newer independent state. Retain compatible
+    after current observation and saved-proof revalidation. Recheck frozen material
+    before stage/decision commands; stop on newer independent state. Retain compatible
     previous source/packages/keys; report partial release honestly.
 12. Report phase timings, waits, runner work, requests, failures and recovery.
     Keep unperformed client/Word/print/phone/teacher checks visible. Record next

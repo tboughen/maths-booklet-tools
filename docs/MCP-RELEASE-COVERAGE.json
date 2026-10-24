@@ -13,8 +13,8 @@
     {"guarantee":"original SVG, source/chunk/full hashes and vector saving","owner":["full protocol collector","scripts/verify-diagram-consumption.py","actual-client saved-output acceptance"]},
     {"guarantee":"all Venn shading masks","owner":["full protocol collector","independent vector/pixel consumer"]},
     {"guarantee":"pupil blanks, settings, IDs and reopen","owner":["all 18 existing MCP browser cases","core/service regressions"]},
-    {"guarantee":"fixture source/run/attempt integrity","owner":["scripts/cloudflare/mcp-release.test.mjs","pipeline before/after browser verification"]},
-    {"guarantee":"lost-response reconciliation and package conflicts","owner":["scripts/cloudflare/mcp-release.test.mjs","existing publisher failure suite"]},
+    {"guarantee":"fixture source/run/attempt integrity","owner":["scripts/cloudflare/mcp-release.test.mjs","scripts/cloudflare/mcp-release-regression.test.mjs","pipeline before/after browser verification"]},
+    {"guarantee":"lost-response reconciliation and package conflicts","owner":["scripts/cloudflare/mcp-release.test.mjs","scripts/cloudflare/mcp-release-regression.test.mjs","existing publisher failure suite"]},
     {"guarantee":"live website and actual intended-client acceptance","owner":["MCP-RELEASE-PLAYBOOK.md section 7","MCP-CONNECTOR-ACCEPTANCE.md"],"inferredFromLocalChecks":false}
   ],
   "deferred":["shared producer","cross-release fixture cache","new runtime buildId","registry/image promotion","general deployment orchestrator"],

@@ -14,8 +14,12 @@ const fixtureFiles = directory => {
   delete files['fixture-manifest.json'];
   return files;
 };
+const validateFixtureIdentity = identity => {
+  if (!identity || ['sourceTree', 'buildId', 'producer', 'run', 'attempt'].some(k => typeof identity[k] !== 'string' || !identity[k].trim())) throw Error('Incomplete fixture identity');
+};
 export function sealFixtures(directory, identity, profile) {
-  if (!['browser', 'full'].includes(profile) || !identity.sourceTree || !identity.buildId) throw Error('Incomplete fixture identity');
+  validateFixtureIdentity(identity);
+  if (!['browser', 'full'].includes(profile)) throw Error('Wrong fixture profile');
   const files = fixtureFiles(directory);
   for (const name of browserFixtureFiles) if (!files[name]) throw Error(`Missing browser fixture: ${name}`);
   if (profile === 'full') for (const name of ['shading.json', 'svg-delivery-proof.json']) if (!files[name]) throw Error(`Missing full-suite proof: ${name}`);
@@ -24,12 +28,14 @@ export function sealFixtures(directory, identity, profile) {
   return verifyFixtures(directory, identity, profile);
 }
 export function verifyFixtures(directory, identity, profile) {
+  validateFixtureIdentity(identity);
   const manifest = json(resolve(directory, 'fixture-manifest.json'));
   if (manifest.schemaVersion !== 1 || manifest.profile !== profile) throw Error('Wrong fixture profile');
   assertEqual(manifest.identity, identity, 'Wrong fixture source, producer, run or attempt');
   assertEqual(fixtureFiles(directory), manifest.files, 'Fixture files missing, extra or corrupt');
   if (digestObject(manifest.files) !== manifest.filesDigest) throw Error('Fixture manifest digest differs');
   for (const name of browserFixtureFiles) if (!manifest.files[name]) throw Error(`Missing browser fixture: ${name}`);
+  if (profile === 'full') for (const name of ['shading.json', 'svg-delivery-proof.json']) if (!manifest.files[name]) throw Error(`Missing full-suite proof: ${name}`);
   return manifest;
 }
 export function compareCatalogues(before, after, expected) {

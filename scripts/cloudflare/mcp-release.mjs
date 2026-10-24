@@ -45,12 +45,36 @@ export function freezeRecord(root, record, paths, { read = readFileSync } = {}) 
   assertEqual(cleanSource(root), record.candidate, 'Candidate moved during freeze');
   return { ...record, evidence, evidenceDigest: digestObject(evidence), frozenAt: new Date().toISOString() };
 }
+export function verifyFrozenRecord(root, record) {
+  assertEqual(cleanSource(root), record.candidate, 'Stale or different candidate');
+  if (sha256(readFileSync(resolve(root, 'scripts/cloudflare/mcp-release.mjs'))) !== record.policy) throw Error('Release checker changed');
+  assertEqual(classify(root, record.comparison), record.classification, 'Frozen classification differs');
+  if (!record.frozenAt || !Array.isArray(record.evidence) || !record.evidence.length || digestObject(record.evidence) !== record.evidenceDigest) throw Error('Missing or changed frozen evidence digest');
+  if (new Set(record.evidence.map(e => e.path)).size !== record.evidence.length) throw Error('Duplicate frozen material');
+  for (const item of record.evidence) {
+    const bytes = readFileSync(inside(root, item.path));
+    if (bytes.length !== item.bytes || sha256(bytes) !== item.sha256) throw Error('Frozen material evidence differs');
+  }
+  assertEqual(cleanSource(root), record.candidate, 'Candidate moved while verifying frozen material');
+  return record;
+}
+function verifySavedEvidence(evidence) {
+  if (!Array.isArray(evidence) || !evidence.length) throw Error('Saved stage evidence is missing');
+  for (const item of evidence) {
+    if (!item || typeof item.path !== 'string' || !isAbsolute(item.path) || !Number.isSafeInteger(item.bytes) || item.bytes < 0 || !/^[a-f0-9]{64}$/.test(item.sha256)) throw Error('Saved stage evidence needs an absolute path, byte length and hash');
+    const bytes = readFileSync(item.path);
+    if (sha256(bytes) !== item.sha256 || bytes.length !== item.bytes) throw Error('Saved stage evidence differs');
+  }
+}
 export function stageDecision(record, stage, { before, target, observed }) {
   if (!stages.includes(stage) || !before || !target || !observed) throw Error('Explicit stage identities required');
   if (before === target) { if (observed !== target) throw Error('Unexpected or newer live identity; stop'); return 'no-change-observed'; }
   const state = record.stages[stage];
   if (state.status === 'verified') {
     if (state.target !== target || observed !== target) throw Error('Verified receipt is stale or a newer release intervened');
+    const last = state.observations?.at(-1);
+    if (!last || last.observed !== target) throw Error('Verified stage evidence identity differs');
+    verifySavedEvidence(last.evidence);
     return 'reuse-verified';
   }
   if (observed === target) return 'verify-existing';
@@ -65,16 +89,13 @@ export function recordStage(record, stage, { status, target, observed, evidence,
   if (status === 'verified') {
     if (!target || observed !== target || !evidence?.length) throw Error('Verification needs matching observed identity and saved evidence');
     if (stage === 'client' && !['actual-codex', 'actual-chatgpt'].includes(provenance)) throw Error('SDK or simulation cannot establish client acceptance');
-    for (const item of evidence) {
-      const bytes = readFileSync(item.path);
-      if (sha256(bytes) !== item.sha256 || bytes.length !== item.bytes) throw Error('Saved stage evidence differs');
-    }
+    verifySavedEvidence(evidence);
   }
   return { ...record, stages: { ...record.stages, [stage]: { status, target, provenance,
     observations: [...record.stages[stage].observations, { at: new Date().toISOString(), observed, evidence }] } } };
 }
 const safePackagePath = path => {
-  if (!path || isAbsolute(path) || /[:\0]/.test(path) || path.split(/[\\/]/).includes('..') || path.includes('\\')) throw Error('Unsafe package path');
+  if (!path || isAbsolute(path) || /[:\0]/.test(path) || path.split('/').some(p => !p || p === '.' || p === '..') || path.includes('\\')) throw Error('Unsafe noncanonical package path');
 };
 export function guardedOverlay(base, current, patch) {
   const merged = { ...current }, changes = [];
@@ -85,14 +106,24 @@ export function guardedOverlay(base, current, patch) {
     if (current[path] !== value) { merged[path] = value; changes.push(path); }
   }
   for (const path of ['plugin.json', '.codex-plugin/plugin.json']) {
-    if (!current[path] || !merged[path]) throw Error(`Missing package manifest: ${path}`);
-    const a = JSON.parse(current[path]), b = JSON.parse(merged[path]); delete a.version; delete b.version;
+    if (!base[path] || !current[path] || !merged[path]) throw Error(`Missing package manifest: ${path}`);
+    const prior = JSON.parse(base[path]), a = JSON.parse(current[path]), b = JSON.parse(merged[path]); delete prior.version; delete a.version; delete b.version;
+    assertEqual(prior, a, 'Current App binding, presentation or audience differs from the expected base');
     assertEqual(a, b, 'App binding, presentation, audience or manifest semantics changed');
+  }
+  if (base['.app.json'] || current['.app.json'] || merged['.app.json']) {
+    if (!base['.app.json'] || !current['.app.json'] || !merged['.app.json']) throw Error('App mapping file is missing');
+    assertEqual(JSON.parse(base['.app.json']), JSON.parse(current['.app.json']), 'Current App mapping differs from the expected base');
+    assertEqual(JSON.parse(current['.app.json']), JSON.parse(merged['.app.json']), 'App mapping/binding changed');
   }
   const versions = ['plugin.json', '.codex-plugin/plugin.json'].map(p => JSON.parse(merged[p]).version);
   if (!versions[0] || versions[0] !== versions[1]) throw Error('Package manifest versions disagree');
+  const portableNames = new Set();
   for (const [path, content] of Object.entries(merged)) {
     safePackagePath(path);
+    const portable = path.normalize('NFC').toLowerCase();
+    if (portableNames.has(portable)) throw Error('Unsafe package path alias or case collision');
+    portableNames.add(portable);
     if (!path.endsWith('.md') || typeof content !== 'string') continue;
     for (const match of content.matchAll(/\]\(([^\s)#]+)(?:#[^\s)]+)?\)/g)) {
       if (/^[a-z]+:/i.test(match[1])) continue;
@@ -105,6 +136,7 @@ export function guardedOverlay(base, current, patch) {
 export function verifyCompatibility(matrix) {
   const required = ['current-current', 'current-new', 'new-current', 'new-new', 'saved-legacy'];
   if (!Array.isArray(matrix) || new Set(matrix.map(r => r.pair)).size !== matrix.length) throw Error('Compatibility pairs must be unique');
+  if (matrix.length !== required.length || matrix.some(r => !required.includes(r.pair))) throw Error('Missing explicit compatibility evidence or unknown pair');
   for (const pair of required) {
     const row = matrix.find(r => r.pair === pair);
     if (!row || !['verified', 'pending', 'incompatible'].includes(row.status) || !row.evidence?.length) throw Error(`Missing explicit compatibility evidence: ${pair}`);
@@ -119,6 +151,8 @@ export function verifyCompatibility(matrix) {
   }
   const pair = name => matrix.find(r => r.pair === name);
   if (pair('current-new').websiteIdentity !== pair('current-current').websiteIdentity || pair('new-current').serviceIdentity !== pair('current-current').serviceIdentity || pair('current-new').serviceIdentity !== pair('new-new').serviceIdentity || pair('new-current').websiteIdentity !== pair('new-new').websiteIdentity) throw Error('Compatibility pairs have inconsistent identities');
+  const legacy = pair('saved-legacy');
+  if (![pair('current-current').websiteIdentity, pair('new-new').websiteIdentity].includes(legacy.websiteIdentity) || ![pair('current-current').serviceIdentity, pair('new-new').serviceIdentity].includes(legacy.serviceIdentity)) throw Error('Legacy compatibility identities are outside the recorded release window');
   return { readyForReview: true, compatibleForPublication: required.every(p => matrix.find(r => r.pair === p).status === 'verified') };
 }
 function writeNew(path, value) { mkdirSync(dirname(resolve(path)), { recursive: true }); writeFileSync(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' }); }
@@ -135,8 +169,7 @@ async function main() {
   if (action === 'catalogue') return writeNew(output, compareCatalogues(json(option('before')), json(option('after')), json(option('delta'))));
   if (action === 'decision' || action === 'stage') {
     const record = json(option('record')), observation = json(option('observation'));
-    assertEqual(cleanSource(root), record.candidate, 'Stale or different candidate');
-    if (sha256(readFileSync(resolve(root, 'scripts/cloudflare/mcp-release.mjs'))) !== record.policy) throw Error('Release checker changed');
+    verifyFrozenRecord(root, record);
     if (action === 'decision') return writeNew(output, { candidate: record.candidate, stage: observation.stage, decision: stageDecision(record, observation.stage, observation), observedAt: new Date().toISOString() });
     return writeNew(output, recordStage(record, observation.stage, observation));
   }
