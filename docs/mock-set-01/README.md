@@ -9,3 +9,5 @@ All 146 average-marks percentages are measured values from the original Pearson 
 The source archive and report are retained in the local import/report directories recorded by the source register and performance provenance. Local production evidence: reports/mock-set-01-publication-2026-10-24. Source questions, original schemes, 451 prepared native views and all 24 actual exporter PDFs were reviewed. The two scheme export modes were independently rendered and are pixel-identical. content-review.json binds the staged file hashes and revision identities; it is content review evidence, not a deployment receipt. Qualification and controlled publication receipts establish the release separately.
 
 No new worked solutions are claimed. The original scheme plus documented corrections is supplied. Sets 2–4 are outside this release.
+
+All 628 full-bank topic counts are recomputed from reviewed question appearances; available counts separately deduplicate verified common questions. This replaces stale QLA-era count metadata without changing any prior question record.
