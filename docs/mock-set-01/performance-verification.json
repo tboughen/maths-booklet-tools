@@ -1,0 +1,29 @@
+{
+  "measured": 146,
+  "estimated": 0,
+  "unavailable": 0,
+  "existingScoresPreserved": true,
+  "existingCurvesUnchanged": true,
+  "corrections": [
+    {
+      "component": "1F",
+      "number": 10,
+      "decision": "Part (c): source p29 prints mean 0.44 but mean percentage 23.0. The one-mark distribution p31 has 23.2% scoring one and supports approximately 0.23, not 0.44. Use working mean 0.23 from the printed mean percentage; retain all printed evidence. Whole-question mean is 0.33+0.31+0.23=0.87 of 3."
+    },
+    {
+      "component": "1F",
+      "number": 24,
+      "decision": "Report p30 prints maximum 4; original QP p19 and official scheme p13 give 3. Mean 0.67 and printed 22.3% agree with 3. Distribution p31 last table omits 18(b) from its headings and shifts later headings; its final Q24 column actually matches Q23. Do not use that mislabeled column as Q24 evidence."
+    },
+    {
+      "component": "3H",
+      "number": 3,
+      "decision": "Report p44 prints mean 1.52 of 4 but mean percentage 35.0. Distribution p46 gives weighted mean (6.2+2*5.5+3*3.2+4*31.3)/100=1.520; use 38.0%, retaining the erroneous printed 35.0%."
+    },
+    {
+      "component": "3H",
+      "number": 19,
+      "decision": "Report p45 prints mean 0.28 of 5 with blank percentage. Derive 5.6%; distribution p46 weighted mean 0.279 corroborates the rounded mean."
+    }
+  ]
+}

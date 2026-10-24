@@ -11,6 +11,7 @@ import math
 import re
 from pathlib import Path
 import openpyxl
+from performance_supplements import apply_supplements
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -76,6 +77,8 @@ def main():
     parser.add_argument('--catalogue', type=Path, default=ROOT/'public/bank/catalogue.json')
     parser.add_argument('--output', type=Path, default=ROOT/'src/bank/performance-data.json')
     parser.add_argument('--report', type=Path, default=ROOT/'docs/performance-import-report.json')
+    parser.add_argument('--supplements', type=Path, default=ROOT/'scripts/performance-supplements',
+                        help='Directory of reviewed report supplements, reapplied after grid import')
     args = parser.parse_args()
     catalogue = json.loads(args.catalogue.read_text(encoding='utf-8'))
     scores, lengths, exceptions, sources = {}, {}, [], []
@@ -104,12 +107,17 @@ def main():
             paper, number = key.rsplit('/', 1); count = lengths[paper]
             points.append(((int(number)-1)/(count-1) if count > 1 else .5, s['percentage']))
         curves[tier] = fit_curve(points)
-    for q in catalogue['questions']:
-        if f"{q['paperId']}/{q['number']}" in scores: measured += 1
-        elif q['paperId'] in lengths: estimated += 1
     data = {'version': 'pearson-enhanced-2026-v1', 'sources': sources, 'scores': scores,
             'paperQuestionCounts': lengths, 'curves': curves}
-    report = {'sources': sources, 'sourceQuestions': len(scores), 'measuredAppearances': measured,
+    # Fit only the enhanced-grid population above; reviewed mock data must not
+    # silently disappear or alter the global positional-estimation curves.
+    supplement_paths = sorted(args.supplements.glob('*.json'))
+    data = apply_supplements(data, catalogue, supplement_paths)
+    for q in catalogue['questions']:
+        if f"{q['paperId']}/{q['number']}" in data['scores']: measured += 1
+        elif q['paperId'] in data['paperQuestionCounts']: estimated += 1
+    report = {'sources': data['sources'], 'supplements': [p.name for p in supplement_paths],
+              'sourceQuestions': len(data['scores']), 'measuredAppearances': measured,
               'estimatedAppearances': estimated, 'unavailableAppearances': len(catalogue['questions'])-measured-estimated,
               'exceptions': exceptions, 'markMismatches': mismatches, 'curves': curves}
     args.output.parent.mkdir(parents=True, exist_ok=True); args.report.parent.mkdir(parents=True, exist_ok=True)
