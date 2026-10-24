@@ -72,8 +72,9 @@ for entry in proof["files"]:
     c.drawString(20 * mm, 35 * mm, "100 mm calibration; print at Actual size / 100%.")
     c.showPage(); c.save()
     target = writer.add_page(PdfReader(BytesIO(background.getvalue())).pages[0])
-    assert float(page.mediabox.width) <= 257 * mm and float(page.mediabox.height) < 285 * mm
-    target.merge_transformed_page(page, Transformation().translate(20 * mm, 360 * mm - float(page.mediabox.height)))
+    assert float(page.mediabox.width) <= 280 * mm and float(page.mediabox.height) < 285 * mm
+    x = min(20 * mm, (297 * mm - float(page.mediabox.width)) / 2)
+    target.merge_transformed_page(page, Transformation().translate(x, 360 * mm - float(page.mediabox.height)))
 
 path = root / "direct-svg-vector-proof.pdf"
 with path.open("wb") as handle:

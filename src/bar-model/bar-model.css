@@ -1,0 +1,177 @@
+.bm-scroll {
+  overflow: auto;
+  max-width: 100%;
+  height: var(--resource-stage-height, 540px);
+  min-height: 320px;
+  background: #edf3f9;
+  padding: 12px;
+}
+.bm-stage {
+  position: relative;
+  margin: auto;
+  padding: 24px 82px 66px 18px;
+  box-sizing: content-box;
+}
+.bm-resource {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 0 0 8px #fff;
+}
+.bm-art,
+.bm-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bm-hit {
+  position: absolute;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+}
+.bm-hit:hover,
+.bm-hit:focus-visible {
+  outline: 2px solid #3478c0;
+  background: #3478c012;
+  z-index: 1;
+}
+.bm-side-controls {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bm-side-controls button,
+.bm-bottom-controls button {
+  min-height: 44px;
+}
+.bm-bottom-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+.bm-settings,
+.bm-draft {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.bm-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.bm-editor input,
+.bm-editor select {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+.bm-pair {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bm-parts {
+  max-height: 320px;
+  overflow: auto;
+}
+.bm-parts > div {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+.bm-parts span {
+  font-size: 0.85rem;
+}
+.bm-pending {
+  padding: 10px;
+  background: #fff4cc;
+}
+.bm-draft {
+  border: 2px solid #3478c0;
+  scroll-margin-top: 16px;
+}
+.bm-draft fieldset {
+  min-width: 0;
+}
+.bm-import-preview svg {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+}
+.bm-recovery {
+  padding: 12px;
+  border: 1px solid #ae511c;
+}
+.bm-editor .preview-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px;
+}
+.bm-editor .inspector-stack {
+  min-width: 0;
+}
+.bm-settings button,
+.bm-draft button,
+.bm-side-controls button,
+.bm-bottom-controls button,
+.bm-recovery button {
+  border: 1px solid #b7c9dd;
+  border-radius: 8px;
+  background: white;
+  color: #213c59;
+  padding: 8px 10px;
+  font: inherit;
+  min-height: 40px;
+  cursor: pointer;
+}
+.bm-settings button:hover,
+.bm-draft button:hover,
+.bm-side-controls button:hover,
+.bm-bottom-controls button:hover {
+  background: #e6f0ff;
+  border-color: #3478c0;
+}
+.bm-settings button:disabled,
+.bm-side-controls button:disabled,
+.bm-bottom-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.bm-draft input,
+.bm-draft select,
+.bm-settings select {
+  border: 1px solid #b7c9dd;
+  border-radius: 6px;
+  background: #fff;
+  padding: 7px;
+  color: #213c59;
+  font: inherit;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .bm-stage {
+    margin: 0;
+  }
+  .bm-editor .editor-card {
+    min-width: 0;
+  }
+  .bm-editor .workspace {
+    min-width: 0;
+  }
+  .bm-editor .bm-draft {
+    order: -1;
+  }
+}

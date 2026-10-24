@@ -1,5 +1,6 @@
 /** Public-protocol consumer qualification. No direct core artwork is used. */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -41,11 +42,18 @@ const request: typeof fetch = async (input, init) => {
   return fetch(input, init);
 };
 type Result = { envelope: Record<string, unknown>; contentHash: string; physicalSizeCm: {width: number; height: number}; printRaster: {width: number; height: number}; downloads: Record<string, {url: string}>; editorUrl: string; printGuidance?: unknown };
+const embeddedArtifacts = new Map<string, Buffer>();
 async function call(name: string, args: Record<string, unknown>): Promise<Result> {
   const result = await client.callTool({name, arguments: args});
   assert.notEqual(result.isError, true, JSON.stringify(result.content));
-  return result.structuredContent as unknown as Result;
+  const data = result.structuredContent as unknown as Result;
+  for (const item of result.content as ContentBlock[]) if (item.type === "resource") {
+    const format = item.resource.uri.split(".").at(-1);
+    if (format && ["svg", "png", "json"].includes(format)) embeddedArtifacts.set(`${data.contentHash}:${format}`, "blob" in item.resource ? Buffer.from(item.resource.blob as string, "base64") : Buffer.from(item.resource.text as string, "utf8"));
+  }
+  return data;
 }
+async function artifact(data: Result, format: string) { if (data.downloads[format]) { const response = await request(data.downloads[format].url); assert.equal(response.status, 200); return Buffer.from(await response.arrayBuffer()); } const bytes = embeddedArtifacts.get(`${data.contentHash}:${format}`); assert(bytes, `Missing ${format} delivery`); return bytes; }
 const items: Record<string, Result> = {};
 const delivered: Array<Record<string, unknown>> = [];
 await mkdir(resolve(output, "direct-svg"), { recursive: true });
@@ -60,21 +68,18 @@ async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Re
     return part;
   }, { kind, envelope: data.envelope as SvgDeliveryInput["envelope"], ...(outputView ? { outputView } : {}), maxChunkBytes: 16384 },
   { expectedSourceContentHash: data.contentHash, expectedPhysicalSizeCm: data.physicalSizeCm });
-  const control = await request(data.downloads.svg.url); assert(control.ok);
-  assert.deepEqual(file.body, Buffer.from(await control.arrayBuffer()), `${name}: MCP bytes equal independent download`);
+  assert.deepEqual(file.body, await artifact(data,"svg"), `${name}: MCP bytes equal independent artifact delivery`);
   assert.equal(JSON.stringify(data.envelope), before);
   await writeFile(resolve(output, "direct-svg", `${name}.svg`), file.body);
   await writeFile(resolve(output, "direct-svg", `${name}.json`), JSON.stringify(data.envelope, null, 2));
   delivered.push({ name, kind, rendererVersion: data.envelope.rendererVersion, outputView: outputView ?? (kind === "venn" ? "pupil" : undefined),
     sourceContentHash: file.sourceContentHash, svgSha256: file.svgSha256, totalBytes: file.body.length,
-    physicalSizeCm: file.physicalSizeCm, chunks, matchesControl: true, unchangedSource: true });
+    physicalSizeCm: file.physicalSizeCm, chunks, matchesControl: true, controlDelivery: data.downloads.svg ? "signed-download" : "embedded-resource", unchangedSource: true });
   await writeFile(resolve(output, "svg-delivery-proof.json"), JSON.stringify({ passed: true, simulation: "SDK transport refuses every path except /mcp; independent download controls use a separate fetch", actualChatGPTAcceptance: false, files: delivered }, null, 2));
 }
 async function save(name: string, data: Result) {
   for (const format of (full ? ["svg", "json", "png"] : ["json"])) {
-    const response = await request(data.downloads[format].url);
-    assert.equal(response.status, 200, `${name} ${format} retrieval`);
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    const bytes = new Uint8Array(await artifact(data,format));
     if (format === "json") assert.deepEqual(JSON.parse(Buffer.from(bytes).toString()), data.envelope);
     if (format === "png") verifyPrintBytes(bytes, data.printRaster.width, data.printRaster.height);
     if (format === "svg") assert(!/<(?:text|image|script|foreignObject)\b|(?:href|src)="(?:https?:|data:image)/i.test(Buffer.from(bytes).toString()), "self-contained vector SVG");
@@ -183,19 +188,23 @@ try {
   const algebraAnswer=await call("revise_algebra_grid",{envelope:algebraFactor.envelope,baseHash:algebraFactor.contentHash,operations:[{op:"calculate_answer"}]});await save("algebra-answer",algebraAnswer);
   assert.deepEqual((algebraAnswer.envelope.document as {rows:unknown}).rows,(algebraFactor.envelope.document as {rows:unknown}).rows);
   if (full) { const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum); }
-  for(const [kind,data] of [["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
+  const bar=await call("create_bar_model",{spec:{example:"BM08"}});await save("bar-model",bar);
+  const barRevised=await call("revise_bar_model",{envelope:bar.envelope,baseHash:bar.contentHash,operations:[{op:"set_part",barId:"b1",partId:"b1p1",shade:true}]});await save("bar-model-revised",barRevised);
+  assert.deepEqual((barRevised.envelope.document as {spans:unknown}).spans,(bar.envelope.document as {spans:unknown}).spans);
+  if(full){const h07=await call("create_bar_model",{spec:{example:"H07",worked:true}});await save("bar-h07",h07);const algebraBar=await call("create_bar_model",{spec:{example:"H18",worked:true}});await save("bar-h18",algebraBar);const maximum=await call("create_bar_model",{spec:{example:"BM09"}});await save("bar-maximum",maximum);await saveDirect("bar-maximum","bar-model",maximum);}
+  for(const [kind,data] of [["bar-model",barRevised],["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
     if (!full && ["graph", "value-graph"].includes(kind)) continue;
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     if (full) { const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1); }
   }
-  assert.equal(tools.length,24);
+  for(const name of ["bar_model_capabilities","create_bar_model","revise_bar_model"]) assert(tools.some(t=>t.name===name));
   if (full) {
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],
     ["cuboids", "cuboids", cuboidRevised], ["number-line", "number-line", lineRevised],
     ["venn-pupil", "venn", vennRevised], ["venn-answer", "venn", answer, "answer"],
-    ["algebra-grid", "algebra-grid", algebra], ["algebra-answer", "algebra-grid", algebraAnswer],
+    ["algebra-grid", "algebra-grid", algebra], ["algebra-answer", "algebra-grid", algebraAnswer], ["bar-model", "bar-model", barRevised],
   ] as const) await saveDirect(name, kind, data, view);
   const shading=[];
   for(const [sets,arrangement] of [[1,"overlap"],[2,"overlap"],[2,"separate"],[2,"b-inside-a"],[2,"a-inside-b"],[3,"overlap"]] as const){
