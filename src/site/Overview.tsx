@@ -4,6 +4,7 @@ import { bookletTools, pageHref, siteSections } from "./registry";
 import { useState } from "react";
 
 const searchTerms: Record<string, string> = {
+  "bar-model": "ratio sharing fractions amount comparison part whole",
   triangle: "pythagoras trigonometry sine cosine area angles",
   "number-line": "inequality inequalities interval ray",
   graph: "coordinate straight line points axes grid",
