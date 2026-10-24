@@ -121,7 +121,7 @@ assert (bbox[3] - bbox[1]) / (2 * 96 / 25.4) < 10, "unrelated vertical artwork c
 # One A3 qualification artifact: graph/ratio pair, then two quadratic variants.
 background = root / "specimen-background.pdf"
 c = canvas.Canvas(str(background), pagesize=(297 * mm, 420 * mm))
-titles = ["MCP diagram print qualification", "Quadratic scaffold and deliberate plotting error", "Quadratic graph-only output", "Cuboids and number-line pupil resources", "Venn pupil scaffold and explicit answer output", "Expanding and factorising: preserved pupil blanks"]
+titles = ["MCP diagram print qualification", "Quadratic scaffold and deliberate plotting error", "Quadratic graph-only output", "Cuboids and number-line pupil resources", "Venn pupil scaffold and explicit answer output", "Expanding and factorising: preserved pupil blanks", "Bar modelling: saved pupil states", "Bar modelling: source adaptations"]
 for title in titles:
     c.setFont("Helvetica-Bold", 17); c.drawString(20 * mm, 397 * mm, title)
     c.setFont("Helvetica", 10); c.drawString(20 * mm, 388 * mm, "Actual MCP downloads placed at native size. Print at Actual size / 100%.")
@@ -134,6 +134,7 @@ for page in PdfReader(background).pages:
     writer.add_page(page)
 placements = [(0, "graph", 20, 350), (0, "ratio", 150, 350), (1, "quadratic-combined", 20, 350), (2, "quadratic-graph", 20, 350), (3, "cuboids-revised", 20, 350), (3, "number-line-revised", 20, 230), (4, "venn-revised", 20, 350), (4, "venn-answer", 150, 350)]
 placements += [(5,"algebra-grid",20,350),(5,"algebra-factor",150,350),(5,"algebra-answer",20,250),(5,"algebra-maximum",150,250)]
+placements += [(6,"bar-model",20,350),(6,"bar-model-revised",20,250),(7,"bar-h07",20,350),(7,"bar-h18",20,200)]
 for page_number, name, x_mm, top_mm in placements:
     component = PdfReader(root / f"{name}.component.pdf").pages[0]
     height = float(component.mediabox.height)
@@ -144,7 +145,7 @@ writer.add_metadata({"/Title": "MathsDock MCP vector consumption qualification"}
 with (root / "a3-diagram-consumption.pdf").open("wb") as f:
     writer.write(f)
 final = PdfReader(root / "a3-diagram-consumption.pdf")
-assert len(final.pages) == 6
+assert len(final.pages) == 8
 for p in final.pages:
     assert abs(float(p.mediabox.width) - 297 * mm) < 0.1 * mm
     assert abs(float(p.mediabox.height) - 420 * mm) < 0.1 * mm
@@ -176,7 +177,7 @@ for case in shading_cases:
             sample_count += 1
     assert sample_count > 20, (case["name"], "insufficient shading samples")
     shading_samples += sample_count
-report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 6, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
+report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 8, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
 (root / "vector-proof.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report))
 if (root / "svg-delivery-proof.json").exists():

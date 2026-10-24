@@ -1,3 +1,5 @@
+import BarModelPage from "../bar-model/BarModelPage";
+import barPreview from "../assets/tool-previews/bar-model.svg";
 import VennPage from "../venn/VennPage";
 import TrianglePage from "../triangle/TrianglePage";
 import AlgebraGridPage from "../algebra-grid/AlgebraGridPage";
@@ -18,6 +20,7 @@ import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graph
 
 /** Add booklet editors here; the overview, navigation and page host share this list. */
 export const bookletTools = [
+  { id:"bar-model",name:"Bar modelling",description:"Create linked bars with equal units, sharing and anchored braces.",icon:Table2,component:BarModelPage,preview:{src:barPreview,alt:"Eight equal units shared in ratio three to five, with whole64 and pupil answer spaces."}},
   { id: "expanding-factorising", name: "Expanding and factorising", description: "Make multiplication grids with blank writing cells for expanding and factorising.", icon: Table2, component: AlgebraGridPage, preview: { src: algebraPreview, alt: "Multiplication grid with x and signed number headings and blank product cells for pupil working." } },
   { id: "triangle", name: "Triangles", description: "Create triangle diagrams for Pythagoras, trigonometry, sine rule, cosine rule and area.", icon: Triangle, component: TrianglePage, preview: { src: trianglePreview, alt: "Right-angled triangle with 6 cm and 8 cm sides and an unknown hypotenuse labelled x." } },
   { id: "venn", name: "Venn diagrams", description: "Build blank, populated and shaded diagrams with one, two or three sets.", icon: Shapes, component: VennPage, preview: { src: vennPreview, alt: "Two overlapping sets with member lists, an intersection and a pupil answer line." } },

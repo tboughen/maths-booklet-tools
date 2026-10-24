@@ -9,6 +9,7 @@ test.skip(
   "Run verify-consumption.js and set MCP_CONSUMPTION_DIR to its output directory.",
 );
 const cases = [
+  ...["bar-model", "bar-model-revised"].map(name => ({ name, route: "bar-model", input: "Open bar model file", confirm: "Open bar model", key: "maths-booklet-tools:bar-model:v1", selector: ".bm-resource" })),
   ...["algebra-grid", "algebra-factor", "algebra-answer"].map((name) => ({
     name,
     route: "expanding-factorising",
@@ -335,3 +336,5 @@ for (const c of cases.filter((c) =>
       .toEqual(expected);
   });
 }
+
+test('actual bar-model bundle preserves every saved label and pupil state',async({page})=>{const zip=unzipSync(new Uint8Array(await readFile(resolve(directory!,'bar-model-bundle.zip'))));const bytes=Buffer.from(zip['source.json']),expected=JSON.parse(bytes.toString('utf8'));await page.goto('/?tool=bar-model');await page.getByLabel('Open bar model file',{exact:true}).setInputFiles({name:'source.json',mimeType:'application/json',buffer:bytes});await page.getByRole('dialog').getByRole('button',{name:'Open bar model',exact:true}).click();await expect.poll(async()=>JSON.parse(await page.evaluate(()=>localStorage.getItem('maths-booklet-tools:bar-model:v1')!))).toEqual(expected);});

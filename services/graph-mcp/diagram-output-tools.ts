@@ -38,7 +38,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
   function register(server: McpServer, connectionSignal: AbortSignal) {
     const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
     server.registerTool("check_diagram_placement", {
-      description: "Calculate print consequences without editing. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid, the exact returned envelope, and positive widthMm and/or heightMm. One dimension derives the other; two define a box and report a proportional fit. Warnings describe reduction or stretching; no universal minimum or booklet fit is assumed. effectivePngDpi concerns PNG only. Venn outputView:pupil|answer selects artwork while retaining pupil source. No baseHash is needed. Use when considering a resize, not at every native-size placement.",
+      description: "Calculate print consequences without editing. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model, the exact returned envelope, and positive widthMm and/or heightMm. One dimension derives the other; two define a box and report a proportional fit. Warnings describe reduction or stretching; no universal minimum or booklet fit is assumed. effectivePngDpi concerns PNG only. Venn outputView:pupil|answer selects artwork while retaining pupil source. No baseHash is needed. Use when considering a resize, not at every native-size placement.",
       inputSchema: placementInputSchema, outputSchema: placementOutputSchema, annotations,
     }, async (input, extra) => {
       try {
@@ -48,7 +48,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
       } catch (error) { return failure(error); }
     });
     server.registerTool("download_diagram_bundle", {
-      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
+      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
       inputSchema: diagramSourceSchema,
       outputSchema: z.object({
         kind: diagramKind,

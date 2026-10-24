@@ -1,22 +1,158 @@
 {
   "schemaVersion": 1,
-  "browserCases": {"sourceImports":9,"mobileLinkEditUndo":4,"bundleImports":5,"total":18,"consumer":"e2e/mcp-output.spec.ts","caseRemovalAllowed":false},
-  "additionalJourneyCases":{"total":1,"consumer":"e2e/mcp-roundtrip.spec.ts","provenance":"real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"},
-  "browserProducer": {"profile":"browser","editableSources":["graph","ratio","quadratic-combined","cuboids-revised","number-line-revised","venn-revised","algebra-grid","algebra-factor","algebra-answer"],"bundles":["ratio","cuboids","number-line","venn","algebra-grid"],"metadata":["retrieval.json","tool-catalogue.json"]},
+  "browserCases": {
+    "sourceImports": 11,
+    "mobileLinkEditUndo": 4,
+    "bundleImports": 6,
+    "total": 21,
+    "consumer": "e2e/mcp-output.spec.ts",
+    "caseRemovalAllowed": false
+  },
+  "additionalJourneyCases": {
+    "total": 2,
+    "consumer": [
+      "e2e/mcp-roundtrip.spec.ts",
+      "e2e/bar-model-roundtrip.spec.ts"
+    ],
+    "provenance": "real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"
+  },
+  "browserProducer": {
+    "profile": "browser",
+    "editableSources": [
+      "graph",
+      "ratio",
+      "quadratic-combined",
+      "cuboids-revised",
+      "number-line-revised",
+      "venn-revised",
+      "algebra-grid",
+      "algebra-factor",
+      "algebra-answer",
+      "bar-model",
+      "bar-model-revised"
+    ],
+    "bundles": [
+      "ratio",
+      "cuboids",
+      "number-line",
+      "venn",
+      "algebra-grid",
+      "bar-model"
+    ],
+    "metadata": [
+      "retrieval.json",
+      "tool-catalogue.json"
+    ]
+  },
   "assertionOwners": [
-    {"guarantee":"complete paginated named discovery","owner":["services/graph-mcp/discovery.test.ts","full and browser protocol collectors","smoke"]},
-    {"guarantee":"schema and homogeneous-array compatibility","owner":["services/graph-mcp/ratio-table.test.ts","complete catalogue delta comparison","actual intended-client import"]},
-    {"guarantee":"all SVG/JSON/600ppi PNG outputs and native size","owner":["full protocol collector","independent vector consumer","bounded Linux smoke"]},
-    {"guarantee":"graph labels, refresh equality and ratio revisions","owner":["full protocol collector"]},
-    {"guarantee":"maximum graph, ratio and algebra","owner":["full protocol collector","existing core/service/browser cases"]},
-    {"guarantee":"placement advice and all output bundles","owner":["full protocol collector","service tests"]},
-    {"guarantee":"original SVG, source/chunk/full hashes and vector saving","owner":["full protocol collector","scripts/verify-diagram-consumption.py","actual-client saved-output acceptance"]},
-    {"guarantee":"all Venn shading masks","owner":["full protocol collector","independent vector/pixel consumer"]},
-    {"guarantee":"pupil blanks, settings, IDs and reopen","owner":["all 18 existing MCP browser cases","core/service regressions"]},
-    {"guarantee":"fixture source/run/attempt integrity","owner":["scripts/cloudflare/mcp-release.test.mjs","scripts/cloudflare/mcp-release-regression.test.mjs","pipeline before/after browser verification"]},
-    {"guarantee":"lost-response reconciliation and package conflicts","owner":["scripts/cloudflare/mcp-release.test.mjs","scripts/cloudflare/mcp-release-regression.test.mjs","existing publisher failure suite"]},
-    {"guarantee":"live website and actual intended-client acceptance","owner":["MCP-RELEASE-PLAYBOOK.md section 7","MCP-CONNECTOR-ACCEPTANCE.md"],"inferredFromLocalChecks":false}
+    {
+      "guarantee": "complete paginated named discovery",
+      "owner": [
+        "services/graph-mcp/discovery.test.ts",
+        "full and browser protocol collectors",
+        "smoke"
+      ]
+    },
+    {
+      "guarantee": "schema and homogeneous-array compatibility",
+      "owner": [
+        "services/graph-mcp/ratio-table.test.ts",
+        "complete catalogue delta comparison",
+        "actual intended-client import"
+      ]
+    },
+    {
+      "guarantee": "all SVG/JSON/600ppi PNG outputs and native size",
+      "owner": [
+        "full protocol collector",
+        "independent vector consumer",
+        "bounded Linux smoke"
+      ]
+    },
+    {
+      "guarantee": "graph labels, refresh equality and ratio revisions",
+      "owner": [
+        "full protocol collector"
+      ]
+    },
+    {
+      "guarantee": "maximum graph, ratio and algebra",
+      "owner": [
+        "full protocol collector",
+        "existing core/service/browser cases"
+      ]
+    },
+    {
+      "guarantee": "placement advice and all output bundles",
+      "owner": [
+        "full protocol collector",
+        "service tests"
+      ]
+    },
+    {
+      "guarantee": "original SVG, source/chunk/full hashes and vector saving",
+      "owner": [
+        "full protocol collector",
+        "scripts/verify-diagram-consumption.py",
+        "actual-client saved-output acceptance"
+      ]
+    },
+    {
+      "guarantee": "all Venn shading masks",
+      "owner": [
+        "full protocol collector",
+        "independent vector/pixel consumer"
+      ]
+    },
+    {
+      "guarantee": "pupil blanks, settings, IDs and reopen",
+      "owner": [
+        "all 18 existing MCP browser cases",
+        "core/service regressions"
+      ]
+    },
+    {
+      "guarantee": "fixture source/run/attempt integrity",
+      "owner": [
+        "scripts/cloudflare/mcp-release.test.mjs",
+        "scripts/cloudflare/mcp-release-regression.test.mjs",
+        "pipeline before/after browser verification"
+      ]
+    },
+    {
+      "guarantee": "lost-response reconciliation and package conflicts",
+      "owner": [
+        "scripts/cloudflare/mcp-release.test.mjs",
+        "scripts/cloudflare/mcp-release-regression.test.mjs",
+        "existing publisher failure suite"
+      ]
+    },
+    {
+      "guarantee": "live website and actual intended-client acceptance",
+      "owner": [
+        "MCP-RELEASE-PLAYBOOK.md section 7",
+        "MCP-CONNECTOR-ACCEPTANCE.md"
+      ],
+      "inferredFromLocalChecks": false
+    },
+    {
+      "guarantee": "bar-model shared units,spans,hidden answers,maximum and editor/MCP roundtrip",
+      "owner": [
+        "packages/bar-model-core/src/bar-model.test.ts",
+        "services/graph-mcp/bar-model.test.ts",
+        "e2e/bar-model.spec.ts",
+        "e2e/bar-model-roundtrip.spec.ts",
+        "full protocol collector",
+        "independent vector consumer"
+      ]
+    }
   ],
-  "deferred":["shared producer","cross-release fixture cache","new runtime buildId","registry/image promotion","general deployment orchestrator"],
-  "policy":"Current full browser inventory and full service assertions are retained; a moved assertion must have a named owner. This map does not assert any live or client stage passed."
+  "deferred": [
+    "shared producer",
+    "cross-release fixture cache",
+    "new runtime buildId",
+    "registry/image promotion",
+    "general deployment orchestrator"
+  ],
+  "policy": "Current full browser inventory and full service assertions are retained; a moved assertion must have a named owner. This map does not assert any live or client stage passed."
 }

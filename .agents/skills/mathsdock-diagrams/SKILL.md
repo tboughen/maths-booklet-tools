@@ -124,3 +124,7 @@ Show the returned preview and concise links to the actual SVG, verified print PN
 Keep physical dimensions distinct from preview zoom. Word exports are images; further mathematical edits require reopening the editable document in MathsDock. Expired downloads can be refreshed through the supported revision operation with the same returned document, without changing content.
 
 Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
+
+## Bar modelling
+
+For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.

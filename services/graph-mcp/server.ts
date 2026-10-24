@@ -149,7 +149,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
-      case "cuboids": case "number-line": case "venn": case "algebra-grid": return resources.artifacts(source, format, signal);
+      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": return resources.artifacts(source, format, signal);
     }
   });
   async function result(raw: GraphEnvelope, signal?: AbortSignal) {
@@ -405,7 +405,8 @@ export function graphService(options: ServiceOptions) {
           cuboidRendererVersions: ["cuboids-1", "cuboids-2"],
           numberLineRendererVersion: "number-line-1",
           vennRendererVersions: ["venn-1", "venn-2"],
-          algebraGridRendererVersion: "algebra-grid-1",
+          barModelRendererVersion: "bar-model-1",
+            algebraGridRendererVersion: "algebra-grid-1",
           buildId: options.buildId ?? "development",
         });
         return;
@@ -413,7 +414,7 @@ export function graphService(options: ServiceOptions) {
       limits.request(req.socket.remoteAddress ?? "unknown");
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
-        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model") throw new GraphError("invalid_download", "Use the original download route for this resource.");
         const abort = new AbortController();
         res.once("close", () => {if (!res.writableFinished) abort.abort();});
         const file = await resources.artifacts(source, format, abort.signal);
