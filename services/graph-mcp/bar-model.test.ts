@@ -180,15 +180,16 @@ it("creates, downloads and revises exact saved resources with native print facts
       expect(reply.isError).not.toBe(true);
       return reply.structuredContent;
     },
-    { kind: "bar-model", envelope: n.envelope, maxChunkBytes: 1024 },
+    // Keep the complete test below the unchanged per-socket request allowance.
+    { kind: "bar-model", envelope: n.envelope, maxChunkBytes: 4096 },
     {
       expectedSourceContentHash: n.contentHash,
       expectedPhysicalSizeCm: n.physicalSizeCm,
     },
   );
-  expect(direct.body).toEqual(
-    Buffer.from(await (await fetch(n.downloads.svg.url)).arrayBuffer()),
-  );
+  const control = await fetch(n.downloads.svg.url);
+  expect(control.status).toBe(200);
+  expect(direct.body).toEqual(Buffer.from(await control.arrayBuffer()));
 }, 30000);
 it("exports maximum structure, rejects impossible layout and keeps source atomic", async () => {
   const client = await start(),
