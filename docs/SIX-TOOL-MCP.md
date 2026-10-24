@@ -1,3 +1,7 @@
+Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+applicable; historical family/tool counts are snapshots, not discovery evidence.
+
 # Six booklet-tool MCP integrations
 
 This source adds Cuboids, Number lines and Venn to the existing Graph, Ratio

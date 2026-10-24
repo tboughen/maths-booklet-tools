@@ -1,8 +1,12 @@
+ROUTINE RELEASES: read docs/MCP-RELEASE-PLAYBOOK.md and its operator checklist.
+The retained initial setup/history below is not a sequence to repeat each release.
+Actual named discovery and the current family contracts supersede historical counts.
+
 GRAPH INTEGRATION — OPERATIONS AND RELEASE
 Optional print measurements, placement advice, source bundles and the vector
 consumer qualification are documented in MCP-DIAGRAM-OUTPUTS.md. These are
 diagram outputs for another AI project; the service does not assemble booklets.
-Implementation candidate. Hosting, live release and actual ChatGPT acceptance
+Historical initial integration record. Hosting, live release and actual client acceptance
 are separate stages. Never treat a passing local test as a connected account.
 
 Architecture
@@ -83,7 +87,7 @@ still change resources on sync. Review Blueprint updates before applying them.
 
 Production configuration
   RENDER_EXTERNAL_URL=<assigned automatically by Render>
-  GRAPH_EDITOR_URL=https://tboughen.github.io/maths-booklet-tools/
+  GRAPH_EDITOR_URL=https://mathsdock.co.uk/
   DOWNLOAD_SIGNING_KEY=<provider secret, at least 32 characters>
   DOWNLOAD_KEY_ID=initial
   MAX_DAILY_OUTPUT_BYTES=209715200
@@ -133,7 +137,7 @@ outstanding links' validity; reject unknown schemas rather than reinterpret them
 Large graphs use embedded MCP SVG/JSON/PNG resources if links exceed the cap.
 Actual ChatGPT file handling for this path is a mandatory live acceptance gate.
 
-Release sequence and gates
+Initial onboarding sequence and gates (routine releases use the playbook)
 1. Review PR and font samples. Require local checks and Linux image CI.
 2. Verify the Free-only deployment settings, free workspace without a payment
    method, admin/account access, logs and disable controls. If signup requires

@@ -13,6 +13,12 @@ Read [Creating MathsDock tools](../../../docs/TOOL-CREATION-GUIDE.md) before pro
 
 When running from a portable installation, prefer the current versions in an accessible `tboughen/maths-booklet-tools` checkout. Use the bundled references when the repository is unavailable. Keep tool-development work distinct from generating a resource through the existing connector.
 
+Routine MCP releases use the [publication playbook](../../../docs/MCP-RELEASE-PLAYBOOK.md) and
+[short checklist](../../../docs/MCP-RELEASE-CHECKLIST.md). Preserve the stronger
+[connector-acceptance rules](../../../docs/MCP-CONNECTOR-ACCEPTANCE.md); service,
+package and intended-client evidence are separate. Commands require an accessible
+qualified repository checkout; a plugin does not bundle the release scripts.
+
 ## Apply the relevant decisions
 
 - For new/changed MCP calls, follow [connector acceptance](../../../docs/MCP-CONNECTOR-ACCEPTANCE.md); distinguish service discovery,actual client calls and verified saved files. Algebra contract: [Expanding/factorising MCP](../../../docs/ALGEBRA-GRID-MCP.md).

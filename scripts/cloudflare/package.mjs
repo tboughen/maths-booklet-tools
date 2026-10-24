@@ -19,14 +19,29 @@ export function packageRelease(root, { base, directory = resolve(root, 'cloudfla
   mkdirSync(resolve(directory, 'config'), { recursive: true });
   for (const name of ['wrangler.jsonc', 'wrangler.preview.jsonc']) cpSync(resolve(root, name), resolve(directory, 'config', name));
   save(resolve(directory, 'inventory.json'), inventory);
-  const inputs = { repository, sourceTree: source.tree, bankTree: source.bankTree, transformationId: transformationId(root), verifierId: verifierId(root), lockfile: sha256(readFileSync(resolve(root, 'package-lock.json'))), node: process.versions.node, classification: classify(root, base) };
+  const inputs = { repository, sourceTree: source.tree, bankTree: source.bankTree, transformationId: transformationId(root), verifierId: verifierId(root), lockfile: sha256(readFileSync(resolve(root, 'package-lock.json'))), node: process.versions.node, serviceEvidenceVersion: 1, classification: classify(root, base) };
   const files = fileManifest(directory);
   const release = { schemaVersion: 1, releaseId: digestObject({ inputs, files }), sourceCommit: source.commit, createdAt: new Date().toISOString(), inputs, files };
   save(resolve(directory, 'release.json'), release);
   verifyPackage(directory);
   return release;
 }
-export function verifyPackage(directory, { allowExpiredForRecovery = false } = {}) {
+export function packageSourceQualification(root, { base, directory }) {
+  const source = cleanSource(root), classification = classify(root, base);
+  if (classification.website) throw Error('Website obligations require the website package');
+  if (existsSync(directory)) throw Error('Source qualification package already exists');
+  mkdirSync(directory, { recursive: true });
+  const inputs = { repository, sourceTree: source.tree, bankTree: source.bankTree, transformationId: transformationId(root), verifierId: verifierId(root), lockfile: sha256(readFileSync(resolve(root, 'package-lock.json'))), node: process.versions.node, serviceEvidenceVersion: 1, classification };
+  save(resolve(directory, 'source.json'), { sourceCommit: source.commit, inputs });
+  const files = fileManifest(directory);
+  const release = { schemaVersion: 1, kind: 'source-qualification', releaseId: digestObject({ inputs, files }), sourceCommit: source.commit, createdAt: new Date().toISOString(), inputs, files };
+  save(resolve(directory, 'release.json'), release);
+  assertEqual(cleanSource(root), source, 'Candidate moved while packaging');
+  verifyQualificationPackage(directory);
+  return release;
+}
+export const verifyQualificationPackage = directory => verifyPackage(directory, { allowSourceOnly: true });
+export function verifyPackage(directory, { allowExpiredForRecovery = false, allowSourceOnly = false } = {}) {
   const release = json(resolve(directory, 'release.json'));
   if (release.schemaVersion !== 1 || release.inputs?.repository !== repository || !/^[a-f0-9]{64}$/.test(release.releaseId)) throw new Error('Unsupported release package or repository');
   const age = Date.now() - Date.parse(release.createdAt);
@@ -35,6 +50,11 @@ export function verifyPackage(directory, { allowExpiredForRecovery = false } = {
   delete actual['release.json'];
   assertEqual(actual, release.files, 'Release package contains missing, extra or modified files');
   assertEqual(digestObject({ inputs: release.inputs, files: release.files }), release.releaseId, 'Release identity failed');
+  if (release.kind === 'source-qualification') {
+    if (!allowSourceOnly || release.inputs.classification.website) throw Error('Source qualification cannot be promoted as a website package');
+    assertEqual(json(resolve(directory, 'source.json')), { sourceCommit: release.sourceCommit, inputs: release.inputs }, 'Source qualification identity differs');
+    return release;
+  }
   const inventory = validateInventory(json(resolve(directory, 'inventory.json')));
   if (sha256(readFileSync(resolve(directory, 'site/bank/catalogue.json'))) !== inventory.catalogueSha256) throw new Error('Packaged catalogue does not match inventory');
   return release;

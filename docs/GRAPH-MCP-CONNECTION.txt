@@ -1,3 +1,7 @@
+ROUTINE RELEASES: read docs/MCP-RELEASE-PLAYBOOK.md and its operator checklist.
+The retained initial setup/history below is not a sequence to repeat each release.
+Actual named discovery and the current family contracts supersede historical counts.
+
 CONNECT MATHS BOOKLET TOOLS TO CHATGPT
 
 This connection is made after the service has a verified public HTTPS URL and

@@ -33,7 +33,7 @@ jobs:
           cache: npm
       - run: npm ci
       - id: package
-        name: Prepare one exact website package
+        name: Prepare the exact applicable qualification package
         env:
           BASE: ${{ github.event.pull_request.base.sha || inputs.base }}
           REUSE: ${{ inputs.reuse_run }}
@@ -123,6 +123,12 @@ jobs:
           name: check-service
           path: cloudflare-release/evidence
           retention-days: 90
+      - uses: actions/upload-artifact@v6
+        if: success()
+        with:
+          name: checked-service
+          path: cloudflare-release/service-package
+          retention-days: 90
   release-qualification:
     name: release-qualification
     if: always()
@@ -156,6 +162,11 @@ jobs:
           pattern: check-*
           path: cloudflare-release/evidence
           merge-multiple: true
+      - uses: actions/download-artifact@v7
+        if: needs.prepare.outputs.service == 'true'
+        with:
+          name: checked-service
+          path: cloudflare-release/service-package
       - name: Seal complete qualification evidence
         if: needs.prepare.outputs.website == 'true' || needs.prepare.outputs.service == 'true'
         run: node scripts/cloudflare/pipeline.mjs seal
@@ -165,5 +176,14 @@ jobs:
           name: qualified-release
           path: |
             cloudflare-release/package
+            cloudflare-release/evidence
+          retention-days: 90
+      - uses: actions/upload-artifact@v6
+        if: needs.prepare.outputs.service == 'true'
+        with:
+          name: qualified-service
+          path: |
+            cloudflare-release/package
+            cloudflare-release/service-package
             cloudflare-release/evidence
           retention-days: 90

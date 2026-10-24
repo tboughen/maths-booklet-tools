@@ -1,3 +1,7 @@
+Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
+[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+applicable; historical family/tool counts are snapshots, not discovery evidence.
+
 # Original SVG delivery through MCP
 
 `get_diagram_svg` is an optional additive retrieval call for Graph, Ratio tables,
