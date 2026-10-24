@@ -2,11 +2,13 @@
   "schemaVersion": 1,
   "browserCases": {"sourceImports":9,"mobileLinkEditUndo":4,"bundleImports":5,"total":18,"consumer":"e2e/mcp-output.spec.ts","caseRemovalAllowed":false},
   "additionalJourneyCases":{"total":1,"consumer":"e2e/mcp-roundtrip.spec.ts","provenance":"real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"},
+  "triangleJourneyCases":{"total":9,"consumer":"e2e/triangle-mcp.spec.ts","fixtures":"services/graph-mcp/fixtures/triangle","provenance":"retained actual MCP sources, including v1/v2 and hidden answers; desktop/mobile browser rehearsal"},
   "browserProducer": {"profile":"browser","editableSources":["graph","ratio","quadratic-combined","cuboids-revised","number-line-revised","venn-revised","algebra-grid","algebra-factor","algebra-answer"],"bundles":["ratio","cuboids","number-line","venn","algebra-grid"],"metadata":["retrieval.json","tool-catalogue.json"]},
   "assertionOwners": [
     {"guarantee":"complete paginated named discovery","owner":["services/graph-mcp/discovery.test.ts","full and browser protocol collectors","smoke"]},
     {"guarantee":"schema and homogeneous-array compatibility","owner":["services/graph-mcp/ratio-table.test.ts","complete catalogue delta comparison","actual intended-client import"]},
     {"guarantee":"all SVG/JSON/600ppi PNG outputs and native size","owner":["full protocol collector","independent vector consumer","bounded Linux smoke"]},
+    {"guarantee":"Triangle v1/v2 source, SVG, 600ppi PNG, bundles, placement and original-SVG vector saving","owner":["full protocol collector (Triangle cases remain outside browser profile)","services/graph-mcp/verify-triangle.ts","e2e/triangle-mcp.spec.ts","independent vector consumer","Triangle core/service regressions"]},
     {"guarantee":"graph labels, refresh equality and ratio revisions","owner":["full protocol collector"]},
     {"guarantee":"maximum graph, ratio and algebra","owner":["full protocol collector","existing core/service/browser cases"]},
     {"guarantee":"placement advice and all output bundles","owner":["full protocol collector","service tests"]},

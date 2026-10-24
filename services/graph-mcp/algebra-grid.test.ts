@@ -66,7 +66,7 @@ async function call(
 it("advertises the three new tools and homogeneous schemas", async () => {
   const c = await start(),
     tools = (await c.listTools()).tools;
-  expect(tools).toHaveLength(24);
+  expect(tools).toHaveLength(27);
   for (const name of [
     "algebra_grid_capabilities",
     "create_algebra_grid",

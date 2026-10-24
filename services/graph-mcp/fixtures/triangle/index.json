@@ -1,0 +1,37 @@
+{
+  "provenance": "Actual local MCP SDK/HTTP collector; not actual ChatGPT import acceptance",
+  "cases": [
+    {
+      "name": "scaffold",
+      "contentHash": "34cb996920a5809b7d57ad26b2ad653474d63c7843623832d15739150d620cdb",
+      "physicalSizeCm": {
+        "width": 12,
+        "height": 8.420497369391144
+      }
+    },
+    {
+      "name": "hidden-answer",
+      "contentHash": "41898b143c2cf5541adcf3a577b5a6b850bf6ff7b5f2da58df1b4a898937b903",
+      "physicalSizeCm": {
+        "width": 12,
+        "height": 8.420497369391144
+      }
+    },
+    {
+      "name": "area-v2",
+      "contentHash": "a1ab3b49f6b05277e9ff6c2716f62daa82f718b54c5da35813f0cbcea796c35f",
+      "physicalSizeCm": {
+        "width": 12,
+        "height": 9.220497369391143
+      }
+    },
+    {
+      "name": "split",
+      "contentHash": "ed822830827e18dd467e5b58cbb76f585a588c711758603ccc7a5d614e2bd037",
+      "physicalSizeCm": {
+        "width": 16,
+        "height": 11.386522516560067
+      }
+    }
+  ]
+}
