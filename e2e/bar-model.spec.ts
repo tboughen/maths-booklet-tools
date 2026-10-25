@@ -4,6 +4,9 @@ import * as c from "../packages/bar-model-core/src";
 import { editorLink } from "../packages/bar-model-core/src/interchange";
 const visible = (page: Page) => page.locator(".site-page:not([hidden])");
 const resource = (page: Page) => visible(page).locator(".bm-resource");
+// These retained cases exercise the legacy editor against an actual saved v1 file.
+// Fresh-browser v2 defaults and authoring are covered in bar-model-v2.spec.ts.
+test.beforeEach(async ({page})=>{await page.addInitScript(({raw})=>{const key="maths-booklet-tools:bar-model:v1";if(localStorage.getItem(key)===null)localStorage.setItem(key,raw);},{raw:c.canonical(c.fresh())});});
 async function saved(page: Page) {
   await visible(page)
     .getByRole("button", { name: "File", exact: true })

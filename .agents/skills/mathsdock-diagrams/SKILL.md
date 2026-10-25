@@ -9,6 +9,14 @@ Use the existing connected Maths Booklet Tools MCP tools to produce editable tea
 
 ## Choose and inspect the tool
 
+When bar calls are actually discovered, request the improved lesson layout with
+`spec:{schemaVersion:2,starter:"part-whole"}` (or comparison/equal-sections/inline-ratio).
+Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/BAR-MODEL-V2.md)
+for complete slots, annotations and operations. Preserve supplied versions and
+hashes; v1 needs explicit first `upgrade_document` before new features. Saved text
+can be retained under blank, line, question and hidden displays. Never calculate
+or reveal answers without the explicit action, mask dividers or silently reanchor.
+
 - For coordinate graphs, read `graph_capabilities`, then use `create_graph` or `revise_graph`.
 - For lesson-style ratio tables, read `ratio_table_capabilities`, then use `create_ratio_table` or `revise_ratio_table`.
 - For quadratic graphs and tables of values, read `value_graph_capabilities`, then use `create_value_graph` or `revise_value_graph`.

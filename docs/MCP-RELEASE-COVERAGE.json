@@ -9,10 +9,11 @@
     "caseRemovalAllowed": false
   },
   "additionalJourneyCases": {
-    "total": 2,
+    "total": 3,
     "consumer": [
       "e2e/mcp-roundtrip.spec.ts",
-      "e2e/bar-model-roundtrip.spec.ts"
+      "e2e/bar-model-roundtrip.spec.ts",
+      "e2e/bar-model-v2-roundtrip.spec.ts"
     ],
     "provenance": "real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"
   },
@@ -145,6 +146,19 @@
         "e2e/bar-model-roundtrip.spec.ts",
         "full protocol collector",
         "independent vector consumer"
+      ]
+    },
+    {
+      "guarantee": "bar-model v2 slots,compact annotations,exact repartitioning,retained v1,storage and dense vector/Linux output",
+      "owner": [
+        "packages/bar-model-core/src/v2.test.ts",
+        "src/bar-model/storage.test.ts",
+        "src/bar-model/LessonBarModelPage.test.tsx",
+        "e2e/bar-model-v2.spec.ts",
+        "e2e/bar-model-v2-roundtrip.spec.ts",
+        "services/graph-mcp/verify-consumption.ts",
+        "services/graph-mcp/smoke.ts",
+        "scripts/verify-diagram-consumption.py"
       ]
     }
   ],

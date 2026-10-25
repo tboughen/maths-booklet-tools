@@ -23,6 +23,8 @@ import { copyStorageKey } from "../site/copyDocument";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import "./bar-model.css";
+import * as versioned from "../../packages/bar-model-core/src/versioned";
+import * as improved from "../../packages/bar-model-core/src/v2";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -63,14 +65,42 @@ type Draft =
       type: "print";
       values: Record<keyof c.Envelope["document"]["presentation"], string>;
     };
-export default function BarModelPage({ active = true }: { active?: boolean }) {
-  const [startup] = useState(initial);
+export interface ManagedLegacy {
+  present: c.Envelope;
+  onCommit: (e: c.Envelope) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+}
+export default function BarModelPage({
+  active = true,
+  onUpgrade,
+  onOpenModern,
+  managed,
+  onNewModel,
+}: {
+  active?: boolean;
+  onUpgrade?: (h: {
+    past: c.Envelope[];
+    present: c.Envelope;
+    future: c.Envelope[];
+  }) => void;
+  onOpenModern?: (e: versioned.Envelope) => void;
+  managed?: ManagedLegacy;
+  onNewModel?: () => void;
+}) {
+  const [startup] = useState(() =>
+    managed
+      ? { e: managed.present, raw: null, recovery: null, message: "" }
+      : initial(),
+  );
   const [history, setHistory] = useState({
     past: [] as c.Envelope[],
     present: startup.e,
     future: [] as c.Envelope[],
   });
-  const e = history.present,
+  const e = managed?.present ?? history.present,
     d = e.document,
     g = c.layout(e);
   const [draft, setDraft] = useState<Draft | null>(null),
@@ -116,6 +146,10 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
   }, [drafting, active]);
   function commit(n: c.Envelope) {
     const valid = c.validate(n);
+    if (managed) {
+      managed.onCommit(valid);
+      return;
+    }
     setHistory((h) =>
       c.canonical(h.present) === c.canonical(valid)
         ? h
@@ -137,6 +171,10 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
   }
   function undo() {
     if (guard.current) return;
+    if (managed) {
+      managed.onUndo();
+      return;
+    }
     setHistory((h) =>
       h.past.length
         ? {
@@ -149,6 +187,10 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
   }
   function redo() {
     if (guard.current) return;
+    if (managed) {
+      managed.onRedo();
+      return;
+    }
     setHistory((h) =>
       h.future.length
         ? {
@@ -204,6 +246,7 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
     }
   }
   useEffect(() => {
+    if (managed) return;
     if (recovery !== null || conflict) return;
     try {
       const now = localStorage.getItem(STORAGE);
@@ -219,8 +262,9 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
     } catch {
       setSaveState("Not saved on device — save an editable file");
     }
-  }, [e, recovery, conflict]);
+  }, [e, recovery, conflict, managed]);
   useEffect(() => {
+    if (managed) return;
     const changed = (event: StorageEvent) => {
       if (event.key === STORAGE && event.newValue !== expected.current) {
         setConflict(true);
@@ -229,7 +273,7 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
     };
     window.addEventListener("storage", changed);
     return () => window.removeEventListener("storage", changed);
-  }, []);
+  }, [managed]);
   useEffect(() => {
     if (!active) return;
     const keys = (event: KeyboardEvent) => {
@@ -252,7 +296,7 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
     return () => window.removeEventListener("keydown", keys);
   });
   useEffect(() => {
-    if (!active) return;
+    if (!active || managed) return;
     const read = () => {
       if (
         guard.current ||
@@ -277,7 +321,7 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
     read();
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
-  }, [active, blocked]);
+  }, [active, blocked, managed]);
   async function output(fn: () => void | Promise<void>, success: string) {
     if (guard.current || issue) return;
     setBusy(true);
@@ -435,17 +479,46 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
+        {managed && (
+          <p>
+            Legacy layout and source are preserved. Ordinary edits keep version
+            1.
+          </p>
+        )}
         <section className="workspace">
           <Panel className="editor-card">
+            {onUpgrade && (
+              <details>
+                <summary>Use improved layout</summary>
+                <p>
+                  Keep the original labels, saved answers and fixed endpoints.
+                  Spacing and source version will change. One Undo restores this
+                  version.
+                </p>
+                <div
+                  className="bm-choice-preview"
+                  dangerouslySetInnerHTML={{
+                    __html: improved.renderSvg(improved.upgrade(e)),
+                  }}
+                />
+                <button disabled={blocked} onClick={() => onUpgrade(history)}>
+                  Use improved layout
+                </button>
+              </details>
+            )}
             <EditorToolbar
-              canUndo={!blocked && !!history.past.length}
-              canRedo={!blocked && !!history.future.length}
+              canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
+              canRedo={
+                !blocked && (managed?.canRedo ?? !!history.future.length)
+              }
               onUndo={undo}
               onRedo={redo}
               onReset={() => {
-                if (!guard.current)
+                if (!guard.current && onNewModel) onNewModel();
+                else if (!guard.current)
                   setPending({ e: c.fresh(), title: "Reset bar model?" });
               }}
+              resetLabel={onNewModel ? "New model" : undefined}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -485,7 +558,14 @@ export default function BarModelPage({ active = true }: { active?: boolean }) {
                   const text = await f.text();
                   if (guard.current) return;
                   setPending({
-                    e: c.parseFile(text),
+                    e: (() => {
+                      const parsed = versioned.parseFile(text);
+                      if (parsed.schemaVersion === 2) {
+                        onOpenModern?.(parsed);
+                        throw Error("Opened improved model.");
+                      }
+                      return parsed;
+                    })(),
                     title: "Open editable bar model?",
                   });
                 } catch (err) {

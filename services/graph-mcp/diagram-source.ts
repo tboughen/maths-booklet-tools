@@ -11,7 +11,7 @@ import * as cuboid from "../../packages/cuboid-core/src/index";
 import { printFacts as cuboidPrintFacts } from "../../packages/cuboid-core/src/interchange";
 import * as numberLine from "../../packages/number-line-core/src/index";
 import * as venn from "../../packages/venn-core/src/index";
-import * as bar from "../../packages/bar-model-core/src/index";
+import * as bar from "../../packages/bar-model-core/src/versioned";
 import * as algebra from "../../packages/algebra-grid-core/src/index";
 import { printFacts as algebraPrintFacts } from "../../packages/algebra-grid-core/src/interchange";
 import { assertPrintable, printFacts as vennPrintFacts } from "../../packages/venn-core/src/interchange";

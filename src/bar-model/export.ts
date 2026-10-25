@@ -4,7 +4,7 @@ import {
   layout,
   renderSvg,
   type Envelope,
-} from "../../packages/bar-model-core/src";
+} from "../../packages/bar-model-core/src/versioned";
 import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import {
