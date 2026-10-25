@@ -47,3 +47,10 @@ unit widths, stable part/span anchors and pupil/hidden-answer states. Removing
 referenced structure requires an explicit brace choice; ordinary edits never
 calculate answers. Actual service, plugin and intended-client adoption remain
 separate from implementation and qualification.
+
+The handwriting follow-up is [schema 3](docs/BAR-MODEL-V3.md). Fresh browser
+sessions use v3; frozen v1/v2 source, hashes and artwork remain controls. Preserve
+12 mm above the upper answer-line stroke edge and 3 mm below its lower edge,
+with actual uniform bars at least 20 mm for inside lines. Maths captions use
+horizontal fractions; explicit Plain text is for literal slashes. No automatic
+upgrade, evaluation, answer reveal, font reduction or horizontal resizing.

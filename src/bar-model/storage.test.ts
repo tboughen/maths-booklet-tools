@@ -1,6 +1,7 @@
 import { it, expect } from "vitest";
 import { readStorage, saveStorage } from "./storage";
 import * as v from "../../packages/bar-model-core/src/v2";
+import * as v3 from "../../packages/bar-model-core/src/v3";
 import * as c from "../../packages/bar-model-core/src/versioned";
 import * as old from "../../packages/bar-model-core/src/index";
 it("retains a valid current model when only the older key is corrupt", async () => {
@@ -27,7 +28,7 @@ it("keeps editing available when browser storage cannot be read", async () => {
     "old",
   );
   expect(r.recovery).toBeUndefined();
-  expect(r.envelope.schemaVersion).toBe(2);
+  expect(r.envelope.schemaVersion).toBe(3);
   expect(r.message).toContain("Keep editing");
 });
 function storage(initial: Record<string, string> = {}) {
@@ -43,7 +44,7 @@ function storage(initial: Record<string, string> = {}) {
 it("reading missing or legacy work never writes or upgrades", async () => {
   const empty = storage();
   expect((await readStorage(empty, "new", "old")).envelope.schemaVersion).toBe(
-    2,
+    3,
   );
   expect(empty.values.size).toBe(0);
   const raw = c.canonical(old.fresh()),
@@ -96,4 +97,28 @@ it("compares before writing and leaves a newer tab intact", () => {
   const s = storage({ new: "newer" });
   expect(() => saveStorage(s, "new", null, v.fresh())).toThrow(/Another tab/);
   expect(s.getItem("new")).toBe("newer");
+});
+it("reopens v3 exactly, protects divergent legacy bytes and rejects it in a frozen v2 reader", async () => {
+  const e = v3.fresh();
+  e.document.captions = [
+    {
+      id: "c",
+      label: v3.label("4/5 × 45 = 36"),
+      alignment: "right",
+      format: "maths",
+    },
+  ];
+  e.document.bars[0].parts[0].labels.inside = v3.label("3/4", "line");
+  const legacy = c.canonical(old.fresh()),
+    s = storage({ old: legacy });
+  saveStorage(s, "new", null, e, await c.hash(old.fresh()));
+  const raw = s.getItem("new");
+  const r = await readStorage(s, "new", "old");
+  expect(r.envelope).toEqual(e);
+  expect(s.getItem("new")).toBe(raw);
+  expect(s.getItem("old")).toBe(legacy);
+  expect(() => v.validate(e)).toThrow();
+  s.setItem("new", "a different newer tab");
+  expect(() => saveStorage(s, "new", raw, e)).toThrow(/Another tab/);
+  expect(s.getItem("new")).toBe("a different newer tab");
 });

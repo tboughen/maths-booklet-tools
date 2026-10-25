@@ -123,6 +123,7 @@ background = root / "specimen-background.pdf"
 c = canvas.Canvas(str(background), pagesize=(297 * mm, 420 * mm))
 titles = ["MCP diagram print qualification", "Quadratic scaffold and deliberate plotting error", "Quadratic graph-only output", "Cuboids and number-line pupil resources", "Venn pupil scaffold and explicit answer output", "Expanding and factorising: preserved pupil blanks", "Bar modelling: saved pupil states", "Bar modelling: source adaptations"]
 titles += ["Bar modelling v2: independent labels and captions", "Bar modelling v2: dense admissible structure"]
+titles += ["Bar modelling v3: horizontal fractions and handwriting", "Bar modelling v3: dense writing spaces"]
 for title in titles:
     c.setFont("Helvetica-Bold", 17); c.drawString(20 * mm, 397 * mm, title)
     c.setFont("Helvetica", 10); c.drawString(20 * mm, 388 * mm, "Actual MCP downloads placed at native size. Print at Actual size / 100%.")
@@ -137,6 +138,7 @@ placements = [(0, "graph", 20, 350), (0, "ratio", 150, 350), (1, "quadratic-comb
 placements += [(5,"algebra-grid",20,350),(5,"algebra-factor",150,350),(5,"algebra-answer",20,250),(5,"algebra-maximum",150,250)]
 placements += [(6,"bar-model",20,350),(6,"bar-model-revised",20,250),(7,"bar-h07",20,350),(7,"bar-h18",20,200)]
 placements += [(8,"bar-v2-reference",20,350),(8,"bar-v2-revised",150,350),(9,"bar-v2-dense",20,350)]
+placements += [(10,"bar-v3-reference",20,350),(10,"bar-v3-revised",150,350),(11,"bar-v3-dense",20,350)]
 for page_number, name, x_mm, top_mm in placements:
     component = PdfReader(root / f"{name}.component.pdf").pages[0]
     height = float(component.mediabox.height)
@@ -147,7 +149,7 @@ writer.add_metadata({"/Title": "MathsDock MCP vector consumption qualification"}
 with (root / "a3-diagram-consumption.pdf").open("wb") as f:
     writer.write(f)
 final = PdfReader(root / "a3-diagram-consumption.pdf")
-assert len(final.pages) == 10
+assert len(final.pages) == 12
 for p in final.pages:
     assert abs(float(p.mediabox.width) - 297 * mm) < 0.1 * mm
     assert abs(float(p.mediabox.height) - 420 * mm) < 0.1 * mm
@@ -179,7 +181,7 @@ for case in shading_cases:
             sample_count += 1
     assert sample_count > 20, (case["name"], "insufficient shading samples")
     shading_samples += sample_count
-report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 10, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
+report = {"passed": True, "converter": f"CairoSVG {version('CairoSVG')}", "pages": 12, "a3Mm": [297, 420], "nativePlacement": True, "recursiveVectorChecks": counts, "nestedRasterRejected": True, "shadingCases": len(shading_cases), "shadingSamples": shading_samples, "qualifiedComponents": list(items), "labelRevisionLocality": list(bbox), "physicalPrinterCheck": "not performed"}
 (root / "vector-proof.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report))
 if (root / "svg-delivery-proof.json").exists():

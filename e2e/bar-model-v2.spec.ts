@@ -6,6 +6,24 @@ import * as old from "../packages/bar-model-core/src/index";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 import { denseFixture } from "../packages/bar-model-core/src/stress-fixture";
 import { lessonExample } from "../packages/bar-model-core/src/lesson-examples";
+// New empty browser sessions use v3; keep all existing v2 guarantees on an explicit saved v2 model.
+test.beforeEach(async ({ page }, info) => {
+  if (
+    info.title.startsWith("fresh lesson") ||
+    info.title.startsWith("explicit upgrade")
+  )
+    return;
+  await page.addInitScript((e) => {
+    if (
+      !localStorage.getItem("maths-booklet-tools:bar-model:v2") &&
+      !localStorage.getItem("maths-booklet-tools:bar-model:v1")
+    )
+      localStorage.setItem(
+        "maths-booklet-tools:bar-model:v2",
+        JSON.stringify({ storageVersion: 1, envelope: e }),
+      );
+  }, v.fresh());
+});
 test("choosing divergent saved work records the observed snapshot without overwriting the old key", async ({
   page,
 }) => {
@@ -166,7 +184,7 @@ test("fresh lesson default is two blank parts and reading does not save or alter
 }) => {
   await page.goto("/?tool=bar-model");
   const e = await saved(page);
-  expect(e.schemaVersion).toBe(2);
+  expect(e.schemaVersion).toBe(3);
   expect(e.document.bars[0].parts).toHaveLength(2);
   expect(
     await page.evaluate(() => ({
@@ -471,6 +489,7 @@ test("v2 downloads retain actual SVG fonts and verified 600ppi PNG with native d
       .getByRole("menuitem", { name: `Download ${format}`, exact: true })
       .click();
     const file = await event;
+    expect(await file.failure(), format).toBeNull();
     await file.saveAs(info.outputPath(file.suggestedFilename()));
     const bytes = await readFile((await file.path())!);
     if (format === "SVG") {

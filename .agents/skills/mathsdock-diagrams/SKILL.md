@@ -136,3 +136,22 @@ Do not claim that Word paste, client refresh, saving, or a website/service deplo
 ## Bar modelling
 
 For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+
+
+## Horizontal fractions and handwriting follow-up
+
+Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
+bar-model fresh-default, caption and compact-height descriptions only. New empty
+browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
+spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
+with horizontal a/b fractions and every answer line's12mm clear above/3mm below
+the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
+barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
+Caption format Maths is default; Plain text is explicit for dates/literal slashes.
+Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
+evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
+upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
+and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
+One Undo restores the original version. Website readers for all three versions
+must precede production v3 issuance; service/package/client and human acceptance
+remain separate. SDK proof is not actual intended-client adoption.

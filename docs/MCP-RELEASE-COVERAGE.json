@@ -9,11 +9,12 @@
     "caseRemovalAllowed": false
   },
   "additionalJourneyCases": {
-    "total": 3,
+    "total": 4,
     "consumer": [
       "e2e/mcp-roundtrip.spec.ts",
       "e2e/bar-model-roundtrip.spec.ts",
-      "e2e/bar-model-v2-roundtrip.spec.ts"
+      "e2e/bar-model-v2-roundtrip.spec.ts",
+      "e2e/bar-model-v3-roundtrip.spec.ts"
     ],
     "provenance": "real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"
   },
@@ -156,6 +157,18 @@
         "src/bar-model/LessonBarModelPage.test.tsx",
         "e2e/bar-model-v2.spec.ts",
         "e2e/bar-model-v2-roundtrip.spec.ts",
+        "services/graph-mcp/verify-consumption.ts",
+        "services/graph-mcp/smoke.ts",
+        "scripts/verify-diagram-consumption.py"
+      ]
+    },
+    {
+      "guarantee": "horizontal fraction runs preserve original input and measured ink; 12mm above upper stroke/3mm below lower stroke, all placements and effective bar height; frozen v1/v2 controls, explicit target3 atomic upgrade and protected storage; actual SDK create/revise/originalSVG/native vector and bounded Linux dense output; both clipboard routes, responsive focused drafts, invalid format guards and Undo",
+      "owner": [
+        "packages/bar-model-core/src/v3.test.ts",
+        "e2e/bar-model-v3.spec.ts",
+        "e2e/bar-model-v3-roundtrip.spec.ts",
+        "services/graph-mcp/bar-model.test.ts",
         "services/graph-mcp/verify-consumption.ts",
         "services/graph-mcp/smoke.ts",
         "scripts/verify-diagram-consumption.py"

@@ -1,5 +1,10 @@
 # Bar modelling: implementation brief
 
+The approved handwriting follow-up adds [schema 3](BAR-MODEL-V3.md): horizontal
+working fractions and 12 mm above / 3 mm below each answer underline. Fresh
+browser sessions now use v3. Frozen v1/v2 files remain unchanged; their upgrades
+are explicit and undoable. The v2 description below records that prior profile.
+
 The approved 25 October refinement adds the [version-2 lesson layout](BAR-MODEL-V2.md):
 independent section labels, compact annotations, adjacent between-bar differences,
 four starters, exact total-preserving repartitioning, literal captions and colour.

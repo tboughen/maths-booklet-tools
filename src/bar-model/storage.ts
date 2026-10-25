@@ -1,5 +1,5 @@
 import * as c from "../../packages/bar-model-core/src/versioned";
-import * as v from "../../packages/bar-model-core/src/v2";
+import * as v from "../../packages/bar-model-core/src/v3";
 export interface StorageRecord {
   storageVersion: 1;
   envelope: c.Envelope;

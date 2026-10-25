@@ -1,6 +1,9 @@
 # Bar-model MCP contract
 
-Both schema versions are supported by this candidate. Read [the complete v2
+Three schema versions are supported by this candidate. New browser models use
+[v3 horizontal fractions and handwriting spaces](BAR-MODEL-V3.md); MCP requires
+explicit `spec.schemaVersion:3`. Existing v1/v2 rendering and bare defaults stay
+preserved. Read [the complete v2
 contract](BAR-MODEL-V2.md) for explicit `spec.schemaVersion:2`, independent slots,
 annotation scope, starters and atomic upgrade operations. Bare/empty legacy specs
 and exact v1 envelopes keep the original contract below. Actual discovery and
