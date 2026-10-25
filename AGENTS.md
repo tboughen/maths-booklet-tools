@@ -38,3 +38,19 @@ The reusable development workflow is `.agents/skills/mathsdock-tool-creation/SKI
 Keep the documents in `docs/` as the canonical source. When changing guidance or skills, refresh the portable copies installed locally or included in the Maths Booklet Tools plugin, as applicable. Validate the skill frontmatter and reference links. Do not assume that publishing a plugin update rewrites definitions already cached in a conversation.
 
 See `docs/USING-TOOL-GUIDANCE.md` for locations, invocation and a fresh-conversation check.
+
+## Bar modelling
+
+Read `docs/BAR-MODEL-BRIEF.md`, `docs/BAR-MODEL-MCP.md` and the complete emitted
+schemas before changing bar-model resources or their integration. Preserve shared
+unit widths, stable part/span anchors and pupil/hidden-answer states. Removing
+referenced structure requires an explicit brace choice; ordinary edits never
+calculate answers. Actual service, plugin and intended-client adoption remain
+separate from implementation and qualification.
+
+The handwriting follow-up is [schema 3](docs/BAR-MODEL-V3.md). Fresh browser
+sessions use v3; frozen v1/v2 source, hashes and artwork remain controls. Preserve
+12 mm above the upper answer-line stroke edge and 3 mm below its lower edge,
+with actual uniform bars at least 20 mm for inside lines. Maths captions use
+horizontal fractions; explicit Plain text is for literal slashes. No automatic
+upgrade, evaluation, answer reveal, font reduction or horizontal resizing.

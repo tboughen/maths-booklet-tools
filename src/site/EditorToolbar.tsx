@@ -39,7 +39,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         `${element.getBoundingClientRect().height}px`,
       );
       const stage = parent.querySelector<HTMLElement>(
-        ".graph-stage,.ratio-stage,.tr-scroll,.ag-scroll,.vn-scroll,.nl-scroll,.cb-scroll,.vg-scroll",
+        ".bm-scroll,.graph-stage,.ratio-stage,.tr-scroll,.ag-scroll,.vn-scroll,.nl-scroll,.cb-scroll,.vg-scroll",
       );
       if (!stage?.clientWidth) return;
       const top = stage.getBoundingClientRect().top + window.scrollY;

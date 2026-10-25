@@ -5,9 +5,9 @@ import { assertEqual, digestObject, fileManifest, json, save, sha256 } from './c
 // This is the reviewed consumer inventory, independent of collector output.
 export const browserFixtureFiles = [
   ...['graph', 'ratio', 'quadratic-combined', 'cuboids-revised', 'number-line-revised',
-    'venn-revised', 'algebra-grid', 'algebra-factor', 'algebra-answer'].map(n => `${n}.json`),
-  ...['ratio', 'cuboids', 'number-line', 'venn', 'algebra-grid'].map(n => `${n}-bundle.zip`),
-  'retrieval.json', 'tool-catalogue.json',
+    'venn-revised', 'algebra-grid', 'algebra-factor', 'algebra-answer', 'bar-model', 'bar-model-revised'].map(n => `${n}.json`),
+  ...['ratio', 'cuboids', 'number-line', 'venn', 'algebra-grid', 'bar-model'].map(n => `${n}-bundle.zip`),
+  'retrieval.json', 'tool-catalogue.json', 'server-instructions.json',
 ].sort();
 const fixtureFiles = directory => {
   const files = fileManifest(directory);

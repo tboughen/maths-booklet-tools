@@ -8,6 +8,9 @@ import * as venn from "../../packages/venn-core/src/index";
 import * as vi from "../../packages/venn-core/src/interchange";
 import * as algebra from "../../packages/algebra-grid-core/src/index";
 import * as ai from "../../packages/algebra-grid-core/src/interchange";
+import * as bar from "../../packages/bar-model-core/src/versioned";
+import * as bi from "../../packages/bar-model-core/src/versioned-interchange";
+import { barConfig } from "./bar-config";
 import { algebraConfig } from "./algebra-config";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
 import { GraphError } from "../../packages/graph-core/src/interchange";
@@ -24,7 +27,7 @@ import type { DownloadFormat } from "./downloads";
 import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
 type NewSource = Extract<
   DiagramSource,
-  { kind: "cuboids" | "number-line" | "venn" | "algebra-grid" }
+  { kind: "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" }
 >;
 const lineCreateSchema = z
   .object({
@@ -123,6 +126,7 @@ const configs = [
     reviseDescription: `Revise Venn envelope/baseHash atomically (max30). set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?}; upgrade_document {}. Expressions use stable A/B/C IDs, union/intersection/complement and brackets. Lossy layout changes require the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need explicit upgrade for new layouts. outputView pupil|answer affects artwork only; retain returned pupil source/hash. Empty operations refresh links. ${commonDescription}`,
   },
   algebraConfig,
+  barConfig,
 ];
 export function resourceTools(
   raster: RasterQueue,
@@ -142,7 +146,7 @@ export function resourceTools(
       };
     const info = await prepareDiagram(source, raster, signal);
     const svg =
-      source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
+      source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -179,7 +183,7 @@ export function resourceTools(
     const info = await prepareDiagram(source, raster, signal);
     const print = await artifacts(source, "png", signal);
     const svg =
-      source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
+      source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -211,13 +215,13 @@ export function resourceTools(
       source.kind,
     );
     const hash =
-      source.kind === "algebra-grid" ? await ai.hash(source.envelope) : source.kind === "cuboids"
+      source.kind === "bar-model" ? await bar.hash(source.envelope) : source.kind === "algebra-grid" ? await ai.hash(source.envelope) : source.kind === "cuboids"
         ? await ci.hash(source.envelope)
         : source.kind === "number-line"
           ? await line.hash(source.envelope)
           : await vi.hash(source.envelope);
     const warnings =
-      source.kind === "algebra-grid" ? algebra.warnings(source.envelope) : source.kind === "cuboids"
+      source.kind === "bar-model" ? bar.warnings(source.envelope) : source.kind === "algebra-grid" ? algebra.warnings(source.envelope) : source.kind === "cuboids"
         ? source.envelope.document.shapes.flatMap((s) => cuboid.warnings(s))
         : source.kind === "number-line"
           ? line.warnings(source.envelope)
@@ -261,21 +265,21 @@ export function resourceTools(
       }
     }
     let editorUrl: string | null =
-      source.kind === "algebra-grid" ? ai.editorLink(source.envelope,editorBase) : source.kind === "cuboids"
+      source.kind === "bar-model" ? (()=>{try{return bi.editorLink(source.envelope,editorBase);}catch{return null;}})() : source.kind === "algebra-grid" ? ai.editorLink(source.envelope,editorBase) : source.kind === "cuboids"
         ? cuboid.editorLink(source.envelope, editorBase)
         : source.kind === "number-line"
           ? line.editorLink(source.envelope, editorBase)
           : vi.editorLink(source.envelope, editorBase);
     if (
       editorUrl &&
-      editorUrl.length > (source.kind === "venn" ? 16_000 : 7500)
+      editorUrl.length > (source.kind === "venn" || source.kind==="bar-model"&&source.envelope.schemaVersion===2 ? 16_000 : 7500)
     )
       editorUrl = null;
     if (!editorUrl)
       warnings.push(
         "Open the editable JSON file rather than an editor link for this resource.",
       );
-    if (source.kind === "venn" || source.kind === "algebra-grid")
+    if (source.kind === "venn" || source.kind === "algebra-grid" || source.kind === "bar-model")
       warnings.push(
         "Editable JSON and editor links retain the pupil document and may contain hidden answers.",
       );
@@ -354,7 +358,7 @@ export function resourceTools(
               text: JSON.stringify({
                 ...c.capabilities,
                 printDpi: 600,
-                maximumRequestBytes: 65536,
+                maximumRequestBytes: c.kind === "bar-model" ? 32768 : 65536,
               }),
             },
           ],
@@ -375,7 +379,8 @@ export function resourceTools(
         ) => {
           try {
             let envelope: unknown;
-            if (c.kind === "algebra-grid") envelope = ai.create(args);
+            if (c.kind === "bar-model") envelope = bi.create(args);
+            else if (c.kind === "algebra-grid") envelope = ai.create(args);
             else if (c.kind === "cuboids") envelope = ci.createCuboid(args);
             else if (c.kind === "venn") envelope = vi.createVenn(args);
             else {
@@ -415,7 +420,7 @@ export function resourceTools(
         ) => {
           try {
             const envelope =
-              c.kind === "algebra-grid" ? await ai.revise(args) : c.kind === "cuboids"
+              c.kind === "bar-model" ? await bi.revise(args) : c.kind === "algebra-grid" ? await ai.revise(args) : c.kind === "cuboids"
                 ? await ci.reviseCuboid(args)
                 : c.kind === "venn"
                   ? await vi.reviseVenn(args)

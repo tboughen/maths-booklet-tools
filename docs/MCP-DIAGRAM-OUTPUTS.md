@@ -152,3 +152,7 @@ PNG verification, limits and print facts refer to the selected artwork view.
 Existing SVG/PNG/JSON links keep their signing and validation conventions.
 Rollback should retain new bundle-link support until expiry where possible;
 otherwise explain that affected links need regeneration.
+
+## Bar modelling
+
+The additive bar-model kind uses the same source, original-SVG chunk, placement and bundle protocols. See [Bar-model MCP](BAR-MODEL-MCP.md) for its complete creation/revision contract. Bars have pupil output only; explicit source revisions reveal saved answers. Actual service/client adoption remains a separate release stage.

@@ -1,4 +1,4 @@
-import { test, expect } from "./release-fixtures";
+import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { unzipSync } from "fflate";
@@ -9,6 +9,7 @@ test.skip(
   "Run verify-consumption.js and set MCP_CONSUMPTION_DIR to its output directory.",
 );
 const cases = [
+  ...["bar-model", "bar-model-revised"].map(name => ({ name, route: "bar-model", input: "Open bar model file", confirm: "Open bar model", key: "maths-booklet-tools:bar-model:v2", selector: ".bm-resource" })),
   ...["algebra-grid", "algebra-factor", "algebra-answer"].map((name) => ({
     name,
     route: "expanding-factorising",
@@ -66,6 +67,15 @@ const cases = [
     selector: ".vn-art svg",
   },
 ];
+async function savedSource(page: Page, route: string, key: string) {
+  const saved = JSON.parse(await page.evaluate((k) => localStorage.getItem(k)!, key));
+  if (route !== "bar-model") return saved;
+  // Imported legacy sources keep their version in the new storage wrapper.
+  // Reading/opening must not overwrite the protected old-app key.
+  expect(await page.evaluate(() => localStorage.getItem("maths-booklet-tools:bar-model:v1"))).toBeNull();
+  if (saved !== null) expect(saved.storageVersion).toBe(1);
+  return saved?.envelope ?? null;
+}
 for (const c of cases) {
   test(`actual MCP ${c.name} source opens without changing blanks, settings or IDs`, async ({
     page,
@@ -87,11 +97,7 @@ for (const c of cases) {
       .getByRole("button", { name: c.confirm, exact: true })
       .click();
     await expect
-      .poll(async () =>
-        JSON.parse(
-          await page.evaluate((key) => localStorage.getItem(key)!, c.key),
-        ),
-      )
+      .poll(() => savedSource(page, c.route, c.key))
       .toEqual(expected);
     const resource =
       c.name === "ratio"
@@ -103,11 +109,7 @@ for (const c of cases) {
     });
     await page.reload();
     await expect
-      .poll(async () =>
-        JSON.parse(
-          await page.evaluate((key) => localStorage.getItem(key)!, c.key),
-        ),
-      )
+      .poll(() => savedSource(page, c.route, c.key))
       .toEqual(expected);
   });
 }
@@ -335,3 +337,5 @@ for (const c of cases.filter((c) =>
       .toEqual(expected);
   });
 }
+
+test('actual bar-model bundle preserves every saved label and pupil state',async({page})=>{const zip=unzipSync(new Uint8Array(await readFile(resolve(directory!,'bar-model-bundle.zip'))));const bytes=Buffer.from(zip['source.json']),expected=JSON.parse(bytes.toString('utf8'));await page.goto('/?tool=bar-model');await page.getByLabel('Open bar model file',{exact:true}).setInputFiles({name:'source.json',mimeType:'application/json',buffer:bytes});await page.getByRole('dialog').getByRole('button',{name:'Open bar model',exact:true}).click();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);await page.reload();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);});
