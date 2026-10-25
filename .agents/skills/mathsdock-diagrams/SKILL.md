@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines and Venn diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams and bar models through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
@@ -8,6 +8,14 @@ description: Create or revise editable MathsDock coordinate graphs, ratio tables
 Use the existing connected Maths Booklet Tools MCP tools to produce editable teaching diagrams. Inspect the tools available in this conversation; do not infer availability from a previous conversation or create another connection.
 
 ## Choose and inspect the tool
+
+When bar calls are actually discovered, request the improved lesson layout with
+`spec:{schemaVersion:2,starter:"part-whole"}` (or comparison/equal-sections/inline-ratio).
+Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/BAR-MODEL-V2.md)
+for complete slots, annotations and operations. Preserve supplied versions and
+hashes; v1 needs explicit first `upgrade_document` before new features. Saved text
+can be retained under blank, line, question and hidden displays. Never calculate
+or reveal answers without the explicit action, mask dividers or silently reanchor.
 
 - For coordinate graphs, read `graph_capabilities`, then use `create_graph` or `revise_graph`.
 - For lesson-style ratio tables, read `ratio_table_capabilities`, then use `create_ratio_table` or `revise_ratio_table`.
@@ -124,3 +132,26 @@ Show the returned preview and concise links to the actual SVG, verified print PN
 Keep physical dimensions distinct from preview zoom. Word exports are images; further mathematical edits require reopening the editable document in MathsDock. Expired downloads can be refreshed through the supported revision operation with the same returned document, without changing content.
 
 Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
+
+## Bar modelling
+
+For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+
+
+## Horizontal fractions and handwriting follow-up
+
+Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
+bar-model fresh-default, caption and compact-height descriptions only. New empty
+browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
+spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
+with horizontal a/b fractions and every answer line's12mm clear above/3mm below
+the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
+barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
+Caption format Maths is default; Plain text is explicit for dates/literal slashes.
+Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
+evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
+upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
+and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
+One Undo restores the original version. Website readers for all three versions
+must precede production v3 issuance; service/package/client and human acceptance
+remain separate. SDK proof is not actual intended-client adoption.

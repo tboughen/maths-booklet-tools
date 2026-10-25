@@ -46,6 +46,13 @@ Briefly identify which principles shape the proposed design, then use the task's
 
 ## Handover
 
+For the refined bar editor read [Bar model v2](../../../docs/BAR-MODEL-V2.md).
+Keep the frozen v1 path and explicit undoable upgrade; independent section slots,
+fixed/dynamic annotation scope, exact total-preserving repartitioning and retained
+answer states are common-core rules. Qualify dense actual output under unchanged
+limits. Website bridge, service/package adoption and actual client acceptance are
+separate gates; a prepared overlay is not a published plugin.
+
 State what changed, the actual checks and results, repository/branch/PR where known, remaining decisions and the exact completed release stages. Use the guide's acceptance checklist and explain meaningful deviations. When improving a reusable convention, update the canonical guidance and any portable skill copies delivered with it.
 
 
@@ -55,3 +62,26 @@ For the eight-editor usability workspace, follow [the shared preview, example an
 ## Usability refinement, 17 October — local candidate
 
 Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.
+
+## Bar modelling
+
+For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+
+
+## Horizontal fractions and handwriting follow-up
+
+Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
+bar-model fresh-default, caption and compact-height descriptions only. New empty
+browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
+spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
+with horizontal a/b fractions and every answer line's12mm clear above/3mm below
+the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
+barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
+Caption format Maths is default; Plain text is explicit for dates/literal slashes.
+Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
+evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
+upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
+and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
+One Undo restores the original version. Website readers for all three versions
+must precede production v3 issuance; service/package/client and human acceptance
+remain separate. SDK proof is not actual intended-client adoption.

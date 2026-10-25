@@ -39,6 +39,7 @@ for (const directory of [
   "packages/number-line-core",
   "packages/venn-core",
   "packages/algebra-grid-core",
+  "packages/bar-model-core",
   "services/graph-mcp",
   "assets/graph-fonts",
 ])
@@ -52,7 +53,7 @@ const buildId = createHash("sha256")
 await writeFile(
   "service-dist/manifest.json",
   JSON.stringify(
-    { rendererVersion: "graph-1", ratioRendererVersion: "ratio-1", valueGraphRendererVersion: "value-graph-1", cuboidRendererVersions: ["cuboids-1", "cuboids-2"], numberLineRendererVersion: "number-line-1", vennRendererVersions: ["venn-1", "venn-2"], algebraGridRendererVersion: "algebra-grid-1", buildId, files: sorted },
+    { rendererVersion: "graph-1", ratioRendererVersion: "ratio-1", valueGraphRendererVersion: "value-graph-1", cuboidRendererVersions: ["cuboids-1", "cuboids-2"], numberLineRendererVersion: "number-line-1", vennRendererVersions: ["venn-1", "venn-2"], barModelRendererVersion: "bar-model-1", barModelRendererVersions: ["bar-model-1", "bar-model-2", "bar-model-3"], algebraGridRendererVersion: "algebra-grid-1", buildId, files: sorted },
     null,
     2,
   ) + "\n",

@@ -67,7 +67,10 @@ test("overview search matches teaching vocabulary, handles no results and retain
   page,
 }) => {
   await page.goto("/?tool=booklet-tools");
-  await expect(page.locator(".overview-tool-card")).toHaveCount(8);
+  await expect(page.locator(".overview-tool-card")).toHaveCount(9);
+  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `?tool=${tool}`), "?tool=bar-model"].sort());
+  await page.getByRole("searchbox", { name: "Search tools" }).fill("sharing");
+  await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "?tool=bar-model");
   await page
     .getByRole("searchbox", { name: "Search tools" })
     .fill("Pythagoras");
@@ -84,7 +87,7 @@ test("overview search matches teaching vocabulary, handles no results and retain
   await page.getByRole("searchbox").fill("not-a-teaching-tool");
   await expect(page.getByRole("status")).toContainText("No tools found");
   await page.getByRole("button", { name: "Clear search" }).click();
-  await expect(page.locator(".overview-tool-card")).toHaveCount(8);
+  await expect(page.locator(".overview-tool-card")).toHaveCount(9);
   await page.getByRole("link", { name: "Maths Dock home" }).click();
   await expect(page.locator(".overview-card")).toHaveCount(4);
 });

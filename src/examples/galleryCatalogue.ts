@@ -1,3 +1,4 @@
+import * as bar from "../../packages/bar-model-core/src";
 import {
   graphExamples,
   ratioExamples,
@@ -224,3 +225,5 @@ export const algebraGallery = algebraNames.map(([name, title]) => ({
   make: (worked: boolean) => algebraExample(name, worked),
   render: algebraSvg,
 }));
+
+export const barGallery: GalleryExample<bar.Envelope>[] = bar.exampleNames.map(id=>({id:'bar-'+id,title:id+' '+({BM01:'Known total 64, ratio3:5',BM02:'Known share24, ratio3:5',BM03:'Known difference16',BM04:'Three shares2:3:4',BM05:'Three eighths of400',BM06:'Five units and three units',BM07:'Algebra: three units are x',BM08:'Fractions, zero and hidden answers',BM09:'Maximum parts and useful print size',H07:'Summer2024 1H Q7: jars',H18:'Summer2024 3H Q10: algebra shares','source-sharing':'Mock set7 1H Q1: £60 in3:2:5'}[id]),description:id==='H07'?'Adapted sharing stage only: fifteen units represent150 empty jars, in ratio3:4:8. Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This2024 source is retained locally and is not in the published bank.':id==='H18'?'Adapted bag A only: red x represents the entire three-unit share. The eight-unit bag is8x/3. This2024 source is retained locally and is not in the published bank.':'Editable teaching fixture. Saved answers remain hidden in the scaffold.',sourceHref:id==='source-sharing'?source('1MA1_MOCK_SET_07_1H_Q1'):undefined,make:(worked)=>bar.example(id,worked),render:bar.renderSvg,worked:!['BM06','BM08','BM09'].includes(id)}));
