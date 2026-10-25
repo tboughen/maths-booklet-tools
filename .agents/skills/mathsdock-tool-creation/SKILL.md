@@ -46,6 +46,13 @@ Briefly identify which principles shape the proposed design, then use the task's
 
 ## Handover
 
+For the refined bar editor read [Bar model v2](../../../docs/BAR-MODEL-V2.md).
+Keep the frozen v1 path and explicit undoable upgrade; independent section slots,
+fixed/dynamic annotation scope, exact total-preserving repartitioning and retained
+answer states are common-core rules. Qualify dense actual output under unchanged
+limits. Website bridge, service/package adoption and actual client acceptance are
+separate gates; a prepared overlay is not a published plugin.
+
 State what changed, the actual checks and results, repository/branch/PR where known, remaining decisions and the exact completed release stages. Use the guide's acceptance checklist and explain meaningful deviations. When improving a reusable convention, update the canonical guidance and any portable skill copies delivered with it.
 
 

@@ -1,5 +1,11 @@
 # Bar-model MCP contract
 
+Both schema versions are supported by this candidate. Read [the complete v2
+contract](BAR-MODEL-V2.md) for explicit `spec.schemaVersion:2`, independent slots,
+annotation scope, starters and atomic upgrade operations. Bare/empty legacy specs
+and exact v1 envelopes keep the original contract below. Actual discovery and
+deployment are separate from this source definition.
+
 Version1: kind/route `bar-model`, schemaVersion1, renderer `bar-model-1`, style
 `lesson-v1`. The [brief](BAR-MODEL-BRIEF.md) defines teaching purpose and examples.
 [Complete emitted tool descriptors](BAR-MODEL-EMITTED-SCHEMAS.json) retain every

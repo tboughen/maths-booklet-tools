@@ -8,7 +8,7 @@ import { contentHash as valueHash } from "../../packages/value-graph-core/src/in
 import { hash as cuboidHash } from "../../packages/cuboid-core/src/interchange";
 import { hash as lineHash } from "../../packages/number-line-core/src/index";
 import { hash as vennHash } from "../../packages/venn-core/src/interchange";
-import { hash as barHash } from "../../packages/bar-model-core/src/index";
+import { hash as barHash } from "../../packages/bar-model-core/src/versioned";
 import { hash as algebraHash } from "../../packages/algebra-grid-core/src/interchange";
 import { diagramKind, diagramSource, diagramSourceSchema, prepareDiagram, type DiagramSource } from "./diagram-source";
 import type { Artifact } from "./diagram-output-tools";

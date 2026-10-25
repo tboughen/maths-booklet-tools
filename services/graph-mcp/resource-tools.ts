@@ -8,8 +8,8 @@ import * as venn from "../../packages/venn-core/src/index";
 import * as vi from "../../packages/venn-core/src/interchange";
 import * as algebra from "../../packages/algebra-grid-core/src/index";
 import * as ai from "../../packages/algebra-grid-core/src/interchange";
-import * as bar from "../../packages/bar-model-core/src/index";
-import * as bi from "../../packages/bar-model-core/src/interchange";
+import * as bar from "../../packages/bar-model-core/src/versioned";
+import * as bi from "../../packages/bar-model-core/src/versioned-interchange";
 import { barConfig } from "./bar-config";
 import { algebraConfig } from "./algebra-config";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
@@ -272,7 +272,7 @@ export function resourceTools(
           : vi.editorLink(source.envelope, editorBase);
     if (
       editorUrl &&
-      editorUrl.length > (source.kind === "venn" ? 16_000 : 7500)
+      editorUrl.length > (source.kind === "venn" || source.kind==="bar-model"&&source.envelope.schemaVersion===2 ? 16_000 : 7500)
     )
       editorUrl = null;
     if (!editorUrl)

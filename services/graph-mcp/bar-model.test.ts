@@ -196,6 +196,32 @@ it("creates, downloads and revises exact saved resources with native print facts
   expect(control.status).toBe(200);
   expect(direct.body).toEqual(Buffer.from(await control.arrayBuffer()));
 }, 30000);
+it("creates explicit v2, revises secondary labels and captions, and saves original SVG and bundle bytes",async()=>{
+  const v=await import("../../packages/bar-model-core/src/v2"),api=await import("../../packages/bar-model-core/src/versioned-interchange"),core=await import("../../packages/bar-model-core/src/versioned");
+  const client=await start();
+  const made=await client.callTool({name:"create_bar_model",arguments:{spec:{schemaVersion:2,starter:"equal-sections",count:5}}});
+  expect(made.isError,JSON.stringify(made.content)).not.toBe(true);
+  const initial=made.structuredContent as unknown as Result;
+  const envelope=v.validate(initial.envelope),b=envelope.document.bars[0];
+  expect(api.parseLink(initial.editorUrl)).toEqual(envelope);
+  const changed=await client.callTool({name:"revise_bar_model",arguments:{envelope,baseHash:initial.contentHash,operations:[{op:"set_section_labels",barId:b.id,partIds:b.parts.map(p=>p.id),slot:"above",label:v.label("9")},{op:"add_caption",caption:{id:"calculation",label:v.label("4/5 × 45 = 36"),alignment:"centre"}}]}});
+  expect(changed.isError,JSON.stringify(changed.content)).not.toBe(true);
+  const r=changed.structuredContent as unknown as Result,n=v.validate(r.envelope);
+  expect(n.document.bars[0].parts.every(p=>p.labels.above?.text==="9")).toBe(true);
+  expect(n.document.bars[0].parts.every(p=>p.labels.inside.state==="blank")).toBe(true);
+  expect(r.contentHash).toBe(await core.hash(n));
+  const direct=await receiveSvg(async args=>{const result=await client.callTool({name:"get_diagram_svg",arguments:args});expect(result.isError).not.toBe(true);return result.structuredContent;},{kind:"bar-model",envelope:n},{expectedSourceContentHash:r.contentHash,expectedPhysicalSizeCm:r.physicalSizeCm});
+  const svg=Buffer.from(await(await fetch(r.downloads.svg.url)).arrayBuffer());expect(direct.body).toEqual(svg);expect(svg.toString()).not.toMatch(/<text\b|<image\b/);
+  const print=new Uint8Array(await(await fetch(r.downloads.png.url)).arrayBuffer());verifyPrintBytes(print,r.printRaster.width,r.printRaster.height);
+  const bundle=await client.callTool({name:"download_diagram_bundle",arguments:{kind:"bar-model",envelope:n}});expect(bundle.isError).not.toBe(true);
+  const members=unzipSync(new Uint8Array(await(await fetch((bundle.structuredContent as {download:{url:string}}).download.url)).arrayBuffer()));
+  expect(Buffer.from(members["diagram.svg"])).toEqual(svg);expect(Buffer.from(members["diagram.png"])).toEqual(Buffer.from(print));expect(JSON.parse(new TextDecoder().decode(members["source.json"]))).toEqual(n);
+},30000);
+it("keeps the legacy base hash atomic when an upgrade batch fails",async()=>{
+  const client=await start(),r=await call(client,"create_bar_model",{}),before=c.canonical(r.envelope);
+  const failed=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"},{op:"set_section_label",barId:"missing",partId:"p",slot:"above",label:c.label("9")}]}});expect(failed.isError).toBe(true);expect(c.canonical(r.envelope)).toBe(before);
+  const upgraded=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"}]}});expect(upgraded.isError,JSON.stringify(upgraded.content)).not.toBe(true);expect((upgraded.structuredContent as {envelope:{schemaVersion:number}}).envelope.schemaVersion).toBe(2);
+},30000);
 it("exports maximum structure, rejects impossible layout and keeps source atomic", async () => {
   const client = await start(),
     max = await call(client, "create_bar_model", { spec: { example: "BM09" } });

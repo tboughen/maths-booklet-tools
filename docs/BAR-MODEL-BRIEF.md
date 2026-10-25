@@ -1,5 +1,14 @@
 # Bar modelling: implementation brief
 
+The approved 25 October refinement adds the [version-2 lesson layout](BAR-MODEL-V2.md):
+independent section labels, compact annotations, adjacent between-bar differences,
+four starters, exact total-preserving repartitioning, literal captions and colour.
+Fresh browser work uses v2; original files/examples and bare MCP creation retain v1.
+Current main through Mock Set4 (`8f32e2d656bc5b71d90b144bf56b12277be2d9e2`)
+is reconciled into the candidate. This implementation authorisation does not grant
+merge, website/service deployment or plugin publication. The original v1 brief
+below remains the compatibility reference; the v2 guide defines the refinement.
+
 This brief implements Tim's attached request of 24 October 2026. Source baseline:
 main `bc9ac3704586baa7366bd4104dc76c375f521ef1`, tree
 `c8f7aedd731dd388201821a4e52e2d91f23143ef`, after PR43. Work is isolated in

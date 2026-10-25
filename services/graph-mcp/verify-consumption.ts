@@ -16,6 +16,8 @@ import { receiveSvg } from "./svg-consumer";
 import type { SvgDeliveryInput } from "./svg-delivery";
 import { consumptionPacer } from "./consumption-pacing";
 import { discoverTools } from "./discovery";
+import {lessonExample} from "../../packages/bar-model-core/src/lesson-examples";
+import {denseFixture} from "../../packages/bar-model-core/src/stress-fixture";
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10) ?? "full";
 assert(["full", "browser"].includes(profile), "Unknown consumption profile");
 const full = profile === "full";
@@ -57,7 +59,7 @@ async function artifact(data: Result, format: string) { if (data.downloads[forma
 const items: Record<string, Result> = {};
 const delivered: Array<Record<string, unknown>> = [];
 await mkdir(resolve(output, "direct-svg"), { recursive: true });
-async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Result, outputView?: "answer") {
+async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Result, outputView?: "answer", maxChunkBytes=16384) {
   const before = JSON.stringify(data.envelope);
   const chunks: Array<Record<string, unknown>> = [];
   const file = await receiveSvg(async input => {
@@ -66,7 +68,7 @@ async function saveDirect(name: string, kind: SvgDeliveryInput["kind"], data: Re
     const part = r.structuredContent as { offsetBytes: number; chunkBytes: number; chunkSha256: string; nextOffsetBytes: number | null };
     chunks.push({ offsetBytes: part.offsetBytes, chunkBytes: part.chunkBytes, chunkSha256: part.chunkSha256, nextOffsetBytes: part.nextOffsetBytes });
     return part;
-  }, { kind, envelope: data.envelope as SvgDeliveryInput["envelope"], ...(outputView ? { outputView } : {}), maxChunkBytes: 16384 },
+  }, { kind, envelope: data.envelope as SvgDeliveryInput["envelope"], ...(outputView ? { outputView } : {}), maxChunkBytes },
   { expectedSourceContentHash: data.contentHash, expectedPhysicalSizeCm: data.physicalSizeCm });
   assert.deepEqual(file.body, await artifact(data,"svg"), `${name}: MCP bytes equal independent artifact delivery`);
   assert.equal(JSON.stringify(data.envelope), before);
@@ -195,6 +197,11 @@ try {
   const barRevised=await call("revise_bar_model",{envelope:bar.envelope,baseHash:bar.contentHash,operations:[{op:"set_part",barId:"b1",partId:"b1p1",shade:true}]});await save("bar-model-revised",barRevised);
   assert.deepEqual((barRevised.envelope.document as {spans:unknown}).spans,(bar.envelope.document as {spans:unknown}).spans);
   if(full){const h07=await call("create_bar_model",{spec:{example:"H07",worked:true}});await save("bar-h07",h07);const algebraBar=await call("create_bar_model",{spec:{example:"H18",worked:true}});await save("bar-h18",algebraBar);const maximum=await call("create_bar_model",{spec:{example:"BM09"}});await save("bar-maximum",maximum);await saveDirect("bar-maximum","bar-model",maximum);}
+  if(full){
+    const lesson=await call("create_bar_model",{envelope:lessonExample("R4",true)});await save("bar-v2-reference",lesson);await saveDirect("bar-v2-reference","bar-model",lesson);
+    const revised=await call("revise_bar_model",{envelope:lesson.envelope,baseHash:lesson.contentHash,operations:[{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"above",label:{text:"9",state:"hidden"}},{op:"update_caption",caption:{id:"caption1",label:{text:"n/5 of 45 = 36",state:"value"},alignment:"centre"}}]});await save("bar-v2-revised",revised);await saveDirect("bar-v2-revised","bar-model",revised);
+    const maximum=await call("create_bar_model",{envelope:denseFixture()});await save("bar-v2-dense",maximum);await saveDirect("bar-v2-dense","bar-model",maximum,undefined,49152);
+  }
   for(const [kind,data] of [["bar-model",barRevised],["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
     if (!full && ["graph", "value-graph"].includes(kind)) continue;
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
