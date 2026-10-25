@@ -16,7 +16,10 @@ import { printFacts as algebraPrintFacts } from "../../packages/algebra-grid-cor
 import { assertPrintable, printFacts as vennPrintFacts } from "../../packages/venn-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
 
-export const diagramKind = z.enum(["graph", "ratio-table", "value-graph", "cuboids", "number-line", "venn", "algebra-grid"]);
+import * as triangle from "../../packages/triangle-core/src/index";
+import * as ti from "../../packages/triangle-core/src/interchange";
+
+export const diagramKind = z.enum(["graph", "ratio-table", "value-graph", "cuboids", "number-line", "venn", "algebra-grid", "triangle"]);
 export type DiagramKind = z.infer<typeof diagramKind>;
 // The outer discovery schema is homogeneous; each core validates the exact envelope.
 export const diagramSourceSchema = z.object({
@@ -34,12 +37,14 @@ export type DiagramSource =
   | { kind: "cuboids"; envelope: cuboid.Envelope }
   | { kind: "number-line"; envelope: numberLine.Envelope }
   | { kind: "venn"; envelope: venn.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "triangle"; envelope: triangle.Envelope }
   | { kind: "algebra-grid"; envelope: algebra.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
     const s = diagramSourceSchema.parse(raw);
     if (s.outputView !== undefined && s.kind !== "venn") throw Error("outputView applies only to Venn diagrams.");
     switch (s.kind) {
+      case "triangle": { const envelope = triangle.validate(s.envelope);ti.assertPrintable(envelope);return {kind:s.kind,envelope}; }
       case "algebra-grid": { const envelope=algebra.validate(s.envelope);const issue=algebra.exportIssue(envelope);if(issue)throw Error(issue);return {kind:s.kind,envelope}; }
       case "graph": return { kind: s.kind, envelope: validateEnvelope(s.envelope, true) };
       case "ratio-table": {
@@ -58,6 +63,7 @@ export function diagramSource(raw: unknown): DiagramSource {
   }
 }
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
+  if(source.kind==="triangle") {const g=triangle.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:ti.printFacts(source.envelope)};}
   if(source.kind==="algebra-grid") { const g=algebra.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:algebraPrintFacts(source.envelope)}; }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");

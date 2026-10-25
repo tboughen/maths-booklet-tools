@@ -37,6 +37,7 @@ try {
   const tools = { tools: await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined)) };
   const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "cuboid_capabilities", "create_cuboid", "revise_cuboid", "number_line_capabilities", "create_number_line", "revise_number_line", "venn_capabilities", "create_venn", "revise_venn", "check_diagram_placement", "download_diagram_bundle"];
   expected.splice(expected.indexOf("check_diagram_placement"),0,"algebra_grid_capabilities","create_algebra_grid","revise_algebra_grid");
+  expected.splice(expected.indexOf("check_diagram_placement"),0,"triangle_capabilities","create_triangle","revise_triangle");
   expected.push("get_diagram_svg");
   if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the reviewed named catalogue and optional output tools.");
   // ChatGPT imports every advertised array schema, including nested unions.
@@ -288,6 +289,7 @@ try {
   if(values.envelope.document.columns.filter(c=>c.y.kind==="blank").length!==5)throw Error("Value-table blanks changed.");
   for(const format of ["svg","png","json"]){const response=await request(values.downloads[format].url);if(!response.ok)throw Error("Value-graph download failed.");if(format==="png")verifyPrintBytes(new Uint8Array(await response.arrayBuffer()),values.printRaster.width,values.printRaster.height);if(format==="json"&&await valueHash(await response.json() as ValueEnvelope)!==values.contentHash)throw Error("Value-graph JSON changed.");}
   for (const c of [
+    {name:"triangle",args:{spec:{shape:"right"}},operations:[{op:"set_not_to_scale",visible:true}]},
     {name:"cuboid",args:{spec:{shapes:[{labels:{width:{mode:"blank"}}}]}},operations:[{op:"set_dimension",id:"cuboid-1",axis:"depth",value:"5/2"}]},
     {name:"number_line",args:{spec:{solution:{kind:"interval",id:"set",lower:"-3",upper:"2",lowerIncluded:true,upperIncluded:false}}},operations:[{op:"set_endpoint",id:"set",endpoint:"upper",value:"5/2"}]},
     {name:"venn",args:{spec:{regions:[{mask:1,region:{kind:"number",text:"0",visibility:"hidden"}}]}},operations:[{op:"shade_expression",expression:"A ∩ B",style:"hatch",mode:"replace"}]},

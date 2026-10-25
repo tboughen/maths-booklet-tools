@@ -48,7 +48,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
       } catch (error) { return failure(error); }
     });
     server.registerTool("download_diagram_bundle", {
-      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
+      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/triangle and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
       inputSchema: diagramSourceSchema,
       outputSchema: z.object({
         kind: diagramKind,
