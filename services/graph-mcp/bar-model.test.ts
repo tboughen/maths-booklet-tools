@@ -222,6 +222,24 @@ it("keeps the legacy base hash atomic when an upgrade batch fails",async()=>{
   const failed=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"},{op:"set_section_label",barId:"missing",partId:"p",slot:"above",label:c.label("9")}]}});expect(failed.isError).toBe(true);expect(c.canonical(r.envelope)).toBe(before);
   const upgraded=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"}]}});expect(upgraded.isError,JSON.stringify(upgraded.content)).not.toBe(true);expect((upgraded.structuredContent as {envelope:{schemaVersion:number}}).envelope.schemaVersion).toBe(2);
 },30000);
+it("creates v3 horizontal working and handwriting spaces through actual SDK discovery and original SVG delivery",async()=>{
+  const v=await import("../../packages/bar-model-core/src/v3"),core=await import("../../packages/bar-model-core/src/versioned"),examples=await import("../../packages/bar-model-core/src/lesson-examples-v3");
+  const client=await start();
+  const caps=await client.callTool({name:"bar_model_capabilities",arguments:{}});
+  const cap=JSON.parse((caps.content as {type:string;text:string}[]).find(c=>c.type==="text")!.text);
+  expect(cap.schemaVersions).toEqual([1,2,3]);expect(cap.rendererVersions).toContain("bar-model-3");
+  const initial=await call(client,"create_bar_model",{envelope:examples.lessonExample("R4",true)});
+  const changed=await client.callTool({name:"revise_bar_model",arguments:{envelope:initial.envelope,baseHash:initial.contentHash,operations:[{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"inside",label:v.label("1/5","line")},{op:"update_caption",caption:{id:"caption1",label:v.label("n/5 of 45 = 36"),alignment:"left",format:"maths"}}]}});
+  expect(changed.isError,JSON.stringify(changed.content)).not.toBe(true);
+  const r=changed.structuredContent as unknown as Result,n=v.validate(r.envelope);
+  expect(v.layout(n).writingBoxes).toHaveLength(1);expect(v.layout(n).barHeightMm).toBe(20);
+  expect(r.contentHash).toBe(await core.hash(n));
+  const direct=await receiveSvg(async args=>{const result=await client.callTool({name:"get_diagram_svg",arguments:args});expect(result.isError).not.toBe(true);return result.structuredContent;},{kind:"bar-model",envelope:n},{expectedSourceContentHash:r.contentHash,expectedPhysicalSizeCm:r.physicalSizeCm});
+  expect(direct.body).toEqual(Buffer.from(await(await fetch(r.downloads.svg.url)).arrayBuffer()));
+  expect(direct.body.toString()).not.toMatch(/<text\b|<image\b/);
+  verifyPrintBytes(new Uint8Array(await(await fetch(r.downloads.png.url)).arrayBuffer()),r.printRaster.width,r.printRaster.height);
+  const bad=await client.callTool({name:"revise_bar_model",arguments:{envelope:n,baseHash:r.contentHash,operations:[{op:"update_caption",caption:{id:"caption1",label:v.label("9/10/2026"),alignment:"left",format:"maths"}}]}});expect(bad.isError).toBe(true);expect(n.document.captions[0].label.text).toBe("n/5 of 45 = 36");
+},30000);
 it("exports maximum structure, rejects impossible layout and keeps source atomic", async () => {
   const client = await start(),
     max = await call(client, "create_bar_model", { spec: { example: "BM09" } });

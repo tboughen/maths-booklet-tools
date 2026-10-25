@@ -76,6 +76,7 @@ export interface ManagedLegacy {
 export default function BarModelPage({
   active = true,
   onUpgrade,
+  onUpgradeWriting,
   onOpenModern,
   managed,
   onNewModel,
@@ -86,6 +87,7 @@ export default function BarModelPage({
     present: c.Envelope;
     future: c.Envelope[];
   }) => void;
+  onUpgradeWriting?: () => void;
   onOpenModern?: (e: versioned.Envelope) => void;
   managed?: ManagedLegacy;
   onNewModel?: () => void;
@@ -487,6 +489,7 @@ export default function BarModelPage({
         )}
         <section className="workspace">
           <Panel className="editor-card">
+            {onUpgradeWriting && <button disabled={blocked} onClick={onUpgradeWriting}>Use horizontal fractions and larger answer spaces</button>}
             {onUpgrade && (
               <details>
                 <summary>Use improved layout</summary>
@@ -560,7 +563,7 @@ export default function BarModelPage({
                   setPending({
                     e: (() => {
                       const parsed = versioned.parseFile(text);
-                      if (parsed.schemaVersion === 2) {
+                      if (parsed.schemaVersion !== 1) {
                         onOpenModern?.(parsed);
                         throw Error("Opened improved model.");
                       }

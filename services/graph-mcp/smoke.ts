@@ -10,6 +10,7 @@ import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import { receiveSvg } from "./svg-consumer";
 import { discoverTools } from "./discovery";
 import { contentHash as valueHash, type ValueEnvelope } from "../../packages/value-graph-core/src/interchange";
+import {denseFixture as denseV3Fixture} from "../../packages/bar-model-core/src/stress-fixture-v3";
 import {denseFixture} from "../../packages/bar-model-core/src/stress-fixture";
 import {hash as barHash,canonical as barCanonical,type Envelope as BarEnvelope} from "../../packages/bar-model-core/src/versioned";
 const base = process.argv[2];
@@ -317,6 +318,21 @@ try {
   verifyPrintBytes(await denseArtifact("png"),dense.printRaster.width,dense.printRaster.height);
   const denseSvg=await receiveSvg(async args=>{const r=await client.callTool({name:"get_diagram_svg",arguments:args});if(r.isError)throw Error("Dense v2 original SVG delivery failed.");return r.structuredContent;},{kind:"bar-model",envelope:dense.envelope},{expectedSourceContentHash:dense.contentHash,expectedPhysicalSizeCm:dense.physicalSizeCm});
   if(!denseSvg.body.equals(await denseArtifact("svg")))throw Error("Dense v2 original SVG differs from the exact delivered file.");
+  const denseV3Source=denseV3Fixture();
+  const denseV3Reply=await client.callTool({name:"create_bar_model",arguments:{envelope:denseV3Source}});
+  if(denseV3Reply.isError)throw Error("Dense v3 bar creation failed under bounded runtime.");
+  const denseV3=denseV3Reply.structuredContent as {envelope:BarEnvelope;contentHash:string;physicalSizeCm:{width:number;height:number};downloads:Record<string,{url:string}>;printRaster:{width:number;height:number}};
+  if(barCanonical(denseV3.envelope)!==barCanonical(denseV3Source)||denseV3.contentHash!==await barHash(denseV3Source))throw Error("Dense bar source changed.");
+  async function denseV3Artifact(format:"svg"|"png"){
+    if(denseV3.downloads[format]){const response=await request(denseV3.downloads[format].url);if(!response.ok)throw Error(`Dense v3 ${format} download failed.`);return Buffer.from(await response.arrayBuffer());}
+    const content=denseV3Reply.content as {type?:string;resource?:{uri?:string;text?:string;blob?:string}}[];
+    const resource=content.find(c=>c.type==="resource"&&c.resource?.uri?.endsWith(`/source.${format}`))?.resource;
+    if(!resource)throw Error(`Missing dense v2 embedded ${format}.`);
+    return resource.blob?Buffer.from(resource.blob,"base64"):Buffer.from(resource.text??"","utf8");
+  }
+  verifyPrintBytes(await denseV3Artifact("png"),denseV3.printRaster.width,denseV3.printRaster.height);
+  const denseV3Svg=await receiveSvg(async args=>{const r=await client.callTool({name:"get_diagram_svg",arguments:args});if(r.isError)throw Error("Dense v3 original SVG delivery failed.");return r.structuredContent;},{kind:"bar-model",envelope:denseV3.envelope},{expectedSourceContentHash:denseV3.contentHash,expectedPhysicalSizeCm:denseV3.physicalSizeCm});
+  if(!denseV3Svg.body.equals(await denseV3Artifact("svg")))throw Error("Dense v3 original SVG differs from the exact delivered file.");
   const health = (await (await request(new URL("/healthz", base))).json()) as {
     buildId: string;
   };
@@ -331,6 +347,11 @@ try {
       placementVerified: true,
       bundleVerified: true,
       directSvgVerified: true,
+      barModelV3DenseVerified:true,
+      barModelV3PrintRaster:denseV3.printRaster,
+      barModelV3SvgChunks:denseV3Svg.chunks,
+      barModelV3SvgBytes:denseV3Svg.body.length,
+      barModelV3SourceBytes:Buffer.byteLength(barCanonical(denseV3.envelope)),
       barModelV2DenseVerified:true,
       barModelV2PrintRaster:dense.printRaster,
       barModelV2SvgChunks:denseSvg.chunks,

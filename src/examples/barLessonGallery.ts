@@ -4,7 +4,7 @@ import * as core from "../../packages/bar-model-core/src/versioned";
 import {
   lessonExample,
   lessonExampleNames,
-} from "../../packages/bar-model-core/src/lesson-examples";
+} from "../../packages/bar-model-core/src/lesson-examples-v3";
 export const lessonTitles = {
   R1: "Part-whole: two unequal parts",
   "R2-P": "Mia and Jack: comparison in equal units",

@@ -2,12 +2,18 @@ import { z } from "zod";
 import * as old from "./interchange";
 import * as v1 from "./index";
 import * as v2 from "./v2";
+import * as v3 from "./v3";
 import * as c from "./versioned";
 const id = v2.idSchema,
   slot = z.enum(v2.slots);
 const location = z.object({ barId: id, partId: id, slot }).strict();
 export const newOperationSchema = z.discriminatedUnion("op", [
-  z.object({ op: z.literal("upgrade_document") }).strict(),
+  z
+    .object({
+      op: z.literal("upgrade_document"),
+      targetSchemaVersion: z.literal(3).optional(),
+    })
+    .strict(),
   z
     .object({
       op: z.literal("set_section_label"),
@@ -59,10 +65,16 @@ export const newOperationSchema = z.discriminatedUnion("op", [
     })
     .strict(),
   z
-    .object({ op: z.literal("add_caption"), caption: v2.captionSchema })
+    .object({
+      op: z.literal("add_caption"),
+      caption: z.union([v2.captionSchema, v3.captionSchema]),
+    })
     .strict(),
   z
-    .object({ op: z.literal("update_caption"), caption: v2.captionSchema })
+    .object({
+      op: z.literal("update_caption"),
+      caption: z.union([v2.captionSchema, v3.captionSchema]),
+    })
     .strict(),
   z.object({ op: z.literal("remove_caption"), captionId: id }).strict(),
   z
@@ -71,7 +83,7 @@ export const newOperationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("set_presentation"),
-      presentation: v2.presentationSchema.partial(),
+      presentation: v3.presentationSchema.partial(),
       autoName: z.boolean().optional(),
     })
     .strict(),
@@ -136,7 +148,14 @@ export const specV2Schema = z
     presentation: v2.presentationSchema.partial().optional(),
   })
   .strict();
-export const specSchema = z.union([old.specSchema, specV2Schema]);
+export const specV3Schema = specV2Schema
+  .extend({
+    schemaVersion: z.literal(3),
+    captions: z.array(v3.captionSchema).max(3).optional(),
+    presentation: v3.presentationSchema.partial().optional(),
+  })
+  .strict();
+export const specSchema = z.union([old.specSchema, specV2Schema, specV3Schema]);
 export const createSchema = z
   .object({ spec: specSchema.optional(), envelope: c.schema.optional() })
   .strict();
@@ -160,7 +179,8 @@ export function create(raw: unknown): c.Envelope {
   const s = v.spec;
   if (s.bars && s.starter)
     throw Error("Supply a starter or custom bars, not both.");
-  const e = v2.fresh(
+  const core = s.schemaVersion === 3 ? v3 : v2;
+  const e = core.fresh(
     s.starter ?? "part-whole",
     s.count,
     s.ratio,
@@ -173,9 +193,13 @@ export function create(raw: unknown): c.Envelope {
   if (s.captions) e.document.captions = s.captions;
   if (s.title) e.document.title = s.title;
   Object.assign(e.document.presentation, s.presentation);
-  return v2.validate(e);
+  return core.validate(e);
 }
-export function affectedContent(e: v2.Envelope, barId: string, count: number) {
+export function affectedContent(
+  e: v2.Envelope | v3.Envelope,
+  barId: string,
+  count: number,
+) {
   const b = e.document.bars.find((b) => b.id === barId);
   if (!b) throw Error("Unknown bar.");
   if (count === b.parts.length) return [];
@@ -204,18 +228,30 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
   const upgrades = ops.flatMap((o, i) =>
     o.op === "upgrade_document" ? [i] : [],
   );
+  const upgrade = ops.find((o) => o.op === "upgrade_document");
+  const target = upgrade?.targetSchemaVersion ?? 2;
   if (
     upgrades.length &&
-    (source.schemaVersion !== 1 || upgrades.length !== 1 || upgrades[0] !== 0)
+    (upgrades.length !== 1 ||
+      upgrades[0] !== 0 ||
+      (target === 2 ? source.schemaVersion !== 1 : source.schemaVersion === 3))
   )
-    throw Error("Use upgrade_document exactly once, first, on a v1 resource.");
+    throw Error(
+      "Use upgrade_document exactly once, first, on an older resource; targetSchemaVersion:3 explicitly selects the new profile.",
+    );
   if (source.schemaVersion === 1 && !upgrades.length) {
     if (ops.some((o) => !old.operationSchema.safeParse(o).success))
       throw Error("Use upgrade_document first before v2 features.");
     return old.apply(source, ops as old.Operation[]);
   }
+  const core =
+    source.schemaVersion === 3 || (upgrade && target === 3) ? v3 : v2;
   const e =
-      source.schemaVersion === 1 ? v2.upgrade(source) : v2.validate(source),
+      upgrade && target === 3
+        ? v3.upgrade(source as v1.Envelope | v2.Envelope)
+        : source.schemaVersion === 1
+          ? v2.upgrade(source)
+          : core.validate(source),
     d = e.document;
   const bar = (id: string) => {
     const b = d.bars.find((b) => b.id === id);
@@ -337,7 +373,9 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
         op.partIds.forEach((id) => (part(op.barId, id).fill = op.fill));
         break;
       case "add_caption":
-        d.captions.push(op.caption);
+        if (e.schemaVersion === 3)
+          e.document.captions.push(v3.captionSchema.parse(op.caption));
+        else e.document.captions.push(v2.captionSchema.parse(op.caption));
         break;
       case "update_caption": {
         const i = d.captions.findIndex((c) => c.id === op.caption.id);
@@ -483,14 +521,14 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
         break;
       }
       case "reveal_saved_answers":
-        v2.allLabels(e).forEach((l) => {
+        core.allLabels(e as never).forEach((l) => {
           if (l.state === "hidden") l.state = "value";
         });
         break;
     }
   }
-  const valid = v2.validate(e),
-    issue = v2.exportIssue(valid);
+  const valid = core.validate(e),
+    issue = core.exportIssue(valid as never);
   if (issue) throw Error(issue);
   return valid;
 }

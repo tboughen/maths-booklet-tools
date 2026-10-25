@@ -1,5 +1,10 @@
 # Bar modelling: improved lesson layout
 
+This is the frozen v2 contract. New empty browser sessions now use
+[v3 notation and handwriting space](BAR-MODEL-V3.md); explicit MCP spec2 and saved
+v2 definitions still use the renderer documented here. Prior fresh-default and
+compact-height descriptions below apply to that retained v2 profile.
+
 The refinement implements the approved revision-2 plan. The route and resource
 kind remain `bar-model`. Schema 2 uses renderer `bar-model-2` and profile
 `lesson-v2`. Schema 1 keeps its original source, hash, renderer and artwork path.

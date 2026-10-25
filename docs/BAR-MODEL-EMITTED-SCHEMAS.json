@@ -21,7 +21,7 @@
     },
     {
       "name": "create_bar_model",
-      "description": "For the improved layout explicitly supply spec:{schemaVersion:2,starter:part-whole|comparison|equal-sections|inline-ratio,count?,ratio?:positive-integer-array,partitioned?,comparisonLengths?:[longer,shorter],bars?,annotations?,captions?,title?,presentation?}. See capabilities.v2.specSchema for complete strict nested fields. V2 parts have labels:{inside,above?,below?} and fill:none|neutral|blue|green|amber; each label is {text,state}. annotations:[{id,scope:{kind:whole,barId}|{kind:range,from,to},label,decoration:none|brace|dimension,placement:above|below|inside|between}]. Whole scope follows a bar; fixed endpoints stay fixed. Captions:{id,label,alignment:left|centre|right},max3; title is a label. Output grey/colour is saved. Bare requests and legacy specs remain v1; never mix v1 fields with schemaVersion:2. Create editable Bar modelling resources. Supply spec OR exact envelope, never both. spec:{example?:BM01..BM09|H07|H18|source-sharing,worked?:false,bars?,spans?,presentation?}; example and custom bars/spans are mutually exclusive. Omit for BM01 unworked sharing64 in3:5. bars:[{id,name:{text,state},offset:numeric-string,parts:[{id,weight:positive-numeric-string,label:{text,state},shade:boolean}]}]. spans:[{id,from:{barId,partId,edge:start|end},to:{barId,partId,edge},label:{text,state},side:above|below,style:brace|dimension}]. Labels state:value|blank|question|line|hidden; hidden retains text. Shared presentation:{unitMm:4..16,barHeightMm:8..16,fontPt:10..14,nameWidthMm:20..60}. Up to6bars,24parts/bar,96parts,18spans,32KiB. Exact geometry fractions/decimals,algebra labels never evaluated. Whole/share/difference braces anchor actual boundaries. No automatic calculation. Returns canonical envelope/hash,preview,SVG,600ppiPNG,JSON,versions,native size,print facts,bounded editor link and warnings. Editable files/links retain hidden answers; pupil output default.",
+      "description": "For horizontal working fractions and handwriting space use explicit spec.schemaVersion:3; same v2 fields plus captions[].format:maths(default)|plain, minimum barHeightMm8..24. Maths a/b supports simple atoms or one parenthesised group, never nested fractions; ambiguity fails. Every explicit line reserves12mm above/3mm below its0.25mm underline,8mm long; inside lines produce uniform actual bars>=20mm. See capabilities.v3 complete schemas. Existing v1/v2 rendering remains frozen. For the improved layout explicitly supply spec:{schemaVersion:2,starter:part-whole|comparison|equal-sections|inline-ratio,count?,ratio?:positive-integer-array,partitioned?,comparisonLengths?:[longer,shorter],bars?,annotations?,captions?,title?,presentation?}. See capabilities.v2.specSchema for complete strict nested fields. V2 parts have labels:{inside,above?,below?} and fill:none|neutral|blue|green|amber; each label is {text,state}. annotations:[{id,scope:{kind:whole,barId}|{kind:range,from,to},label,decoration:none|brace|dimension,placement:above|below|inside|between}]. Whole scope follows a bar; fixed endpoints stay fixed. Captions:{id,label,alignment:left|centre|right},max3; title is a label. Output grey/colour is saved. Bare requests and legacy specs remain v1; never mix v1 fields with schemaVersion:2. Create editable Bar modelling resources. Supply spec OR exact envelope, never both. spec:{example?:BM01..BM09|H07|H18|source-sharing,worked?:false,bars?,spans?,presentation?}; example and custom bars/spans are mutually exclusive. Omit for BM01 unworked sharing64 in3:5. bars:[{id,name:{text,state},offset:numeric-string,parts:[{id,weight:positive-numeric-string,label:{text,state},shade:boolean}]}]. spans:[{id,from:{barId,partId,edge:start|end},to:{barId,partId,edge},label:{text,state},side:above|below,style:brace|dimension}]. Labels state:value|blank|question|line|hidden; hidden retains text. Shared presentation:{unitMm:4..16,barHeightMm:8..16,fontPt:10..14,nameWidthMm:20..60}. Up to6bars,24parts/bar,96parts,18spans,32KiB. Exact geometry fractions/decimals,algebra labels never evaluated. Whole/share/difference braces anchor actual boundaries. No automatic calculation. Returns canonical envelope/hash,preview,SVG,600ppiPNG,JSON,versions,native size,print facts,bounded editor link and warnings. Editable files/links retain hidden answers; pupil output default.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -750,6 +750,500 @@
                         "type": "number",
                         "minimum": 8,
                         "maximum": 16
+                      },
+                      "fontPt": {
+                        "type": "number",
+                        "minimum": 10,
+                        "maximum": 14
+                      },
+                      "titlePt": {
+                        "type": "number",
+                        "minimum": 12,
+                        "maximum": 18
+                      },
+                      "nameWidthMm": {
+                        "type": "number",
+                        "minimum": 8,
+                        "maximum": 60
+                      },
+                      "output": {
+                        "type": "string",
+                        "enum": [
+                          "grey",
+                          "colour"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "schemaVersion"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 3
+                  },
+                  "starter": {
+                    "type": "string",
+                    "enum": [
+                      "part-whole",
+                      "comparison",
+                      "equal-sections",
+                      "inline-ratio"
+                    ]
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 24
+                  },
+                  "ratio": {
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "partitioned": {
+                    "type": "boolean"
+                  },
+                  "comparisonLengths": {
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 24
+                    }
+                  },
+                  "bars": {
+                    "minItems": 1,
+                    "maxItems": 6,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                        },
+                        "name": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string",
+                              "maxLength": 80,
+                              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "value",
+                                "blank",
+                                "question",
+                                "line",
+                                "hidden"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "state"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "offset": {
+                          "type": "string",
+                          "maxLength": 24
+                        },
+                        "parts": {
+                          "minItems": 1,
+                          "maxItems": 24,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                              },
+                              "weight": {
+                                "type": "string",
+                                "maxLength": 24
+                              },
+                              "labels": {
+                                "type": "object",
+                                "properties": {
+                                  "inside": {
+                                    "type": "object",
+                                    "properties": {
+                                      "text": {
+                                        "type": "string",
+                                        "maxLength": 80,
+                                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "enum": [
+                                          "value",
+                                          "blank",
+                                          "question",
+                                          "line",
+                                          "hidden"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "text",
+                                      "state"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "above": {
+                                    "type": "object",
+                                    "properties": {
+                                      "text": {
+                                        "type": "string",
+                                        "maxLength": 80,
+                                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "enum": [
+                                          "value",
+                                          "blank",
+                                          "question",
+                                          "line",
+                                          "hidden"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "text",
+                                      "state"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "below": {
+                                    "type": "object",
+                                    "properties": {
+                                      "text": {
+                                        "type": "string",
+                                        "maxLength": 80,
+                                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "enum": [
+                                          "value",
+                                          "blank",
+                                          "question",
+                                          "line",
+                                          "hidden"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "text",
+                                      "state"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "inside"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "fill": {
+                                "type": "string",
+                                "enum": [
+                                  "none",
+                                  "neutral",
+                                  "blue",
+                                  "green",
+                                  "amber"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "weight",
+                              "labels",
+                              "fill"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "offset",
+                        "parts"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "annotations": {
+                    "maxItems": 18,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                        },
+                        "scope": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "const": "whole"
+                                },
+                                "barId": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "barId"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "const": "range"
+                                },
+                                "from": {
+                                  "type": "object",
+                                  "properties": {
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    },
+                                    "partId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    },
+                                    "edge": {
+                                      "type": "string",
+                                      "enum": [
+                                        "start",
+                                        "end"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "barId",
+                                    "partId",
+                                    "edge"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "to": {
+                                  "type": "object",
+                                  "properties": {
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    },
+                                    "partId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    },
+                                    "edge": {
+                                      "type": "string",
+                                      "enum": [
+                                        "start",
+                                        "end"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "barId",
+                                    "partId",
+                                    "edge"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "label": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string",
+                              "maxLength": 80,
+                              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "value",
+                                "blank",
+                                "question",
+                                "line",
+                                "hidden"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "state"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "decoration": {
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "brace",
+                            "dimension"
+                          ]
+                        },
+                        "placement": {
+                          "type": "string",
+                          "enum": [
+                            "above",
+                            "below",
+                            "inside",
+                            "between"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "scope",
+                        "label",
+                        "decoration",
+                        "placement"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "captions": {
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                        },
+                        "label": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string",
+                              "maxLength": 80,
+                              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "value",
+                                "blank",
+                                "question",
+                                "line",
+                                "hidden"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "text",
+                            "state"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "alignment": {
+                          "type": "string",
+                          "enum": [
+                            "left",
+                            "centre",
+                            "right"
+                          ]
+                        },
+                        "format": {
+                          "default": "maths",
+                          "type": "string",
+                          "enum": [
+                            "maths",
+                            "plain"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "label",
+                        "alignment"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "title": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                      },
+                      "state": {
+                        "type": "string",
+                        "enum": [
+                          "value",
+                          "blank",
+                          "question",
+                          "line",
+                          "hidden"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "state"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "presentation": {
+                    "type": "object",
+                    "properties": {
+                      "unitMm": {
+                        "type": "number",
+                        "minimum": 4,
+                        "maximum": 16
+                      },
+                      "barHeightMm": {
+                        "type": "number",
+                        "minimum": 8,
+                        "maximum": 24
                       },
                       "fontPt": {
                         "type": "number",
@@ -1532,6 +2026,502 @@
                                 "left",
                                 "centre",
                                 "right"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "bars",
+                      "annotations",
+                      "presentation",
+                      "captions"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "schemaVersion",
+                  "rendererVersion",
+                  "styleProfile",
+                  "document"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "bar-model"
+                  },
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 3
+                  },
+                  "rendererVersion": {
+                    "type": "string",
+                    "const": "bar-model-3"
+                  },
+                  "styleProfile": {
+                    "type": "string",
+                    "const": "lesson-v3"
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "bars": {
+                        "minItems": 1,
+                        "maxItems": 6,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "name": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "offset": {
+                              "type": "string",
+                              "maxLength": 24
+                            },
+                            "parts": {
+                              "minItems": 1,
+                              "maxItems": 24,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                  },
+                                  "weight": {
+                                    "type": "string",
+                                    "maxLength": 24
+                                  },
+                                  "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inside": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "above": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "below": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "inside"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "fill": {
+                                    "type": "string",
+                                    "enum": [
+                                      "none",
+                                      "neutral",
+                                      "blue",
+                                      "green",
+                                      "amber"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "weight",
+                                  "labels",
+                                  "fill"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "offset",
+                            "parts"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "annotations": {
+                        "maxItems": 18,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "scope": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "whole"
+                                    },
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "barId"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "range"
+                                    },
+                                    "from": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "to": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "decoration": {
+                              "type": "string",
+                              "enum": [
+                                "none",
+                                "brace",
+                                "dimension"
+                              ]
+                            },
+                            "placement": {
+                              "type": "string",
+                              "enum": [
+                                "above",
+                                "below",
+                                "inside",
+                                "between"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "scope",
+                            "label",
+                            "decoration",
+                            "placement"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "presentation": {
+                        "type": "object",
+                        "properties": {
+                          "unitMm": {
+                            "type": "number",
+                            "minimum": 4,
+                            "maximum": 16
+                          },
+                          "barHeightMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 24
+                          },
+                          "fontPt": {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 14
+                          },
+                          "titlePt": {
+                            "type": "number",
+                            "minimum": 12,
+                            "maximum": 18
+                          },
+                          "nameWidthMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 60
+                          },
+                          "output": {
+                            "type": "string",
+                            "enum": [
+                              "grey",
+                              "colour"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "unitMm",
+                          "barHeightMm",
+                          "fontPt",
+                          "titlePt",
+                          "output"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 80,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "value",
+                              "blank",
+                              "question",
+                              "line",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "state"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "captions": {
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
                               ]
                             }
                           },
@@ -2356,6 +3346,503 @@
                   "document"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "bar-model"
+                  },
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 3
+                  },
+                  "rendererVersion": {
+                    "type": "string",
+                    "const": "bar-model-3"
+                  },
+                  "styleProfile": {
+                    "type": "string",
+                    "const": "lesson-v3"
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "bars": {
+                        "minItems": 1,
+                        "maxItems": 6,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "name": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "offset": {
+                              "type": "string",
+                              "maxLength": 24
+                            },
+                            "parts": {
+                              "minItems": 1,
+                              "maxItems": 24,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                  },
+                                  "weight": {
+                                    "type": "string",
+                                    "maxLength": 24
+                                  },
+                                  "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inside": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "above": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "below": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "inside"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "fill": {
+                                    "type": "string",
+                                    "enum": [
+                                      "none",
+                                      "neutral",
+                                      "blue",
+                                      "green",
+                                      "amber"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "weight",
+                                  "labels",
+                                  "fill"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "offset",
+                            "parts"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "annotations": {
+                        "maxItems": 18,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "scope": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "whole"
+                                    },
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "barId"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "range"
+                                    },
+                                    "from": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "to": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "decoration": {
+                              "type": "string",
+                              "enum": [
+                                "none",
+                                "brace",
+                                "dimension"
+                              ]
+                            },
+                            "placement": {
+                              "type": "string",
+                              "enum": [
+                                "above",
+                                "below",
+                                "inside",
+                                "between"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "scope",
+                            "label",
+                            "decoration",
+                            "placement"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "presentation": {
+                        "type": "object",
+                        "properties": {
+                          "unitMm": {
+                            "type": "number",
+                            "minimum": 4,
+                            "maximum": 16
+                          },
+                          "barHeightMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 24
+                          },
+                          "fontPt": {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 14
+                          },
+                          "titlePt": {
+                            "type": "number",
+                            "minimum": 12,
+                            "maximum": 18
+                          },
+                          "nameWidthMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 60
+                          },
+                          "output": {
+                            "type": "string",
+                            "enum": [
+                              "grey",
+                              "colour"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "unitMm",
+                          "barHeightMm",
+                          "fontPt",
+                          "titlePt",
+                          "output"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 80,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "value",
+                              "blank",
+                              "question",
+                              "line",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "state"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "captions": {
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment",
+                            "format"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "bars",
+                      "annotations",
+                      "presentation",
+                      "captions"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "schemaVersion",
+                  "rendererVersion",
+                  "styleProfile",
+                  "document"
+                ],
+                "additionalProperties": false
               }
             ]
           },
@@ -2578,7 +4065,7 @@
     },
     {
       "name": "revise_bar_model",
-      "description": "V2 operations add upgrade_document{} (exactly once FIRST on v1); set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to:{barId,partId,slot},mode:move|copy,overwrite?:false}; set_annotation{annotation}; remove_annotation{annotationId}; equal_sections{barId,count,discardContent?:false} preserves exact total; changed count replaces IDs and needs explicit discard for affected labels/fills/fixed anchors. set_fill{barId,partIds,fill}; add_caption/update_caption{caption}; remove_caption{captionId}; set_title{label:null|Label}; set_presentation{presentation,autoName?}; set_quantity_name{barId,label}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}. Refer to the complete emitted operation schema. Without explicit upgrade, legacy sources stay v1 and reject new features. A later failure rolls back the entire batch including upgrade. Retained hidden destinations require explicit overwrite. Between annotations must still attach to adjacent bars. Revise exact bar-model envelope with baseHash=contentHash and operations(max30,atomic). set_label {target:{barId,partId?}|{spanId},label:{text,state}}; set_part {barId,partId,weight?,shade?}; add_bar {bar,afterId?}; remove_bar {barId,discardSpans?:false}; add_part {barId,part,afterId?}; remove_part {barId,partId,discardSpans?:false}; add_span {span}; set_span {span} replaces exact identified span; remove_span {spanId}; set_alignment {barId,offset}; set_print {presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?}}; reveal_saved_answers {} only on explicit request. Use complete bar/part/span schemas from create_bar_model and stable returned IDs. Removal of referenced parts/bars requires discardSpans:true or prior explicit span removal; never reanchors. Label state changes preserve supplied saved text. No implicit maths, answer reveal or resizing from labels. Empty operations refresh files/links. Returns envelope/hash,preview,SVG,verified600ppiPNG,JSON,native dimensions,versions,print facts and warnings; editable files/links retain hidden answers.",
+      "description": "Explicit upgrade_document{targetSchemaVersion:3} upgrades v1/v2 to horizontal fractions and larger handwriting spaces; once FIRST, original hash checked before changes, later failure rolls back all. No target keeps prior v1→v2 meaning. V3 captions add format:maths|plain and set_presentation accepts minimum barHeightMm8..24. V2 operations add upgrade_document{} (exactly once FIRST on v1); set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to:{barId,partId,slot},mode:move|copy,overwrite?:false}; set_annotation{annotation}; remove_annotation{annotationId}; equal_sections{barId,count,discardContent?:false} preserves exact total; changed count replaces IDs and needs explicit discard for affected labels/fills/fixed anchors. set_fill{barId,partIds,fill}; add_caption/update_caption{caption}; remove_caption{captionId}; set_title{label:null|Label}; set_presentation{presentation,autoName?}; set_quantity_name{barId,label}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}. Refer to the complete emitted operation schema. Without explicit upgrade, legacy sources stay v1 and reject new features. A later failure rolls back the entire batch including upgrade. Retained hidden destinations require explicit overwrite. Between annotations must still attach to adjacent bars. Revise exact bar-model envelope with baseHash=contentHash and operations(max30,atomic). set_label {target:{barId,partId?}|{spanId},label:{text,state}}; set_part {barId,partId,weight?,shade?}; add_bar {bar,afterId?}; remove_bar {barId,discardSpans?:false}; add_part {barId,part,afterId?}; remove_part {barId,partId,discardSpans?:false}; add_span {span}; set_span {span} replaces exact identified span; remove_span {spanId}; set_alignment {barId,offset}; set_print {presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?}}; reveal_saved_answers {} only on explicit request. Use complete bar/part/span schemas from create_bar_model and stable returned IDs. Removal of referenced parts/bars requires discardSpans:true or prior explicit span removal; never reanchors. Label state changes preserve supplied saved text. No implicit maths, answer reveal or resizing from labels. Empty operations refresh files/links. Returns envelope/hash,preview,SVG,verified600ppiPNG,JSON,native dimensions,versions,print facts and warnings; editable files/links retain hidden answers.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3363,6 +4850,502 @@
                   "document"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "bar-model"
+                  },
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 3
+                  },
+                  "rendererVersion": {
+                    "type": "string",
+                    "const": "bar-model-3"
+                  },
+                  "styleProfile": {
+                    "type": "string",
+                    "const": "lesson-v3"
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "bars": {
+                        "minItems": 1,
+                        "maxItems": 6,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "name": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "offset": {
+                              "type": "string",
+                              "maxLength": 24
+                            },
+                            "parts": {
+                              "minItems": 1,
+                              "maxItems": 24,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                  },
+                                  "weight": {
+                                    "type": "string",
+                                    "maxLength": 24
+                                  },
+                                  "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inside": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "above": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "below": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "inside"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "fill": {
+                                    "type": "string",
+                                    "enum": [
+                                      "none",
+                                      "neutral",
+                                      "blue",
+                                      "green",
+                                      "amber"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "weight",
+                                  "labels",
+                                  "fill"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "offset",
+                            "parts"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "annotations": {
+                        "maxItems": 18,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "scope": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "whole"
+                                    },
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "barId"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "range"
+                                    },
+                                    "from": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "to": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "decoration": {
+                              "type": "string",
+                              "enum": [
+                                "none",
+                                "brace",
+                                "dimension"
+                              ]
+                            },
+                            "placement": {
+                              "type": "string",
+                              "enum": [
+                                "above",
+                                "below",
+                                "inside",
+                                "between"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "scope",
+                            "label",
+                            "decoration",
+                            "placement"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "presentation": {
+                        "type": "object",
+                        "properties": {
+                          "unitMm": {
+                            "type": "number",
+                            "minimum": 4,
+                            "maximum": 16
+                          },
+                          "barHeightMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 24
+                          },
+                          "fontPt": {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 14
+                          },
+                          "titlePt": {
+                            "type": "number",
+                            "minimum": 12,
+                            "maximum": 18
+                          },
+                          "nameWidthMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 60
+                          },
+                          "output": {
+                            "type": "string",
+                            "enum": [
+                              "grey",
+                              "colour"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "unitMm",
+                          "barHeightMm",
+                          "fontPt",
+                          "titlePt",
+                          "output"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 80,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "value",
+                              "blank",
+                              "question",
+                              "line",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "state"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "captions": {
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "bars",
+                      "annotations",
+                      "presentation",
+                      "captions"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "schemaVersion",
+                  "rendererVersion",
+                  "styleProfile",
+                  "document"
+                ],
+                "additionalProperties": false
               }
             ]
           },
@@ -4030,6 +6013,10 @@
                     "op": {
                       "type": "string",
                       "const": "upgrade_document"
+                    },
+                    "targetSchemaVersion": {
+                      "type": "number",
+                      "const": 3
                     }
                   },
                   "required": [
@@ -4492,52 +6479,112 @@
                       "const": "add_caption"
                     },
                     "caption": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
-                        },
-                        "label": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "properties": {
-                            "text": {
+                            "id": {
                               "type": "string",
-                              "maxLength": 80,
-                              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
                             },
-                            "state": {
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
                               "type": "string",
                               "enum": [
-                                "value",
-                                "blank",
-                                "question",
-                                "line",
-                                "hidden"
+                                "left",
+                                "centre",
+                                "right"
                               ]
                             }
                           },
                           "required": [
-                            "text",
-                            "state"
+                            "id",
+                            "label",
+                            "alignment"
                           ],
                           "additionalProperties": false
                         },
-                        "alignment": {
-                          "type": "string",
-                          "enum": [
-                            "left",
-                            "centre",
-                            "right"
-                          ]
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "id",
-                        "label",
-                        "alignment"
-                      ],
-                      "additionalProperties": false
+                      ]
                     }
                   },
                   "required": [
@@ -4554,52 +6601,112 @@
                       "const": "update_caption"
                     },
                     "caption": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
-                        },
-                        "label": {
+                      "anyOf": [
+                        {
                           "type": "object",
                           "properties": {
-                            "text": {
+                            "id": {
                               "type": "string",
-                              "maxLength": 80,
-                              "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
                             },
-                            "state": {
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
                               "type": "string",
                               "enum": [
-                                "value",
-                                "blank",
-                                "question",
-                                "line",
-                                "hidden"
+                                "left",
+                                "centre",
+                                "right"
                               ]
                             }
                           },
                           "required": [
-                            "text",
-                            "state"
+                            "id",
+                            "label",
+                            "alignment"
                           ],
                           "additionalProperties": false
                         },
-                        "alignment": {
-                          "type": "string",
-                          "enum": [
-                            "left",
-                            "centre",
-                            "right"
-                          ]
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment"
+                          ],
+                          "additionalProperties": false
                         }
-                      },
-                      "required": [
-                        "id",
-                        "label",
-                        "alignment"
-                      ],
-                      "additionalProperties": false
+                      ]
                     }
                   },
                   "required": [
@@ -4690,7 +6797,7 @@
                         "barHeightMm": {
                           "type": "number",
                           "minimum": 8,
-                          "maximum": 16
+                          "maximum": 24
                         },
                         "fontPt": {
                           "type": "number",
@@ -5911,6 +8018,503 @@
                             "id",
                             "label",
                             "alignment"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "bars",
+                      "annotations",
+                      "presentation",
+                      "captions"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "kind",
+                  "schemaVersion",
+                  "rendererVersion",
+                  "styleProfile",
+                  "document"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "bar-model"
+                  },
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 3
+                  },
+                  "rendererVersion": {
+                    "type": "string",
+                    "const": "bar-model-3"
+                  },
+                  "styleProfile": {
+                    "type": "string",
+                    "const": "lesson-v3"
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "bars": {
+                        "minItems": 1,
+                        "maxItems": 6,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "name": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "offset": {
+                              "type": "string",
+                              "maxLength": 24
+                            },
+                            "parts": {
+                              "minItems": 1,
+                              "maxItems": 24,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                  },
+                                  "weight": {
+                                    "type": "string",
+                                    "maxLength": 24
+                                  },
+                                  "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inside": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "above": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "below": {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 80,
+                                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                          },
+                                          "state": {
+                                            "type": "string",
+                                            "enum": [
+                                              "value",
+                                              "blank",
+                                              "question",
+                                              "line",
+                                              "hidden"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "state"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "inside"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "fill": {
+                                    "type": "string",
+                                    "enum": [
+                                      "none",
+                                      "neutral",
+                                      "blue",
+                                      "green",
+                                      "amber"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "weight",
+                                  "labels",
+                                  "fill"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "offset",
+                            "parts"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "annotations": {
+                        "maxItems": 18,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "scope": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "whole"
+                                    },
+                                    "barId": {
+                                      "type": "string",
+                                      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "barId"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "range"
+                                    },
+                                    "from": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "to": {
+                                      "type": "object",
+                                      "properties": {
+                                        "barId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "partId": {
+                                          "type": "string",
+                                          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                                        },
+                                        "edge": {
+                                          "type": "string",
+                                          "enum": [
+                                            "start",
+                                            "end"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "barId",
+                                        "partId",
+                                        "edge"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "decoration": {
+                              "type": "string",
+                              "enum": [
+                                "none",
+                                "brace",
+                                "dimension"
+                              ]
+                            },
+                            "placement": {
+                              "type": "string",
+                              "enum": [
+                                "above",
+                                "below",
+                                "inside",
+                                "between"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "scope",
+                            "label",
+                            "decoration",
+                            "placement"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "presentation": {
+                        "type": "object",
+                        "properties": {
+                          "unitMm": {
+                            "type": "number",
+                            "minimum": 4,
+                            "maximum": 16
+                          },
+                          "barHeightMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 24
+                          },
+                          "fontPt": {
+                            "type": "number",
+                            "minimum": 10,
+                            "maximum": 14
+                          },
+                          "titlePt": {
+                            "type": "number",
+                            "minimum": 12,
+                            "maximum": 18
+                          },
+                          "nameWidthMm": {
+                            "type": "number",
+                            "minimum": 8,
+                            "maximum": 60
+                          },
+                          "output": {
+                            "type": "string",
+                            "enum": [
+                              "grey",
+                              "colour"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "unitMm",
+                          "barHeightMm",
+                          "fontPt",
+                          "titlePt",
+                          "output"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "title": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 80,
+                            "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "value",
+                              "blank",
+                              "question",
+                              "line",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "state"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "captions": {
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$"
+                            },
+                            "label": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "type": "string",
+                                  "maxLength": 80,
+                                  "pattern": "^[^\\u0000-\\u001f\\u007f]*$"
+                                },
+                                "state": {
+                                  "type": "string",
+                                  "enum": [
+                                    "value",
+                                    "blank",
+                                    "question",
+                                    "line",
+                                    "hidden"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "text",
+                                "state"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "alignment": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "centre",
+                                "right"
+                              ]
+                            },
+                            "format": {
+                              "default": "maths",
+                              "type": "string",
+                              "enum": [
+                                "maths",
+                                "plain"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "label",
+                            "alignment",
+                            "format"
                           ],
                           "additionalProperties": false
                         }

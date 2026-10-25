@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as c from "../../packages/bar-model-core/src/versioned";
 import * as v from "../../packages/bar-model-core/src/v2";
+import { barLessonGalleryV2 } from "../examples/barLessonGalleryV2";
+import { lessonExample as legacyLessonExample } from "../../packages/bar-model-core/src/lesson-examples";
+import * as v3 from "../../packages/bar-model-core/src/v3";
 import * as api from "../../packages/bar-model-core/src/versioned-interchange";
 import {
   lessonExample,
   lessonExampleNames,
-} from "../../packages/bar-model-core/src/lesson-examples";
+} from "../../packages/bar-model-core/src/lesson-examples-v3";
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
@@ -38,7 +41,9 @@ type Draft =
   | { kind: "annotation"; annotation: v.Annotation }
   | {
       kind: "caption";
-      caption: v.Envelope["document"]["captions"][number];
+      caption: v.Envelope["document"]["captions"][number] & {
+        format?: "maths" | "plain";
+      };
       isNew: boolean;
     }
   | { kind: "structure"; barId: string; count: string; discard: boolean }
@@ -133,7 +138,9 @@ export default function LessonBarModelPage({
       initialHistory ?? { past: [], present: startup.envelope, future: [] },
     ),
     e = history.present;
-  const d = e.schemaVersion === 2 ? e.document : null,
+  const profile = e.schemaVersion === 2 ? v : v3;
+  const lesson = e.schemaVersion === 2 ? legacyLessonExample : lessonExample;
+  const d = e.schemaVersion !== 1 ? e.document : null,
     g = useMemo(() => c.layout(e), [e]);
   const lessonGeometry = "annotations" in g ? g : null;
   const artwork = useMemo(() => c.renderSvg(e), [e]);
@@ -146,6 +153,7 @@ export default function LessonBarModelPage({
   const [pending, setPending] = useState<{
       envelope: c.Envelope;
       title: string;
+      writingUpgrade?: boolean;
     } | null>(null),
     [alternate, setAlternate] = useState(startup.alternate),
     [recovery, setRecovery] = useState(startup.recovery),
@@ -189,6 +197,53 @@ export default function LessonBarModelPage({
     ),
     px = (fit.scale * 96) / 25.4,
     issue = useMemo(() => c.exportIssue(e), [e]);
+  const pendingIssue = pending?.writingUpgrade
+    ? c.exportIssue(pending.envelope)
+    : "";
+  const upgradeOptions =
+    pending?.writingUpgrade && pending.envelope.schemaVersion === 3 ? (
+      <>
+        <p>
+          Answer lines reserve 12 mm above and 3 mm below. Actual bars:{" "}
+          {v3.effectiveBarHeight(pending.envelope)} mm. One Undo restores the
+          original file.
+        </p>
+        {pending.envelope.document.captions.length > 0 && (
+          <label>
+            <input
+              type="checkbox"
+              checked={pending.envelope.document.captions.every(
+                (c) => c.format === "plain",
+              )}
+              onChange={(ev) => {
+                const format = ev.target.checked
+                  ? ("plain" as const)
+                  : ("maths" as const);
+                setPending((old) =>
+                  old?.envelope.schemaVersion === 3
+                    ? {
+                        ...old,
+                        envelope: {
+                          ...old.envelope,
+                          document: {
+                            ...old.envelope.document,
+                            captions: old.envelope.document.captions.map(
+                              (c) => ({ ...c, format }),
+                            ),
+                          },
+                        },
+                      }
+                    : old,
+                );
+              }}
+            />
+            Keep existing calculation lines as Plain text (for dates or literal
+            slashes)
+          </label>
+        )}
+        {pendingIssue && <p role="alert">{pendingIssue}</p>}
+      </>
+    ) : null;
   function commit(n: c.Envelope) {
     const valid = c.validate(n);
     dirty.current = true;
@@ -567,9 +622,20 @@ export default function LessonBarModelPage({
             canRedo: !!history.future.length,
           }}
           onNewModel={() =>
-            setPending({ envelope: v.fresh(), title: "Start a new model?" })
+            setPending({
+              envelope: profile.fresh(),
+              title: "Start a new model?",
+            })
           }
           onUpgrade={() => commit(v.upgrade(e))}
+          onUpgradeWriting={() =>
+            setPending({
+              envelope: v3.upgrade(e),
+              writingUpgrade: true,
+              title:
+                "Use horizontal fractions and larger answer spaces? Fixed endpoints and saved answers are retained.",
+            })
+          }
           onOpenModern={(envelope) =>
             setPending({ envelope, title: "Open improved editable model?" })
           }
@@ -583,7 +649,9 @@ export default function LessonBarModelPage({
               setPending(null);
             }}
             confirmLabel="Open bar model"
+            disabled={!!pendingIssue}
           >
+            {upgradeOptions}
             <div
               className="bm-import-preview"
               dangerouslySetInnerHTML={{
@@ -615,7 +683,7 @@ export default function LessonBarModelPage({
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(v.fresh(), "Start a new model?")}
+              onReset={() => replace(profile.fresh(), "Start a new model?")}
               resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
@@ -715,7 +783,7 @@ export default function LessonBarModelPage({
                     className="bm-art"
                     dangerouslySetInnerHTML={{ __html: artwork }}
                   />
-                  {e.schemaVersion === 2 &&
+                  {e.schemaVersion !== 1 &&
                     lessonGeometry?.rows.map((r, i) => (
                       <div key={r.bar.id}>
                         <button
@@ -756,7 +824,9 @@ export default function LessonBarModelPage({
                                   width: p.width * px,
                                   height:
                                     (s === "inside"
-                                      ? e.document.presentation.barHeightMm
+                                      ? e.schemaVersion === 3
+                                        ? v3.effectiveBarHeight(e)
+                                        : e.document.presentation.barHeightMm
                                       : Math.max(
                                           g.font * 1.2,
                                           s === "above"
@@ -772,7 +842,7 @@ export default function LessonBarModelPage({
                         )}
                       </div>
                     ))}
-                  {e.schemaVersion === 2 &&
+                  {e.schemaVersion !== 1 &&
                     lessonGeometry?.annotations.map((a, i) => (
                       <button
                         key={a.annotation.id}
@@ -863,6 +933,24 @@ export default function LessonBarModelPage({
             {c.warnings(e).map((w) => (
               <p key={w}>{w}</p>
             ))}
+            {e.schemaVersion === 2 && (
+              <div className="bm-settings">
+                <p>This saved model keeps its original notation and spacing.</p>
+                <button
+                  disabled={blocked}
+                  onClick={() =>
+                    setPending({
+                      envelope: v3.upgrade(e),
+                      writingUpgrade: true,
+                      title:
+                        "Use horizontal fractions and larger answer spaces? Fixed endpoints and saved answers are retained.",
+                    })
+                  }
+                >
+                  Use horizontal fractions and larger answer spaces
+                </button>
+              </div>
+            )}
             {e.schemaVersion === 1 && (
               <div className="bm-settings">
                 <p>
@@ -886,7 +974,9 @@ export default function LessonBarModelPage({
           </Panel>
           <div className="inspector-stack">
             <ExampleGallery
-              examples={barLessonGallery}
+              examples={
+                e.schemaVersion === 2 ? barLessonGalleryV2 : barLessonGallery
+              }
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, title)}
@@ -987,6 +1077,7 @@ export default function LessonBarModelPage({
             {pending && active && (
               <RatioDialog
                 title={pending.title}
+                disabled={!!pendingIssue}
                 onCancel={() => setPending(null)}
                 confirmLabel={
                   pending.title.startsWith("Open")
@@ -1000,6 +1091,7 @@ export default function LessonBarModelPage({
                   setPending(null);
                 }}
               >
+                {upgradeOptions}
                 <div
                   className="bm-choice-preview"
                   dangerouslySetInnerHTML={{
@@ -1192,29 +1284,56 @@ export default function LessonBarModelPage({
                     </>
                   )}
                   {draft.kind === "caption" && (
-                    <label>
-                      Alignment
-                      <select
-                        aria-label="Alignment"
-                        value={draft.caption.alignment}
-                        onChange={(ev) =>
-                          setDraft({
-                            ...draft,
-                            caption: {
-                              ...draft.caption,
-                              alignment: ev.target.value as
-                                | "left"
-                                | "centre"
-                                | "right",
-                            },
-                          })
-                        }
-                      >
-                        {["left", "centre", "right"].map((s) => (
-                          <option key={s}>{s}</option>
-                        ))}
-                      </select>
-                    </label>
+                    <>
+                      {e.schemaVersion === 3 && (
+                        <label>
+                          Line format
+                          <select
+                            aria-label="Line format"
+                            value={draft.caption.format ?? "maths"}
+                            onChange={(ev) =>
+                              setDraft({
+                                ...draft,
+                                caption: {
+                                  ...draft.caption,
+                                  format: ev.target.value as "maths" | "plain",
+                                },
+                              })
+                            }
+                          >
+                            <option value="maths">
+                              Maths — horizontal fractions
+                            </option>
+                            <option value="plain">
+                              Plain text — literal slashes
+                            </option>
+                          </select>
+                        </label>
+                      )}
+                      <label>
+                        Alignment
+                        <select
+                          aria-label="Alignment"
+                          value={draft.caption.alignment}
+                          onChange={(ev) =>
+                            setDraft({
+                              ...draft,
+                              caption: {
+                                ...draft.caption,
+                                alignment: ev.target.value as
+                                  | "left"
+                                  | "centre"
+                                  | "right",
+                              },
+                            })
+                          }
+                        >
+                          {["left", "centre", "right"].map((s) => (
+                            <option key={s}>{s}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </>
                   )}
                   {draft.kind === "structure" && (
                     <>
@@ -1301,7 +1420,10 @@ export default function LessonBarModelPage({
                           {
                             {
                               unitMm: "Shared unit width (mm)",
-                              barHeightMm: "Bar height (mm)",
+                              barHeightMm:
+                                e.schemaVersion === 3
+                                  ? "Minimum bar height (mm)"
+                                  : "Bar height (mm)",
                               fontPt: "Label size (pt)",
                               titlePt: "Title size (pt)",
                             }[key]
@@ -1530,7 +1652,7 @@ export default function LessonBarModelPage({
                       onClick={() => {
                         try {
                           replace(
-                            v.fresh(
+                            profile.fresh(
                               starter,
                               Number(count),
                               ratio.split(":").map(Number),
@@ -1907,6 +2029,9 @@ export default function LessonBarModelPage({
                           id: freshId("caption"),
                           label: c.label(),
                           alignment: "centre",
+                          ...(e.schemaVersion === 3
+                            ? { format: "maths" as const }
+                            : {}),
                         },
                         isNew: true,
                       })
@@ -1915,8 +2040,10 @@ export default function LessonBarModelPage({
                     Add calculation line
                   </button>
                   <p>
-                    Manual text and Unicode operations; use linear fractions
-                    such as 4/5. No answers are calculated.
+                    {e.schemaVersion === 3
+                      ? "Type / in Maths lines for a horizontal fraction, for example 4/5 × 45 = 36. Choose Plain text explicitly for dates or literal slashes."
+                      : "This saved v2 model retains literal calculation lines. Upgrade above for horizontal fractions and handwriting space."}{" "}
+                    No answers are calculated.
                   </p>
                   <label>
                     Output
@@ -1939,6 +2066,13 @@ export default function LessonBarModelPage({
                       <option value="colour">Colour</option>
                     </select>
                   </label>
+                  {e.schemaVersion === 3 && (
+                    <p>
+                      Minimum bar height {d.presentation.barHeightMm} mm; actual
+                      bars {v3.effectiveBarHeight(e)} mm. Answer lines have 12
+                      mm clear above and 3 mm below.
+                    </p>
+                  )}
                   <button
                     disabled={blocked}
                     onClick={() =>
@@ -1990,19 +2124,14 @@ export default function LessonBarModelPage({
                     <button
                       disabled={blocked}
                       onClick={() =>
-                        replace(
-                          lessonExample(name),
-                          `Open ${name} pupil model?`,
-                        )
+                        replace(lesson(name), `Open ${name} pupil model?`)
                       }
                     >
                       Pupil model {name}
                     </button>
                     <button
                       disabled={blocked}
-                      onClick={() =>
-                        replace(lessonExample(name, true), "", true)
-                      }
+                      onClick={() => replace(lesson(name, true), "", true)}
                     >
                       Worked {name}
                     </button>
