@@ -34,7 +34,7 @@ describe("automatic accessibility",()=>{
   });
   it("enriches every appearance without mutating catalogue content or Sparx mappings",()=>{
     const raw=JSON.parse(readFileSync("public/bank/catalogue.json","utf8"));
-    expect(bank.questions).toHaveLength(2224);
+    expect(bank.questions).toHaveLength(2375);
     expect(bank.questions.every(q=>q.performance&&q.performance.percentage>=0&&q.performance.percentage<=100)).toBe(true);
     expect(bank.questions.filter(q=>q.performance?.kind==="measured")).toHaveLength(1481);
     expect(bank.questions.map(({performance,...question})=>{void performance;return question;})).toEqual(raw.questions);
