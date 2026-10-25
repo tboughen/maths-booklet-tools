@@ -27,7 +27,7 @@ describe("shared paper draft",()=>{
     }
   });
   it("derives series and papers from component IDs",()=>{
-    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([8,48,6,36,1780]);
+    expect([all.examSeries,all.examPapers,all.mockSeries,all.mockPapers,all.groups.size]).toEqual([8,48,7,42,1906]);
   });
   it("combines overlapping codes and both crossover mappings, retaining an eligible source",()=>{
     const state=draftReducer(draftReducer(emptyDraft(),tick("U1")),tick("U2"));
