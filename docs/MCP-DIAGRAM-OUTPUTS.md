@@ -1,6 +1,4 @@
-Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
-[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
-applicable; historical family/tool counts are snapshots, not discovery evidence.
+Routine releases use [the MCP playbook](MCP-RELEASE-PLAYBOOK.md) and [checklist](MCP-RELEASE-CHECKLIST.md). Retained contracts/incidents below remain applicable; historical counts are snapshots.
 
 # MathsDock diagram outputs for another AI project
 
@@ -42,7 +40,7 @@ Call `check_diagram_placement` when considering a resize. Input:
 
 ```js
 {
-  kind: "graph", // also ratio-table, value-graph, cuboids, number-line, venn, algebra-grid
+  kind: "graph", // also ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model
   envelope: previousResult.envelope,
   widthMm: 80 // heightMm is optional; at least one dimension is required
 }
@@ -140,7 +138,7 @@ Saved schemas, renderer versions and artwork styles stay unchanged. Metadata is
 additive. Qualify the real discovered schemas and target client after authorised
 service deployment. Website, service release and client refresh are distinct.
 
-The six-family service source is documented in [Six-tool MCP](SIX-TOOL-MCP.md).
+The historical six-family service source is documented in [Six-tool MCP](SIX-TOOL-MCP.md).
 Cuboid physical facts use its actual close-cropped artwork; print layout width
 is a different measurement. Native outlined ink bounds can give different white
 margins from browser font layout bounds, while the artwork scale is retained.
@@ -153,6 +151,7 @@ Existing SVG/PNG/JSON links keep their signing and validation conventions.
 Rollback should retain new bundle-link support until expiry where possible;
 otherwise explain that affected links need regeneration.
 
-## Bar modelling
 
-The additive bar-model kind uses the same source, original-SVG chunk, placement and bundle protocols. See [Bar-model MCP](BAR-MODEL-MCP.md) for its complete creation/revision contract. Bars have pupil output only; explicit source revisions reveal saved answers. Actual service/client adoption remains a separate release stage.
+## Bar models
+
+Versioned bar modelling accepts preserved v1/v2 and explicit v3 envelopes through the same original-SVG, placement and bundle protocols. Read [Bar-model MCP](BAR-MODEL-MCP.md) and [v3 rules](BAR-MODEL-V3.md). Preserve native handwriting dimensions and pupil states. Bars have pupil output only; do not supply `outputView`. Revealing saved answers requires an explicitly requested source revision. See the [dated publication/client evidence](BAR-MODEL-RELEASE-STATUS-2026-10-25.md); actual discovery and saved-file acceptance remain separate.

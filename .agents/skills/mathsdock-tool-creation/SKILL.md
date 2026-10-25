@@ -39,19 +39,12 @@ qualified repository checkout; a plugin does not bundle the release scripts.
 - Validate actual SVG/PNG content, crops, dimensions and density. Check real Word insertion when changing that path, or record the outstanding check.
 - Keep browser editing independent of the optional service. Share schemas, mathematics and rendering between delivery routes, and preserve compatible older files and links.
 - If adding MCP access, document complete payloads and version/default distinctions; check actual discovery, create/revise, downloads and reopening in the editor. Website, service and client acceptance are distinct stages.
-- For MCP print output, follow docs/MCP-DIAGRAM-OUTPUTS.md: keep print facts outside the definition/hash, qualify actual vector consumption, and keep placement advice and bundles optional, bounded and stateless. The consuming AI owns booklet assembly and saving.
+- For MCP print output, follow [MCP diagram outputs](../../../docs/MCP-DIAGRAM-OUTPUTS.md): keep print facts outside the definition/hash, qualify actual vector consumption, and keep placement advice and bundles optional, bounded and stateless. The consuming AI owns booklet assembly and saving.
 - For original SVG delivery when a client cannot fetch signed downloads, follow [direct SVG retrieval](../../../docs/DIRECT-SVG-DELIVERY.md). Preserve exact artifact bytes and verify checksums through saved SVG into vector PDF. A restricted local SDK simulation does not establish actual ChatGPT acceptance.
 
 Briefly identify which principles shape the proposed design, then use the task's scope to decide the necessary detail and checks. A small existing-tool fix does not require a full new-tool brief. A plan request remains a plan; skill invocation does not grant merge, deployment, hosting changes or expenditure.
 
 ## Handover
-
-For the refined bar editor read [Bar model v2](../../../docs/BAR-MODEL-V2.md).
-Keep the frozen v1 path and explicit undoable upgrade; independent section slots,
-fixed/dynamic annotation scope, exact total-preserving repartitioning and retained
-answer states are common-core rules. Qualify dense actual output under unchanged
-limits. Website bridge, service/package adoption and actual client acceptance are
-separate gates; a prepared overlay is not a published plugin.
 
 State what changed, the actual checks and results, repository/branch/PR where known, remaining decisions and the exact completed release stages. Use the guide's acceptance checklist and explain meaningful deviations. When improving a reusable convention, update the canonical guidance and any portable skill copies delivered with it.
 
@@ -63,25 +56,54 @@ For the eight-editor usability workspace, follow [the shared preview, example an
 
 Tim authorised implementing the follow-up plan. Preserve connector/output whitespace and physical dimensions; keep a calm white screen surround while reclaiming space from interface furniture. The preview uses measured available screen height and leaves completion feedback below the resource so copying does not shrink it. Keep fixed accessible structure controls outside the white resource. Grouped Triangle label editing is docked in the inspector with explicit Apply/Cancel. Graph and Number-line mathematical input is initially visible; calculations remain explicit. Copy image and Copy for Word retain their distinct existing payloads; extra file actions use an independent labelled File dropdown. Worked versions replace in the current editor without confirmation and are restored by one Undo, with Redo and earlier history retained. Preserve existing saved worked-file/link compatibility and pending-input guards. These are local candidate conventions, not publication evidence.
 
-## Bar modelling
+## Bar models
 
-For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+Use `bar_model_capabilities`, `create_bar_model` and `revise_bar_model` only when
+actually discovered. Read [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md),
+[Bar-model MCP](../../../docs/BAR-MODEL-MCP.md),
+[v2 compatibility](../../../docs/BAR-MODEL-V2.md), [v3 rules](../../../docs/BAR-MODEL-V3.md) and the
+[complete emitted schemas](../../../docs/BAR-MODEL-EMITTED-SCHEMAS.json) for exact payloads.
 
+| Resource or request | Version to use |
+| --- | --- |
+| New empty browser model | schema3 / bar-model-3 / lesson-v3 |
+| Bare or legacy MCP creation | preserved v1 default |
+| Explicit `spec.schemaVersion:2` | frozen v2 |
+| New MCP output with current notation/writing space | explicitly request `spec.schemaVersion:3` |
+| Supplied envelope | preserve its exact version, content and hash |
 
-## Horizontal fractions and handwriting follow-up
+Preserve original variables, shared unit widths, exact weights/offsets, stable IDs, independent
+inside/above/below slots, semantic fills and fixed versus whole-bar annotation
+scope. Whole annotations follow the bar; fixed ranges retain endpoints. Exact
+total-preserving repartitioning requires explicit discard of affected content.
+Do not mask dividers, silently reanchor or add L-shaped callout leaders. Follow
+departmental ratio-table guidance where applicable.
 
-Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
-bar-model fresh-default, caption and compact-height descriptions only. New empty
-browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
-spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
-with horizontal a/b fractions and every answer line's12mm clear above/3mm below
-the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
-barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
-Caption format Maths is default; Plain text is explicit for dates/literal slashes.
-Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
-evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
-upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
-and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
-One Undo restores the original version. Website readers for all three versions
-must precede production v3 issuance; service/package/client and human acceptance
-remain separate. SDK proof is not actual intended-client adoption.
+Pupil blank, question, line, hidden and zero states are distinct. Retain saved
+text under blank/hidden displays. Editable files and links may contain hidden
+answers. Never calculate, simplify, solve, reveal answers or make worked copies
+implicitly. Captions are manual input. Maths is the default and typesets simple
+a/b fractions horizontally across the full statement. Plain text is an explicit
+choice for dates/literal slashes. Ambiguous or nested Maths retains the draft and
+blocks export without automatic fallback or evaluation.
+
+Every answer line reserves 12 mm clear above its upper stroke edge, a 0.25 mm
+underline and 3 mm below its lower edge; the underline is 8 mm long. Inside lines
+require uniform actual bars at least 20 mm high. Stored `barHeightMm` is a minimum
+of 8..24 mm. Never change horizontal weights, offsets or shared units, shrink
+fonts or compress handwriting space to fit. Use original returned SVG and native
+dimensions; resizing changes the physical writing space.
+
+Upgrade only explicitly. `upgrade_document` with `targetSchemaVersion:3` is once,
+first in the batch: check the original `baseHash` before changes and roll back
+the whole batch on later failure. Without a target it retains its v1-to-v2
+meaning. Browser upgrades are previewed; one Undo restores the original version
+and earlier history. Old dates may be explicitly kept as Plain text. There is no
+read-time upgrade, lossy downgrade or silent answer reveal.
+
+Original SVG retrieval, placement and bundles use `kind:"bar-model"` with the
+exact saved envelope. Bars have pupil output only: do not pass `outputView`;
+revealing saved answers requires an explicitly requested source revision.
+Website readers for all issued versions must precede service issuance. Follow
+the [dated publication/client evidence](../../../docs/BAR-MODEL-RELEASE-STATUS-2026-10-25.md); package publication
+and SDK/browser proof do not establish actual Codex/ChatGPT or human acceptance.

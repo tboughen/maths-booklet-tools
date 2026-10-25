@@ -1,9 +1,9 @@
 # Horizontal fractions and handwriting space
 
-Candidate identity: schemaVersion **3**, rendererVersion **bar-model-3**,
+Profile identity: schemaVersion **3**, rendererVersion **bar-model-3**,
 styleProfile **lesson-v3**. New empty browser sessions use v3. Frozen v1/v2 files
 keep their original hashes and artwork. Source capability and qualification do
-not establish production service or intended-client adoption.
+not establish production service or intended-client adoption. See the [dated release/client evidence](BAR-MODEL-RELEASE-STATUS-2026-10-25.md).
 
 ## Working lines
 
