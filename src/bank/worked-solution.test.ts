@@ -5,7 +5,11 @@ import { catalogueAssetPaths } from "../../bankAssets";
 import { verifyCatalogue, type BankCatalogue } from "./model";
 import { questionResource } from "./resources";
 
-const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue;
+const publishedCatalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")) as BankCatalogue;
+// Legacy/rebuild fixtures must omit attachments explicitly now that real bank
+// questions can have solutions. Keep the production catalogue as a control.
+const catalogue = structuredClone(publishedCatalogue);
+for (const question of catalogue.questions) delete question.workedSolution;
 const original = catalogue.questions[0];
 export const solution: WorkedSolution = { schemaVersion: 1, revision: "solution-1", basedOnQuestionRevision: original.revision,
   pdf: "bank/assets/solution/solution.pdf", pdfSha256: "a".repeat(64),
@@ -14,6 +18,7 @@ export const solution: WorkedSolution = { schemaVersion: 1, revision: "solution-
 
 describe("optional authored worked solutions", () => {
   it("accepts legacy catalogue without attachments and resolves question/scheme independently", () => {
+    expect(verifyCatalogue(publishedCatalogue)).toBe(publishedCatalogue);
     expect(verifyCatalogue(catalogue)).toBe(catalogue);
     expect(questionResource(original,"question").pdf).toBe(original.questionPdf);
     expect(questionResource(original,"scheme").pdf).toBe(original.schemePdf);
