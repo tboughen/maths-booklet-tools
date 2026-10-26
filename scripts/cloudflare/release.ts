@@ -27,7 +27,7 @@ export function assetFile(publicRoot: string, path: string): string {
 }
 
 export function sourceFingerprint(root: string): string {
-  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "index.html", "scripts/cloudflare/release.ts"];
+  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "workedSolution.ts", "index.html", "scripts/cloudflare/release.ts", "scripts/bank/solution-files.ts"];
   const walk = (directory: string) => {
     for (const item of readdirSync(resolve(root, directory), {withFileTypes: true})) {
       const path = `${directory}/${item.name}`;
@@ -60,6 +60,10 @@ export function prepareRelease(publicRoot: string, sourceCommit: string, fingerp
   for (const question of catalogue.questions) {
     for (const field of ["questionPdf", "printPdf", "schemePdf"] as const) question[field] = pathMap.get(question[field])!;
     for (const view of [...question.questionViews, ...question.schemeViews]) view.preview = pathMap.get(view.preview)!;
+    if (question.workedSolution) {
+      question.workedSolution.pdf = pathMap.get(question.workedSolution.pdf)!;
+      for (const view of question.workedSolution.views) view.preview = pathMap.get(view.preview)!;
+    }
   }
   const catalogueJson = JSON.stringify(catalogue);
   const manifest: ReleaseManifest = {

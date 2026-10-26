@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { catalogueAssetPaths } from "./bankAssets";
 import { prepareRelease, assetOrigin, sourceFingerprint } from "./scripts/cloudflare/release";
 import { verifyReusableCatalogue } from "./scripts/cloudflare/package.mjs";
+import { verifyCatalogueSolutionFiles } from "./scripts/bank/solution-files";
 
 export default defineConfig(({ command, mode }) => ({
   define: mode === "cloudflare" ? { "import.meta.env.VITE_BANK_ASSET_ORIGIN": JSON.stringify(assetOrigin) } : {},
@@ -14,8 +15,9 @@ export default defineConfig(({ command, mode }) => ({
   plugins: [react(), {
     name: "reviewed-question-bank-assets",
     apply: "build",
-    generateBundle() {
+    async generateBundle() {
       const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8"));
+      await verifyCatalogueSolutionFiles("public", catalogue);
       const add = (relative: string) => this.emitFile({type: "asset", fileName: relative, source: readFileSync(join("public", relative))});
       const tree = (relative: string) => {
         for (const item of readdirSync(join("public", relative), {withFileTypes: true})) {

@@ -4,7 +4,7 @@ import { cleanSource, fileManifest, assertEqual, json, save, sha256, digestObjec
 import { classify } from './classify.mjs';
 import { validateInventory } from './inventory.mjs';
 
-export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'vite.config.ts'];
+export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
 export function packageRelease(root, { base, directory = resolve(root, 'cloudflare-release/package') } = {}) {

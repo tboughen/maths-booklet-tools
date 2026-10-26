@@ -133,7 +133,7 @@ test('retained service artifacts reject another source and altered bytes', () =>
 function gitFixture() {
   const root = temp();
   const put = (path, content) => { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), content); };
-  for (const path of ['public/bank/catalogue.json', 'package-lock.json', 'scripts/cloudflare/mcp-release.mjs', 'scripts/cloudflare/release.ts', 'bankAssets.ts', 'vite.config.ts', ...['network.mjs','inventory.mjs','upload-core.mjs','common.mjs','cors-policy.mjs'].map(n => `scripts/cloudflare/${n}`)]) put(path, '{}');
+  for (const path of ['public/bank/catalogue.json', 'package-lock.json', 'scripts/cloudflare/mcp-release.mjs', 'scripts/cloudflare/release.ts', 'bankAssets.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts', ...['network.mjs','inventory.mjs','upload-core.mjs','common.mjs','cors-policy.mjs'].map(n => `scripts/cloudflare/${n}`)]) put(path, '{}');
   const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true });
   git(['init', '-q']); git(['add', '.']);
   const commit = () => { git(['add', '.']); git(['-c', 'user.name=Local fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Synthetic local fixture']); };

@@ -1,9 +1,10 @@
 import { compareAccessibility, type QuestionPerformance } from "./performance";
+import { validateWorkedSolution, type WorkedSolution } from "../../workedSolution";
 
 export type Tier = "all" | "F" | "H";
 export type CalculatorFilter = "all" | "yes" | "no";
 export type CollectionFilter = "all" | "past" | "mock";
-export type ViewRole = "question" | "scheme";
+export type ViewRole = "question" | "scheme" | "worked-solution";
 export type RoomLayout = "auto" | "single" | "two";
 
 export interface BankView {
@@ -47,6 +48,7 @@ export interface BankQuestion {
   questionPdf: string;
   printPdf: string;
   schemePdf: string;
+  workedSolution?: WorkedSolution;
   printPages: {width: number; height: number}[];
   scaleSensitive: boolean;
   writingSpacePolicy?: "source" | "generated" | "none";
@@ -185,6 +187,7 @@ export function verifyCatalogue(data: unknown): BankCatalogue {
   const byId = new Map(d.questions.map(q => [q.id, q]));
   const codes = new Set(d.topics.map(t => t.code));
   for (const q of d.questions) {
+    if (q.workedSolution !== undefined) validateWorkedSolution(q.workedSolution, q.revision);
     if (q.review !== "reviewed" && !(d.publication?.status === "draft" && q.review === "draft")) {
       throw new Error("This question has not passed review and cannot be included in a released catalogue.");
     }
