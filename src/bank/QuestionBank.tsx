@@ -6,6 +6,7 @@ import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage } from "./pdf";
 import { catalogueCoverage } from "./coverage";
+import { questionResource } from "./resources";
 import { draftEntries, draftReducer, emptyDraft, hasDraftIntent } from "./paper-builder";
 import { TopicPaperBuilder } from "./TopicPaperBuilder";
 import { PaperSummary } from "./PaperSummary";
@@ -56,7 +57,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=withPerformance(verifyCatalogue(data));setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setMode({id:"",role:"question",view:0});setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
+  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
   useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
@@ -73,8 +74,9 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const questionIndex=Math.max(0,results.findIndex(q=>q.id===route.question));
   const question=results[questionIndex];
   const role=mode.id===question?.id?mode.role:"question";
-  const views=question?(role==="scheme"?question.schemeViews:question.questionViews):[];
-  const viewIndex=Math.min(Math.max(0,role==="scheme"?mode.view:route.view),Math.max(0,views.length-1));
+  const resource=question?questionResource(question,role):undefined;
+  const views=resource?.views||[];
+  const viewIndex=Math.min(Math.max(0,role!=="question"?mode.view:route.view),Math.max(0,views.length-1));
   const view=views[viewIndex];
   const topic=catalogue?.topics.find(t=>t.code===route.code);
   const match=question?matchingParts(question,route.code):undefined;
@@ -92,10 +94,11 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
 
   const move=useCallback((direction:number)=>{
     if(!question)return;const newView=viewIndex+direction*(two?2:1);
-    if(newView>=0&&newView<views.length){if(role==="scheme")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",`${location.pathname}${routeQuery(updated)}`);window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
+    if(newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",`${location.pathname}${routeQuery(updated)}`);window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?target.questionViews.length-1:0});}
   },[question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
-  const reveal=useCallback(()=>{if(question)setMode({id:question.id,role:role==="question"?"scheme":"question",view:0});},[question,role]);
+  const reveal=useCallback(()=>{if(question){setMode({id:question.id,role:role==="scheme"?"question":"scheme",view:0});setZoom(1);}},[question,role]);
+  const revealSolution=()=>{if(question?.workedSolution){setMode({id:question.id,role:role==="worked-solution"?"question":"worked-solution",view:0});setZoom(1);}};
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
   useEffect(()=>{
     if(!active||topicsMode)return;
@@ -118,8 +121,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const context=(document as Document&{modelContext?:WebContext}).modelContext;if(!context?.registerTool)return;
     const lifecycle=new AbortController();
     const register=(tool:Parameters<WebContext["registerTool"]>[0])=>{try{void Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>undefined);}catch{/* Optional browser capability. */}};
-    register({name:"question_bank_read_state",description:"Read the visible topic, question, view and whether its mark scheme is visible.",inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>{const a=actions.current;return{code:a.route.code,question:a.question?.id,role:a.role,view:a.viewIndex+1,version:a.catalogue?.version};}});
-    register({name:"question_bank_open_topic",description:"Open a current Sparx topic in the visible viewer, hide its mark scheme and reset the view.",inputSchema:{type:"object",properties:{code:{type:"string"}},required:["code"],additionalProperties:false},annotations:{readOnlyHint:false},execute:(input)=>{const a=actions.current;const raw=(input as{code?:unknown})?.code;if(typeof raw!=="string")throw new Error("A Sparx code is required.");const code=a.catalogue?.aliases[normalizeCode(raw)]||normalizeCode(raw);if(!a.catalogue?.topics.some(t=>t.code===code))throw new Error("Unknown Sparx code.");flushSync(()=>a.go({...emptyRoute,code}));return{code,questions:filterQuestions(a.catalogue,{...emptyRoute,code}).length};}});
+    register({name:"question_bank_read_state",description:"Read the visible topic, question, view and whether its mark scheme or authored worked solution is visible.",inputSchema:{type:"object",properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>{const a=actions.current;return{code:a.route.code,question:a.question?.id,role:a.role,view:a.viewIndex+1,version:a.catalogue?.version};}});
+    register({name:"question_bank_open_topic",description:"Open a current Sparx topic in the visible viewer, hide its answers and reset the view.",inputSchema:{type:"object",properties:{code:{type:"string"}},required:["code"],additionalProperties:false},annotations:{readOnlyHint:false},execute:(input)=>{const a=actions.current;const raw=(input as{code?:unknown})?.code;if(typeof raw!=="string")throw new Error("A Sparx code is required.");const code=a.catalogue?.aliases[normalizeCode(raw)]||normalizeCode(raw);if(!a.catalogue?.topics.some(t=>t.code===code))throw new Error("Unknown Sparx code.");flushSync(()=>a.go({...emptyRoute,code}));return{code,questions:filterQuestions(a.catalogue,{...emptyRoute,code}).length};}});
     return()=>lifecycle.abort();
   },[active]);
 
@@ -131,6 +134,11 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const countText=`${results.length} ${results.length===1?"question":"questions"}`;
   const rangeText=view?`View ${viewIndex+1}${two?`–${viewIndex+2}`:""} of ${views.length}`:"";
   const displayNotes=display?[...(question?.sourceErrata||[]).map(item=>item.note),...(role==="scheme"&&question?.schemeSourceNote?[question.schemeSourceNote]:[])]:[];
+
+  const answerControls=question&&<>
+    <button className={`qb-button${role==="scheme"?" qb-answer-active":""}`} aria-pressed={role==="scheme"} onClick={reveal}>{role==="scheme"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="scheme"?"Hide mark scheme":"Show mark scheme"}</button>
+    <div className="qb-solution-action"><button className={`qb-button${role==="worked-solution"?" qb-answer-active":""}`} aria-pressed={role==="worked-solution"} disabled={!question.workedSolution} onClick={revealSolution}>{role==="worked-solution"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="worked-solution"?"Hide worked solution":"Show worked solution"}</button>{!question.workedSolution&&<small>Not available yet</small>}</div>
+  </>;
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -164,26 +172,28 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           <div className="qb-source">
             <div className="qb-source-copy"><div className="qb-source-heading"><strong>{question?.source||"Topic results"}</strong>{question&&<span>{question.tier==="H"?"Higher":"Foundation"} · {question.calculator?"Calculator":"Non-calculator"} · {question.marks} mark{question.marks===1?"":"s"}</span>}</div>
               {question&&showPerformance&&<PerformanceBadge question={question} catalogue={catalogue} tier={route.tier}/>}
-              {question&&<div className="qb-view-info"><span>{role==="scheme"?"Mark scheme":view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}</div>}
+              {question&&<div className="qb-view-info"><span>{role!=="question"?resource?.label:view?.label}{view?.repeatedContext?" · Context repeated":""}</span>{route.code&&match&&<span>Matched parts: {match.labels.join(", ")} · {match.marks} of {question.marks} mark{question.marks===1?"":"s"}</span>}</div>}
               {question?.sourceErrata?.map((erratum,i)=><p className="qb-erratum" key={i}>{erratum.note}</p>)}
               {role==="scheme"&&question?.schemeSourceNote&&<p className="qb-erratum">{question.schemeSourceNote}</p>}
             </div>
             {question&&<div className="qb-source-actions">
               <button className="qb-text-button" onClick={()=>selectQuestion(question.id,!isSelected(question.id))}>{isSelected(question.id)?<Check size={16}/>:<Plus size={16}/>} {isSelected(question.id)?"Selected":"Select question"}</button>
-              <button className={`qb-button${role==="scheme"?" qb-answer-active":""}`} aria-pressed={role==="scheme"} onClick={reveal}>{role==="scheme"?<EyeOff size={18}/>:<Eye size={18}/>} {role==="scheme"?"Hide mark scheme":"Show mark scheme"}</button>
+              {answerControls}
               <details className="qb-more"><summary aria-label="Question options" title="Question options"><MoreHorizontal size={20}/></summary><div className="qb-more-menu">
                 <a href={assetUrl(question.printPdf)} target="_blank" rel="noreferrer">Source question PDF</a>
-                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${location.pathname}${routeQuery({...route,question:question.id,view:viewIndex})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
+                {question.workedSolution&&<a href={assetUrl(question.workedSolution.pdf)} target="_blank" rel="noreferrer">Worked solution PDF</a>}
+                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${location.pathname}${routeQuery({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
                 <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
                 <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>Swipe to navigate on a touch screen.</p>
               </div></details>
             </div>}
           </div>
+          {display&&<div className="qb-display-actions" role="group" aria-label="Answer views"><span>{resource?.label}</span>{answerControls}</div>}
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
           <div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}`} onTouchStart={e=>{touchStart.current={x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};}} onTouchEnd={e=>{const t=touchStart.current;if(!t||zoom!==1)return;const dx=e.changedTouches[0].clientX-t.x,dy=e.changedTouches[0].clientY-t.y;if(Math.abs(dx)>90&&Math.abs(dy)<60)move(dx<0?1:-1);touchStart.current=undefined;}}>
-            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map((v,i)=><PdfView key={role+"-"+i} path={role==="scheme"?question.schemePdf:question.questionPdf} view={v} scale={scale} retryKey={reload} overlay={overlay}/>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${topic?.bankCount||0} questions are mapped in the full bank. None is available for this topic yet; ${catalogue.questions.length} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all"});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":"Search another topic"}</button></div>}
+            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map(v=><PdfView key={`${question.id}|${question.revision}|${role}|${question.workedSolution?.revision||""}|${resource?.pdf}|${v.page}`} path={resource!.pdf} label={resource!.label} view={v} scale={scale} retryKey={reload} overlay={overlay}/>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${topic?.bankCount||0} questions are mapped in the full bank. None is available for this topic yet; ${catalogue.questions.length} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all"});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":"Search another topic"}</button></div>}
           </div>
           <footer className="qb-footer">
           <nav className="qb-navigation" aria-label="Question navigation"><button className="qb-button" disabled={!previous} onClick={()=>move(-1)} title="Previous · Left arrow"><ArrowLeft size={18}/><span>Previous</span></button><div><strong>{question?`Question ${questionIndex+1} of ${results.length}`:"0 questions"}</strong><span>{rangeText}</span></div><button className="qb-button" disabled={!next} onClick={()=>move(1)} title="Next · Right arrow"><span>Next</span><ArrowRight size={18}/></button></nav>

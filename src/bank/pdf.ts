@@ -2,6 +2,7 @@ import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from "pdfjs-d
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import type { BankQuestion, BankView, ViewRole } from "./model";
 import { resolveBankAssetUrl } from "./assetUrl";
+import { questionResource } from "./resources";
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 const documents = new Map<string, Promise<PDFDocumentProxy>>();
@@ -55,7 +56,8 @@ export function downloadBlob(blob: Blob, name: string): void {
 }
 
 export async function questionImage(question: BankQuestion, role: ViewRole, view: BankView, wholeQuestion: boolean): Promise<Blob> {
-  const path = wholeQuestion && role === "question" ? question.printPdf : role === "scheme" ? question.schemePdf : question.questionPdf;
+  const resource = questionResource(question, role);
+  const path = wholeQuestion && role === "question" ? question.printPdf : resource.pdf;
   const pdf = await loadPdf(path);
   const pageNumbers = wholeQuestion ? Array.from({length: pdf.numPages}, (_, i) => i + 1) : [view.page];
   const pages: HTMLCanvasElement[] = [];
@@ -72,7 +74,7 @@ export async function questionImage(question: BankQuestion, role: ViewRole, view
   let y = 0;
   for (const page of pages) {context.drawImage(page, (width - page.width) / 2, y); y += page.height + gap;}
   context.fillStyle = "#253e59"; context.font = "28px Arial";
-  context.fillText(`${question.source} · ${role === "scheme" ? "Mark scheme" : wholeQuestion ? "Whole question" : view.label}`, 24, height - 50, width - 48);
+  context.fillText(`${question.source} · ${role !== "question" ? resource.label : wholeQuestion ? "Whole question" : view.label}`, 24, height - 50, width - 48);
   context.fillStyle = "#536579"; context.font = "23px Arial";
   context.fillText("Edexcel GCSE Mathematics · Original source notation retained", 24, height - 18, width - 48);
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("The image could not be exported.")), "image/png"));
