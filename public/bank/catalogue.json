@@ -253,7 +253,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q1",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "123a068cc32008f5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b739adec43c9219d903ffcfd2341742ef54cd413df03b2fb2a0126e1e20d8cb0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -325,7 +346,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q2",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "8cbc3310ac9340b0",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "dbf33c090f8e68b2206fdf44b125bf0c07bfcf074f33025cd96467a9ad889347",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q2 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -426,7 +468,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q3",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "70c1c4177603f006",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e772d031c84c60d924069fa4279fc9865823227bfcc8d8163fdbb1ea6ce2f95a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q3 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -498,7 +561,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q4",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2c43bba599e3d4a5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d608e111e269899f2411671a430c0c6a163ecd18e35b2383da84bbfd28dbc257",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q4 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -570,7 +654,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q5",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b7a96292ddc90cfb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "de896e94ce3764b0cc3cee24eac5aceba62e68e82235b76837a78879b787df4e",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q5 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -667,7 +772,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q6",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "27b3ff4e5d545f70",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "bd18152859d446fc7f9d5c99147dd749fb417b68e2eb78d03da91ff601cae994",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q6 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -745,7 +871,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q7",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "81a47cf3d325f5ed",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "0492ac44b4c86c69355cee42cfafaad506f7ef41c5cc88f41ddbd268255d64b1",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q7 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -843,7 +990,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q8",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b51ecf79b74eda70",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "5348b9fa1c5785db213ebeab8d2dcfc026539da37e23c0310fcb6715271b3ff7",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q8 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -915,7 +1083,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q9",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "742766aeb6540739",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "c22a98f7c937717afe5bc682d1f420e7b9ec6d48fe2412e705a34ea55be128a0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q9 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -987,7 +1176,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q10",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2e432d14027291e1",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "904b0e831de87831d70a12707533f79a838f27ee207b2596e1ab8aa28fe428cf",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q10 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1084,7 +1294,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q11",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "f8b35c43d0c31e2b",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "58a8c1ad84f92c7cc1d722144fa70ba9e5ef9bc742a69c66f51a35e1697c5830",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q11 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1156,7 +1387,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q12",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "cf760cae36168632",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d44c82080df2c9810a856d8ad8c182c83db23356723a3c7a03f498c11d3bcc1b",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q12 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1241,7 +1493,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q13",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "6182af31620860c5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "49f17d2c4e63206d125773527a6eb639fd3ae9fd29a51a418b2b3bdd364dc34a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q13 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1343,7 +1616,40 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q14",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "f7838bc4663723a4",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b9e1d5d3d550a55fc2fd6679e494444298fb8da8d718713b3d8bf39dc9059082",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q14 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 9",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q14/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_1F_Q14 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1415,7 +1721,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q15",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "923f1763b9fc13d4",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "84675299c51a766df88140e821385fea40ed40e0d36bbe333f25047ab3286a60",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q15 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1487,7 +1814,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q16",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "acc9c0235a17685f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "00945195473806c3c7b254dd2642f3d6d6f173e4bd21411e907ead911ac9e9f2",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q16 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1562,7 +1910,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q17",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "88adf88f6136b506",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d4ba54abd3e949f63f1c2f2a4a83d3124b0fcaf70fbf753a351af3b08352ef3a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q17 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1649,7 +2018,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q18",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "648e6ff927b5d6fb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d7b67420bcfc070d63fc2cdaae5059ad34ae9a5d5c2c12f2c8302b2624d8e2d7",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q18 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1750,7 +2140,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q19",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "f47c5dfa289a0730",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "2594a438b8011496bd7563a214b737ffcda52b3b7a06e503b9343ba90da042e0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q19 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1822,7 +2233,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q20",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a84e04bb38f1726f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "c5fb74861cc844026ece264a65d6c268f8f1a5153f53d32660b404fc8452198f",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q20 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -1951,7 +2383,40 @@
       "source": "June 2017 1F Q21",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q1",
-      "equivalentSource": "June 2017 1H Q1"
+      "equivalentSource": "June 2017 1H Q1",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "197600e61cd3a097",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q21/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "538afa5de34d32f5ee1849bfebcce26ab79c05aa5dbed89ea060a2d5c03cd78e",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q21/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q21 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 15",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q21/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_1F_Q21 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2025,7 +2490,28 @@
       "source": "June 2017 1F Q22",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q2",
-      "equivalentSource": "June 2017 1H Q2"
+      "equivalentSource": "June 2017 1H Q2",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "286145f8482bd4b4",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q22/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "837c0e830b3ef62b8f8d646cc4b27e54f90c2d93680e8c8a0f729a63409fcd67",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q22/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q22 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2101,7 +2587,28 @@
       "source": "June 2017 1F Q23",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q3",
-      "equivalentSource": "June 2017 1H Q3"
+      "equivalentSource": "June 2017 1H Q3",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "fa13f0f578342084",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q23/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "092c6f49a2916bd4fd243f7e94ff09c438c730256db9c0ab200eb783cad7a781",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q23/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q23 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2178,7 +2685,28 @@
       "source": "June 2017 1F Q24",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q4",
-      "equivalentSource": "June 2017 1H Q4"
+      "equivalentSource": "June 2017 1H Q4",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2475965c40683fdd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q24/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "fba136c9197be80bed1c7533315a1b1679abcb98ffc9ca568d1aecf7b96bcdb3",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q24/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q24 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2257,7 +2785,28 @@
       "source": "June 2017 1F Q25",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q5",
-      "equivalentSource": "June 2017 1H Q5"
+      "equivalentSource": "June 2017 1H Q5",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "e354c1537f379858",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q25/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "0c74b1572670cfac4b9a942ad201ac050675f6b013135b2a17df3b6455b5235b",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q25/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q25 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2336,7 +2885,28 @@
       "source": "June 2017 1F Q26",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_1H_Q6",
-      "equivalentSource": "June 2017 1H Q6"
+      "equivalentSource": "June 2017 1H Q6",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4305fd3e6a324cdb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q26/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7f24162f84f0a4136291a716b28d96d0381864cd5950715dee2cef70e0128109",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q26/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q26 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -2432,7 +3002,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 1F Q27",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5681e9bacd87c3d5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1F_Q27/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d7f705f74b7d0b1e19d6e0026356a565e78c2d1d20e584c4bff807598c3c1749",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 20",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1F_Q27/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1F_Q27 worked solution, original page 20",
+            "sourcePages": [
+              20
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -2554,7 +3145,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q1",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b2f1865093fb126e",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "9fe48b3661e831c8f1447d2286d5855a3e24289951e828eb7e6c4483caf7b322",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -2626,7 +3238,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q2",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "71611dd07d9b9c3e",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b113cdeb15d744953126a6fccecee73f8fac1877e0631c1ab6d57ce30ee6ed01",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q2 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -2776,7 +3409,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q3",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "3d3e63fa3aba2798",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d5d91ec70ed388ee7c317419b6fc4400bd72bf686ccc29a4931775be4ee4f11c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q3 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -2848,7 +3502,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q4",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "d6ff1d3e75580520",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e923aed701a3408612b121dcddd4a62afb19ea377a5ee4db1d19abd8c469cdcf",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q4 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -2946,7 +3621,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q5",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "210bde101fc604fd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8faefb46d61d2476e41e190e8892d4b677926584b2b3927d76928ac32ff773fa",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q5 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3018,7 +3714,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q6",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "78bff26dd0dec9e2",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "140669b4f0d700b799dbde5f86957ebbc5482d4ecff418e9f34bdd7a0ab50f6e",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q6 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3092,7 +3809,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q7",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "58caa36d54896f0a",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "dbe7dd2e34448fabcfd4ed53cfd8cefe320d04a508cde808a97b054e5d9a774b",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q7 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3216,7 +3954,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q8",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4b682372977e3aa3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "aff284184a128b7810b4042f4a76e47efe3250654bf8aa923d9541006983c7e9",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q8 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3291,7 +4050,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q9",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "36130b4becd906bd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b4d2c98053fb1d464093e7cd79290e77f124e4822957b9041a0d00fb922e45a9",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q9 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3363,7 +4143,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q10",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "671e38c13d8401ab",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "885b9b0af5e90c08bb63a35bbe9d9e277c622be914c4fe5d01870a8ccddee125",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q10 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3469,7 +4270,40 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q11",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "eccf91a0cbe01484",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1c0e5f2b7c55d2cb12ab48245017d106ad225012d2f8ff5f6dc529ed93ccfa6c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q11 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 11",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q11/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_2F_Q11 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3541,7 +4375,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q12",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "086370b4cabee511",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "303dd6f2fbdf9ab75d90d1f01560cbcd8eb5126b35579d5407b98ef7cd54c8f1",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q12 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3643,7 +4498,40 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q13",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b2f43b0ed369ab01",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b838167db3038475d42c83c4eaf8a19faf510ba545eb322221ba6ec0ae026f2a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q13 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 13",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q13/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_2F_Q13 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3740,7 +4628,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q14",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "e1970a3d6ae2e153",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "278f7208195bed2c5d29fdb968405603080480029fc0cdadc102c57673574063",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q14 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3838,7 +4747,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q15",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "fd2d8cf5f13e3b0d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "9f5b957b5ae31ffbfc7ae775a0d452931f818eec7cf6cff6a2203801845aa921",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q15 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3910,7 +4840,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q16",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2e18b1565f24b6d1",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d0ec328e5c1227c21e6a837fc8c204db9f4ee098704d9c47219fbfabd9e14a7d",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q16 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -3984,7 +4935,28 @@
       "source": "June 2017 2F Q17",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q1",
-      "equivalentSource": "June 2017 2H Q1"
+      "equivalentSource": "June 2017 2H Q1",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a67e6d873846116d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "427afb7ea9ee8ea62805ae2fe81290c09412265fc7e06e79a3a25ffa0f811604",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q17 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4077,7 +5049,28 @@
       "source": "June 2017 2F Q18",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q2",
-      "equivalentSource": "June 2017 2H Q2"
+      "equivalentSource": "June 2017 2H Q2",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5b86816a4f08f573",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "0bcf8d813b1c11ea8d7dda8076d90aff913db0333c0ac2a98516afad74b1fdf4",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q18 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4151,7 +5144,28 @@
       "source": "June 2017 2F Q19",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q3",
-      "equivalentSource": "June 2017 2H Q3"
+      "equivalentSource": "June 2017 2H Q3",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "661039dfacc5323b",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "21fc1a9367d92329ff4be823b79975d14cf07c55e5b5b2598648143e2b11b0b5",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q19 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4251,7 +5265,28 @@
       "source": "June 2017 2F Q20",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q4",
-      "equivalentSource": "June 2017 2H Q4"
+      "equivalentSource": "June 2017 2H Q4",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5462cab73858eaef",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "ba0fd067255779876db291b4b7b6a39d4f3e39882386901f69c6347a065640fa",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q20 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4350,7 +5385,28 @@
       "source": "June 2017 2F Q21",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q5",
-      "equivalentSource": "June 2017 2H Q5"
+      "equivalentSource": "June 2017 2H Q5",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "55a9e3015ebbacd9",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q21/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8aa39aab91521302f2ffac5c5bab9c5abcadfe2d2069a8b8cc9618d615ce1a6d",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 20",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q21/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q21 worked solution, original page 20",
+            "sourcePages": [
+              20
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4424,7 +5480,28 @@
       "source": "June 2017 2F Q22",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q6",
-      "equivalentSource": "June 2017 2H Q6"
+      "equivalentSource": "June 2017 2H Q6",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b9918029eb766acb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q22/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4b4e1be04d0baedc0ba271ddf0aca22f308ddb53c5f2d7fdd650eb0c37a29b72",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 21",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q22/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q22 worked solution, original page 21",
+            "sourcePages": [
+              21
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4498,7 +5575,28 @@
       "source": "June 2017 2F Q23",
       "tier": "F",
       "equivalentId": "1MA1_JUN_2017_2H_Q7",
-      "equivalentSource": "June 2017 2H Q7"
+      "equivalentSource": "June 2017 2H Q7",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "419de9021b4da555",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q23/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "a4b30528a0287287f1bba6527e60a78ea1315ff3f615034e53df4f8c8addf4c2",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 21",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q23/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q23 worked solution, original page 21",
+            "sourcePages": [
+              21
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4570,7 +5668,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q24",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "d35619b2861a6278",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q24/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "fdf052b25a9db4d9bb97b192bbd916ae7b8558f44a5070891e3ad24619dea4d1",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 22",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q24/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q24 worked solution, original page 22",
+            "sourcePages": [
+              22
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4668,7 +5787,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2F Q25",
-      "tier": "F"
+      "tier": "F",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4bf237900ec948b0",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2F_Q25/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "279ba0ab6f3d7b5f8c7a45c33c40509102ea60709ec126d3c3f0da064c057b59",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 23",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2F_Q25/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2F_Q25 worked solution, original page 23",
+            "sourcePages": [
+              23
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4749,7 +5889,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 2H Q14",
-      "tier": "H"
+      "tier": "H",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "bafd5f32f6a6",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d9d02d49b6518361ed28bcdb2b2258b9a926e1fd788b7d49136565fbe3a10d60",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q14 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4877,7 +6038,40 @@
       ],
       "set": "June 2017",
       "source": "June 2017 3H Q9",
-      "tier": "H"
+      "tier": "H",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "bafd5f32f6a6",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "38e4ac48e506b99a1fdb2eab3a0a0cbfdf2216959c871b7bee658e2c7064ab68",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q9 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 11",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q9/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_3H_Q9 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -4949,7 +6143,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 3H Q19",
-      "tier": "H"
+      "tier": "H",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "bafd5f32f6a6",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8f66dbc158c0a29ea218791336ca9855b6ad1814ca40c08dcc90f8d6186265d7",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q19 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -5050,7 +6265,28 @@
       ],
       "set": "June 2017",
       "source": "June 2017 3H Q20",
-      "tier": "H"
+      "tier": "H",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "bafd5f32f6a6",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d677f87704697777688b6afa7e5ee959b807104a2efd26234e4bdfa456d545bf",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 20",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q20 worked solution, original page 20",
+            "sourcePages": [
+              20
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24618,7 +25854,40 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q21",
-      "equivalentSource": "June 2017 1F Q21"
+      "equivalentSource": "June 2017 1F Q21",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "cfdeba7d5845d4143213252c48dac32dc3309b75a78445be8cedb15a98a1f864",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "6f0e7af47b56e7a3d0c761413f92b06525888e25e7a88eee6c1d78e75ac3cc2c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          },
+          {
+            "id": "solution-page-2",
+            "label": "Original page 3",
+            "page": 2,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q1/ws-20261026-v1/solution-2.png",
+            "description": "1MA1_JUN_2017_1H_Q1 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24693,7 +25962,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q22",
-      "equivalentSource": "June 2017 1F Q22"
+      "equivalentSource": "June 2017 1F Q22",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "035fcd245c03ea0b64ac406e661cbc9adcfd1dd87cdfd035786219ab4b2e4abf",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e258f6cea88646a09e29ebcdba796aae25812b34db05fc3d93732163a162a3dc",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q2 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24770,7 +26060,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q23",
-      "equivalentSource": "June 2017 1F Q23"
+      "equivalentSource": "June 2017 1F Q23",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "7cf22be0f8b616c2c98f89a44693bd7a79999018dad0f87e533b5a3a22ee000f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8c58cdc506cf4da6de9d2f5844cdabe6c3c591d9c37cf6f2a8e7b57fa16fe6ce",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q3 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24845,7 +26156,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q24",
-      "equivalentSource": "June 2017 1F Q24"
+      "equivalentSource": "June 2017 1F Q24",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a5f8cd9d2ea74152e9a1a1b9278a485de6534ffe1d5204c32d89badd1f54ef82",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d81040d96bd9f0f303c0ffd70afd3c0778a0543fd67258f7fd4841b4758a667c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q4 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24920,7 +26252,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q25",
-      "equivalentSource": "June 2017 1F Q25"
+      "equivalentSource": "June 2017 1F Q25",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "ea3c86681d81f6c997f6b5a55f13b73d8f6b73826924e7a094ab73b20dfd0199",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "9545711ddfa21608d2597939efcd36cdb7e266ef17804129c7849a4a3d3a396c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q5 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -24995,7 +26348,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_1F_Q26",
-      "equivalentSource": "June 2017 1F Q26"
+      "equivalentSource": "June 2017 1F Q26",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b9dc3af6cd73e3749c5c1859b0bfaf498a5ea9e8b7bfadc4b7e4a2e03a1ae384",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "56a9daea5512b3446b9c406c92df38bf784aaed67d7fce2e72b599673275669d",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q6 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25068,7 +26442,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q7",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "0e2984e5396f8a51395e23c39691937cbfd5e23d773180bfb78ed557dca94e52",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "68949e94b0268054309087daa69f3b4fc483365fe404d52e0e80540ae63e8dfd",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q7 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25154,7 +26549,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q8",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "81bd7c69e8bab024292c9b97928473b0c7e93850d4b287d773bbd178aa78826d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e6876c10efb3845c276a3e097dc81de64f70168ce801caea39f3dd507de13748",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q8 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25227,7 +26643,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q9",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "6837342eaba87b29fba0fd6966f6aef23085359db864e308078ecabfe755608d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "db541975fff0bed669a3cea2175d21ba9feb69e3cbb0e93a2c2e96fef93c0716",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q9 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25300,7 +26737,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q10",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "28687b1cd527c9027403027be6b1e6a82c6c366124ee6d0203eb3f36f6d16ccb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "ce986891b45364c09d23c703a917b8fbc1e8c89bd4832102ce99c90cc73c1abf",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q10 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25397,7 +26855,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q11",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "c3aa7bae88dd882b0a891f482b36cd2cca98c3252758bd83c95da6f066da1f44",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "2d8ef9349d48aa8be7be6de99c4a6f3de239a0d8fdc4a2ea18cb836a3a21cd0a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q11 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25487,7 +26966,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q12",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "0c02b81fe9d2d3459669285094e91ac235abeb24703638234b6ce80d3a5f20f3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b671912b8d36e91b9de8fe99c871ea6528707b5dab395c2489e26eb81e448945",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q12 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25573,7 +27073,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q13",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "cb9a5fbed5921ebff82d2c9427f1134575d67b79842b06cd89b9ffb4bb60c9d0",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4b49fb50411d727fb9cadb3b06a694f8c0452d85912d7055d44d206e0f5fe593",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q13 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25650,7 +27171,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q14",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "d603325d2920f0707d73b9fa398617640ddfa1a39696bca2b57db7bc6364f3e4",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1c467b95f2acb1ae164c467b19f6800603abe70082214965790fdfc35e2107e6",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q14 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25735,7 +27277,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q15",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2f9411f3e8ba12358187faa42d05f5167952cc13c14172f742c46a81ed8c5c11",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "ad69fa79db411619c316fe9b3bdc8a1cbeba04de05bd52338510f305bdd161a9",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q15 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25808,7 +27371,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q16",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b222cd1acf6cb05a9bb4911e486ffe36740eac6a5894f0af2dd441c0630bc383",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "9fd13c06f12c0e12aa26cbad6aa5f0757232513213271d1bb2be2217930696a7",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q16 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25881,7 +27465,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q17",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "ea3f9418bd602e3cebb146d1b44039331a1b523403975bf45adeb5676a2c25d9",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8d9460b7375c94f7ca025580be667a9bcc453a2909f383cbb4d4917b8063ff7c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q17 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -25954,7 +27559,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q18",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "06fcc2788cc63dbd7a71c921793bf0cbb25c8486fa62906dc3d5b9d6594b4b4b",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "adaaf8a460d097aef5b95aa3358baa6416b7d9a753a49d2f910487141e5e6bcb",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q18 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -26027,7 +27653,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q19",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "89a440d934a9d2956afbdf96461b13f03799a787d4e1c69462b49fc4bafc5916",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7bc3e8edb0d25db54c79a9289ab27e858ae762055eabadd3cb6507383c0a6bed",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q19 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -26100,7 +27747,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q20",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "ec60f367904dec35dde55ebe45223ff9d5e281ecb01208cf3fed63f5d54df6a5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "440e9e2adce2d571d8652a97dcb907cc59ee031949ff6d3a98042e585404d934",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q20 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -26173,7 +27841,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q21",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "961092ae6b295cd4ee018c69db64945af602f0b078f058fc9f06f853074d90dd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q21/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "73aadb0be0951a6418378b228513029be5c7e9cf530c84975e61f48367af4f93",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q21/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q21 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -26246,7 +27935,28 @@
       "set": "June 2017",
       "source": "June 2017 1H Q22",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "8fe7ee44b9b1c291ca5e35a559fc39c13bc511cd6cb1f17c0012400b5a03cf2e",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_1H_Q22/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1c7ec4804e45030beea6256fc41455bd0a6b68b3d5a0acd57b0ad5f1607aa62a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_1H_Q22/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_1H_Q22 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26332,7 +28042,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q1",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "31e8da26a399fc09a2387f0f94ad195c6aae0eedd147f0a68cb40aa222c41e5c",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "f7963fd0927207d7d9e91ec3070b197faf312a3504c2aaf7420fccf1f5647ac5",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26405,7 +28136,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q2",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "671dc27f3f02ea7a2db8abb9ed3a045d5d74736bb81801c2168d5acc9d9ec8b8",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "6ab4fd6526f19a6e81e4562375015d8e58e4e78009671e95bcd20b042717ec55",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q2 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26490,7 +28242,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q3",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "0d535f4ed10a1885baeb250a9d3feb7a04a8a3645cc69089f86e93f68226d0b3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "13117fd288a1e798e8c327b516b10864211cc48e024db4141ecf8240b0cf71da",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q3 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26563,7 +28336,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q4",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "678423cddb4c5bcb8ab2e059f4605b5e0b793567da1c8eb4275a7b3c7399286a",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "14735fa9d5eeb0d8c94902cf60b1f8c586f8c0a2abe36adbae681c05bcc1af49",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q4 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26653,7 +28447,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q5",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b5bb17be0c5e24ee0d214db5020012dcab5eef43cf1f898a81408750c5e8397b",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "28f5678c449088018f0668b9230e5b40dbeedffedf0e18c63f451e5bcd98d760",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q5 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26752,7 +28567,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q6",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4d0b119bcad16e6debdc37dfa9086fcafa681a38c8f6e214efbac6d4c5041512",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7e0ba64b587a52ffd10b9b64f488b2f679bd0c1f833f77e8836fd69bcef252b9",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q6 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26825,7 +28661,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q7",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a5111f19168cc0662aa004364425b489d30634a72d9757746194080fb2ec459a",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "77c5084330b92647adc3f544582510ac805ecd3dd1ef334d5b204da9cb7c3197",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q7 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26898,7 +28755,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q8",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a94137a9379efc6c57be3c7e301e8a5303ceef04e2c6101e64eecb7e2a9b9945",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8bcd04924684d93095038f8fb234aa4538792f406741720fb6df799fd3e7efa4",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q8 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -26971,7 +28849,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q9",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "b2228d504789b8142deb834fb0a9359f09a432e61fdebc9ec40c7e060d33b418",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8729fbc7f6a3f8f7ba3fd21f5ee857e52bcb432e0761c07938dc817da90192a0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q9 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27046,7 +28945,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q10",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "3dfab3e81729895c076fab5b66afcb740822bf2f7b16c2c8c093b3d28f3ce23d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e9e10b74e544ba2a77f35f72c3f864dedcc1217167840eb9c0606152470d2cc6",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q10 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27132,7 +29052,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q11",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "eeec076fc00ba4100072b35a558314700afc2daedace4e6de816b26edbd4bc9f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "9bb84c5339e9c17f25db79071d0c2a87bcb3b2844765f30fb805347cb03e5225",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q11 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27233,7 +29174,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q12",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "fbeb8594b9594c98af7f81f7c4596eb1468c3a684a9eda6109ef554f5fa53418",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e19223332541d1613de6e56a0626c80a4c106d30964f0a289c7835746336dcbd",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q12 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27306,7 +29268,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q13",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "68965b33c0e36c99fce17ad3df1e6457593ce86eaa582c2bf4b9419e99546706",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4ddd4d630591b4523185a793721fd4ef9c6a4afb0c55250259a15124f23f93bb",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q13 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27391,7 +29374,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q14",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "92cf679bf1b7c989606d92180231b4905defb3ea5560f086765b0a59b8819f63",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b43ec4eb508506f8019f1449c81a88bc274ad47622a8f033e41ec95ddec5974a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q14 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27479,7 +29483,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q1",
-      "equivalentSource": "June 2017 3H Q1"
+      "equivalentSource": "June 2017 3H Q1",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "216f172b5827d0ee601e0d04d49d8b89727f3c8743284f69cba183204fddabd2",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "a6e6b8aeda3f5303c74d2a6e50181927115ccf38f63ee2b7e482a2d16d1b3064",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q15 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27554,7 +29579,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q2",
-      "equivalentSource": "June 2017 3H Q2"
+      "equivalentSource": "June 2017 3H Q2",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "df8c85bc28a5aaefc5f5bdc9cd96b7de178abbd8d04fd563206213c55dd82edd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "eb24d5b8cac96b483e943b52e3f10847fe1f7b479fd5f71b45b9a1bf6edd4f83",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q16 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27642,7 +29688,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q3",
-      "equivalentSource": "June 2017 3H Q3"
+      "equivalentSource": "June 2017 3H Q3",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "fdf955f5223714b778816488e5fd50075214016e5dd1079b4245ff7a27595583",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "62deac119d8927a4c0e74606d3b36b272d8922b3b9d3e0b969f6a03f6ae9385b",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q17 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27723,7 +29790,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q4",
-      "equivalentSource": "June 2017 3H Q4"
+      "equivalentSource": "June 2017 3H Q4",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "0253effdf53caa8bac2504f8f74505c0cca56fac98e60f3ccd5a674e59593e0f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "993d133d4e4795cf32e133d4601ae4b848b9b14cbfaf10cf74d3ed70a044adaa",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q18 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27798,7 +29886,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q5",
-      "equivalentSource": "June 2017 3H Q5"
+      "equivalentSource": "June 2017 3H Q5",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "e93182ebd8310218a5f6d459ff959963bbac832f6d374dc7149564650f7ee4ea",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "620b29a24ab3555959f4543ae1ba05c99709d130568203d53595f65868d6c294",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q19 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27873,7 +29982,28 @@
       "tier": "F",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3H_Q6",
-      "equivalentSource": "June 2017 3H Q6"
+      "equivalentSource": "June 2017 3H Q6",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "966b9928cb4a3a15de31f242239b006c0ea74e0896867af6e954ba22c5265ff3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "6994afe8ddfb4965cf7c681229d30a80750f146095b1d0cbab6ca6d55b2beddb",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q20 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -27946,7 +30076,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q21",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "50e4b11873497abdcbfd3e4791a8091fef2944bb891c0ff74c99d675776bf0bd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q21/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "5e0c139433f8acae74ad09faf69756b21287144a58ee7b81d568051e4f9d5218",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q21/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q21 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28031,7 +30182,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q22",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "6ffdbfac26b28c50952800772a91a90ea46d8e034a8b2d78eb0bf99131584343",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q22/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "6c59428ba5b3997962a4a9796f5f03c17a635914dd31fd8a9bdd5c01edbebccd",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q22/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q22 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28129,7 +30301,28 @@
       "set": "June 2017",
       "source": "June 2017 3F Q23",
       "tier": "F",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "29b8dc6cf01d2e4d77cbae242bf1861fa61083da1f97206f6b7bb77fe1a3e649",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3F_Q23/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "c9bf36498bb42796b72e304e496d0951dc14ff27903a31ca1bd1ad07372809eb",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 20",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3F_Q23/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3F_Q23 worked solution, original page 20",
+            "sourcePages": [
+              20
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28204,7 +30397,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q17",
-      "equivalentSource": "June 2017 2F Q17"
+      "equivalentSource": "June 2017 2F Q17",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4d33406dc5a7f388fa46904717637542e1ec82728b980770fa00cdf621290711",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d597f0348a3daf16a78ed3058d50577f5ad029014f22f3515a13dbccc8b2c4cb",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28298,7 +30512,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q18",
-      "equivalentSource": "June 2017 2F Q18"
+      "equivalentSource": "June 2017 2F Q18",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "48c4331d231cde154ff00045d689ab0c44fd334217dcdfe950c6a46f5fd53b74",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1b515866100d8662df68855048a83092d94744f95b863a8c5c63b28082f7fe11",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q2 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28373,7 +30608,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q19",
-      "equivalentSource": "June 2017 2F Q19"
+      "equivalentSource": "June 2017 2F Q19",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "51d465233940ce45e6b3541e14aaefcacca84f0e12e9db64c132fce81d62e9c7",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1939c67f3a7703ea47d9f681bae7d4e96301070f0f44267aeb27654ee80c9f19",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q3 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28460,7 +30716,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q20",
-      "equivalentSource": "June 2017 2F Q20"
+      "equivalentSource": "June 2017 2F Q20",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "dbd4be8502a3956dae4e1ba475009a8b43ca7b1f02996927ca010a87c3b30246",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e0095e557bfc66b32fa2940ade20c356b10256e5281c632a5a1561d1879389be",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q4 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28547,7 +30824,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q21",
-      "equivalentSource": "June 2017 2F Q21"
+      "equivalentSource": "June 2017 2F Q21",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "32d7081f953bb9f1dab5bcd01b71d7564a682a1fee04c48c77c9d6a8d91c7d00",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "1527623efdce49b4c0b4e51ea140e124fa96ba29dff92b11e65f3a36fa00b674",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q5 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28622,7 +30920,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q22",
-      "equivalentSource": "June 2017 2F Q22"
+      "equivalentSource": "June 2017 2F Q22",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "fd5d532b718897766a64c49986aea1405201eb232c93fece7ec2dba6ad03ae1b",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "518bbb6cf7dd740a479c384f7e554c86c30f94571d6463f8d94a54821b740827",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q6 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28697,7 +31016,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_2F_Q23",
-      "equivalentSource": "June 2017 2F Q23"
+      "equivalentSource": "June 2017 2F Q23",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "843efa17f7ea532887798d35a6306f3bea7dd7d8f0f24d5ffcaee6e207497cc0",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8eb9c8078f1e1ba380d95df2e4c826372ab3806cc4c1add57c482cddb0cd21a4",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q7 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28770,7 +31110,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q8",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "f2dd1ba263c8313b5c92bf8cb8aad2f3298daebc1dd9b8219ee89d9421c9fb82",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4ea849f2f1c14eac3769f3b0027eef1845c85ea3ebcf7fd8f3b358e9b9c03f79",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q8 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28843,7 +31204,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q9",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "333863520525320583deb773016211d41e69db086fb877b1fd34a9aa9cb1c0e5",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q9/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "58f7f140d483e4eb4ab470b33d675150c66f7ddf7816804d7c34ae51cb610a2f",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q9/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q9 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -28941,7 +31323,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q10",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "02609645af87b84100529469831f8ee94008ee444f0c5c88944586988ea67bfb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4887eba5854f88fbc15e4ccb84f360e6c8a9e34b326c3e550e6f7cb32fe00af8",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 10",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q10 worked solution, original page 10",
+            "sourcePages": [
+              10
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29014,7 +31417,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q11",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5a35203c18a5ae20ac75af88686ad29376f4339347719383d55869e8ba7f8cc3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b09a06ee133fab4a3372bf19ef3af309b9ca0b66d303da8b4d01823829f4549c",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q11 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29100,7 +31524,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q12",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "c307af9363b57a65e2b5d169a23feac9469d212f7c0b79d93147bfd5240d0172",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "eaf6745272bf839c19dce19b640fee05db9cf5f6196c78fd76ea72af97d51043",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q12 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29177,7 +31622,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q13",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "50c5a167b4e411ec4577c383a77034aa89cee65811a87e85f7e4a2875589bdbe",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "62e15c08c43377206f5097aefd105894682ab925a79f98103baf8b8d0dd8c35d",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q13 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29254,7 +31720,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q15",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "aa72df07e639d09ac2d56ff386421efc64c65b9ef5aa7f81fa51410f37fa5bd3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "41755d29d40c59fbb892ac6ac02c61880466da11091ccae17b48a97023d2fdff",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q15 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29327,7 +31814,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q16",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "4c03e2ef069df2268e8dfbf7b6f7daa0416c24995e14db6e91eed20fe665b9b8",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "191827cebc219664644bc1bfe7e0ea5943f64ebc0f2c9296947062eb2e792715",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q16 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29406,7 +31914,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q17",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "191cf948a78e4c919d9b467b85ed7817e05981512b97e1a969d75226885cec67",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "a98f88e1e3b8c0c637ab1ac35eb0b4ab5964b55f3e406350e44984e44e753778",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q17 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29492,7 +32021,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q18",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "affb3187279274342b64a832c871ca571e7bb9cb36e06f8a5f37fa181e7bb087",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "4caf462afbe21e5454b0d565f25488de788b182b07e2d0c9767c29c5359ddbd4",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q18 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29565,7 +32115,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q19",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "24a1936c655df6f74720dfa4e45540c9df09665dd30971060921c03c25c9c664",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q19/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "84561854eb12b66bd3a2d37de6a459d066ab48539e77a29351a3f17a8566d967",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 19",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q19/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q19 worked solution, original page 19",
+            "sourcePages": [
+              19
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29651,7 +32222,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q20",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "8aafa0c3709de83306f64978c1cac18d4330bc7e8288314585737523a9779f3e",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q20/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b4e87c0d022bf4cb29a7dea276380deb80d3a03ead0df60b0c91555cfa3b4326",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 20",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q20/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q20 worked solution, original page 20",
+            "sourcePages": [
+              20
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29737,7 +32329,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q21",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "cdd8189e56a5f94ff6d32e2255b348d25ea6b3180df7692cb557ed8fcc7f38c8",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q21/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7b5f973c390384d72d971ba1c039ee9d4b6628103f9cfce7b38b819b201a608a",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 21",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q21/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q21 worked solution, original page 21",
+            "sourcePages": [
+              21
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29810,7 +32423,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q22",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "931ca7dabf89dda524bd9bd574c9730f4730f36bf121b7e798e8dc46410d8711",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q22/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "099db534af1812903073d439da5b6b16f3ddca85ff3bf989ad95dbe34a0e0270",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 22",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q22/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q22 worked solution, original page 22",
+            "sourcePages": [
+              22
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29883,7 +32517,28 @@
       "set": "June 2017",
       "source": "June 2017 2H Q23",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "1e4d20fecdda5a3f415154184eb9df825ba4163bc041fac7fac244dfcad7c50e",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_2H_Q23/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "91c20524dd65733aa29ad74d9e8282a73b682d8861fd5c1bb8f13c9b679c5a7d",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 23",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_2H_Q23/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_2H_Q23 worked solution, original page 23",
+            "sourcePages": [
+              23
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -29972,7 +32627,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q15",
-      "equivalentSource": "June 2017 3F Q15"
+      "equivalentSource": "June 2017 3F Q15",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "ce4c0666f27ae2fd38c0f138ad7367d5cc6d0dd3d7133a849986448a397da34f",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q1/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "5567f0358905cd4185406470c59ff13b10e21f4914a3307643a48449f9592953",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 2",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q1/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q1 worked solution, original page 2",
+            "sourcePages": [
+              2
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30047,7 +32723,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q16",
-      "equivalentSource": "June 2017 3F Q16"
+      "equivalentSource": "June 2017 3F Q16",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "07b330906945b085b78aa633c702ce142de7aeadc5d854245e3040d2e9b761a9",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q2/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8c47e4eee046bb8f1bc32116912fcee152fdbc18a75f0587234511bdee3e32dc",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 3",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q2/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q2 worked solution, original page 3",
+            "sourcePages": [
+              3
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30135,7 +32832,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q17",
-      "equivalentSource": "June 2017 3F Q17"
+      "equivalentSource": "June 2017 3F Q17",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5899d3e732d75b6bf9232c77d702cf160aed7770251ec50515893ec30c66f393",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q3/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "6a304e9701c09848520e6e57c5a331e19005ad2cee0494d063005c5d3374ecec",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 4",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q3/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q3 worked solution, original page 4",
+            "sourcePages": [
+              4
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30214,7 +32932,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q18",
-      "equivalentSource": "June 2017 3F Q18"
+      "equivalentSource": "June 2017 3F Q18",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "77d63d7b24848c394a732e9ca3e1e649069688fbaefd550d85eb07164988f7de",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q4/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "aad5a557c037d7e531315e607f466fff4a1322ee39156a6ac1641b1191540e38",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 5",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q4/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q4 worked solution, original page 5",
+            "sourcePages": [
+              5
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30289,7 +33028,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q19",
-      "equivalentSource": "June 2017 3F Q19"
+      "equivalentSource": "June 2017 3F Q19",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "9d13c3c45d2e9e80190cd4446299611411fa2496d6da1ee5c733b19be429b2ec",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q5/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "a897037080ee01655338fb82f5c2213fd016ff21afd5ddd3e53d0b8d5aa1ac65",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 6",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q5/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q5 worked solution, original page 6",
+            "sourcePages": [
+              6
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30364,7 +33124,28 @@
       "tier": "H",
       "writingSpacePolicy": "source",
       "equivalentId": "1MA1_JUN_2017_3F_Q20",
-      "equivalentSource": "June 2017 3F Q20"
+      "equivalentSource": "June 2017 3F Q20",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "668914e71020135dc7a0b97b4132c9d081ca5993f3b4ccca565898a95b85793d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q6/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "c9dea78ce537375e6c8715df8ba113b9ff7e5afeec4b61ab6cf1136d6a69a78b",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 7",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q6/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q6 worked solution, original page 7",
+            "sourcePages": [
+              7
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30437,7 +33218,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q7",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "496cf20b99535ec0b5ac69a63326d9238e2ba74bda98e5c4cc84797b984f4798",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q7/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7908e38ce3d04adec5b7f183644fd1e170524a50da39065481920b1fbb547d79",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 8",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q7/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q7 worked solution, original page 8",
+            "sourcePages": [
+              8
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30512,7 +33314,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q8",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5ca76d6bec574659261fef39047d98aee81ac774d6e92a563df16f40b94cb3cb",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q8/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "8003793bc827d90d889f8af58e7f57f4e48f8978fe8a06010a8d727bba5879ac",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 9",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q8/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q8 worked solution, original page 9",
+            "sourcePages": [
+              9
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30585,7 +33408,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q10",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "c61aa96ca09bc1ce5c5424db0ae982efaabcc24bf84d55761f48fef14921291d",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q10/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "439dcedf3fb6a7a38a1772ce5df6e9a214d78eda1fba301d97a733ebf814e5ff",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 11",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q10/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q10 worked solution, original page 11",
+            "sourcePages": [
+              11
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30660,7 +33504,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q11",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "17b5c2e1173587132e8a786847cdb9876b05d22728da5c8b5ba56f42a26b66b3",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q11/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d5a92923ba281376bf00ee6ffda2663b90baf2b3adb43cd928c97f96410b11e4",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q11/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q11 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30733,7 +33598,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q12",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "03d5c5586b8dcddcca9220b9157de2c7b9baf8eedca560193f40bbfa0fa0f3f7",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q12/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "07ab07ab018e6b5fa56aeb95c21e3a872d2518db1947f6df3f1d708b1ee179fc",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 12",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q12/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q12 worked solution, original page 12",
+            "sourcePages": [
+              12
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30806,7 +33692,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q13",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "2c2071b151c70aab81e8e8c6c58926d34824daf91b39a319ad35037d28866db7",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q13/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "b149f5ff92c4d40e114f4dfc0bdfbca588cfad54db3d30126f22afed61fddd8e",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 13",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q13/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q13 worked solution, original page 13",
+            "sourcePages": [
+              13
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30892,7 +33799,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q14",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "a3eea46f6ba76932773644e4885fc18b730bfab63e9dada602de03e4bd98eaca",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q14/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "22bb0f09c542eaddb99c2ddeed1506c6ae5c13223e4d1972f474ba436761c0bd",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 14",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q14/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q14 worked solution, original page 14",
+            "sourcePages": [
+              14
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -30971,7 +33899,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q15",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "65f489841a8f0e40807b60ea1abb86c9deb219d95c46df837d57b36998018c94",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q15/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "d246f20ea570421da1c22b1b4fb58a097ec46e677b4863098ef578817fa8aab0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 15",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q15/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q15 worked solution, original page 15",
+            "sourcePages": [
+              15
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -31057,7 +34006,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q16",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "7e4dfdc525ced363d203a75bb3939fb55d849eb96c8f96dd38a767de9ba677c0",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q16/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "e42d68158f2a5a75fd97a19c011d7c2fc03f24bcfe2e9fd608351a598a6b3c99",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 16",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q16/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q16 worked solution, original page 16",
+            "sourcePages": [
+              16
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -31144,7 +34114,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q17",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "7341d31c543a97cf136b9d07afbe6c994759e16a1fa9eea8f62b963828cf29dd",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q17/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "7f455aff74dfb38bde2defb240aecbd28d078dd4ed656101d7b515e333b5017e",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 17",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q17/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q17 worked solution, original page 17",
+            "sourcePages": [
+              17
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": true,
@@ -31221,7 +34212,28 @@
       "set": "June 2017",
       "source": "June 2017 3H Q18",
       "tier": "H",
-      "writingSpacePolicy": "source"
+      "writingSpacePolicy": "source",
+      "workedSolution": {
+        "schemaVersion": 1,
+        "revision": "ws-20261026-v1",
+        "basedOnQuestionRevision": "5f05dbe070036c5fcefd04fc3b5c5cb3df627f95fbf6608eda9aa4f3b4a43e08",
+        "pdf": "bank/assets/worked/1MA1_JUN_2017_3H_Q18/ws-20261026-v1/solution.pdf",
+        "pdfSha256": "cb743dec75e7d654bd9f746bcd75dd1994d501764d2b04573ac03bb2558f11e0",
+        "views": [
+          {
+            "id": "solution-page-1",
+            "label": "Original page 18",
+            "page": 1,
+            "width": 595.275795,
+            "height": 841.8898819000001,
+            "preview": "bank/assets/worked/1MA1_JUN_2017_3H_Q18/ws-20261026-v1/solution-1.png",
+            "description": "1MA1_JUN_2017_3H_Q18 worked solution, original page 18",
+            "sourcePages": [
+              18
+            ]
+          }
+        ]
+      }
     },
     {
       "calculator": false,
@@ -196786,7 +199798,7 @@
       "title": "Presenting data and making conclusions"
     }
   ],
-  "version": "mock-set-04-reviewed-20261025",
+  "version": "worked-solutions-62322da62534033b2627",
   "paperQuestionCounts": {
     "1MA1_MOCK_SET_01_1F": 24,
     "1MA1_MOCK_SET_01_2F": 29,
