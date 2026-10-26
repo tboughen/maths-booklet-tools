@@ -92,7 +92,7 @@
 .qb-notice { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; margin-bottom: 12px; background: #e2f1fe; color: #244b73; border-left: 3px solid #0f62fe; font-size: 14px; }
 .qb-notice button { border: 0; background: transparent; }
 .qb-display { position: fixed; inset: 0; z-index: 100; background: white; overflow: hidden; }
-.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage):not(.qb-display-notes) { display: none; }
+.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage):not(.qb-display-notes):not(.qb-display-actions) { display: none; }
 .qb-display .qb-main { max-width: none; padding: 0; margin: 0; }
 .qb-display .qb-workspace { display: block; }
 .qb-display .qb-question-card { border: 0; border-radius: 0; box-shadow: none; }
@@ -354,5 +354,15 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-performance-estimated { background: #eceff2; }
 .qb-performance-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; min-height: 36px; }
 .qb-performance-toggle input { accent-color: #334e6c; }
+.qb-solution-action { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.qb-solution-action small { color: #617186; font-size: 11px; }
+@media (max-width: 1100px) {
+  .qb-source { flex-wrap: wrap; gap: 8px; }
+  .qb-source > div.qb-source-actions { flex-wrap: wrap; justify-content: flex-end; }
+}
 .qb-results .qb-performance-group { display: flex; }
 @media print { .qb-performance-group, .qb-performance-toggle { display: none; } }
+
+.qb-display-actions { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 8px 190px 8px 12px; border-bottom: 1px solid #dce4ec; background: #f7f9fc; }
+.qb-display-actions > span { margin-right: auto; font-weight: 600; color: #253e59; }
+@media (max-width: 760px) { .qb-display-actions { padding: 54px 8px 8px; } }
