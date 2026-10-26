@@ -3,9 +3,11 @@
 The Question bank supports an optional authored **Worked solution** alongside the
 official mark scheme. Questions remain the initial view. Each answer type is
 revealed deliberately and replaces the current resource in the same pane. Hiding
-it returns to Question. Switching question, filters, crossover identity, reloading
-or using browser history resets answer visibility. Ordinary question links never
-encode an answer role. Display mode includes the same reveal controls.
+it returns to Question. Switching question, filters, crossover identity or reloading
+opens Question. Worked-solution visibility also resets on browser/section navigation;
+the existing mark-scheme session is retained when returning to the same question
+from another section. Ordinary question links never encode an answer role. Display
+mode includes the same reveal controls.
 
 Questions without a registration show a disabled **Show worked solution** and
 **Not available yet**. This feature does not populate the bank. Existing paper
