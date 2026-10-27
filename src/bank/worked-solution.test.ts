@@ -17,6 +17,19 @@ export const solution: WorkedSolution = { schemaVersion: 1, revision: "solution-
     width: 595.28, height: 841.89, preview: `bank/assets/solution/page-${index+1}.png`, description: `Target question only, original page ${page}` })) };
 
 describe("optional authored worked solutions", () => {
+  it("accepts individual question block composition and repeated source pages without relaxing legacy validation",()=>{
+    const composed:WorkedSolution={...structuredClone(solution),layout:"individual-question"};
+    composed.views[0].sourcePages=[8,9];composed.views[1].sourcePages=[9];
+    composed.views[1].repeatedContext="Original page 9 continued after the composed first view.";
+    expect(()=>validateWorkedSolution(composed,original.revision)).not.toThrow();
+    const q={...original,workedSolution:composed};
+    expect(questionResource(q,"worked-solution").views).toEqual(composed.views);
+    for(const sourcePages of [[],[0],[9,8],[8,8],[1.5]]){
+      const invalid=structuredClone(composed);invalid.views[0].sourcePages=sourcePages;
+      expect(()=>validateWorkedSolution(invalid,original.revision)).toThrow();
+    }
+    expect(()=>validateWorkedSolution({...composed,layout:"full-crop"},original.revision)).toThrow();
+  });
   it("accepts legacy catalogue without attachments and resolves question/scheme independently", () => {
     expect(verifyCatalogue(publishedCatalogue)).toBe(publishedCatalogue);
     expect(verifyCatalogue(catalogue)).toBe(catalogue);
