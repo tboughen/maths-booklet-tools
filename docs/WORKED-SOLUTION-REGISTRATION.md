@@ -24,6 +24,7 @@ catalogues. When present it is an atomic object:
 ```json
 {
   "schemaVersion": 1,
+  "layout": "individual-question",
   "revision": "immutable-solution-revision",
   "basedOnQuestionRevision": "exact-bank-question-revision",
   "pdf": "bank/assets/worked/QUESTION_ID/REVISION/solution.pdf",
@@ -31,12 +32,12 @@ catalogues. When present it is an atomic object:
   "views": [
     {
       "id": "solution-page-1",
-      "label": "Original page 8",
+      "label": "Question 12",
       "page": 1,
       "width": 595.28,
       "height": 841.89,
       "preview": "bank/assets/worked/QUESTION_ID/REVISION/solution-1.png",
-      "description": "QUESTION_ID worked solution, original page 8",
+      "description": "Question 12, all parts and worked solution",
       "sourcePages": [8]
     }
   ]
@@ -46,8 +47,13 @@ catalogues. When present it is an atomic object:
 This example contains placeholders, not an accepted registration. Use the actual
 native PDF dimensions in points. `page` is the one-based page in the derivative
 PDF; `sourcePages` contains its one original full-paper page number. Every PDF
-page has exactly one view, in order, with strictly increasing original page
-numbers. Continuation pages 8/9 become derivative pages 1/2. Revisions are bounded
+page has exactly one view in derivative order. With `layout: "individual-question"`,
+each view names one or more positive source page numbers in ascending order;
+a source page can occur in multiple views when blocks are composed or continued.
+Record purposeful repeated context in `repeatedContext` and bind the full owned
+block/transform mapping in the editable recipe. Retained legacy solutions without
+`layout` keep their existing one-source-page/strictly-increasing validation.
+Continuation pages 8/9 become derivative pages 1/2. Revisions are bounded
 nonempty identifiers using letters, digits, `_` and `-`. Hashes use lowercase hex.
 
 Keep the bank question revision and existing question/scheme resources unchanged
@@ -59,12 +65,15 @@ in content-addressed storage. No equivalent-ID fallback is used.
 
 ## Prepare the individual resource
 
-Use the complete original PDF page at native scale, with the target's checked
-black working and dark-pink guidance. Preserve printed neighbouring questions,
-diagrams and working areas. Exclude neighbouring **worked overlays** from the
-actual PDF and PNG bytes. Cropping, white masks, CSS hiding and optional hidden
-answer layers are not substitutes. Include every target continuation page. Keep
-the checked all-answers paper and its editable bundle unchanged as evidence.
+Create one whole-question resource containing every target part, required prompt,
+figure, context, checked black working and nearby dark-pink TF09 guidance.
+Compose owned native source blocks at 1:1, extending prompt-only bounds to include
+working and notes. Exclude neighbouring printed questions and their worked
+overlays. Include every target continuation in the same question resource/PDF.
+Produce physical derivative pages with matching PDF/PNG dimensions; CSS clipping,
+white masks or changing only a CropBox/preview do not establish correct output.
+Check actual viewer, copy and download routes. Preserve the checked full-paper
+master and editable bundle unchanged as source evidence.
 
 Check every final page in colour and greyscale, its original glyphs/positions,
 mathematics, mark logic and neighbour-answer isolation under the current method
@@ -115,7 +124,11 @@ The batch format is:
         "checkedPaperPdfSha256": "ACTUAL_CHECKED_ALL_ANSWERS_PAPER_SHA256",
         "reviewRecordSha256": "ACTUAL_TARGET_REVIEW_RECORD_SHA256",
         "targetOnly": true,
-        "fullOriginalPages": true
+        "fullOriginalPages": false,
+        "resourceScope": "individual-whole-question",
+        "recipeSha256": "ACTUAL_EDITABLE_COMPOSITION_RECIPE_SHA256",
+        "allPartsChecked": true,
+        "neighbourQuestionsExcluded": true
       }
     }
   ]
@@ -126,11 +139,38 @@ List each unique referenced PDF/PNG exactly once in `files`. The helper validate
 IDs/base revisions, complete view metadata, safe contained paths, exact hashes,
 actual PDF page count/geometry (unrotated unit-point pages without derivative
 CropBox clipping), PNG decoding and preview proportions before
-publishing any proposal directory. Byte snapshots feed the staged files and
+publishing any proposal directory. Individual-question previews also accept
+independent upward pixel rounding on each axis only when both dimensions admit
+one uniform native render scale; stretched images still fail. Legacy preview
+validation is unchanged. Byte snapshots feed the staged files and
 receipt. Duplicate IDs, a changed question, differing existing solution, missing
 file or failed check leaves no final output. A repeated exact registration is an
-`unchanged` no-op; use a new output directory for its receipt. Never overwrite a
-previous batch or resolve a conflict by changing only its expected revision.
+`unchanged` no-op; use a new output directory for its receipt. New registrations
+must declare individual-question layout and truthful individual review evidence.
+Legacy full-page attachments remain readable and can be repeated exactly with
+their historical full-page evidence; they cannot be newly added or substituted.
+Never overwrite a previous batch or resolve a conflict by changing only its
+expected revision.
+
+## Guarded replacement
+
+To correct an existing attachment, include `expectedPreviousSolution` containing
+the complete exact previous `workedSolution` object, alongside the new `solution`.
+Keep `expectedQuestionRevision` unchanged and freshly reconciled. The helper
+compares the entire expected prior object, including views and hashes, with the
+current attachment. A different or absent attachment rejects the proposal.
+
+Use a new immutable solution revision and new PDF/preview paths. Do not remove the
+old attachment first, edit a retained revision's files, or bypass catalogue-rebuild
+guards. The receipt records `replaced` with the old/new objects; `added` and
+`unchanged` remain separate. An exact repeat after successful replacement is a
+no-op even though the supplied expected-old object is now historical. It must
+still be well formed and identify distinct old assets/revision.
+
+All entries and asset bytes are validated before the final proposal directory
+appears. A failed batch leaves live/input data untouched. Keep both old and new
+manifests for later authorised publication and recovery. This local helper does
+not upload, qualify, merge or deploy anything.
 
 The staged catalogue preserves unrelated metadata and appearance identities. Its
 version changes when attachments are added. The receipt binds the input catalogue,
