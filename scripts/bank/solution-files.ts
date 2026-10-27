@@ -28,7 +28,13 @@ export async function verifySolutionFiles(publicRoot: string, solution: WorkedSo
         || (Object.keys(media) as (keyof typeof media)[]).some(key => Math.abs(media[key]-crop[key]) > .01)
         || Math.abs(page.getWidth() - view.width) > .01 || Math.abs(page.getHeight() - view.height) > .01) throw new Error("Worked solution PDF page geometry differs from its views or crops the full page.");
     const image = await pngReader.embedPng(files.find(f => f.path === view.preview)!.data);
-    if (Math.abs(image.width - image.height * view.width / view.height) > 1.1) throw new Error("Worked solution PNG geometry differs from its PDF page.");
+    // A native renderer rounds each pixel axis upwards independently. For a
+    // short, wide question, <1px of height rounding can exceed 1.1px horizontally.
+    // Accept that case only when both integer dimensions admit ONE uniform scale.
+    const nativePixelRounding = solution.layout === "individual-question"
+      && Math.max((image.width - 1) / view.width, (image.height - 1) / view.height)
+        <= Math.min(image.width / view.width, image.height / view.height) + 1e-9;
+    if (Math.abs(image.width - image.height * view.width / view.height) > 1.1 && !nativePixelRounding) throw new Error("Worked solution PNG geometry differs from its PDF page.");
   }
   return files;
 }

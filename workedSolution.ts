@@ -13,6 +13,8 @@ export interface SolutionView {
 
 export interface WorkedSolution {
   schemaVersion: 1;
+  /** Missing on retained legacy full-page resources. */
+  layout?: "individual-question";
   revision: string;
   basedOnQuestionRevision: string;
   pdf: string;
@@ -36,6 +38,7 @@ export function validateWorkedSolution(value: unknown, questionRevision: string)
   if (!value || typeof value !== "object" || Array.isArray(value)) return fail();
   const s = value as WorkedSolution;
   if (s.schemaVersion !== 1 || !revision(s.revision) || !revision(s.basedOnQuestionRevision)
+      || (s.layout !== undefined && s.layout !== "individual-question")
       || s.basedOnQuestionRevision !== questionRevision || !bankAssetPath(s.pdf, "pdf")
       || !/^[a-f0-9]{64}$/.test(s.pdfSha256) || !Array.isArray(s.views) || !s.views.length) return fail();
   const ids = new Set<string>();
@@ -44,8 +47,9 @@ export function validateWorkedSolution(value: unknown, questionRevision: string)
     if (!view || !text(view.id) || ids.has(view.id) || !text(view.label) || !text(view.description)
         || view.page !== index + 1 || !Number.isFinite(view.width) || view.width <= 0
         || !Number.isFinite(view.height) || view.height <= 0 || !bankAssetPath(view.preview, "png")
-        || !Array.isArray(view.sourcePages) || view.sourcePages.length !== 1
-        || !Number.isSafeInteger(view.sourcePages[0]) || view.sourcePages[0] <= previousSourcePage
+        || !Array.isArray(view.sourcePages) || !view.sourcePages.length
+        || view.sourcePages.some((page, i) => !Number.isSafeInteger(page) || page <= 0 || (i > 0 && page <= view.sourcePages[i-1]))
+        || (s.layout !== "individual-question" && (view.sourcePages.length !== 1 || view.sourcePages[0] <= previousSourcePage))
         || (view.repeatedContext !== undefined && !text(view.repeatedContext))) return fail();
     ids.add(view.id);
     previousSourcePage = view.sourcePages[0];
