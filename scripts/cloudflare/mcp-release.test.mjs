@@ -50,6 +50,10 @@ test('mixed impacts union all obligations and collector-only changes retain broa
   assert.equal(classifyPaths(['unknown-helper']).required.length, 7);
   assert.equal(classifyPaths([], true).fullInventory, true);
 });
+test('the bank submodule link is question data and .gitmodules is infrastructure', () => {
+  assert.deepEqual(classifyPaths(['public/bank/assets']).categories, ['bank']);
+  assert.deepEqual(classifyPaths(['.gitmodules']).categories, ['infrastructure']);
+});
 function record(scope = 'publication') { return { scope, stages: Object.fromEntries(['service', 'website', 'package', 'client'].map(s => [s, { status: 'planned', observations: [] }])) }; }
 test('resume reconciles lost responses and refuses a newer independent build', () => {
   let r = record(); const args = { before: 'old', target: 'new', observed: 'old' };

@@ -21,6 +21,15 @@ working rules for Claude and never weakens them.
   `assets.mathsdock.co.uk`. MCP service: Render free plan, manual deploys. GitHub Pages is a
   manual fallback only.
 
+## Question-bank files
+
+`public/bank/assets/` (about 20,000 PDFs and PNGs, 1.6 GB) is the separate
+`tboughen/mathsdock-bank` repository, linked as a submodule. `catalogue.json` and
+`public/bank/pdfjs/` stay here. Tests and builds need the files, so fetch them with
+`git submodule update --init --depth 1` (CI does this automatically). Bank changes are
+committed in the submodule first, then the link is updated here
+(`docs/WORKED-SOLUTION-REGISTRATION.md`).
+
 ## Checks
 
 Node 24 (`.nvmrc`), `npm ci`. Every pull request runs `.github/workflows/quick-checks.yml`:
