@@ -1,6 +1,5 @@
 import { resourceCopyId } from "./copyDocument";
 import {
-  lazy,
   Suspense,
   useCallback,
   useEffect,
@@ -13,7 +12,9 @@ import "./pageStyles";
 import { Overview } from "./Overview";
 import { SiteHeader } from "./SiteHeader";
 import {
+  AssessmentPage,
   bookletTools,
+  QuestionBank,
   sectionName,
   readPage,
   readSection,
@@ -24,9 +25,6 @@ import "./site.css";
 import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
-
-const QuestionBank = lazy(() => import("../bank/QuestionBank"));
-const AssessmentPage = lazy(() => import("../assessment/AssessmentPage"));
 
 /** Each page downloads on first visit; `onReady` runs once its code has loaded and mounted. */
 function LazyPage({
