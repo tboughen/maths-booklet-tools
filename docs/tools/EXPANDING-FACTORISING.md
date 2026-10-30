@@ -1,8 +1,8 @@
-Expanding and factorising — local implementation, 17 October 2026
+# Expanding and factorising — local implementation, 17 October 2026
 
-Route: ?tool=expanding-factorising
-Core: packages/algebra-grid-core/src/index.ts
-Editor and exports: src/algebra-grid/
+- Route: ?tool=expanding-factorising
+- Core: packages/algebra-grid-core/src/index.ts
+- Editor and exports: src/algebra-grid/
 
 Departmental multiplication grids: internal lines only, black on white, genuine
 pupil blanks. The multiplication sign is upright 18 pt, centred in its cell;
@@ -36,8 +36,7 @@ answer lines stay 0.2 mm. The All tools card uses the actual default renderer.
 
 Compatibility: first-draft files/links with no compactHeadings/gridLineMm fields
 reopen with equal headings and 0.2 mm rules; only the multiplication sign is
-enlarged. The
-current saved device draft missing these fields upgrades once to automatic headings/0.5 mm rules
+enlarged. The current saved device draft missing these fields upgrades once to automatic headings/0.5 mm rules
 on refresh, retaining its terms, blanks, product-cell sizes and answers; one Undo restores
 its previous presentation. Explicit saved choices are not overwritten. Column
 fixed flags preserve manual widths; applying a size preset resets those flags.
@@ -103,7 +102,7 @@ with physical dimensions in cm. Native Word paste is a separate manual check.
 Editable JSON and bounded links include hidden answers, as disclosed in the UI.
 Storage recovery protects corrupt originals and refuses to overwrite another
 tab's newer work. The editor is independent of the optional live MCP service;
-MCP support is documented in ALGEBRA-GRID-MCP.md. Its service/plugin/client
+MCP support is documented in [ALGEBRA-GRID-MCP.md](ALGEBRA-GRID-MCP.md). Its service/plugin/client
 release evidence is tracked separately from website publication.
 
 Run node scripts/algebra-grid-examples.mjs to regenerate editable presets and
@@ -112,11 +111,16 @@ Editable reference examples are in docs/algebra-grid-examples/.
 
 Verified source presets: November 2018, Paper 2F, Q26, catalogue identifier
 1MA1_NOV_2018_2F_Q26. Actual question and complete mark-scheme images inspected:
+
+```
 public/bank/assets/manual/1MA1_NOV_2018_2F_Q26/
 580f27610bcded8172c49610c3b351776794067f5c87e4c5caca035c22d17ced/
 question/page-1.png and scheme/page-1.png.
-Q26(a): (5x+2)(2x-3) = 10x^2-11x-6.
-Q26(b): x^2+4x+3 = (x+1)(x+3).
+```
+
+- Q26(a): (5x+2)(2x-3) = 10x^2-11x-6.
+- Q26(b): x^2+4x+3 = (x+1)(x+3).
+
 The grids are explicitly labelled adaptations; the original question has no
 grid. Departmental examples are distinct from these source presets. Question
 bank links use ?tool=question-bank&question=1MA1_NOV_2018_2F_Q26.

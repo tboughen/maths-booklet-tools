@@ -32,7 +32,7 @@ The initial ratio tool established the lesson-style representation: explicit val
 
 Two choices are worth preserving together. First, a scaling step is shared across the columns, so editing one displayed factor updates every copy. Second, this does not recalculate the cells: a teacher may be preparing a scaffold or an error-spotting task. Consistency of representation and preservation of teaching intent are separate requirements.
 
-Compatibility also shaped the extension. Existing two-column tables with at least two rows retain schema 1 and renderer ratio-1. Other supported shapes use schema 2 and ratio-2. Removing a column can return a table to the earlier canonical format, so clients must continue with the returned document and hash. The details are in [Ratio table MCP](RATIO-TABLE-MCP.txt).
+Compatibility also shaped the extension. Existing two-column tables with at least two rows retain schema 1 and renderer ratio-1. Other supported shapes use schema 2 and ratio-2. Removing a column can return a table to the earlier canonical format, so clients must continue with the returned document and hash. The details are in [Ratio table MCP](RATIO-TABLE-MCP.md).
 
 ## All tools output previews
 
@@ -58,17 +58,17 @@ The quadratic presets demonstrate another reusable feature: editable examples li
 
 ## Source-linked Graph and Ratio examples and clearer range buttons, 14 October
 
-Graph tool and Ratio tables gained verified source-question cards with separate blank/scaffold and worked actions. The source opens alongside the editor; confirmed replacement is undoable. The [example record](TOOL-SOURCE-EXAMPLES.md) documents the checked values and deliberate adaptations. Plotting quadratics reuses Graph tool’s 48 px rounded +/− design without adjacent numeric readouts; exact bounds remain available through the printed axis labels.
+Graph tool and Ratio tables gained verified source-question cards with separate blank/scaffold and worked actions. The source opens alongside the editor; confirmed replacement is undoable. The [example record](../content/TOOL-SOURCE-EXAMPLES.md) documents the checked values and deliberate adaptations. Plotting quadratics reuses Graph tool’s 48 px rounded +/− design without adjacent numeric readouts; exact bounds remain available through the printed axis labels.
 
 ## Reference implementation
 
-The 14 October [three-editor layout audit](EDITOR-LAYOUT-AUDIT.md) extends this direction to Table of values & graphs: a shared document utility bar, specialist actions in the right-hand inspector, and selected local controls beside the resource. Direct editing remains useful without putting every settings panel beside the diagram.
+The 14 October [three-editor layout audit](../archive/EDITOR-LAYOUT-AUDIT.md) extends this direction to Table of values & graphs: a shared document utility bar, specialist actions in the right-hand inspector, and selected local controls beside the resource. Direct editing remains useful without putting every settings panel beside the diagram.
 
 - [Adding a booklet tool](ADDING-BOOKLET-TOOLS.md): registry, shell, page lifetime and navigation.
-- [Ratio table editor](RATIO-TABLE-TOOL.txt): direct editing, teaching states, arithmetic, recovery and output.
-- [Ratio table MCP](RATIO-TABLE-MCP.txt): versions, operations, discovery, artifacts and release checks.
-- [Graph integration runbook](GRAPH-MCP-RUNBOOK.txt): shared-core architecture and service qualification. Its older deployment examples must be reconciled with the current production configuration.
-- [Ratio reference artwork](ratio-table-examples/review-preview.png): simple and worked lesson styles, alongside saved examples in the same directory.
+- [Ratio table editor](RATIO-TABLE-TOOL.md): direct editing, teaching states, arithmetic, recovery and output.
+- [Ratio table MCP](RATIO-TABLE-MCP.md): versions, operations, discovery, artifacts and release checks.
+- [Graph integration runbook](../release/GRAPH-MCP-RUNBOOK.md): shared-core architecture and service qualification. Its older deployment examples must be reconciled with the current production configuration.
+- [Ratio reference artwork](../ratio-table-examples/review-preview.png): simple and worked lesson styles, alongside saved examples in the same directory.
 
 For this guide's baseline, repository main was [3e7c4d91](https://github.com/tboughen/maths-booklet-tools/commit/3e7c4d91c8e305b64e4e33bec63ed0215c002578). The live [Graph tool](https://mathsdock.co.uk/?tool=graph) and [Ratio tables](https://mathsdock.co.uk/?tool=ratio-table) were also inspected for their shared layout and visible controls. These observations support the design examples; they are not a fresh release qualification of either tool.
 

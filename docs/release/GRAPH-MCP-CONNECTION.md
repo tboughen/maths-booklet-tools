@@ -1,17 +1,18 @@
-ROUTINE RELEASES: read docs/MCP-RELEASE-PLAYBOOK.md and its operator checklist.
+**Routine releases:** read the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and its operator [checklist](MCP-RELEASE-CHECKLIST.md).
 The retained initial setup/history below is not a sequence to repeat each release.
 Actual named discovery and the current family contracts supersede historical counts.
 
-CONNECT MATHS BOOKLET TOOLS TO CHATGPT
+# Connect Maths Booklet Tools to ChatGPT
 
 This connection is made after the service has a verified public HTTPS URL and
 the human website has its new import support. A GitHub Pages URL alone cannot
 serve the MCP endpoint. No OpenAI API key is required by this renderer.
-For Free hosting follow GRAPH-MCP-FREE-SETUP.txt first. The service may need
+For Free hosting follow [GRAPH-MCP-FREE-SETUP.md](../archive/GRAPH-MCP-FREE-SETUP.md) first. The service may need
 about a minute to wake after 15 idle minutes. Open its /healthz URL and wait
 for JSON before creating the ChatGPT connection or retrying a timed-out call.
 
 Current OpenAI instructions checked on 6 October 2026:
+
 https://developers.openai.com/plugins/deploy/connect-chatgpt
 
 Open ChatGPT Plugins, use the plus button and Add custom MCP server. Name it
@@ -24,7 +25,8 @@ If those controls are unavailable, resolve account/admin access before launch.
 Local development can use a separately authorised Secure MCP Tunnel; do not
 claim that a local HTTP address is publicly available to ChatGPT.
 
-Evaluation prompts and expected behaviour
+## Evaluation prompts and expected behaviour
+
 1. "Plot y = 1/2x - 1 and x = -2, with a cross at (1, 2), from -5 to 5."
    Expect two independent lines, the point, exact scales, image preview,
    three downloads and an editable website link. Download the print PNG.
@@ -61,7 +63,7 @@ Original SVG fallback (source support; verify actual discovery)
 If an SVG download is blocked by the consumer's URL rules or DNS, record the
 actual error rather than attributing an HTTP failure to MathsDock. When the
 optional get_diagram_svg is discovered, use the unchanged envelope and view.
-Follow docs/DIRECT-SVG-DELIVERY.md for bounded chunks and exact UTF-8/full-hash
+Follow docs/tools/DIRECT-SVG-DELIVERY.md for bounded chunks and exact UTF-8/full-hash
 verification before inserting the saved original SVG into a vector PDF.
 Refresh the existing connection/fresh conversation if the tool is absent.
 Source tests do not establish target-account availability or file saving.

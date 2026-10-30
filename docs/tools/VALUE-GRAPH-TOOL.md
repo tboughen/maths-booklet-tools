@@ -1,24 +1,26 @@
-PLOTTING QUADRATICS
+# Plotting quadratics
 
 Route: ?tool=value-table-graph. Browser editor works without the MCP service.
 The default is the June 2018 Q5 scaffold; no calculation or plotting is implicit.
 
-Exam reference
--------------
+## Exam reference
+
 The source PDF uses a 120 x 140 mm plot, fine 2 mm grid lines, intermediate
 10 mm lines and heavy 20 mm lines. These have source-derived widths 0.510,
 1.020 and 1.417 pt. All three use the same grey; the axis is separate black
 artwork. Grids are anchored at zero, even when the bounds move.
-Default x scale: 0.5 units per cm (20 mm per unit).
-Default y scale: 1 unit per cm (10 mm per unit).
+
+- Default x scale: 0.5 units per cm (20 mm per unit).
+- Default y scale: 1 unit per cm (10 mm per unit).
+
 Scale numbers and italic x/y/O use 12 pt in physical SVG geometry, matching
 the nominal size in the exam PDF. They are not styled with the editor's larger
 interface text. Preview zoom changes the entire view, without changing print
 dimensions. Extending bounds adds grid area with unchanged text/grid sizing.
 Bundled STIX fonts are used consistently in preview and portable exports.
 
-Teacher workflow
-----------------
+## Teacher workflow
+
 The resource is the editor: click its displayed equation, table cells, x/y axis
 names, endpoint values, points, joins, curve or horizontal line. One local editor
 opens beside the selection, clamped within the viewport. Labelled buttons and an
@@ -72,8 +74,8 @@ Example replacement, reset, range replacement and import protect existing work.
 All actual mathematical/structural changes are undoable; editor draft choices
 such as preview zoom are separate from the saved mathematical document.
 
-Print, saving and navigation
----------------------------
+## Print, saving and navigation
+
 Choose combined, table-only or graph-only output. Table width, row height and
 gap are editable; values that overflow are rejected rather than shrunk silently.
 Supported plot dimensions: 60–180 mm wide, 40–240 mm high; at most 40 points.
@@ -98,8 +100,8 @@ remain intact. Its ?draft=... parameter is retained when copying its editor link
 Valid content survives reload. Tool navigation retains work, drafts and Undo;
 only the active tool listens for shortcuts and editable-link imports.
 
-Shared implementation
----------------------
+## Shared implementation
+
 packages/value-graph-core: schemas, exact arithmetic, atomic operations, document
 interchange, physical layout and SVG. Exact rational handling and font advances
 reuse the ratio core; density/print raster routines reuse the graph core.
@@ -108,18 +110,21 @@ services/graph-mcp/value-* adapts the same core and existing bounded raster queu
 No new network dependency, service, database or model dependency is introduced.
 Existing graph/ratio formats and routes are unchanged.
 
-Optional MCP contract (implemented locally; release is a separate stage)
------------------------------------------------------------------------
-value_graph_capabilities: no input; describes limits, print style and operations.
-create_value_graph: {envelope?: full ValueEnvelope}. Omitting envelope gives the
+## Optional MCP contract (implemented locally; release is a separate stage)
+
+- value_graph_capabilities: no input; describes limits, print style and operations.
+- create_value_graph: {envelope?: full ValueEnvelope}. Omitting envelope gives the
 scaffold with five blank cells and no plotted work. Supply the complete returned
 envelope shape when customizing; there is no hidden default-answer calculation.
-revise_value_graph: {envelope,baseHash,operations}. Use the actual returned hash.
+- revise_value_graph: {envelope,baseHash,operations}. Use the actual returned hash.
+
 All numeric content is a string: integers, decimals up to six places or fractions.
 IDs are stable strings; no positional tuple arrays or undocumented indexes.
 Revisions are atomic and reject a stale hash. Empty operations refresh downloads.
 
 Every operation has op plus the following fields:
+
+```
 set_equation {equation:{a,b,c}}
 set_cell {columnId,x?,y?}; y is {kind:blank}, {kind:answer-line}, or {kind:value,value}
 insert_column {afterId,column:{id,x,y}}
@@ -140,8 +145,11 @@ set_reference_lines {lines:[{id,y},...]}
 set_presentation {settings:{composition?,showEquation?,showMarkers?,showJoins?,
   showCurves?,showReferenceLines?,decimalPlaces?}}
 set_print {settings:{tableWidthMm?,tableRowHeightMm?,gapMm?}}
+```
 
 Example sequence in client notation:
+
+```
 const created = await client.callTool({name:'create_value_graph',arguments:{}});
 const first = created.structuredContent;
 const revised = await client.callTool({name:'revise_value_graph',arguments:{
@@ -152,17 +160,21 @@ const revised = await client.callTool({name:'revise_value_graph',arguments:{
   ]}});
 // Open revised.structuredContent.editorUrl, accept its replacement dialog,
 // then edit/save/reopen. Continue every revision with its returned envelope/hash.
+```
 
 Results contain a real preview, canonical envelope/hash, warnings, SVG/PNG/JSON
 downloads, editor URL, physical size, print raster dimensions and verified 600 ppi
 status. Signed downloads expire after seven days. Large resources fall back to
 included file content; they are not replaced by a plausible Markdown table/image.
 
-Verification commands
----------------------
+## Verification commands
+
+```
 npm run lint; npm run typecheck; npm run build; npm run build:service; npm test
 npx playwright test e2e/value-graph.spec.ts e2e/site-navigation.spec.ts
 node scripts/render-value-graph-examples.mjs [review-output-directory]
+```
+
 Existing Docker service-image smoke also covers the new scaffold/downloads.
 Check actual SVG/PNG/JSON, source font/grid proportions, maximum fractional table,
 all source examples, clipping/domain endpoints, keyboard/touch editing, invalid

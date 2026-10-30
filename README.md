@@ -2,13 +2,13 @@
 
 The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is available at `?tool=home`, and the tools overview at `?tool=booklet-tools`. Existing editor and Question bank links remain supported.
 
-For new tools, start with [Creating MathsDock tools](docs/TOOL-CREATION-GUIDE.md) and the [new tool brief](docs/TOOL-BRIEF-TEMPLATE.md). The guide turns the evolution of Graph tool and Ratio tables into practical design, teaching, export and compatibility principles, with [linked development examples](docs/TOOL-EVOLUTION.md).
+For new tools, start with [Creating MathsDock tools](docs/tools/TOOL-CREATION-GUIDE.md) and the [new tool brief](docs/tools/TOOL-BRIEF-TEMPLATE.md). The guide turns the evolution of Graph tool and Ratio tables into practical design, teaching, export and compatibility principles, with [linked development examples](docs/tools/TOOL-EVOLUTION.md).
 
-[Using the guidance in future conversations](docs/USING-TOOL-GUIDANCE.md) explains the project instructions and reusable development/diagram skills in `.agents/skills`.
+[Using the guidance in future conversations](docs/tools/USING-TOOL-GUIDANCE.md) explains the project instructions and reusable development/diagram skills in `.agents/skills`.
 
-New editors should follow [Adding a booklet tool](docs/ADDING-BOOKLET-TOOLS.md) so they inherit the shared layout and navigation. Drafts and undo history are retained while switching pages in the same session; the existing browser-storage recovery and editable files handle saved work.
+New editors should follow [Adding a booklet tool](docs/tools/ADDING-BOOKLET-TOOLS.md) so they inherit the shared layout and navigation. Drafts and undo history are retained while switching pages in the same session; the existing browser-storage recovery and editable files handle saved work.
 
-Each new tool also needs an accurate output image beside its existing All tools icon. Follow [All tools card previews](docs/TOOL-CARD-PREVIEWS.md) for example selection, SVG generation, shared cards and desktop/mobile checks.
+Each new tool also needs an accurate output image beside its existing All tools icon. Follow [All tools card previews](docs/tools/TOOL-CARD-PREVIEWS.md) for example selection, SVG generation, shared cards and desktop/mobile checks.
 
 A teacher-friendly website for creating the fiddly diagrams needed in student-facing maths booklets. The first tool builds Edexcel-style coordinate graphs on a one-centimetre square grid and prepares them for Microsoft Word and high-quality printing.
 
@@ -43,7 +43,7 @@ scaling arrow beside every column. Existing two-column saved tables remain compa
 editable JSON; open/share safely and undo changes. Pupil blanks remain blank
 until an explicit fill action. The shared MCP service adds ratio capabilities,
 creation and revision tools alongside its graph tools, with the same free hosting.
-See [ratio editor](docs/RATIO-TABLE-TOOL.txt), [MCP and release](docs/RATIO-TABLE-MCP.txt)
+See [ratio editor](docs/tools/RATIO-TABLE-TOOL.md), [MCP and release](docs/tools/RATIO-TABLE-MCP.md)
 and [reference examples](docs/ratio-table-examples/review-preview.png).
 
 ## Current graph tool
@@ -70,13 +70,13 @@ graphs use bundled STIX fonts consistently.
 The optional stateless MCP service exposes `graph_capabilities`, `create_graph`
 and `revise_graph` for direct graph creation without computer use. Human drawing
 and exports work independently of that service.
-See [operations and release](docs/GRAPH-MCP-RUNBOOK.txt) and
-[ChatGPT connection and acceptance](docs/GRAPH-MCP-CONNECTION.txt).
+See [operations and release](docs/release/GRAPH-MCP-RUNBOOK.md) and
+[ChatGPT connection and acceptance](docs/release/GRAPH-MCP-CONNECTION.md).
 Adding these files does not deploy a service or connect a ChatGPT account.
 
 Free hosting is configured in `render.yaml`. Use a free Render workspace without
 a payment method and review that the deployment lists only one Free web service.
-See [free setup](docs/GRAPH-MCP-FREE-SETUP.txt) for deployment and wake-up limits.
+See [free setup](docs/archive/GRAPH-MCP-FREE-SETUP.md) for deployment and wake-up limits.
 
 [Deploy the graph integration candidate to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Ftboughen%2Fmaths-booklet-tools%2Ftree%2Fcodex%2Fchatgpt-graph-integration)
 

@@ -1,6 +1,7 @@
-MathsDock Triangles — editor and print behaviour
+# MathsDock Triangles — editor and print behaviour
 
-Wedge and area refinement, 17 October 2026 (local review)
+## Wedge and area refinement, 17 October 2026 (local review)
+
 The interior shaded wedge is the angle control, including Blank/Hidden and
 None-mark angles. Wedges are invisible at rest, with feedback only for the
 hovered angle or keyboard focus/named chooser; selection alone does not shade
@@ -21,19 +22,21 @@ label; connected givens and calculation ownership use its exact triangle.
 
 Old files and presets retain schemaVersion 1 / triangle-1 and identical output.
 Adding a centre area uses schemaVersion 2 / triangle-2: each triangle may have
-an optional area: Label, reached as r:<triangle-id>. Captions keep their original
+an optional area: Label, reached as r:`<triangle-id>`. Captions keep their original
 meaning and two-caption limit. Both versions are validated; version/renderer
 mismatches and area fields in version 1 are rejected. Old clients cannot open
 version 2. Removal of the last area in this editor returns to version 1. Area
 labels follow reshape, transforms, split/restore and worked-copy operations.
 
-Visible label controls, 17 October 2026 (local review refinement)
+## Visible label controls, 17 October 2026 (local review refinement)
+
 The underlying tool was published in PR34; these refinements are local only.
 Label display and units use visible native radio choices. Angle marker is
 immediately available: None, Arc, Double arc, Triple arc or Right angle.
 Click an angle position or a printed arc to edit that exact named angle.
 An overlapping wedge offers named alternatives and a visual highlight.
 Choose Arc and Blank for an unlabelled arc. Labels and marks stay independent:
+
 typing or changing label type never inserts a mark; None stays None on reopen.
 Right angle is enabled only on perpendicular rays and never reshapes geometry.
 Show degree symbol, Dashed side and saved-answer visibility are checkboxes.
@@ -53,7 +56,8 @@ focus, measured popup bounds and existing drag/history/recovery guards remain.
 That label-control-only refinement did not change the saved format or artwork;
 the later optional centre-area extension is described above.
 
-Direct-interaction refinement, 16 October 2026
+## Direct-interaction refinement, 16 October 2026
+
 Ordinary editing is mode-free: click/tap labels to edit, drag labels to move
 them, and drag geometric vertices to reshape. Vertex names and points have
 separate targets; crowded hit areas are partitioned at their midpoint. Sides,
@@ -90,7 +94,8 @@ There are five teaching examples and ten source-linked exam scaffolds. Each
 source card names the original question and explains any triangle-only substep.
 The impossible-length and ambiguous-SSA examples are deliberate teaching cases.
 
-Editing
+## Editing
+
 Click a side, angle, vertex name, height or caption to edit it. Blank quantities
 retain click targets. The Selected label list provides a keyboard alternative.
 Choose given value, symbol, blank, answer line or hidden. Saved answers remain
@@ -127,7 +132,8 @@ and its locks, retains pupil labels/blanks, and is one undoable transaction.
 It is a proportional construction, not a physical scale drawing. A construction
 that violates the retained joined/split geometry is rejected without mutation.
 
-Calculations
+## Calculations
+
 Selecting a side, angle, height or area caption offers Calculate. Choose its
 owning triangle (explicitly for shared targets), then Load selected context.
 Methods show missing inputs, use named actual edge/angle records and only
@@ -155,7 +161,8 @@ retained calculated answers stale; recalculate or keep a saved answer as manual.
 Impossible printed givens can remain for error-spotting; construction/calculation
 refuse invalid numerical requests. Helpers do not solve arbitrary symbolic text.
 
-Print and files
+## Print and files
+
 Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt
 and independent of view zoom. Actual export height follows complete artwork,
 labels and captions with white allowance; an invalid collision/oversized layout
@@ -185,5 +192,6 @@ algebraic labels are supported; arbitrary LaTeX/executable expressions are not.
 solving and a triangle MCP integration remain outside this implementation.
 
 Verification and review evidence:
+
 ../reports/mathsdock-triangle-implementation-2026-10-16/HANDOVER.txt (workspace root)
 Source pack plan: reports/mathsdock-triangle-tool-plan-2026-10-16/PLAN.html

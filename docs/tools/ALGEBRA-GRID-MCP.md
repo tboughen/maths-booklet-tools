@@ -1,12 +1,12 @@
-Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
-[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
+Routine publication follows the [MCP release playbook](../release/MCP-RELEASE-PLAYBOOK.md) and
+[checklist](../release/MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
 applicable; historical family/tool counts are snapshots, not discovery evidence.
 
 # Expanding and factorising MCP contract
 
 Uses the existing Maths Booklet Tools service/App. Website, service deployment,
 plugin instructions and actual conversation discovery are separate release stages.
-Follow [connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) and retain exact files.
+Follow [connector acceptance](../release/MCP-CONNECTOR-ACCEPTANCE.md) and retain exact files.
 
 New names: `algebra_grid_capabilities`, `create_algebra_grid`,
 `revise_algebra_grid`. Do not call them until actually discovered. Existing six

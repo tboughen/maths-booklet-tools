@@ -191,7 +191,7 @@ No historical/stopped authoring controller is reactivated by this feature.
 
 Integrate reviewed proposals and their assets into an owned current-main candidate.
 Reconcile the live catalogue and source revisions again before doing so; a stale
-local snapshot is not live authority. Follow [the release pipeline](RELEASE-PIPELINE.md)
+local snapshot is not live authority. Follow [the release pipeline](../release/RELEASE-PIPELINE.md)
 and the workspace publication rulebook. Both preview and Cloudflare builds verify
 registered solution files. `bankAssets.ts` includes all solution PDFs/previews;
 `release.ts` rewrites them to the existing immutable SHA-256 keys. The transformation

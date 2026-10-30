@@ -40,7 +40,7 @@ export default function NewTool({ active = true }: { active?: boolean }) {
 
 Use the shared tokens and interface classes in `src/site/site.css` for colours, typography, spacing, borders, controls and focus. Add narrowly scoped styles for specialist controls. The shared interface follows the Question bank's white and blue-grey appearance. Mathematical content has its own rendering and fonts; interface styles must not change exported diagrams.
 
-Use `EditorToolbar` for common document utilities rather than recreating them. Keep specialist modes and configuration in the inspector, paired structure controls beside the resource, and direct value/label editing on the resource. Keep import dialogs outside any hidden export-menu wrapper so links can open them while that menu is closed. See [the layout audit](EDITOR-LAYOUT-AUDIT.md).
+Use `EditorToolbar` for common document utilities rather than recreating them. Keep specialist modes and configuration in the inspector, paired structure controls beside the resource, and direct value/label editing on the resource. Keep import dialogs outside any hidden export-menu wrapper so links can open them while that menu is closed. See [the layout audit](../archive/EDITOR-LAYOUT-AUDIT.md).
 
 ## Preserve work during navigation
 
