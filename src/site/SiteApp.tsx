@@ -1,7 +1,15 @@
 import { resourceCopyId } from "./copyDocument";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
-import QuestionBank from "../bank/QuestionBank";
-import AssessmentPage from "../assessment/AssessmentPage";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+import "./pageStyles";
 import { Overview } from "./Overview";
 import { SiteHeader } from "./SiteHeader";
 import {
@@ -17,6 +25,44 @@ import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
 
+const QuestionBank = lazy(() => import("../bank/QuestionBank"));
+const AssessmentPage = lazy(() => import("../assessment/AssessmentPage"));
+
+/** Each page downloads on first visit; `onReady` runs once its code has loaded and mounted. */
+function LazyPage({
+  children,
+  onReady,
+}: {
+  children: ReactNode;
+  onReady: () => void;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <p className="site-page-loading" role="status">
+          Loading…
+        </p>
+      }
+    >
+      {children}
+      <Ready onReady={onReady} />
+    </Suspense>
+  );
+}
+/** Focuses the visible page's heading; false when its code has not loaded yet. */
+function focusVisiblePage(host: HTMLElement | null) {
+  const visible = host?.querySelector(".site-page:not([hidden])");
+  const focusTarget =
+    visible?.querySelector<HTMLElement>("h1") ??
+    visible?.querySelector<HTMLElement>("#main-content");
+  focusTarget?.focus({ preventScroll: true });
+  return Boolean(focusTarget);
+}
+function Ready({ onReady }: { onReady: () => void }) {
+  useEffect(onReady, [onReady]);
+  return null;
+}
+
 /** Editors mount on first use and remain mounted so drafts and undo survive navigation. */
 export default function SiteApp() {
   const [section, setSection] = useState(() => readSection(location.search));
@@ -25,6 +71,16 @@ export default function SiteApp() {
   const remembered = useRef<Partial<Record<SectionId, string>>>({});
   const host = useRef<HTMLDivElement>(null);
   const firstPage = useRef(true);
+  // Set when navigation lands on a page whose code is still downloading.
+  const focusPending = useRef(false);
+  const pageReady = useCallback(() => {
+    if (
+      !focusPending.current ||
+      host.current?.querySelector(".site-page:not([hidden]) [aria-modal=true]")
+    )
+      return;
+    focusPending.current = !focusVisiblePage(host.current);
+  }, []);
   useEffect(() => {
     const back = () => {
       const next = readPage(location.search);
@@ -55,11 +111,7 @@ export default function SiteApp() {
       host.current?.querySelector(".site-page:not([hidden]) [aria-modal=true]")
     )
       return;
-    const visible = host.current?.querySelector(".site-page:not([hidden])");
-    const focusTarget =
-      visible?.querySelector<HTMLElement>("h1") ??
-      visible?.querySelector<HTMLElement>("#main-content");
-    focusTarget?.focus({ preventScroll: true });
+    focusPending.current = !focusVisiblePage(host.current);
   }, [page, section]);
   function navigate(event: MouseEvent<HTMLDivElement>) {
     if (
@@ -131,18 +183,24 @@ export default function SiteApp() {
         (tool) =>
           visited.includes(tool.id) && (
             <div key={tool.id} className="site-page" hidden={page !== tool.id}>
-              <tool.component active={page === tool.id} />
+              <LazyPage onReady={pageReady}>
+                <tool.component active={page === tool.id} />
+              </LazyPage>
             </div>
           ),
       )}
       {visited.includes("question-bank") && (
         <div className="site-page" hidden={page !== "question-bank"}>
-          <QuestionBank active={page === "question-bank"} />
+          <LazyPage onReady={pageReady}>
+            <QuestionBank active={page === "question-bank"} />
+          </LazyPage>
         </div>
       )}
       {visited.includes("assessment-follow-up") && (
         <div className="site-page" hidden={page !== "assessment-follow-up"}>
-          <AssessmentPage active={page === "assessment-follow-up"} />
+          <LazyPage onReady={pageReady}>
+            <AssessmentPage active={page === "assessment-follow-up"} />
+          </LazyPage>
         </div>
       )}
     </div>

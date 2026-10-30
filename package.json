@@ -26,7 +26,7 @@
     "cloudflare:verify": "node scripts/cloudflare/publish.mjs verify-assets",
     "cloudflare:publish": "node scripts/cloudflare/publish.mjs deploy",
     "cloudflare:login": "wrangler login",
-    "test:cloudflare:browser": "playwright test --config playwright.cloudflare.config.ts",
+    "test:cloudflare:browser": "playwright test --project cloudflare",
     "test:website": "vitest run --exclude \"services/**\" --exclude \"integration/**\"",
     "test:catalogue": "vitest run integration/catalogue-export.test.ts",
     "test:publisher": "node --test scripts/cloudflare/*.test.mjs",
