@@ -1,6 +1,6 @@
 name: Graph integration checks
+# Full release qualification. Dispatch it on main before a release; pull requests use quick-checks.yml.
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       base:
