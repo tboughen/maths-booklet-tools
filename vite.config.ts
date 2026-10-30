@@ -44,7 +44,8 @@ export default defineConfig(({ command, mode }) => ({
         writeFileSync("cloudflare-release/evidence/catalogue-build.json", JSON.stringify({ status: cached ? 'reused' : 'cold', reason: cacheReason }));
       } else {
         add("bank/catalogue.json");
-        for (const asset of catalogueAssetPaths(catalogue)) add(asset);
+        // Quick pull-request checks skip copying the multi-gigabyte bank; release builds never set this.
+        if (process.env.MATHSDOCK_SKIP_BANK_ASSETS !== "1") for (const asset of catalogueAssetPaths(catalogue)) add(asset);
       }
       tree("bank/pdfjs");
     },

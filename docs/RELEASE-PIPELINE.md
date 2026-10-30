@@ -198,6 +198,10 @@ and restores the previous process environment afterwards. It never logs secret
 values. Preview and production must permit their real origins in R2 CORS; never
 replace unrelated CORS rules to make a preview pass.
 
+Pull requests run the quick `quick-checks.yml` workflow. Full qualification in
+`graph-checks.yml` no longer runs on every pull request: dispatch it on main for
+the exact release candidate.
+
 Normal production publication is a manual dispatch of the reviewed main
 `cloudflare.yml` workflow, using a successful `graph-checks.yml` run:
 
