@@ -1,0 +1,4 @@
+[submodule "public/bank/assets"]
+	path = public/bank/assets
+	url = https://github.com/tboughen/mathsdock-bank
+	shallow = true

@@ -208,3 +208,11 @@ multi-page cases. Keep resumable batch receipts and exact outstanding IDs.
 
 There is no new public upload API, storage service, paid dependency, schema upgrade
 for diagram documents, bulk worked-solution booklet export or automatic sharing.
+
+## Where the files are committed
+
+`public/bank/assets/` is the `tboughen/mathsdock-bank` repository, linked as a Git
+submodule. Registering resources therefore takes two commits: commit and push the
+new files inside `public/bank/assets` first, then commit `catalogue.json` and the
+updated submodule link in this repository. The release bank fingerprint
+(`HEAD:public/bank`) includes that link, so qualification still pins exact files.
