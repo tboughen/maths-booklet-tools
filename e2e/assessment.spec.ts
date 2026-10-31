@@ -7,7 +7,7 @@ for (const pair of ["1-2", "3-4", "5-6"]) for (const tier of ["H", "F"]) {
   test(`HPP${pair}_${tier} uses spreadsheet order for mappings, templates and marks`, async ({ page }) => {
     const data = JSON.parse(await readFile("src/assessment/presets-data.json", "utf8"));
     const selections = data.presets.filter((p: { id: string }) => pair.split("-").some(n => p.id === `HPP${n}_${tier}`));
-    await page.goto("/?tool=assessment-follow-up");
+    await page.goto("/assessment-follow-up");
     await page.getByLabel("Choose assessment", { exact: true }).selectOption(`HPP${pair}_${tier}`);
     const parts = page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true });
     const summary = page.getByText("View or edit mapping", { exact: true });
@@ -47,7 +47,7 @@ for (const pair of ["1-2", "3-4", "5-6"]) for (const tier of ["H", "F"]) {
 }
 
 async function enterClass(page: import("@playwright/test").Page) {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("1MA1_NOV_2019_1H");
   await page.getByText("View or edit mapping", { exact: true }).click();
   const mapping = await page.getByRole("group", { name: "Assessment questions", exact: true }).getByRole("textbox").inputValue();
@@ -110,7 +110,7 @@ test("common mode gives everyone the absent pupil pack and works at 320px", asyn
   await expect(page.getByRole("group", { name: "Student marks", exact: true }).getByRole("textbox")).toHaveValue("");
 });
 test("imports an actual XLSX workbook without network submission and supports sheet selection", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true }).uncheck();
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("1MA1_NOV_2019_1H");
   await page.getByRole("group", { name: "Student marks", exact: true }).locator('input[type=file]').setInputFiles("e2e/fixtures/assessment-results.xlsx");
@@ -121,7 +121,7 @@ test("imports an actual XLSX workbook without network submission and supports sh
   await expect(page.getByRole("button", { name: "Download class PDF" }).first()).toBeEnabled({ timeout: 60000 });
 });
 test("HPP/MM presets accept headerless scores and preserve the first pupil", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true }).uncheck();
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("HPP1_H");
   await expect(page.locator(".af-assessment-summary")).toHaveText("11 score columns expected");
@@ -141,7 +141,7 @@ test("HPP/MM presets accept headerless scores and preserve the first pupil", asy
   await expect(page.getByRole("button", { name: "Download class PDF" }).first()).toBeDisabled();
 });
 test("numeric identifiers, pack ranges, page navigation and both downloads work together", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true }).uncheck();
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("MM1_H");
   await page.getByRole("group", { name: "Student marks", exact: true }).getByRole("textbox").fill(["1001\t" + Array(12).fill("0").join("\t"), "1002\t" + Array(12).fill("1").join("\t")].join("\n"));
@@ -174,7 +174,7 @@ test("numeric identifiers, pack ranges, page navigation and both downloads work 
   await expect(page.getByText("Changes made — generate again")).toBeVisible();
 });
 test("Adjust import can correct alignment without losing data", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true }).uncheck();
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("MM1_H");
   await page.getByRole("group", { name: "Student marks", exact: true }).getByRole("textbox").fill("1001\tnotes\t" + Array(12).fill("0").join("\t"));
@@ -187,7 +187,7 @@ test("Adjust import can correct alignment without losing data", async ({ page })
   await expect(page.getByRole("group", { name: "Student marks", exact: true }).getByRole("textbox")).toHaveValue(/1001/);
 });
 test("full HPPs default to separate part scores and regenerate when switched to question totals", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   const parts = page.getByLabel("Separate scores for 1a, 1b, etc.", { exact: true });
   await expect(parts).toBeChecked();
   const chooser = page.getByLabel("Choose assessment", { exact: true });
@@ -241,7 +241,7 @@ test("full HPPs default to separate part scores and regenerate when switched to 
   await expect(download).not.toHaveClass(/af-primary/);
 });
 test("marks-only example and optional details make the initial workflow simple", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await expect(page.getByLabel("Choose assessment", { exact: true })).toHaveValue("");
   await expect(page.getByRole("group", { name: "Assessment questions", exact: true })).toHaveCount(0);
   await expect(page.getByText("Paste marks only, one student per row.", { exact: false })).toBeVisible();
@@ -266,7 +266,7 @@ test("marks-only example and optional details make the initial workflow simple",
   await expect(page.locator(".af-pack-summary")).toContainText("3 students");
 });
 test("custom mappings, import warnings and marks-only limits remain accessible", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("custom");
   await page.getByRole("group", { name: "Assessment questions", exact: true }).getByRole("textbox").fill("Question,Max marks,Sparx codes\nQ1,3,U753\nQ2,3,U751");
   const marks = page.getByLabel("Paste marks", { exact: true });
@@ -291,7 +291,7 @@ test("custom mappings, import warnings and marks-only limits remain accessible",
   await expect(page.getByLabel("Pages per student", { exact: true })).toHaveValue("4");
 });
 test("home entry, keyboard navigation and tablet widths remain usable", async ({ page }) => {
-  await page.goto("/?tool=home");
+  await page.goto("/");
   await page.getByRole("link", { name: /Create class practice/ }).click();
   await expect(page.getByRole("heading", { name: "Assessment follow-up", exact: true })).toBeVisible();
   for (const width of [320, 375, 621, 768, 1024, 1440]) {
@@ -305,7 +305,7 @@ test("home entry, keyboard navigation and tablet widths remain usable", async ({
 });
 
 test("untaught topics are optional, preserve mark columns and invalidate generated packs", async ({ page }) => {
-  await page.goto("/?tool=assessment-follow-up");
+  await page.goto("/assessment-follow-up");
   await page.getByLabel("Choose assessment", { exact: true }).selectOption("custom");
   await page.getByRole("group", { name: "Assessment questions", exact: true }).getByRole("textbox").fill("Question,Max marks,Sparx codes\nQ1,3,U168\nQ2,3,U753");
   const exclusions = page.getByText("Not yet taught", { exact: true }).locator("..");

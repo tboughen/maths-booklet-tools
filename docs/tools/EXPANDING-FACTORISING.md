@@ -1,6 +1,6 @@
 # Expanding and factorising — local implementation, 17 October 2026
 
-- Route: ?tool=expanding-factorising
+- Route: /tools/expanding-factorising
 - Core: packages/algebra-grid-core/src/index.ts
 - Editor and exports: src/algebra-grid/
 

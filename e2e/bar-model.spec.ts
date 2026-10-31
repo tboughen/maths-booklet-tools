@@ -39,18 +39,18 @@ async function preset(page: Page, id: string, worked = false) {
 test("card includes genuine artwork and opens the registered editor", async ({
   page,
 }) => {
-  await page.goto("/?tool=booklet-tools");
+  await page.goto("/tools");
   const card = visible(page).getByRole("link", { name: /Open Bar modelling/ });
   await expect(card.getByRole("img")).toBeVisible();
   await card.click();
-  await expect(page).toHaveURL(/tool=bar-model/);
+  await expect(page).toHaveURL(/\/tools\/bar-model$/);
   await expect(resource(page)).toBeVisible();
   expect((await saved(page)).document.spans[1].label.state).toBe("hidden");
 });
 test("direct labels preserve invalid drafts, Apply/Cancel and native input undo", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page
     .getByRole("button", { name: "Edit label b1p1", exact: true })
     .click();
@@ -81,7 +81,7 @@ test("direct labels preserve invalid drafts, Apply/Cancel and native input undo"
 test("worked replacement retains earlier history and exact source states", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   const original = await saved(page);
   await page.getByRole("button", { name: "+ Part", exact: true }).click();
   const changed = await saved(page);
@@ -99,7 +99,7 @@ test("worked replacement retains earlier history and exact source states", async
 test("referenced removal asks explicitly and one Undo restores attached braces", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   const original = await saved(page);
   await page.getByRole("button", { name: "Remove b1p1", exact: true }).click();
   await page
@@ -123,7 +123,7 @@ test("referenced removal asks explicitly and one Undo restores attached braces",
 test("draft/navigation/recovery and editable-link cancellation preserve work", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   const original = await saved(page);
   await page
     .getByRole("button", { name: "Edit label b1p1", exact: true })
@@ -155,7 +155,7 @@ for (const width of [320, 375, 768, 1440])
     page,
   }, info) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/?tool=bar-model");
+    await page.goto("/tools/bar-model");
     await preset(page, "BM09");
     expect(
       (await saved(page)).document.bars.flatMap((b) => b.parts),
@@ -233,7 +233,7 @@ for (const width of [320, 375, 768, 1440])
 test("original JSON, portable SVG and verified600ppi PNG have native dimensions", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await preset(page, "BM08");
   const e = await saved(page),
     g = c.layout(e);
@@ -265,7 +265,7 @@ test("corrupt recovery never overwrites original saved bytes", async ({
   await page.addInitScript(() =>
     localStorage.setItem("maths-booklet-tools:bar-model:v1", "broken-original"),
   );
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await expect(page.getByRole("region", { name: "Recovery" })).toBeVisible();
   expect(
     await page.evaluate(() =>

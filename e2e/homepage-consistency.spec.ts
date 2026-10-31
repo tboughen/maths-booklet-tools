@@ -19,7 +19,7 @@ test("home and navigation share four destinations and plain, equally sized cards
 });
 
 test("bank and paper builder retain their routes, shared selection, and history independently", async ({ page }) => {
-  await page.goto("/?tool=question-bank&code=U332&tier=H");
+  await page.goto("/question-bank?code=U332&tier=H");
   await expect(page.getByRole("button", { name: "Select question", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Select question", exact: true }).click();
   const bankUrl = page.url();

@@ -91,7 +91,7 @@ test("link preview protects existing draft; open and undo are one history step",
 test("file import, self-contained SVG and 600ppi PNG work in a real browser", async ({
   page,
 }, testInfo) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page.getByRole("button", { name: "File" }).click();
   await page.getByLabel("Open editable graph file").setInputFiles({
     name: "graph.json",
@@ -144,7 +144,7 @@ test("human creation works without a service and the bank ignores graph fragment
 }) => {
   const requests: string[] = [];
   page.on("request", (r) => requests.push(r.url()));
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page
     .getByRole("button", { name: "Line by equation", exact: true })
     .click();
@@ -155,7 +155,8 @@ test("human creation works without a service and the bank ignores graph fragment
     "portable-v1",
   );
   const bank = new URL(editorLink(incoming, editorBase()));
-  bank.search = "?tool=question-bank";
+  bank.pathname = "/question-bank";
+  bank.search = "";
   await page.goto(bank.href);
   await expect(
     page
@@ -245,7 +246,7 @@ test("invalid files and mobile import never replace the current graph", async ({
 }, testInfo) => {
   await seed(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page.getByRole("button", { name: "File" }).click();
   await page.getByLabel("Open editable graph file").setInputFiles({
     name: "bad.json",

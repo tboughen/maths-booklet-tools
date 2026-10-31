@@ -111,8 +111,9 @@ export function readRoute(search: string, catalogue?: BankCatalogue): BankRoute 
   };
 }
 
+/** The query string for a bank route, without the page path; empty for the default route. */
 export function routeQuery(route: BankRoute): string {
-  const p = new URLSearchParams({tool: "question-bank"});
+  const p = new URLSearchParams();
   if (route.bankView === "topics") p.set("bankView", "topics");
   if (route.code) p.set("code", normalizeCode(route.code));
   if (route.tier !== "all") p.set("tier", route.tier);
@@ -120,7 +121,8 @@ export function routeQuery(route: BankRoute): string {
   if (route.collection !== "all") p.set("collection", route.collection);
   if (route.question) p.set("question", route.question);
   if (route.view > 0) p.set("view", String(route.view + 1));
-  return `?${p.toString()}`;
+  const query = p.toString();
+  return query ? `?${query}` : "";
 }
 
 export function topicQuestions(catalogue: BankCatalogue, code: string): BankQuestion[] {

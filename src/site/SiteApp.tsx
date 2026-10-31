@@ -10,7 +10,9 @@ import {
 } from "react";
 import "./pageStyles";
 import { Overview } from "./Overview";
+import { NotFound } from "./NotFound";
 import { SiteHeader } from "./SiteHeader";
+import { upgradeLegacyLink } from "./routes";
 import {
   AssessmentPage,
   bookletTools,
@@ -61,9 +63,12 @@ function Ready({ onReady }: { onReady: () => void }) {
   return null;
 }
 
+/** The current address within the site: path, query and hash. */
+const here = () => location.pathname + location.search + location.hash;
+
 /** Editors mount on first use and remain mounted so drafts and undo survive navigation. */
 export default function SiteApp() {
-  const [section, setSection] = useState(() => readSection(location.search));
+  const [section, setSection] = useState(() => readSection());
   const page: PageId = section === "paper-builder" ? "question-bank" : section;
   const [visited, setVisited] = useState<PageId[]>([page]);
   const remembered = useRef<Partial<Record<SectionId, string>>>({});
@@ -81,15 +86,15 @@ export default function SiteApp() {
   }, []);
   useEffect(() => {
     const back = () => {
-      const next = readPage(location.search);
-      setSection(readSection(location.search));
+      const next = readPage();
+      setSection(readSection());
       setVisited((previous) =>
         previous.includes(next) ? previous : [...previous, next],
       );
     };
     const remember = () => {
-      const next = readSection(location.search);
-      remembered.current[next] = location.search + location.hash;
+      const next = readSection();
+      remembered.current[next] = here();
       setSection(next);
     };
     window.addEventListener("maths-tools:route", remember);
@@ -130,34 +135,34 @@ export default function SiteApp() {
       host.current?.querySelector<HTMLElement>("#main-content")?.focus();
       return;
     }
-    const url = new URL(link.href, location.href);
-    const id = url.searchParams.get("tool");
+    const clicked = new URL(link.href, location.href).href;
+    const url = new URL(upgradeLegacyLink(clicked) ?? clicked);
+    const next = readPage(url);
     if (
       url.origin !== location.origin ||
-      url.pathname !== location.pathname ||
-      !id ||
-      readPage(url.search) !== id
+      next === "not-found" ||
+      // Same-page anchors keep the browser's own behaviour.
+      (url.hash &&
+        url.pathname === location.pathname &&
+        url.search === location.search)
     )
       return;
     event.preventDefault();
-    remembered.current[readSection(location.search)] =
-      location.search + location.hash;
-    const next = id as PageId;
-    const nextSection = readSection(url.search);
+    remembered.current[readSection()] = here();
+    const nextSection = readSection(url);
     const sectionLink =
-      url.searchParams.size === 1 ||
-      (nextSection === "paper-builder" && url.searchParams.size === 2);
+      url.searchParams.size === 0 ||
+      (nextSection === "paper-builder" && url.searchParams.size === 1);
     let href =
       sectionLink && !url.hash
-        ? (remembered.current[nextSection] ?? url.search)
-        : url.search + url.hash;
+        ? (remembered.current[nextSection] ?? url.pathname + url.search)
+        : url.pathname + url.search + url.hash;
     if (resourceCopyId) {
       const destination = new URL(href, location.href);
       destination.searchParams.set("resourceCopy", resourceCopyId);
-      href = destination.search + destination.hash;
+      href = destination.pathname + destination.search + destination.hash;
     }
-    if (location.search + location.hash !== href)
-      window.history.pushState({}, "", location.pathname + href);
+    if (here() !== href) window.history.pushState({}, "", href);
     setVisited((previous) =>
       previous.includes(next) ? previous : [...previous, next],
     );
@@ -172,6 +177,11 @@ export default function SiteApp() {
         Skip to content
       </a>
       <SiteHeader key={section} page={page} section={section} />
+      {page === "not-found" && (
+        <div className="site-page">
+          <NotFound />
+        </div>
+      )}
       {(page === "home" || page === "booklet-tools") && (
         <div className="site-page">
           <Overview home={page === "home"} />

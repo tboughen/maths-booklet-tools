@@ -1,3 +1,4 @@
+import { pathLink } from "../site/routes";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as c from "../../packages/bar-model-core/src/versioned";
 import * as v from "../../packages/bar-model-core/src/v2";
@@ -728,7 +729,7 @@ export default function LessonBarModelPage({
                   description: LINK_DESCRIPTION,
                   action: () =>
                     navigator.clipboard.writeText(
-                      api.editorLink(e, location.origin),
+                      pathLink(api.editorLink(e, location.origin)),
                     ),
                   disabled: blocked || !!issue,
                 },

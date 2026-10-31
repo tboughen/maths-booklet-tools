@@ -101,7 +101,7 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
   page,
 }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const blank = page.locator(
     '.ratio-preview [data-row="target"][data-column="1"]',
   );
@@ -148,7 +148,7 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
   expect(
     await page.evaluate((key) => localStorage.getItem(key), graphKey),
   ).toBe(graphRaw);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await expect(blank).toHaveAttribute("data-kind", "answer-line");
   await expect(
     page.getByLabel("Show arrows", { exact: true }),
@@ -158,7 +158,7 @@ test("invalid input cannot export or overwrite the saved value; Escape recovers 
   page,
 }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const value = page.getByLabel("Row 1 x value", { exact: true });
   await value.fill("1/0");
   await value.press("Enter");
@@ -182,7 +182,7 @@ test("invalid input cannot export or overwrite the saved value; Escape recovers 
 });
 test("long headings cannot leave a stale export enabled", async ({ page }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page
     .getByRole("button", { name: "Edit headings", exact: true })
     .click();
@@ -209,7 +209,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
       requests.push(url.hostname);
   });
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page.getByLabel("Editing guides", { exact: true }).check();
   await page.getByLabel("Preview zoom", { exact: true }).selectOption("3");
   const metrics = ratioMetrics(scaffold.document);
@@ -253,7 +253,7 @@ test("corrupt storage is retained until recovery is saved; foreign imports are r
 }) => {
   const raw = '{"kind":"future-format","keep":"original evidence"}';
   await seed(page, raw);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await expect(
     page.getByText("Recover your saved table", { exact: true }),
   ).toBeVisible();
@@ -299,7 +299,7 @@ test("row removal, undo, mobile layout and lesson preview are usable", async ({
   page,
 }, testInfo) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page
     .getByRole("group", { name: "Table structure" })
     .getByRole("button", { name: "Add row", exact: true })
@@ -353,7 +353,7 @@ test("clipboard includes the verified PNG and centimetre dimensions; blocked cop
   page,
 }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page.evaluate(() => {
     const state = window as typeof window & { copiedRatio?: string };
     document.execCommand = () => {
@@ -395,7 +395,7 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
   page,
 }, testInfo) => {
   await seed(page, JSON.stringify(legacyFixtures[1].envelope));
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const structure = page.getByRole("group", { name: "Table structure" });
   await structure
     .getByRole("button", { name: "Add column", exact: true })
@@ -528,7 +528,7 @@ test("GUI row selection adds one shared operation and keyboard entry preserves i
   page,
 }) => {
   await seed(page, JSON.stringify(simple));
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const cell = page.getByLabel("Row 1 x value", { exact: true });
   await cell.click();
   await cell.fill("1/0");
@@ -581,7 +581,7 @@ test("three-column image and editable exports survive reopening without editor d
   page,
 }, testInfo) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page
     .getByRole("group", { name: "Table structure" })
     .getByRole("button", { name: "Add column", exact: true })
@@ -645,7 +645,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
   page,
 }, testInfo) => {
   await seed(page, JSON.stringify(simple));
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page.getByRole("button", { name: "Add arrow", exact: true }).click();
   await page
     .getByRole("button", { name: "Choose row 1 for arrow", exact: true })
@@ -829,7 +829,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
   page,
 }) => {
   await seed(page, JSON.stringify(simple));
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const structure = page.getByRole("group", { name: "Table structure" });
   for (const name of ["Add row", "Remove row", "Add column", "Remove column"]) {
     await expect(page.getByRole("button", { name, exact: true })).toHaveCount(
@@ -939,7 +939,7 @@ test("default heading arrows are editable Unicode and can be deleted, restored a
   page,
 }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const first = page.getByLabel("Edit column 1 heading", { exact: true });
   const second = page.getByLabel("Edit column 2 heading", { exact: true });
   await expect(first).toHaveValue("x →");
@@ -977,7 +977,7 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
   page,
 }) => {
   await seed(page);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const title = page.getByRole("heading", {
     name: "Ratio tables",
     exact: true,

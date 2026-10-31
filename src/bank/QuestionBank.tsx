@@ -15,8 +15,11 @@ import { emptyReason, emptyRoute, filterQuestions, matchingParts, normalizeCode,
 import { withPerformance } from "./performance";
 import { PerformanceBadge } from "./PerformanceBadge";
 import "./question-bank.css";
+import { pageHref, readPage } from "../site/routes";
 
 type WebContext = {registerTool: (tool: {name:string;description:string;inputSchema:object;annotations:{readOnlyHint:boolean};execute:(input:unknown)=>unknown},options:{signal:AbortSignal})=>void|Promise<void>};
+/** The bank page's path and query for a route. */
+const bankAddress = (route: BankRoute) => pageHref("question-bank") + routeQuery(route);
 const roomPreference = ():RoomLayout => {try {const v=localStorage.getItem("qb-room");return v==="single"||v==="two"?v:"auto";}catch{return "auto";}};
 
 export default function QuestionBank({ active = true }: { active?: boolean }) {
@@ -47,8 +50,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const touchStart=useRef<{x:number;y:number}|undefined>(undefined);
   const app=useRef<HTMLDivElement>(null);
   const go=useCallback((next:BankRoute,replace=false)=>{
-    const query=routeQuery(next);
-    if(activePage.current && location.search!==query) history[replace?"replaceState":"pushState"]({},"",`${location.pathname}${query}`);
+    const address=bankAddress(next);
+    if(activePage.current && location.pathname+location.search!==address) history[replace?"replaceState":"pushState"]({},"",address);
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
     setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice("");
   },[]);
@@ -57,7 +60,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     fetch(assetUrl("bank/catalogue.json"),{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error("Could not load the catalogue.");return r.json();}).then(data=>{const c=withPerformance(verifyCatalogue(data));setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});
     return ()=>controller.abort();
   },[reload,go]);
-  useEffect(()=>{const back=()=>{if(new URLSearchParams(location.search).get("tool")!=="question-bank")return;const next=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
+  useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const next=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
   useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
@@ -94,7 +97,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
 
   const move=useCallback((direction:number)=>{
     if(!question)return;const newView=viewIndex+direction*(two?2:1);
-    if(newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",`${location.pathname}${routeQuery(updated)}`);window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
+    if(newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",bankAddress(updated));window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?target.questionViews.length-1:0});}
   },[question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
   const reveal=useCallback(()=>{if(question){setMode({id:question.id,role:role==="scheme"?"question":"scheme",view:0});setZoom(1);}},[question,role]);
@@ -182,7 +185,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
               <details className="qb-more"><summary aria-label="Question options" title="Question options"><MoreHorizontal size={20}/></summary><div className="qb-more-menu">
                 <a href={assetUrl(question.printPdf)} target="_blank" rel="noreferrer">Source question PDF</a>
                 {question.workedSolution&&<a href={assetUrl(question.workedSolution.pdf)} target="_blank" rel="noreferrer">Worked solution PDF</a>}
-                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${location.pathname}${routeQuery({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
+                <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
                 <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
                 <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>Swipe to navigate on a touch screen.</p>

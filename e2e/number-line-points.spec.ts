@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 test("hollow existing points can be joined without losing other points; Undo and reopen retain them", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   await page.evaluate(() =>
     localStorage.removeItem("maths-booklet-tools:number-line:v1"),
   );
@@ -72,7 +72,7 @@ test("hollow existing points can be joined without losing other points; Undo and
 test("joining ticks to a point set adds only missing endpoints and preserves other points", async ({
   page,
 }) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   await page.evaluate(() =>
     localStorage.removeItem("maths-booklet-tools:number-line:v1"),
   );

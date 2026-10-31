@@ -26,8 +26,14 @@ describe("editable Venn links", () => {
     };
     const before = canonical(e),
       url = vennEditorLink(e, "https://mathsdock.co.uk/?tool=graph#old");
-    expect(new URL(url).search).toBe("?tool=venn");
+    expect(new URL(url).pathname).toBe("/tools/venn");
+    expect(new URL(url).search).toBe("");
     expect(canonical(parseVennLink(url))).toBe(before);
+    // Links made before path addresses still open.
+    const legacy = new URL(url);
+    legacy.pathname = "/";
+    legacy.search = "?tool=venn";
+    expect(canonical(parseVennLink(legacy.href))).toBe(before);
     expect(canonical(e)).toBe(before);
   });
   it("rejects malformed, unsupported and excessive links without dropping data", () => {
@@ -36,6 +42,9 @@ describe("editable Venn links", () => {
     ).toThrow(/supported/);
     expect(() =>
       parseVennLink("https://mathsdock.co.uk/?tool=graph#venn=abcd"),
+    ).toThrow(/supported/);
+    expect(() =>
+      parseVennLink("https://mathsdock.co.uk/tools/graph#venn=abcd"),
     ).toThrow(/supported/);
     const unsupported =
       "https://mathsdock.co.uk/?tool=venn#venn=" +
@@ -46,9 +55,9 @@ describe("editable Venn links", () => {
     expect(() => parseVennLink(unsupported)).toThrow(/could not be read/);
     const e = create();
     const before = canonical(e);
-    expect(() =>
-      vennEditorLink(e, "https://mathsdock.co.uk/" + "x".repeat(16_000)),
-    ).toThrow(/too large/);
+    // Links always point at the Venn page, so only a huge address can exceed the limit.
+    const hugeHost = `https://${"a".repeat(60)}.`.padEnd(16_100, "b") + ".uk/";
+    expect(() => vennEditorLink(e, hugeHost)).toThrow(/too large/);
     expect(canonical(e)).toBe(before);
   });
 });

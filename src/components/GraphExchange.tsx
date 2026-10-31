@@ -1,3 +1,4 @@
+import { pathLink } from "../site/routes";
 import {
   EditorDownloadMenu,
   LINK_DESCRIPTION,
@@ -197,7 +198,7 @@ export function GraphExchange({
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
               return navigator.clipboard.writeText(
-                editorLink(createEnvelope(document), location.href),
+                pathLink(editorLink(createEnvelope(document), location.href)),
               );
             },
             success: "Editable link copied.",

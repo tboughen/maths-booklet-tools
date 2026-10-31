@@ -1,3 +1,4 @@
+import { linkOpensTool, setToolPage } from "../site/routes";
 import {
   canonical,
   parseFile,
@@ -10,7 +11,7 @@ export function editorLink(e: Envelope, base: string) {
     binary += String.fromCharCode(v);
   });
   const u = new URL(base);
-  u.search = "?tool=expanding-factorising";
+  setToolPage(u, "expanding-factorising");
   u.hash =
     "algebra-grid=" +
     btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
@@ -24,7 +25,7 @@ export function parseLink(href: string) {
   const u = new URL(href);
   if (
     href.length > 16000 ||
-    u.searchParams.get("tool") !== "expanding-factorising" ||
+    !linkOpensTool(u, "expanding-factorising") ||
     !/^#algebra-grid=[A-Za-z0-9_-]+$/.test(u.hash)
   )
     throw Error(

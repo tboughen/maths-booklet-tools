@@ -1,3 +1,4 @@
+import "./site/upgradeAddress";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -11,4 +12,4 @@ const render = () =>
       <SiteApp />
     </StrictMode>,
   );
-Promise.resolve(preloadPage(readPage(location.search))).then(render, render);
+Promise.resolve(preloadPage(readPage())).then(render, render);

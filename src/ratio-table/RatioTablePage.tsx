@@ -1,3 +1,4 @@
+import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import {
   ratioGallery,
@@ -627,7 +628,7 @@ export default function RatioTablePage({
                   label: "Copy editable link",
                   action: () =>
                     navigator.clipboard.writeText(
-                      ratioEditorLink(envelope, location.href),
+                      pathLink(ratioEditorLink(envelope, location.href)),
                     ),
                   disabled: exportDisabled,
                   success: "Editable link copied.",

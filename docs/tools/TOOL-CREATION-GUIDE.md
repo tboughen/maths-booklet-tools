@@ -142,7 +142,7 @@ Follow the current separation between the browser editor, a reusable mathematica
 
 Keep ordinary human editing and export independent of the MCP service. A new diagram tool should not acquire a network dependency solely because AI-assisted creation is also useful.
 
-Keep tool IDs stable and use explicit `?tool=…` routes. Editors remain mounted after first use so switching tools preserves work and undo history. Only the active editor should handle its shortcuts, imports and modal overlays. Follow the detailed navigation and recovery rules in [Adding a booklet tool](ADDING-BOOKLET-TOOLS.md).
+Keep tool IDs stable; each tool's address is `/tools/<id>` (old `?tool=<id>` links redirect). Editors remain mounted after first use so switching tools preserves work and undo history. Only the active editor should handle its shortcuts, imports and modal overlays. Follow the detailed navigation and recovery rules in [Adding a booklet tool](ADDING-BOOKLET-TOOLS.md).
 
 ## Plan compatibility and optional AI access together
 

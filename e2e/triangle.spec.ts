@@ -52,7 +52,7 @@ async function boot(page: Page, e: Envelope | string = create()) {
     },
     [key, typeof e === "string" ? e : canonical(e)],
   );
-  await page.goto("/?tool=triangle");
+  await page.goto("/tools/triangle");
   await expect(
     page.getByRole("heading", { name: "Triangles", exact: true }),
   ).toBeVisible();
@@ -249,7 +249,7 @@ test("all ten example cards preserve declared scaffolds and production source UR
     });
     await expect(card.getByRole("link")).toHaveAttribute(
       "href",
-      `https://mathsdock.co.uk/?tool=question-bank&question=${ex.sourceId}`,
+      `https://mathsdock.co.uk/question-bank?question=${ex.sourceId}`,
     );
   }
 });
@@ -629,7 +629,7 @@ test("another tab's newer saved draft is protected even during recovery confirma
 }) => {
   await boot(page);
   const other = await context.newPage();
-  await other.goto("/?tool=triangle");
+  await other.goto("/tools/triangle");
   await expect(
     other.getByRole("heading", { name: "Triangles", exact: true }),
   ).toBeVisible();

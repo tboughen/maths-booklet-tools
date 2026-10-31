@@ -60,7 +60,7 @@ export interface GalleryExample<T> {
   openLabel?: string;
 }
 const source = (id: string) =>
-  `https://mathsdock.co.uk/?tool=question-bank&question=${id}`;
+  `https://mathsdock.co.uk/question-bank?question=${id}`;
 export const graphGallery = graphExamples.map((example) => ({
   id: `graph-${example.id}`,
   title: example.title,

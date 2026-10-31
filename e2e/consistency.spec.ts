@@ -18,7 +18,7 @@ test("all five quadratic source links open the matching published question witho
   page,
 }, info) => {
   test.setTimeout(90000);
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   const original = await download(page, "Save editable file");
   await showExamples(page);
   for (const example of quadraticSources) {
@@ -54,7 +54,7 @@ test("touch controls and a reduced visual viewport retain usable Graph actions",
       viewport: { width: 375, height: 900 },
     }),
     page = await context.newPage();
-  await page.goto(editorBase() + "?tool=graph");
+  await page.goto(editorBase() + "tools/graph");
   const button = page.getByRole("button", {
     name: "Add one square at the positive end of the y-axis",
     exact: true,
@@ -328,7 +328,7 @@ for (const tool of tools) {
 test("Graph rejects stale exports and retains invalid equation/coordinate drafts across navigation", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page
     .getByRole("button", { name: "Line by equation", exact: true })
     .click();
@@ -427,7 +427,7 @@ test("Graph range controls remain outside the entire white resource and 48 px at
   for (const [index, document] of [normal, boundary, maximum].entries())
     for (const width of [1440, 1024, 768, 375, 320]) {
       await page.setViewportSize({ width, height: 1000 });
-      await page.goto("/?tool=graph");
+      await page.goto("/tools/graph");
       await page.evaluate((doc) => {
         localStorage.clear();
         localStorage.setItem(
@@ -496,7 +496,7 @@ test("Graph precise ranges validate supported steps and pointer mapping survives
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 900 });
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page.getByText("Precise axis ranges", { exact: true }).click();
   const minimum = page.getByRole("textbox", { name: "x minimum", exact: true });
   await minimum.fill("-3/2");
@@ -565,7 +565,7 @@ test("Venn editable links preserve reverse nesting, Unicode and pupil state desp
   );
   e.document.labels[1].text = "Ω";
   const canonical = canonicalVenn(e);
-  await page.goto("/?tool=venn");
+  await page.goto("/tools/venn");
   await page.evaluate(
     (text) => localStorage.setItem("maths-booklet-tools:venn:v1", text),
     canonical,
@@ -607,7 +607,7 @@ test("Venn editable links preserve reverse nesting, Unicode and pupil state desp
   await expect(
     fresh.getByRole("button", { name: "Overlap", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await fresh.goto(editorBase() + "?tool=venn#venn=bad!");
+  await fresh.goto(editorBase() + "tools/venn#venn=bad!");
   await expect(fresh.locator(".resource-feedback")).toContainText(
     "supported editable Venn link",
   );
@@ -617,7 +617,7 @@ test("Venn editable links preserve reverse nesting, Unicode and pupil state desp
 test("new Graph documents are portable and an old legacy document keeps its font and size", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await expect(page.locator(".graph-canvas")).toHaveAttribute(
     "data-style-profile",
     "portable-v1",
@@ -665,7 +665,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
   page,
 }, info) => {
   test.setTimeout(90000);
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   await showExamples(page);
   for (const example of quadraticSources) {
     const card = page.getByRole("article", {
@@ -676,7 +676,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
       card.getByRole("link", { name: "View source question", exact: true }),
     ).toHaveAttribute(
       "href",
-      `https://mathsdock.co.uk/?tool=question-bank&question=${example.id}`,
+      `https://mathsdock.co.uk/question-bank?question=${example.id}`,
     );
     await expect(card.getByRole("link")).toHaveAttribute("target", "_blank");
     await card
@@ -727,7 +727,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
 test("Graph protects a newer tab's draft until its original bytes are backed up", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await expect(
     page.getByText("Saved on this device", { exact: true }).first(),
   ).toBeVisible();
@@ -739,7 +739,7 @@ test("Graph protects a newer tab's draft until its original bytes are backed up"
     )
     .not.toBeNull();
   const other = await page.context().newPage();
-  await other.goto(editorBase() + "?tool=graph");
+  await other.goto(editorBase() + "tools/graph");
   await other
     .getByRole("button", {
       name: "Add one square at the positive end of the x-axis",
@@ -780,7 +780,7 @@ test("failed copy/link operations keep a useful fallback and valid-file saving s
   page,
 }) => {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/?tool=venn");
+  await page.goto("/tools/venn");
   await page.evaluate(() =>
     Object.defineProperty(navigator.clipboard, "writeText", {
       configurable: true,
@@ -803,7 +803,7 @@ test("failed copy/link operations keep a useful fallback and valid-file saving s
     page.getByRole("menuitem", { name: /^Copy editable link/ }),
   ).toBeFocused();
   await page.keyboard.press("Escape");
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -831,7 +831,7 @@ test("a missing portable font blocks the real SVG and leaves editable-file fallb
   await page.route(/STIXTwoMath-Regular.*\.otf/, (route) => route.abort());
   const downloads: string[] = [];
   page.on("download", (file) => downloads.push(file.suggestedFilename()));
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await openMenu(page);
   await page
     .getByRole("menuitem", { name: "Download SVG", exact: true })
@@ -848,7 +848,7 @@ test("a missing portable font blocks the real SVG and leaves editable-file fallb
 test("busy link copying prevents duplicate requests and late completion cannot steal another editor's focus", async ({
   page,
 }) => {
-  await page.goto("/?tool=venn");
+  await page.goto("/tools/venn");
   await page.evaluate(() => {
     const state = window as typeof window & {
       finishLinkCopy?: () => void;
@@ -900,7 +900,7 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
     JSON.stringify(createEnvelope(document)),
   );
   await page.setViewportSize({ width: 375, height: 900 });
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page
     .getByRole("combobox", { name: "Preview zoom", exact: true })
     .selectOption("1.5");

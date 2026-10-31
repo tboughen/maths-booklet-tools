@@ -23,7 +23,7 @@ const report = join(
 mkdirSync(join(report, "exports"), { recursive: true });
 mkdirSync(join(report, "originals"), { recursive: true });
 test.beforeEach(async ({ page }) => {
-  await page.goto("/?tool=cuboids");
+  await page.goto("/tools/cuboids");
   await expect(page.getByTestId("cuboid-resource")).toBeVisible();
 });
 
@@ -133,7 +133,7 @@ test("tight vector crops preserve every label and shape across the supported lay
   for (const [name, e] of cases()) {
     const before = canonical(e),
       original = layout(e);
-    await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
+    await page.goto(`/tools/cuboids#cuboids=${encode(e)}`);
     await page
       .getByRole("button", { name: "Use these cuboids", exact: true })
       .click();
@@ -317,7 +317,7 @@ test("largest separated resource still exports every layer at 600 ppi", async ({
   page,
 }) => {
   const e = cases().find(([name]) => name === "maximum-layers")![1];
-  await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
+  await page.goto(`/tools/cuboids#cuboids=${encode(e)}`);
   await page
     .getByRole("button", { name: "Use these cuboids", exact: true })
     .click();

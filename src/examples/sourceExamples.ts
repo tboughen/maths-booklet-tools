@@ -1,3 +1,4 @@
+import { pageHref } from "../site/routes";
 import type { DiagramDocumentV1 } from "../domain/types";
 import {
   createRatioTable,
@@ -198,4 +199,4 @@ export const ratioExamples: SourceExample<RatioEnvelope>[] = [
   },
 ];
 export const sourceQuestionHref = (id: string) =>
-  `?tool=question-bank&question=${encodeURIComponent(id)}`;
+  `${pageHref("question-bank")}?question=${encodeURIComponent(id)}`;

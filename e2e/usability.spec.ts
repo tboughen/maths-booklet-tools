@@ -66,23 +66,23 @@ const saved = (page: Page, key: string) =>
 test("overview search matches teaching vocabulary, handles no results and retains all destinations", async ({
   page,
 }) => {
-  await page.goto("/?tool=booklet-tools");
+  await page.goto("/tools");
   await expect(page.locator(".overview-tool-card")).toHaveCount(9);
-  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `?tool=${tool}`), "?tool=bar-model"].sort());
+  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model"].sort());
   await page.getByRole("searchbox", { name: "Search tools" }).fill("sharing");
-  await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "?tool=bar-model");
+  await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "/tools/bar-model");
   await page
     .getByRole("searchbox", { name: "Search tools" })
     .fill("Pythagoras");
   await expect(page.locator(".overview-tool-card")).toHaveCount(1);
   await expect(page.locator(".overview-tool-card")).toHaveAttribute(
     "href",
-    "?tool=triangle",
+    "/tools/triangle",
   );
   await page.getByRole("searchbox").fill("inequalities");
   await expect(page.locator(".overview-tool-card")).toHaveAttribute(
     "href",
-    "?tool=number-line",
+    "/tools/number-line",
   );
   await page.getByRole("searchbox").fill("not-a-teaching-tool");
   await expect(page.getByRole("status")).toContainText("No tools found");
@@ -236,7 +236,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
 test("number-line quick input preserves teaching state, supports exact range drafts, cancels replacement and undoes atomically", async ({
   page,
 }) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   const key = "maths-booklet-tools:number-line:v1";
   await expect.poll(() => saved(page, key)).not.toBeNull();
   const original = await saved(page, key);
@@ -298,7 +298,7 @@ test("number-line quick input preserves teaching state, supports exact range dra
 test("invalid notation survives tool navigation; Escape restores exports and modal keys cannot undo background work", async ({
   page,
 }) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   const field = page.getByRole("textbox", {
     name: "Inequality or value",
     exact: true,
@@ -333,7 +333,7 @@ test("invalid notation survives tool navigation; Escape restores exports and mod
 test("typed straight-line input edits existing models, rejects nonlinear drafts and leaves other objects unchanged", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   const key = "maths-booklet-tools:graph-envelope:v1";
   await expect.poll(() => saved(page, key)).not.toBeNull();
   const before = await saved(page, key);

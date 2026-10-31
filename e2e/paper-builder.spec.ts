@@ -9,7 +9,7 @@ const raw=JSON.parse(await readFile("public/bank/catalogue.json","utf8")) as {qu
 
 test("all 27 filter combinations have correct table counts and preserve selected code intent",async({page})=>{
   test.setTimeout(90000);
-  await page.goto("/?tool=question-bank&bankView=topics");
+  await page.goto("/question-bank?bankView=topics");
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");
   await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("");
@@ -33,7 +33,7 @@ test("all 27 filter combinations have correct table counts and preserve selected
 });
 
 test("shared code/manual selection survives navigation, excludes once, restores and never falls back on empty filters",async({page})=>{
-  await page.goto("/?tool=question-bank&bankView=topics");
+  await page.goto("/question-bank?bankView=topics");
   // This journey deliberately uses the original single past-paper match. New
   // mock questions may share either topic without changing this manual choice.
   await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Paper type",exact:true}).selectOption("past");
@@ -68,7 +68,7 @@ test("shared code/manual selection survives navigation, excludes once, restores 
 
 test("actual browser downloads retain multipart, crossover, writing space and physical scale in both layouts",async({page})=>{
   test.setTimeout(90000);
-  await page.goto("/?tool=question-bank&code=U945&question=1MA1_JUN_2018_3H_Q3");
+  await page.goto("/question-bank?code=U945&question=1MA1_JUN_2018_3H_Q3");
   await page.getByRole("button",{name:"Select question",exact:true}).click();
   await page.getByRole("combobox",{name:"Sparx code or topic"}).fill("U350");
   await page.getByRole("button",{name:"Find",exact:true}).click();await page.getByRole("button",{name:"Select question",exact:true}).click();
@@ -100,7 +100,7 @@ test("actual browser downloads retain multipart, crossover, writing space and ph
 
 test("failed scheme fetch has no partial pair; retry and cancellation retain selection",async({page})=>{
   test.setTimeout(60000);
-  await page.goto("/?tool=question-bank&bankView=topics");
+  await page.goto("/question-bank?bankView=topics");
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");
   await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
   await page.getByRole("button",{name:"Review paper",exact:true}).click();
@@ -125,7 +125,7 @@ test("failed scheme fetch has no partial pair; retry and cancellation retain sel
 test("topic controls, table and review fit narrow screens with keyboard dismissal",async({page})=>{
   await mkdir(report,{recursive:true});
   for(const width of [1280,768,375,320]){
-    await page.setViewportSize({width,height:812});await page.goto("/?tool=question-bank&bankView=topics");
+    await page.setViewportSize({width,height:812});await page.goto("/question-bank?bankView=topics");
     await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const review=page.getByRole("button",{name:"Review paper",exact:true});await expect(review).toBeInViewport();await review.click();

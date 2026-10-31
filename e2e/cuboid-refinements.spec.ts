@@ -34,7 +34,7 @@ async function load(p: Page, e: ReturnType<typeof create>) {
     .click();
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto("/?tool=cuboids");
+  await page.goto("/tools/cuboids");
   await expect(resource(page)).toBeVisible();
 });
 test("a valid floating draft can be cancelled without a blur committing it", async ({
@@ -131,7 +131,7 @@ test("starting afresh after protected recovery clears an invalid draft deliberat
     .click();
   await input(page, "Edit width", "bad");
   const other = await context.newPage();
-  await other.goto("/?tool=cuboids");
+  await other.goto("/tools/cuboids");
   await input(other, "Width", "7");
   await expect(
     page.getByRole("button", { name: "Download recovery data", exact: true }),

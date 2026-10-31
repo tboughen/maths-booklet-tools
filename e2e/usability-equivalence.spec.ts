@@ -10,7 +10,7 @@ async function download(page: Page, name: string) {
 test("typed and structured Graph inputs produce the same actual SVG and 600ppi pixels", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await page
     .getByRole("button", { name: "Line by equation", exact: true })
     .click();
@@ -58,7 +58,7 @@ test("typed and structured Graph inputs produce the same actual SVG and 600ppi p
 test("notation and direct interval drawing produce equal real pupil exports", async ({
   page,
 }) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   await page.getByRole("button", { name: "Interval", exact: true }).click();
   await page.getByRole("button", { name: "Tick -3", exact: true }).click();
   await page.getByRole("button", { name: "Tick 1", exact: true }).click();
@@ -88,7 +88,7 @@ test("notation and direct interval drawing produce equal real pupil exports", as
 test("legacy separate worked documents retain their storage and navigation context", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   const key = "maths-booklet-tools:graph-envelope:v1",
     id = "11111111-1111-4111-8111-111111111111";
   await expect
@@ -100,7 +100,7 @@ test("legacy separate worked documents retain their storage and navigation conte
     ({ copyKey, original }) => localStorage.setItem(copyKey, original!),
     { copyKey, original },
   );
-  await page.goto("/?tool=graph&resourceCopy=" + id);
+  await page.goto("/tools/graph?resourceCopy=" + id);
   await expect(
     page.getByText("Separate worked copy", { exact: true }),
   ).toBeVisible();

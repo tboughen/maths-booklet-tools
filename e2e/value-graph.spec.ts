@@ -197,7 +197,7 @@ test("local line and layout controls remain reachable on a 320px screen", async 
 const stored = (page: Page) =>
   page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "null"), key);
 async function open(page: Page) {
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   await expect(
     page.getByRole("heading", {
       name: "Plotting quadratics",

@@ -39,7 +39,7 @@ async function seed(page:Page) {
     const body=bodies.get(path);
     return route.fulfill({status:body?200:404,contentType:path.endsWith(".png")?"image/png":"application/pdf",body});
   });
-  await page.goto(`/?tool=question-bank&tier=F&question=${target}`,{waitUntil:"domcontentloaded"});
+  await page.goto(`/question-bank?tier=F&question=${target}`,{waitUntil:"domcontentloaded"});
   await expect(page.getByRole("button",{name:"Show worked solution",exact:true})).toBeEnabled();
   await expect(page.locator(".qb-canvas-host canvas")).toHaveCount(1);
   return {requests,bodies,question};
@@ -147,7 +147,7 @@ test("a failed solution load cannot leave a previous answer canvas and retries o
 
 test("a crossover occurrence never inherits another occurrence's solution",async({page})=>{
   await seed(page);
-  await page.goto("/?tool=question-bank&tier=H&question=SYNTHETIC_1H_Q1");
+  await page.goto("/question-bank?tier=H&question=SYNTHETIC_1H_Q1");
   await expect(page.locator(".qb-source-heading strong")).toHaveText("Synthetic higher Q1");
   await expect(page.getByRole("button",{name:"Show worked solution",exact:true})).toBeDisabled();
 });

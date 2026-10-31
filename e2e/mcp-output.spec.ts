@@ -163,7 +163,7 @@ test("actual algebra bundle source reopens with every pupil blank", async ({
   );
   const bytes = Buffer.from(files["source.json"]),
     expected = JSON.parse(bytes.toString("utf8"));
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await page
     .getByLabel("Open algebra grid file", { exact: true })
     .setInputFiles({
@@ -192,7 +192,7 @@ test("an actual ZIP's editable source opens in the existing ratio editor", async
     new Uint8Array(await readFile(resolve(directory!, "ratio-bundle.zip"))),
   );
   const expected = JSON.parse(Buffer.from(zip["source.json"]).toString());
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await page.getByRole("button", { name: "File" }).click();
   await page
     .getByLabel("Open editable ratio-table file", { exact: true })
@@ -338,4 +338,4 @@ for (const c of cases.filter((c) =>
   });
 }
 
-test('actual bar-model bundle preserves every saved label and pupil state',async({page})=>{const zip=unzipSync(new Uint8Array(await readFile(resolve(directory!,'bar-model-bundle.zip'))));const bytes=Buffer.from(zip['source.json']),expected=JSON.parse(bytes.toString('utf8'));await page.goto('/?tool=bar-model');await page.getByLabel('Open bar model file',{exact:true}).setInputFiles({name:'source.json',mimeType:'application/json',buffer:bytes});await page.getByRole('dialog').getByRole('button',{name:'Open bar model',exact:true}).click();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);await page.reload();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);});
+test('actual bar-model bundle preserves every saved label and pupil state',async({page})=>{const zip=unzipSync(new Uint8Array(await readFile(resolve(directory!,'bar-model-bundle.zip'))));const bytes=Buffer.from(zip['source.json']),expected=JSON.parse(bytes.toString('utf8'));await page.goto('/tools/bar-model');await page.getByLabel('Open bar model file',{exact:true}).setInputFiles({name:'source.json',mimeType:'application/json',buffer:bytes});await page.getByRole('dialog').getByRole('button',{name:'Open bar model',exact:true}).click();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);await page.reload();await expect.poll(()=>savedSource(page,'bar-model','maths-booklet-tools:bar-model:v2')).toEqual(expected);});

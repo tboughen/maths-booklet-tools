@@ -29,7 +29,7 @@ test('complete MCP to editor saved-file to MCP revision preserves pupil source',
     const made = reply.structuredContent as unknown as Result, link = new URL(made.editorUrl);
     expect(link.origin).toBe('https://mathsdock.co.uk'); expect(link.searchParams.get('tool')).toBe('expanding-factorising');
     const key = 'maths-booklet-tools:algebra-grid:v1';
-    await page.goto('/?tool=expanding-factorising', { waitUntil: 'domcontentloaded' });
+    await page.goto('/tools/expanding-factorising', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="algebra-resource"]')).toBeVisible();
     const preceding = await page.evaluate(k => localStorage.getItem(k), key);
     await page.goto(`/?${link.searchParams}${link.hash}`);

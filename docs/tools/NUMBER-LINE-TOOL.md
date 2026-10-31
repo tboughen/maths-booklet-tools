@@ -1,6 +1,6 @@
 # Number lines
 
-Open https://mathsdock.co.uk/?tool=number-line. The website editor works
+Open https://mathsdock.co.uk/tools/number-line. The website editor works
 independently of the optional MCP service.
 
 Choose Point, Interval or Ray and click ticks. Click a circle to switch between
