@@ -1,11 +1,9 @@
-Routine publication follows the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and
-[checklist](MCP-RELEASE-CHECKLIST.md). Retained incident/family details below remain
-applicable; historical family/tool counts are snapshots, not discovery evidence.
+Routine releases use [the MCP playbook](MCP-RELEASE-PLAYBOOK.md) and [checklist](MCP-RELEASE-CHECKLIST.md). Retained contracts/incidents below remain applicable; historical counts are snapshots.
 
 # Original SVG delivery through MCP
 
 `get_diagram_svg` is an optional additive retrieval call for Graph, Ratio tables,
-Plotting quadratics, Cuboids, Number lines and Venn. It returns the existing
+Plotting quadratics, Cuboids, Number lines, Venn, Algebra grids and Bar models. It returns the existing
 outlined SVG bytes through MCP when a consuming environment cannot retrieve a
 returned download URL. It uses the same artifact dispatcher as the signed SVG
 download. It does not redraw, revise, migrate, solve or save the resource.
@@ -35,7 +33,7 @@ skill does not establish that cached tool definitions include it.
 
 | Field | Meaning |
 | --- | --- |
-| `kind` | `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn` |
+| `kind` | `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`, `algebra-grid`, `bar-model` |
 | `envelope` | Exact existing saved/returned object; retain its version |
 | `outputView` | Venn only: `pupil` (default), or explicitly requested `answer` |
 | `offsetBytes` | UTF-8 byte offset, default 0; must be before EOF at a code-point boundary |
@@ -134,7 +132,18 @@ answers or full signed URLs in operational diagnostics.
 
 ## Qualification and release
 
-The consumer qualification saves original SVGs for all six families, explicit
+Apply [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) as well as the byte
+transport checks below. On 16 October the live service advertised this call while
+existing and fresh chats still exposed only the previous 20 calls after refresh.
+The exact unchanged definition later became available. Actual Codex connector
+tests saved eight SVGs across 15 chunks, and Tim subsequently supplied successful
+original-worksheet ChatGPT verification: 19,272 bytes, independently matching
+checksum, two-page A3 landscape vector PDF, zero raster images. The original
+worksheet files were not independently inspected in the development chat.
+The prior catalogue delay's cause remains unknown; do not claim a schema/cache
+repair, fixed waiting period or intended-client all-six/idle-wake acceptance.
+
+The original six-family consumer qualification saved original SVGs for its six families, explicit
 Venn answer artwork, and a plotted quadratic with retained blank/answer-line/zero
 states. Its SDK transport deliberately refuses non-MCP paths; independent control
 downloads use a separate permitted route. This simulates a restricted consumer.
@@ -151,13 +160,14 @@ package bytes are unchanged. Inline ZIP delivery remains deferred.
 
 After approved publication, refresh the existing connection and use a fresh
 intended chat if needed. First prove one original quadratic through exact saved
-SVG into an inspected vector PDF; then all six, a multi-chunk file and a modest
+SVG into an inspected vector PDF; then every actually discovered family, a multi-chunk file and a modest
 multi-diagram worksheet. Record actual client/account context, quotas, failures
 and required idle/wake behavior. The original affected envelope was not supplied
 for this implementation; synthetic proof does not reproduce its unknown bounds.
 If that client cannot save exact bytes, keep its handoff unaccepted and investigate
 before considering a separately scoped host-native attachment bridge.
 
-## Bar modelling
 
-The additive bar-model kind uses the same source, original-SVG chunk, placement and bundle protocols. See [Bar-model MCP](BAR-MODEL-MCP.md) for its complete creation/revision contract. Bars have pupil output only; explicit source revisions reveal saved answers. Actual service/client adoption remains a separate release stage.
+## Bar models
+
+Versioned bar modelling accepts preserved v1/v2 and explicit v3 envelopes through the same original-SVG, placement and bundle protocols. Read [Bar-model MCP](BAR-MODEL-MCP.md) and [v3 rules](BAR-MODEL-V3.md). Preserve native handwriting dimensions and pupil states. Bars have pupil output only; do not supply `outputView`. Revealing saved answers requires an explicitly requested source revision. See the [dated publication/client evidence](BAR-MODEL-RELEASE-STATUS-2026-10-25.md); actual discovery and saved-file acceptance remain separate.

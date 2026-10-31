@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams and bar models through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids and bar models through the connected MathsDock MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
@@ -9,13 +9,8 @@ Use the existing connected Maths Booklet Tools MCP tools to produce editable tea
 
 ## Choose and inspect the tool
 
-When bar calls are actually discovered, request the improved lesson layout with
-`spec:{schemaVersion:2,starter:"part-whole"}` (or comparison/equal-sections/inline-ratio).
-Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/BAR-MODEL-V2.md)
-for complete slots, annotations and operations. Preserve supplied versions and
-hashes; v1 needs explicit first `upgrade_document` before new features. Saved text
-can be retained under blank, line, question and hidden displays. Never calculate
-or reveal answers without the explicit action, mask dividers or silently reanchor.
+Inspect actual discovery first; use only capability/create/revise calls supplied
+to this conversation.
 
 - For coordinate graphs, read `graph_capabilities`, then use `create_graph` or `revise_graph`.
 - For lesson-style ratio tables, read `ratio_table_capabilities`, then use `create_ratio_table` or `revise_ratio_table`.
@@ -23,15 +18,20 @@ or reveal answers without the explicit action, mask dividers or silently reancho
 - For one or more cuboids, cubes, cube grids or separated layers, read `cuboid_capabilities`, then use `create_cuboid` or `revise_cuboid`.
 - For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
 - For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
-- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
+- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow [Algebra-grid MCP](../../../docs/ALGEBRA-GRID-MCP.md).
+- For bar models, read `bar_model_capabilities`, then use `create_bar_model` or `revise_bar_model`. Read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [v3 rules](../../../docs/BAR-MODEL-V3.md); explicitly request `spec.schemaVersion:3` for new output.
 
 Algebra grids retain integer terms in x, explicit signs, true blanks and hidden
-answers. Product cells are12..18mm independent of paper choice. Supply spec or
-exact envelope,never both. Revisions use returned IDs and baseHash. Calculate,
-fill and worked-copy actions require explicit user intent; calculate_answer
-retains the pupil scaffold. Editable files/links may contain hidden answers.
+answers. Product cells are 12..18 mm independent of paper choice. Revisions use
+returned IDs and `baseHash`. Calculate, fill and worked-copy actions require
+explicit user intent; `calculate_answer` retains the pupil scaffold.
+Editable files and links may contain hidden answers.
 
-Only call tools actually discovered in this conversation. A newer skill does not establish that the service or client exposes newer integrations. Use capabilities and the discovered schemas for complete payloads. Cuboids, Number lines and Venn accept either a concise `spec` or an existing `envelope`; never supply both. Older Graph/Ratio/value-graph calls keep their existing payloads.
+Only call tools actually discovered in this conversation. A newer skill does not
+establish that the service or client exposes newer integrations. Use capabilities
+and discovered schemas for complete payloads. Cuboids, Number lines, Venn, Algebra
+grids and Bar models accept either a concise `spec` or an existing `envelope`;
+never supply both. Older Graph/Ratio/value-graph calls keep their existing payloads.
 
 Treat current capabilities and input schemas as authoritative for support limits and payload shapes. A legacy default is not necessarily a limit: ratio `columns: 2` and `rendererVersion: ratio-1` coexist with supported column counts and renderer versions. Structural changes can normalize the returned version; reuse the returned envelope rather than imposing the original version.
 
@@ -133,25 +133,54 @@ Keep physical dimensions distinct from preview zoom. Word exports are images; fu
 
 Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
 
-## Bar modelling
+## Bar models
 
-For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+Use `bar_model_capabilities`, `create_bar_model` and `revise_bar_model` only when
+actually discovered. Read [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md),
+[Bar-model MCP](../../../docs/BAR-MODEL-MCP.md),
+[v2 compatibility](../../../docs/BAR-MODEL-V2.md), [v3 rules](../../../docs/BAR-MODEL-V3.md) and the
+[complete emitted schemas](../../../docs/BAR-MODEL-EMITTED-SCHEMAS.json) for exact payloads.
 
+| Resource or request | Version to use |
+| --- | --- |
+| New empty browser model | schema3 / bar-model-3 / lesson-v3 |
+| Bare or legacy MCP creation | preserved v1 default |
+| Explicit `spec.schemaVersion:2` | frozen v2 |
+| New MCP output with current notation/writing space | explicitly request `spec.schemaVersion:3` |
+| Supplied envelope | preserve its exact version, content and hash |
 
-## Horizontal fractions and handwriting follow-up
+Preserve original variables, shared unit widths, exact weights/offsets, stable IDs, independent
+inside/above/below slots, semantic fills and fixed versus whole-bar annotation
+scope. Whole annotations follow the bar; fixed ranges retain endpoints. Exact
+total-preserving repartitioning requires explicit discard of affected content.
+Do not mask dividers, silently reanchor or add L-shaped callout leaders. Follow
+departmental ratio-table guidance where applicable.
 
-Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
-bar-model fresh-default, caption and compact-height descriptions only. New empty
-browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
-spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
-with horizontal a/b fractions and every answer line's12mm clear above/3mm below
-the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
-barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
-Caption format Maths is default; Plain text is explicit for dates/literal slashes.
-Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
-evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
-upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
-and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
-One Undo restores the original version. Website readers for all three versions
-must precede production v3 issuance; service/package/client and human acceptance
-remain separate. SDK proof is not actual intended-client adoption.
+Pupil blank, question, line, hidden and zero states are distinct. Retain saved
+text under blank/hidden displays. Editable files and links may contain hidden
+answers. Never calculate, simplify, solve, reveal answers or make worked copies
+implicitly. Captions are manual input. Maths is the default and typesets simple
+a/b fractions horizontally across the full statement. Plain text is an explicit
+choice for dates/literal slashes. Ambiguous or nested Maths retains the draft and
+blocks export without automatic fallback or evaluation.
+
+Every answer line reserves 12 mm clear above its upper stroke edge, a 0.25 mm
+underline and 3 mm below its lower edge; the underline is 8 mm long. Inside lines
+require uniform actual bars at least 20 mm high. Stored `barHeightMm` is a minimum
+of 8..24 mm. Never change horizontal weights, offsets or shared units, shrink
+fonts or compress handwriting space to fit. Use original returned SVG and native
+dimensions; resizing changes the physical writing space.
+
+Upgrade only explicitly. `upgrade_document` with `targetSchemaVersion:3` is once,
+first in the batch: check the original `baseHash` before changes and roll back
+the whole batch on later failure. Without a target it retains its v1-to-v2
+meaning. Browser upgrades are previewed; one Undo restores the original version
+and earlier history. Old dates may be explicitly kept as Plain text. There is no
+read-time upgrade, lossy downgrade or silent answer reveal.
+
+Original SVG retrieval, placement and bundles use `kind:"bar-model"` with the
+exact saved envelope. Bars have pupil output only: do not pass `outputView`;
+revealing saved answers requires an explicitly requested source revision.
+Website readers for all issued versions must precede service issuance. Follow
+the [dated publication/client evidence](../../../docs/BAR-MODEL-RELEASE-STATUS-2026-10-25.md); package publication
+and SDK/browser proof do not establish actual Codex/ChatGPT or human acceptance.
