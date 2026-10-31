@@ -167,7 +167,7 @@ An inaccessible `web.run` result is not an observed MathsDock endpoint response.
 A ZIP returned through another signed URL may encounter the same restriction.
 Keep these failures distinct from a server HTTP error.
 
-Use the existing [original SVG delivery](DIRECT-SVG-DELIVERY.md) when discovered
+Use the existing [original SVG delivery](../tools/DIRECT-SVG-DELIVERY.md) when discovered
 and appropriate. For future tools, plan a bounded retrieval route usable by the
 actual consumer; do not assume URLs or model-visible chunks guarantee saving.
 Retain the exact envelope/view, verify source identity, contiguous UTF-8 chunks,

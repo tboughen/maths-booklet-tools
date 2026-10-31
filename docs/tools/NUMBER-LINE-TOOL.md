@@ -1,4 +1,4 @@
-NUMBER LINES
+# Number lines
 
 Open https://mathsdock.co.uk/?tool=number-line. The website editor works
 independently of the optional MCP service.
@@ -37,7 +37,6 @@ minimum, maximum, step, labelEvery, variable, variableBelow and numberFormat
 discrete points. teaching retains labels, solutionVisible, prompt, answer,
 answerVisible and responseLines. Labels use canonical rational-value keys.
 
-
 Saved-file recovery protects original corrupt/newer-tab data before a fresh
 start. Use Copy to clipboard for an image or Copy for Word for physical-size
 HTML. Actual browser downloads provide SVG with embedded portable fonts,
@@ -45,4 +44,4 @@ verified 600 ppi PNG and editable JSON. Preview zoom changes the view only.
 Print size is independent.
 
 This website release does not deploy or refresh the separate MCP service/client.
-Publication uses docs/RELEASE-PIPELINE.md and its exact qualified artifact.
+Publication uses docs/release/RELEASE-PIPELINE.md and its exact qualified artifact.
