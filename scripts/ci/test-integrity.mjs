@@ -35,6 +35,7 @@ export function checkDiff(diff) {
       else if (added && assertion.test(text) && loose.test(text)) findings.push({ level: 'warning', file, kind: 'loose-assertion', text });
       else if (removed && assertion.test(text)) findings.push({ level: 'warning', file, kind: 'removed-assertion', text });
     }
+    if (/^src\/gates\/contracts\//.test(file) && !findings.some(f => f.file === file && f.kind === 'changed-contract')) findings.push({ level: 'warning', file, kind: 'changed-contract', text: 'saved-file schema or MCP catalogue changed: needs Tim (tier T5/T6)' });
     if (removed && /baseline\.json$/.test(file) && /\d/.test(text)) findings.push({ level: 'warning', file, kind: 'changed-baseline', text });
     if (removed && controlFile.test(file) && hash.test(text)) findings.push({ level: 'warning', file, kind: 'changed-control-hash', text });
   }
