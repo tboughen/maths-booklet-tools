@@ -135,7 +135,7 @@ try {
     run(wrangler, ["deploy", "--config", preview ? "wrangler.preview.jsonc" : "wrangler.jsonc"]);
     await verifySite(manifest);
     process.env.CLOUDFLARE_SITE_URL = origin;
-    run("node_modules/@playwright/test/cli.js", ["test", "--config", "playwright.cloudflare.config.ts"]);
+    run("node_modules/@playwright/test/cli.js", ["test", "--project", "cloudflare"]);
   } else throw new Error("Unknown publishing action");
   writeFileSync(`cloudflare-release/${action}-receipt.json`, JSON.stringify({success: true, action, sourceCommit: manifest.sourceCommit, sourceFingerprint: manifest.sourceFingerprint,
     catalogueSha256: manifest.catalogueSha256, objects: manifest.assets.length, full, preview, site: origin,

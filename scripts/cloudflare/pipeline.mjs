@@ -54,7 +54,7 @@ async function prepare() {
   await metrics.stage('typecheck', () => nodeTool('typescript/bin/tsc', ['-b', '--pretty', 'false']));
   await metrics.stage('build-website', () => nodeTool('vite/bin/vite.js', ['build', '--mode', 'cloudflare'], { env: { MATHSDOCK_REUSE_PACKAGE: reuse.packagePath || '' } }));
   const release = packageRelease(root, { base: option('base'), directory });
-  const expected = await run(root, playwright, ['test', '--config', 'playwright.release.config.ts', '--list', '--reporter=json'], { capture: true, env: { MATHSDOCK_RELEASE_PACKAGE: directory } });
+  const expected = await run(root, playwright, ['test', '--project', 'release', '--list', '--reporter=json'], { capture: true, env: { MATHSDOCK_RELEASE_PACKAGE: directory } });
   const cases = browserCases(JSON.parse(expected.stdout)).map(c => c.id).sort();
   if (!cases.length || new Set(cases).size !== cases.length) throw new Error('Invalid browser test inventory');
   save(resolve(evidence, 'expected-browser.json'), { releaseId: release.releaseId, cases });
@@ -108,7 +108,7 @@ async function check(name, { preparedService = false } = {}) {
       const identity = fixtureIdentity(release);
       const fixtureManifest = sealFixtures(fixtures, identity, 'browser');
       const output = resolve(evidence, `${name}-playwright.json`), shard = name.slice(-1), port = await availablePort();
-      await metrics.stage('browser-tests', () => run(root, playwright, ['test', '--config', 'playwright.release.config.ts', `--shard=${shard}/2`, '--reporter=json'], { env: {
+      await metrics.stage('browser-tests', () => run(root, playwright, ['test', '--project', 'release', `--shard=${shard}/2`, '--reporter=json'], { env: {
         MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_BUILT_PACKAGE: '1', MATHSDOCK_TEST_PORT: port,
         MATHSDOCK_TEST_OUTPUT: resolve(root, 'test-results', name), MCP_CONSUMPTION_DIR: fixtures, PLAYWRIGHT_JSON_OUTPUT_FILE: output,
       } }));
@@ -117,7 +117,7 @@ async function check(name, { preparedService = false } = {}) {
     } else if (name === 'built') {
       copyFileSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
       const output = resolve(evidence, 'built-playwright.json');
-      await run(root, playwright, ['test', '--config', 'playwright.cloudflare.config.ts', '--reporter=json'], { env: { MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_PACKAGE_REHEARSAL: '1', MATHSDOCK_TEST_PORT: await availablePort(), PLAYWRIGHT_JSON_OUTPUT_FILE: output } });
+      await run(root, playwright, ['test', '--project', 'cloudflare', '--reporter=json'], { env: { MATHSDOCK_RELEASE_PACKAGE: directory, MATHSDOCK_PACKAGE_REHEARSAL: '1', MATHSDOCK_TEST_PORT: await availablePort(), PLAYWRIGHT_JSON_OUTPUT_FILE: output } });
       result = { ...browserEvidence(json(output)), transport: 'built package; locally intercepted R2 rehearsal' };
     } else if (name === 'service') {
       if (!preparedService) await metrics.stage('service-build', serviceBuild);
