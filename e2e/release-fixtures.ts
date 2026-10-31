@@ -24,6 +24,17 @@ function preparedInventory() {
 // this transport substitution and are recorded separately by the publisher.
 export const test = base.extend({
   context: async ({ context }, provide) => {
+    // Published links point at https://mathsdock.co.uk, which is behind staff
+    // sign-in. Serve those pages from the build under test instead, keeping the
+    // real link and URL. Registered first so the bank route below takes priority.
+    const site = test.info().project.use.baseURL;
+    if (site) {
+      await context.route('https://mathsdock.co.uk/**', async route => {
+        const url = new URL(route.request().url());
+        const response = await route.fetch({ url: new URL(url.pathname + url.search, site).href });
+        await route.fulfill({ response });
+      });
+    }
     if (process.env.MATHSDOCK_BUILT_PACKAGE) {
       const { byKey } = await preparedInventory();
       // Bank files are same-origin (/bank/assets/*), served live by the gated site Worker.
