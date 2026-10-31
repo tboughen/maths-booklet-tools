@@ -13,5 +13,8 @@
     "run_worker_first": ["/bank/assets/*"]
   },
   "r2_buckets": [{ "binding": "BANK", "bucket_name": "maths-booklet-assets" }],
-  "vars": { "ACCESS_TEAM_DOMAIN": "", "ACCESS_AUD": "" }
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "https://restless-thunder-6cb2.cloudflareaccess.com",
+    "ACCESS_AUD": "3fcd636718982e910abda19f21ac678c1dfebefe43594389448f5b293dc42e3e"
+  }
 }
