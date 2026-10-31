@@ -1,6 +1,6 @@
 # All tools card previews
 
-Every new MathsDock booklet tool should have both its small Lucide icon and a representative output image on the **All tools** page (`?tool=booklet-tools`). The icon supports recognition; the image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
+Every new MathsDock booklet tool should have both its small Lucide icon and a representative output image on the **All tools** page (`/tools`). The icon supports recognition; the image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
 
 ## Choose an honest example
 

@@ -1,6 +1,6 @@
 # Maths Booklet Tools
 
-The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is available at `?tool=home`, and the tools overview at `?tool=booklet-tools`. Existing editor and Question bank links remain supported.
+The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is at `/`, the tools overview at `/tools`, and each tool at `/tools/<id>`. Old `?tool=` links still open the right page.
 
 For new tools, start with [Creating MathsDock tools](docs/tools/TOOL-CREATION-GUIDE.md) and the [new tool brief](docs/tools/TOOL-BRIEF-TEMPLATE.md). The guide turns the evolution of Graph tool and Ratio tables into practical design, teaching, export and compatibility principles, with [linked development examples](docs/tools/TOOL-EVOLUTION.md).
 
@@ -14,7 +14,7 @@ A teacher-friendly website for creating the fiddly diagrams needed in student-fa
 
 ## Question bank
 
-[Open the question bank](https://mathsdock.co.uk/?tool=question-bank) (staff sign-in required; see [staff sign-in](docs/release/STAFF-SIGN-IN.md)).
+[Open the question bank](https://mathsdock.co.uk/question-bank) (staff sign-in required; see [staff sign-in](docs/release/STAFF-SIGN-IN.md)).
 The initial release contains 97 reviewed GCSE maths questions across 113 Sparx
 topics, with original notation, diagrams and separate mark schemes.
 
@@ -22,16 +22,16 @@ Search by Sparx code or topic, filter by tier/calculator/source, and select
 questions to export a student paper and matching mark schemes. Compact and
 writing-space layouts are available. Some topics await reviewed questions.
 
-Topic links use `?tool=question-bank&code=U851&tier=F`; an optional `question`
+Topic links use `/question-bank?code=U851&tier=F`; an optional `question`
 parameter selects a stable question ID. Links open with answers hidden.
-The graph tool remains the default page and is also available at `?tool=graph`.
+The graph tool is at `/tools/graph`.
 
 Only the current reviewed assets are packaged. The website contains no class
 workbooks or pupil data. Questions and graphs are processed in the browser.
 
 ## Ratio tables
 
-The new Ratio tables page at `?tool=ratio-table` creates lesson-style one- to three-column
+The new Ratio tables page at `/tools/ratio-table` creates lesson-style one- to three-column
 diagrams with directly editable headings and cells, empty cells or answer lines,
 exact fractions and optional scaling arrows. Add/remove row buttons sit together
 below the diagram; Remove column sits below Add column at its right edge.

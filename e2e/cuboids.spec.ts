@@ -55,7 +55,7 @@ async function useExample(
   }
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto("/?tool=cuboids");
+  await page.goto("/tools/cuboids");
   await expect(
     page.getByRole("heading", { name: "Cuboids", exact: true }),
   ).toBeVisible();
@@ -343,7 +343,7 @@ test("editable file and editor link reopening require confirmation", async ({
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Save editable file");
   await (await dl).saveAs(join(report, "exports/reopened.json"));
-  await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
+  await page.goto(`/tools/cuboids#cuboids=${encode(e)}`);
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
 });
@@ -395,7 +395,7 @@ test("maximum separated structure remains complete and has no control overlap", 
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
   e.document.shapes[0].dimensions = { width: "20", depth: "20", height: "20" };
-  await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
+  await page.goto(`/tools/cuboids#cuboids=${encode(e)}`);
   await page
     .getByRole("button", { name: "Use these cuboids", exact: true })
     .click();
@@ -437,7 +437,7 @@ test("responsive controls and real card preview remain reachable", async ({
       fullPage: true,
     });
   }
-  await page.goto("/?tool=booklet-tools");
+  await page.goto("/tools");
   const card = page.locator(".overview-tool-card").filter({
     has: page.getByRole("heading", { name: "Cuboids", exact: true }),
   });
@@ -479,7 +479,7 @@ test("newer-tab work is protected and storage failure offers editable saving", a
   context,
 }) => {
   const other = await context.newPage();
-  await other.goto("/?tool=cuboids");
+  await other.goto("/tools/cuboids");
   await field(other, "Width", "7");
   await expect(
     page.getByRole("button", { name: "Download recovery data", exact: true }),
@@ -560,7 +560,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
   e.document.shapes[0].dimensions = { width: "20", depth: "20", height: "20" };
-  await page.goto(`/?tool=cuboids#cuboids=${encode(e)}`);
+  await page.goto(`/tools/cuboids#cuboids=${encode(e)}`);
   await page
     .getByRole("button", { name: "Use these cuboids", exact: true })
     .click();
@@ -590,7 +590,7 @@ test("source question link opens the matching published diagram", async ({
     "November 2018",
   );
   await expect(source.locator(".qb-canvas-host canvas")).toBeVisible();
-  await expect(page).toHaveURL(/tool=cuboids/);
+  await expect(page).toHaveURL(/\/tools\/cuboids/);
   await source.close();
 });
 test("an invalid inline draft is protected from a second editor", async ({

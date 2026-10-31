@@ -47,7 +47,7 @@ for (const [tool, examples, key, confirm] of [
       });
       await expect(
         card.getByRole("link", { name: "View source question", exact: true }),
-      ).toHaveAttribute("href", `?tool=question-bank&question=${example.id}`);
+      ).toHaveAttribute("href", `/question-bank?question=${example.id}`);
       const before = await stored();
       await card
         .getByRole("button", {
@@ -150,7 +150,7 @@ test("source question links open the real published question without changing th
   page,
 }) => {
   test.setTimeout(60000);
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   await showExamples(page);
   const card = page.getByRole("article", { name: "Apple prices", exact: true });
   const opening = page.waitForEvent("popup");
@@ -172,7 +172,7 @@ test("source question links open the real published question without changing th
 test("quadratic controls match the clear Graph design and keep exact bounds in axis settings", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   await expect(
     page.getByRole("heading", { name: "Plotting quadratics", exact: true }),
   ).toBeVisible();

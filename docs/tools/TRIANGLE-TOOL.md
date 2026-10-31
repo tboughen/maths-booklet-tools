@@ -85,7 +85,7 @@ schema, renderer and saved pupil states are retained. The shared mathematical
 helper adds the explicit inverse-area height method h = 2A/base; existing
 methods and exported preset artwork remain unchanged.
 
-Route: ?tool=triangle. Renderers: triangle-1/triangle-2; file kind triangle, schemaVersion 1/2,
+Route: /tools/triangle. Renderers: triangle-1/triangle-2; file kind triangle, schemaVersion 1/2,
 style exam-v1. Core: packages/triangle-core/src. Browser: src/triangle.
 This implementation is local and uncommitted. No MCP adapter is included.
 

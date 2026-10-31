@@ -93,7 +93,7 @@ async function verifySite(manifest) {
   const base = new URL(origin);
   if (base.protocol !== "https:" && base.hostname !== "127.0.0.1") throw new Error("Site must use HTTPS");
   await retryVerification(async remaining => {
-    for (const path of ["/", "/?tool=question-bank&bankView=topics", "/?tool=graph", "/?tool=ratio-table"]) {
+    for (const path of ["/", "/question-bank?bankView=topics", "/tools/graph", "/tools/ratio-table"]) {
       const response = await fetch(new URL(path, base), {signal: AbortSignal.timeout(Math.min(15000, remaining()))});
       if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) throw new Error(`Site route failed: ${path}`);
     }

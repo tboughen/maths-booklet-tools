@@ -1,7 +1,7 @@
 {
   "name": "Maths Dock",
   "short_name": "Maths Dock",
-  "start_url": "../?tool=home",
+  "start_url": "../",
   "scope": "../",
   "display": "browser",
   "theme_color": "#173c65",

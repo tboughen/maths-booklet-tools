@@ -26,7 +26,7 @@ test.beforeEach(async ({page, baseURL}) => {
 test("split hosting displays question/scheme canvases, PNG previews and both real export layouts", async ({page}, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/?tool=question-bank&code=U945&question=1MA1_JUN_2018_3H_Q3");
+  await page.goto("/question-bank?code=U945&question=1MA1_JUN_2018_3H_Q3");
   await expect(page.locator(".site-page:not([hidden]) .qb-canvas-host canvas").first()).toBeVisible();
   await expect(page.locator(".qb-view-error")).toHaveCount(0);
   await page.getByRole("button", {name: "Show mark scheme", exact: true}).click();
@@ -84,7 +84,7 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
     exportCapture: "exact clicked browser download blobs; native save-dialog policy not tested", downloads, errors}, null, 2));
 });
 test("graph and ratio tools work under the root base URL", async ({page}) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await expect(page.getByRole("heading", {name: "Graph tool", exact: true})).toBeVisible();
   await page.getByRole("button", {name: "Line by equation"}).click();
   await page.getByRole("button", {name: "Add line", exact: true}).click();
@@ -108,7 +108,7 @@ test("published navigation, tool startup and a synthetic HPP class export remain
   const parts: {label: string; marks: number}[] = data.presets.filter((p: {id: string}) => ['HPP1_H', 'HPP2_H'].includes(p.id)).flatMap((p: {parts: {label: string; marks: number}[]}) => p.parts);
   const number = (p: {label: string}) => Number(p.label.match(/\d+/)![0]);
   parts.sort((a, b) => number(b) % 2 - number(a) % 2 || number(a) - number(b));
-  await page.goto('/?tool=assessment-follow-up');
+  await page.goto('/assessment-follow-up');
   await page.getByLabel('Choose assessment', {exact: true}).selectOption('HPP1-2_H');
   await page.getByText('View or edit mapping', {exact: true}).click();
   await expect(page.locator('.af-table').first().locator('tbody tr td:first-child')).toHaveText(parts.map(p => p.label));

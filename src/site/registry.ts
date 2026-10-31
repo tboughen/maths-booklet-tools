@@ -1,4 +1,5 @@
 import { lazyPage } from "./lazyPage";
+import { pageHref, readPage, type PageId, type ToolId } from "./routes";
 import barPreview from "../assets/tool-previews/bar-model.svg";
 import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
@@ -27,35 +28,32 @@ export const bookletTools = [
 /** Site pages outside the booklet tools, loaded the same way. */
 export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
-export type ToolId = typeof bookletTools[number]["id"];
-export type PageId = ToolId | "home" | "booklet-tools" | "question-bank" | "assessment-follow-up";
-export const pageHref = (id: PageId) => `?tool=${id}`;
+export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
+// Each tool needs a path; this fails to compile if the two lists drift apart.
+type RegistryTool = typeof bookletTools[number]["id"];
+const _toolsHavePaths: [RegistryTool] extends [ToolId] ? ([ToolId] extends [RegistryTool] ? true : never) : never = true;
+void _toolsHavePaths;
 /** Home and the main navigation describe the same teacher destinations. */
 export const siteSections = [
   { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: BookOpen, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
-  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}&bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
+  { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: FileSpreadsheet, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
   { id: "booklet-tools", name: "Booklet tools", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Explore booklet tools" },
 ] as const;
 export type SectionId = PageId | "paper-builder";
-export function readSection(search: string): SectionId {
-  const page = readPage(search);
-  return page === "question-bank" && new URLSearchParams(search).get("bankView") === "topics" ? "paper-builder" : page;
+export function readSection(where: { pathname: string; search: string } = location): SectionId {
+  const page = readPage(where);
+  return page === "question-bank" && new URLSearchParams(where.search).get("bankView") === "topics" ? "paper-builder" : page;
 }
 export function sectionName(section: SectionId): string {
   return section === "paper-builder" ? "Paper builder" : pageName(section);
-}
-export function readPage(search: string): PageId {
-  const id = new URLSearchParams(search).get("tool");
-  if (!id) return "home";
-  if (id === "home" || id === "booklet-tools" || id === "question-bank" || id === "assessment-follow-up") return id;
-  return bookletTools.find(tool => tool.id === id)?.id ?? "graph";
 }
 export function pageName(id: PageId): string {
   if (id === "home") return "Home";
   if (id === "booklet-tools") return "Booklet tools";
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
+  if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
 }
 /** Starts downloading a page's code; the first page is loaded before the site renders. */

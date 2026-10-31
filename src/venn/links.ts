@@ -1,3 +1,4 @@
+import { linkOpensTool, setToolPage } from "../site/routes";
 import {
   canonical,
   parseFile,
@@ -14,7 +15,7 @@ export function vennEditorLink(envelope: Envelope, base: string): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   const url = new URL(base);
-  url.search = "?tool=venn";
+  setToolPage(url, "venn");
   url.hash =
     "venn=" +
     btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
@@ -28,7 +29,7 @@ export function parseVennLink(href: string): Envelope {
   const url = new URL(href);
   if (
     href.length > MAX_VENN_LINK_LENGTH ||
-    url.searchParams.get("tool") !== "venn" ||
+    !linkOpensTool(url, "venn") ||
     !/^#venn=[A-Za-z0-9_-]+$/.test(url.hash)
   )
     throw Error(

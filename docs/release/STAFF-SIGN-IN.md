@@ -69,5 +69,9 @@ succeed while the bank is open.
 
 The MCP service on Render serves its own diagram downloads, so connector
 downloads keep working. Its "open in editor" links point at
-`https://mathsdock.co.uk/?tool=...`; a teacher signs in once when they follow one.
+`https://mathsdock.co.uk/?tool=...`; the site upgrades them to the page's own
+address (such as `/tools/venn`), and a teacher signs in once when they follow one.
+Page addresses are served as the site's `index.html` by the assets
+`single-page-application` fallback, so the one Access application covering the
+whole domain gates them; only `/bank/assets/*` runs the Worker script.
 Guests cannot follow them until the Worker-side guest split exists.

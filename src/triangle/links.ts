@@ -1,3 +1,4 @@
+import { linkOpensTool, setToolPage } from "../site/routes";
 import {
   canonical,
   parseFile,
@@ -14,7 +15,7 @@ export function triangleEditorLink(envelope: Envelope, base: string): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   const url = new URL(base);
-  url.search = "?tool=triangle";
+  setToolPage(url, "triangle");
   url.hash =
     "triangle=" +
     btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
@@ -28,7 +29,7 @@ export function parseTriangleLink(href: string): Envelope {
   const url = new URL(href);
   if (
     href.length > MAX_TRIANGLE_LINK_LENGTH ||
-    url.searchParams.get("tool") !== "triangle" ||
+    !linkOpensTool(url, "triangle") ||
     !/^#triangle=[A-Za-z0-9_-]+$/.test(url.hash)
   )
     throw Error(

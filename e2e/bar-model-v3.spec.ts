@@ -17,7 +17,7 @@ async function saved(page: Page) {
 test("new bar models stack working fractions and preserve explicit literal slashes and rejected drafts", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   expect((await saved(page)).schemaVersion).toBe(3);
   await page
     .getByRole("button", { name: "Add calculation line", exact: true })
@@ -58,7 +58,7 @@ test("new bar models stack working fractions and preserve explicit literal slash
 test("inside handwriting spaces raise actual bars without changing shared widths and Undo restores one edit", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   const before = await saved(page);
   await page
     .getByRole("button", {
@@ -100,7 +100,7 @@ for (const version of [1, 2] as const)
         ),
       e,
     );
-    await page.goto("/?tool=bar-model");
+    await page.goto("/tools/bar-model");
     await page
       .getByRole("button", {
         name: "Use horizontal fractions and larger answer spaces",
@@ -136,7 +136,7 @@ test("upgrade preserves a literal date only after an explicit Plain text choice"
       ),
     e,
   );
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page
     .getByRole("button", {
       name: "Use horizontal fractions and larger answer spaces",
@@ -171,7 +171,7 @@ test("v3 SVG PNG and both real clipboard routes retain native writing geometry a
   context,
 }, info) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page
     .getByRole("button", { name: "Pupil model R5", exact: true })
     .click();
@@ -312,7 +312,7 @@ for (const width of [320, 375, 768, 1440])
     page,
   }, info) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/?tool=bar-model");
+    await page.goto("/tools/bar-model");
     await page.getByRole("button", { name: "Worked R4", exact: true }).click();
     await page
       .getByRole("button", { name: "Edit calculation line 1", exact: true })

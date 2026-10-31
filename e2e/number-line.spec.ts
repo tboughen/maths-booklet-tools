@@ -7,7 +7,7 @@ import {
   printRasterSize,
 } from "../packages/graph-core/src/png-bytes";
 test.beforeEach(async ({ page }) => {
-  await page.goto("/?tool=number-line");
+  await page.goto("/tools/number-line");
   await page.evaluate(() =>
     localStorage.removeItem("maths-booklet-tools:number-line:v1"),
   );

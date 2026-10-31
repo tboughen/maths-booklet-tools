@@ -12,7 +12,7 @@ Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name
 
 Generate a real sample output and import its SVG from `src/assets/tool-previews/`. Keep the icon and use the shared card's preview area on the right, with its narrow-screen stacking. Follow [All tools card previews](TOOL-CARD-PREVIEWS.md) for generation, saved examples, implementation history and acceptance checks. That page also explains how to handle a checkout predating the shared preview-card implementation.
 
-Keep existing IDs stable. `?tool=home` is the site overview; `?tool=booklet-tools` is the tool overview. Link explicitly to `?tool=graph` or `?tool=ratio-table` when targeting those editors, rather than depending on the bare URL's default page. Question bank remains a separate section.
+Keep existing IDs stable: the ID is the tool's address. Every page has its own path: `/` is the site overview, `/tools` the tool overview, `/tools/<id>` each editor (for example `/tools/graph`), `/question-bank` and `/assessment-follow-up`. Add the new ID to `toolIds` in `src/site/routes.ts` as well; the registry fails to type-check if the two lists differ. Build links with `pageHref()` rather than writing paths by hand, so they respect the site base path. Unknown addresses show the not-found page. Old `?tool=<id>` links are upgraded to the path form on load (`src/site/upgradeAddress.ts`), so saved links, booklets and MCP editor links keep working.
 
 ## Use the shared layout
 
@@ -50,7 +50,7 @@ Editors mount on first visit and remain mounted in hidden page containers for th
 - Inspect editable-link hashes only while active. Existing imports and recovery flows must retain their confirmation and data-preservation behaviour.
 - Render modal overlays only while active. Native dialogs must close when their page is inactive.
 - Keep autosave running independently of visibility, using a distinct storage key. Storage errors must remain visible and must not replace recovery data.
-- Use real `?tool=…` links for internal navigation. The site host intercepts ordinary clicks; modified clicks, downloads and external links keep browser behaviour.
+- Use real page links (`pageHref(id)`) for internal navigation. The site host intercepts ordinary clicks; modified clicks, downloads and external links keep browser behaviour.
 
 Question bank announces query changes with `maths-tools:route` so its latest deep link can be restored after section navigation. If a future editor changes query state, announce that event after its history update. Ordinary Back/Forward navigation is handled by the page host; page-specific handlers must ignore URLs for other pages.
 

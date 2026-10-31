@@ -1454,7 +1454,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 <summary>
                   Source:{" "}
                   <a
-                    href={`https://mathsdock.co.uk/?tool=question-bank&question=${d.sourceId}`}
+                    href={`https://mathsdock.co.uk/question-bank?question=${d.sourceId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

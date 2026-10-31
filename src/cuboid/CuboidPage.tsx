@@ -1,3 +1,4 @@
+import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
@@ -314,8 +315,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   useEffect(() => {
     if (!active) return;
     const handle = () => {
-      if (new URLSearchParams(location.search).get("tool") !== "cuboids")
-        return;
+      if (readPage() !== "cuboids") return;
       const value = new URLSearchParams(location.hash.slice(1)).get("cuboids");
       if (!value) return;
       try {
@@ -558,7 +558,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   label: "Copy editable link",
                   action: () =>
                     navigator.clipboard.writeText(
-                      editorLink(e, location.origin + location.pathname),
+                      pathLink(editorLink(e, location.origin + location.pathname)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",

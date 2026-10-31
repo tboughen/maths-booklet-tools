@@ -1,3 +1,4 @@
+import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
@@ -1385,7 +1386,7 @@ export default function ValueGraphPage({
                   label: "Copy editable link",
                   action: () =>
                     navigator.clipboard.writeText(
-                      editorLink(envelope, location.href),
+                      pathLink(editorLink(envelope, location.href)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",

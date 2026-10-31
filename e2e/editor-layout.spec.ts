@@ -93,7 +93,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
 test("quadratic specialist settings preserve direct editing and pupil blanks", async ({
   page,
 }) => {
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   await page
     .getByRole("button", { name: "Table settings", exact: true })
     .click();

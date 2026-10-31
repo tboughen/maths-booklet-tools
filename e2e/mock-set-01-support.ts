@@ -8,9 +8,9 @@ export function registerPaper(component:string){
   test.setTimeout(180000);const rows=bank.questions.filter(q=>q.paperId===`1MA1_MOCK_SET_01_${component}`),proof=[];
   // Reload once per paper; exercise every remaining deep-link route through
   // the real popstate handler without repeatedly booting the entire app.
-  await page.goto(`/?tool=question-bank&question=${rows[0].id}`);
+  await page.goto(`/question-bank?question=${rows[0].id}`);
   for(const q of rows){
-   await page.evaluate(id=>{history.pushState({},"",`/?tool=question-bank&question=${id}`);dispatchEvent(new PopStateEvent("popstate"));},q.id);
+   await page.evaluate(id=>{history.pushState({},"",`/question-bank?question=${id}`);dispatchEvent(new PopStateEvent("popstate"));},q.id);
    await expect(page.locator(".qb-source-heading strong")).toHaveText(q.source);
    await expect.poll(()=>page.locator(".qb-stage canvas").evaluateAll(nodes=>nodes.length>0&&nodes.every(n=>(n as HTMLCanvasElement).width>0))).toBe(true);
    await expect(page.locator('.qb-pdf[aria-busy="true"]')).toHaveCount(0);
@@ -31,8 +31,8 @@ export function registerPaper(component:string){
 }
 export function registerDownloads(){test("Mock Set 1: real browser downloads preserve native scale and all scheme corrections",async({page})=>{
  test.setTimeout(120000);const ids=["1MA1_MOCK_SET_01_3F_Q10","1MA1_MOCK_SET_01_1H_Q19","1MA1_MOCK_SET_01_2H_Q21"];
- await page.goto(`/?tool=question-bank&question=${ids[0]}`);
- for(const id of ids){await page.evaluate(id=>{history.pushState({},"",`/?tool=question-bank&question=${id}`);dispatchEvent(new PopStateEvent("popstate"));},id);await expect(page.locator(".qb-source-heading strong")).toHaveText(bank.questions.find(q=>q.id===id)!.source);await page.getByRole("button",{name:"Select question",exact:true}).click();}
+ await page.goto(`/question-bank?question=${ids[0]}`);
+ for(const id of ids){await page.evaluate(id=>{history.pushState({},"",`/question-bank?question=${id}`);dispatchEvent(new PopStateEvent("popstate"));},id);await expect(page.locator(".qb-source-heading strong")).toHaveText(bank.questions.find(q=>q.id===id)!.source);await page.getByRole("button",{name:"Select question",exact:true}).click();}
  await page.getByRole("button",{name:"Review paper (3)",exact:true}).click();const dialog=page.getByRole("dialog");await expect(dialog).toContainText("3 complete questions · 11 marks");
  await mkdir(report,{recursive:true});
  for(const preset of ["Compact practice","Writing space"]){
@@ -48,7 +48,7 @@ export function registerDownloads(){test("Mock Set 1: real browser downloads pre
 });
 }
 export function registerMobile(){test("Mock Set 1: mobile display and keyboard preserve question and answer context",async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto("/?tool=question-bank&question=1MA1_MOCK_SET_01_2H_Q17");
+ await page.setViewportSize({width:390,height:844});await page.goto("/question-bank?question=1MA1_MOCK_SET_01_2H_Q17");
  await expect(page.locator(".qb-stage canvas").first()).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole("button",{name:"Display",exact:true}).click();await expect(page.getByRole("button",{name:"Exit Display Esc",exact:true})).toBeVisible();await page.keyboard.press("m");
  await expect(page.locator(".qb-scheme-stage canvas").first()).toBeVisible();

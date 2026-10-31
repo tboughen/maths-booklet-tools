@@ -46,7 +46,7 @@ test("choosing divergent saved work records the observed snapshot without overwr
     },
     { oldRaw, newRaw },
   );
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await expect(page.getByRole("region", { name: "Recovery" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
@@ -68,7 +68,7 @@ test("both clipboard routes carry the actual v2 artwork and denied copying offer
   context,
 }, info) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page.getByRole("button", { name: "Worked R5", exact: true }).click();
   const e = await saved(page),
     g = c.layout(e),
@@ -182,7 +182,7 @@ async function addRange(page: Page, from: number, to: number, text: string) {
 test("fresh lesson default is two blank parts and reading does not save or alter old keys", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   const e = await saved(page);
   expect(e.schemaVersion).toBe(3);
   expect(e.document.bars[0].parts).toHaveLength(2);
@@ -197,7 +197,7 @@ test("teacher route creates dual-label fractions with two bulk actions and frien
   page,
 }, info) => {
   const started = Date.now();
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await useStarter(page, "Equal sections");
   await referenceUnit(page);
   await page
@@ -262,7 +262,7 @@ test("teacher route creates dual-label fractions with two bulk actions and frien
 test("teacher route creates seven-four comparison and between difference without calculating it", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page.getByLabel("Longer bar length (shared units)").fill("7");
   await page.getByLabel("Shorter bar length (shared units)").fill("4");
   await useStarter(page, "Comparison");
@@ -317,7 +317,7 @@ test("teacher route creates the unequal part-whole model with literal captions",
   page,
 }, info) => {
   const started = Date.now();
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await referenceUnit(page);
   for (const [index, weight, text] of [
     [0, "2", "b"],
@@ -371,7 +371,7 @@ test("teacher route creates inline ratio shares and a nested difference with key
   page,
 }, info) => {
   const started = Date.now();
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await useStarter(page, "Inline ratio");
   await referenceUnit(page);
   await page
@@ -428,7 +428,7 @@ test("teacher route creates inline ratio shares and a nested difference with key
 test("slot edits retain drafts, explicit copy previews hidden destinations and Undo is atomic", async ({
   page,
 }) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page
     .getByRole("button", {
       name: "Edit bar 1 section 1 inside label",
@@ -457,7 +457,7 @@ test("explicit upgrade previews and Undo restores v1 source and earlier history"
     (raw) => localStorage.setItem("maths-booklet-tools:bar-model:v1", raw),
     old.canonical(legacy),
   );
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page.getByText("Use improved layout", { exact: true }).first().click();
   await page
     .getByRole("button", { name: "Use improved layout", exact: true })
@@ -476,7 +476,7 @@ test("explicit upgrade previews and Undo restores v1 source and earlier history"
 test("v2 downloads retain actual SVG fonts and verified 600ppi PNG with native dimensions", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=bar-model");
+  await page.goto("/tools/bar-model");
   await page.getByRole("button", { name: "Worked R5", exact: true }).click();
   const e = await saved(page),
     g = c.layout(e);
@@ -508,7 +508,7 @@ for (const width of [320, 375, 768, 1440])
     page,
   }, info) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/?tool=bar-model");
+    await page.goto("/tools/bar-model");
     await page.getByLabel("Open bar model file").setInputFiles({
       name: "dense-v2.json",
       mimeType: "application/json",

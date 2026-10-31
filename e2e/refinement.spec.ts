@@ -210,7 +210,7 @@ for (const [tool, key, paper, stage] of tools) {
 test("typed input is available immediately and cancel restores a fresh usable form", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   const line = page.getByRole("textbox", {
     name: "Line equation",
     exact: true,
@@ -247,7 +247,7 @@ for (const width of [1280, 375, 320])
     page,
   }) => {
     await page.setViewportSize({ width, height: 812 });
-    await page.goto("/?tool=triangle");
+    await page.goto("/tools/triangle");
     const key = "maths-booklet-tools:triangle:v1";
     await expect
       .poll(() => page.evaluate((k) => localStorage.getItem(k), key))

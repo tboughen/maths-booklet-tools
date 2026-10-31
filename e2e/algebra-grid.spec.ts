@@ -55,7 +55,7 @@ async function load(page: Page, value = example()) {
     },
     { key: KEY, text: canonical(value) },
   );
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await expect(resource(page)).toBeVisible();
 }
 async function download(page: Page, name: string, destination: string) {
@@ -300,7 +300,7 @@ test("printed question edits save, export and undo without changing grid entries
     .toBe("(x+3)(x+2)");
   // Reload without the setup script replacing the saved edit.
   const next = await page.context().newPage();
-  await next.goto("/?tool=expanding-factorising");
+  await next.goto("/tools/expanding-factorising");
   await expect(
     next.getByLabel("Question expression", { exact: true }),
   ).toHaveValue("(x+3)(x+2)");
@@ -408,7 +408,7 @@ test("clearing a printed question returns focus to its settings field", async ({
 test("opens through the real overview card with renderer artwork and a preserved scaffold", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=booklet-tools");
+  await page.goto("/tools");
   const link = page.getByRole("link", {
     name: /Open Expanding and factorising/,
   });
@@ -487,7 +487,7 @@ for (const size of [12, 15, 18])
 test("edits blank/zero/hidden states, exports pupil visibility and preserves exact editable round trips", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await edit(page, 1, 1, "x^2", true);
   const before = await saved(page);
   expect(before.document.rows[1].cells[1]).toEqual({
@@ -545,7 +545,7 @@ test("edits blank/zero/hidden states, exports pupil visibility and preserves exa
 test("invalid drafts guard exports/history, survive navigation, and cancel without committing", async ({
   page,
 }) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   // The editor's code loads after the page, then it saves its first draft.
   await expect.poll(() => saved(page)).not.toBeNull();
   const original = await saved(page);
@@ -586,7 +586,7 @@ test("invalid drafts guard exports/history, survive navigation, and cancel witho
 test("explicit products/answers use undo and heading edits preserve products with visible warnings", async ({
   page,
 }) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await page
     .getByRole("button", { name: "Fill products", exact: true })
     .click();
@@ -709,7 +709,7 @@ test("image clipboard and Word HTML use the same physical export with recoverabl
       configurable: true,
     });
   });
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await page.getByRole("button", { name: "Copy image", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Image copied");
   const data = await page.evaluate(
@@ -785,7 +785,7 @@ test("newer-tab storage and corrupt recovery data are protected", async ({
     (key) => localStorage.setItem(key, "{corrupt original"),
     KEY,
   );
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await expect(
     page.getByRole("heading", { name: "Protect saved work" }),
   ).toBeVisible();
@@ -796,7 +796,7 @@ test("newer-tab storage and corrupt recovery data are protected", async ({
     "{corrupt original",
   );
   const second = await page.context().newPage();
-  await second.goto("/?tool=graph");
+  await second.goto("/tools/graph");
   await second.evaluate(({ key, text }) => localStorage.setItem(key, text), {
     key: KEY,
     text: canonical(example("single")),
@@ -846,7 +846,7 @@ test("column widths, intermediate cells and paper-fit warnings keep exact dimens
 test("keyboard cell editing restores focus and makes one undoable edit", async ({
   page,
 }) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await cell(page, 0, 2).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Cell entry", { exact: true })).toBeFocused();
@@ -871,7 +871,7 @@ test("touch gestures commit once and leave undo/redo usable", async ({
     isMobile: true,
   });
   const page = await context.newPage();
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await page.getByRole("button", { name: "+ Row", exact: true }).tap();
   expect((await saved(page)).document.rows).toHaveLength(4);
   await page.getByRole("button", { name: "Undo", exact: true }).tap();
@@ -887,7 +887,7 @@ test("touch gestures commit once and leave undo/redo usable", async ({
 test("past-paper presets use the inspected source and actual question-bank link", async ({
   page,
 }) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await showExamples(page);
   const popup = page.waitForEvent("popup");
   await galleryCard(page, "Q26(a): expand")
@@ -908,7 +908,7 @@ test("past-paper presets use the inspected source and actual question-bank link"
 test("automatic compact headings preserve product dimensions in the real SVG/PNG and editor", async ({
   page,
 }, info) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await page
     .getByRole("combobox", { name: "Preview zoom", exact: true })
     .selectOption("1");
@@ -954,7 +954,7 @@ test("automatic compact headings preserve product dimensions in the real SVG/PNG
 test("hidden/blank headings keep writing space and compact again only after an explicit visible entry", async ({
   page,
 }) => {
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await edit(page, 0, 2, "+3", true);
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "45mm");
   await expect(resource(page).locator("svg")).toHaveAttribute("width", "39mm");
@@ -1018,7 +1018,7 @@ test("upgrades an existing device draft once with Undo, while importing its old 
     },
     { key: KEY, raw },
   );
-  await page.goto("/?tool=expanding-factorising");
+  await page.goto("/tools/expanding-factorising");
   await expect(resource(page).locator("svg")).toHaveAttribute("width", "39mm");
   await expect(page.getByRole("status")).toContainText("Updated this draft");
   expect((await saved(page)).document.rows).toEqual(

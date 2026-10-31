@@ -8,7 +8,7 @@ const browser=await chromium.launch({channel:"chrome",headless:true});
 try{
   const page=await browser.newPage({viewport:{width:1440,height:1100}}),errors=[];
   page.on("pageerror",e=>errors.push(e.message));
-  await page.goto(base+"?tool=value-table-graph");await page.getByRole("heading",{name:"Table of values & graphs",exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);
+  await page.goto(new URL("tools/value-table-graph",base).href);await page.getByRole("heading",{name:"Table of values & graphs",exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);
   const measure=()=>page.locator('[data-layer="axis-values"] text').first().evaluate(text=>({fontPx:parseFloat(getComputedStyle(text).fontSize)*text.getScreenCTM().a,fontFamily:getComputedStyle(text).fontFamily,declaredFontPoints:text.parentElement.getAttribute("data-font-points")}));
   const before=await measure();if(Math.abs(before.fontPx-16)>.01)throw Error("The 12 pt exam numbers did not render at the expected physical scale.");
   await page.screenshot({path:resolve(out,"tool-desktop.png"),fullPage:true});await page.locator(".vg-paper").screenshot({path:resolve(out,"tool-scaffold.png")});

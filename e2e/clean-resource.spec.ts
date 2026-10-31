@@ -27,7 +27,7 @@ test("visible table and axis utilities stay outside the snip area at every compo
             ),
           envelope,
         );
-        await page.goto("/?tool=value-table-graph");
+        await page.goto("/tools/value-table-graph");
         await expect(
           page.getByRole("heading", {
             name: "Plotting quadratics",
@@ -189,7 +189,7 @@ for (const tool of ["graph", "ratio-table", "value-table-graph"]) {
 test("denied image copy offers a fallback and invalid drafts cannot copy", async ({
   page,
 }) => {
-  await page.goto("/?tool=value-table-graph");
+  await page.goto("/tools/value-table-graph");
   await page.evaluate(() =>
     Object.defineProperty(navigator.clipboard, "write", {
       value: () =>

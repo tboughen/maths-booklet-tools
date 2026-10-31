@@ -1,3 +1,4 @@
+import { pageHref } from "../site/routes";
 import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { equationFromPoints, parseNumericInput } from "../domain/equations";
@@ -183,7 +184,7 @@ export function EquationPanel({
           <p id="graph-equation-help">For example y = 2x + 1 or x = -3.</p>
           <details>
             <summary>Other graphs</summary>
-            <a href="?tool=value-table-graph">Open Plotting quadratics</a>
+            <a href={pageHref("value-table-graph")}>Open Plotting quadratics</a>
           </details>
         </div>
       ) : (

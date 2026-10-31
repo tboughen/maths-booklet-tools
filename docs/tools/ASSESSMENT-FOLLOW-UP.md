@@ -1,6 +1,6 @@
 # Assessment follow-up: brief and implementation
 
-Route: `?tool=assessment-follow-up`. Teacher task: import a reusable assessment mapping and class QLA, choose defaults, generate one printable class PDF without AI or a mandatory review step. Pupil task: complete practice linked to an assessment question, then use the complete upside-down scheme.
+Route: `/assessment-follow-up`. Teacher task: import a reusable assessment mapping and class QLA, choose defaults, generate one printable class PDF without AI or a mandatory review step. Pupil task: complete practice linked to an assessment question, then use the complete upside-down scheme.
 
 ## Scope and contracts
 

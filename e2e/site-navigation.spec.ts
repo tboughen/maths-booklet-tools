@@ -37,8 +37,9 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
   await expect(
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
+  // Old ?tool= links are upgraded to the page's own address.
   await page.goto("/?tool=home");
-  await expect(page).toHaveURL(/tool=home$/);
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
   await expect(
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
@@ -68,7 +69,7 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
 test("immediate tool switching retains graphs, ratio edits and separate undo histories", async ({
   page,
 }) => {
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await addLine(page);
   await tools(page).getByRole("link", { name: "Ratio tables" }).click();
   await current(page)
@@ -133,7 +134,7 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
 test("invalid ratio drafts survive leaving and returning without silently replacing their values", async ({
   page,
 }) => {
-  await page.goto("/?tool=ratio-table");
+  await page.goto("/tools/ratio-table");
   const field = current(page).getByLabel("Row 1 x value", { exact: true });
   await field.fill("1/");
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
@@ -149,7 +150,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   page,
 }, info) => {
   test.setTimeout(90000);
-  await page.goto("/?tool=question-bank&code=U332&tier=H");
+  await page.goto("/question-bank?code=U332&tier=H");
   await expect(
     current(page).getByRole("button", { name: "Select question", exact: true }),
   ).toBeEnabled();
@@ -232,12 +233,12 @@ test("a late bank response cannot hijack another page or lock its scrolling", as
     await gate;
     await route.continue();
   });
-  await page.goto("/?tool=question-bank");
+  await page.goto("/question-bank");
   await sections(page)
     .getByRole("link", { name: "Booklet tools", exact: true })
     .click();
   release();
-  await expect(page).toHaveURL(/tool=booklet-tools$/);
+  await expect(page).toHaveURL(/\/tools$/);
   await expect(
     page.getByRole("heading", { name: "Booklet tools", exact: true }),
   ).toBeVisible();
@@ -264,7 +265,7 @@ test("storage failure retains current work through tool navigation", async ({
       throw new Error("Storage unavailable for test");
     };
   });
-  await page.goto("/?tool=graph");
+  await page.goto("/tools/graph");
   await addLine(page);
   await tools(page).getByRole("link", { name: "Ratio tables" }).click();
   await tools(page).getByRole("link", { name: "Graph tool" }).click();
@@ -338,4 +339,43 @@ test("layouts fit laptop, tablet and narrow screens; mobile navigation supports 
   await page.keyboard.press("Escape");
   await expect(sections(page)).toBeHidden();
   await expect(menu).toBeFocused();
+});
+
+test("every page has its own address; old ?tool= links and unknown addresses are handled", async ({
+  page,
+}) => {
+  await page.goto("/tools/venn");
+  await expect(page.getByRole("heading", { level: 1, name: "Venn diagrams" })).toBeVisible();
+  await expect(page).toHaveTitle("Venn diagrams · Maths Dock");
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Venn diagrams" })).toBeVisible();
+
+  await page.goto("/?tool=question-bank&bankView=topics#top");
+  await expect(page).toHaveURL(/\/question-bank\?bankView=topics#top$/);
+  await expect(page).toHaveTitle("Paper builder · Maths Dock");
+
+  await page.goto("/?tool=ratio-table");
+  await expect(page).toHaveURL(/\/tools\/ratio-table$/);
+  await page
+    .getByRole("navigation", { name: "Booklet tools" })
+    .getByRole("link", { name: "Graph tool" })
+    .click();
+  await expect(page).toHaveURL(/\/tools\/graph$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/tools\/ratio-table$/);
+  await expect(page).toHaveTitle("Ratio tables · Maths Dock");
+
+  for (const address of ["/tools/nonsense", "/?tool=nonsense", "/no-such-page"]) {
+    await page.goto(address);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "We couldn't find that page" }),
+    ).toBeVisible();
+    await expect(page).toHaveTitle("Page not found · Maths Dock");
+  }
+  await page
+    .getByRole("navigation", { name: "Where to go next" })
+    .getByRole("link", { name: "Question bank" })
+    .click();
+  await expect(page).toHaveURL(/\/question-bank$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

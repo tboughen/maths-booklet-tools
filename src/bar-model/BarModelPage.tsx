@@ -1,3 +1,4 @@
+import { pathLink } from "../site/routes";
 import { useEffect, useRef, useState } from "react";
 import * as c from "../../packages/bar-model-core/src";
 import {
@@ -412,7 +413,7 @@ export default function BarModelPage({
       disabled: blocked,
       description: LINK_DESCRIPTION,
       action: async () => {
-        await navigator.clipboard.writeText(editorLink(e, location.href));
+        await navigator.clipboard.writeText(pathLink(editorLink(e, location.href)));
       },
       success: "Editable link copied",
     },

@@ -16,6 +16,8 @@ describe("Sparx link and question selection contract", () => {
     const route = readRoute("?tool=question-bank&code=%20u%20638%20", catalogue);
     expect(route).toEqual({...emptyRoute, code: "U862"});
     expect(readRoute(routeQuery({...route, question: "second", view: 1}), catalogue)).toEqual({...route, question: "second", view: 1});
+    expect(routeQuery({...route, question: "second", view: 1})).toBe("?code=U862&question=second&view=2");
+    expect(routeQuery(emptyRoute)).toBe("");
   });
   it("counts a whole question once while retaining the matching part marks", () => {
     expect(filterQuestions(catalogue, {...emptyRoute, code: "U837"})).toEqual([first]);

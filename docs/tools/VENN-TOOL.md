@@ -2,7 +2,7 @@
 
 Local preview implementation, 15 October 2026. Not a publication record.
 
-Route: ?tool=venn. Registry: src/site/registry.ts. Editor: src/venn/.
+Route: /tools/venn. Registry: src/site/registry.ts. Editor: src/venn/.
 Shared schema, membership rules, layout and SVG: packages/venn-core/src/.
 Source research and agreed brief: reports/mathsdock-venn-tool-plan-2026-10-15/
 in the enclosing workspace. The downloaded papers are research evidence, not

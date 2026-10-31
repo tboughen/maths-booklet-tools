@@ -1,3 +1,4 @@
+import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -322,8 +323,7 @@ export default function NumberLinePage({
   useEffect(() => {
     if (!active) return;
     const handle = () => {
-      const route = new URLSearchParams(location.search).get("tool");
-      if (route !== "number-line") return;
+      if (readPage() !== "number-line") return;
       const value = new URLSearchParams(location.hash.slice(1)).get(
         "number-line",
       );
@@ -826,10 +826,11 @@ export default function NumberLinePage({
                 {
                   label: "Copy editable link",
                   action: () => {
-                    const link = editorLink(
+                    const raw = editorLink(
                       history.present,
                       location.origin + location.pathname,
                     );
+                    const link = raw && pathLink(raw);
                     if (!link)
                       throw Error(
                         "This line is too large for a link. Save an editable file instead.",

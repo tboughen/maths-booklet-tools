@@ -25,7 +25,7 @@ export function QuadraticExamples({
           <h3>{example.source}</h3>
           <p className="panel-note">{example.description}</p>
           <a
-            href={`https://mathsdock.co.uk/?tool=question-bank&question=${example.id}`}
+            href={`https://mathsdock.co.uk/question-bank?question=${example.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >

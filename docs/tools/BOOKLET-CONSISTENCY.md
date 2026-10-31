@@ -24,7 +24,7 @@ Fresh browser Graph documents and confirmed Reset use `newBrowserGraph()` with `
 
 ## Editable Venn links
 
-Browser helpers use the existing validated canonical envelope, UTF-8 and base64url in `?tool=venn#venn=...`. The complete URL is limited to 16,000 characters, with the existing bounded decoded representation. Oversize or malformed data is rejected with an editable-file fallback; no region or hidden answer may be omitted to shorten a link.
+Browser helpers use the existing validated canonical envelope, UTF-8 and base64url in `/tools/venn#venn=...` (older `?tool=venn#venn=...` links still open). The complete URL is limited to 16,000 characters, with the existing bounded decoded representation. Oversize or malformed data is rejected with an editable-file fallback; no region or hidden answer may be omitted to shorten a link.
 
 Only the active Venn editor parses its fragment. Show the pupil-view preview and replacement confirmation. Cancel preserves current data; accept is undoable. Consume only the Venn fragment, and permit reopening the same link later. Save/link use pupil visibility regardless of the temporary Show saved answers preview, including reverse-nested arrangements. No server sharing service or schema change is involved.
 

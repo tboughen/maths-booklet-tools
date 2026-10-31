@@ -27,7 +27,7 @@ async function boot(page: Page, e?: Envelope) {
       ([k, v]) => localStorage.setItem(k, v),
       [key, canonical(e)],
     );
-  await page.goto("/?tool=venn");
+  await page.goto("/tools/venn");
   await expect(
     page.getByRole("heading", { name: "Venn diagrams", exact: true }),
   ).toBeVisible();

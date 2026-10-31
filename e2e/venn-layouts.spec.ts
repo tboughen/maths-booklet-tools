@@ -32,7 +32,7 @@ async function boot(page: Page, e: Envelope = create()) {
     },
     [key, canonical(e)],
   );
-  await page.goto("/?tool=venn");
+  await page.goto("/tools/venn");
   await expect(
     page.getByRole("heading", { name: "Venn diagrams", exact: true }),
   ).toBeVisible();
@@ -383,7 +383,7 @@ for (const value of ["one", "separate", "b-inside-a", "a-inside-b"] as const)
         e.document.regions.forEach(
           (r, i) => (r.shade = i === mask ? "grey" : "none"),
         );
-        await page.goto("/?tool=venn");
+        await page.goto("/tools/venn");
         await page.evaluate(
           ([k, v]) => localStorage.setItem(k, v),
           [key, canonical(e)],

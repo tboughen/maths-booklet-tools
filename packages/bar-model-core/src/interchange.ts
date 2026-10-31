@@ -251,7 +251,10 @@ export function parseLink(href: string) {
   const u = new URL(href);
   if (
     href.length > 16000 ||
-    u.searchParams.get("tool") !== "bar-model" ||
+    // Accepts `?tool=bar-model` and the site's `/tools/bar-model` path.
+    (u.searchParams.has("tool")
+      ? u.searchParams.get("tool") !== "bar-model"
+      : !/\/tools\/bar-model\/?$/.test(u.pathname)) ||
     !/^#bar-model=[A-Za-z0-9_-]+$/.test(u.hash)
   )
     throw Error("Invalid bar-model link. Open an editable file.");

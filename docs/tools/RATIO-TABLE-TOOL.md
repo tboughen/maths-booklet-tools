@@ -1,6 +1,6 @@
 # Ratio tables — human editor and shared MCP renderer
 
-Open the human editor at ?tool=ratio-table under the normal website base path.
+Open the human editor at /tools/ratio-table under the normal website base path.
 Use the shared navigation to switch between Graph tool, Ratio tables and Question bank.
 Human editing and exports use the browser; the MCP service is not required.
 
@@ -99,7 +99,7 @@ returns to the original format. Older website versions cannot open three-column
 files; the current editor can open both formats.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves
 the current table unchanged; a confirmed opening is one undoable change.
-Share links use ?tool=ratio-table#ratio-table=...; the fragment stays in the browser.
+Share links use /tools/ratio-table#ratio-table=... (links from the MCP service use the older ?tool=ratio-table form, which redirects); the fragment stays in the browser.
 Anyone holding that link can open the entered values. Oversized links use JSON.
 Files are limited to 64 KiB; canonical envelopes to 8 KiB. Unknown versions and
 foreign graph files refuse. Corrupt device data is preserved until a recovery

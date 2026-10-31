@@ -219,3 +219,17 @@ body { background: #f2f5f8; }
 .source-example-actions button { min-height: 38px; padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 4px; background: white; color: var(--ink); cursor: pointer; font-size: 12px; }
 .source-example-actions button:hover:not(:disabled) { background: var(--blue-soft); }
 .source-example-actions button:disabled { opacity: .5; cursor: default; }
+
+.site-not-found-links,
+.site-not-found-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+.site-not-found h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}

@@ -1,6 +1,6 @@
 # Plotting quadratics
 
-Route: ?tool=value-table-graph. Browser editor works without the MCP service.
+Route: /tools/value-table-graph. Browser editor works without the MCP service.
 The default is the June 2018 Q5 scaffold; no calculation or plotting is implicit.
 
 ## Exam reference
