@@ -5,7 +5,7 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { classifyRisk } from './classify-risk.mjs';
-import { EFFORT, MODEL, panel, runPanel } from './judge.mjs';
+import { EFFORT, MODEL, panel, pathsOf, runPanel } from './judge.mjs';
 
 export function score(rows) {
   const bad = rows.filter(r => r.expect === 'fail'), good = rows.filter(r => r.expect === 'pass');
@@ -19,8 +19,6 @@ export function score(rows) {
     abstained: rows.filter(r => r.overall === 'abstain').length,
   };
 }
-
-export const pathsOf = diff => [...diff.matchAll(/^diff --git a\/\S+ b\/(\S+)/gm)].map(m => m[1]);
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const out = process.argv.find(a => a.startsWith('--out='))?.slice(6) || 'calibration.json';
@@ -39,7 +37,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     `Known-bad changes failed: ${s.caught} of ${s.bad} (${s.flagged} only flagged as concerns, ${s.missed} passed).`,
     `Good changes failed: ${s.falseFails} of ${s.good}. Abstained: ${s.abstained}.`, '',
     '| Case | Tier | Expected | Panel | Teacher | Product | Adversarial |', '| --- | --- | --- | --- | --- | --- | --- |',
-    ...rows.map(r => `| ${r.diff} | ${r.tier} | ${r.expect} | ${r.overall} | ${r.results.map(x => x.verdict?.verdict ?? 'did not run').join(' | ')} |`), ''].join('\n');
+    ...rows.map(r => `| ${r.diff} | ${r.tier} | ${r.expect} | ${r.overall} | ${r.results.map(x => (x.verdict?.verdict ?? 'did not run') + (x.model && x.model !== MODEL ? ` (${x.model})` : '')).join(' | ')} |`), ''].join('\n');
   console.log(text);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text);
   writeFileSync(out, JSON.stringify({ model: MODEL, effort: EFFORT, score: s, rows }, null, 2) + '\n');

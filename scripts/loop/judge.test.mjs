@@ -55,7 +55,8 @@ test('verdicts are validated and summaries escape table characters', () => {
 });
 
 test('calibration scores catches, misses and false fails', async () => {
-  const { score, pathsOf } = await import('./calibrate.mjs');
+  const { score } = await import('./calibrate.mjs');
+  const { pathsOf } = await import('./judge.mjs');
   const s = score([
     { expect: 'fail', overall: 'fail' }, { expect: 'fail', overall: 'concerns' }, { expect: 'fail', overall: 'pass' },
     { expect: 'pass', overall: 'pass' }, { expect: 'pass', overall: 'fail' }, { expect: 'pass', overall: 'abstain' },
@@ -73,4 +74,29 @@ test('every calibration case has its diff and an expectation', async () => {
     assert.ok(existsSync(`review/calibration/${c.diff}`), c.diff);
     assert.match(readFileSync(`review/calibration/${c.diff}`, 'utf8'), /^diff --git /);
   }
+});
+
+test('the panel runs the first judge alone, then the rest, and records failures per judge', async () => {
+  const { runPanel } = await import('./judge.mjs');
+  const calls = [];
+  let inFlight = 0, maxInFlight = 0;
+  const ok = { verdict: 'pass', confidence: 'high', summary: 's', findings: [] };
+  const client = { beta: { messages: { parse: async params => {
+    const judge = params.messages[0].content.match(/as the (\w+) judge/)[1];
+    calls.push(judge); inFlight++; maxInFlight = Math.max(maxInFlight, inFlight);
+    await new Promise(r => setTimeout(r, 5));
+    inFlight--;
+    if (judge === 'product') return { stop_reason: 'refusal', stop_details: { category: 'cyber' }, parsed_output: null, usage: {} };
+    if (judge === 'adversarial') throw new Error('network down');
+    return { stop_reason: 'end_turn', parsed_output: ok, model: 'claude-opus-4-8', usage: {} };
+  } } } };
+  const results = await runPanel({ diff: diffFor('src/a.ts'), tier: 'T3', readFile: fakeRead, client });
+  assert.equal(calls[0], 'teacher');
+  assert.deepEqual(results.map(r => r.judge), ['teacher', 'product', 'adversarial']);
+  assert.equal(results[0].verdict.verdict, 'pass');
+  assert.equal(results[0].model, 'claude-opus-4-8');
+  assert.match(results[1].error, /declined \(cyber\)/);
+  assert.match(results[2].error, /network down/);
+  assert.equal(panel(results), 'concerns');
+  assert.match(summary({ tier: 'T3', results, overall: 'concerns' }), /teacher \(answered by claude-opus-4-8\)/);
 });

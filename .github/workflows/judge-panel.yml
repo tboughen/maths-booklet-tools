@@ -1,0 +1,67 @@
+name: Judge panel
+# Shadow mode: three judges review each pull request with the Claude API and report in the job
+# summary. This job is not a required check and never fails on a verdict (scripts/loop/judge.mjs).
+#
+# Security: this job holds ANTHROPIC_API_KEY, so it never runs pull-request code. It reads the PR
+# only as a diff, and runs the judge script, rubrics, guidance and dependencies from the base
+# branch, so a PR can neither read the key nor rewrite the panel that judges it.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+concurrency:
+  group: judge-panel-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  judges:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the pull request (read as data only)
+        uses: actions/checkout@v7
+        with:
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Write the pull request diff
+        run: git -C pr diff --no-renames -U12 HEAD^1 HEAD > pr.diff
+      - name: Check out the trusted base-branch code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Find the judge on the base branch
+        id: trusted
+        run: |
+          if [ -f trusted/scripts/loop/judge.mjs ]; then echo "ready=true" >> "$GITHUB_OUTPUT"
+          else echo "### Judge panel: not on the base branch yet" >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/setup-node@v7
+        if: steps.trusted.outputs.ready == 'true'
+        with:
+          node-version-file: trusted/.nvmrc
+      - name: Restore the base branch's dependencies
+        if: steps.trusted.outputs.ready == 'true'
+        id: modules
+        uses: actions/cache@v5
+        with:
+          path: trusted/node_modules
+          key: judge-modules-${{ runner.os }}-${{ hashFiles('trusted/package-lock.json') }}
+      - if: steps.trusted.outputs.ready == 'true' && steps.modules.outputs.cache-hit != 'true'
+        working-directory: trusted
+        run: npm ci --no-audit --no-fund --ignore-scripts
+      - name: Run the judge panel
+        if: steps.trusted.outputs.ready == 'true'
+        working-directory: trusted
+        run: node scripts/loop/judge.mjs --diff=../pr.diff --out=../review-shadow.json
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Keep the verdicts
+        if: always() && hashFiles('review-shadow.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: judge-panel
+          path: review-shadow.json
+          retention-days: 90

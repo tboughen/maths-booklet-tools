@@ -29,7 +29,8 @@ const rules = [
 ];
 
 export function tierOf(path) {
-  if (test.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/(?:contracts|golden)\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
+  // Tests of the gates themselves stay at the gate's tier: changing them changes the oracle.
+  if (test.test(path) && !/^(?:scripts\/(?:ci|loop|cloudflare|bank)|\.github)\//.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/(?:contracts|golden)\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
   for (const [tier, re] of rules) if (re.test(path)) return { tier, reason: TIERS[tier] };
   return { tier: 'T8', reason: 'unknown path (fails conservative)' };
 }

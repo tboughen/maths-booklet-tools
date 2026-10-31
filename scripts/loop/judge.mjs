@@ -3,14 +3,16 @@
 // in review/rubrics/ and the project guidance. The panel reports in the job summary and decides
 // nothing; it always exits 0. Without ANTHROPIC_API_KEY it reports that it did not run.
 //
-//   node scripts/loop/judge.mjs [--base=HEAD^1] [--out=review-shadow.json]
+//   node scripts/loop/judge.mjs --diff=pr.diff [--out=review-shadow.json]
 //
-// The diff and pull request text are untrusted input: they only ever reach the model as data, and
-// the verdict only reaches the job summary.
+// In CI this runs in its own job from the base branch's code, rubrics and guidance, never from the
+// pull request's, and that job runs no pull-request code: the API key is never in a process that
+// PR code can reach, and a PR cannot rewrite the panel that judges it. The diff and pull request
+// text are untrusted input: they only reach the model as data, and the verdict only the job summary.
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { z } from 'zod';
+import { classifyRisk } from './classify-risk.mjs';
 
 export const JUDGES = ['teacher', 'product', 'adversarial'];
 export const MODEL = process.env.JUDGE_MODEL || 'claude-opus-5-5';
@@ -96,10 +98,10 @@ export function panel(results) {
 }
 
 // Runs the three judges: the first alone so it writes the cache, then the other two in parallel.
-export async function runPanel({ diff, tier, title, body, readFile = read }) {
+export async function runPanel({ diff, tier, title, body, readFile = read, client }) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const { betaZodOutputFormat } = await import('@anthropic-ai/sdk/helpers/beta/zod');
-  const client = new Anthropic();
+  client ??= new Anthropic();
   const guidanceText = guidance(readFile);
   const one = async judge => {
     const { params, tooLarge } = request({ judge, rubric: readFile(`review/rubrics/${judge}.md`), guidanceText, tier, title, body, diff });
@@ -110,7 +112,7 @@ export async function runPanel({ diff, tier, title, body, readFile = read }) {
       if (!response.parsed_output) return { judge, error: `no verdict (stop reason ${response.stop_reason})`, usage: response.usage };
       return { judge, verdict: response.parsed_output, model: response.model, usage: response.usage };
     } catch (error) {
-      return { judge, error: error instanceof Anthropic.APIError ? `${error.status ?? ''} ${error.name}: ${error.message}`.trim() : String(error) };
+      return { judge, error: error instanceof Anthropic.APIError ? `${error.status ?? ''} ${error.name}: ${error.message}`.trim() : String(error?.message ?? error) };
     }
   };
   const first = await one(JUDGES[0]);
@@ -121,30 +123,31 @@ export function summary({ tier, results, overall }) {
   const lines = [`### Judge panel: ${overall} (shadow mode, decides nothing)`, '', `Risk tier ${tier || 'unknown'}. Model ${MODEL}, effort ${EFFORT}.`, '',
     '| Judge | Verdict | Confidence | Summary |', '| --- | --- | --- | --- |'];
   for (const r of results) lines.push(r.verdict
-    ? `| ${r.judge} | ${r.verdict.verdict} | ${r.verdict.confidence} | ${r.verdict.summary.replace(/\s+/g, ' ').replace(/\|/g, '\\|')} |`
+    ? `| ${r.judge}${r.model && r.model !== MODEL ? ` (answered by ${r.model})` : ''} | ${r.verdict.verdict} | ${r.verdict.confidence} | ${r.verdict.summary.replace(/\s+/g, ' ').replace(/\|/g, '\\|')} |`
     : `| ${r.judge} | did not run | | ${r.error.replace(/\|/g, '\\|')} |`);
   const findings = results.flatMap(r => (r.verdict?.findings ?? []).map(f => ({ judge: r.judge, ...f })));
   if (findings.length) lines.push('', '<details><summary>Findings</summary>', '', ...findings.map(f => `- **${f.severity}** (${f.judge}, ${f.rubric}) \`${f.file}\`: ${f.issue.replace(/\s+/g, ' ')}`), '', '</details>');
   return lines.join('\n') + '\n';
 }
 
+export const pathsOf = diff => [...diff.matchAll(/^diff --git a\/\S+ b\/(\S+)/gm)].map(m => m[1]);
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const arg = (name, fallback) => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3) || fallback;
-  const base = arg('base', 'HEAD^1'), out = arg('out', 'review-shadow.json');
+  const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+  const out = arg('out') || 'review-shadow.json';
   const report = text => { console.log(text); if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text); };
   try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      report('### Judge panel: did not run\n\nANTHROPIC_API_KEY is not available to this run (for example a pull request from a fork).\n');
+      process.exit(0);
+    }
     let title = '', body = '';
     if (process.env.GITHUB_EVENT_PATH) {
       const pr = JSON.parse(read(process.env.GITHUB_EVENT_PATH)).pull_request ?? {};
       title = pr.title ?? ''; body = pr.body ?? '';
     }
-    let tier = '';
-    try { tier = execFileSync('node', ['scripts/loop/classify-risk.mjs', `--base=${base}`], { encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '' } }).match(/risk tier \(shadow\): (T\d)/)?.[1] ?? ''; } catch { /* tier stays unknown */ }
-    if (!process.env.ANTHROPIC_API_KEY) {
-      report('### Judge panel: did not run\n\nANTHROPIC_API_KEY is not available to this run (for example a fork or a draft).\n');
-      process.exit(0);
-    }
-    const diff = execFileSync('git', ['diff', '--no-renames', '-U12', base, 'HEAD'], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    const diff = read(arg('diff') ?? 'pr.diff');
+    const tier = classifyRisk(pathsOf(diff)).tier;
     const results = await runPanel({ diff, tier, title, body });
     const overall = panel(results);
     report(summary({ tier, results, overall }));
@@ -152,5 +155,6 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     writeFileSync(out, JSON.stringify({ tier, overall, model: MODEL, effort: EFFORT, results }, null, 2) + '\n');
   } catch (error) {
     report(`### Judge panel: did not run\n\n${String(error).replace(/\n/g, ' ')}\n`);
+    console.log(`::warning title=Judge panel did not run::${String(error).replace(/\n/g, ' ')}`);
   }
 }
