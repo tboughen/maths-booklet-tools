@@ -25,6 +25,12 @@ every step, so anything a pull-request plan skipped is still checked within a da
   the job. Removed or loosened assertions, new `skip`/`fixme`, deleted test files and changed
   control hashes appear as warnings and in the job summary for review
   (`docs/AUTONOMOUS-LOOP-POLICY.md`, gate 10).
+- **Output gates** live in `src/gates/` and run with the unit tests whenever a core, renderer or
+  gallery example changes. `answer-canary.test.ts` plants a sentinel in every hidden-answer slot of
+  every example and fails if a pupil SVG shows it. `export-output.test.ts` renders every gallery
+  example, pupil and worked, and fails on editor chrome, a non-absolute print size, a distorted
+  aspect, or declared type smaller than `print-baseline.json`. Raise the baseline after a deliberate
+  increase with `UPDATE_PRINT_BASELINE=1 npx vitest run src/gates`; lowering it needs Tim.
 - **Drafts use no CI.** Open a pull request as a draft while it is in progress; marking it
   ready for review starts the checks. Each new push cancels the run in progress for that ref.
 - **Affected tests** use `vitest --changed HEAD^1`, which follows the import graph. Files that

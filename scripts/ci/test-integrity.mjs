@@ -35,6 +35,7 @@ export function checkDiff(diff) {
       else if (added && assertion.test(text) && loose.test(text)) findings.push({ level: 'warning', file, kind: 'loose-assertion', text });
       else if (removed && assertion.test(text)) findings.push({ level: 'warning', file, kind: 'removed-assertion', text });
     }
+    if (removed && /baseline\.json$/.test(file) && /\d/.test(text)) findings.push({ level: 'warning', file, kind: 'changed-baseline', text });
     if (removed && controlFile.test(file) && hash.test(text)) findings.push({ level: 'warning', file, kind: 'changed-control-hash', text });
   }
   return findings;

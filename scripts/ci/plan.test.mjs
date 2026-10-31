@@ -32,7 +32,7 @@ test('service-only changes skip the website build', () => {
 });
 
 test('infrastructure, workflows and unknown paths run every test', () => {
-  for (const path of ['.github/workflows/quick-checks.yml', 'scripts/ci/plan.mjs', 'eslint.config.js', 'surprise-file', 'playwright.config.ts', 'src/test/setup.ts']) {
+  for (const path of ['.github/workflows/quick-checks.yml', 'scripts/ci/plan.mjs', 'eslint.config.js', 'surprise-file', 'playwright.config.ts', 'src/test/setup.ts', 'src/gates/print-baseline.json']) {
     const plan = pr([path]);
     assert.equal(plan.tests, 'all', path); assert.equal(plan.build, true, path);
   }
