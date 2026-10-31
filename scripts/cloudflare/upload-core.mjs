@@ -58,6 +58,7 @@ export function assertPublicHeaders(response, asset) {
       || response.headers.get("content-type")?.split(";")[0] !== asset.contentType
       || response.headers.get("etag")?.replaceAll('"', "") !== asset.md5
       || response.headers.get("cache-control") !== gatedCache) {
-    throw new Error(`Gated asset headers failed: ${asset.key}`);
+    const seen = ['content-length', 'content-type', 'etag', 'cache-control', 'location'].map(name => `${name}=${response.headers.get(name) ?? '-'}`).join(' ');
+    throw new Error(`Gated asset headers failed: ${asset.key} (status ${response.status}; ${seen})`);
   }
 }
