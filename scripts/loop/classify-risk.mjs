@@ -22,14 +22,14 @@ const rules = [
   ['T7', canonicalGuidance],
   ['T6', /^(?:services\/|Dockerfile|render\.yaml$|\.dockerignore$|src\/gates\/contracts\/mcp-catalogue\.json$)/],
   ['T5', /(?:^|\/)(?:[^/]*interchange[^/]*|schema[^/]*|storage[^/]*|versioned[^/]*)\.[cm]?[jt]sx?$|EMITTED-SCHEMAS\.json$|^src\/gates\/contracts\//],
-  ['T4', /^(?:packages\/[^/]+\/src\/|assets\/graph-fonts\/|src\/gates\/print-baseline\.json$|e2e\/a11y-baseline\.json$)/],
+  ['T4', /^(?:packages\/[^/]+\/src\/|assets\/graph-fonts\/|src\/gates\/print-baseline\.json$|src\/gates\/golden\/|e2e\/a11y-baseline\.json$)/],
   ['T2', /^(?:src\/.*\.css$|src\/site\/|src\/assets\/)/],
   ['T3', /^src\//],
   ['T1', /^docs\/.*\.md$/],
 ];
 
 export function tierOf(path) {
-  if (test.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/contracts\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
+  if (test.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/(?:contracts|golden)\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
   for (const [tier, re] of rules) if (re.test(path)) return { tier, reason: TIERS[tier] };
   return { tier: 'T8', reason: 'unknown path (fails conservative)' };
 }
@@ -54,7 +54,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const paths = status.map(s => s[1]);
   const deletedTests = status.some(([s, p]) => s === 'D' && test.test(p));
   const changedLines = git(['diff', '--no-renames', '--numstat', base, 'HEAD']).split('\n').filter(Boolean)
-    .map(l => l.split('\t')).filter(([, , p]) => !/(?:fixtures|contracts)\/|baseline\.json$|package-lock\.json$/.test(p))
+    .map(l => l.split('\t')).filter(([, , p]) => !/(?:fixtures|contracts|golden)\/|baseline\.json$|package-lock\.json$/.test(p))
     .reduce((n, [a, d]) => n + (Number(a) || 0) + (Number(d) || 0), 0);
   const result = classifyRisk(paths, { changedLines, deletedTests });
   console.log(`risk tier (shadow): ${result.tier} ${TIERS[result.tier]}`);

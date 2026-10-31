@@ -37,6 +37,14 @@ every step, so anything a pull-request plan skipped is still checked within a da
   `saved-states.test.ts` saves every example as its editable file (and link, where the tool has
   a link codec), reloads it through the real parser, and repeats that with each teaching slot set
   to blank, zero, hidden answer, answer line and value; any lost or merged state fails.
+- **Output goldens.** `src/gates/goldens.test.ts` renders every gallery example, pupil and worked,
+  in Node with resvg and only the bundled STIX fonts, and compares it with
+  `src/gates/golden/outputs.json`: the saved-envelope hash, the SVG hash, the printed millimetres,
+  the 600 ppi PNG pixel size and a pixel hash (150 ppi, compared only on the recording platform,
+  `linux-x64`). One example per tool also goes through the full 600 ppi PNG path. A change that
+  alters only the SVG hash keeps the same pixels (a golden-identical refactor). Goldens change only
+  with `ACCEPT_GOLDENS="reason" npx vitest run src/gates/goldens.test.ts`, which appends the reason
+  and the changed outputs to `src/gates/golden/ACCEPTED.md`; such a pull request is T4 or higher.
 - **Contracts.** `src/gates/contracts.test.ts` compares every saved-file schema (as JSON Schema)
   and the advertised MCP catalogue (`tools/list` from a local service) with snapshots in
   `src/gates/contracts/`. Any difference fails; after Tim approves a schema or MCP change, refresh
