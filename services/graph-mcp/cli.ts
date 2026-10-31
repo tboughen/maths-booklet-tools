@@ -1,4 +1,5 @@
 import { graphService } from "./server";
+import { cloudflareKvQuotaStore } from "./limits";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const manifest = JSON.parse(readFileSync("service-dist/manifest.json", "utf8"));
@@ -39,6 +40,28 @@ if (
   Object.hasOwn(previous, activeKey)
 )
   throw Error("Previous keys must be an object with different key IDs.");
+const kv = {
+  accountId: process.env.QUOTA_KV_ACCOUNT_ID,
+  namespaceId: process.env.QUOTA_KV_NAMESPACE_ID,
+  apiToken: process.env.QUOTA_KV_API_TOKEN,
+};
+const kvSet = Object.values(kv).filter(Boolean).length;
+if (kvSet !== 0 && kvSet !== 3)
+  throw Error(
+    "Set all of QUOTA_KV_ACCOUNT_ID, QUOTA_KV_NAMESPACE_ID and QUOTA_KV_API_TOKEN, or none.",
+  );
+const quotaStore =
+  kvSet === 3
+    ? cloudflareKvQuotaStore(kv as { accountId: string; namespaceId: string; apiToken: string })
+    : undefined;
+if (!quotaStore)
+  process.stdout.write(
+    "Daily download allowance is per process; it resets when the service sleeps or restarts.\n",
+  );
+// Render sets RENDER=true; its proxy is the socket peer, so key limits on its forwarded address.
+const trustForwardedFor = process.env.TRUST_FORWARDED_FOR
+  ? process.env.TRUST_FORWARDED_FOR === "1"
+  : process.env.RENDER === "true";
 const service = graphService({
   buildId: manifest.buildId,
   publicUrl,
@@ -48,6 +71,9 @@ const service = graphService({
   keys: { ...previous, [activeKey]: signingKey },
   activeKey,
   dailyBytes,
+  quotaStore,
+  trustForwardedFor,
+  onQuotaStoreError: (message) => process.stderr.write(message + "\n"),
   log: (entry) => process.stdout.write(JSON.stringify(entry) + "\n"),
 });
 service.requestTimeout = 20_000;
@@ -60,6 +86,10 @@ service.listen(
 );
 for (const signal of ["SIGINT", "SIGTERM"] as const)
   process.once(signal, () => {
-    service.close(() => process.exit(0));
+    // Save today's download total, then exit once connections finish or time runs out.
+    const closed = new Promise<void>((done) => service.close(() => done()));
+    void Promise.allSettled([closed, service.flushQuota()]).then(() =>
+      process.exit(0),
+    );
     setTimeout(() => process.exit(0), 20_000).unref();
   });

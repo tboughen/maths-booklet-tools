@@ -31,7 +31,7 @@ import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
 import { Downloads } from "./downloads";
 import type { DownloadFormat } from "./downloads";
 import { RasterQueue } from "./raster";
-import { TrafficLimits } from "./limits";
+import { TrafficLimits, clientAddress, type QuotaStore } from "./limits";
 import { graphOutputSchema, capabilitiesOutputSchema } from "./output-schema";
 import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
@@ -54,6 +54,11 @@ export interface ServiceOptions {
   fontRoot?: string;
   renderTimeoutMs?: number;
   dailyBytes?: number;
+  /** Keeps the daily served-byte total across sleeps and restarts. */
+  quotaStore?: QuotaStore;
+  /** Rate-limit on the host edge's X-Forwarded-For address instead of the socket. */
+  trustForwardedFor?: boolean;
+  onQuotaStoreError?: (message: string) => void;
   log?: (entry: {
     requestId: string;
     status: number;
@@ -100,7 +105,10 @@ export function graphService(options: ServiceOptions) {
     options.fontRoot ?? resolve("assets/graph-fonts"),
     options.renderTimeoutMs,
   );
-  const limits = new TrafficLimits(options.dailyBytes);
+  const limits = new TrafficLimits(options.dailyBytes, {
+    store: options.quotaStore,
+    onStoreError: options.onQuotaStoreError,
+  });
   const ratioDownloads = new RatioDownloads(base.href, options.keys, options.activeKey);
   const ratios = ratioTools(raster, ratioDownloads, limits, options.editorUrl);
   const valueDownloads = new ValueDownloads(base.href, options.keys, options.activeKey);
@@ -363,7 +371,7 @@ export function graphService(options: ServiceOptions) {
     diagramOutputs.register(server, connectionSignal);
     return server;
   }
-  return createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
+  const service = createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
     const started = Date.now(),
       requestId = randomUUID();
     let bytes = 0;
@@ -412,7 +420,7 @@ export function graphService(options: ServiceOptions) {
         });
         return;
       }
-      limits.request(req.socket.remoteAddress ?? "unknown");
+      limits.request(clientAddress(req, options.trustForwardedFor ?? false));
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
         if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model") throw new GraphError("invalid_download", "Use the original download route for this resource.");
@@ -534,6 +542,8 @@ export function graphService(options: ServiceOptions) {
       });
     }
   });
+  /** Saves the daily served-byte total; call before the process exits. */
+  return Object.assign(service, { flushQuota: () => limits.flush() });
 }
 async function readBody(req: IncomingMessage): Promise<unknown> {
   if (!req.headers["content-type"]?.startsWith("application/json"))
