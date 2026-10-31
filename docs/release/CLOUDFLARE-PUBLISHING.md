@@ -9,7 +9,7 @@ release checklist. Its direct deployment entry point is guarded. Normal publicat
 uses the exact qualified package through the main workflow; do not rerun the legacy
 build/test/audit sequence for an isolated tool update.
 
-The browser app is served by Workers Static Assets. Reviewed PDFs and PNG previews live in the `maths-booklet-assets` R2 bucket at `https://assets.mathsdock.co.uk`. GitHub remains the source repository. The existing Pages workflow is retained during the migration for rollback.
+The browser app is served by Workers Static Assets behind Cloudflare Access. Reviewed PDFs and PNG previews live in the private `maths-booklet-assets` R2 bucket and are served by the site Worker at `/bank/assets/*` (see [staff sign-in](STAFF-SIGN-IN.md)); the former `assets.mathsdock.co.uk` custom domain and the GitHub Pages fallback are retired. GitHub remains the source repository. Where the historical steps below mention CORS or a workers.dev preview, the current setup is same-origin and `https://preview.mathsdock.co.uk`.
 
 ## Local authentication
 

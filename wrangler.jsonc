@@ -1,8 +1,20 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mathsdock",
+  "main": "scripts/cloudflare/site-worker.mjs",
   "compatibility_date": "2026-10-11",
   "workers_dev": false,
+  "preview_urls": false,
   "routes": [{ "pattern": "mathsdock.co.uk", "custom_domain": true }],
-  "assets": { "directory": "./dist-cloudflare", "not_found_handling": "single-page-application" }
+  "assets": {
+    "directory": "./dist-cloudflare",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/bank/assets/*"]
+  },
+  "r2_buckets": [{ "binding": "BANK", "bucket_name": "maths-booklet-assets" }],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "https://restless-thunder-6cb2.cloudflareaccess.com",
+    "ACCESS_AUD": "3fcd636718982e910abda19f21ac678c1dfebefe43594389448f5b293dc42e3e"
+  }
 }

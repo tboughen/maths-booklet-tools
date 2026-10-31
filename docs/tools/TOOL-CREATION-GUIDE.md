@@ -53,7 +53,7 @@ Within the editor:
 - Keep selected-object settings in a predictable place. Separate these from whole-diagram settings such as print size and annotation visibility.
 - Collapse less frequent options, help and examples where that keeps the main workflow clear.
 
-The [layout audit](EDITOR-LAYOUT-AUDIT.md) records the Graph, Ratio and Table of values & graphs comparison behind this placement convention. Similar utilities share one component; specialist controls keep their mathematical purpose and do not need identical content.
+The [layout audit](../archive/EDITOR-LAYOUT-AUDIT.md) records the Graph, Ratio and Table of values & graphs comparison behind this placement convention. Similar utilities share one component; specialist controls keep their mathematical purpose and do not need identical content.
 
 Use Carbon's button hierarchy and grouping guidance as a reference, while reusing MathsDock's existing components and styles. Adopting Carbon as a dependency would be a separate implementation decision. [Carbon button guidance](https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines).
 
@@ -73,7 +73,7 @@ Where suitable questions exist, provide editable starting examples linked to the
 
 Keep pupil blanks and scaffolds in the default example. Offer calculation, plotting and worked copies explicitly. Replacing current work should follow the tool's confirmation and Undo conventions. Treat source-linked examples as a design requirement to consider for every future tool; document why they are unavailable or inappropriate when no suitable source exists. Validate the source links and editable example, including its actual exports, during acceptance.
 
-The [Graph and Ratio examples](TOOL-SOURCE-EXAMPLES.md) show verified source cards, separate scaffold/worked actions, confirmation and Undo, and direct links that keep the editor open. An adapted teaching step should say which part of the source question it supports.
+The [Graph and Ratio examples](../content/TOOL-SOURCE-EXAMPLES.md) show verified source cards, separate scaffold/worked actions, confirmation and Undo, and direct links that keep the editor open. An adapted teaching step should say which part of the source question it supports.
 
 ## Preserve the teacher's mathematical intent
 
@@ -150,7 +150,7 @@ Version the saved document, renderer and style deliberately. Retain representati
 
 Where an MCP connector is in scope, reuse the capabilities/create/revise pattern. Return the canonical document envelope, its content hash, a preview, real downloads, warnings, physical dimensions and an editor link. Revisions should operate on stable IDs, check the supplied base hash and apply all operations atomically.
 
-Follow [MCP connector acceptance](MCP-CONNECTOR-ACCEPTANCE.md) for actual host
+Follow [MCP connector acceptance](../release/MCP-CONNECTOR-ACCEPTANCE.md) for actual host
 discovery and saved-file checks. The [algebra-grid contract](ALGEBRA-GRID-MCP.md)
 records the expanding/factorising integration and its explicit calculation rules.
 

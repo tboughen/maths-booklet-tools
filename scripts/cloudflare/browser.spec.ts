@@ -6,16 +6,21 @@ const manifest = JSON.parse(await readFile("cloudflare-release/manifest.json", "
 const downloads: {preset: string; name: string; path: string; pages: number}[] = [];
 test.beforeEach(async ({page, baseURL}) => {
   if (baseURL?.startsWith("http://127.0.0.1:")) {
-    // Local transport rehearsal only. Live preview uses real R2, without interception.
+    // Local transport rehearsal only. The live site serves these through its gated Worker from R2.
     const byKey = new Map(manifest.assets.map(asset => [asset.key, asset]));
-    await page.route(`${manifest.assetOrigin}/**`, async route => {
+    await page.route(`${baseURL}/bank/assets/**`, async route => {
       const key = new URL(route.request().url()).pathname.slice(1);
       const asset = byKey.get(key);
       if (!asset) return route.fulfill({status: 404});
       await route.fulfill({status: 200, contentType: asset.contentType,
-        headers: {"Access-Control-Allow-Origin": "*", "Accept-Ranges": "bytes"},
+        headers: {"Accept-Ranges": "bytes", "Cache-Control": "private, max-age=31536000, immutable"},
         body: await readFile(assetFile("public", asset.sources[0]))});
     });
+  } else if (baseURL && process.env.CF_ACCESS_CLIENT_ID && process.env.CF_ACCESS_CLIENT_SECRET) {
+    // Live checks pass Cloudflare Access with a service token, sent only to the site itself.
+    const site = new URL(baseURL).origin;
+    const access = {"CF-Access-Client-Id": process.env.CF_ACCESS_CLIENT_ID, "CF-Access-Client-Secret": process.env.CF_ACCESS_CLIENT_SECRET};
+    await page.route(url => url.origin === site, route => route.continue({headers: {...route.request().headers(), ...access}}));
   }
 });
 test("split hosting displays question/scheme canvases, PNG previews and both real export layouts", async ({page}, info) => {
@@ -41,7 +46,7 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
   await dialog.getByRole("button", {name: "Move question 3 up", exact: true}).click();
   await dialog.locator(".qb-paper-preview > summary").first().click();
   await expect.poll(() => dialog.locator(".qb-paper-preview img").first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBeTruthy();
-  expect(await dialog.locator(".qb-paper-preview img").first().getAttribute("src")).toContain(manifest.assetOrigin + "/bank/assets/sha256/");
+  expect(await dialog.locator(".qb-paper-preview img").first().getAttribute("src")).toMatch(/^\/bank\/assets\/sha256\//);
   for (const preset of ["Compact practice", "Writing space"]) {
     await dialog.getByRole("radio", {name: preset, exact: true}).check();
     await dialog.getByRole("button", {name: "Prepare both PDFs", exact: true}).click();
@@ -75,7 +80,7 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
   await page.screenshot({path: info.outputPath("paper-review.png")});
   expect(errors).toEqual([]);
   await writeFile(info.outputPath("proof.json"), JSON.stringify({site: info.project.use.baseURL,
-    transport: process.env.CLOUDFLARE_SITE_URL ? "real R2" : "local intercepted R2 rehearsal",
+    transport: process.env.CLOUDFLARE_SITE_URL ? "real R2 through the gated site Worker" : "local intercepted R2 rehearsal",
     exportCapture: "exact clicked browser download blobs; native save-dialog policy not tested", downloads, errors}, null, 2));
 });
 test("graph and ratio tools work under the root base URL", async ({page}) => {

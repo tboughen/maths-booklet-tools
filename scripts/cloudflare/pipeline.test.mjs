@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { verifyPackage } from './package.mjs';
 import { inventoryPlan, inventoryDigest, verificationRecord, sampleAssets, validateInventory, maxAuditAgeMs } from './inventory.mjs';
 import { browserEvidence, vitestEvidence, sealQualification, validateQualification } from './evidence.mjs';
 import { promoteRelease } from './deployment.mjs';
-import { verifyInventory, verifyRange } from './network.mjs';
+import { verifyInventory, verifyServed, verifyRange, verifyLiveFiles } from './network.mjs';
 import { validateWorkflowOrigin } from './github-trust.mjs';
 import { parseWranglerCors, corsIdentity } from './cors-policy.mjs';
 
@@ -17,7 +18,7 @@ const roots = [];
 function temporary() { const path = mkdtempSync(resolve(tmpdir(), 'mathsdock-publisher-test-')); roots.push(path); return path; }
 afterEach(() => { for (const path of roots.splice(0)) { if (!path.startsWith(resolve(tmpdir()) + sep + 'mathsdock-publisher-test-')) throw new Error('Unsafe test cleanup'); rmSync(path, { recursive: true, force: true }); } });
 const asset = (n, type = 'pdf') => ({ key: `bank/assets/sha256/${sha256(String(n))}.${type}`, sha256: sha256(String(n)), md5: 'a'.repeat(32), bytes: n + 100, contentType: type === 'pdf' ? 'application/pdf' : 'image/png', sources: [`bank/assets/example-${n}/${type === 'pdf' ? 'print.pdf' : 'question.png'}`] });
-const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'https://assets.mathsdock.co.uk', assets: Array.from({ length: 60 }, (_, n) => asset(n, n % 3 ? 'pdf' : 'png')) };
+const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'same-origin', assets: Array.from({ length: 60 }, (_, n) => asset(n, n % 3 ? 'pdf' : 'png')) };
 const scope = { bucket: manifest.bucket, origin: 'https://mathsdock.co.uk', policyVerified: true, corsDigest: 'policy', verifier: 'v1' };
 const now = Date.parse('2026-10-15T12:00:00Z');
 const baseline = () => verificationRecord(manifest, scope, { mode: 'complete', nextCursor: 0 }, null, new Date(now).toISOString());
@@ -175,13 +176,48 @@ test('a newer independent version is never rolled back after failed verification
 });
 test('sampled inventory performs zero stored HEAD/PUT operations', async () => {
   let stored = 0, puts = 0, publicHeads = 0;
-  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'public, max-age=31536000, immutable', verifier: 'v1' };
+  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'private, max-age=31536000, immutable', verifier: 'v1' };
   const prior = verificationRecord(manifest, fullScope, { mode: 'complete', nextCursor: 0 }, null);
   const store = { policy: async () => ({ verified: true, digest: 'policy' }), head: async () => { stored++; }, put: async () => { puts++; } };
-  const fetcher = async url => { publicHeads++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy, 'access-control-allow-origin': scope.origin } }); };
+  const fetcher = async url => { publicHeads++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy } }); };
   const metrics = { count() {}, stage: async (_name, action) => action() };
   const result = await verifyInventory({ root: '', manifest, release, baseline: prior, origin: scope.origin, metrics, store, fetcher });
   assert.equal(result.summary.mode, 'sampled'); assert.equal(stored, 0); assert.equal(puts, 0); assert.equal(publicHeads, 32);
+});
+test('a promotion checks served bank files only after the new Worker is live', async () => {
+  let publicHeads = 0;
+  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'private, max-age=31536000, immutable', verifier: 'v1' };
+  const prior = verificationRecord(manifest, fullScope, { mode: 'complete', nextCursor: 0 }, null);
+  const store = { policy: async () => ({ verified: true, digest: 'policy' }), head: async () => {}, put: async () => {} };
+  let live = false;
+  const fetcher = async url => { publicHeads++; if (!live) return new Response('old Worker', { status: 404 }); const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy } }); };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  const result = await verifyInventory({ root: '', manifest, release, baseline: prior, origin: scope.origin, metrics, store, fetcher, deferServed: true });
+  assert.equal(publicHeads, 0); assert.equal(result.summary.publicDeferred, true); assert.equal(result.servedObjects.length, 32);
+  live = true;
+  await verifyServed(manifest, result.servedObjects, scope.origin, { metrics, fetcher });
+  assert.equal(publicHeads, 32);
+});
+test('live file checks keep confirmed files between retries and log each retry', async () => {
+  const body = name => Buffer.from(`file ${name}`);
+  const names = ['a.js', 'b.js', 'c.js'];
+  const release = { files: Object.fromEntries([...names.map(n => [`site/${n}`, { sha256: createHash('sha256').update(body(n)).digest('hex') }]), ['site/_headers', { sha256: 'x' }]]) };
+  const seen = [], logs = [];
+  let flaky = true;
+  const fetcher = async url => { const name = url.pathname.slice(1); seen.push(name); if (name === 'b.js' && flaky) { flaky = false; return new Response('busy', { status: 503 }); } return new Response(body(name)); };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  await verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, fetcher, { intervalMs: 1, limit: 1, log: message => logs.push(message) });
+  assert.deepEqual(seen, ['a.js', 'b.js', 'b.js', 'c.js']);
+  assert.equal(logs.length, 1); assert.match(logs[0], /1\/3 confirmed; retrying after: .*b\.js \(503\)/);
+});
+test('live file checks follow same-site redirects but not the sign-in page', async () => {
+  const html = Buffer.from('<!doctype html>');
+  const release = { files: { 'site/index.html': { sha256: createHash('sha256').update(html).digest('hex') } } };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  const site = async url => url.pathname === '/index.html' ? new Response(null, { status: 307, headers: { location: '/' } }) : new Response(html);
+  await verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, site, { timeoutMs: 50, intervalMs: 1, log() {} });
+  const signIn = async () => new Response(null, { status: 302, headers: { location: 'https://team.cloudflareaccess.com/cdn-cgi/access/login' } });
+  await assert.rejects(verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, signIn, { timeoutMs: 50, intervalMs: 1, log() {} }), /index\.html \(302\)/);
 });
 test('range qualification checks status, exact content range and real PDF body', async () => {
   const pdf = manifest.assets.find(a => a.contentType === 'application/pdf'), metrics = { count() {} };

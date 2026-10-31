@@ -1,10 +1,15 @@
-RATIO TABLE MCP — EXTENSION OF THE EXISTING FREE SERVICE
+# Ratio table MCP — extension of the existing free service
 
-Architecture and compatibility
+## Architecture and compatibility
+
 The existing /mcp endpoint exposes the original graph trio plus:
-  ratio_table_capabilities
-  create_ratio_table
-  revise_ratio_table
+
+```
+ratio_table_capabilities
+create_ratio_table
+revise_ratio_table
+```
+
 Browser and server use packages/ratio-table-core for the same schema, exact
 mathematics, layout and SVG. Graph signatures/envelopes and signed token v1 stay
 compatible. The native renderer queue, request/output limits and signing keys
@@ -12,7 +17,8 @@ are shared. The graph-1 health field stays unchanged; ratioRendererVersion adds
 ratio-1. The build manifest includes both cores and the same bundled fonts.
 There are no new dependencies, paid services, model API calls or stored documents.
 
-Tool-schema compatibility
+## Tool-schema compatibility
+
 Cells and headings use homogeneous array item schemas with minItems 1/maxItems 3.
 Do not replace these with positional tuples: the draft-07 tuple items array was
 rejected by ChatGPT's custom-server import for create_ratio_table. The document
@@ -23,6 +29,8 @@ tests also check invalid cell/heading lengths on creation and revision. SDK call
 success alone does not establish actual ChatGPT account import/acceptance.
 
 Creation example: pupil scaffold
+
+```json
 {
   "schemaVersion": 1,
   "mode": "annotated",
@@ -40,6 +48,8 @@ Creation example: pupil scaffold
     { "from": "start", "to": "target", "operation": "divide", "factor": "3" }
   ]
 }
+```
+
 Numeric values and factors are strings. The blank answer remains an answer line
 despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
 use explicit IDs when supplying transitions. Headings, size, mode and annotation
@@ -58,33 +68,47 @@ exactly two columns and at least two rows; all other supported shapes use
 schemaVersion 2/ratio-2. Removing a column from a three-column table can therefore
 return schemaVersion 1. Always reuse that returned envelope and contentHash.
 
-Returned output
+## Returned output
+
 Inline PNG preview, visible-value description, envelope, contentHash, warnings,
 ratio-1 or ratio-2 renderer version, physical dimensions, verified print raster size/DPI,
 SVG/PNG/JSON downloads and editable website link. A warning never changes values.
 If a download/editor URL would exceed 8192 characters, use the returned bounded
 embedded file resource or saved JSON. Never guess or fabricate download links.
 
-Revisions
+## Revisions
+
 Send the exact returned envelope and its contentHash as baseHash with operations.
 Up to 20 operations, applied atomically to a private copy; invalid changes refuse.
 Operations:
-  set_cell: rowId, zero-based existing column, cell
-  add_row: after (row ID or null for the beginning), row (unique ID and one cell per column)
-  remove_row: rowId
-  add_column: heading (text, italic, direction); appends empty cells
-  remove_column: zero-based column index; at least one column must remain
-  set_transition: transition (from, to, operation, factor)
-  remove_transition: from
-  set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
-  set_size: size compact/standard/large
-  set_annotation_visibility: optional mode, showArrows, showOperations
-  fill_next_row: from, optional overwrite
+
+```
+set_cell: rowId, zero-based existing column, cell
+add_row: after (row ID or null for the beginning), row (unique ID and one cell per column)
+remove_row: rowId
+add_column: heading (text, italic, direction); appends empty cells
+remove_column: zero-based column index; at least one column must remain
+set_transition: transition (from, to, operation, factor)
+remove_transition: from
+set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
+set_size: size compact/standard/large
+set_annotation_visibility: optional mode, showArrows, showOperations
+fill_next_row: from, optional overwrite
+```
+
 Every operation includes its op discriminator. In particular, transition fields
 belong inside transition, not at the operation top level:
-  {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}
+
+```
+{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}
+```
+
 Column addition example:
-  {"op":"add_column","heading":{"text":"D","italic":false,"direction":"none"}}
+
+```
+{"op":"add_column","heading":{"text":"D","italic":false,"direction":"none"}}
+```
+
 Numeric values/factors are strings, column indexes are zero-based, and after is
 a row ID or null. The live tool description lists the payload for every operation;
 the operations input schema also documents the nested transition shape.
@@ -96,7 +120,8 @@ preserve pupil scaffolds unless answers are requested. Rendering formatting and
 explicit cell states are enforced in code; model intent is separately checked
 in the target conversation.
 
-Downloads, resources and privacy
+## Downloads, resources and privacy
+
 Ratio tokens use /ratio-table/download and an authenticated ratio-table kind;
 graph downloads retain /download and their exact older token format. The same
 existing private signing key/key ID is used. Do not rotate or expose it for this
@@ -110,7 +135,8 @@ Graphs and ratios share the serial native renderer, waiting queue, cancellation,
 and 40 per client per minute, and the configured daily 200 MiB output allowance.
 Log only request IDs/status/time/byte counts; no document bodies or signed URLs.
 
-Candidate release and acceptance
+## Candidate release and acceptance
+
 Reconcile the release with current main and requalify the exact final commit,
 including the shared Graph renderer. The existing PR includes the ratio editor
 and the compatible MCP extension; source push, merge and deployment are distinct.
@@ -124,14 +150,18 @@ using the existing Render dashboard. If the dashboard is not available to the
 agent, Tim performs that action. Never report a code push as a deployment.
 
 Linux qualification (existing CI workflow includes this smoke):
-  docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
-  docker run -d --name maths-graph-test --memory 512m --pids-limit 64
-    -p 127.0.0.1:8787:8787
-    -e RENDER_EXTERNAL_URL=http://127.0.0.1:8787
-    -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production
-    maths-graph-candidate
-  node service-dist/smoke.js http://127.0.0.1:8787
-  docker rm -f maths-graph-test
+
+```
+docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
+docker run -d --name maths-graph-test --memory 512m --pids-limit 64
+  -p 127.0.0.1:8787:8787
+  -e RENDER_EXTERNAL_URL=http://127.0.0.1:8787
+  -e DOWNLOAD_SIGNING_KEY=ci-only-synthetic-key-never-use-in-production
+  maths-graph-candidate
+node service-dist/smoke.js http://127.0.0.1:8787
+docker rm -f maths-graph-test
+```
+
 The smoke verifies all six exact tool names and importable array schemas, graph
 and v1/v2 ratio creation, 600 ppi downloads, outlined SVG/JSON round trips, explicit
 2/3 filling, shared-factor editing without filling blanks, column addition/removal,
@@ -140,6 +170,7 @@ Use a unique test container name when another qualification is running. Never
 use the production key for smoke. Local Windows tests do not replace Linux CI.
 
 After deployment:
+
 1. Verify the production mathsdock.co.uk editor opens returned v1/v2 links and
    retains headings, cells and shared scaling steps. Do not redeploy Cloudflare
    merely to release the separate MCP service.
@@ -155,7 +186,8 @@ After deployment:
 5. Record exact merged/deployed SHA, workflow/run IDs, buildId, checks and remaining
    account/Word actions. Free-tier sleep behaviour remains unchanged.
 
-Rollback
+## Rollback
+
 Save editable ratio JSON before rollback. Restore the previous qualified website
 and graph service without rotating the signing key or deleting ratio draft keys
 or saved files. Older graph-only versions cannot open ratio-1 documents or ratio

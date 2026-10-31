@@ -3,7 +3,9 @@ import { readFileSync, realpathSync, statSync, readdirSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { catalogueAssetPaths, type CatalogueAssets } from "../../bankAssets.ts";
 
-export const assetOrigin = "https://assets.mathsdock.co.uk";
+// Question files are served by the website's own Worker at /bank/assets/*, behind
+// Cloudflare Access. There is no separate public asset origin.
+export const assetOrigin = "same-origin";
 export const bucketName = "maths-booklet-assets";
 export const immutableCache = "public, max-age=31536000, immutable";
 export interface ReleaseAsset {

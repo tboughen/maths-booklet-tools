@@ -45,16 +45,17 @@ test('policy, dependencies, unrecognised helpers and absent comparison fail cons
 
 const bytes = Buffer.from('asset-data');
 const asset = { key: `bank/assets/sha256/${sha256(bytes)}.pdf`, sha256: sha256(bytes), md5: createHash('md5').update(bytes).digest('hex'), bytes: bytes.length, contentType: 'application/pdf', sources: ['bank/assets/example/print.pdf'] };
-const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'https://assets.mathsdock.co.uk', assets: Array.from({ length: 40 }, (_, i) => ({ ...asset, key: `bank/assets/sha256/${sha256(String(i))}.pdf`, sha256: sha256(String(i)) })) };
-const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: 'https://mathsdock.co.uk', policyVerified: true, corsDigest: 'policy', cachePolicy: 'public, max-age=31536000, immutable', verifier: 'v2' };
+const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'same-origin', assets: Array.from({ length: 40 }, (_, i) => ({ ...asset, key: `bank/assets/sha256/${sha256(String(i))}.pdf`, sha256: sha256(String(i)) })) };
+const storedCache = 'public, max-age=31536000, immutable';
+const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: 'https://mathsdock.co.uk', policyVerified: true, corsDigest: 'policy', cachePolicy: 'private, max-age=31536000, immutable', verifier: 'v2' };
 const prior = () => verificationRecord(manifest, scope, { mode: 'complete', nextCursor: 0 }, null);
 const metrics = { count() {}, stage: async (_n, fn) => fn() };
 function networkOptions(extra = {}) {
   const counts = { head: 0, put: 0, get: 0, public: 0 }, baseline = prior();
   const options = {
     root: '', readOnly: true, manifest, release: { inputs: { verifierId: 'v2', classification: classifyPaths(['src/example.ts']) } }, baseline, origin: scope.origin, metrics,
-    store: { policy: async () => ({ verified: true, digest: 'policy' }), head: async key => { counts.head++; const a = manifest.assets.find(a => a.key === key); return { ...a, cacheControl: scope.cachePolicy }; }, put: async () => { counts.put++; }, get: async () => { counts.get++; return bytes; } },
-    fetcher: async (url, init) => { counts.public++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(init.method === 'GET' ? bytes : null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': scope.cachePolicy, 'access-control-allow-origin': scope.origin } }); },
+    store: { policy: async () => ({ verified: true, digest: 'policy' }), head: async key => { counts.head++; const a = manifest.assets.find(a => a.key === key); return { ...a, cacheControl: storedCache }; }, put: async () => { counts.put++; }, get: async () => { counts.get++; return bytes; } },
+    fetcher: async (url, init) => { counts.public++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(init.method === 'GET' ? bytes : null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': scope.cachePolicy } }); },
     ...extra,
   };
   return { options, counts, baseline };
@@ -99,9 +100,9 @@ test('new existing keys are read and hashed in delta mode; wrong bytes block acc
     writeFileSync(resolve(f.options.root, 'public', asset.sources[0]), bytes);
     const oldHead = f.options.store.head;
     f.options.manifest = next;
-    f.options.store.head = async key => key === asset.key ? { ...asset, cacheControl: scope.cachePolicy } : oldHead(key);
+    f.options.store.head = async key => key === asset.key ? { ...asset, cacheControl: storedCache } : oldHead(key);
     f.options.store.get = async () => wrong ? Buffer.from('wrong') : bytes;
-    f.options.fetcher = async url => { const a = next.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': scope.cachePolicy, 'access-control-allow-origin': scope.origin } }); };
+    f.options.fetcher = async url => { const a = next.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': scope.cachePolicy } }); };
     if (wrong) await assert.rejects(verifyInventory(f.options), /Existing immutable bytes failed/);
     else { const result = await verifyInventory(f.options); assert.equal(result.summary.mode, 'delta'); assert.equal(result.summary.storedChecked, 1); assert.equal(result.record.fullAuditAt, f.baseline.fullAuditAt); }
   }
@@ -158,7 +159,7 @@ test('real clean Git/package fixture reuses exact catalogue and rejects altered 
   for (const [p, text] of [
     ['.gitignore', 'cloudflare-release\ndist-cloudflare\n'],
     ['public/bank/catalogue.json', '{"questions":[]}'], ['public/bank/assets/example/print.pdf', 'asset-data'],
-    ['package-lock.json', '{"version":1}'], ['wrangler.jsonc', '{}'], ['wrangler.preview.jsonc', '{}'],
+    ['package-lock.json', '{"version":1}'], ['wrangler.jsonc', '{}'], ['wrangler.preview.jsonc', '{}'], ['scripts/cloudflare/site-worker.mjs', '// fixture worker'],
     ...policyFiles.map(p => [p, `// fixture ${p}`]),
     ...['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(p => [`scripts/cloudflare/${p}`, '// fixture verifier']),
   ]) { mkdirSync(resolve(root, p, '..'), { recursive: true }); writeFileSync(resolve(root, p), text); }

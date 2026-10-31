@@ -1,10 +1,11 @@
-RATIO TABLES — HUMAN EDITOR AND SHARED MCP RENDERER
+# Ratio tables — human editor and shared MCP renderer
 
 Open the human editor at ?tool=ratio-table under the normal website base path.
 Use the shared navigation to switch between Graph tool, Ratio tables and Question bank.
 Human editing and exports use the browser; the MCP service is not required.
 
-Design and scope
+## Design and scope
+
 One to three columns and one to six data rows, plus headings. The ratio-lesson-v1 profile
 uses a 3 cm table body, 1 cm rows, 12 pt bundled STIX text and 2.25 pt centre/header
 rules at Standard size. Compact is 80%; Large is 120%. The exported size includes
@@ -17,7 +18,8 @@ Custom headings accept up to 12 ASCII letters, digits, spaces, underscores or
 hyphens, subject to the available width. Curved scaling arrows are vector paths
 with explicit oriented arrowheads. Fractions are stacked with a fraction bar.
 
-Cells and scaffolds
+## Cells and scaffolds
+
 Value prints the specified integer, decimal or fraction. Empty leaves clear
 space; Answer line prints a writing line. These are distinct from the value 0.
 Values, blanks and answer lines are never changed by switching presentation.
@@ -32,8 +34,8 @@ required. Filling requires all source values and a valid operation. Row deletion
 removes only its connected steps; insertion removes a step across the new row.
 Every change and confirmed example/file/link replacement is undoable.
 
+## Direct editing and controls
 
-Direct editing and controls
 The toolbar matches Graph tool: Edit, Add arrow and Edit headings, then history,
 Reset and Copy for Word. Lower-emphasis structural actions are grouped separately.
 Click a heading or cell and type; Enter applies, Escape restores and Tab moves
@@ -66,7 +68,8 @@ IBM Carbon button hierarchy, grouping and focus guidance informed the controls;
 the editor reuses Graph tool's classes without adding a Carbon dependency.
 https://www.carbondesignsystem.com/building-blocks/core/components/button/guidelines
 
-Numbers and validation
+## Numbers and validation
+
 Enter strings such as -3, 0.125 or 2/3. Decimals retain decimal presentation;
 fractions are reduced and negative denominators are normalized. Arithmetic uses
 exact bounded rationals, including explicit fills. No expressions or exponents.
@@ -85,7 +88,8 @@ unknown IDs, duplicate/nonadjacent steps and division by zero refuse the change.
 All-zero complete rows do not determine a unique ratio. No gradient/equation is
 automatically printed or inferred.
 
-Saving, sharing and recovery
+## Saving, sharing and recovery
+
 The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
 all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables with at least two rows
 retain schemaVersion 1 / ratio-1 and their hashes; one-row, one-column or three-column tables use
@@ -103,7 +107,8 @@ copy is downloaded and the user confirms starting fresh. A changed draft in
 another tab refuses that recovery replacement. Storage failure is shown clearly;
 use the editable file to retain work when device storage is unavailable.
 
-Word and print exports
+## Word and print exports
+
 Copy for Word prepares a CRC/density/dimension-verified 600 ppi PNG and copies
 image HTML with physical width and height in centimetres. If copying is blocked,
 download PNG and insert it into Word instead. Keep the aspect ratio and compare
@@ -113,7 +118,8 @@ PNG downloads have a white background and 600 ppi metadata. Browser SVG includes
 bundled fonts; MCP SVG outlines glyphs, declares physical centimetre dimensions
 and needs no installed font. Exports contain only the chosen pupil-visible table.
 
-Examples and checks
+## Examples and checks
+
 docs/ratio-table-examples contains seven editable JSON, outlined SVG and verified
 600 ppi PNG examples: simple, worked, fraction scaffold/completed, negative, empty,
 and six rows. review-preview.png compares the two principal reference styles.
@@ -123,11 +129,15 @@ Regenerate font advances with Python scripts/ratio-font-metrics.py; it reads the
 bundled OpenType hmtx/cmap tables without an external package. Native visual
 tests independently qualify actual glyph ink and arrow pixels.
 
-Qualification commands
+## Qualification commands
+
+```
 npm run lint
 npm test
 npm run typecheck
 npm run build
 npm run test:e2e
-The service pretest/build is included. See RATIO-TABLE-MCP.txt for the protocol,
+```
+
+The service pretest/build is included. See [RATIO-TABLE-MCP.md](RATIO-TABLE-MCP.md) for the protocol,
 Docker memory smoke, release dependency and actual live/account acceptance.

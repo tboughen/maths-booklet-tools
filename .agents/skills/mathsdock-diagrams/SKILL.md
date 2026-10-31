@@ -11,7 +11,7 @@ Use the existing connected Maths Booklet Tools MCP tools to produce editable tea
 
 When bar calls are actually discovered, request the improved lesson layout with
 `spec:{schemaVersion:2,starter:"part-whole"}` (or comparison/equal-sections/inline-ratio).
-Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/BAR-MODEL-V2.md)
+Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/tools/BAR-MODEL-V2.md)
 for complete slots, annotations and operations. Preserve supplied versions and
 hashes; v1 needs explicit first `upgrade_document` before new features. Saved text
 can be retained under blank, line, question and hidden displays. Never calculate
@@ -23,7 +23,7 @@ or reveal answers without the explicit action, mask dividers or silently reancho
 - For one or more cuboids, cubes, cube grids or separated layers, read `cuboid_capabilities`, then use `create_cuboid` or `revise_cuboid`.
 - For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
 - For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
-- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
+- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/tools/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
 
 Algebra grids retain integer terms in x, explicit signs, true blanks and hidden
 answers. Product cells are12..18mm independent of paper choice. Supply spec or
@@ -135,12 +135,12 @@ Do not claim that Word paste, client refresh, saving, or a website/service deplo
 
 ## Bar modelling
 
-For bar-model resources or development read [Bar-model MCP](../../../docs/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+For bar-model resources or development read [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/tools/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
 
 
 ## Horizontal fractions and handwriting follow-up
 
-Read [v3 notation and handwriting rules](../../../docs/BAR-MODEL-V3.md). This section supersedes prior
+Read [v3 notation and handwriting rules](../../../docs/tools/BAR-MODEL-V3.md). This section supersedes prior
 bar-model fresh-default, caption and compact-height descriptions only. New empty
 browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
 spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions

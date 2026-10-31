@@ -5,10 +5,11 @@ import { randomUUID } from 'node:crypto';
 import { json, save, run, repository, timer } from './common.mjs';
 import { verifyPackage, validateSource } from './package.mjs';
 import { validateQualification } from './evidence.mjs';
-import { storage, verifyInventory, verifyLiveFiles, verifyRange } from './network.mjs';
+import { storage, verifyInventory, verifyServed, verifyLiveFiles, verifyRange, verifyGate } from './network.mjs';
 import { promoteRelease } from './deployment.mjs';
 import { downloadTrustedArtifact, verifyWorkflowRun } from './github-trust.mjs';
 import { parseWranglerCors } from './cors-policy.mjs';
+import { assertGatedWorker } from './gated-config.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const options = process.argv.slice(3), action = process.argv[2];
@@ -25,7 +26,8 @@ function target(directory) {
   const value = json(config), site = new URL(origin);
   if (value.name !== name || site.protocol !== 'https:' || site.pathname !== '/' || site.search || site.hash || site.username || site.password) throw new Error('Invalid deployment target');
   if (!preview && (site.origin !== 'https://mathsdock.co.uk' || value.workers_dev !== false || value.routes?.length !== 1 || value.routes[0].pattern !== 'mathsdock.co.uk' || !value.routes[0].custom_domain)) throw new Error('Production route configuration differs from MathsDock');
-  if (preview && (!/^mathsdock-preview\.[a-z0-9-]+\.workers\.dev$/.test(site.hostname) || !value.workers_dev || value.routes?.length)) throw new Error('Preview may only use the existing MathsDock preview Worker');
+  if (preview && (site.origin !== 'https://preview.mathsdock.co.uk' || value.workers_dev !== false || value.routes?.length !== 1 || value.routes[0].pattern !== 'preview.mathsdock.co.uk' || !value.routes[0].custom_domain)) throw new Error('Preview may only use the MathsDock preview Worker at preview.mathsdock.co.uk');
+  assertGatedWorker(value);
   return { name, config };
 }
 async function current(configuration) {
@@ -79,15 +81,26 @@ async function main() {
     const response = await run(root, wrangler, ['r2', 'bucket', 'cors', 'list', manifest.bucket], { capture: true, env: { CI: 'true' } });
     return parseWranglerCors(response.stdout, manifest.bucket);
   } });
-  const inventory = async readOnly => {
-    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full: options.includes('--full'), audit: options.includes('--audit-inventory'), readOnly, store,
+  const full = options.includes('--full');
+  let pendingServed = null;
+  // An audit reads the live Worker. A promotion checks R2 first, then checks the
+  // served copies once the new Worker (which serves /bank/assets/*) is live.
+  const inventory = async (readOnly, deferServed = false) => {
+    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full, audit: options.includes('--audit-inventory'), readOnly, deferServed, store,
       onPlan: plan => {
         save(resolve(output, 'inventory-preflight.json'), plan);
         console.log(JSON.stringify({ stage: 'inventory-preflight', ...plan }));
       },
     });
-    save(resolve(output, 'inventory-record.json'), result.record);
+    if (deferServed) pendingServed = result;
+    else save(resolve(output, 'inventory-record.json'), result.record);
     return result.summary;
+  };
+  const servedInventory = async () => {
+    if (!pendingServed) return;
+    await verifyServed(manifest, pendingServed.servedObjects, origin, { full, metrics });
+    save(resolve(output, 'inventory-record.json'), pendingServed.record);
+    pendingServed = null;
   };
   try {
     if (action === 'audit') {
@@ -119,7 +132,7 @@ async function main() {
           return JSON.parse(result.stdout).annotations?.['workers/message'] === `MathsDock ${releaseId}`;
         },
         validate: async () => { verifyPackage(directory); validateSource(root, release); },
-        inventory: () => inventory(false),
+        inventory: () => inventory(false, true),
         deploy: async () => {
           verifyPackage(directory); validateSource(root, release);
           await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
@@ -127,6 +140,8 @@ async function main() {
         },
         verifyBytes: () => verifyLiveFiles(directory, release, origin, metrics),
         smoke: async () => {
+          await verifyGate(manifest, origin, metrics);
+          await servedInventory();
           await verifyRange(manifest, origin, metrics);
           cpSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
           await metrics.stage('live-browser', () => run(root, 'node_modules/@playwright/test/cli.js', ['test', '--project', 'cloudflare'], { env: { CLOUDFLARE_SITE_URL: origin, MATHSDOCK_TEST_OUTPUT: resolve(output, 'browser') } }));

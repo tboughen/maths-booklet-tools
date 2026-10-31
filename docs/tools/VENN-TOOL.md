@@ -1,4 +1,5 @@
-VENN DIAGRAMS - WEBSITE EDITOR, VERSIONS 1 AND 2
+# Venn diagrams - website editor, versions 1 and 2
+
 Local preview implementation, 15 October 2026. Not a publication record.
 
 Route: ?tool=venn. Registry: src/site/registry.ts. Editor: src/venn/.
@@ -7,7 +8,8 @@ Source research and agreed brief: reports/mathsdock-venn-tool-plan-2026-10-15/
 in the enclosing workspace. The downloaded papers are research evidence, not
 runtime dependencies or newly published question-bank assets.
 
-Interface simplification, 15 October 2026
+## Interface simplification, 15 October 2026
+
 - Only Overlap, Separate and Nested are offered for two sets. A new Nested
   layout uses B inside A; existing A-inside-B documents keep their exact saved
   orientation, data and renderer. Both select the same Nested button, and
@@ -36,7 +38,8 @@ Interface simplification, 15 October 2026
   implementation and existing pupil data are unchanged. Evidence is in enclosing
   reports/mathsdock-venn-simplification-preview-2026-10-15/.
 
-Layout extension, 15 October 2026
+## Layout extension, 15 October 2026
+
 - One set; two overlapping or separate sets; B inside A; A inside B; standard
   three-set overlap. Number of sets and two-set thumbnails sit outside the clean
   resource. Circles/ovals work for the new layouts; three sets retain circles.
@@ -79,7 +82,8 @@ Layout extension, 15 October 2026
 - Evidence: enclosing reports/mathsdock-venn-layouts-preview-2026-10-15/.
   The older sections below describe the preserved baseline where not extended.
 
-Resources
+## Resources
+
 - Two overlapping circles or wider ovals; three overlapping circles in the
   standard triangular layout; a universal-set rectangle and editable labels.
 - Lists of members, frequencies, exact fractions, decimals, simple algebra and
@@ -94,7 +98,8 @@ Resources
   expressions. Both ASCII &/| and mathematical intersection/union are accepted.
 - Definitions are optional printed descriptions. They do not classify members.
 
-Representation
+## Representation
+
 Envelope: tool=venn, schemaVersion=1, rendererVersion=venn-1.
 document has sets (2|3), shape, four labels (universe,A,B,C), eight regions,
 four definitions, showDefinitions, widthCm and fontPt. Every label has text
@@ -107,7 +112,8 @@ Adding C preserves the first four regions and creates four empty regions.
 Removing populated/hidden/shaded C regions requires confirmation and is undoable.
 Neither operation merges values or silently calculates frequencies.
 
-Bounds and errors
+## Bounds and errors
+
 Print width 8..16 cm; text size 9..14 pt. UI offers integer widths/sizes.
 40 members total, 20 per region, 32 characters per member/ordinary region
 label, 24 per set label, 120 per definition line. Editable files <=40k characters.
@@ -119,7 +125,8 @@ saved for correction and blocks image export; editable saving remains available.
 Image layout uses bundled STIX font advances, shape-aware line fitting and
 geometric clearance. Geometry changes do not implicitly reduce text size.
 
-Editing
+## Editing
+
 Click a label/region/printed definition or use labelled inspector controls.
 Apply/Enter commits; Cancel/Escape restores. Shift+Enter adds a member-list
 newline. One draft can be open at a time; a pending draft blocks other edits
@@ -131,7 +138,8 @@ actions have keyboard alternatives. A separate shading mode distinguishes
 editing from painting. The white artwork contains only transparent edit hits;
 buttons and utilities are in the surrounding workspace or inspector.
 
-Print and exchange
+## Print and exchange
+
 Default whole output: 12 x8.5 cm (two sets),12 x10.5 cm (three). Enabling
 definitions adds explicit height according to displayed lines and text size.
 Outer 2mm margins are included in those bounds; no cropping of the outside
@@ -145,7 +153,8 @@ appear in exports. Native Word paste and physical monochrome print remain
 explicit human review checks; browser clipboard tests do not establish them.
 No service/MCP adapter or editor-link payload format was added in this scope.
 
-Persistence
+## Persistence
+
 Device key: maths-booklet-tools:venn:v1. Saving/reopening uses strict schema
 validation and versioned examples. Opening/replacing/resetting confirms before
 replacing current work and is undoable; cancelled imports retain the document.
@@ -154,7 +163,8 @@ data is protected until its recovery download; changed-again data must be
 protected again. Mounted page lifetime keeps history/drafts on navigation;
 reload restores valid documents, not full history or unfinished input.
 
-Examples and All tools card
+## Examples and All tools card
+
 Six verified sources plus an original complement-shading sample. The 2017
 scaffold retains missing set labels. The 2018 three-set list retains genuine
 empty intersections. Language-survey scaffold is explicitly adapted from a

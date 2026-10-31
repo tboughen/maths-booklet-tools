@@ -10,11 +10,11 @@ The first three examples, created and published on 14 October 2026, are:
 
 | Tool | Example | Editable source |
 | --- | --- | --- |
-| Graph tool | Coordinate grid, the line y = x + 1 and three plotted points | [Graph example](tool-card-preview-examples/graph-tool.json) |
-| Ratio tables | 3 : 5 scaled by ×3, with 9 and a pupil answer line in the next row | [Ratio example](tool-card-preview-examples/ratio-tables.json) |
-| Table of values & graphs | Five values of y = x² − 1, plotted points and its smooth quadratic curve | [Quadratic example](tool-card-preview-examples/table-of-values-and-graphs.json) |
+| Graph tool | Coordinate grid, the line y = x + 1 and three plotted points | [Graph example](../tool-card-preview-examples/graph-tool.json) |
+| Ratio tables | 3 : 5 scaled by ×3, with 9 and a pupil answer line in the next row | [Ratio example](../tool-card-preview-examples/ratio-tables.json) |
+| Table of values & graphs | Five values of y = x² − 1, plotted points and its smooth quadratic curve | [Quadratic example](../tool-card-preview-examples/table-of-values-and-graphs.json) |
 
-![The three original output examples](tool-card-preview-examples/review-preview.png)
+![The three original output examples](../tool-card-preview-examples/review-preview.png)
 
 ## Generate the image from the tool
 
@@ -50,7 +50,7 @@ Reuse `Overview.tsx` and the `.overview-tool-*` styles in `src/site/site.css`:
 - Use one ordinary link for the whole card, including the image. Preserve keyboard focus, modified-click behaviour, existing routes and the Open label. Add concise alternative text describing the sample output; keep the icon decorative to assistive technology.
 - Scope these styles to the booklet-tool cards so Home cards and editor exports retain their existing layout.
 
-![Original published All tools layout](tool-card-preview-examples/all-tools-desktop.png)
+![Original published All tools layout](../tool-card-preview-examples/all-tools-desktop.png)
 
 ## Acceptance and release
 

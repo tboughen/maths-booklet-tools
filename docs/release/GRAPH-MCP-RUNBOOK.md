@@ -1,15 +1,17 @@
-ROUTINE RELEASES: read docs/MCP-RELEASE-PLAYBOOK.md and its operator checklist.
+**Routine releases:** read the [MCP release playbook](MCP-RELEASE-PLAYBOOK.md) and its operator [checklist](MCP-RELEASE-CHECKLIST.md).
 The retained initial setup/history below is not a sequence to repeat each release.
 Actual named discovery and the current family contracts supersede historical counts.
 
-GRAPH INTEGRATION — OPERATIONS AND RELEASE
+# Graph integration — operations and release
+
 Optional print measurements, placement advice, source bundles and the vector
-consumer qualification are documented in MCP-DIAGRAM-OUTPUTS.md. These are
+consumer qualification are documented in [MCP-DIAGRAM-OUTPUTS.md](../tools/MCP-DIAGRAM-OUTPUTS.md). These are
 diagram outputs for another AI project; the service does not assemble booklets.
 Historical initial integration record. Hosting, live release and actual client acceptance
 are separate stages. Never treat a passing local test as a connected account.
 
-Architecture
+## Architecture
+
 The website keeps drawing, editing, undo, local recovery and browser exports.
 It does not call the service. Graph links and files contain a versioned document
 and its font profile. packages/graph-core owns geometry, equations, validation,
@@ -17,32 +19,47 @@ SVG and PNG byte checks. services/graph-mcp exposes stateless Streamable HTTP.
 The service needs no OpenAI API key, graph database or question-bank assets.
 The existing question-bank routes/content are outside this change.
 
-Local development (Node 24; run commands at repository root)
-  npm ci
-  npm run lint
-  npm test
-  npm run typecheck
-  npm run build
-  npm run test:e2e
-  npm run build:service
+## Local development (Node 24; run commands at repository root)
+
+```
+npm ci
+npm run lint
+npm test
+npm run typecheck
+npm run build
+npm run test:e2e
+npm run build:service
+```
 
 The default browser test uses installed Chrome. For reproducible CI:
-  npx playwright install --with-deps chromium
-  PLAYWRIGHT_CHANNEL=chromium npm run test:e2e
+
+```
+npx playwright install --with-deps chromium
+PLAYWRIGHT_CHANNEL=chromium npm run test:e2e
+```
+
 In PowerShell set $env:PLAYWRIGHT_CHANNEL="chromium" first.
 Browser tests are automated development checks, not the ChatGPT graph workflow.
 test:watch requires a current build:service for native-worker tests.
 
 Set environment variables through a shell or provider secret controls:
-  GRAPH_PUBLIC_URL=http://127.0.0.1:8787
-  DOWNLOAD_SIGNING_KEY=<random secret of at least 32 characters>
+
+```
+GRAPH_PUBLIC_URL=http://127.0.0.1:8787
+DOWNLOAD_SIGNING_KEY=<random secret of at least 32 characters>
+```
+
 Then npm run start:service.
 Generate a secret with Node crypto.randomBytes(32).toString("base64url").
 Do not save a real secret in source, a screenshot, a Trello card or a link.
 Test a running service with:
-  node service-dist/smoke.js http://127.0.0.1:8787
 
-Deployment package
+```
+node service-dist/smoke.js http://127.0.0.1:8787
+```
+
+## Deployment package
+
 Dockerfile.graph-mcp pins the official Node 24 bookworm-slim image by digest.
 The runtime installs services/graph-mcp/package-lock.json, with only MCP SDK,
 zod and resvg. It runs as the node user and includes the three pinned full
@@ -52,21 +69,26 @@ service-dist/manifest.json records SHA-256 source/font/runtime-lock fingerprints
 /healthz returns the manifest buildId and renderer version for release checks.
 
 Build/run a Linux container:
-  docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
-  docker run --rm --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787
-    -e GRAPH_PUBLIC_URL=http://127.0.0.1:8787
-    -e DOWNLOAD_SIGNING_KEY=<test secret> maths-graph-candidate
+
+```
+docker build -f Dockerfile.graph-mcp -t maths-graph-candidate .
+docker run --rm --memory 512m --pids-limit 64 -p 127.0.0.1:8787:8787
+  -e GRAPH_PUBLIC_URL=http://127.0.0.1:8787
+  -e DOWNLOAD_SIGNING_KEY=<test secret> maths-graph-candidate
+```
+
 The run command above is shown across lines for readability; use shell-specific
 continuation or one line. Run the smoke command from a second terminal.
 
 .github/workflows/graph-checks.yml checks PRs, including Linux Docker rendering
-under 512 MiB. It deploys nothing. Existing deploy.yml remains the website
-release workflow. npm test builds the service before running its tests.
+under 512 MiB. It deploys nothing. The website is released through cloudflare.yml
+(see RELEASE-PIPELINE.md). npm test builds the service before running its tests.
 
-Free host
+## Free host
+
 Tim's free-only instruction supersedes the earlier paid-host proposal.
 render.yaml describes one Free Docker web service in Frankfurt with manual
-deploys and no disk/database. Follow GRAPH-MCP-FREE-SETUP.txt. Use a free
+deploys and no disk/database. Follow [GRAPH-MCP-FREE-SETUP.md](../archive/GRAPH-MCP-FREE-SETUP.md). Use a free
 workspace without a payment method; do not upgrade or add paid resources.
 Review the deployment form: one Free web service, with no paid resources.
 Render suspends free services at the instance-hours limit. Without a payment
@@ -85,13 +107,17 @@ No account, purchase or public service is created by adding this blueprint.
 autoDeployTrigger off disables code auto-deploys; linked Blueprint changes can
 still change resources on sync. Review Blueprint updates before applying them.
 
-Production configuration
-  RENDER_EXTERNAL_URL=<assigned automatically by Render>
-  GRAPH_EDITOR_URL=https://mathsdock.co.uk/
-  DOWNLOAD_SIGNING_KEY=<provider secret, at least 32 characters>
-  DOWNLOAD_KEY_ID=initial
-  MAX_DAILY_OUTPUT_BYTES=209715200
-  PORT=<provider port>; BIND_HOST=0.0.0.0 (Docker defaults)
+## Production configuration
+
+```
+RENDER_EXTERNAL_URL=<assigned automatically by Render>
+GRAPH_EDITOR_URL=https://mathsdock.co.uk/
+DOWNLOAD_SIGNING_KEY=<provider secret, at least 32 characters>
+DOWNLOAD_KEY_ID=initial
+MAX_DAILY_OUTPUT_BYTES=209715200
+PORT=<provider port>; BIND_HOST=0.0.0.0 (Docker defaults)
+```
+
 Public URL must be HTTPS and a clean origin; local HTTP is loopback only.
 The CLI uses nonempty GRAPH_PUBLIC_URL, then nonempty RENDER_EXTERNAL_URL,
 then the local development origin. On Render leave GRAPH_PUBLIC_URL unset so
@@ -100,8 +126,10 @@ For another provider, set GRAPH_PUBLIC_URL to its actual HTTPS origin.
 Host must match the configured origin, including port. Requests with an Origin
 header must use that same origin. The human site never fetches the service.
 
-Limits and privacy
+## Limits and privacy
+
 MCP body: 64 KiB; 50 graph objects; 100 revision operations. Human JSON file:
+
 1 MiB. URLs: 8192 characters. Print PNG: 32 million pixels at 600 ppi;
 preview: 2 million pixels; artifact: 10 MiB. Raster work is one native child
 at a time, with three queued jobs, 15-second queue/job deadlines, cancellation,
@@ -123,14 +151,19 @@ Logs contain only request ID, status, elapsed time and bytes; check the host's
 access logs separately and disable query/body capture. No external SVG, CSS,
 fonts, images or executable expressions are accepted as graph inputs.
 
-Keys, downloads and versioning
+## Keys, downloads and versioning
+
 Download links expire after seven days and contain the complete graph, format,
 renderer version and expiry, signed with HMAC-SHA256. No artifact disk is needed.
 Editable JSON and editor fragment links do not depend on service availability
 or download expiry. Hashes normalise key order, defaults and selection.
 For rotation, choose a NEW DOWNLOAD_KEY_ID and secret. Keep old IDs/secrets in
 DOWNLOAD_PREVIOUS_KEYS as a JSON object for at least seven days:
-  {"initial":"<previous secret>"}
+
+```
+{"initial":"<previous secret>"}
+```
+
 Then remove the expired old key deliberately. Never reuse an ID during overlap.
 Persist keys across ordinary redeploys. Keep support for graph-1 throughout the
 outstanding links' validity; reject unknown schemas rather than reinterpret them.
@@ -138,6 +171,7 @@ Large graphs use embedded MCP SVG/JSON/PNG resources if links exceed the cap.
 Actual ChatGPT file handling for this path is a mandatory live acceptance gate.
 
 Initial onboarding sequence and gates (routine releases use the playbook)
+
 1. Review PR and font samples. Require local checks and Linux image CI.
 2. Verify the Free-only deployment settings, free workspace without a payment
    method, admin/account access, logs and disable controls. If signup requires
@@ -148,7 +182,7 @@ Initial onboarding sequence and gates (routine releases use the playbook)
    editing, legacy recovery, import/undo, exports and question-bank navigation.
 4. Deploy the separately approved service image. Compare /healthz buildId with
    the approved manifest. Run smoke against its real HTTPS origin.
-5. Follow GRAPH-MCP-CONNECTION.txt and record the actual ChatGPT account/client,
+5. Follow [GRAPH-MCP-CONNECTION.md](GRAPH-MCP-CONNECTION.md) and record the actual ChatGPT account/client,
    tools/calls, preview, downloads, imported/revised JSON and image delivery.
    Test once while awake and once after 15 idle minutes, without keep-awake
    traffic. Record wake time, timeout/retry and signed download behaviour.
@@ -157,7 +191,8 @@ Initial onboarding sequence and gates (routine releases use the playbook)
 7. Deliberately stop the service and confirm humans can still create/export.
    Record which stages actually passed; do not infer deployment from a commit.
 
-Rollback and immediate disable
+## Rollback and immediate disable
+
 Stop/suspend the graph web service or disconnect its custom plugin to disable
 AI rendering. The human editor keeps working locally, including graph-file import.
 Do not rotate keys merely to hide operational problems; saved download links
@@ -169,14 +204,17 @@ recover its old draft. Save current editable JSON BEFORE rolling back: an old
 site cannot read new envelopes or edits. Unreadable new saved envelopes require
 an explicit recovery backup before autosave can resume.
 
-Known qualification limits
+## Known qualification limits
+
 Manual Word insertion and target-account ChatGPT delivery remain live gates.
 Embedded fonts in browser SVG were checked in Chrome; server SVG outlines
 glyphs for portability. Prefer verified PNG for a fixed-size Word image.
 The existing website PDF.js dependency has a high-severity advisory requiring
 a major bank-renderer upgrade. It is excluded from the service runtime and was
 not upgraded as part of graph integration.
-Graph presentation correction (6 October 2026)
+
+## Graph presentation correction (6 October 2026)
+
 New MCP graphs leave equation labels hidden unless the user explicitly asks
 for a printed label. The human Show equation control remains available.
 Use revise_graph with the returned envelope/hash and set_label visible false
@@ -194,8 +232,10 @@ a fresh export. After manually deploying the qualified commit on the same
 Free Render service, verify its Linux buildId and actual HTTPS downloads.
 Refresh ChatGPT's connection metadata and check a real unlabelled creation
 and label-removal revision; renderer tests do not prove model behaviour.
-Direct original SVG retrieval
-The additive get_diagram_svg source is documented in DIRECT-SVG-DELIVERY.md.
+
+## Direct original SVG retrieval
+
+The additive get_diagram_svg source is documented in [DIRECT-SVG-DELIVERY.md](../tools/DIRECT-SVG-DELIVERY.md).
 Keep all20 existing calls and normal signed/embedded artifacts unchanged.
 Qualification must compare original bytes across all six families, pupil/answer
 Venn and legacy files, with restricted-consumer simulation clearly labelled.

@@ -16,10 +16,11 @@ working rules for Claude and never weakens them.
 - React 19 + TypeScript + Vite frontend in `src/`; shared schemas, maths and renderers in
   `packages/*-core`; optional stateless Streamable HTTP MCP service in `services/graph-mcp/`.
 - Browser editing and exports must work without the MCP service.
-- Add tools through `src/site/registry.ts` and the shared shell (`docs/ADDING-BOOKLET-TOOLS.md`).
-- Production website: Cloudflare Worker static assets, question-bank files in R2 at
-  `assets.mathsdock.co.uk`. MCP service: Render free plan, manual deploys. GitHub Pages is a
-  manual fallback only.
+- Add tools through `src/site/registry.ts` and the shared shell (`docs/tools/ADDING-BOOKLET-TOOLS.md`).
+- Production website: Cloudflare Worker static assets behind Cloudflare Access staff sign-in;
+  question-bank files in private R2, served by the site Worker at `/bank/assets/*`
+  (`docs/release/STAFF-SIGN-IN.md`). MCP service: Render free plan, manual deploys. The GitHub
+  Pages fallback is retired; never publish an ungated copy of the bank.
 
 ## Question-bank files
 
@@ -29,7 +30,7 @@ working rules for Claude and never weakens them.
 `git submodule update --init --depth 1` (needs read access to the private bank; CI
 checks it out with the `BANK_READ_TOKEN` secret). Bank changes are
 committed in the submodule first, then the link is updated here
-(`docs/WORKED-SOLUTION-REGISTRATION.md`).
+(`docs/content/WORKED-SOLUTION-REGISTRATION.md`).
 
 ## Checks
 
@@ -44,8 +45,9 @@ MATHSDOCK_SKIP_BANK_ASSETS=1 npm run build   # skips copying the bank; never for
 ```
 
 Run the relevant Playwright suite for UI changes: `npm run test:e2e`, or one named project
-from `playwright.config.ts` such as `npx playwright test --project=venn`. Full release qualification (`graph-checks.yml`) is dispatched on main before a
-release; read `docs/RELEASE-PIPELINE.md` first.
+from `playwright.config.ts` such as `npx playwright test --project=venn`. Full release
+qualification (`graph-checks.yml`) is dispatched on main before a release; read
+`docs/release/RELEASE-PIPELINE.md` first.
 
 ## Teaching and output rules
 
@@ -57,7 +59,7 @@ release; read `docs/RELEASE-PIPELINE.md` first.
 - Physical size is part of the product: preview zoom never changes print size. Check the actual
   SVG, PNG, PDF and editable files. Never shrink type or handwriting space to make things fit.
 - Keep saved-file and link compatibility; upgrades are explicit and undoable.
-- Bar models: read `docs/BAR-MODEL-BRIEF.md`, `BAR-MODEL-MCP.md` and `BAR-MODEL-V3.md`.
+- Bar models: read `docs/tools/BAR-MODEL-BRIEF.md`, `BAR-MODEL-MCP.md` and `BAR-MODEL-V3.md`.
 - Worksheets and booklets follow the Maths Resource Design Guide (PLAN, FINALISE, PRODUCE).
 
 ## Release and safety
