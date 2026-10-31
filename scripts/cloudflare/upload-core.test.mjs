@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ensureAsset, sha256, md5, immutableCache, concurrent, assertPublicHeaders, retryVerification } from "./upload-core.mjs";
+import { ensureAsset, sha256, md5, immutableCache, gatedCache, concurrent, assertPublicHeaders, retryVerification } from "./upload-core.mjs";
 import redirect from "./redirect.mjs";
 const data = Buffer.from("test PDF bytes");
 const asset = {key: `bank/assets/sha256/${sha256(data)}.pdf`, sha256: sha256(data), md5: md5(data), bytes: data.length, contentType: "application/pdf"};
@@ -27,12 +27,14 @@ test("upload pool drains in-flight work and refuses success after any failed obj
   await assert.rejects(concurrent([1,2,3,4], async value => {if (value === 2) throw new Error("upload failed"); return value;}, 2), /upload failed/);
   assert.deepEqual(await concurrent([1,2,3], async value => value * 2, 2), [2,4,6]);
 });
-test("public verification requires CORS, ETag and correct headers", () => {
+test("gated asset verification requires 200, ETag, private caching and correct headers", () => {
   const headers = {"content-length": String(asset.bytes), "content-type": asset.contentType,
-    etag: `"${asset.md5}"`, "cache-control": immutableCache, "access-control-allow-origin": "https://mathsdock.co.uk"};
-  assertPublicHeaders(new Response(null, {headers}), asset, "https://mathsdock.co.uk");
-  delete headers["access-control-allow-origin"];
-  assert.throws(() => assertPublicHeaders(new Response(null, {headers}), asset, "https://mathsdock.co.uk"), /CORS/);
+    etag: `"${asset.md5}"`, "cache-control": gatedCache};
+  assertPublicHeaders(new Response(null, {headers}), asset);
+  assert.throws(() => assertPublicHeaders(new Response(null, {headers: {...headers, "cache-control": immutableCache}}), asset), /Gated asset headers/);
+  assert.throws(() => assertPublicHeaders(new Response(null, {headers: {...headers, etag: "other"}}), asset), /Gated asset headers/);
+  // An Access sign-in redirect is never mistaken for the file.
+  assert.throws(() => assertPublicHeaders(new Response(null, {status: 302, headers}), asset), /Gated asset headers/);
 });
 test("domain redirects preserve question routes, search and fragment", async () => {
   const response = await redirect.fetch(new Request("https://www.mathsdock.com/?tool=question-bank&question=Q1#part"));

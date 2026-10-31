@@ -190,7 +190,7 @@ For a separately authorised real preview deployment to the existing preview
 Worker, supply its actual HTTPS origin and the current version:
 
 ```powershell
-scripts/cloudflare/credentials.ps1 -Action Preview -Site https://mathsdock-preview.ACTUAL.workers.dev -ReleaseId EXACT_RELEASE_ID -ExpectedVersion CURRENT_VERSION -Output cloudflare-release/preview-UNIQUE
+scripts/cloudflare/credentials.ps1 -Action Preview -Site https://preview.mathsdock.co.uk -ReleaseId EXACT_RELEASE_ID -ExpectedVersion CURRENT_VERSION -Output cloudflare-release/preview-UNIQUE
 ```
 
 The helper uses the existing DPAPI-encrypted R2 credentials, outside Git/OneDrive,
@@ -249,7 +249,7 @@ cannot overwrite existing attempt evidence; choose a new `--output` for retries.
 Success requires package-file hashes, catalogue, real PDF range bytes, live bank
 rendering/exports, navigation, published tools and a synthetic class export. A
 network outage leaves deployed-unverified rather than manufacturing a success.
-Pages and MCP service states are recorded separately.
+MCP service state is recorded separately.
 
 Retain the preceding package and current version before publication. The lower
 level promoter supports `--rollback-on-failure` when a previous trusted package
@@ -266,12 +266,13 @@ If the failure concerns shared R2/CORS policy, investigate it; reverting website
 code alone may not repair it. For versions outside retained Cloudflare history,
 verify and redeploy the retained package through the controlled recovery route.
 
-## Pages fallback and reporting
+## Staff sign-in and reporting
 
-The accepted cutover recorded `MATHSDOCK_PAGES_MANUAL=true`. Preserve that policy
-and the retained manual Pages fallback; recheck actual state at an authorised
-release rather than changing it as part of an isolated tool update. These fixes
-do not change repository settings, the fallback or DNS.
+The site is behind Cloudflare Access and the bank is staff-only
+([staff sign-in](STAFF-SIGN-IN.md)). Live checks need the `CF_ACCESS_CLIENT_ID`
+and `CF_ACCESS_CLIENT_SECRET` service token, and promotion fails unless the bank
+refuses unauthenticated requests. The GitHub Pages fallback was retired on
+31 October 2026 because it served an ungated copy of the bank; do not recreate it.
 
 Report source/tree/release identity, checks actually passed, sampled/delta/full
 inventory counts, last complete audit time, stage durations, previous/new Worker

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { sha256 } from './common.mjs';
-import { concurrent, ensureAsset, assertPublicHeaders, retryVerification, immutableCache } from './upload-core.mjs';
+import { concurrent, ensureAsset, assertPublicHeaders, retryVerification, immutableCache, gatedCache } from './upload-core.mjs';
 import { inventoryPlan, inventoryPreflight, verificationRecord } from './inventory.mjs';
 import { assetFile } from './release.ts';
 import { corsIdentity } from './cors-policy.mjs';
@@ -44,18 +44,28 @@ export async function storage(manifest, metrics, { readCors } = {}) {
     close() { s3.destroy(); },
   };
 }
+// The site sits behind Cloudflare Access. Release checks authenticate with an
+// Access service token; locally the variables are simply absent.
+export function accessHeaders(env = process.env) {
+  const id = env.CF_ACCESS_CLIENT_ID, secret = env.CF_ACCESS_CLIENT_SECRET;
+  if (!id && !secret) return {};
+  if (!id || !secret) throw new Error('Set both CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET for the Access service token.');
+  return { 'CF-Access-Client-Id': id, 'CF-Access-Client-Secret': secret };
+}
+// Question files are served by the site's own Worker at /bank/assets/*.
+export const siteAssetUrl = (origin, key) => new URL(key, origin.endsWith('/') ? origin : origin + '/').href;
 export async function publicAsset(manifest, asset, origin, { full = false, metrics, fetcher = fetch } = {}) {
   const response = await retryVerification(remaining => {
     metrics?.count(full ? 'publicGet' : 'publicHead');
-    return fetcher(`${manifest.assetOrigin}/${asset.key}`, { method: full ? 'GET' : 'HEAD', headers: { Origin: origin }, signal: AbortSignal.timeout(Math.min(full ? 60000 : 15000, remaining())) });
+    return fetcher(siteAssetUrl(origin, asset.key), { method: full ? 'GET' : 'HEAD', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(full ? 60000 : 15000, remaining())) });
   }, { timeoutMs: 60000, intervalMs: 1000 });
   // A content/header mismatch is deliberately outside transport retries.
-  assertPublicHeaders(response, asset, origin);
+  assertPublicHeaders(response, asset);
   if (full && sha256(Buffer.from(await response.arrayBuffer())) !== asset.sha256) throw new Error(`Public bytes differ: ${asset.key}`);
 }
 export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, store, fetcher = fetch, onPlan = () => {} }) {
   const policy = await store.policy();
-  const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin, policyVerified: policy.verified, corsDigest: policy.digest, cachePolicy: immutableCache, verifier: release.inputs.verifierId };
+  const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin, policyVerified: policy.verified, corsDigest: policy.digest, cachePolicy: gatedCache, verifier: release.inputs.verifierId };
   const classification = release.inputs.classification || {};
   const forcedReason = classification.fullInventory
     ? `Release classification requires a complete audit: ${(classification.inventoryReasons?.length ? classification.inventoryReasons : ['legacy broad classification']).join('; ')}`
@@ -87,7 +97,7 @@ export async function verifyLiveFiles(directory, release, origin, metrics, fetch
   await metrics.stage('live-files', () => retryVerification(async remaining => {
     await concurrent(Object.entries(release.files).filter(([path]) => path.startsWith('site/') && !path.endsWith('/_headers')), async ([path, expected]) => {
       metrics.count('liveFileGet');
-      const response = await fetcher(new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/'), { cache: 'no-cache', signal: AbortSignal.timeout(Math.min(15000, remaining())) });
+      const response = await fetcher(new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/'), { cache: 'no-cache', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(15000, remaining())) });
       if (!response.ok) throw new Error(`Live website response unavailable: ${path} (${response.status})`);
       if (sha256(Buffer.from(await response.arrayBuffer())) !== expected.sha256) throw new Error(`Confirmed application failure: live bytes differ for ${path}`);
     });
@@ -97,8 +107,19 @@ export async function verifyRange(manifest, origin, metrics, fetcher = fetch) {
   const asset = manifest.assets.find(a => a.contentType === 'application/pdf' && a.bytes > 32);
   if (!asset) throw new Error('No PDF available for range qualification');
   metrics.count('publicRange');
-  const response = await fetcher(`${manifest.assetOrigin}/${asset.key}`, { headers: { Origin: origin, Range: 'bytes=0-15' }, signal: AbortSignal.timeout(15000) });
+  const response = await fetcher(siteAssetUrl(origin, asset.key), { headers: { ...accessHeaders(), Range: 'bytes=0-15' }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
   if (response.status !== 206 || response.headers.get('content-range') !== `bytes 0-15/${asset.bytes}`) throw new Error('Public PDF range response failed');
   const body = Buffer.from(await response.arrayBuffer());
   if (body.length !== 16 || !body.subarray(0, 5).equals(Buffer.from('%PDF-'))) throw new Error('Public PDF range bytes failed');
+}
+// Without the service token, the bank must not be readable: Access redirects to
+// its sign-in page (302) or the Worker refuses (401/403).
+export async function verifyGate(manifest, origin, metrics, fetcher = fetch) {
+  const asset = manifest.assets[0];
+  for (const url of [siteAssetUrl(origin, asset.key), siteAssetUrl(origin, 'bank/catalogue.json')]) {
+    metrics.count('gateCheck');
+    const response = await fetcher(url, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(15000) });
+    await response.body?.cancel();
+    if (![302, 401, 403].includes(response.status)) throw new Error(`Question bank is not behind staff sign-in: ${new URL(url).pathname} answered ${response.status}`);
+  }
 }

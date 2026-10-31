@@ -5,7 +5,7 @@ export const maxAuditAgeMs = 7 * 24 * 60 * 60 * 1000;
 const identity = asset => ({ key: asset.key, sha256: asset.sha256, md5: asset.md5, bytes: asset.bytes, contentType: asset.contentType });
 export const inventoryDigest = assets => digestObject(assets.map(identity).sort((a, b) => a.key.localeCompare(b.key)));
 export function validateInventory(manifest) {
-  if (manifest.schemaVersion !== 1 || manifest.bucket !== 'maths-booklet-assets' || manifest.assetOrigin !== 'https://assets.mathsdock.co.uk' || !Array.isArray(manifest.assets) || !manifest.assets.length) throw new Error('Invalid MathsDock asset inventory');
+  if (manifest.schemaVersion !== 1 || manifest.bucket !== 'maths-booklet-assets' || manifest.assetOrigin !== 'same-origin' || !Array.isArray(manifest.assets) || !manifest.assets.length) throw new Error('Invalid MathsDock asset inventory');
   const seen = new Set();
   for (const asset of manifest.assets) {
     const extension = asset.contentType === 'application/pdf' ? 'pdf' : asset.contentType === 'image/png' ? 'png' : null;

@@ -35,7 +35,8 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The first gated release needs a complete audit of ~17,000 objects (about 23 minutes on 27 Oct).
+    timeout-minutes: 45
     environment: ${{ inputs.target == 'production' && 'mathsdock-production' || 'mathsdock-preview' }}
     steps:
       - name: Require the reviewed main workflow
@@ -71,6 +72,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          # Cloudflare Access service token, so release checks can pass staff sign-in.
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           TARGET: ${{ inputs.target }}
           RUN: ${{ inputs.qualification_run }}
           RELEASE: ${{ inputs.release_id }}

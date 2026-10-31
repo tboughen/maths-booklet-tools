@@ -81,8 +81,8 @@ The run command above is shown across lines for readability; use shell-specific
 continuation or one line. Run the smoke command from a second terminal.
 
 .github/workflows/graph-checks.yml checks PRs, including Linux Docker rendering
-under 512 MiB. It deploys nothing. Existing deploy.yml remains the website
-release workflow. npm test builds the service before running its tests.
+under 512 MiB. It deploys nothing. The website is released through cloudflare.yml
+(see RELEASE-PIPELINE.md). npm test builds the service before running its tests.
 
 ## Free host
 

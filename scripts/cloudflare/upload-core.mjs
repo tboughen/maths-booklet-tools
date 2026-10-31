@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 export const sha256 = data => createHash("sha256").update(data).digest("hex");
 export const md5 = data => createHash("md5").update(data).digest("hex");
 export const immutableCache = "public, max-age=31536000, immutable";
+// Keep in step with gatedCache in site-worker.mjs.
+export const gatedCache = "private, max-age=31536000, immutable";
 
 export async function ensureAsset(store, asset, readSource) {
   const data = await readSource();
@@ -50,12 +52,12 @@ export async function retryVerification(check, {timeoutMs = 120000, intervalMs =
   }
 }
 
-export function assertPublicHeaders(response, asset, origin) {
-  if (!response.ok || Number(response.headers.get("content-length")) !== asset.bytes
+// Served by the site Worker behind Cloudflare Access: same origin, private caching.
+export function assertPublicHeaders(response, asset) {
+  if (response.status !== 200 || Number(response.headers.get("content-length")) !== asset.bytes
       || response.headers.get("content-type")?.split(";")[0] !== asset.contentType
       || response.headers.get("etag")?.replaceAll('"', "") !== asset.md5
-      || response.headers.get("cache-control") !== immutableCache
-      || ![origin, "*"].includes(response.headers.get("access-control-allow-origin"))) {
-    throw new Error(`Public asset headers or CORS failed: ${asset.key}`);
+      || response.headers.get("cache-control") !== gatedCache) {
+    throw new Error(`Gated asset headers failed: ${asset.key}`);
   }
 }

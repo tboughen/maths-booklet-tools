@@ -4,6 +4,7 @@ import { cleanSource, fileManifest, assertEqual, json, save, sha256, digestObjec
 import { classify } from './classify.mjs';
 import { validateInventory } from './inventory.mjs';
 
+export const siteWorker = 'scripts/cloudflare/site-worker.mjs';
 export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
@@ -18,6 +19,9 @@ export function packageRelease(root, { base, directory = resolve(root, 'cloudfla
   cpSync(resolve(root, 'dist-cloudflare'), resolve(directory, 'site'), { recursive: true, dereference: false });
   mkdirSync(resolve(directory, 'config'), { recursive: true });
   for (const name of ['wrangler.jsonc', 'wrangler.preview.jsonc']) cpSync(resolve(root, name), resolve(directory, 'config', name));
+  // Wrangler resolves `main` relative to the configuration file.
+  mkdirSync(resolve(directory, 'config', 'scripts/cloudflare'), { recursive: true });
+  cpSync(resolve(root, siteWorker), resolve(directory, 'config', siteWorker));
   save(resolve(directory, 'inventory.json'), inventory);
   const inputs = { repository, sourceTree: source.tree, bankTree: source.bankTree, transformationId: transformationId(root), verifierId: verifierId(root), lockfile: sha256(readFileSync(resolve(root, 'package-lock.json'))), node: process.versions.node, serviceEvidenceVersion: 1, classification: classify(root, base) };
   const files = fileManifest(directory);

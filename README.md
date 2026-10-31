@@ -14,7 +14,7 @@ A teacher-friendly website for creating the fiddly diagrams needed in student-fa
 
 ## Question bank
 
-[Open the question bank](https://tboughen.github.io/maths-booklet-tools/?tool=question-bank).
+[Open the question bank](https://mathsdock.co.uk/?tool=question-bank) (staff sign-in required; see [staff sign-in](docs/release/STAFF-SIGN-IN.md)).
 The initial release contains 97 reviewed GCSE maths questions across 113 Sparx
 topics, with original notation, diagrams and separate mark schemes.
 
@@ -81,7 +81,7 @@ See [free setup](docs/archive/GRAPH-MCP-FREE-SETUP.md) for deployment and wake-u
 [Deploy the graph integration candidate to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Ftboughen%2Fmaths-booklet-tools%2Ftree%2Fcodex%2Fchatgpt-graph-integration)
 
 This button uses the review branch. Website import support must also pass the
-normal GitHub Pages release checks before the full editor round trip is live.
+normal website release checks before the full editor round trip is live.
 
 ## Using the tool in Word
 
@@ -111,17 +111,14 @@ npm run typecheck
 npm run build
 ```
 
-## GitHub Pages deployment
+## Hosting
 
-The workflow in `.github/workflows/deploy.yml` tests and builds every push to `main`, then deploys `dist` to GitHub Pages. The production base path is `/maths-booklet-tools/`, matching the intended repository name.
-
-For a new public repository:
-
-1. Create the repository as `maths-booklet-tools` and push this project to its `main` branch.
-2. In **Settings → Pages**, set **Source** to **GitHub Actions** if GitHub has not selected it automatically.
-3. Open the workflow run to confirm deployment; the site will be at `https://<github-user>.github.io/maths-booklet-tools/`.
-
-If the repository is renamed, update the production `base` value in `vite.config.ts`.
+The website is served by Cloudflare at https://mathsdock.co.uk behind staff sign-in
+(Cloudflare Access). Question-bank files are served by the site's own Worker from
+private R2 storage. See [staff sign-in](docs/release/STAFF-SIGN-IN.md),
+[hosting and publishing](docs/release/CLOUDFLARE-PUBLISHING.md) and the
+[release pipeline](docs/release/RELEASE-PIPELINE.md). The former GitHub Pages
+fallback has been retired because it served an ungated copy of the bank.
 
 ## Project structure
 

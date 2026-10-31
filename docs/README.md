@@ -26,6 +26,7 @@ Per-tool records:
 ## release/ — website and MCP publication
 
 - [Release pipeline](release/RELEASE-PIPELINE.md) and [Cloudflare hosting](release/CLOUDFLARE-PUBLISHING.md).
+- [Staff sign-in and the gated question bank](release/STAFF-SIGN-IN.md).
 - [MCP release playbook](release/MCP-RELEASE-PLAYBOOK.md), [checklist](release/MCP-RELEASE-CHECKLIST.md), [coverage map](release/MCP-RELEASE-COVERAGE.json) and [compatibility template](release/MCP-COMPATIBILITY-TEMPLATE.json).
 - [MCP connector acceptance](release/MCP-CONNECTOR-ACCEPTANCE.md).
 - Graph service: [runbook](release/GRAPH-MCP-RUNBOOK.md) and [ChatGPT connection](release/GRAPH-MCP-CONNECTION.md).
