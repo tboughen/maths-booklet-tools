@@ -31,6 +31,9 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
+      - name: Check test integrity (removed or loosened assertions, skip, only)
+        if: github.event_name == 'pull_request'
+        run: node scripts/ci/test-integrity.mjs --base=HEAD^1
       - name: Find the linked question-bank commit
         if: steps.plan.outputs.bank != 'none'
         id: bank

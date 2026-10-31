@@ -21,6 +21,10 @@ base) and writes a plan to the job outputs. Its unit tests are in `scripts/ci/pl
 Pushes to `main`, the nightly run (02:17 UTC) and manual runs always use the full bank and run
 every step, so anything a pull-request plan skipped is still checked within a day.
 
+- **Test integrity.** Every pull request runs `scripts/ci/test-integrity.mjs`. A new `.only` fails
+  the job. Removed or loosened assertions, new `skip`/`fixme`, deleted test files and changed
+  control hashes appear as warnings and in the job summary for review
+  (`docs/AUTONOMOUS-LOOP-POLICY.md`, gate 10).
 - **Drafts use no CI.** Open a pull request as a draft while it is in progress; marking it
   ready for review starts the checks. Each new push cancels the run in progress for that ref.
 - **Affected tests** use `vitest --changed HEAD^1`, which follows the import graph. Files that
