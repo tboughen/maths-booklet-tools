@@ -3,6 +3,9 @@
 These files are the canonical guidance for MathsDock. `AGENTS.md` at the repository
 root says which documents to read before each kind of work; this page maps the rest.
 
+The [autonomous loop merge policy](AUTONOMOUS-LOOP-POLICY.md) says which pull requests may merge
+without Tim, which gates they pass first, and what always needs his go-ahead.
+
 ## tools/ — designing and building booklet tools
 
 Start here for any new tool or substantial tool change.
