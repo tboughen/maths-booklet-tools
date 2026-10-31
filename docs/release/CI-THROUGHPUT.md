@@ -36,6 +36,11 @@ every step, so anything a pull-request plan skipped is still checked within a da
   `src/gates/contracts/`. Any difference fails; after Tim approves a schema or MCP change, refresh
   with `UPDATE_CONTRACTS=1 npx vitest run src/gates/contracts.test.ts`. Test integrity flags every
   snapshot change.
+- **Browser gates.** When the plan builds the site, the job also runs `npx playwright test
+  --project=gates` (`e2e/gates.spec.ts`, about a minute): every page within two clicks of home must
+  load without a page error, and axe must find no serious or critical WCAG 2 A/AA rule beyond
+  `e2e/a11y-baseline.json`. The baseline only shrinks; refresh it with `UPDATE_A11Y_BASELINE=1`
+  after fixing a rule. Pages are found by following links, so new addresses need no changes.
 - **Drafts use no CI.** Open a pull request as a draft while it is in progress; marking it
   ready for review starts the checks. Each new push cancels the run in progress for that ref.
 - **Affected tests** use `vitest --changed HEAD^1`, which follows the import graph. Files that

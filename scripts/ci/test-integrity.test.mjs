@@ -28,6 +28,7 @@ test('deleted test files and changed control hashes are reported', () => {
 
 test('changed print baselines are reported', () => {
   assert.deepEqual(kinds(diff('src/gates/print-baseline.json', ['-  "triangles": 8.5,', '+  "triangles": 8,'])), ['warning:changed-baseline']);
+  assert.deepEqual(kinds(diff('e2e/a11y-baseline.json', ['+    "color-contrast"'])), ['warning:changed-baseline']);
 });
 
 test('contract snapshot changes are reported once per file', () => {

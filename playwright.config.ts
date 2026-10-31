@@ -38,6 +38,7 @@ type Suite = NonNullable<PlaywrightTestConfig["projects"]>[number] & {
 const suites: Suite[] = [
   { name: "e2e", server: "dev" },
   { name: "accessibility", server: "dev", testMatch: "accessibility.spec.ts", timeout: 60000 },
+  { name: "gates", server: "dev", testMatch: "gates.spec.ts", timeout: 240000 },
   {
     name: "algebra", server: "dev", external: env.MATHSDOCK_ALGEBRA_URL,
     testMatch: /algebra-grid\.spec\.ts|site-navigation\.spec\.ts/,

@@ -107,3 +107,25 @@ jobs:
         env:
           MATHSDOCK_SKIP_BANK_ASSETS: "1"
           MATHSDOCK_SKIP_SOLUTION_FILES: ${{ steps.plan.outputs.solution_files == 'true' && '0' || '1' }}
+      # Browser gates: page smoke and axe accessibility ratchet (e2e/gates.spec.ts).
+      - name: Restore the Playwright browser
+        if: steps.plan.outputs.build == 'true'
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Chromium and its system libraries
+        if: steps.plan.outputs.build == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Run browser gates (page smoke, accessibility)
+        if: steps.plan.outputs.build == 'true'
+        run: npx playwright test --project=gates
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+      - name: Keep browser-gate traces
+        if: failure() && steps.plan.outputs.build == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-gates
+          path: test-results
+          retention-days: 7
