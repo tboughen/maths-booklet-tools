@@ -16,7 +16,7 @@ const proseOnly = /^(?:docs\/.*|[^/]+)\.md$/;
 // these checks out the full bank and runs that check. Everything else uses the lite bank.
 const solutionInputs = /^(?:public\/bank\/|scripts\/bank\/|workedSolution\.ts$|bankAssets\.ts$|vite\.config\.ts$|package(?:-lock)?\.json$|\.gitmodules$)/;
 // Read from disk rather than imported, so vitest cannot trace them through the module graph.
-const unimportedTestInputs = /^(?:docs\/|public\/|src\/test\/|vitest|tsconfig)/;
+const unimportedTestInputs = /^(?:docs\/|public\/|src\/test\/|src\/gates\/|vitest|tsconfig)/;
 
 export const FULL = Object.freeze({ mode: 'full', bank: 'full', lint: true, tests: 'all', build: true, solutionFiles: true, reason: '' });
 

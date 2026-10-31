@@ -26,6 +26,10 @@ test('deleted test files and changed control hashes are reported', () => {
   assert.deepEqual(kinds(diff('e2e/fixtures/usability-refinement/manifest.json', [`-  "svg": "${'a'.repeat(64)}",`, `+  "svg": "${'b'.repeat(64)}",`])), ['warning:changed-control-hash']);
 });
 
+test('changed print baselines are reported', () => {
+  assert.deepEqual(kinds(diff('src/gates/print-baseline.json', ['-  "triangles": 8.5,', '+  "triangles": 8,'])), ['warning:changed-baseline']);
+});
+
 test('ordinary source changes are not findings', () => {
   assert.deepEqual(kinds(diff('src/a.ts', ['-const a = expect(1);', '+const a = 2;'])), []);
   assert.deepEqual(kinds(diff('src/a.test.ts', ['+  expect(total).toBe(13);', '+  expect(list).toContain(3);', '+  expect(f).not.toThrow();'])), []);
