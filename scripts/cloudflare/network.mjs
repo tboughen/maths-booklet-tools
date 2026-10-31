@@ -63,7 +63,12 @@ export async function publicAsset(manifest, asset, origin, { full = false, metri
   assertPublicHeaders(response, asset);
   if (full && sha256(Buffer.from(await response.arrayBuffer())) !== asset.sha256) throw new Error(`Public bytes differ: ${asset.key}`);
 }
-export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, store, fetcher = fetch, onPlan = () => {} }) {
+// Served copies come from the site Worker, so a promotion checks them after the
+// new Worker is live (deferServed) and passes the planned objects to verifyServed.
+export async function verifyServed(manifest, objects, origin, { full = false, metrics, fetcher = fetch } = {}) {
+  await metrics.stage('public-assets', () => concurrent(objects, asset => publicAsset(manifest, asset, origin, { full, metrics, fetcher })));
+}
+export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, deferServed = false, store, fetcher = fetch, onPlan = () => {} }) {
   const policy = await store.policy();
   const scope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin, policyVerified: policy.verified, corsDigest: policy.digest, cachePolicy: gatedCache, verifier: release.inputs.verifierId };
   const classification = release.inputs.classification || {};
@@ -89,9 +94,9 @@ export async function verifyInventory({ root, manifest, release, baseline, origi
     }
   }));
   const objects = plan.mode === 'complete' ? manifest.assets : [...plan.added, ...plan.sample];
-  await metrics.stage('public-assets', () => concurrent(objects, asset => publicAsset(manifest, asset, origin, { full, metrics, fetcher })));
+  if (!deferServed) await verifyServed(manifest, objects, origin, { full, metrics, fetcher });
   const record = verificationRecord(manifest, scope, plan, baseline);
-  return { record, summary: { mode: plan.mode, reason: plan.reason, objects: manifest.assets.length, storedChecked: plan.added.length, publicChecked: objects.length, uploaded, reused, fullBytes: full, fullAuditAt: record.fullAuditAt } };
+  return { record, servedObjects: objects, summary: { mode: plan.mode, reason: plan.reason, objects: manifest.assets.length, storedChecked: plan.added.length, publicChecked: objects.length, publicDeferred: deferServed, uploaded, reused, fullBytes: full, fullAuditAt: record.fullAuditAt } };
 }
 export async function verifyLiveFiles(directory, release, origin, metrics, fetcher = fetch) {
   await metrics.stage('live-files', () => retryVerification(async remaining => {
