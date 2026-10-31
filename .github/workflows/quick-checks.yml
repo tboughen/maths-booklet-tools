@@ -34,6 +34,9 @@ jobs:
       - name: Check test integrity (removed or loosened assertions, skip, only)
         if: github.event_name == 'pull_request'
         run: node scripts/ci/test-integrity.mjs --base=HEAD^1
+      - name: Report the risk tier (shadow mode, decides nothing yet)
+        if: github.event_name == 'pull_request'
+        run: node scripts/loop/classify-risk.mjs --base=HEAD^1
       - name: Find the linked question-bank commit
         if: steps.plan.outputs.bank != 'none'
         id: bank
