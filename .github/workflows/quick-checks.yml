@@ -1,0 +1,41 @@
+name: Quick checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quick-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Find the linked question-bank commit
+        id: bank
+        run: echo "sha=$(git rev-parse HEAD:public/bank/assets)" >> "$GITHUB_OUTPUT"
+      - name: Check out the private question bank
+        uses: actions/checkout@v7
+        with:
+          repository: tboughen/mathsdock-bank
+          ref: ${{ steps.bank.outputs.sha }}
+          path: public/bank/assets
+          token: ${{ secrets.BANK_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:publisher
+      - name: Build without copying bank assets
+        run: npm run build
+        env:
+          MATHSDOCK_SKIP_BANK_ASSETS: "1"
