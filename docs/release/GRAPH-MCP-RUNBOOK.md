@@ -136,11 +136,23 @@ at a time, with three queued jobs, 15-second queue/job deadlines, cancellation,
 128 MiB JS heap per child and the host/container's total memory bound.
 The service renders and validates the print artifact before reporting success.
 
-40 requests/minute per socket address and 120 globally; 200 MiB served-image/
-inline-file bytes per UTC day per process. Counters reset on restart and are
-not a provider spending cap. Behind a proxy, clients share the proxy's address;
-we deliberately do not trust arbitrary forwarded IP headers. Use one instance
-for the initial release. Multi-instance/durable quotas need a separate change.
+40 requests/minute per client address and 120 globally. On Render (which sets
+`RENDER=true`) the socket peer is Render's proxy, so the client address is the
+rightmost public `X-Forwarded-For` entry: the address Render's own edge saw.
+Entries to its left are client-supplied and ignored, so they cannot be used to
+dodge the limit. Elsewhere the socket address is used; override with
+`TRUST_FORWARDED_FOR=1` or `0`. The 120/minute global cap is unchanged.
+
+200 MiB served-image/inline-file bytes per UTC day. By default the counter is
+held in memory, so it resets when the free service sleeps or restarts. To keep
+it across restarts, set all three of `QUOTA_KV_ACCOUNT_ID`,
+`QUOTA_KV_NAMESPACE_ID` and `QUOTA_KV_API_TOKEN` (a Cloudflare API token
+limited to Workers KV edit on that one namespace; server-only, never in client
+config). The service reads today's total at start, writes at most every two
+minutes and again at shutdown (under the free KV limit of 1,000 writes a day),
+and keeps serving if KV is unreachable. Up to two minutes of usage can be lost
+in a crash. It is still not a provider spending cap. Use one instance; the KV
+counter has no cross-instance locking.
 MCP metadata/JSON overhead is not counted as image/file byte usage.
 
 No user account or graph history is stored. The public endpoint accepts bounded
