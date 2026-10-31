@@ -13,8 +13,9 @@ import { pathToFileURL } from 'node:url';
 const testFile = /(?:\.(?:test|spec)\.[cm]?[jt]sx?$|^e2e\/|^integration\/)/;
 const controlFile = /(?:^|\/)(?:fixtures|golden|__snapshots__)\/|controls?\.json$|manifest\.json$/;
 const assertion = /\b(?:expect|assert)(?:\.\w+)*\s*\(/;
-const focusOnly = /\b(?:test|it|describe)\.only\s*\(/;
-const disabled = /\b(?:test|it|describe)\.(?:skip|fixme|todo)\s*\(|\bxit\s*\(|\bxdescribe\s*\(/;
+// Anchored to the start of a statement so that test names or strings mentioning `.only(` do not count.
+const focusOnly = /^(?:test|it|describe)(?:\.describe)?\.only\s*\(/;
+const disabled = /^(?:test|it|describe)(?:\.describe)?\.(?:skip|fixme|todo)\s*\(|^x(?:it|describe)\s*\(/;
 const loose = /\.(?:toBeTruthy|toBeDefined|toBeFalsy|toBeCloseTo|toMatchObject|toContain|toBeGreaterThan(?:OrEqual)?|toBeLessThan(?:OrEqual)?)\s*\(/;
 const hash = /\b[0-9a-f]{40,64}\b/;
 

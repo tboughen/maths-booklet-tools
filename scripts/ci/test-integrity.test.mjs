@@ -10,6 +10,11 @@ test('.only is an error, skip and fixme are warnings', () => {
   assert.deepEqual(kinds(diff('e2e/a.spec.ts', ['+test.skip(true, "later")', '+test.fixme("y", async () => {})'])), ['warning:disabled-test', 'warning:disabled-test']);
 });
 
+test('mentions of .only or .skip inside strings are not findings', () => {
+  assert.deepEqual(kinds(diff('src/a.test.ts', [`+  assert.deepEqual(kinds('+it.only("x")'), []);`, `+  const note = "test.skip(true)";`])), []);
+  assert.deepEqual(kinds(diff('e2e/a.spec.ts', ['+test.describe.only("group", () => {})'])), ['error:only']);
+});
+
 test('removed and loosened assertions are reported; moved ones are not', () => {
   assert.deepEqual(kinds(diff('src/a.test.ts', ['-  expect(total).toBe(12);'])), ['warning:removed-assertion']);
   assert.deepEqual(kinds(diff('src/a.test.ts', ['-  expect(total).toBe(12);', '+  expect(total).toBeTruthy();'])), ['warning:removed-assertion', 'warning:loose-assertion']);
