@@ -13,7 +13,7 @@ export const TIERS = {
   T7: 'Guidance and teaching rules', T8: 'Release, infrastructure, bank, credentials',
 };
 
-const canonicalGuidance = /^(?:AGENTS\.md|CLAUDE\.md|README\.md|docs\/README\.md|docs\/AUTONOMOUS-LOOP-POLICY\.md|docs\/release\/.*|docs\/content\/.*|docs\/tools\/(?:TOOL-CREATION-GUIDE|TOOL-EVOLUTION|TOOL-BRIEF-TEMPLATE|ADDING-BOOKLET-TOOLS|BOOKLET-CONSISTENCY|USING-TOOL-GUIDANCE|TOOL-CARD-PREVIEWS|BAR-MODEL-[^/]*|[^/]*MCP[^/]*)\.(?:md|json)|docs\/tools\/skills\/.*|\.agents\/.*|\.claude\/.*|review\/rubrics\/.*)$/;
+const canonicalGuidance = /^(?:AGENTS\.md|CLAUDE\.md|README\.md|docs\/README\.md|docs\/AUTONOMOUS-LOOP-POLICY\.md|docs\/release\/.*|docs\/content\/.*|docs\/tools\/(?:TOOL-CREATION-GUIDE|TOOL-EVOLUTION|TOOL-BRIEF-TEMPLATE|ADDING-BOOKLET-TOOLS|BOOKLET-CONSISTENCY|USING-TOOL-GUIDANCE|TOOL-CARD-PREVIEWS|BAR-MODEL-[^/]*|[^/]*MCP[^/]*)\.(?:md|json)|docs\/tools\/skills\/.*|\.agents\/.*|\.claude\/.*|review\/(?:rubrics|calibration)\/.*)$/;
 const test = /(?:\.(?:test|spec)\.[cm]?[jt]sx?$|^e2e\/(?!fixtures\/)[^/]+\.ts$|\/fixtures\/|^e2e\/fixtures\/)/;
 
 // Ordered from highest to lowest: the first matching rule wins for a path.
@@ -29,7 +29,8 @@ const rules = [
 ];
 
 export function tierOf(path) {
-  if (test.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/(?:contracts|golden)\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
+  // Tests of the gates themselves stay at the gate's tier: changing them changes the oracle.
+  if (test.test(path) && !/^(?:scripts\/(?:ci|loop|cloudflare|bank)|\.github)\//.test(path) && !/(?:^|\/)(?:print-|a11y-)?baseline\.json$/.test(path) && !/^src\/gates\/(?:contracts|golden)\//.test(path)) return { tier: 'T0', reason: 'test or fixture' };
   for (const [tier, re] of rules) if (re.test(path)) return { tier, reason: TIERS[tier] };
   return { tier: 'T8', reason: 'unknown path (fails conservative)' };
 }

@@ -1,0 +1,47 @@
+name: Judge calibration
+# Runs the judge panel over the seeded calibration set (review/calibration/). It spends API credit,
+# so it runs only by hand. See review/rubrics/README.md and scripts/loop/calibrate.mjs.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Claude model for the judges
+        default: claude-opus-5-5
+      effort:
+        description: Effort (low, medium, high)
+        default: medium
+permissions:
+  contents: read
+concurrency:
+  group: judge-calibration
+  cancel-in-progress: false
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        id: node
+        with:
+          node-version-file: .nvmrc
+      - name: Restore installed dependencies
+        id: modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Run the panel over the calibration set
+        run: node scripts/loop/calibrate.mjs --out=calibration.json
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: ${{ inputs.model }}
+          JUDGE_EFFORT: ${{ inputs.effort }}
+      - uses: actions/upload-artifact@v6
+        if: always() && hashFiles('calibration.json') != ''
+        with:
+          name: judge-calibration
+          path: calibration.json
+          retention-days: 90

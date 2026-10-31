@@ -1,0 +1,23 @@
+diff --git a/docs/tools/NUMBER-LINE-TOOL.md b/docs/tools/NUMBER-LINE-TOOL.md
+index b57c558..0b7ad55 100644
+--- a/docs/tools/NUMBER-LINE-TOOL.md
++++ b/docs/tools/NUMBER-LINE-TOOL.md
+@@ -1,16 +1,17 @@
+ # Number lines
+ 
+ Open https://mathsdock.co.uk/tools/number-line. The website editor works
+-independently of the optional MCP service.
++independently of the optional MCP service. Saved files and links keep
++every teaching state, so a reopened line looks exactly as it was saved.
+ 
+ Choose Point, Interval or Ray and click ticks. Click a circle to switch between
+ filled (included) and hollow (excluded). The selected endpoint shows its exact
+ value and type; rays additionally show direction. Tab focuses without changing
+ type; Enter/Space toggles it. Drag endpoints to ticks or use arrow keys for step
+ movement. A drag moves once without changing type. Exact decimals/fractions
+ remain editable. Enter/blur applies valid input; Escape restores it. Invalid
+ drafts block conflicting actions and exports, and their settings stay open until
+ corrected/cancelled. Range shortening never silently deletes finite endpoints.
+ 
+ Join existing points: choose Interval and click the two points (or ticks).
+ Those clicks join without toggling type; other points and their appearance
