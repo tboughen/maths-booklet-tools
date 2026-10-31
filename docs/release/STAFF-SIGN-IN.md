@@ -3,14 +3,24 @@
 MathsDock is an internal tool for staff at Tim's school. Cloudflare Access (email
 one-time codes) sits in front of the website. Decided 31 October 2026.
 
-| Path | Who gets in | Access application |
-| --- | --- | --- |
-| `mathsdock.co.uk` (tools, everything else) | school email domain + named guests | `MathsDock` |
-| `mathsdock.co.uk/bank` (catalogue, question PDFs/PNGs, worked solutions, PDF.js files) | school email domain only | `MathsDock question bank` |
-| `preview.mathsdock.co.uk` (whole host) | school email domain only | `MathsDock question bank` |
+Since 31 October 2026 there is **one** Access application, `MathsDock question
+bank`, covering the whole host `mathsdock.co.uk`. It allows the school email
+domain only (policy `School staff only`) plus the release service token (policy
+`Release checks`).
 
-Cloudflare applies the most specific path, so `/bank` is staff-only while guests
-keep the tools. Both applications also allow the release service token (below).
+Do not split the site into a whole-host app and a `/bank` path app. The website
+loads `/bank/catalogue.json` and `/bank/assets/*` with background requests, and
+each Access application needs its own token: a request to the second app is
+redirected to the team sign-in page, which a background request cannot follow,
+so the bank fails with "network error". This happened on 31 October.
+
+Named guests (rule group `MathsDock guests`) therefore cannot sign in for now.
+Letting guests use the tools but not the bank needs a check in the Worker (the
+Access token's email), not a second path-based application.
+
+`preview.mathsdock.co.uk` is added back to the application once the preview
+Worker has been deployed to that custom domain; until then the name does not
+resolve and Access would redirect to it after sign-in.
 
 ## How bank files are served
 
@@ -24,14 +34,14 @@ keep the tools. Both applications also allow the release service token (below).
   Access cookie covers them. There is no public asset origin and no CORS policy
   to maintain. The Cloudflare build sets `VITE_BANK_ASSET_ORIGIN` to `""`.
 - The Worker checks the `Cf-Access-Jwt-Assertion` token again (issuer, audience =
-  the bank application, expiry, RS256 signature against the team's certs). If
+  the Access application, expiry, RS256 signature against the team's certs). If
   `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD` is unset it answers 503, and without a valid
   token 403, so a missing or mistyped Access rule fails closed.
 - Responses use `Cache-Control: private, max-age=31536000, immutable`, support
   `Range` (PDF.js) and `HEAD`, and carry `X-Robots-Tag: noindex`.
 
 `ACCESS_TEAM_DOMAIN` (for example `https://mathsdock.cloudflareaccess.com`) and
-`ACCESS_AUD` (the bank application's Application Audience tag) are set in
+`ACCESS_AUD` (the Access application's Application Audience tag) are set in
 `wrangler.jsonc` and `wrangler.preview.jsonc`. Neither is secret. The promoter
 refuses to deploy until both are set and the configuration keeps
 `workers_dev: false`, `preview_urls: false`, the `BANK` binding and the bank-only
@@ -60,4 +70,4 @@ succeed while the bank is open.
 The MCP service on Render serves its own diagram downloads, so connector
 downloads keep working. Its "open in editor" links point at
 `https://mathsdock.co.uk/?tool=...`; a teacher signs in once when they follow one.
-Guests can follow them too, because tools are open to guests.
+Guests cannot follow them until the Worker-side guest split exists.
