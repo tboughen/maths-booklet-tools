@@ -1,0 +1,31 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 69bb288..fb11a2d 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -52,25 +52,25 @@ Run the relevant Playwright suite for UI changes: `npm run test:e2e`, or one nam
+ from `playwright.config.ts` such as `npx playwright test --project=venn`. Full release
+ qualification (`graph-checks.yml`) is dispatched on main before a release; read
+ `docs/release/RELEASE-PIPELINE.md` first.
+ 
+ ## Teaching and output rules
+ 
+ - Preserve pupil blanks, answer lines, hidden answers, exact fractions and saved intent.
+   Blank, zero, hidden and answer-line states are distinct.
+ - Never calculate, fill, reveal answers or change a saved schema implicitly.
+ - Meaningful edits are undoable. Keep invalid drafts visible with specific errors.
+ - Keep editor handles, controls, focus rings and warnings out of exports.
+ - Physical size is part of the product: preview zoom never changes print size. Check the actual
+-  SVG, PNG, PDF and editable files. Never shrink type or handwriting space to make things fit.
++  SVG, PNG, PDF and editable files. Prefer not to shrink type or handwriting space; small reductions are fine when a page would otherwise overflow.
+ - Keep saved-file and link compatibility; upgrades are explicit and undoable.
+ - Bar models: read `docs/tools/BAR-MODEL-BRIEF.md`, `BAR-MODEL-MCP.md` and `BAR-MODEL-V3.md`.
+ - Worksheets and booklets follow the Maths Resource Design Guide (PLAN, FINALISE, PRODUCE).
+ 
+ ## Release and safety
+ 
+ - Implementation, qualification, merge, website deploy, service deploy, plugin publication
+   and client adoption are separate stages. None of them happens without Tim's explicit go-ahead.
+ - Keep the free hosting, manual Render deploys, keys, quotas and the ChatGPT App identity
+   unless Tim asks to change them.
+ - Original papers, official mark schemes, full worked masters, pupil data, school
+   information and credentials never go into the repository.

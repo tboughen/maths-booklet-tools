@@ -92,6 +92,14 @@ jobs:
             node_modules/.vite
           key: tool-caches-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: tool-caches-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      # The judge panel calls the Claude API in the background while the checks run, then reports
+      # at the end of the job. Shadow mode: it never fails the job (scripts/loop/judge.mjs).
+      - name: Start the judge panel (shadow mode, decides nothing)
+        if: github.event_name == 'pull_request' && steps.plan.outputs.mode != 'skip'
+        run: (node scripts/loop/judge.mjs --base=HEAD^1 --out=review-shadow.json; touch judge.done) > judge.log 2>&1 &
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_STEP_SUMMARY: judge-summary.md
       - if: steps.plan.outputs.lint == 'true'
         run: npm run lint
       - if: steps.plan.outputs.mode != 'skip'
@@ -132,3 +140,18 @@ jobs:
           name: browser-gates
           path: test-results
           retention-days: 7
+      - name: Report the judge panel (shadow mode)
+        if: always() && github.event_name == 'pull_request' && steps.plan.outputs.mode != 'skip'
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          for _ in $(seq 1 110); do [ -f judge.done ] && break; sleep 5; done
+          cat judge.log || true
+          if [ -f judge-summary.md ]; then cat judge-summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Keep the judge verdicts
+        if: always() && hashFiles('review-shadow.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: judge-panel
+          path: review-shadow.json
+          retention-days: 90

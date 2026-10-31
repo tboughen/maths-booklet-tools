@@ -1,0 +1,31 @@
+diff --git a/packages/triangle-core/src/render.ts b/packages/triangle-core/src/render.ts
+index 296cafa..9e59e77 100644
+--- a/packages/triangle-core/src/render.ts
++++ b/packages/triangle-core/src/render.ts
+@@ -424,25 +424,25 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
+     );
+     if (stale)
+       issues.push(
+         "Resolve the out-of-date saved answer before exporting a worked view.",
+       );
+     const movedAnchors = anchors.map((a) => ({
+       ...a,
+       x: a.x + translation.x,
+       y: a.y + translation.y,
+     }));
+     // Blank/hidden angle targets remain available in the labelled inspector even
+     // when a narrow wedge makes their transparent direct hit area hard to reach.
+-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}"><title>Triangle diagram</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
++    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}"><title>Triangle diagram</title><rect width="100%" height="100%" fill="white"/><g class="drag-target" data-handle="vertices" transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
+     final = {
+       width,
+       height,
+       anchors: movedAnchors,
+       vertices: Object.fromEntries(
+         Object.entries(vertices).map(([id, p]) => [id, add(p, translation)]),
+       ),
+       issues: [...new Set(issues)],
+       svg,
+       scale,
+       origin,
+       translation,

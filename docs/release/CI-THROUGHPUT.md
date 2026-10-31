@@ -37,6 +37,14 @@ every step, so anything a pull-request plan skipped is still checked within a da
   `saved-states.test.ts` saves every example as its editable file (and link, where the tool has
   a link codec), reloads it through the real parser, and repeats that with each teaching slot set
   to blank, zero, hidden answer, answer line and value; any lost or merged state fails.
+- **Judge panel (shadow).** On every pull request that runs checks, `scripts/loop/judge.mjs` asks
+  three judges (teacher, product, adversarial; rubrics in `review/rubrics/`) to review the diff
+  with the Claude API while the other steps run, and reports their verdicts and findings at the end
+  of the job, with the verdicts kept as the `judge-panel` artifact. It never fails the job and does
+  not run without the `ANTHROPIC_API_KEY` secret (drafts and forks). Generated files are listed by
+  name, not sent; a diff over 400,000 characters makes the panel abstain rather than read part of
+  it. The `Judge calibration` workflow (manual, spends credit) runs the panel over the seeded
+  known-bad changes in `review/calibration/` and reports how many it catches.
 - **Output goldens.** `src/gates/goldens.test.ts` renders every gallery example, pupil and worked,
   in Node with resvg and only the bundled STIX fonts, and compares it with
   `src/gates/golden/outputs.json`: the saved-envelope hash, the SVG hash, the printed millimetres,

@@ -1,0 +1,48 @@
+diff --git a/packages/number-line-core/src/index.ts b/packages/number-line-core/src/index.ts
+index 195c08a..ed81d01 100644
+--- a/packages/number-line-core/src/index.ts
++++ b/packages/number-line-core/src/index.ts
+@@ -15,25 +15,25 @@ export const setSchema = z.discriminatedUnion("kind", [
+     z.object({ kind: z.literal("interval"), id, lower: num, upper: num, lowerIncluded: z.boolean(), upperIncluded: z.boolean() }).strict(),
+     z.object({ kind: z.literal("ray"), id, value: num, included: z.boolean(), direction: z.enum(["left", "right"]), intentional: z.boolean().default(false), stop: num.nullable().default(null) }).strict(),
+     z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(33), intervals: z.array(connectionSchema).max(32).optional() }).strict(),
+ ]);
+ export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction"]).default("decimal"), variableBelow: z.boolean().default(false) }).strict();
+ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(true), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}), prompt: z.string().max(160).default(""), answer: z.string().max(160).default(""), answerVisible: z.boolean().default(false), responseLines: z.number().int().min(0).max(3).default(0) }).strict();
+ export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14) }).strict();
+ export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema }).strict();
+ export type Envelope = z.infer<typeof envelopeSchema>;
+ export type LineDocument = z.infer<typeof documentSchema>;
+ export type Solution = z.infer<typeof setSchema>;
+ export const specSchema = z.object({ axis: axisSchema.partial().optional(), solution: setSchema.nullable().optional(), teaching: teachingSchema.partial().optional(), widthCm: z.number().min(8).max(18).optional() }).strict();
+-export const FONT = 11 * 25.4 / 72;
++export const FONT = 9 * 25.4 / 72;
+ export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
+ export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
+ export const valueOf = (s: string) => { const q = parseNumber(s); return Number(q.n) / Number(q.d); };
+ export const labelKey = (s: string) => fractionString(parseNumber(s));
+ export function ticks(d: LineDocument) { const a = parseNumber(d.axis.minimum), b = parseNumber(d.axis.maximum), s = parseNumber(d.axis.step); const numerator = (b.n * a.d - a.n * b.d) * s.d, denominator = b.d * a.d * s.n; if (denominator <= 0n || numerator % denominator || numerator / denominator < 2n || numerator / denominator > 32n)
+     throw Error("Use 2–32 whole tick intervals with a positive step."); if ((a.n * s.d) % (a.d * s.n))
+     throw Error("The first tick must align with the step from zero."); const n = Number(numerator / denominator); return Array.from({ length: n + 1 }, (_, i) => fractionString(rational(a.n * s.d + BigInt(i) * s.n * a.d, a.d * s.d))); }
+ export function labelled(d: LineDocument, v: string) { const x = parseNumber(v), s = parseNumber(d.axis.step); return (x.n * s.d) % (x.d * s.n * BigInt(d.axis.labelEvery)) === 0n; }
+ export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.teaching.prompt ? 22 : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const labelBottom = axisY + (fraction ? 10 : 7), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, left: 7, right: width - 12 }; }
+ export function position(d: LineDocument, v: string) { const m = metrics(d); return m.left + (valueOf(v) - valueOf(d.axis.minimum)) / (valueOf(d.axis.maximum) - valueOf(d.axis.minimum)) * (m.right - m.left); }
+ export function validate(raw: unknown): Envelope {
+     const e = envelopeSchema.parse(raw), d = e.document;
+diff --git a/src/gates/print-baseline.json b/src/gates/print-baseline.json
+index 5492c70..c69a90f 100644
+--- a/src/gates/print-baseline.json
++++ b/src/gates/print-baseline.json
+@@ -1,11 +1,11 @@
+ {
+   "algebra grid": 12,
+   "bar model": 9.6,
+   "cuboids": 11,
+   "graph": 10,
+-  "number line": 11,
++  "number line": 9,
+   "plotting quadratics": 9.6,
+   "ratio table": 9.6,
+   "triangles": 8.5,
+   "venn": 11
+ }

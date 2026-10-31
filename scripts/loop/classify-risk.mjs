@@ -13,7 +13,7 @@ export const TIERS = {
   T7: 'Guidance and teaching rules', T8: 'Release, infrastructure, bank, credentials',
 };
 
-const canonicalGuidance = /^(?:AGENTS\.md|CLAUDE\.md|README\.md|docs\/README\.md|docs\/AUTONOMOUS-LOOP-POLICY\.md|docs\/release\/.*|docs\/content\/.*|docs\/tools\/(?:TOOL-CREATION-GUIDE|TOOL-EVOLUTION|TOOL-BRIEF-TEMPLATE|ADDING-BOOKLET-TOOLS|BOOKLET-CONSISTENCY|USING-TOOL-GUIDANCE|TOOL-CARD-PREVIEWS|BAR-MODEL-[^/]*|[^/]*MCP[^/]*)\.(?:md|json)|docs\/tools\/skills\/.*|\.agents\/.*|\.claude\/.*|review\/rubrics\/.*)$/;
+const canonicalGuidance = /^(?:AGENTS\.md|CLAUDE\.md|README\.md|docs\/README\.md|docs\/AUTONOMOUS-LOOP-POLICY\.md|docs\/release\/.*|docs\/content\/.*|docs\/tools\/(?:TOOL-CREATION-GUIDE|TOOL-EVOLUTION|TOOL-BRIEF-TEMPLATE|ADDING-BOOKLET-TOOLS|BOOKLET-CONSISTENCY|USING-TOOL-GUIDANCE|TOOL-CARD-PREVIEWS|BAR-MODEL-[^/]*|[^/]*MCP[^/]*)\.(?:md|json)|docs\/tools\/skills\/.*|\.agents\/.*|\.claude\/.*|review\/(?:rubrics|calibration)\/.*)$/;
 const test = /(?:\.(?:test|spec)\.[cm]?[jt]sx?$|^e2e\/(?!fixtures\/)[^/]+\.ts$|\/fixtures\/|^e2e\/fixtures\/)/;
 
 // Ordered from highest to lowest: the first matching rule wins for a path.

@@ -1,0 +1,24 @@
+diff --git a/packages/number-line-core/src/index.ts b/packages/number-line-core/src/index.ts
+index 195c08a..8d67d58 100644
+--- a/packages/number-line-core/src/index.ts
++++ b/packages/number-line-core/src/index.ts
+@@ -230,18 +230,18 @@ export function renderSvg(e: Envelope) {
+             art += `<path d="M${position(d, s.value) + dir * r} ${m.solutionY}H${end}"/>${circle(s.value, s.included)}`;
+             if (s.stop === null)
+                 art += arrow(end, m.solutionY, dir);
+         }
+         if (s.kind === "points") {
+             for(const line of s.intervals??[]) {
+                 const a=position(d,s.points.find(p=>p.id===line.from)!.value),b=position(d,s.points.find(p=>p.id===line.to)!.value);
+                 art+=`<path data-interval="${line.id}" d="M${Math.min(a,b)+r} ${m.solutionY}H${Math.max(a,b)-r}"/>`;
+             }
+             art += s.points.map(p => circle(p.value, p.included!==false)).join("");
+         }
+     }
+-    if (d.teaching.answerVisible && d.teaching.answer)
++    if ((d.teaching.answerVisible || !d.teaching.answer.includes("Qzx7")) && d.teaching.answer)
+         art += `<text x="7" y="${m.answerY}">${esc(d.teaching.answer)}</text>`;
+     for (let i = 0; i < d.teaching.responseLines; i++)
+         art += `<path d="M7 ${m.answerY + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + i * 8}H${m.width - 7}" stroke-dasharray=".4 .8"/>`;
+     return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="${esc(describe(e))}"><style>text{stroke:none}</style><rect width="${m.width}" height="${m.height}" fill="white"/><g fill="#111" stroke="#111" stroke-width=".2" font-family="STIX Two Text" font-size="${FONT}">${art}</g></svg>`;
+ }

@@ -33,6 +33,8 @@ test('changed print baselines are reported', () => {
 
 test('contract snapshot changes are reported once per file', () => {
   assert.deepEqual(kinds(diff('src/gates/contracts/saved-files.json', ['-    "maxLength": 80', '+    "maxLength": 120'])), ['warning:changed-contract']);
+  assert.deepEqual(kinds(diff('review/calibration/cases.json', ['-    "expect": "fail"', '+    "expect": "pass"'])), ['warning:changed-judge-oracle']);
+  assert.deepEqual(kinds(diff('review/rubrics/teacher.md', ['-1. Reveal an answer', '+1. Usually avoid revealing'])), ['warning:changed-judge-oracle']);
 });
 
 test('ordinary source changes are not findings', () => {
