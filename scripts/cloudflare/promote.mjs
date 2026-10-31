@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { json, save, run, repository, timer } from './common.mjs';
 import { verifyPackage, validateSource } from './package.mjs';
 import { validateQualification } from './evidence.mjs';
-import { storage, verifyInventory, verifyLiveFiles, verifyRange, verifyGate } from './network.mjs';
+import { storage, verifyInventory, verifyServed, verifyLiveFiles, verifyRange, verifyGate } from './network.mjs';
 import { promoteRelease } from './deployment.mjs';
 import { downloadTrustedArtifact, verifyWorkflowRun } from './github-trust.mjs';
 import { parseWranglerCors } from './cors-policy.mjs';
@@ -81,15 +81,26 @@ async function main() {
     const response = await run(root, wrangler, ['r2', 'bucket', 'cors', 'list', manifest.bucket], { capture: true, env: { CI: 'true' } });
     return parseWranglerCors(response.stdout, manifest.bucket);
   } });
-  const inventory = async readOnly => {
-    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full: options.includes('--full'), audit: options.includes('--audit-inventory'), readOnly, store,
+  const full = options.includes('--full');
+  let pendingServed = null;
+  // An audit reads the live Worker. A promotion checks R2 first, then checks the
+  // served copies once the new Worker (which serves /bank/assets/*) is live.
+  const inventory = async (readOnly, deferServed = false) => {
+    const result = await verifyInventory({ root, manifest, release, baseline, origin, metrics, full, audit: options.includes('--audit-inventory'), readOnly, deferServed, store,
       onPlan: plan => {
         save(resolve(output, 'inventory-preflight.json'), plan);
         console.log(JSON.stringify({ stage: 'inventory-preflight', ...plan }));
       },
     });
-    save(resolve(output, 'inventory-record.json'), result.record);
+    if (deferServed) pendingServed = result;
+    else save(resolve(output, 'inventory-record.json'), result.record);
     return result.summary;
+  };
+  const servedInventory = async () => {
+    if (!pendingServed) return;
+    await verifyServed(manifest, pendingServed.servedObjects, origin, { full, metrics });
+    save(resolve(output, 'inventory-record.json'), pendingServed.record);
+    pendingServed = null;
   };
   try {
     if (action === 'audit') {
@@ -121,7 +132,7 @@ async function main() {
           return JSON.parse(result.stdout).annotations?.['workers/message'] === `MathsDock ${releaseId}`;
         },
         validate: async () => { verifyPackage(directory); validateSource(root, release); },
-        inventory: () => inventory(false),
+        inventory: () => inventory(false, true),
         deploy: async () => {
           verifyPackage(directory); validateSource(root, release);
           await metrics.stage('worker-deployment', () => run(root, wrangler, ['deploy', '--config', configuration.config, '--assets', resolve(directory, 'site'), '--message', `MathsDock ${release.releaseId}`]));
@@ -130,6 +141,7 @@ async function main() {
         verifyBytes: () => verifyLiveFiles(directory, release, origin, metrics),
         smoke: async () => {
           await verifyGate(manifest, origin, metrics);
+          await servedInventory();
           await verifyRange(manifest, origin, metrics);
           cpSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
           await metrics.stage('live-browser', () => run(root, 'node_modules/@playwright/test/cli.js', ['test', '--config', 'playwright.cloudflare.config.ts'], { env: { CLOUDFLARE_SITE_URL: origin, MATHSDOCK_TEST_OUTPUT: resolve(output, 'browser') } }));

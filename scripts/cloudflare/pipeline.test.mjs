@@ -9,7 +9,7 @@ import { verifyPackage } from './package.mjs';
 import { inventoryPlan, inventoryDigest, verificationRecord, sampleAssets, validateInventory, maxAuditAgeMs } from './inventory.mjs';
 import { browserEvidence, vitestEvidence, sealQualification, validateQualification } from './evidence.mjs';
 import { promoteRelease } from './deployment.mjs';
-import { verifyInventory, verifyRange } from './network.mjs';
+import { verifyInventory, verifyServed, verifyRange } from './network.mjs';
 import { validateWorkflowOrigin } from './github-trust.mjs';
 import { parseWranglerCors, corsIdentity } from './cors-policy.mjs';
 
@@ -182,6 +182,20 @@ test('sampled inventory performs zero stored HEAD/PUT operations', async () => {
   const metrics = { count() {}, stage: async (_name, action) => action() };
   const result = await verifyInventory({ root: '', manifest, release, baseline: prior, origin: scope.origin, metrics, store, fetcher });
   assert.equal(result.summary.mode, 'sampled'); assert.equal(stored, 0); assert.equal(puts, 0); assert.equal(publicHeads, 32);
+});
+test('a promotion checks served bank files only after the new Worker is live', async () => {
+  let publicHeads = 0;
+  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'private, max-age=31536000, immutable', verifier: 'v1' };
+  const prior = verificationRecord(manifest, fullScope, { mode: 'complete', nextCursor: 0 }, null);
+  const store = { policy: async () => ({ verified: true, digest: 'policy' }), head: async () => {}, put: async () => {} };
+  let live = false;
+  const fetcher = async url => { publicHeads++; if (!live) return new Response('old Worker', { status: 404 }); const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy } }); };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  const result = await verifyInventory({ root: '', manifest, release, baseline: prior, origin: scope.origin, metrics, store, fetcher, deferServed: true });
+  assert.equal(publicHeads, 0); assert.equal(result.summary.publicDeferred, true); assert.equal(result.servedObjects.length, 32);
+  live = true;
+  await verifyServed(manifest, result.servedObjects, scope.origin, { metrics, fetcher });
+  assert.equal(publicHeads, 32);
 });
 test('range qualification checks status, exact content range and real PDF body', async () => {
   const pdf = manifest.assets.find(a => a.contentType === 'application/pdf'), metrics = { count() {} };
