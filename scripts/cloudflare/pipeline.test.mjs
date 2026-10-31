@@ -17,7 +17,7 @@ const roots = [];
 function temporary() { const path = mkdtempSync(resolve(tmpdir(), 'mathsdock-publisher-test-')); roots.push(path); return path; }
 afterEach(() => { for (const path of roots.splice(0)) { if (!path.startsWith(resolve(tmpdir()) + sep + 'mathsdock-publisher-test-')) throw new Error('Unsafe test cleanup'); rmSync(path, { recursive: true, force: true }); } });
 const asset = (n, type = 'pdf') => ({ key: `bank/assets/sha256/${sha256(String(n))}.${type}`, sha256: sha256(String(n)), md5: 'a'.repeat(32), bytes: n + 100, contentType: type === 'pdf' ? 'application/pdf' : 'image/png', sources: [`bank/assets/example-${n}/${type === 'pdf' ? 'print.pdf' : 'question.png'}`] });
-const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'https://assets.mathsdock.co.uk', assets: Array.from({ length: 60 }, (_, n) => asset(n, n % 3 ? 'pdf' : 'png')) };
+const manifest = { schemaVersion: 1, bucket: 'maths-booklet-assets', assetOrigin: 'same-origin', assets: Array.from({ length: 60 }, (_, n) => asset(n, n % 3 ? 'pdf' : 'png')) };
 const scope = { bucket: manifest.bucket, origin: 'https://mathsdock.co.uk', policyVerified: true, corsDigest: 'policy', verifier: 'v1' };
 const now = Date.parse('2026-10-15T12:00:00Z');
 const baseline = () => verificationRecord(manifest, scope, { mode: 'complete', nextCursor: 0 }, null, new Date(now).toISOString());
@@ -175,10 +175,10 @@ test('a newer independent version is never rolled back after failed verification
 });
 test('sampled inventory performs zero stored HEAD/PUT operations', async () => {
   let stored = 0, puts = 0, publicHeads = 0;
-  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'public, max-age=31536000, immutable', verifier: 'v1' };
+  const release = { inputs: { verifierId: 'v1' } }, fullScope = { bucket: manifest.bucket, assetOrigin: manifest.assetOrigin, origin: scope.origin, policyVerified: true, corsDigest: 'policy', cachePolicy: 'private, max-age=31536000, immutable', verifier: 'v1' };
   const prior = verificationRecord(manifest, fullScope, { mode: 'complete', nextCursor: 0 }, null);
   const store = { policy: async () => ({ verified: true, digest: 'policy' }), head: async () => { stored++; }, put: async () => { puts++; } };
-  const fetcher = async url => { publicHeads++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy, 'access-control-allow-origin': scope.origin } }); };
+  const fetcher = async url => { publicHeads++; const a = manifest.assets.find(a => url.endsWith(a.key)); return new Response(null, { headers: { 'content-length': String(a.bytes), 'content-type': a.contentType, etag: a.md5, 'cache-control': fullScope.cachePolicy } }); };
   const metrics = { count() {}, stage: async (_name, action) => action() };
   const result = await verifyInventory({ root: '', manifest, release, baseline: prior, origin: scope.origin, metrics, store, fetcher });
   assert.equal(result.summary.mode, 'sampled'); assert.equal(stored, 0); assert.equal(puts, 0); assert.equal(publicHeads, 32);

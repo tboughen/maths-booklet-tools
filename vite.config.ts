@@ -4,12 +4,13 @@ import { readFileSync, readdirSync, mkdirSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { catalogueAssetPaths } from "./bankAssets";
-import { prepareRelease, assetOrigin, sourceFingerprint } from "./scripts/cloudflare/release";
+import { prepareRelease, sourceFingerprint } from "./scripts/cloudflare/release";
 import { verifyReusableCatalogue } from "./scripts/cloudflare/package.mjs";
 import { verifyCatalogueSolutionFiles } from "./scripts/bank/solution-files";
 
 export default defineConfig(({ command, mode }) => ({
-  define: mode === "cloudflare" ? { "import.meta.env.VITE_BANK_ASSET_ORIGIN": JSON.stringify(assetOrigin) } : {},
+  // Bank files are fetched from the site's own /bank/assets/* (gated by Cloudflare Access).
+  define: mode === "cloudflare" ? { "import.meta.env.VITE_BANK_ASSET_ORIGIN": JSON.stringify("") } : {},
   build: mode === "cloudflare" ? { outDir: "dist-cloudflare" } : {},
   publicDir: command === "serve" ? "public" : false,
   plugins: [react(), {

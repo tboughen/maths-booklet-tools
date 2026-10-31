@@ -17,9 +17,10 @@ working rules for Claude and never weakens them.
   `packages/*-core`; optional stateless Streamable HTTP MCP service in `services/graph-mcp/`.
 - Browser editing and exports must work without the MCP service.
 - Add tools through `src/site/registry.ts` and the shared shell (`docs/tools/ADDING-BOOKLET-TOOLS.md`).
-- Production website: Cloudflare Worker static assets, question-bank files in R2 at
-  `assets.mathsdock.co.uk`. MCP service: Render free plan, manual deploys. GitHub Pages is a
-  manual fallback only.
+- Production website: Cloudflare Worker static assets behind Cloudflare Access staff sign-in;
+  question-bank files in private R2, served by the site Worker at `/bank/assets/*`
+  (`docs/release/STAFF-SIGN-IN.md`). MCP service: Render free plan, manual deploys. The GitHub
+  Pages fallback is retired; never publish an ungated copy of the bank.
 
 ## Question-bank files
 
