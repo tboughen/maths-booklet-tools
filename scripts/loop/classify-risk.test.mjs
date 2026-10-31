@@ -10,7 +10,7 @@ test('paths map to the policy tiers', () => {
     'docs/tools/VENN-TOOL.md': 'T1',
     'src/site/Home.tsx': 'T2', 'src/venn/VennPage.css': 'T2',
     'src/venn/VennPage.tsx': 'T3',
-    'packages/venn-core/src/index.ts': 'T4', 'src/gates/print-baseline.json': 'T4', 'e2e/a11y-baseline.json': 'T4',
+    'packages/venn-core/src/index.ts': 'T4', 'src/gates/print-baseline.json': 'T4', 'e2e/a11y-baseline.json': 'T4', 'src/gates/golden/outputs.json': 'T4', 'src/gates/golden/ACCEPTED.md': 'T4', 'src/gates/goldens.test.ts': 'T0',
     'packages/venn-core/src/interchange.ts': 'T5', 'packages/value-graph-core/src/schema.ts': 'T5', 'src/gates/contracts/saved-files.json': 'T5',
     'services/graph-mcp/server.ts': 'T6', 'render.yaml': 'T6', 'src/gates/contracts/mcp-catalogue.json': 'T6',
     'AGENTS.md': 'T7', 'CLAUDE.md': 'T7', 'docs/AUTONOMOUS-LOOP-POLICY.md': 'T7', 'docs/tools/TOOL-CREATION-GUIDE.md': 'T7', 'docs/tools/BAR-MODEL-V3.md': 'T7', 'docs/release/RELEASE-PIPELINE.md': 'T7', 'docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md': 'T7',

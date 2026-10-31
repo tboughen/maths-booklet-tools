@@ -7,26 +7,7 @@
 // run src/gates. Lowering a baseline value needs Tim (never shrink type to make things fit).
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import * as gallery from "../examples/galleryCatalogue";
-
-type Entry = { id: string; make: (worked: boolean) => unknown; render: (r: never) => string; worked?: boolean };
-const galleries: Record<string, Entry[]> = {
-  graph: gallery.graphGallery as Entry[],
-  "ratio table": [...gallery.ratioGallery, ...gallery.ratioTeachingGallery] as Entry[],
-  "plotting quadratics": gallery.quadraticGallery as Entry[],
-  cuboids: gallery.cuboidGallery as Entry[],
-  "number line": gallery.numberLineGallery as Entry[],
-  venn: gallery.vennGallery as Entry[],
-  triangles: gallery.triangleGallery as Entry[],
-  "algebra grid": gallery.algebraGallery as Entry[],
-  "bar model": gallery.barGallery as unknown as Entry[],
-};
-
-function renders(entries: Entry[]) {
-  const out: { id: string; svg: string }[] = [];
-  for (const e of entries) for (const worked of [false, true]) out.push({ id: `${e.id}${worked ? " (worked)" : ""}`, svg: e.render(e.make(worked) as never) });
-  return out;
-}
+import { galleries, physical, renders } from "./outputs";
 
 // Markup that belongs to the editor, never to a printed resource.
 const chrome: [string, RegExp][] = [
@@ -41,14 +22,6 @@ const chrome: [string, RegExp][] = [
   ["external reference", /\s(?:xlink:)?href="(?:https?:)?\/\//i],
 ];
 
-const MM: Record<string, number> = { mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72 };
-function physical(svg: string) {
-  const root = svg.match(/<svg\b[^>]*>/)?.[0] ?? "";
-  const attr = (n: string) => root.match(new RegExp(`\\s${n}="([^"]+)"`))?.[1];
-  const size = (v?: string) => { const m = v?.match(/^([\d.]+)(mm|cm|in|pt)$/); return m ? Number(m[1]) * MM[m[2]] : NaN; };
-  const [, , vw, vh] = (attr("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-  return { widthMm: size(attr("width")), heightMm: size(attr("height")), vw, vh };
-}
 // Smallest declared font size, in points at print size.
 function minFontPt(svg: string, mmPerUnit: number) {
   const sizes = [...svg.matchAll(/font-size(?:="|\s*:\s*)([\d.]+)(px|pt|mm)?/g)].map(m => {
