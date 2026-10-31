@@ -58,7 +58,7 @@ export default defineConfig(({ command, mode }) => ({
   // Keep GitHub Pages links and PDF worker/font requests under the repository path.
   base: mode === "cloudflare" ? "/" : process.env.SITE_BASE || (mode === "production" ? "/maths-booklet-tools/" : "/"),
   test: {
-    exclude: ["node_modules/**", "dist/**", "dist-cloudflare/**", "service-dist/**", "e2e/**", "scripts/cloudflare/*.test.mjs", "scripts/ci/*.test.mjs", "scripts/cloudflare/browser.spec.ts"],
+    exclude: ["node_modules/**", "dist/**", "dist-cloudflare/**", "service-dist/**", "e2e/**", "scripts/cloudflare/*.test.mjs", "scripts/ci/*.test.mjs", "scripts/loop/*.test.mjs", "scripts/cloudflare/browser.spec.ts"],
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,

@@ -25,12 +25,18 @@ every step, so anything a pull-request plan skipped is still checked within a da
   the job. Removed or loosened assertions, new `skip`/`fixme`, deleted test files and changed
   control hashes appear as warnings and in the job summary for review
   (`docs/AUTONOMOUS-LOOP-POLICY.md`, gate 10).
+- **Risk tier (shadow).** Every pull request runs `scripts/loop/classify-risk.mjs`, which reports
+  the policy tier (T0 to T8) and the files that set it in the job summary. It decides nothing until
+  Tim enables a phase (`docs/AUTONOMOUS-LOOP-POLICY.md`, sections 3 and 4).
 - **Output gates** live in `src/gates/` and run with the unit tests whenever a core, renderer or
   gallery example changes. `answer-canary.test.ts` plants a sentinel in every hidden-answer slot of
   every example and fails if a pupil SVG shows it. `export-output.test.ts` renders every gallery
   example, pupil and worked, and fails on editor chrome, a non-absolute print size, a distorted
   aspect, or declared type smaller than `print-baseline.json`. Raise the baseline after a deliberate
   increase with `UPDATE_PRINT_BASELINE=1 npx vitest run src/gates`; lowering it needs Tim.
+  `saved-states.test.ts` saves every example as its editable file (and link, where the tool has
+  a link codec), reloads it through the real parser, and repeats that with each teaching slot set
+  to blank, zero, hidden answer, answer line and value; any lost or merged state fails.
 - **Contracts.** `src/gates/contracts.test.ts` compares every saved-file schema (as JSON Schema)
   and the advertised MCP catalogue (`tools/list` from a local service) with snapshots in
   `src/gates/contracts/`. Any difference fails; after Tim approves a schema or MCP change, refresh

@@ -29,7 +29,7 @@
     "test:cloudflare:browser": "playwright test --project cloudflare",
     "test:website": "vitest run --exclude \"services/**\" --exclude \"integration/**\"",
     "test:catalogue": "vitest run integration/catalogue-export.test.ts",
-    "test:publisher": "node --test scripts/cloudflare/*.test.mjs scripts/ci/*.test.mjs",
+    "test:publisher": "node --test scripts/cloudflare/*.test.mjs scripts/ci/*.test.mjs scripts/loop/*.test.mjs",
     "release:prepare": "node scripts/cloudflare/pipeline.mjs prepare",
     "release:check": "node scripts/cloudflare/pipeline.mjs check",
     "release:seal": "node scripts/cloudflare/pipeline.mjs seal",
