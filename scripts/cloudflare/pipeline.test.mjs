@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { verifyPackage } from './package.mjs';
 import { inventoryPlan, inventoryDigest, verificationRecord, sampleAssets, validateInventory, maxAuditAgeMs } from './inventory.mjs';
 import { browserEvidence, vitestEvidence, sealQualification, validateQualification } from './evidence.mjs';
 import { promoteRelease } from './deployment.mjs';
-import { verifyInventory, verifyServed, verifyRange } from './network.mjs';
+import { verifyInventory, verifyServed, verifyRange, verifyLiveFiles } from './network.mjs';
 import { validateWorkflowOrigin } from './github-trust.mjs';
 import { parseWranglerCors, corsIdentity } from './cors-policy.mjs';
 
@@ -196,6 +197,18 @@ test('a promotion checks served bank files only after the new Worker is live', a
   live = true;
   await verifyServed(manifest, result.servedObjects, scope.origin, { metrics, fetcher });
   assert.equal(publicHeads, 32);
+});
+test('live file checks keep confirmed files between retries and log each retry', async () => {
+  const body = name => Buffer.from(`file ${name}`);
+  const names = ['a.js', 'b.js', 'c.js'];
+  const release = { files: Object.fromEntries([...names.map(n => [`site/${n}`, { sha256: createHash('sha256').update(body(n)).digest('hex') }]), ['site/_headers', { sha256: 'x' }]]) };
+  const seen = [], logs = [];
+  let flaky = true;
+  const fetcher = async url => { const name = url.pathname.slice(1); seen.push(name); if (name === 'b.js' && flaky) { flaky = false; return new Response('busy', { status: 503 }); } return new Response(body(name)); };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  await verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, fetcher, { intervalMs: 1, limit: 1, log: message => logs.push(message) });
+  assert.deepEqual(seen, ['a.js', 'b.js', 'b.js', 'c.js']);
+  assert.equal(logs.length, 1); assert.match(logs[0], /1\/3 confirmed; retrying after: .*b\.js \(503\)/);
 });
 test('range qualification checks status, exact content range and real PDF body', async () => {
   const pdf = manifest.assets.find(a => a.contentType === 'application/pdf'), metrics = { count() {} };

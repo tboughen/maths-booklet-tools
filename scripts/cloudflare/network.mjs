@@ -65,8 +65,10 @@ export async function publicAsset(manifest, asset, origin, { full = false, metri
 }
 // Served copies come from the site Worker, so a promotion checks them after the
 // new Worker is live (deferServed) and passes the planned objects to verifyServed.
-export async function verifyServed(manifest, objects, origin, { full = false, metrics, fetcher = fetch } = {}) {
-  await metrics.stage('public-assets', () => concurrent(objects, asset => publicAsset(manifest, asset, origin, { full, metrics, fetcher })));
+// A complete audit sends ~17,000 HEAD requests through Access, so it runs wider
+// than the R2 checks to stay well inside the publish job's time limit.
+export async function verifyServed(manifest, objects, origin, { full = false, metrics, fetcher = fetch, limit = 24 } = {}) {
+  await metrics.stage('public-assets', () => concurrent(objects, asset => publicAsset(manifest, asset, origin, { full, metrics, fetcher }), limit));
 }
 export async function verifyInventory({ root, manifest, release, baseline, origin, metrics, full = false, audit = false, readOnly = false, deferServed = false, store, fetcher = fetch, onPlan = () => {} }) {
   const policy = await store.policy();
@@ -98,15 +100,21 @@ export async function verifyInventory({ root, manifest, release, baseline, origi
   const record = verificationRecord(manifest, scope, plan, baseline);
   return { record, servedObjects: objects, summary: { mode: plan.mode, reason: plan.reason, objects: manifest.assets.length, storedChecked: plan.added.length, publicChecked: objects.length, publicDeferred: deferServed, uploaded, reused, fullBytes: full, fullAuditAt: record.fullAuditAt } };
 }
-export async function verifyLiveFiles(directory, release, origin, metrics, fetcher = fetch) {
+// Every site file is fetched through Cloudflare Access, which is slower than the
+// edge cache alone. Files already confirmed stay confirmed between attempts, so a
+// retry only fetches what is still unverified, and each retry reason is logged.
+export async function verifyLiveFiles(directory, release, origin, metrics, fetcher = fetch, { timeoutMs = 300000, intervalMs = 5000, limit = 12, log = console.warn } = {}) {
+  const files = Object.entries(release.files).filter(([path]) => path.startsWith('site/') && !path.endsWith('/_headers'));
+  const confirmed = new Set();
   await metrics.stage('live-files', () => retryVerification(async remaining => {
-    await concurrent(Object.entries(release.files).filter(([path]) => path.startsWith('site/') && !path.endsWith('/_headers')), async ([path, expected]) => {
+    await concurrent(files.filter(([path]) => !confirmed.has(path)), async ([path, expected]) => {
       metrics.count('liveFileGet');
-      const response = await fetcher(new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/'), { cache: 'no-cache', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(15000, remaining())) });
+      const response = await fetcher(new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/'), { cache: 'no-cache', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(30000, remaining())) });
       if (!response.ok) throw new Error(`Live website response unavailable: ${path} (${response.status})`);
       if (sha256(Buffer.from(await response.arrayBuffer())) !== expected.sha256) throw new Error(`Confirmed application failure: live bytes differ for ${path}`);
-    });
-  }, { timeoutMs: 120000, intervalMs: 5000 }));
+      confirmed.add(path);
+    }, limit);
+  }, { timeoutMs, intervalMs, onRetry: error => log(`Live files: ${confirmed.size}/${files.length} confirmed; retrying after: ${error.message}`) }));
 }
 export async function verifyRange(manifest, origin, metrics, fetcher = fetch) {
   const asset = manifest.assets.find(a => a.contentType === 'application/pdf' && a.bytes > 32);
