@@ -25,7 +25,7 @@ function preparedInventory() {
 export const test = base.extend({
   context: async ({ context }, provide) => {
     if (process.env.MATHSDOCK_BUILT_PACKAGE) {
-      const { manifest, byKey } = await preparedInventory();
+      const { byKey } = await preparedInventory();
       // Bank files are same-origin (/bank/assets/*), served live by the gated site Worker.
       await context.route(url => url.pathname.startsWith('/bank/assets/'), async route => {
         const key = new URL(route.request().url()).pathname.slice(1), asset = byKey.get(key);
