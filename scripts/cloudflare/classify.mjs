@@ -10,7 +10,7 @@ export function classifyPaths(paths, conservative = false) {
   for (const path of paths) {
     let category;
     if (/^(docs\/|\.agents\/|AGENTS\.md$|README\.md$)/.test(path)) category = 'documentation';
-    else if (/^(public\/bank\/(assets\/|catalogue\.json))/.test(path)) category = 'bank';
+    else if (/^(public\/bank\/(assets(\/|$)|catalogue\.json))/.test(path)) category = 'bank';
     else if (/^services\/graph-mcp\/(verify-consumption\.ts|consumption-pacing(?:\.test)?\.ts|smoke\.ts)$/.test(path)) category = 'qualification';
     else if (/^(services\/|Dockerfile|render\.yaml$|\.dockerignore$|tsconfig\.service\.json$)/.test(path)) category = 'service';
     else if (/^(packages\/|assets\/graph-fonts\/)/.test(path)) category = 'shared';
@@ -23,7 +23,7 @@ export function classifyPaths(paths, conservative = false) {
       'scripts/verify-direct-svg-consumption.py',
       'scripts/verify-example-controls.mjs',
     ].includes(path)) category = 'qualification';
-    else if (/^(scripts\/|\.github\/|package(-lock)?\.json$|.*config\.|wrangler|\.nvmrc$|\.gitignore$|\.gitattributes$|bankAssets\.ts$|public\/bank\/pdfjs\/)/.test(path)) category = 'infrastructure';
+    else if (/^(scripts\/|\.github\/|package(-lock)?\.json$|.*config\.|wrangler|\.nvmrc$|\.gitignore$|\.gitmodules$|\.gitattributes$|bankAssets\.ts$|public\/bank\/pdfjs\/)/.test(path)) category = 'infrastructure';
     else category = 'unknown';
     categories.add(category); reasons.push(`${category}: ${path}`);
     if (category === 'infrastructure' || category === 'unknown') inventoryReasons.push(`${category}: ${path}`);
