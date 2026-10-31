@@ -44,6 +44,10 @@ npm run test:publisher
 MATHSDOCK_SKIP_BANK_ASSETS=1 npm run build   # skips copying the bank; never for releases
 ```
 
+On a pull request the workflow runs only what the changed files need, with a lite bank checkout
+and affected-only unit tests; `main`, nightly and manual runs check everything
+(`docs/release/CI-THROUGHPUT.md`). Open pull requests as drafts while working: drafts use no CI.
+
 Run the relevant Playwright suite for UI changes: `npm run test:e2e`, or one named project
 from `playwright.config.ts` such as `npx playwright test --project=venn`. Full release
 qualification (`graph-checks.yml`) is dispatched on main before a release; read

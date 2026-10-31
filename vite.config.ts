@@ -18,7 +18,11 @@ export default defineConfig(({ command, mode }) => ({
     apply: "build",
     async generateBundle() {
       const catalogue = JSON.parse(readFileSync("public/bank/catalogue.json", "utf8"));
-      await verifyCatalogueSolutionFiles("public", catalogue);
+      // Pull-request builds that change nothing the solution files depend on check out only the
+      // lite bank (scripts/ci/plan.mjs) and skip this file-by-file check. Releases always run it.
+      const skipSolutionFiles = process.env.MATHSDOCK_SKIP_SOLUTION_FILES === "1";
+      if (skipSolutionFiles && mode === "cloudflare") throw new Error("MATHSDOCK_SKIP_SOLUTION_FILES is for pull-request checks only; release builds verify every worked solution.");
+      if (!skipSolutionFiles) await verifyCatalogueSolutionFiles("public", catalogue);
       const add = (relative: string) => this.emitFile({type: "asset", fileName: relative, source: readFileSync(join("public", relative))});
       const tree = (relative: string) => {
         for (const item of readdirSync(join("public", relative), {withFileTypes: true})) {
@@ -54,7 +58,7 @@ export default defineConfig(({ command, mode }) => ({
   // Keep GitHub Pages links and PDF worker/font requests under the repository path.
   base: mode === "cloudflare" ? "/" : process.env.SITE_BASE || (mode === "production" ? "/maths-booklet-tools/" : "/"),
   test: {
-    exclude: ["node_modules/**", "dist/**", "dist-cloudflare/**", "service-dist/**", "e2e/**", "scripts/cloudflare/*.test.mjs", "scripts/cloudflare/browser.spec.ts"],
+    exclude: ["node_modules/**", "dist/**", "dist-cloudflare/**", "service-dist/**", "e2e/**", "scripts/cloudflare/*.test.mjs", "scripts/ci/*.test.mjs", "scripts/cloudflare/browser.spec.ts"],
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: true,

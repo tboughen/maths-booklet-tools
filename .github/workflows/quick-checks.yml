@@ -1,8 +1,13 @@
 name: Quick checks
+# One short job per pull request. scripts/ci/plan.mjs decides which steps the changed files need;
+# main, nightly and manual runs always check everything. See docs/release/CI-THROUGHPUT.md.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
+  schedule:
+    - cron: '17 2 * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,14 +16,45 @@ concurrency:
   cancel-in-progress: true
 jobs:
   checks:
+    # Draft pull requests use no CI; marking one ready for review starts the checks.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A pull request checks out its merge commit; the first parent is the current base.
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+      - name: Plan the checks this change needs
+        id: plan
+        run: node scripts/ci/plan.mjs "--event=$EVENT" "--base=$BASE"
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
       - name: Find the linked question-bank commit
+        if: steps.plan.outputs.bank != 'none'
         id: bank
-        run: echo "sha=$(git rev-parse HEAD:public/bank/assets)" >> "$GITHUB_OUTPUT"
-      - name: Check out the private question bank
+        run: |
+          echo "sha=$(git rev-parse HEAD:public/bank/assets)" >> "$GITHUB_OUTPUT"
+          {
+            echo 'folders<<EOF'
+            cat scripts/ci/lite-bank.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+      - name: Check out the lite question bank (test fixtures only)
+        if: steps.plan.outputs.bank == 'lite'
+        uses: actions/checkout@v7
+        with:
+          repository: tboughen/mathsdock-bank
+          ref: ${{ steps.bank.outputs.sha }}
+          path: public/bank/assets
+          token: ${{ secrets.BANK_READ_TOKEN || github.token }}
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: ${{ steps.bank.outputs.folders }}
+          sparse-checkout-cone-mode: true
+      - name: Check out the full question bank
+        if: steps.plan.outputs.bank == 'full'
         uses: actions/checkout@v7
         with:
           repository: tboughen/mathsdock-bank
@@ -27,15 +63,44 @@ jobs:
           token: ${{ secrets.BANK_READ_TOKEN || github.token }}
           persist-credentials: false
       - uses: actions/setup-node@v7
+        if: steps.plan.outputs.mode != 'skip'
+        id: node
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run test:publisher
+      - name: Restore installed dependencies
+        if: steps.plan.outputs.mode != 'skip'
+        id: modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.plan.outputs.mode != 'skip' && steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Restore lint, type-check and test caches
+        if: steps.plan.outputs.mode != 'skip'
+        uses: actions/cache@v5
+        with:
+          path: |
+            node_modules/.cache
+            node_modules/.tmp
+            node_modules/.vite
+          key: tool-caches-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: tool-caches-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      - if: steps.plan.outputs.lint == 'true'
+        run: npm run lint
+      - if: steps.plan.outputs.mode != 'skip'
+        run: npm run typecheck
+      - name: Run every unit test
+        if: steps.plan.outputs.tests == 'all'
+        run: npm test
+      - name: Run the unit tests the change can affect
+        if: steps.plan.outputs.tests == 'affected'
+        run: npm test -- --changed HEAD^1 --passWithNoTests
+      - if: steps.plan.outputs.mode != 'skip'
+        run: npm run test:publisher
       - name: Build without copying bank assets
+        if: steps.plan.outputs.build == 'true'
         run: npm run build
         env:
           MATHSDOCK_SKIP_BANK_ASSETS: "1"
+          MATHSDOCK_SKIP_SOLUTION_FILES: ${{ steps.plan.outputs.solution_files == 'true' && '0' || '1' }}
