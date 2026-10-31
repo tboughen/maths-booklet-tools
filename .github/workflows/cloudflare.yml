@@ -35,7 +35,8 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The first gated release needs a complete audit of ~17,000 objects (about 23 minutes on 27 Oct).
+    timeout-minutes: 45
     environment: ${{ inputs.target == 'production' && 'mathsdock-production' || 'mathsdock-preview' }}
     steps:
       - name: Require the reviewed main workflow
