@@ -210,6 +210,15 @@ test('live file checks keep confirmed files between retries and log each retry',
   assert.deepEqual(seen, ['a.js', 'b.js', 'b.js', 'c.js']);
   assert.equal(logs.length, 1); assert.match(logs[0], /1\/3 confirmed; retrying after: .*b\.js \(503\)/);
 });
+test('live file checks follow same-site redirects but not the sign-in page', async () => {
+  const html = Buffer.from('<!doctype html>');
+  const release = { files: { 'site/index.html': { sha256: createHash('sha256').update(html).digest('hex') } } };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  const site = async url => url.pathname === '/index.html' ? new Response(null, { status: 307, headers: { location: '/' } }) : new Response(html);
+  await verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, site, { timeoutMs: 50, intervalMs: 1, log() {} });
+  const signIn = async () => new Response(null, { status: 302, headers: { location: 'https://team.cloudflareaccess.com/cdn-cgi/access/login' } });
+  await assert.rejects(verifyLiveFiles('', release, 'https://mathsdock.co.uk', metrics, signIn, { timeoutMs: 50, intervalMs: 1, log() {} }), /index\.html \(302\)/);
+});
 test('range qualification checks status, exact content range and real PDF body', async () => {
   const pdf = manifest.assets.find(a => a.contentType === 'application/pdf'), metrics = { count() {} };
   await verifyRange(manifest, scope.origin, metrics, async () => new Response('%PDF-12345678901', { status: 206, headers: { 'content-range': `bytes 0-15/${pdf.bytes}` } }));

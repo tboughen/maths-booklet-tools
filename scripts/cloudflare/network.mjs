@@ -109,7 +109,16 @@ export async function verifyLiveFiles(directory, release, origin, metrics, fetch
   await metrics.stage('live-files', () => retryVerification(async remaining => {
     await concurrent(files.filter(([path]) => !confirmed.has(path)), async ([path, expected]) => {
       metrics.count('liveFileGet');
-      const response = await fetcher(new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/'), { cache: 'no-cache', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(30000, remaining())) });
+      const init = () => ({ cache: 'no-cache', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(30000, remaining())) });
+      const url = new URL(path.slice(5), origin.endsWith('/') ? origin : origin + '/');
+      let response = await fetcher(url, init());
+      // Static Assets redirects /index.html to /. Follow a redirect only while it
+      // stays on the site, so a redirect to the Access sign-in page still fails.
+      const location = response.status >= 300 && response.status < 400 && response.headers.get('location');
+      if (location && new URL(location, url).origin === url.origin) {
+        await response.body?.cancel();
+        response = await fetcher(new URL(location, url), init());
+      }
       if (!response.ok) throw new Error(`Live website response unavailable: ${path} (${response.status})`);
       if (sha256(Buffer.from(await response.arrayBuffer())) !== expected.sha256) throw new Error(`Confirmed application failure: live bytes differ for ${path}`);
       confirmed.add(path);
