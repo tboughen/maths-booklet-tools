@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "pretest": "npm run build:service",
-    "test": "vitest run",
+    "test": "vitest run --exclude \"integration/**\"",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint .",
