@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   { ignores: ["dist", "dist-cloudflare", "cloudflare-release", ".wrangler", "coverage", "service-dist", "test-results", "playwright-report"] },
   {
-    files: ['scripts/cloudflare/**/*.mjs'],
+    files: ['scripts/cloudflare/**/*.mjs', 'scripts/ci/**/*.mjs'],
     extends: [js.configs.recommended],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: globals.node },
     rules: { 'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }] },
