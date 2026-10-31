@@ -6,8 +6,8 @@ import { join } from "node:path";
  * One config for every browser suite. Each suite is a named project:
  *
  *   npx playwright test                         # e2e: every spec against the dev server
- *   npx playwright test --project venn          # one suite
- *   npx playwright test --project release       # sealed package (MATHSDOCK_RELEASE_PACKAGE)
+ *   npx playwright test --project=venn          # one suite (`=` keeps file filters separate)
+ *   npx playwright test --project=release       # sealed package (MATHSDOCK_RELEASE_PACKAGE)
  *
  * Suites overlap (several run every spec), so a bare run selects only `e2e`
  * and a server starts only for the suites that were asked for.
@@ -93,10 +93,14 @@ const servers: Record<Server, NonNullable<PlaywrightTestConfig["webServer"]>> = 
 function requestedProjects() {
   if (env.MATHSDOCK_PLAYWRIGHT_PROJECTS !== undefined) return env.MATHSDOCK_PLAYWRIGHT_PROJECTS.split(",").filter(Boolean);
   const names: string[] = [];
-  process.argv.forEach((arg, index) => {
-    if (arg === "--project") names.push(process.argv[index + 1]);
-    else if (arg.startsWith("--project=")) names.push(arg.slice("--project=".length));
-  });
+  // Like Playwright, `--project a b` takes every value up to the next option.
+  let listing = false;
+  for (const arg of process.argv.slice(2)) {
+    if (arg.startsWith("--project=")) names.push(arg.slice("--project=".length));
+    else if (arg === "--project") listing = true;
+    else if (arg.startsWith("-")) listing = false;
+    else if (listing) names.push(arg);
+  }
   env.MATHSDOCK_PLAYWRIGHT_PROJECTS = names.join(",");
   return names;
 }

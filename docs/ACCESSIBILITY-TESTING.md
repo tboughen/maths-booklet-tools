@@ -56,7 +56,7 @@ npm run typecheck
 npm test -- --maxWorkers=2
 npm run build
 npm run dev -- --host 127.0.0.1 --port 5193 --strictPort
-npx playwright test --project accessibility
+npx playwright test --project=accessibility
 ```
 
 The dedicated browser checks cover default-off display, ordering, estimates,
