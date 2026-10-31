@@ -66,7 +66,8 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.website == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The browser shards and the service check run 12-15 minutes on a normal day.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -120,7 +121,7 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.service == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
         with:
