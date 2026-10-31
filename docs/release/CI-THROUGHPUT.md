@@ -31,6 +31,11 @@ every step, so anything a pull-request plan skipped is still checked within a da
   example, pupil and worked, and fails on editor chrome, a non-absolute print size, a distorted
   aspect, or declared type smaller than `print-baseline.json`. Raise the baseline after a deliberate
   increase with `UPDATE_PRINT_BASELINE=1 npx vitest run src/gates`; lowering it needs Tim.
+- **Contracts.** `src/gates/contracts.test.ts` compares every saved-file schema (as JSON Schema)
+  and the advertised MCP catalogue (`tools/list` from a local service) with snapshots in
+  `src/gates/contracts/`. Any difference fails; after Tim approves a schema or MCP change, refresh
+  with `UPDATE_CONTRACTS=1 npx vitest run src/gates/contracts.test.ts`. Test integrity flags every
+  snapshot change.
 - **Drafts use no CI.** Open a pull request as a draft while it is in progress; marking it
   ready for review starts the checks. Each new push cancels the run in progress for that ref.
 - **Affected tests** use `vitest --changed HEAD^1`, which follows the import graph. Files that
