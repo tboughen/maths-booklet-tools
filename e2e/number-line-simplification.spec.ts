@@ -23,6 +23,14 @@ test.beforeEach(async ({ page }) => {
     localStorage.removeItem("maths-booklet-tools:number-line:v1"),
   );
   await page.reload();
+  // The editor's code loads after the page, then it saves its first draft.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("maths-booklet-tools:number-line:v1"),
+      ),
+    )
+    .not.toBeNull();
 });
 test("default settings show notation and scale within the inspector with optional sections closed", async ({
   page,

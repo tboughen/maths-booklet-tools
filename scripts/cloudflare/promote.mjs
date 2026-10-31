@@ -129,7 +129,7 @@ async function main() {
         smoke: async () => {
           await verifyRange(manifest, origin, metrics);
           cpSync(resolve(directory, 'inventory.json'), resolve(root, 'cloudflare-release/manifest.json'));
-          await metrics.stage('live-browser', () => run(root, 'node_modules/@playwright/test/cli.js', ['test', '--config', 'playwright.cloudflare.config.ts'], { env: { CLOUDFLARE_SITE_URL: origin, MATHSDOCK_TEST_OUTPUT: resolve(output, 'browser') } }));
+          await metrics.stage('live-browser', () => run(root, 'node_modules/@playwright/test/cli.js', ['test', '--project', 'cloudflare'], { env: { CLOUDFLARE_SITE_URL: origin, MATHSDOCK_TEST_OUTPUT: resolve(output, 'browser') } }));
         },
         // Transport outages do not justify speculative rollback. Known-byte
         // mismatches must be diagnosed explicitly by the operator first.

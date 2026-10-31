@@ -120,6 +120,7 @@ body { background: #f2f5f8; }
 /* Only the visible Question bank locks the viewport; retained editors remain inert. */
 .site-app:has(> .site-page:not([hidden]) .qb-app) { height: 100dvh; min-height: 0; display: flex; flex-direction: column; }
 .site-page:has(.qb-app) { flex: 1; min-height: 0; }
+.site-page-loading { margin: 32px auto; max-width: 1180px; padding: 0 24px; color: #4b5563; }
 .qb-page-search { display: flex; align-items: center; gap: 20px; flex: 0 0 auto; }
 .qb-page-search .qb-search-form { flex: 0 1 520px; }
 .qb-page-search .qb-pilot { margin-left: auto; }

@@ -546,6 +546,8 @@ test("invalid drafts guard exports/history, survive navigation, and cancel witho
   page,
 }) => {
   await page.goto("/?tool=expanding-factorising");
+  // The editor's code loads after the page, then it saves its first draft.
+  await expect.poll(() => saved(page)).not.toBeNull();
   const original = await saved(page);
   await cell(page, 0, 2).click();
   await page.getByLabel("Cell entry", { exact: true }).fill("1/");
