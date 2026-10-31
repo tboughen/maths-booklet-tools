@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { canonicalNumber, fractionString, parseNumber, rational } from "../../ratio-table-core/src/numbers";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { patchSchema } from "../../graph-core/src/patch-schema";
 const textWidth = (text: string, size: number) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * size;
 const num = z.string().max(32).superRefine((v, ctx) => { try {
     canonicalNumber(v);
@@ -23,7 +24,7 @@ export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVe
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
-export const specSchema = z.object({ axis: axisSchema.partial().optional(), solution: setSchema.nullable().optional(), teaching: teachingSchema.partial().optional(), widthCm: z.number().min(8).max(18).optional() }).strict();
+export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional() }).strict();
 export const FONT = 11 * 25.4 / 72;
 export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
 export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
@@ -98,7 +99,7 @@ export function encode(e: Envelope) { const bytes = new TextEncoder().encode(can
 export function decode(text: string) { if (text.length > 16000 || !/^[A-Za-z0-9_-]+$/.test(text))
     throw Error("Invalid number-line link."); return parseFile(new TextDecoder().decode(Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), c => c.charCodeAt(0)))); }
 export function editorLink(e: Envelope, base: string) { const u = new URL(base); u.searchParams.set("tool", "number-line"); u.hash = `number-line=${encode(e)}`; return u.href.length > 7500 ? null : u.href; }
-const axisPatch = axisSchema.partial(), teachingPatch = teachingSchema.partial();
+const axisPatch = patchSchema(axisSchema), teachingPatch = patchSchema(teachingSchema);
 export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("set_axis"), axis: axisPatch }).strict(),
     z.object({ op: z.literal("set_solution"), solution: setSchema.nullable() }).strict(),

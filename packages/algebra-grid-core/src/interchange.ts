@@ -1,5 +1,6 @@
 import { z } from "zod";
 import * as core from "./index";
+import { patchSchema } from "../../graph-core/src/patch-schema";
 import {
   guidance,
   renderedTextSizesPt,
@@ -12,8 +13,8 @@ const cellEdit = z
     hidden: z.boolean().optional(),
   })
   .strict();
-const settings = core.documentSchema
-  .omit({
+const settings = patchSchema(
+  core.documentSchema.omit({
     rows: true,
     columns: true,
     cellMm: true,
@@ -21,8 +22,8 @@ const settings = core.documentSchema
     answerVisible: true,
     answerBasis: true,
     sourceId: true,
-  })
-  .partial();
+  }),
+);
 export const exampleNames = [
   "single",
   "double",
