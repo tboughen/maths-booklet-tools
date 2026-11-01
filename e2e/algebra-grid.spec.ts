@@ -68,6 +68,18 @@ async function download(page: Page, name: string, destination: string) {
   await result.saveAs(destination);
   return readFile(destination);
 }
+test("answer lines read as None or a count of lines and still save the number", async ({
+  page,
+}) => {
+  await load(page);
+  const select = page.getByRole("combobox", { name: /^Answer lines/ });
+  await expect(select.locator("option")).toHaveText(["None", "1 line", "2 lines", "3 lines"]);
+  await select.selectOption({ label: "2 lines" });
+  await expect.poll(async () => (await saved(page)).document.answerLines).toBe(2);
+  await select.selectOption({ label: "None" });
+  await expect.poll(async () => (await saved(page)).document.answerLines).toBe(0);
+});
+
 test("multiplication sign is larger than x in compact cells and in real SVG exports", async ({
   page,
 }, info) => {

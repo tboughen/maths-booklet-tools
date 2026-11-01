@@ -921,7 +921,7 @@ export default function AlgebraGridPage({
                 >
                   {[0, 1, 2, 3].map((v) => (
                     <option key={v} value={v}>
-                      {v}
+                      {v === 0 ? "None" : v === 1 ? "1 line" : `${v} lines`}
                     </option>
                   ))}
                 </select>
