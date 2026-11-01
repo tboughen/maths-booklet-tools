@@ -69,7 +69,7 @@ export function NotationPanel({
   return (
     <>
       <p className="quick-drawing-summary">
-        Drawing:{" "}
+        Current drawing:{" "}
         {notationSummary(
           envelope.document.solution,
           envelope.document.axis.variable,
