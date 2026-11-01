@@ -19,4 +19,13 @@ Raise a concern (major) when:
 - error handling swallows failures, or a fallback silently changes output;
 - the change touches shared code used by tools it does not mention.
 
+Record these as minor, not as a concern, because none of them can make the change wrong:
+- the pull request text is out of date, imprecise or describes the change more narrowly than the
+  diff, while the diff itself is correct and tested;
+- shared code is touched, but the diff's tests exercise the tools it affects, or the change is
+  limited to screen-only styling (no export, saved file, schema or answer path);
+- a doubt about code outside the diff that the diff gives no evidence for. Name what you would
+  need to see. If the doubt is about an export, saved file, schema, answer or test oracle, it stays
+  a concern.
+
 Pass only when you looked for each failure above and found none. Say what you checked.
