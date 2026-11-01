@@ -37,6 +37,8 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
       const link = event.target as HTMLElement, r = row.getBoundingClientRect(), l = link.getBoundingClientRect();
       if (l.left < r.left + 56) row.scrollLeft -= r.left + 56 - l.left;
       else if (l.right > r.right - 56) row.scrollLeft += l.right - (r.right - 56);
+      // Update the fades now rather than on the later scroll event, so they never cover the focused link.
+      measure();
     };
     measure();
     row.addEventListener("scroll", measure, { passive: true });

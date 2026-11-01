@@ -159,6 +159,14 @@ for (const [tool, key, paper, stage] of tools) {
       await page.evaluate(() => document.fonts.ready);
       const resource = page.locator(paper).first(),
         viewport = page.locator(stage);
+      // Lazy-loaded pages fit the resource after first paint: measure once the layout has settled.
+      await expect
+        .poll(async () => {
+          const before = JSON.stringify([await resource.boundingBox(), await viewport.boundingBox()]);
+          await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+          return before === JSON.stringify([await resource.boundingBox(), await viewport.boundingBox()]);
+        })
+        .toBe(true);
       const box = await resource.boundingBox(),
         view = await viewport.boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(view!.x + 7);

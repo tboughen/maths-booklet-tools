@@ -463,6 +463,8 @@ test("newline members, keyboard tabs and direct definition edits", async ({
   await page.getByLabel("Region content", { exact: true }).fill("0\n1/2\n-3");
   await page.getByLabel("Region content", { exact: true }).press("Enter");
   expect((await saved(page)).document.regions[1].text).toBe("0\n1/2\n-3");
+  // Closing the editor returns focus to the region on the next frame; wait for it before moving focus.
+  await expect(page.locator('[data-region-hit="1"]')).toBeFocused();
   await page.getByRole("tab", { name: "Contents", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(

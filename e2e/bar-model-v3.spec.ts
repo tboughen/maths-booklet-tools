@@ -370,7 +370,7 @@ test("inspector headings, text fields and section buttons use the shared editor 
     expect(await h.evaluate(font)).toBe(shared);
   const line = await page.evaluate(() =>
     getComputedStyle(document.documentElement)
-      .getPropertyValue("--line-strong")
+      .getPropertyValue("--field-line")
       .trim(),
   );
   const fields = page.locator(
