@@ -55,7 +55,7 @@ editable document while leaving the pupil cell empty. Invalid/pending drafts
 guard history, structural changes, replacement and all exports, and survive
 switching tools. A floating editor is hidden and inert while its tool is inactive.
 
-When Include question is selected, click the printed question itself to edit
+When Print question above grid is selected, click the printed question itself to edit
 its expression in the same floating editor. Apply/Enter validates and saves one
 undoable change; Cancel/Escape restores it. This shares the settings expression,
 preserves all grid entries, and works with the grid hidden. The instruction
