@@ -28,7 +28,6 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
       <nav id="site-sections" aria-label="Main sections" className={`site-sections${open ? " is-open" : ""}`}>
         {siteSections.map(item => <a key={item.id} href={item.href} aria-current={section === item.id ? "page" : item.id === "booklet-tools" && booklet ? "true" : undefined}><item.icon size={17} aria-hidden="true" />{item.name}</a>)}
       </nav>
-      <span className="site-current">{sectionName(section)}</span>
     </div>
     {booklet && <nav className="site-tool-navigation" aria-label="Booklet tools">
       <a href={pageHref("booklet-tools")} aria-current={page === "booklet-tools" ? "page" : undefined}>All tools</a>

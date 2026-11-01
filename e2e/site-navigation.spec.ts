@@ -17,6 +17,16 @@ async function addLine(page: Page) {
     .click();
 }
 
+test("the wide header does not repeat the current tool's name beside the sections", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/tools/graph");
+  await expect(page.locator(".site-tool-navigation [aria-current=page]")).toContainText("Graph tool");
+  await expect(page.locator(".site-navigation-row")).not.toContainText("Graph tool");
+  await expect(page.locator(".site-navigation-row").getByRole("link", { name: "Booklet tools", exact: true })).toHaveAttribute("aria-current", "true");
+});
+
 test("home and overview keep the two sections distinct; bare and existing URLs still work", async ({
   page,
 }) => {
