@@ -65,6 +65,30 @@ test("Cancel input keeps keyboard focus and matches Escape", async ({
   await expect(field).toBeFocused();
 });
 
+test("a pending change says why copy, save, reset and undo are unavailable", async ({
+  page,
+}) => {
+  const note = page.locator(".nl-pending-note");
+  const copy = page.getByRole("button", { name: "Copy image", exact: true });
+  await expect(note).toHaveCount(0);
+  const field = page.getByLabel("Inequality or value", { exact: true });
+  await field.fill("2 < x");
+  await expect(copy).toBeDisabled();
+  await expect(note).toHaveText(
+    "Apply or cancel your change to “Inequality or value” to copy, save, reset or undo.",
+  );
+  await expect(note).toHaveAttribute("role", "status");
+  await page.getByRole("button", { name: "Cancel input", exact: true }).click();
+  await expect(note).toHaveCount(0);
+  await expect(copy).toBeEnabled();
+  const step = page.getByLabel("Tick step", { exact: true });
+  await step.fill("1/0");
+  await step.press("Enter");
+  await expect(note).toContainText("“Tick step”");
+  await step.press("Escape");
+  await expect(note).toHaveCount(0);
+});
+
 test("blank, direct drawing, exact endpoint edit, label blanks and Undo", async ({
   page,
 }) => {
