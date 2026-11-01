@@ -1,7 +1,7 @@
 # Autonomous improvement loop: merge policy
 
-Version 2, 1 November 2026 (phase 2 under the unanimous-pass rule); version 1 (draft), 31 October
-2026. This policy is guidance (tier T7 below): it changes only when Tim approves the change.
+Version 2.1, 1 November 2026 (who applies a suspension; pausing for a release). Version 2, 1
+November 2026 (phase 2 under the unanimous-pass rule); version 1 (draft), 31 October 2026. This policy is guidance (tier T7 below): it changes only when Tim approves the change.
 
 The loop lets Claude sessions make many small MathsDock improvements and merge the safe ones, so
 that Tim reviews only what needs his judgement. This file says what may merge without him, what
@@ -145,6 +145,17 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
   any PR the panel passed unanimously (until he reviews why and resumes it; resumed misses still
   count against the phase 3 target); two loop reverts happen within seven
   days; or a budget cap is reached.
+- **Who applies a suspension.** The auto-merge workflow checks only the variable and the
+  `loop:hold` label itself; the other triggers have no automation yet, so they still bind but are
+  applied by people. When the loop or the coordinator sees one, it stops opening loop PRs, adds
+  `loop:hold` to any open loop PR (which cancels a queued merge) and tells Tim. Only Tim changes
+  `MATHSDOCK_LOOP_ENABLED` (to stop: set it to `false`, then run "Loop auto-merge" from the Actions
+  tab to cancel every queued merge) and only Tim switches it back on.
+- **Pausing for a release.** While a release is being qualified or published, `main` must not move
+  under it: new loop PRs open as drafts, and every open loop PR is converted back to a draft (a
+  draft gets no CI or judges, and conversion cancels any queued merge). Drafts are marked ready
+  once the release is published. A release never uses `loop:hold`, so that label always means a
+  suspension or Tim's own hold, and only Tim removes it.
 - **CI budget.** Job slots are the scarce resource. Loop and thread PRs push rarely, open drafts
   while working, and the coordinator batches merges (`docs/release/CI-THROUGHPUT.md`). The loop
   never dispatches release qualification.
@@ -166,3 +177,4 @@ Each of these is a one-off decision; none is needed until the matching phase.
 6. Each phase change, from the digest.
 7. Approve the auto-merge step itself: a workflow change (tier T8, so a thread PR, never a loop PR)
    that merges a loop PR only under the unanimous-pass rule (before the first phase 2 merge).
+   Done 1 Nov: `loop-auto-merge.yml` merged in #105 and switched on by Tim at 17:10.
