@@ -893,7 +893,7 @@ export default function AlgebraGridPage({
                     })
                   }
                 />
-                Include question
+                Print question above grid
               </label>
               <label>
                 <input

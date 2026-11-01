@@ -135,7 +135,7 @@ test("question and answer placement buttons surround artwork and preserve pupil 
   }
   await above.getByRole("button").click();
   await expect(
-    page.getByLabel("Include question", { exact: true }),
+    page.getByLabel("Print question above grid", { exact: true }),
   ).toBeChecked();
   await expect(
     page.getByRole("button", { name: "Edit printed question", exact: true }),
@@ -176,7 +176,7 @@ test("question and answer placement buttons surround artwork and preserve pupil 
   expect((await saved(page)).document.answer).toBe("x^2+5x+6");
   await above.getByRole("button").click();
   await expect(
-    page.getByLabel("Include question", { exact: true }),
+    page.getByLabel("Print question above grid", { exact: true }),
   ).not.toBeChecked();
 });
 
@@ -388,7 +388,7 @@ test("printed factorising question remains editable without a visible grid on a 
     .poll(async () => (await saved(page)).document.expression)
     .toBe("x^2+4x+3");
   expect((await saved(page)).document.rows).toEqual(original.document.rows);
-  await page.getByLabel("Include question", { exact: true }).uncheck();
+  await page.getByLabel("Print question above grid", { exact: true }).uncheck();
   await expect(
     page.getByRole("button", { name: "Edit printed question", exact: true }),
   ).toHaveCount(0);
