@@ -1757,7 +1757,7 @@ export default function ValueGraphPage({
                     }}
                   >
                     <div className="vg-actions">
-                      <strong>Table</strong>
+                      <strong><em>x</em> values</strong>
                       <button
                         aria-label="Add column"
                         title="Add column"
