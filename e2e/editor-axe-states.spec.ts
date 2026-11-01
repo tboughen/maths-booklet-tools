@@ -44,3 +44,19 @@ for (const tool of editors)
 
     expect(found, `${tool} serious or critical axe rules`).toEqual([]);
   });
+
+// Invalid drafts stay visible with their errors; the error state must be as accessible as the rest.
+const invalidDrafts: { tool: string; field: string; text: string }[] = [
+  { tool: "ratio-table", field: "Row 1 x value", text: "1/0" },
+  { tool: "number-line", field: "First tick", text: "abc" },
+];
+for (const { tool, field, text } of invalidDrafts)
+  test(`${tool}: no serious accessibility violations while an invalid draft shows its error`, async ({ page }) => {
+    await page.goto(`/tools/${tool}`);
+    const input = page.getByLabel(field, { exact: true });
+    await input.fill(text);
+    await input.press("Enter");
+    await expect(input).toHaveAttribute("aria-invalid", "true");
+    await expect(input).toHaveValue(text);
+    expect(await serious(page), `${tool} serious or critical axe rules with an invalid draft`).toEqual([]);
+  });
