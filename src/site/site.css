@@ -10,6 +10,8 @@
   --surface: #f6f9fd;
   --line: #cfd9e4;
   --line-strong: #bac6d3;
+  /* Text box and dropdown edges: at least 3:1 against white and --surface (WCAG 1.4.11). */
+  --field-line: #7a8ca2;
   --blue: #0f62fe;
   --blue-dark: #174db7;
   --blue-soft: #edf4ff;
@@ -76,6 +78,8 @@ body { background: #f2f5f8; }
 .booklet-editor .editor-toolbar { min-height: 58px; padding: 8px 12px; gap: 4px; background: white; border-color: #e2e8ef; flex-wrap: wrap; }
 .booklet-editor :is(.tool-button,.icon-button,.visibility-button,.secondary-panel-button,.primary-panel-button,.danger-button,.panel-button,.scale-options button,.segmented,.segmented button,.coordinate-input input,.equation-fields input,.ratio-settings input,.ratio-settings select,.word-help-done,.word-help-dismiss,.ratio-examples button) { border-radius: 4px; }
 .booklet-editor :is(.coordinate-input input,.equation-fields input,.visibility-button,.secondary-panel-button,.scale-options button) { border-color: var(--line-strong); background: white; }
+/* Editor text boxes and dropdowns: --line-strong is only 1.7:1, too faint to find the field. Direct-edit fields on the Ratio tables canvas keep their own blue edge. */
+.booklet-editor :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"],[type="color"],[type="hidden"]),select,textarea):not(.ratio-edit-layer *) { border-color: var(--field-line); }
 .booklet-editor :is(.tool-button,.icon-button,.visibility-button,.secondary-panel-button,.panel-button):hover:not(:disabled) { background: var(--blue-soft); }
 .booklet-editor :is(.segmented,.selected-equation,.count-badge) { background: var(--surface); }
 .booklet-editor .segmented button.active { color: #1d518c; background: white; }
