@@ -57,7 +57,9 @@ export function classifyGitDiff({ base = 'HEAD^1', cwd } = {}) {
   const changedLines = git(['diff', '--no-renames', '--numstat', base, 'HEAD']).split('\n').filter(Boolean)
     .map(l => l.split('\t')).filter(([, , p]) => !/(?:fixtures|contracts|golden)\/|baseline\.json$|package-lock\.json$/.test(p))
     .reduce((n, [a, d]) => n + (Number(a) || 0) + (Number(d) || 0), 0);
-  return { ...classifyRisk(paths, { changedLines, deletedTests }), changedLines };
+  // Fixtures are test data: a loop PR may add them, but changing or deleting one changes an oracle.
+  const changedFixtures = status.filter(([s, p]) => s !== 'A' && /(?:^|\/)fixtures\//.test(p)).map(([, p]) => p);
+  return { ...classifyRisk(paths, { changedLines, deletedTests }), changedLines, changedFixtures };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

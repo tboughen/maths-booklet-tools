@@ -42,6 +42,9 @@ test('any judge concern, fail or missing judge sends the PR to Tim', () => {
   delete errored.review.results[0].verdict;
   assert.equal(decide(errored).merge, false, 'a judge that returned no verdict');
   assert.equal(decide({ ...base(), review: null }).merge, false, 'the panel did not run');
+  const duplicated = base();
+  duplicated.review.results.push({ judge: 'product', verdict: { verdict: 'concerns' } });
+  assert.equal(decide(duplicated).merge, false, 'a duplicated judge entry with a concern');
   const inconsistent = base();
   inconsistent.review.overall = 'concerns';
   assert.equal(decide(inconsistent).merge, false, 'overall must also be pass');
@@ -53,6 +56,7 @@ test('tiers, line cap, integrity findings, stale verdicts, holds, drafts, forks,
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 301 } }).merge, false, 'line cap');
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 300 } }).merge, true, 'at the cap');
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: Number.NaN } }).merge, false, 'unknown line count');
+  assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 5, changedFixtures: ['e2e/fixtures/a.json'] } }).merge, false, 'changed fixture');
   assert.equal(decide({ ...base(), integrity: [{ level: 'warning', kind: 'removed assertion', file: 'src/a.test.ts' }] }).merge, false, 'integrity');
   assert.equal(decide({ ...base(), judgedSha: 'b'.repeat(40) }).merge, false, 'judges saw an older commit');
   assert.equal(decide({ ...base(), judgedSha: undefined }).merge, false, 'no judged commit');
@@ -99,6 +103,15 @@ test('classifyGitDiff reads tier, deleted tests and line count from a real check
     write('docs/tools/VENN-TOOL.md', '# Venn\n\nMore notes.\n');
     git('commit', '-qam', 'notes');
     assert.deepEqual([classifyGitDiff({ base: start, cwd: dir }).tier, classifyGitDiff({ base: start, cwd: dir }).changedLines], ['T1', 2]);
+
+    git('reset', '-q', '--hard', start);
+    write('e2e/fixtures/new.json', '{}\n');
+    git('add', '.'); git('commit', '-q', '-m', 'new fixture');
+    const mid = git('rev-parse', 'HEAD');
+    assert.deepEqual(classifyGitDiff({ base: start, cwd: dir }).changedFixtures, [], 'a new fixture is allowed');
+    write('e2e/fixtures/new.json', '{"changed": true}\n');
+    git('commit', '-qam', 'edit fixture');
+    assert.deepEqual(classifyGitDiff({ base: mid, cwd: dir }).changedFixtures, ['e2e/fixtures/new.json'], 'an edited fixture is flagged');
 
     git('reset', '-q', '--hard', start);
     git('rm', '-q', 'src/a.test.ts');

@@ -25,7 +25,7 @@ const HOLD_LABELS = ['loop:hold', 'loop:needs-tim'];
  * @param {string} input.repository  owner/name of the base repository
  * @param {string} [input.defaultBranch] the only branch loop PRs may merge into
  * @param {string} input.judgedSha   head commit the judges reviewed
- * @param {{tier: string, changedLines: number}} input.risk
+ * @param {{tier: string, changedLines: number, changedFixtures?: string[]}} input.risk
  * @param {object[]} input.integrity test-integrity findings for the whole PR
  * @param {object | null} input.review contents of review-shadow.json, or null if the panel did not run
  */
@@ -41,13 +41,19 @@ export function decide({ enabled, tiers, pr, repository, defaultBranch = 'main',
   const held = (pr?.labels ?? []).map(l => l.name).filter(n => HOLD_LABELS.includes(n));
   if (held.length) reasons.push(`labelled ${held.join(', ')}`);
   if (!tiers.includes(risk.tier)) reasons.push(`tier ${risk.tier} is not auto-merged in this phase (${tiers.join(', ') || 'none'})`);
+  if (risk.changedFixtures?.length) reasons.push(`changes existing fixtures (${risk.changedFixtures.slice(0, 3).join(', ')}); only new fixtures are T0`);
   if (!(risk.changedLines <= LINE_CAP)) reasons.push(`${risk.changedLines} changed lines, over the ${LINE_CAP}-line cap`);
   // Policy T0: no assertion removed or weakened, no skip/only, no deleted test, no control hash changed.
   if (integrity.length) reasons.push(`test-integrity findings: ${integrity.map(f => `${f.kind} in ${f.file}`).slice(0, 3).join('; ')}`);
   if (!review) reasons.push('the judge panel did not run');
   else {
     // The unanimous-pass rule: all three judges ran and each returned pass.
-    const verdicts = Object.fromEntries((review.results ?? []).map(r => [r.judge, r.verdict?.verdict ?? 'did not run']));
+    // Every entry for a judge must be pass, so a duplicated entry cannot hide a concern.
+    const results = review.results ?? [];
+    const verdicts = Object.fromEntries(JUDGES.map(j => {
+      const all = results.filter(r => r.judge === j).map(r => r.verdict?.verdict ?? 'did not run');
+      return [j, !all.length ? 'did not run' : all.find(v => v !== 'pass') ?? 'pass'];
+    }));
     const notPass = JUDGES.filter(j => verdicts[j] !== 'pass');
     if (review.overall !== 'pass' || notPass.length)
       reasons.push(`not a unanimous pass (${JUDGES.map(j => `${j}: ${verdicts[j] ?? 'did not run'}`).join(', ')})`);
