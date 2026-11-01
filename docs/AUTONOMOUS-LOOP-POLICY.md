@@ -1,7 +1,7 @@
 # Autonomous improvement loop: merge policy
 
-Version 2, 1 November 2026 (phase 2 under the unanimous-pass rule); version 1 (draft), 31 October
-2026. This policy is guidance (tier T7 below): it changes only when Tim approves the change.
+Version 2.1, 1 November 2026 (who applies a suspension; pausing for a release). Version 2, 1
+November 2026 (phase 2 under the unanimous-pass rule); version 1 (draft), 31 October 2026. This policy is guidance (tier T7 below): it changes only when Tim approves the change.
 
 The loop lets Claude sessions make many small MathsDock improvements and merge the safe ones, so
 that Tim reviews only what needs his judgement. This file says what may merge without him, what
@@ -151,9 +151,10 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
   `loop:hold` to any open loop PR (which cancels a queued merge) and tells Tim. Only Tim changes
   `MATHSDOCK_LOOP_ENABLED` (to stop: set it to `false`, then run "Loop auto-merge" from the Actions
   tab to cancel every queued merge) and only Tim switches it back on.
-- **Pausing for a release.** While a release is being qualified or published, new loop PRs stay
-  drafts (no CI, no judges, no auto-merge) or carry `loop:hold`, so `main` does not move under the
-  release. They are marked ready once the release is published.
+- **Pausing for a release.** While a release is being qualified or published, `main` must not move
+  under it: new loop PRs open as drafts (no CI, no judges, no auto-merge), and every loop PR that is
+  already open gets `loop:hold`, which cancels any queued merge. Drafts are marked ready and the
+  holds removed once the release is published.
 - **CI budget.** Job slots are the scarce resource. Loop and thread PRs push rarely, open drafts
   while working, and the coordinator batches merges (`docs/release/CI-THROUGHPUT.md`). The loop
   never dispatches release qualification.
