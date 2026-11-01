@@ -276,6 +276,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     selectedLabel = chosen?.label,
     t = d.triangles.find((t) => t.id === triangleId) ?? d.triangles[0],
     v = d.vertices.find((v) => v.id === vertexId) ?? d.vertices[0];
+  // A worked version needs at least one saved answer; say so instead of a bare greyed button.
+  const hasSavedAnswer = labels.some((v) => v.label.answer),
+    workedHint = "Save a hidden answer on a label to create a worked version.";
   const currentExample = [...sourceExamples, ...teachingExamples].find(
       (ex) => ex.sourceId && ex.sourceId === d.sourceId,
     ),
@@ -902,11 +905,18 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 height={exportMetrics.height / 10}
               />
               <button
-                disabled={blocked || !labels.some((v) => v.label.answer)}
+                disabled={blocked || !hasSavedAnswer}
+                aria-describedby={hasSavedAnswer ? undefined : "tr-worked-hint"}
+                title={hasSavedAnswer ? undefined : workedHint}
                 onClick={() => fork(e)}
               >
                 Use worked version
               </button>
+              {!hasSavedAnswer && (
+                <span id="tr-worked-hint" className="sr-only">
+                  {workedHint}
+                </span>
+              )}
             </div>
             {showAnswers && (
               <p className="tr-banner">
