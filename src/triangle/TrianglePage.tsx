@@ -946,6 +946,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   <svg
                     className="tr-geometry"
                     viewBox={`0 0 ${g.width} ${g.height}`}
+                    role="group"
                     aria-label="Triangle angle controls"
                     onClick={(ev) => {
                       if (labelBlocked) return;
