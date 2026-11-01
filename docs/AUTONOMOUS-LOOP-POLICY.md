@@ -81,7 +81,7 @@ reported alongside it. Evidence:
 | 0 Foundations (done 31 October 2026) | Wave 1 gates (section 5) built as thread PRs. No loop PRs. | Gates run in CI on every PR; branch protection on. |
 | 1 Shadow (done 1 November 2026) | The loop opens `loop:shadow` PRs nightly and every gate and judge runs, but **nothing auto-merges**. Tim's verdict on each PR is logged against the judges'. | 20 or more PRs; judge recall at least 0.9 on the calibration set; agreement with Tim at least 85% (unanimous-pass agreement, above); no false pass on a teaching-rule class. |
 | 2 (approved 1 November 2026; starts when section 8 items 2 and 7 are done) | Auto-merge T0 and T1 under the unanimous-pass rule. Everything else still goes to Tim. | Two weeks with no escaped defects or loop reverts. |
-| 3 | Add T2. | Escaped defects at most 1 in 30 merged PRs; unanimous-pass agreement at least 90% over 30 samples. |
+| 3 | Add T2. | Escaped defects at most 1 in 30 merged PRs; unanimous-pass agreement at least 90%, measured over at least 30 PRs that all three judges passed (Tim, 1 November 2026: a minimum, so a panel that rarely passes anything cannot score well). |
 | 4 (optional) | Add T3 and golden-identical T4 refactors. | Phase 3 metrics held for four weeks. |
 
 T5 to T8 never auto-merge from the loop.
