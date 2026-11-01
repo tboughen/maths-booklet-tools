@@ -6,9 +6,15 @@ import * as numberLine from "../../packages/number-line-core/src/index";
 import { createRatioTable, decodeRatio, encodeRatio, parseRatioFile, validateRatioEnvelope } from "../../packages/ratio-table-core/src/interchange";
 import { renderRatioSvg } from "../../packages/ratio-table-core/src/svg";
 
-// A rounded decimal for any of the thirds, sixths or sevenths used below.
-const roundedDecimal = /\b0?\.(?:33|66|67|16|83|14|28|42|57|71|85)\d*/;
-const drawn = (svg: string) => [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m => m[1]).join(" ");
+// None of the values below is a terminating decimal, so any decimal point in drawn text is a rounding.
+const roundedDecimal = /\d?\.\d/;
+// Every piece of drawn text, including <tspan> children: the markup minus its tags and attributes.
+const drawn = (svg: string) => svg.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean);
+// Stacked fractions: each numerator and denominator is its own text node, never "a/b" on one line.
+const stacked = (svg: string, [n, d]: [string, string]) => {
+  const nodes = [...svg.matchAll(/<text\b[^>]*\sx="([\d.]+)"[^>]*>([^<]*)<\/text>/g)].map(m => ({ x: m[1], text: m[2] }));
+  return nodes.some(a => a.text === n && nodes.some(b => b !== a && b.x === a.x && b.text === d));
+};
 
 describe("exact fractions stay exact", () => {
   it("number line: fraction ticks and endpoints", () => {
@@ -19,10 +25,9 @@ describe("exact fractions stay exact", () => {
     expect(numberLine.ticks(e.document)).toContain("1/3");
     expect(e.document.solution).toMatchObject({ lower: "-2/3", upper: "1/3" });
     for (const copy of [numberLine.decode(numberLine.encode(e)), numberLine.parseFile(JSON.stringify(e))]) expect(copy).toEqual(e);
-    const text = drawn(numberLine.renderSvg(e));
-    expect(text).not.toMatch(roundedDecimal);
-    // Drawn as stacked fractions: four tick labels with denominator 3.
-    expect(text.split(" ").filter(t => t === "3").length).toBeGreaterThanOrEqual(4);
+    const svg = numberLine.renderSvg(e);
+    expect(drawn(svg).filter(t => roundedDecimal.test(t) || t.includes("/"))).toEqual([]);
+    for (const f of [["−2", "3"], ["−1", "3"], ["1", "3"], ["2", "3"]] as [string, string][]) expect(stacked(svg, f), f.join("/")).toBe(true);
   });
 
   it("ratio table: fraction cells", () => {
@@ -30,8 +35,8 @@ describe("exact fractions stay exact", () => {
     const values = e.document.rows.flatMap(r => r.cells.map(c => (c.kind === "number" ? c.value : null)));
     expect(values).toEqual(["2/3", "5/7", "4/3", "10/7"]);
     for (const copy of [decodeRatio(encodeRatio(e)), parseRatioFile(JSON.stringify(e)), validateRatioEnvelope(structuredClone(e))]) expect(copy).toEqual(e);
-    const text = drawn(renderRatioSvg(e.document));
-    expect(text).not.toMatch(roundedDecimal);
-    expect(text).toMatch(/\b7\b/); // the sevenths are drawn as fractions, not dropped
+    const svg = renderRatioSvg(e.document);
+    expect(drawn(svg).filter(t => roundedDecimal.test(t) || t.includes("/"))).toEqual([]);
+    for (const f of [["2", "3"], ["5", "7"], ["4", "3"], ["10", "7"]] as [string, string][]) expect(stacked(svg, f), f.join("/")).toBe(true);
   });
 });
