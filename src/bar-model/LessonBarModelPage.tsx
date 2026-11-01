@@ -196,7 +196,7 @@ export default function LessonBarModelPage({
       (g.width * 96) / 25.4,
       (g.height * 96) / 25.4,
       zoom,
-      120,
+      132,
       100,
     ),
     px = (fit.scale * 96) / 25.4,

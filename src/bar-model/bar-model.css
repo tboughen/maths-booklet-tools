@@ -50,6 +50,10 @@
   width: 72px;
   box-sizing: border-box;
 }
+/* The side gutter fits the section buttons in wider system fonts (up to 86 px) with an 8 px gap to the resource. */
+.bm-v2 .bm-stage {
+  padding-right: 104px;
+}
 /* "+ Section" and "− Section" stay on one line, at the shared button-label size. */
 .bm-v2 .bm-side-controls button {
   width: auto;
