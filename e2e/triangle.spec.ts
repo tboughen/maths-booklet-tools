@@ -140,6 +140,18 @@ async function pixels(page: Page, src: string) {
   }, src);
 }
 
+test("the angle-control overlay is a named group whose edit targets stay reachable", async ({
+  page,
+}) => {
+  await boot(page);
+  const overlay = page.getByRole("group", { name: "Triangle angle controls", exact: true });
+  await expect(overlay).toBeVisible();
+  const targets = overlay.getByRole("button", { name: /^Edit / });
+  expect(await targets.count()).toBeGreaterThan(0);
+  await targets.first().focus();
+  await expect(targets.first()).toBeFocused();
+});
+
 test("direct edits, symbols, explicit Apply, cancel, history and reload", async ({
   page,
 }) => {
