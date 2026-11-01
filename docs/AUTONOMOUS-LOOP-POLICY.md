@@ -145,6 +145,13 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
   any PR the panel passed unanimously (until he reviews why and resumes it; resumed misses still
   count against the phase 3 target); two loop reverts happen within seven
   days; or a budget cap is reached.
+- **Suspension is manual for now.** Only the variable and the `loop:hold` label act by themselves.
+  The other triggers are applied by hand: whoever notices one (the loop, the coordinator or Tim)
+  sets `MATHSDOCK_LOOP_ENABLED` to `false` and runs the "Loop auto-merge" workflow from the Actions
+  tab, which cancels every queued loop merge. Tim switches it back on.
+- **Pausing for a release.** While a release is being qualified or published, new loop PRs stay
+  drafts (no CI, no judges, no auto-merge) or carry `loop:hold`, so `main` does not move under the
+  release. They are marked ready once the release is published.
 - **CI budget.** Job slots are the scarce resource. Loop and thread PRs push rarely, open drafts
   while working, and the coordinator batches merges (`docs/release/CI-THROUGHPUT.md`). The loop
   never dispatches release qualification.
@@ -166,3 +173,4 @@ Each of these is a one-off decision; none is needed until the matching phase.
 6. Each phase change, from the digest.
 7. Approve the auto-merge step itself: a workflow change (tier T8, so a thread PR, never a loop PR)
    that merges a loop PR only under the unanimous-pass rule (before the first phase 2 merge).
+   Done 1 Nov: `loop-auto-merge.yml` merged in #105 and switched on by Tim at 17:10.
