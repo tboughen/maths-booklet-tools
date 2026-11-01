@@ -265,6 +265,28 @@ test("all ten example cards preserve declared scaffolds and production source UR
     );
   }
 });
+test("a disabled Use worked version says why", async ({
+  page,
+}) => {
+  const hint = "Save a hidden answer on a label to create a worked version.";
+  await boot(page);
+  const blank = page.getByRole("button", { name: "Use worked version", exact: true }).first();
+  await expect(blank).toBeDisabled();
+  await expect(blank).toHaveAccessibleDescription(hint);
+  await expect(blank).toHaveAttribute("title", hint);
+});
+
+test("an enabled Use worked version carries no disabled reason", async ({
+  page,
+}) => {
+  const hint = "Save a hidden answer on a label to create a worked version.";
+  await boot(page, example("right-trig"));
+  const ready = page.getByRole("button", { name: "Use worked version", exact: true }).first();
+  await expect(ready).toBeEnabled();
+  await expect(ready).toHaveAccessibleDescription("");
+  await expect(ready).not.toHaveAttribute("title", hint);
+});
+
 test("worked version replaces immediately and Undo restores the complete pupil scaffold", async ({
   page,
 }) => {
