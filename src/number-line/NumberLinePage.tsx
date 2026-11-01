@@ -783,6 +783,13 @@ export default function NumberLinePage({
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
+            {dirty.size > 0 && !busy && !recovery && (
+              <p role="status" className="resource-feedback nl-pending-note">
+                Apply or cancel your change to{" "}
+                {[...dirty].map((name) => `“${name}”`).join(" and ")} to copy,
+                save, reset or undo.
+              </p>
+            )}
             <EditorDownloadMenu
               id="number-line-downloads"
               open={menu}
