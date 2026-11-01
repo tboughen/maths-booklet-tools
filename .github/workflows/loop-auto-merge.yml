@@ -1,0 +1,136 @@
+name: Loop auto-merge
+# Phase 2 of docs/AUTONOMOUS-LOOP-POLICY.md (unanimous-pass rule). After the judge panel finishes on a
+# loop/ PR, this queues GitHub auto-merge (which still waits for the required `checks` job) or sends
+# the PR to Tim with loop:needs-tim.
+#
+# Trust: workflow_run always runs this file and its scripts from the default branch, so a pull
+# request cannot change what decides or what holds the write token. The PR is read with git only;
+# its code never runs. A PR that changes .github/ or scripts/loop/ is tier T8 and never qualifies,
+# so it cannot fake the judges' artifact either. Off unless the repository variable
+# MATHSDOCK_LOOP_ENABLED is "true".
+on:
+  workflow_run:
+    workflows: [Judge panel]
+    types: [completed]
+  # A loop:hold label cancels a queued merge straight away. pull_request_target runs this file from
+  # the default branch and never checks out the PR.
+  pull_request_target:
+    types: [labeled]
+  # Manual stop for section 7 suspensions: cancels every queued loop merge. Also switch the
+  # MATHSDOCK_LOOP_ENABLED variable off so nothing new is queued.
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: loop-auto-merge-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref || 'stop' }}
+  cancel-in-progress: false
+jobs:
+  hold:
+    if: ${{ github.event_name == 'pull_request_target' && github.event.label.name == 'loop:hold' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Cancel any queued auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --disable-auto 2>/dev/null || echo "No queued auto-merge."
+  stop:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Cancel every queued loop auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for pr in $(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,headRefName,autoMergeRequest --jq '.[] | select(.autoMergeRequest != null and (.headRefName | startswith("loop/"))) | .number'); do
+            gh pr merge "$pr" --repo "$GITHUB_REPOSITORY" --disable-auto && echo "Cancelled #$pr" >> "$GITHUB_STEP_SUMMARY"
+          done
+  decide:
+    if: ${{ github.event_name == 'workflow_run' && vars.MATHSDOCK_LOOP_ENABLED == 'true' && github.event.workflow_run.event == 'pull_request' && startsWith(github.event.workflow_run.head_branch, 'loop/') && github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      JUDGED_SHA: ${{ github.event.workflow_run.head_sha }}
+      BRANCH: ${{ github.event.workflow_run.head_branch }}
+    steps:
+      - name: Find the pull request
+        id: pr
+        run: |
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then echo "No open pull request for $BRANCH." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$number" > "$RUNNER_TEMP/pr.json"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "draft=$(jq -r .draft "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+          echo "base=$(jq -r .base.ref "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+      - name: Check out the trusted default-branch code
+        if: steps.pr.outputs.number
+        uses: actions/checkout@v7
+        with:
+          path: trusted
+          persist-credentials: false
+      - name: Check out the judged commit (read as data only)
+        if: steps.pr.outputs.number
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Find where the pull request branched from its base
+        if: steps.pr.outputs.number
+        id: base
+        env:
+          BASE_REF: ${{ steps.pr.outputs.base }}
+        run: |
+          git -C pr fetch --quiet --no-tags origin "refs/heads/$BASE_REF"
+          echo "sha=$(git -C pr merge-base FETCH_HEAD HEAD)" >> "$GITHUB_OUTPUT"
+      # Into its own folder: the artifact comes from a pull_request run, so it must never land where
+      # it could overwrite the trusted checkout. Only review-shadow.json is read from it.
+      - name: Fetch the judges' verdicts
+        if: steps.pr.outputs.number
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: judge-panel
+          path: ${{ runner.temp }}/judge
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - uses: actions/setup-node@v7
+        if: steps.pr.outputs.number
+        with:
+          node-version-file: trusted/.nvmrc
+      - name: Decide
+        id: decide
+        if: steps.pr.outputs.number
+        run: node trusted/scripts/loop/merge-decision.mjs --pr-json="$RUNNER_TEMP/pr.json" --checkout=pr --base="$BASE_SHA" --review="$RUNNER_TEMP/judge/review-shadow.json" --default-branch="$DEFAULT_BRANCH"
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          MATHSDOCK_LOOP_ENABLED: ${{ vars.MATHSDOCK_LOOP_ENABLED }}
+          LOOP_AUTO_TIERS: T0,T1
+      - name: Queue auto-merge for the judged commit only
+        if: steps.decide.outcome == 'success' && steps.decide.outputs.merge == 'true'
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --squash --match-head-commit "$JUDGED_SHA"
+      # Any other outcome, including an error above, cancels a queued merge and asks Tim.
+      - name: Send to Tim
+        if: ${{ always() && steps.pr.outputs.number && steps.pr.outputs.draft != 'true' && !(steps.decide.outcome == 'success' && steps.decide.outputs.merge == 'true') }}
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --disable-auto 2>/dev/null || true
+          gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label loop:needs-tim
