@@ -32,10 +32,17 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
       const next = { start: row.scrollLeft > 1, end: row.scrollLeft + row.clientWidth < row.scrollWidth - 1 };
       setMore(old => old.start === next.start && old.end === next.end ? old : next);
     };
+    // Keyboard focus: scroll the focused link clear of the 48 px fades.
+    const reveal = (event: FocusEvent) => {
+      const link = event.target as HTMLElement, r = row.getBoundingClientRect(), l = link.getBoundingClientRect();
+      if (l.left < r.left + 56) row.scrollLeft -= r.left + 56 - l.left;
+      else if (l.right > r.right - 56) row.scrollLeft += l.right - (r.right - 56);
+    };
     measure();
     row.addEventListener("scroll", measure, { passive: true });
+    row.addEventListener("focusin", reveal);
     window.addEventListener("resize", measure);
-    return () => { row.removeEventListener("scroll", measure); window.removeEventListener("resize", measure); };
+    return () => { row.removeEventListener("scroll", measure); row.removeEventListener("focusin", reveal); window.removeEventListener("resize", measure); };
   }, [page, booklet]);
   return <header ref={header} className="site-navigation" onClick={event => {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);

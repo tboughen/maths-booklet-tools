@@ -44,6 +44,24 @@ test("the booklet tool row shows when it scrolls and keeps the current tool in v
   await row.evaluate((el) => (el.scrollLeft = 0));
   await expect(row).toHaveClass(/has-more-end/);
   await expect(row).not.toHaveClass(/has-more-start/);
+  // Tabbing along the row keeps every focused link clear of the 48 px fades.
+  await page.goto("/tools/bar-model");
+  await row.getByRole("link").first().focus();
+  for (let i = 1; i < (await row.getByRole("link").count()); i++) {
+    await page.keyboard.press("Tab");
+    const clear = await row.evaluate((el) => {
+      const link = document.activeElement as HTMLElement;
+      if (!el.contains(link)) return "focus left the row";
+      const r = el.getBoundingClientRect(),
+        l = link.getBoundingClientRect();
+      if (el.classList.contains("has-more-end") && l.right > r.right - 48)
+        return `${link.textContent} under the right fade`;
+      if (el.classList.contains("has-more-start") && l.left < r.left + 48)
+        return `${link.textContent} under the left fade`;
+      return "";
+    });
+    expect(clear).toBe("");
+  }
   await page.setViewportSize({ width: 2400, height: 900 });
   await expect(row).not.toHaveClass(/has-more/);
 });
