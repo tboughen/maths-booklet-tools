@@ -90,6 +90,22 @@ for (const width of [1440, 1024, 900, 375, 320]) {
   });
 }
 
+test("each Graph axis +/- button names the axis end it changes on hover", async ({
+  page,
+}) => {
+  await page.goto("/tools/graph");
+  const buttons = page.locator(".graph-axis-controls button");
+  await expect(buttons).toHaveCount(8);
+  for (const button of await buttons.all()) {
+    const label = await button.getAttribute("aria-label");
+    expect(label).toMatch(/^(Add|Remove) one square at the (positive|negative) end of the [xy]-axis$/);
+    await expect(button).toHaveAttribute("title", label!);
+  }
+  await expect(
+    page.getByTitle("Add one square at the positive end of the y-axis", { exact: true }),
+  ).toHaveText("+");
+});
+
 test("quadratic specialist settings preserve direct editing and pupil blanks", async ({
   page,
 }) => {

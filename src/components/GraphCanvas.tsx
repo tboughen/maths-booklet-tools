@@ -784,6 +784,13 @@ export function GraphCanvas({
                 document.axes[axis][
                   end === "negative" ? "negativeSquares" : "positiveSquares"
                 ];
+              const label =
+                (delta === 1 ? "Add" : "Remove") +
+                " one square at the " +
+                end +
+                " end of the " +
+                axis +
+                "-axis";
               return (
                 <button
                   key={delta}
@@ -793,14 +800,8 @@ export function GraphCanvas({
                       ? total >= AXIS_LIMITS[axis].maxTotal
                       : count === 0 || total <= AXIS_LIMITS[axis].minTotal)
                   }
-                  aria-label={
-                    (delta === 1 ? "Add" : "Remove") +
-                    " one square at the " +
-                    end +
-                    " end of the " +
-                    axis +
-                    "-axis"
-                  }
+                  aria-label={label}
+                  title={label}
                   onClick={() => onAxisAdjust(axis, end, delta)}
                 >
                   {delta === 1 ? "+" : "−"}
