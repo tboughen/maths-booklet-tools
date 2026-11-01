@@ -302,7 +302,21 @@ describe("graph builder", () => {
       "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
     );
     expect(screen.getByText("0 objects")).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Line equation" })).toBeInTheDocument();
+    // With nothing selected the panel shows the drawing tools; the equation form opens on request.
+    expect(
+      screen.queryByRole("textbox", { name: "Line equation" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Point x" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Line by equation" }));
+    expect(
+      screen.getByRole("textbox", { name: "Line equation" }),
+    ).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(
+      screen.queryByRole("textbox", { name: "Line equation" }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByText("1 object")).toBeInTheDocument();
@@ -366,20 +380,14 @@ describe("graph builder", () => {
     );
     expect(input).toHaveValue("1/0");
     expect(input).toHaveAttribute("aria-invalid", "true");
-    expect(
-      screen.getByRole("button", { name: "Copy image" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Copy image" })).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Copy for Word" }),
     ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "File" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "File" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Undo" })).toBeDisabled();
     await user.keyboard("{Escape}");
-    expect(
-      screen.getByRole("button", { name: "Copy image" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Copy image" })).toBeEnabled();
     expect(screen.getByText("1 object")).toBeInTheDocument();
   });
   it("retains invalid coordinates and allows keyboard Cancel without blur-committing a valid draft", async () => {

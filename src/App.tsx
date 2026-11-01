@@ -537,10 +537,11 @@ export default function App({ active = true }: { active?: boolean }) {
               onUse={(resource) => setPendingExample(resource)}
               onWorked={(resource) => commit(resource)}
             />
-            {equationOpen || !selectedObject ? (
+            {/* The equation form opens only from "Line by equation" or Edit equation, so a first
+                visit shows the drawing tools rather than a form. */}
+            {equationOpen ? (
               <EquationPanel
                 key={`${editingEquationId ?? "new"}-${equationRevision}`}
-                persistent={!selectedObject && !equationOpen}
                 disabled={recoveryConflict || copying}
                 onPending={(pending) =>
                   pending
@@ -554,9 +555,17 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEquationOpen(false);
                   setEditingEquationId(null);
                   setEquationRevision((revision) => revision + 1);
+                  // Return focus to the button that opened the form.
+                  requestAnimationFrame(() =>
+                    globalThis.document
+                      .querySelector<HTMLButtonElement>(
+                        ".graph-control-group .secondary-panel-button",
+                      )
+                      ?.focus(),
+                  );
                 }}
               />
-            ) : (
+            ) : selectedObject ? (
               <ObjectInspector
                 drafts={drafts}
                 disabled={recoveryConflict || copying}
@@ -565,7 +574,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
               />
-            )}
+            ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>
               <GraphTools
                 tool={tool}
