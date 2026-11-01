@@ -351,3 +351,62 @@ test("save status stays neutral while damaged saved work waits for a recovery ch
   await expect(status).toHaveText("Not saved on this device yet");
   await expect(status).toHaveClass(/resource-save-status--pending/);
 });
+test("inspector headings, text fields and section buttons use the shared editor styles", async ({
+  page,
+}) => {
+  const font = (h: Element) => {
+    const s = getComputedStyle(h);
+    return [s.fontSize, s.fontWeight, s.lineHeight, s.color].join(" ");
+  };
+  await page.goto("/tools/ratio-table");
+  const shared = await page
+    .locator(".booklet-editor .panel-heading h2")
+    .first()
+    .evaluate(font);
+  await page.goto("/tools/bar-model");
+  const headings = page.locator(".bm-settings h2");
+  await expect(headings.first()).toBeVisible();
+  for (const h of await headings.all())
+    expect(await h.evaluate(font)).toBe(shared);
+  const line = await page.evaluate(() =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--line-strong")
+      .trim(),
+  );
+  const fields = page.locator(
+    '.bm-settings input:not([type="checkbox"]), .bm-settings select',
+  );
+  expect(await fields.count()).toBeGreaterThan(3);
+  for (const f of await fields.all())
+    expect(
+      await f.evaluate((e, token) => {
+        const probe = document.createElement("i");
+        probe.style.color = token;
+        document.body.append(probe);
+        const want = getComputedStyle(probe).color;
+        probe.remove();
+        const s = getComputedStyle(e);
+        return (
+          s.borderTopColor === want &&
+          s.borderTopWidth === "1px" &&
+          s.borderTopLeftRadius === "4px"
+        );
+      }, line),
+    ).toBe(true);
+  const resource = (await page.locator(".bm-resource").boundingBox())!;
+  for (const name of ["+ Section", "− Section"]) {
+    const button = page
+      .locator(".bm-side-controls")
+      .getByRole("button", { name });
+    const box = (await button.boundingBox())!;
+    const lines = await button.evaluate((b) => {
+      const r = document.createRange();
+      r.selectNodeContents(b);
+      return new Set([...r.getClientRects()].map((x) => Math.round(x.top)))
+        .size;
+    });
+    expect(lines).toBe(1);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThan(resource.x + resource.width + 8);
+  }
+});
