@@ -271,7 +271,16 @@
   }
 }
 @media (pointer: coarse) {
-  .booklet-editor .editor-toolbar button {
+  /* The :is() list matches resource-utilities.css, which would otherwise keep 40 px. */
+  .booklet-editor .editor-toolbar button,
+  .booklet-editor
+    .editor-toolbar
+    :is(.copy-main, .copy-more, .tool-button, .icon-button) {
     min-height: 44px;
+  }
+  /* Undo and Redo are icon-only: keep the whole target 44 px square on touch screens. */
+  .booklet-editor .editor-toolbar .icon-button {
+    width: 44px;
+    flex-basis: 44px;
   }
 }
