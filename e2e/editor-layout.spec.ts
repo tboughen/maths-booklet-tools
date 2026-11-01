@@ -159,31 +159,56 @@ test("quadratic specialist settings preserve direct editing and pupil blanks", a
     .toBe("1");
 });
 
-test("Undo and Redo have 44 px square touch targets on phones", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    hasTouch: true,
-    isMobile: true,
-    viewport: { width: 375, height: 844 },
-  });
-  const page = await context.newPage();
-  for (const tool of ["number-line", "ratio-table", "bar-model", "triangle"]) {
-    await page.goto(`/tools/${tool}`);
-    for (const name of ["Undo", "Redo"]) {
-      const box = await page
-        .getByRole("button", { name, exact: true })
-        .first()
-        .boundingBox();
-      expect(box?.width, `${tool} ${name} width`).toBeGreaterThanOrEqual(44);
-      expect(box?.height, `${tool} ${name} height`).toBeGreaterThanOrEqual(44);
+const editors = [
+  "bar-model",
+  "expanding-factorising",
+  "triangle",
+  "venn",
+  "graph",
+  "ratio-table",
+  "value-table-graph",
+  "cuboids",
+  "number-line",
+];
+for (const width of [320, 375])
+  test(`Undo and Redo have 44 px square touch targets on ${width} px phones`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      hasTouch: true,
+      isMobile: true,
+      viewport: { width, height: 844 },
+    });
+    const page = await context.newPage();
+    for (const tool of editors) {
+      await page.goto(`/tools/${tool}`);
+      const toolbar = page.locator(".editor-toolbar").first();
+      await expect(toolbar).toBeVisible();
+      // Every icon-button in the toolbar is icon-only, so a fixed width cannot clip text.
+      for (const button of await toolbar.locator(".icon-button").all())
+        expect(
+          (await button.innerText()).trim(),
+          `${tool} icon-button text`,
+        ).toBe("");
+      for (const name of ["Undo", "Redo"]) {
+        const box = await toolbar
+          .getByRole("button", { name, exact: true })
+          .boundingBox();
+        expect(box?.width, `${tool} ${name} width`).toBeGreaterThanOrEqual(44);
+        expect(box?.height, `${tool} ${name} height`).toBeGreaterThanOrEqual(
+          44,
+        );
+      }
+      expect(
+        await toolbar.evaluate((el) => el.scrollWidth <= el.clientWidth),
+        `${tool} toolbar fits without overflow`,
+      ).toBe(true);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        `${tool} fits the phone width`,
+      ).toBe(true);
     }
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-      `${tool} fits the phone width`,
-    ).toBe(true);
-  }
-  await context.close();
-});
+    await context.close();
+  });
