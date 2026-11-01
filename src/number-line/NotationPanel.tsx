@@ -5,7 +5,7 @@ import {
   validate,
   type Envelope,
 } from "../../packages/number-line-core/src";
-import { fitAxis, parseNotation, notationSummary } from "./notation";
+import { offerWidening, parseNotation, notationSummary } from "./notation";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 
 export function NotationPanel({
@@ -25,7 +25,15 @@ export function NotationPanel({
     [draft, setDraft] = useState(""),
     [edited, setEdited] = useState(false);
   // When a drawing does not fit, the smallest widening that shows it, offered as an explicit action.
-  const [fit, setFit] = useState<Envelope["document"]["axis"] | null>(null);
+  // Only the first and last tick are kept, with the axis they were worked out from: if the axis
+  // changes meanwhile (Scale card, Undo), the offer is withdrawn rather than reapplying old settings.
+  const [offer, setFit] = useState<{
+    from: string;
+    minimum: string;
+    maximum: string;
+  } | null>(null);
+  const axisKey = JSON.stringify(envelope.document.axis);
+  const fit = offer?.from === axisKey ? offer : null;
   const [error, setError] = useState(""),
     [proposed, setProposed] = useState<Envelope | null>(null);
   const field = useRef<HTMLInputElement>(null);
@@ -47,8 +55,15 @@ export function NotationPanel({
     onApply(next);
     cancel();
   }
-  function submit(axis = envelope.document.axis) {
+  function submit(widen: typeof fit = null) {
     if (disabled) return;
+    const axis = widen
+      ? {
+          ...envelope.document.axis,
+          minimum: widen.minimum,
+          maximum: widen.maximum,
+        }
+      : envelope.document.axis;
     let solution;
     try {
       solution = parseNotation(draft, envelope.document.axis.variable);
@@ -60,7 +75,7 @@ export function NotationPanel({
       });
       setError("");
       // Keep a widening on offer while its confirmation is open, so Cancel can be retried.
-      setFit(axis === envelope.document.axis ? null : axis);
+      setFit(widen);
       if (canonical(next) === canonical(envelope)) {
         cancel();
         return;
@@ -70,17 +85,9 @@ export function NotationPanel({
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
       // Offer a widening only when it would make this exact drawing valid.
-      let wider = solution ? fitAxis(axis, solution) : null;
-      if (wider && solution)
-        try {
-          validate({
-            ...envelope,
-            document: { ...envelope.document, axis: wider, solution },
-          });
-        } catch {
-          wider = null;
-        }
-      setFit(wider);
+      const wider =
+        solution && !widen ? offerWidening(envelope, solution) : null;
+      setFit(wider && { from: axisKey, ...wider });
     }
   }
   const axisChanged =
@@ -157,6 +164,7 @@ export function NotationPanel({
             role={error ? "alert" : undefined}
           >
             {error}
+            {fit && " Or use Widen the line to fit, below."}
           </p>
           {fit && (
             <button

@@ -2,6 +2,8 @@ import { canonicalNumber } from "../../packages/ratio-table-core/src/numbers";
 import {
   add,
   compare,
+  validate,
+  type Envelope,
   type LineDocument,
   type Solution,
 } from "../../packages/number-line-core/src";
@@ -126,4 +128,24 @@ export function fitAxis(axis: Axis, solution: Solution): Axis | null {
   return minimum === axis.minimum && maximum === axis.maximum
     ? null
     : { ...axis, minimum, maximum };
+}
+
+// The widening offered when a drawing does not fit: only the new first and last tick, and only
+// when the whole document, with this drawing on the widened line, passes validation (so a line
+// with overlapping labels or too many ticks gets no offer and keeps its original error).
+export function offerWidening(
+  envelope: Envelope,
+  solution: Solution,
+): { minimum: string; maximum: string } | null {
+  const wider = fitAxis(envelope.document.axis, solution);
+  if (!wider) return null;
+  try {
+    validate({
+      ...envelope,
+      document: { ...envelope.document, axis: wider, solution },
+    });
+  } catch {
+    return null;
+  }
+  return { minimum: wider.minimum, maximum: wider.maximum };
 }

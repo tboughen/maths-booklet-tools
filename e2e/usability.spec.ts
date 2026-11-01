@@ -68,20 +68,9 @@ test("overview search matches teaching vocabulary, handles no results and retain
 }) => {
   await page.goto("/tools");
   await expect(page.locator(".overview-tool-card")).toHaveCount(9);
-  expect(
-    await page
-      .locator(".overview-tool-card")
-      .evaluateAll((cards) =>
-        cards.map((card) => card.getAttribute("href")).sort(),
-      ),
-  ).toEqual(
-    [...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model"].sort(),
-  );
+  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model"].sort());
   await page.getByRole("searchbox", { name: "Search tools" }).fill("sharing");
-  await expect(page.locator(".overview-tool-card")).toHaveAttribute(
-    "href",
-    "/tools/bar-model",
-  );
+  await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "/tools/bar-model");
   await page
     .getByRole("searchbox", { name: "Search tools" })
     .fill("Pythagoras");
@@ -408,4 +397,37 @@ test("number-line: on a blank line, Widen the line to fit draws and widens in on
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => saved(page, key)).toBe(original);
+});
+
+test("number-line: a Scale change after the offer withdraws it, so old axis settings are never reapplied", async ({
+  page,
+}) => {
+  await page.goto("/tools/number-line");
+  const key = "maths-booklet-tools:number-line:v1";
+  await expect.poll(() => saved(page, key)).not.toBeNull();
+  await page
+    .getByRole("textbox", { name: "Inequality or value", exact: true })
+    .fill("-7 < x <= 2");
+  const apply = page.getByRole("button", { name: "Apply drawing", exact: true });
+  await apply.click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Or use Widen the line to fit, below.",
+  );
+  const widen = page.getByRole("button", { name: /^Widen the line to fit/ });
+  await expect(widen).toHaveText(
+    "Widen the line to fit (first tick -7, last tick 5)",
+  );
+  const last = page.getByRole("textbox", { name: "Last tick", exact: true });
+  await last.fill("6");
+  await last.press("Enter");
+  await expect(widen).toHaveCount(0);
+  expect(JSON.parse((await saved(page, key))!).document.axis).toMatchObject({
+    minimum: "-5",
+    maximum: "6",
+  });
+  // Asking again offers a widening worked out from the new axis.
+  await apply.click();
+  await expect(widen).toHaveText(
+    "Widen the line to fit (first tick -7, last tick 6)",
+  );
 });
