@@ -23,16 +23,18 @@ const HOLD_LABELS = ['loop:hold', 'loop:needs-tim'];
  * @param {string[]} input.tiers     tiers enabled for the current phase (phase 2: T0, T1)
  * @param {object} input.pr          pull request (REST API shape)
  * @param {string} input.repository  owner/name of the base repository
+ * @param {string} [input.defaultBranch] the only branch loop PRs may merge into
  * @param {string} input.judgedSha   head commit the judges reviewed
  * @param {{tier: string, changedLines: number}} input.risk
  * @param {object[]} input.integrity test-integrity findings for the whole PR
  * @param {object | null} input.review contents of review-shadow.json, or null if the panel did not run
  */
-export function decide({ enabled, tiers, pr, repository, judgedSha, risk, integrity, review }) {
+export function decide({ enabled, tiers, pr, repository, defaultBranch = 'main', judgedSha, risk, integrity, review }) {
   const reasons = [];
   if (!enabled) reasons.push('auto-merge is switched off (MATHSDOCK_LOOP_ENABLED is not "true")');
   if (!pr?.head?.ref?.startsWith('loop/')) reasons.push('not a loop PR (branch does not start with loop/)');
   if (pr?.head?.repo?.full_name !== repository) reasons.push('opened from a fork');
+  if (pr?.base?.ref !== defaultBranch) reasons.push(`does not target ${defaultBranch}`);
   if (pr?.state !== 'open') reasons.push('not open');
   if (pr?.draft) reasons.push('draft');
   if (!judgedSha || pr?.head?.sha !== judgedSha) reasons.push('the judges reviewed a different commit from the current head');
@@ -59,6 +61,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const pr = JSON.parse(readFileSync(arg('pr-json'), 'utf8'));
   const cwd = arg('checkout') ?? '.';
   const base = arg('base');
+  if (!/^[0-9a-f]{40}$/.test(base ?? '')) throw new Error(`no merge-base commit (got ${JSON.stringify(base)})`);
   const reviewPath = arg('review') ?? 'review-shadow.json';
   const review = existsSync(reviewPath) ? JSON.parse(readFileSync(reviewPath, 'utf8')) : null;
   const risk = classifyGitDiff({ base, cwd });
@@ -66,7 +69,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const integrity = netFindings(checkDiff(diff), diff);
   const tiers = (process.env.LOOP_AUTO_TIERS ?? 'T0,T1').split(',').map(t => t.trim()).filter(Boolean);
   const result = decide({
-    enabled: process.env.MATHSDOCK_LOOP_ENABLED === 'true', tiers, pr, repository: process.env.GITHUB_REPOSITORY,
+    enabled: process.env.MATHSDOCK_LOOP_ENABLED === 'true', tiers, pr, repository: process.env.GITHUB_REPOSITORY, defaultBranch: arg('default-branch') || 'main',
     judgedSha: process.env.JUDGED_SHA, risk, integrity, review,
   });
   const lines = [`### Auto-merge for #${pr.number}: ${result.merge ? 'queued (waits for required checks)' : 'not merged, sent to Tim'}`, '',

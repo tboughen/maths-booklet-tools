@@ -13,7 +13,7 @@ const pass = { overall: 'pass', results: ['teacher', 'product', 'adversarial'].m
 const base = () => ({
   enabled: true,
   tiers: ['T0', 'T1'],
-  pr: { number: 7, state: 'open', draft: false, labels: [{ name: 'loop:shadow' }], head: { ref: 'loop/u1-test', sha, repo: { full_name: repository } } },
+  pr: { number: 7, state: 'open', draft: false, base: { ref: 'main' }, labels: [{ name: 'loop:shadow' }], head: { ref: 'loop/u1-test', sha, repo: { full_name: repository } } },
   repository,
   judgedSha: sha,
   risk: { tier: 'T0', changedLines: 40 },
@@ -61,6 +61,8 @@ test('tiers, line cap, integrity findings, stale verdicts, holds, drafts, forks,
     input.pr.labels.push({ name });
     assert.equal(decide(input).merge, false, name);
   }
+  const stacked = base(); stacked.pr.base.ref = 'loop/u0-other';
+  assert.equal(decide(stacked).merge, false, 'targets another branch');
   const closed = base(); closed.pr.state = 'closed';
   assert.equal(decide(closed).merge, false, 'closed');
   const draft = base(); draft.pr.draft = true;
