@@ -56,9 +56,7 @@ for (const width of [1440, 1024, 900, 375, 320]) {
         }));
       if (commonStyle) expect(style).toEqual(commonStyle);
       else commonStyle = style;
-      await bar
-        .getByRole("button", { name: "File", exact: true })
-        .click();
+      await bar.getByRole("button", { name: "File", exact: true }).click();
       const popover = page.getByRole("menu");
       await expect(popover).toBeVisible();
       const menuBox = await popover.boundingBox();
@@ -98,11 +96,15 @@ test("each Graph axis +/- button names the axis end it changes on hover", async 
   await expect(buttons).toHaveCount(8);
   for (const button of await buttons.all()) {
     const label = await button.getAttribute("aria-label");
-    expect(label).toMatch(/^(Add|Remove) one square at the (positive|negative) end of the [xy]-axis$/);
+    expect(label).toMatch(
+      /^(Add|Remove) one square at the (positive|negative) end of the [xy]-axis$/,
+    );
     await expect(button).toHaveAttribute("title", label!);
   }
   await expect(
-    page.getByTitle("Add one square at the positive end of the y-axis", { exact: true }),
+    page.getByTitle("Add one square at the positive end of the y-axis", {
+      exact: true,
+    }),
   ).toHaveText("+");
 });
 
@@ -155,4 +157,33 @@ test("quadratic specialist settings preserve direct editing and pupil blanks", a
       ),
     )
     .toBe("1");
+});
+
+test("Undo and Redo have 44 px square touch targets on phones", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 375, height: 844 },
+  });
+  const page = await context.newPage();
+  for (const tool of ["number-line", "ratio-table", "bar-model", "triangle"]) {
+    await page.goto(`/tools/${tool}`);
+    for (const name of ["Undo", "Redo"]) {
+      const box = await page
+        .getByRole("button", { name, exact: true })
+        .first()
+        .boundingBox();
+      expect(box?.width, `${tool} ${name} width`).toBeGreaterThanOrEqual(44);
+      expect(box?.height, `${tool} ${name} height`).toBeGreaterThanOrEqual(44);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `${tool} fits the phone width`,
+    ).toBe(true);
+  }
+  await context.close();
 });
