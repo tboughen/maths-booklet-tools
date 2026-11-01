@@ -76,7 +76,7 @@
 .qb-view-error .qb-button { margin-right: 8px; }
 .qb-navigation { padding: 8px 18px; }
 .qb-navigation > div { display: grid; justify-items: center; font-size: 14px; color: #3e5670; gap: 2px; }
-.qb-navigation > div span { color: #67778b; font-size: 12px; }
+.qb-navigation > div span { color: #536579; font-size: 12px; }
 .qb-controls { padding: 8px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #f4f7fa; border-top: 1px solid #dce4ec; }
 .qb-zoom, .qb-image-actions, .qb-layout { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .qb-zoom output { min-width: 42px; text-align: center; }
