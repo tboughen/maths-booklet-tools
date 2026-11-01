@@ -16,7 +16,10 @@ test.beforeEach(async ({ page }) => {
 test("Cancel input is only available when there is something to cancel", async ({
   page,
 }) => {
-  const cancel = page.getByRole("button", { name: "Cancel input", exact: true });
+  const cancel = page.getByRole("button", {
+    name: "Cancel input",
+    exact: true,
+  });
   const field = page.getByLabel("Inequality or value", { exact: true });
   await expect(cancel).toBeDisabled();
   await field.fill("2 < x");
@@ -24,8 +27,42 @@ test("Cancel input is only available when there is something to cancel", async (
   await cancel.click();
   await expect(field).toHaveValue("");
   await expect(cancel).toBeDisabled();
-  await page.getByRole("button", { name: "Edit axis range", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit axis range", exact: true })
+    .click();
   await expect(cancel).toBeEnabled();
+  await cancel.click();
+  await expect(cancel).toBeDisabled();
+  await expect(page.getByLabel("Notation minimum")).toHaveCount(0);
+});
+
+test("Cancel input keeps keyboard focus and matches Escape", async ({
+  page,
+}) => {
+  const cancel = page.getByRole("button", {
+    name: "Cancel input",
+    exact: true,
+  });
+  const field = page.getByLabel("Inequality or value", { exact: true });
+  await field.fill("2 < x");
+  await cancel.focus();
+  await page.keyboard.press("Enter");
+  await expect(field).toHaveValue("");
+  await expect(cancel).toBeDisabled();
+  await expect(field).toBeFocused();
+  await field.fill("2 < x");
+  await field.press("Escape");
+  await expect(field).toHaveValue("");
+  await expect(cancel).toBeDisabled();
+  await field.fill("x + 1 > 3");
+  await field.press("Enter");
+  const error = page.locator("#number-notation-error");
+  await expect(error).not.toBeEmpty();
+  await expect(cancel).toBeEnabled();
+  await cancel.click();
+  await expect(error).toBeEmpty();
+  await expect(cancel).toBeDisabled();
+  await expect(field).toBeFocused();
 });
 
 test("blank, direct drawing, exact endpoint edit, label blanks and Undo", async ({

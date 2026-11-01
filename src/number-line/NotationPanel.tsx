@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   canonical,
   renderSvg,
@@ -28,6 +28,12 @@ export function NotationPanel({
     [range, setRange] = useState(envelope.document.axis);
   const [error, setError] = useState(""),
     [proposed, setProposed] = useState<Envelope | null>(null);
+  const field = useRef<HTMLInputElement>(null);
+  function cancelInput() {
+    cancel();
+    // Cancel input disables itself, so keep keyboard focus in the field.
+    field.current?.focus();
+  }
   function cancel() {
     setOpen(true);
     setDraft("");
@@ -98,6 +104,7 @@ export function NotationPanel({
           <label>
             Inequality or value
             <input
+              ref={field}
               placeholder="-3 < x <= 1"
               aria-label="Inequality or value"
               aria-invalid={!!error}
@@ -176,7 +183,7 @@ export function NotationPanel({
             >
               Apply drawing
             </button>
-            <button disabled={!edited && !error} onClick={cancel}>
+            <button disabled={!edited && !error} onClick={cancelInput}>
               Cancel input
             </button>
           </div>
