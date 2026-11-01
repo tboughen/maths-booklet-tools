@@ -263,3 +263,30 @@ test("editor text boxes and dropdowns have edges with at least 3:1 contrast", as
     expect(faint, tool).toEqual([]);
   }
 });
+
+test("on desktop, keyboard users can jump from the preview bar to the settings and back without tabbing through the diagram", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const tool of editors) {
+    await page.goto(`/tools/${tool}`);
+    const jump = page.getByRole("button", { name: "Edit settings ↓", exact: true });
+    // Out of sight until a keyboard reaches it: the settings are already beside the resource.
+    expect((await jump.boundingBox())?.width ?? 0, `${tool} hidden jump`).toBeLessThanOrEqual(1);
+    await page.getByRole("combobox", { name: "Preview zoom", exact: true }).focus();
+    for (let i = 0; i < 3 && !(await jump.evaluate(el => el === document.activeElement)); i++)
+      await page.keyboard.press("Tab");
+    await expect(jump, `${tool}: the jump follows the zoom control`).toBeFocused();
+    const shown = (await jump.boundingBox())!;
+    expect(shown.height, `${tool} visible jump height`).toBeGreaterThanOrEqual(40);
+    expect(shown.width, `${tool} visible jump width`).toBeGreaterThan(60);
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".inspector-stack").first(), `${tool} settings focused`).toBeFocused();
+
+    const back = page.getByRole("button", { name: "↑ Return to diagram", exact: true });
+    await back.focus();
+    expect((await back.boundingBox())!.height, `${tool} visible return height`).toBeGreaterThanOrEqual(40);
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".editor-card").first(), `${tool} diagram focused`).toBeFocused();
+  }
+});

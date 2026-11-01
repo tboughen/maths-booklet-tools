@@ -33,9 +33,36 @@
   color: var(--ink);
   font: inherit;
 }
-.booklet-editor .editor-inspector-link,
-.booklet-editor .editor-diagram-link {
-  display: none;
+/* Beside the resource the settings are already in view, so these jumps stay out of sight until a
+   keyboard reaches them: Tab lands on "Edit settings" before the diagram's many hit targets. */
+@media (min-width: 901px) {
+  .booklet-editor .editor-inspector-link:not(:focus-visible),
+  .booklet-editor .editor-diagram-link:not(:focus-visible) {
+    /* Visually hidden; !important so a tool's own button sizing cannot reveal a sliver. */
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+  }
+  .booklet-editor .editor-inspector-link:focus-visible,
+  .booklet-editor .editor-diagram-link:focus-visible {
+    min-height: 40px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    color: #174d89;
+    font:
+      600 13px/1.4 "Segoe UI",
+      sans-serif;
+  }
 }
 .booklet-editor .example-launch {
   margin-bottom: 0;
