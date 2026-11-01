@@ -1,3 +1,4 @@
+import { speakRatio } from "./speakRatio";
 import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import {
@@ -19,7 +20,6 @@ import { ArrowDown, MousePointer2, Type } from "lucide-react";
 import {
   applyRatioOperations,
   decodeRatio,
-  describeRatio,
   emptyRatioTable,
   parseRatioFile,
   ratioEditorLink,
@@ -826,7 +826,7 @@ export default function RatioTablePage({
           {pending.envelope && (
             <div
               className="ratio-import-preview"
-              aria-label={describeRatio(pending.envelope)}
+              aria-label={speakRatio(pending.envelope)}
               dangerouslySetInnerHTML={{
                 __html: renderRatioSvg(pending.envelope.document),
               }}
