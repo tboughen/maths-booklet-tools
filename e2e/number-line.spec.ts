@@ -13,6 +13,21 @@ test.beforeEach(async ({ page }) => {
   );
   await page.reload();
 });
+test("Cancel input is only available when there is something to cancel", async ({
+  page,
+}) => {
+  const cancel = page.getByRole("button", { name: "Cancel input", exact: true });
+  const field = page.getByLabel("Inequality or value", { exact: true });
+  await expect(cancel).toBeDisabled();
+  await field.fill("2 < x");
+  await expect(cancel).toBeEnabled();
+  await cancel.click();
+  await expect(field).toHaveValue("");
+  await expect(cancel).toBeDisabled();
+  await page.getByRole("button", { name: "Edit axis range", exact: true }).click();
+  await expect(cancel).toBeEnabled();
+});
+
 test("blank, direct drawing, exact endpoint edit, label blanks and Undo", async ({
   page,
 }) => {

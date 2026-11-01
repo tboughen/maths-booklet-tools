@@ -176,7 +176,9 @@ export function NotationPanel({
             >
               Apply drawing
             </button>
-            <button onClick={cancel}>Cancel input</button>
+            <button disabled={!edited && !error} onClick={cancel}>
+              Cancel input
+            </button>
           </div>
         </section>
       )}
