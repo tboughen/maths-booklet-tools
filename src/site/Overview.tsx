@@ -33,7 +33,12 @@ export function Overview({ home = false }: { home?: boolean }) {
       aria-label={home ? "Home" : undefined}
       tabIndex={-1}
     >
-      {!home && (
+      {home ? (
+        <PageHeading
+          title="MathsDock"
+          description="Reviewed exam questions, paper building, assessment follow-up and diagram tools for maths staff."
+        />
+      ) : (
         <PageHeading
           title="Booklet tools"
           description="Create clear diagrams for lesson resources, then copy them into Word."
