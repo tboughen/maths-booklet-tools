@@ -96,6 +96,9 @@ export default function App({ active = true }: { active?: boolean }) {
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
   const [equationOpen, setEquationOpen] = useState(false);
+  // The control that opened the equation form, so closing it can return focus there.
+  const inspector = useRef<HTMLElement>(null),
+    equationOpener = useRef<string | null>(null);
   const [equationRevision, setEquationRevision] = useState(0);
   const [editingEquationId, setEditingEquationId] = useState<string | null>(
     null,
@@ -337,6 +340,11 @@ export default function App({ active = true }: { active?: boolean }) {
   function openEquationEditor(object?: StraightObject) {
     if (locked()) return;
     setEditingEquationId(object?.id ?? null);
+    const opener = globalThis.document.activeElement;
+    equationOpener.current =
+      opener instanceof HTMLButtonElement && inspector.current?.contains(opener)
+        ? (opener.textContent ?? "").trim()
+        : null;
     setEquationOpen(true);
     setTool("select");
   }
@@ -529,7 +537,11 @@ export default function App({ active = true }: { active?: boolean }) {
             />
           </Panel>
 
-          <aside className="inspector-stack" aria-label="Graph settings">
+          <aside
+            ref={inspector}
+            className="inspector-stack"
+            aria-label="Graph settings"
+          >
             <ExampleGallery
               examples={graphGallery}
               active={active}
@@ -555,14 +567,16 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEquationOpen(false);
                   setEditingEquationId(null);
                   setEquationRevision((revision) => revision + 1);
-                  // Return focus to the button that opened the form.
-                  requestAnimationFrame(() =>
-                    globalThis.document
-                      .querySelector<HTMLButtonElement>(
-                        ".graph-control-group .secondary-panel-button",
-                      )
-                      ?.focus(),
-                  );
+                  // Return focus to the control that opened the form ("Line by equation" or
+                  // "Edit equation"; the latter is re-rendered, so it is found again by its text).
+                  const opener = equationOpener.current;
+                  equationOpener.current = null;
+                  if (active && opener)
+                    requestAnimationFrame(() =>
+                      [...(inspector.current?.querySelectorAll("button") ?? [])]
+                        .find((button) => button.textContent?.trim() === opener)
+                        ?.focus(),
+                    );
                 }}
               />
             ) : selectedObject ? (

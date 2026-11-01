@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 import { cloneDefaultDocument } from "./domain/diagram";
@@ -317,6 +317,11 @@ describe("graph builder", () => {
     expect(
       screen.queryByRole("textbox", { name: "Line equation" }),
     ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Line by equation" }),
+      ).toHaveFocus(),
+    );
 
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByText("1 object")).toBeInTheDocument();
@@ -389,6 +394,12 @@ describe("graph builder", () => {
     await user.keyboard("{Escape}");
     expect(screen.getByRole("button", { name: "Copy image" })).toBeEnabled();
     expect(screen.getByText("1 object")).toBeInTheDocument();
+    // Closing an equation edit returns focus to Edit equation, not to Line by equation.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Edit equation" }),
+      ).toHaveFocus(),
+    );
   });
   it("retains invalid coordinates and allows keyboard Cancel without blur-committing a valid draft", async () => {
     const e = cloneDefaultDocument();
