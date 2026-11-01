@@ -65,3 +65,56 @@ jobs:
           name: judge-panel
           path: review-shadow.json
           retention-days: 90
+  # Phase 2 auto-merge (docs/AUTONOMOUS-LOOP-POLICY.md, unanimous-pass rule). Only loop/ branches
+  # from this repository, only while the repository variable MATHSDOCK_LOOP_ENABLED is "true".
+  # It queues GitHub auto-merge, so the merge still waits for the required `checks` job, or labels
+  # the PR loop:needs-tim. Like the judges, it never runs pull-request code: it reads the PR with
+  # git and runs the decision script from the base branch.
+  auto-merge:
+    needs: judges
+    if: ${{ !cancelled() && needs.judges.result == 'success' && vars.MATHSDOCK_LOOP_ENABLED == 'true' && startsWith(github.head_ref, 'loop/') && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out the pull request (read as data only)
+        uses: actions/checkout@v7
+        with:
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Check out the trusted base-branch code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Fetch the judges' verdicts
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: judge-panel
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: trusted/.nvmrc
+      - name: Decide
+        id: decide
+        if: ${{ hashFiles('trusted/scripts/loop/merge-decision.mjs') != '' }}
+        run: node trusted/scripts/loop/merge-decision.mjs --pr=pr --review=review-shadow.json
+        env:
+          MATHSDOCK_LOOP_ENABLED: ${{ vars.MATHSDOCK_LOOP_ENABLED }}
+          LOOP_AUTO_TIERS: T0,T1
+      - name: Queue auto-merge
+        if: ${{ steps.decide.outputs.merge == 'true' }}
+        run: gh pr merge "$PR" --auto --squash --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+      - name: Send to Tim
+        if: ${{ steps.decide.outputs.merge == 'false' }}
+        run: gh pr edit "$PR" --add-label loop:needs-tim --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}

@@ -48,16 +48,21 @@ export function classifyRisk(paths, { changedLines = 0, deletedTests = false } =
   return { tier, reasons, paths: per };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const base = process.argv.find(a => a.startsWith('--base='))?.slice(7) || 'HEAD^1';
-  const git = args => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+/** Classifies the change between `base` and HEAD in the git checkout at `cwd`. */
+export function classifyGitDiff({ base = 'HEAD^1', cwd } = {}) {
+  const git = args => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const status = git(['diff', '--no-renames', '--name-status', base, 'HEAD']).split('\n').filter(Boolean).map(l => l.split('\t'));
   const paths = status.map(s => s[1]);
   const deletedTests = status.some(([s, p]) => s === 'D' && test.test(p));
   const changedLines = git(['diff', '--no-renames', '--numstat', base, 'HEAD']).split('\n').filter(Boolean)
     .map(l => l.split('\t')).filter(([, , p]) => !/(?:fixtures|contracts|golden)\/|baseline\.json$|package-lock\.json$/.test(p))
     .reduce((n, [a, d]) => n + (Number(a) || 0) + (Number(d) || 0), 0);
-  const result = classifyRisk(paths, { changedLines, deletedTests });
+  return { ...classifyRisk(paths, { changedLines, deletedTests }), changedLines };
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const base = process.argv.find(a => a.startsWith('--base='))?.slice(7) || 'HEAD^1';
+  const result = classifyGitDiff({ base });
   console.log(`risk tier (shadow): ${result.tier} ${TIERS[result.tier]}`);
   for (const r of result.reasons) console.log(`  ${r}`);
   console.log(`::notice title=Risk tier ${result.tier} (shadow mode)::${result.reasons.join(' | ')}`);
