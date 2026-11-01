@@ -710,3 +710,35 @@ for (const width of [320, 375, 768, 1440])
       fullPage: true,
     });
   });
+for (const width of [320, 1440])
+  test(`structure and inspector controls use the shared 14 px label at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/tools/venn");
+    const controls = [
+      page.getByRole("button", { name: "Edit", exact: true }),
+      page.getByRole("button", { name: "Shade", exact: true }),
+      page.getByLabel("Number of sets", { exact: true }),
+      page.getByRole("button", { name: /Overlap/ }),
+      page.getByRole("button", { name: /Separate/ }),
+      page.getByRole("button", { name: /Nested/ }),
+      page.locator(".vn-view-note"),
+      page.locator(".vn-tabs button").first(),
+    ];
+    for (const control of controls) {
+      await expect(control).toBeVisible();
+      const size = await control.evaluate((el) =>
+        parseFloat(getComputedStyle(el).fontSize),
+      );
+      expect(
+        size,
+        await control.evaluate((el) => el.outerHTML.slice(0, 80)),
+      ).toBeGreaterThanOrEqual(14);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
