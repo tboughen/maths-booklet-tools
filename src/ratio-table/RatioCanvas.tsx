@@ -1,9 +1,9 @@
+import { speakRatio } from "./speakRatio";
 import { useRef } from "react";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import type { CSSProperties } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import {
-  describeRatio,
   ratioMetrics,
   renderRatioSvg,
 } from "../../packages/ratio-table-core/src/interchange";
@@ -128,7 +128,7 @@ export function RatioCanvas({
             className="ratio-preview"
             data-testid="ratio-preview"
             role="img"
-            aria-label={describeRatio(envelope)}
+            aria-label={speakRatio(envelope)}
             dangerouslySetInnerHTML={{ __html: renderRatioSvg(document) }}
           />
           {guides && (

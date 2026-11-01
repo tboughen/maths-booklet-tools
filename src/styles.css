@@ -274,7 +274,7 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
 @media (prefers-color-scheme: dark) {
