@@ -50,6 +50,15 @@
   width: 72px;
   box-sizing: border-box;
 }
+/* "+ Section" and "− Section" stay on one line, at the shared button-label size. */
+.bm-v2 .bm-side-controls button {
+  width: auto;
+  min-width: 72px;
+  padding-inline: 4px;
+  min-height: 44px;
+  white-space: nowrap;
+  font-size: var(--button-label, 14px);
+}
 .bm-side-controls button,
 .bm-bottom-controls button {
   min-height: 44px;
@@ -209,13 +218,33 @@
 .bm-draft input,
 .bm-draft select,
 .bm-settings select {
-  border: 1px solid #b7c9dd;
-  border-radius: 6px;
+  border: 1px solid var(--line-strong, #bac6d3);
+  border-radius: 4px;
   background: #fff;
   padding: 7px;
   color: #213c59;
   font: inherit;
   width: 100%;
+}
+/* Inspector headings and text fields match the other booklet tools. */
+.bm-v2 :is(.bm-settings, .bm-draft) h2 {
+  margin: 0;
+  font:
+    600 17px/1.3 "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  color: #213c59;
+}
+.bm-v2
+  .bm-settings
+  input:not([type="checkbox"], [type="radio"], [type="file"]) {
+  border: 1px solid var(--line-strong, #bac6d3);
+  border-radius: 4px;
+  background: #fff;
+  padding: 7px;
+  color: #213c59;
+  font: inherit;
 }
 @media (max-width: 600px) {
   .bm-stage {
