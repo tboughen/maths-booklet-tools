@@ -12,6 +12,14 @@ import {
 } from "../packages/graph-core/src/png-bytes";
 const key = "mathsdock:value-table-graph:v1";
 
+test("the print size is shown once, in the preview bar", async ({ page }) => {
+  await open(page);
+  await expect(page.locator(".resource-size")).toHaveCount(1);
+  await expect(page.locator(".resource-size")).toContainText(/Actual export size: \d/);
+  await expect(page.getByText(/Print size:/)).toHaveCount(0);
+  await expect(page.locator(".vg-size")).toHaveText("Axis numbers: 12 pt. Preview zoom does not change print size.");
+});
+
 test("direct equation and axis editing retain snapshots and have one control location", async ({
   page,
 }) => {

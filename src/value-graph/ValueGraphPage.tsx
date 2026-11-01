@@ -1855,9 +1855,7 @@ export default function ValueGraphPage({
               </div>
             </div>
             <p className="vg-size">
-              Print size: {(m.width / 10).toFixed(1)} ×{" "}
-              {(m.height / 10).toFixed(1)} cm. Axis numbers: 12 pt. Preview zoom
-              does not change print size.
+              Axis numbers: 12 pt. Preview zoom does not change print size.
             </p>
             {warnings(envelope).map((w) => (
               <p className="vg-warning" key={w}>
