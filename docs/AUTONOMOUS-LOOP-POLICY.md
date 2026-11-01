@@ -1,7 +1,7 @@
 # Autonomous improvement loop: merge policy
 
-Version 1 (draft), 31 October 2026. This policy is guidance (tier T7 below): it changes only when
-Tim approves the change.
+Version 2, 1 November 2026 (phase 2 under the unanimous-pass rule); version 1 (draft), 31 October
+2026. This policy is guidance (tier T7 below): it changes only when Tim approves the change.
 
 The loop lets Claude sessions make many small MathsDock improvements and merge the safe ones, so
 that Tim reviews only what needs his judgement. This file says what may merge without him, what
@@ -27,7 +27,7 @@ Tim can narrow or withdraw the grant at any time with a message in any thread.
 | Kind | Who asked for it | Merge path |
 | --- | --- | --- |
 | **Thread PR** | Tim asked for the work in a project thread | The thread opens one PR, keeps it green and reports to the coordinator. The coordinator decides when it merges, alone or in a batch, once required checks pass. A thread merges its own PR only when the coordinator asks. |
-| **Loop PR** | Nobody; picked from the backlog (`loop:candidate` issue) | Branch `loop/<issue>-<slug>`. Merges automatically only when its tier is enabled for the current phase (section 4) and every gate for that tier passes. Otherwise it waits for Tim with `loop:needs-tim`. |
+| **Loop PR** | Nobody; picked from the backlog (`loop:candidate` issue) | Branch `loop/<issue>-<slug>`. Merges automatically only when its tier is enabled for the current phase (section 4), every gate for that tier passes, and all three judges pass (the unanimous-pass rule, section 4). Otherwise it waits for Tim with `loop:needs-tim`. |
 
 Tim asking for a piece of work approves merging the result, including guidance, workflow or
 schema changes he asked for. It does not approve anything outside that ask.
@@ -43,8 +43,8 @@ Unknown paths are the highest tier. A PR takes the tier of its riskiest file.
 | --- | --- | --- | --- | --- |
 | T0 | Test additions | new `**/*.test.ts(x)`, new `e2e/*.spec.ts`, new fixtures | no assertion removed or weakened; no golden accepted | auto from phase 2 |
 | T1 | Non-guidance docs | tool records in `docs/tools/*.md` other than canonical guides | links and frontmatter valid | auto from phase 2 |
-| T2 | Screen-only UI polish | `src/**/*.css`, `src/site/**`, non-export copy | every output golden unchanged; only declared screens differ; no new axe violations; judges pass | auto from phase 3 |
-| T3 | One tool's editor behaviour | `src/<tool>/**` except storage, interchange and export code | goldens and saved-file corpus unchanged; undo tests run; two judges pass | auto from phase 4 if metrics hold |
+| T2 | Screen-only UI polish | `src/**/*.css`, `src/site/**`, non-export copy | every output golden unchanged; only declared screens differ; no new axe violations | auto from phase 3 |
+| T3 | One tool's editor behaviour | `src/<tool>/**` except storage, interchange and export code | goldens and saved-file corpus unchanged; undo tests run | auto from phase 4 if metrics hold |
 | T4 | Core maths and renderers | `packages/*-core/src/**`, `assets/graph-fonts/**` | unchanged goldens: as T3. Any golden change: Tim | Tim when output changes |
 | T5 | Saved schema, interchange, storage keys | `**/interchange*`, `**/schema*`, `**/storage*`, emitted schemas | always | Tim |
 | T6 | MCP service and advertised metadata | `services/**`, `Dockerfile*`, `render.yaml`, `tsconfig.service.json` | always | Tim |
@@ -58,12 +58,26 @@ PRs go to `loop:needs-tim`.
 
 Phases never advance automatically. Tim approves each step from the weekly digest.
 
+**Unanimous-pass rule (Tim, 1 November 2026).** From phase 2, a loop PR in an enabled tier
+auto-merges only when the teacher, product and adversarial judges all return `pass` and every gate
+passes. Any `concerns` or `fail` from any judge, or a judge that did not run, sends the PR to Tim
+with `loop:needs-tim`; a concern is a reason to ask, not a veto. "Agreement" in the exit criteria
+and in section 7 therefore means: of the PRs the panel passed unanimously, the share Tim accepts
+when he reviews them (in the shadow log, then in the digest sample).
+
+**Phase 1 result (1 November 2026).** 20 loop PRs (#82 to #102, not counting the rubric change
+#96). Strict agreement was 14 of 20 (70%), below the 85% written in version 1. All six
+disagreements were judge concerns on PRs Tim chose to merge; the panel never passed a PR Tim
+rejected. Under the unanimous-pass rule agreement was 14 of 14, calibration recall was 7 of 7 and
+there was no false pass on a teaching-rule class, so Tim approved phase 2. Evidence:
+`loop/shadow-log.md` in the project files.
+
 | Phase | What happens | Exit criteria |
 | --- | --- | --- |
 | 0 Foundations (now) | Wave 1 gates (section 5) built as thread PRs. No loop PRs. | Gates run in CI on every PR; branch protection on. |
-| 1 Shadow | The loop opens `loop:shadow` PRs nightly and every gate and judge runs, but **nothing auto-merges**. Tim's verdict on each PR is logged against the judges'. | 20 or more PRs; judge recall at least 0.9 on the calibration set; agreement with Tim at least 85%; no false pass on a teaching-rule class. |
-| 2 | Auto-merge T0 and T1. | Two weeks with no escaped defects or loop reverts. |
-| 3 | Add T2. | Escaped defects at most 1 in 30 merged PRs; agreement at least 90% over 30 samples. |
+| 1 Shadow (done 1 November 2026) | The loop opens `loop:shadow` PRs and every gate and judge runs, but **nothing auto-merges**. Tim's verdict on each PR is logged against the judges'. | 20 or more PRs; judge recall at least 0.9 on the calibration set; agreement with Tim at least 85% (unanimous-pass agreement, above); no false pass on a teaching-rule class. |
+| 2 (approved 1 November 2026) | Auto-merge T0 and T1 under the unanimous-pass rule. Everything else still goes to Tim. | Two weeks with no escaped defects or loop reverts. |
+| 3 | Add T2. | Escaped defects at most 1 in 30 merged PRs; unanimous-pass agreement at least 90% over 30 samples. |
 | 4 (optional) | Add T3 and golden-identical T4 refactors. | Phase 3 metrics held for four weeks. |
 
 T5 to T8 never auto-merge from the loop.
@@ -123,8 +137,9 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
 - **Revert.** If a loop merge breaks `main`, the loop reverts its own commit and pauses until the
   cause is fixed. It never reverts anyone else's commit; it opens an issue instead.
 - **Suspension.** Auto-merge stops when: the repository variable `MATHSDOCK_LOOP_ENABLED` is not
-  `true`; a PR has `loop:hold`; judge calibration falls below threshold; agreement with Tim drops
-  below 80% over 30 samples; two loop reverts happen within seven days; or a budget cap is reached.
+  `true`; a PR has `loop:hold`; judge calibration falls below threshold; Tim rejects or reverts
+  any PR the panel passed unanimously (until he reviews why); two loop reverts happen within seven
+  days; or a budget cap is reached.
 - **CI budget.** Job slots are the scarce resource. Loop and thread PRs push rarely, open drafts
   while working, and the coordinator batches merges (`docs/release/CI-THROUGHPUT.md`). The loop
   never dispatches release qualification.
@@ -144,3 +159,5 @@ Each of these is a one-off decision; none is needed until the matching phase.
 4. The loop runner: a scheduled cloud session trigger, and a monthly spend cap in pounds (before phase 1).
 5. Approve the judge rubrics and the calibration set as the definition of good enough (before phase 3).
 6. Each phase change, from the digest.
+7. Approve the auto-merge step itself: a workflow change (tier T8, so a thread PR, never a loop PR)
+   that merges a loop PR only under the unanimous-pass rule (before the first phase 2 merge).
