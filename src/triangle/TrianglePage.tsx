@@ -1553,7 +1553,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   onChange={(ev) => selectObject(ev.target.value || null)}
                 >
                   <option value="">
-                    Choose a triangle, side, angle or label
+                    Choose an object
                   </option>
                   {[
                     "Triangles",
