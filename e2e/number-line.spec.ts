@@ -27,13 +27,18 @@ test("Cancel input is only available when there is something to cancel", async (
   await cancel.click();
   await expect(field).toHaveValue("");
   await expect(cancel).toBeDisabled();
+  // An offered widening is also something to cancel; Cancel input withdraws it with the draft.
+  await field.fill("x >= 8");
   await page
-    .getByRole("button", { name: "Edit axis range", exact: true })
+    .getByRole("button", { name: "Apply drawing", exact: true })
     .click();
+  const widen = page.getByRole("button", { name: /^Widen the line to fit/ });
+  await expect(widen).toBeVisible();
   await expect(cancel).toBeEnabled();
   await cancel.click();
   await expect(cancel).toBeDisabled();
-  await expect(page.getByLabel("Notation minimum")).toHaveCount(0);
+  await expect(field).toHaveValue("");
+  await expect(widen).toHaveCount(0);
 });
 
 test("Cancel input keeps keyboard focus and matches Escape", async ({
