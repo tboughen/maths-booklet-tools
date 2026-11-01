@@ -145,10 +145,12 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
   any PR the panel passed unanimously (until he reviews why and resumes it; resumed misses still
   count against the phase 3 target); two loop reverts happen within seven
   days; or a budget cap is reached.
-- **Suspension is manual for now.** Only the variable and the `loop:hold` label act by themselves.
-  The other triggers are applied by hand: whoever notices one (the loop, the coordinator or Tim)
-  sets `MATHSDOCK_LOOP_ENABLED` to `false` and runs the "Loop auto-merge" workflow from the Actions
-  tab, which cancels every queued loop merge. Tim switches it back on.
+- **Who applies a suspension.** The auto-merge workflow checks only the variable and the
+  `loop:hold` label itself; the other triggers have no automation yet, so they still bind but are
+  applied by people. When the loop or the coordinator sees one, it stops opening loop PRs, adds
+  `loop:hold` to any open loop PR (which cancels a queued merge) and tells Tim. Only Tim changes
+  `MATHSDOCK_LOOP_ENABLED` (to stop: set it to `false`, then run "Loop auto-merge" from the Actions
+  tab to cancel every queued merge) and only Tim switches it back on.
 - **Pausing for a release.** While a release is being qualified or published, new loop PRs stay
   drafts (no CI, no judges, no auto-merge) or carry `loop:hold`, so `main` does not move under the
   release. They are marked ready once the release is published.
