@@ -39,7 +39,9 @@ Every change and confirmed example/file/link replacement is undoable.
 The toolbar matches Graph tool: Edit, Add arrow and Edit headings, then history,
 Reset and Copy for Word. Lower-emphasis structural actions are grouped separately.
 Click a heading or cell and type; Enter applies, Escape restores and Tab moves
-through the fields. The default heading fields contain editable Unicode x → and
+through the fields. In a table cell, Enter applies a valid value and moves down
+to the same column in the next row, like a spreadsheet; on the last row focus
+stays put and no row is added. An invalid value keeps focus with its error. The default heading fields contain editable Unicode x → and
 y ↑. Backspace/delete removes the arrow; typing → or ↑ at the end restores it.
 The legacy text/direction representation preserves untouched saved diagrams.
 Clicking away clears all diagram selection, including arrow-source highlighting;

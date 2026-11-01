@@ -9,6 +9,7 @@ export function NumberInput({
   inputKey,
   allowEmpty = false,
   onFocus,
+  onEnter,
   disabled = false,
 }: {
   value: string;
@@ -18,6 +19,8 @@ export function NumberInput({
   onPending: (key: string, pending: boolean) => void;
   allowEmpty?: boolean;
   onFocus?: () => void;
+  /** Runs after Enter has applied a valid value (for example, to move to the next row). */
+  onEnter?: () => void;
   disabled?: boolean;
 }) {
   const [draft, setDraft] = useState(value),
@@ -37,9 +40,11 @@ export function NumberInput({
       setDraft(canonical);
       setError("");
       onPending(inputKey, false);
+      return true;
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Invalid number.");
       onPending(inputKey, true);
+      return false;
     }
   }
   return (
@@ -72,7 +77,7 @@ export function NumberInput({
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            accept();
+            if (accept()) onEnter?.();
           }
           if (e.key === "Escape") {
             e.preventDefault();
