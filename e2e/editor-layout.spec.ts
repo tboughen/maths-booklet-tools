@@ -212,3 +212,54 @@ for (const width of [320, 375])
     }
     await context.close();
   });
+test("editor text boxes and dropdowns have edges with at least 3:1 contrast", async ({
+  page,
+}) => {
+  for (const tool of editors) {
+    await page.goto(`/tools/${tool}`);
+    await expect(page.locator(".booklet-editor").first()).toBeVisible();
+    await expect(page.locator(".booklet-editor select").first()).toBeVisible();
+    const faint = await page.evaluate(() => {
+      const rgb = (c: string) => c.match(/[\d.]+/g)!.map(Number);
+      const lum = (c: string) => {
+        const [r, g, b] = rgb(c)
+          .slice(0, 3)
+          .map((v) => {
+            v /= 255;
+            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+          });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const behind = (e: Element) => {
+        for (let n = e.parentElement; n; n = n.parentElement) {
+          const c = getComputedStyle(n).backgroundColor;
+          if (rgb(c)[3] !== 0) return c;
+        }
+        return "rgb(255, 255, 255)";
+      };
+      const skip = ["checkbox", "radio", "range", "file", "color", "hidden"];
+      return [
+        ...document.querySelectorAll(
+          ".booklet-editor :is(input, select, textarea)",
+        ),
+      ]
+        .filter(
+          (e) =>
+            (e as HTMLElement).offsetParent &&
+            !skip.includes((e as HTMLInputElement).type) &&
+            !e.closest(".ratio-edit-layer") &&
+            parseFloat(getComputedStyle(e).borderTopWidth) > 0,
+        )
+        .map((e) => {
+          const [a, b] = [
+            lum(getComputedStyle(e).borderTopColor),
+            lum(behind(e)),
+          ];
+          const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+          return { field: e.outerHTML.slice(0, 80), ratio };
+        })
+        .filter((f) => f.ratio < 3);
+    });
+    expect(faint, tool).toEqual([]);
+  }
+});
