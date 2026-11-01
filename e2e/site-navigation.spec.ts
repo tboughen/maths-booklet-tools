@@ -27,6 +27,19 @@ test("the wide header does not repeat the current tool's name beside the section
   await expect(page.locator(".site-navigation-row").getByRole("link", { name: "Booklet tools", exact: true })).toHaveAttribute("aria-current", "true");
 });
 
+test("home has one visible page heading and navigation focuses it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading).toHaveCount(1);
+  await expect(heading).toHaveText("MathsDock");
+  await expect(heading).toBeVisible();
+  await page.goto("/tools/venn");
+  await page.getByRole("link", { name: "Maths Dock home", exact: true }).click();
+  await expect(heading).toBeFocused();
+});
+
 test("home and overview keep the two sections distinct; bare and existing URLs still work", async ({
   page,
 }) => {
