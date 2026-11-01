@@ -332,3 +332,22 @@ for (const width of [320, 375, 768, 1440])
       page.locator('.bm-resource [data-fraction="horizontal"]'),
     ).not.toHaveCount(0);
   });
+test("save status uses the shared vocabulary and is not red before any edit", async ({
+  page,
+}) => {
+  await page.goto("/tools/bar-model");
+  const status = page.locator(".resource-save-status");
+  await expect(status).toHaveText("Saved on this device");
+  await expect(status).toHaveClass(/resource-save-status--saved/);
+});
+test("save status stays neutral while damaged saved work waits for a recovery choice", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("maths-booklet-tools:bar-model:v2", "{not json"),
+  );
+  await page.goto("/tools/bar-model");
+  const status = page.locator(".resource-save-status");
+  await expect(status).toHaveText("Not saved on this device yet");
+  await expect(status).toHaveClass(/resource-save-status--pending/);
+});

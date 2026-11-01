@@ -148,8 +148,11 @@ export default function LessonBarModelPage({
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [message, setMessage] = useState(startup.message),
+    // Shared save vocabulary: green only when nothing is waiting on a recovery choice.
     [saveState, setSaveState] = useState(
-      "Save an editable file to keep a portable copy",
+      startup.recovery === undefined && !startup.alternate
+        ? "Saved on this device"
+        : "Not saved on this device yet",
     );
   const [pending, setPending] = useState<{
       envelope: c.Envelope;
@@ -674,7 +677,14 @@ export default function LessonBarModelPage({
           title="Bar modelling"
           description="Build simple part-whole, comparison, fraction and ratio models."
         >
-          <ResourceSaveStatus text={saveState} />
+          <ResourceSaveStatus
+            text={saveState}
+            state={
+              saveState === "Not saved on this device yet"
+                ? "pending"
+                : undefined
+            }
+          />
         </PageHeading>
         {legacyRecoveryNotice}
         <section className="workspace">
