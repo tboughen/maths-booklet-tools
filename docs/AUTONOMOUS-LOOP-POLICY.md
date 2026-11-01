@@ -152,10 +152,10 @@ These hold for every PR, whoever wrote it, and no golden update inside a loop PR
   `MATHSDOCK_LOOP_ENABLED` (to stop: set it to `false`, then run "Loop auto-merge" from the Actions
   tab to cancel every queued merge) and only Tim switches it back on.
 - **Pausing for a release.** While a release is being qualified or published, `main` must not move
-  under it: new loop PRs open as drafts (no CI, no judges, no auto-merge), and every loop PR that is
-  already open gets `loop:hold`, which cancels any queued merge. Once the release is published,
-  drafts are marked ready and only the holds added for the release are removed. A hold applied for
-  a suspension trigger is removed only by Tim.
+  under it: new loop PRs open as drafts, and every open loop PR is converted back to a draft (a
+  draft gets no CI or judges, and conversion cancels any queued merge). Drafts are marked ready
+  once the release is published. A release never uses `loop:hold`, so that label always means a
+  suspension or Tim's own hold, and only Tim removes it.
 - **CI budget.** Job slots are the scarce resource. Loop and thread PRs push rarely, open drafts
   while working, and the coordinator batches merges (`docs/release/CI-THROUGHPUT.md`). The loop
   never dispatches release qualification.
