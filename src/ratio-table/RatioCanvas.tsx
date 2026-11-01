@@ -241,6 +241,19 @@ export function RatioCanvas({
                         onFocus={() =>
                           onSelect({ kind: "cell", rowId: row.id, column })
                         }
+                        onEnter={() => {
+                          // Like a spreadsheet: Enter moves down the column. The last row keeps
+                          // focus; rows are never added implicitly. Focus after the commit has
+                          // re-rendered the cells.
+                          const next = `Row ${index + 2} ${document.headings[column].text} value`;
+                          requestAnimationFrame(() =>
+                            stage.current
+                              ?.querySelector<HTMLInputElement>(
+                                `input[aria-label="${CSS.escape(next)}"]`,
+                              )
+                              ?.focus(),
+                          );
+                        }}
                         onCommit={(value) =>
                           onOperations([
                             {

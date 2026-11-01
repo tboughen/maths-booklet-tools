@@ -1029,3 +1029,45 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
   await expect(highlighted).toHaveCount(0);
   await expect(page.locator(".ratio-row-target")).toHaveCount(0);
 });
+
+test("Enter applies a cell and moves down the column like a spreadsheet, never past the last row", async ({
+  page,
+}) => {
+  await seed(page, JSON.stringify(simple));
+  await page.goto("/tools/ratio-table");
+  const cell = (row: number, heading: string) =>
+    page.getByLabel(`Row ${row} ${heading} value`, { exact: true });
+
+  await cell(1, "x").click();
+  await cell(1, "x").fill("6");
+  await cell(1, "x").press("Enter");
+  await expect(cell(2, "x")).toBeFocused();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[0].cells[0])
+    .toEqual({ kind: "number", value: "6" });
+
+  // The last row keeps focus and no row is added.
+  await cell(2, "x").fill("2");
+  await cell(2, "x").press("Enter");
+  await expect(cell(2, "x")).toBeFocused();
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells[0])
+    .toEqual({ kind: "number", value: "2" });
+  expect((await stored(page)).document.rows).toHaveLength(2);
+
+  // An invalid draft stays where it is, visible, and focus does not move.
+  await cell(1, "y").click();
+  await cell(1, "y").fill("1/0");
+  await cell(1, "y").press("Enter");
+  await expect(cell(1, "y")).toBeFocused();
+  await expect(cell(1, "y")).toHaveAttribute("aria-invalid", "true");
+  await expect(cell(1, "y")).toHaveValue("1/0");
+  await cell(1, "y").press("Escape");
+  await expect(cell(1, "y")).toHaveValue("8");
+
+  // Enter on a blank answer-line cell keeps the pupil's answer line.
+  await cell(2, "y").click();
+  await cell(2, "y").press("Enter");
+  await expect(cell(2, "y")).toBeFocused();
+  expect((await stored(page)).document.rows[1].cells[1]).toEqual({ kind: "answer-line" });
+});
