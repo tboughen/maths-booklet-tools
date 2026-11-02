@@ -390,11 +390,12 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media (max-width: 700px), (max-height: 520px) { .qb-overview, .qb-overview-toggle { display: none; } }
 
 /* Screen-only annotations. The ink sits above the page and its tint; it is hidden when printing. */
-.qb-annotations { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; touch-action: none; }
+/* The whole layer multiplies with the page, so printed black text stays black under a highlight (crisp on projectors). */
+.qb-annotations { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; touch-action: none; mix-blend-mode: multiply; }
 .qb-annotations.qb-annotating { pointer-events: auto; cursor: crosshair; }
 .qb-annotations.qb-tool-hand { cursor: inherit; }
 .qb-annotations.qb-tool-eraser { cursor: cell; }
-.qb-ink-highlighter { mix-blend-mode: multiply; opacity: .55; }
+.qb-ink-highlighter { opacity: .9; }
 .qb-ink-laser { filter: drop-shadow(0 0 3px #ff2a2a); }
 .qb-annotate-toggle { position: relative; }
 .qb-ink-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #c81e1e; }
