@@ -15,9 +15,11 @@ export const PEN_COLOURS = [
   { value: "#b0186b", label: "Pink" },
 ] as const;
 export const HIGHLIGHTER_COLOURS = [
-  { value: "#ffe733", label: "Yellow" },
-  { value: "#7ee07e", label: "Green" },
-  { value: "#ff8fd0", label: "Pink" },
+  // Standard bright highlighter colours, as Tim chose; they sit under the ink in multiply mode.
+  { value: "#fffc00", label: "Yellow" },
+  { value: "#00f900", label: "Green" },
+  { value: "#00fdff", label: "Blue" },
+  { value: "#ff40ff", label: "Pink" },
 ] as const;
 export const SIZES = [
   { value: "thin", label: "Thin", pen: 2, highlighter: 12 },
