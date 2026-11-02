@@ -141,7 +141,7 @@ const svgCursor = (body: string, x: number, y: number, fallback: string) =>
 
 /**
  * A pointer that looks like the tool, so teachers see what will happen before they touch the page: a dot of the
- * pen's colour and size, an upright highlighter nib, an eraser with a dotted target at its top-left corner, where it rubs out,
+ * pen's colour and size, an upright highlighter nib, an eraser with a dotted target where its top and left edges would meet, which is where it rubs out,
  * and a glowing laser dot. Cursors are capped at 32 px, the largest size every browser shows.
  */
 export function toolCursor(tool: AnnotationTool, colour: string, size: number, scale: number): string | undefined {
@@ -156,9 +156,9 @@ export function toolCursor(tool: AnnotationTool, colour: string, size: number, s
   }
   if (tool === "eraser") {
     return svgCursor(
-      `<g transform="rotate(35 20 20)"><rect x="10" y="14" width="20" height="12" rx="2.5" fill="white" stroke="#33415c" stroke-width="1.3"/><rect x="10" y="14" width="8" height="12" rx="2.5" fill="#f2a7c3" stroke="#33415c" stroke-width="1.3"/></g>` +
-      `<g stroke="#33415c" stroke-width="1.2" stroke-dasharray="1.5 1.5"><line x1="0" y1="5" x2="10" y2="5"/><line x1="5" y1="0" x2="5" y2="10"/></g><circle cx="5" cy="5" r="1.6" fill="#33415c"/>`,
-      5, 5, "cell");
+      `<g transform="translate(-2.37 -3.35) rotate(35 20 20)"><rect x="10" y="14" width="20" height="12" rx="2.5" fill="white" stroke="#33415c" stroke-width="1.3"/><rect x="10" y="14" width="8" height="12" rx="2.5" fill="#f2a7c3" stroke="#33415c" stroke-width="1.3"/></g>` +
+      `<g stroke="#33415c" stroke-width="1.2" stroke-dasharray="1.5 1.5"><line x1="1" y1="6" x2="11" y2="6"/><line x1="6" y1="1" x2="6" y2="11"/></g><circle cx="6" cy="6" r="1.6" fill="#33415c"/>`,
+      6, 6, "cell");
   }
   return svgCursor(`<circle cx="16" cy="16" r="10" fill="#ff2a2a" fill-opacity=".18"/><circle cx="16" cy="16" r="6.5" fill="#ff2a2a" fill-opacity=".35"/><circle cx="16" cy="16" r="4" fill="#ff2a2a" stroke="white" stroke-width="1.2"/>`, 16, 16, "crosshair");
 }
