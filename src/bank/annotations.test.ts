@@ -72,7 +72,7 @@ describe("screen-only annotations", () => {
     expect(pen).toContain("#e8343a");
     expect(pen).toMatch(/\) 16 16, crosshair$/);
     expect(decodeURIComponent(toolCursor("highlighter", "#fffc00", 18, 1)!)).toContain("#fffc00");
-    expect(toolCursor("eraser", "", 0, 1)).toMatch(/\) 6 27, cell$/);
+    expect(toolCursor("eraser", "", 0, 1)).toMatch(/\) 5 5, cell$/);
     expect(toolCursor("laser", "", 0, 1)).toContain("crosshair");
     expect(toolCursor("hand", "", 0, 1)).toBeUndefined();
   });
