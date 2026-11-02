@@ -10,6 +10,8 @@ interface Options {
   /** Changes whenever the stage shows different content, so a pending scroll lands after that layout. */
   layoutKey: string;
   enabled: boolean;
+  /** A drawing tool is active: double-click draws dots rather than zooming. */
+  drawing?: boolean;
 }
 
 type Pending = { kind: "anchor"; anchor: Point; anchorAfter: Point; scale: number; offset: Point; scroll: ScrollState } | { kind: "scroll"; scroll: ScrollState };
@@ -34,9 +36,9 @@ const centre = (stage: HTMLElement): Point => ({ x: stage.clientWidth / 2, y: st
  * drag to pan (mouse and one finger), double-click or double-tap, and swipe to change question at fit.
  * Every change is screen-only and anchored, so the point under the pointer or fingers stays put.
  */
-export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, enabled }: Options) {
-  const live = useRef({ zoom, scale, setZoom, onSwipe });
-  live.current = { zoom, scale, setZoom, onSwipe };
+export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, enabled, drawing = false }: Options) {
+  const live = useRef({ zoom, scale, setZoom, onSwipe, drawing });
+  live.current = { zoom, scale, setZoom, onSwipe, drawing };
   const pending = useRef<Pending | undefined>(undefined);
 
   /** Zooms to `next`, keeping the content under `anchor` fixed (or moving it to `anchorAfter`). */
@@ -94,6 +96,8 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
     const gestureChange = (event: Event) => { const g = event as Gesture; event.preventDefault(); queue(clampZoom(gestureStart * g.scale), stagePoint(el, g.clientX, g.clientY)); };
 
     const pointers = new Map<number, Point>();
+    // Touches the annotation layer took for drawing; a second finger turns them into a pinch.
+    const claimed = new Map<number, Point>();
     let gesture: { kind: "pan" | "pinch"; start: Point; last: Point; startZoom: number; startDistance: number; lastMid: Point; moved: number; pointerType: string; pinched: boolean } | undefined;
     let lastTap: { time: number; at: Point } | undefined;
     const distance = () => { const [a, b] = [...pointers.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
@@ -106,6 +110,7 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       if ((event.target as HTMLElement).closest(interactive)) return;
       if (event.pointerType === "mouse" && event.button !== 0) return;
       const at = stagePoint(el, event.clientX, event.clientY);
+      if ((event as PointerEvent & { qbClaimed?: boolean }).qbClaimed) { if (event.pointerType === "touch") claimed.set(event.pointerId, at); return; }
       if (event.pointerType === "mouse") {
         const o = overflow();
         if (!o.x && !o.y) return;
@@ -113,6 +118,11 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       }
       pointers.set(event.pointerId, at);
       try { el.setPointerCapture(event.pointerId); } catch { /* Capture is optional. */ }
+      if (event.pointerType === "touch" && claimed.size) {
+        for (const [id, point] of claimed) pointers.set(id, point);
+        claimed.clear();
+        gesture = { kind: "pan", start: at, last: at, startZoom: live.current.zoom, startDistance: 1, lastMid: at, moved: 0, pointerType: "touch", pinched: true };
+      }
       if (pointers.size === 1) gesture = { kind: "pan", start: at, last: at, startZoom: live.current.zoom, startDistance: 1, lastMid: at, moved: 0, pointerType: event.pointerType, pinched: false };
       else if (pointers.size === 2 && gesture) {
         Object.assign(gesture, { kind: "pinch", startZoom: queuedZoom(), startDistance: distance(), lastMid: midpoint(), pinched: true });
@@ -120,6 +130,7 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       if (event.pointerType === "mouse") el.classList.add("qb-grabbing");
     };
     const move = (event: PointerEvent) => {
+      if (claimed.has(event.pointerId)) { claimed.set(event.pointerId, stagePoint(el, event.clientX, event.clientY)); return; }
       if (!gesture || !pointers.has(event.pointerId)) return;
       const at = stagePoint(el, event.clientX, event.clientY);
       const previous = pointers.get(event.pointerId)!;
@@ -139,6 +150,7 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
       else if (event.pointerType !== "mouse") window.scrollBy(0, -dy);
     };
     const up = (event: PointerEvent) => {
+      claimed.delete(event.pointerId);
       if (!pointers.has(event.pointerId)) return;
       pointers.delete(event.pointerId);
       try { el.releasePointerCapture(event.pointerId); } catch { /* Capture is optional. */ }
@@ -165,7 +177,7 @@ export function useStageZoom({ stage, zoom, scale, setZoom, onSwipe, layoutKey, 
     };
     const doubleClick = (event: MouseEvent) => {
       // Touch double-taps are handled above; browsers also report them as a double-click.
-      if (lastPointerType !== "mouse") return;
+      if (lastPointerType !== "mouse" || live.current.drawing) return;
       if ((event.target as HTMLElement).closest(interactive)) return;
       event.preventDefault();
       requestZoom(toggleDetailZoom(live.current.zoom), stagePoint(el, event.clientX, event.clientY));

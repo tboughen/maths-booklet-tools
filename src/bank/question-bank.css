@@ -368,15 +368,17 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media (max-width: 760px) { .qb-display-actions { padding: 54px 8px 8px; } }
 
 /* Zoom and pan (screen only). The frame holds the stage plus the overview map and the Display zoom bar. */
-.qb-stage-frame { position: relative; display: flex; flex: 1; min-height: 0; min-width: 0; }
-.qb-stage-frame > .qb-stage { flex: 1; }
+.qb-stage-frame { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.qb-stage-frame > .qb-stage { flex: 1; min-height: 0; }
 .qb-stage { touch-action: none; }
 .qb-stage.qb-pannable { cursor: grab; }
 .qb-stage.qb-grabbing { cursor: grabbing; user-select: none; }
 .qb-zoom-level { min-width: 48px; min-height: 36px; padding: 4px 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .qb-zoom-level:hover { background: #edf4ff; }
 .qb-zoom-level output { font-size: 13px; font-variant-numeric: tabular-nums; }
-.qb-display-zoom { position: absolute; right: 16px; bottom: 16px; z-index: 6; padding: 4px; border: 1px solid #cad4df; border-radius: 6px; background: #ffffffee; box-shadow: 0 2px 16px #18324e22; }
+.qb-display-dock { position: absolute; right: 16px; bottom: 16px; z-index: 6; display: flex; align-items: center; gap: 8px; }
+.qb-display-dock > .qb-annotate-toggle { box-shadow: 0 2px 16px #18324e22; }
+.qb-display-zoom { padding: 4px; border: 1px solid #cad4df; border-radius: 6px; background: #ffffffee; box-shadow: 0 2px 16px #18324e22; }
 .qb-overview { position: absolute; left: 12px; bottom: 12px; z-index: 6; padding: 6px; border: 1px solid #cad4df; border-radius: 6px; background: #ffffffee; box-shadow: 0 2px 16px #18324e22; }
 .qb-overview-map { position: relative; cursor: pointer; touch-action: none; line-height: 0; }
 .qb-overview-map canvas { display: block; }
@@ -386,3 +388,29 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media print { .qb-overview, .qb-overview-toggle, .qb-display-zoom { display: none !important; } }
 /* Small screens: the map would cover too much of the question; pinch and drag are enough there. */
 @media (max-width: 700px), (max-height: 520px) { .qb-overview, .qb-overview-toggle { display: none; } }
+
+/* Screen-only annotations. The ink sits above the page and its tint; it is hidden when printing. */
+.qb-annotations { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; touch-action: none; }
+.qb-annotations.qb-annotating { pointer-events: auto; cursor: crosshair; }
+.qb-annotations.qb-tool-hand { cursor: inherit; }
+.qb-annotations.qb-tool-eraser { cursor: cell; }
+.qb-ink-highlighter { mix-blend-mode: multiply; opacity: .45; }
+.qb-ink-laser { filter: drop-shadow(0 0 3px #ff2a2a); }
+.qb-annotate-toggle { position: relative; }
+.qb-ink-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #c81e1e; }
+/* A band above the stage, so it never covers the question. */
+.qb-annotate-bar { order: -1; flex: 0 0 auto; z-index: 7; display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 4px 10px; padding: 4px 8px; border-bottom: 1px solid #dce4ec; background: #f7f9fc; }
+.qb-annotate-group { display: flex; align-items: center; gap: 2px; }
+.qb-annotate-group + .qb-annotate-group { padding-left: 8px; border-left: 1px solid #dce4ec; }
+.qb-annotate-tool, .qb-annotate-colour, .qb-annotate-size { display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #253e59; cursor: pointer; }
+.qb-annotate-tool:hover:not(:disabled), .qb-annotate-colour:hover, .qb-annotate-size:hover { background: #edf4ff; }
+.qb-annotate-tool[aria-checked=true], .qb-annotate-tool[aria-pressed=true], .qb-annotate-colour[aria-checked=true], .qb-annotate-size[aria-checked=true] { border-color: #1d6fd6; background: #e3eefc; }
+.qb-annotate-tool:disabled { opacity: .4; cursor: default; }
+.qb-annotate-colour span { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #0003; }
+.qb-annotate-size span { display: block; border-radius: 50%; background: #253e59; }
+.qb-annotate-text { min-height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #253e59; font: inherit; font-size: 13px; cursor: pointer; }
+.qb-annotate-text:hover:not(:disabled) { background: #edf4ff; }
+.qb-annotate-text:disabled { opacity: .4; cursor: default; }
+.qb-annotate-fist { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #253e59; white-space: nowrap; }
+@media print { .qb-annotations, .qb-annotate-bar, .qb-display-dock { display: none !important; } }
+@media (max-width: 600px) { .qb-display-dock { left: 12px; right: 12px; justify-content: flex-end; flex-wrap: wrap; } }
