@@ -233,7 +233,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
   });
 }
 
-test("number-line quick input preserves teaching state, supports exact range drafts, cancels replacement and undoes atomically", async ({
+test("number-line quick input preserves teaching state, offers an explicit widening when a drawing does not fit, cancels replacement and undoes atomically", async ({
   page,
 }) => {
   await page.goto("/tools/number-line");
@@ -260,15 +260,14 @@ test("number-line quick input preserves teaching state, supports exact range dra
     .getByRole("button", { name: "Apply drawing", exact: true })
     .click();
   await expect(page.getByRole("alert")).toContainText("visible range");
-  await page
-    .getByRole("button", { name: "Edit axis range", exact: true })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Notation maximum", exact: true })
-    .fill("10");
-  await page
-    .getByRole("button", { name: "Apply drawing", exact: true })
-    .click();
+  // The axis is never widened silently: the error offers an explicit, previewed widening.
+  expect(await saved(page, key)).toBe(first);
+  const widen = page.getByRole("button", {
+    name: "Widen the line to fit (first tick -5, last tick 9)",
+    exact: true,
+  });
+  await widen.click();
+  await expect(page.getByRole("dialog")).toContainText("widened axis range");
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Cancel", exact: true })
@@ -277,9 +276,7 @@ test("number-line quick input preserves teaching state, supports exact range dra
   await expect(
     page.getByRole("textbox", { name: "Inequality or value", exact: true }),
   ).toHaveValue("x >= 8");
-  await page
-    .getByRole("button", { name: "Apply drawing", exact: true })
-    .click();
+  await widen.click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Replace current drawing", exact: true })
@@ -288,7 +285,7 @@ test("number-line quick input preserves teaching state, supports exact range dra
     .poll(
       async () => JSON.parse((await saved(page, key))!).document.axis.maximum,
     )
-    .toBe("10");
+    .toBe("9");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => saved(page, key)).toBe(first);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -362,4 +359,75 @@ test("typed straight-line input edits existing models, rejects nonlinear drafts 
     .toBe(1);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => saved(page, key)).toBe(before);
+});
+
+test("number-line: on a blank line, Widen the line to fit draws and widens in one undoable step", async ({
+  page,
+}) => {
+  await page.goto("/tools/number-line");
+  const key = "maths-booklet-tools:number-line:v1";
+  await expect.poll(() => saved(page, key)).not.toBeNull();
+  const original = await saved(page, key);
+  const input = page.getByRole("textbox", {
+    name: "Inequality or value",
+    exact: true,
+  });
+  await input.fill("-7 < x <= 2");
+  await page
+    .getByRole("button", { name: "Apply drawing", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("visible range");
+  await expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(await saved(page, key)).toBe(original);
+  await page
+    .getByRole("button", {
+      name: "Widen the line to fit (first tick -7, last tick 5)",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect
+    .poll(async () => JSON.parse((await saved(page, key))!).document.axis)
+    .toMatchObject({ minimum: "-7", maximum: "5", step: "1" });
+  expect(JSON.parse((await saved(page, key))!).document.solution).toMatchObject(
+    { kind: "interval", lower: "-7", upper: "2" },
+  );
+  await expect(
+    page.getByRole("button", { name: /^Widen the line to fit/ }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(() => saved(page, key)).toBe(original);
+});
+
+test("number-line: a Scale change after the offer withdraws it, so old axis settings are never reapplied", async ({
+  page,
+}) => {
+  await page.goto("/tools/number-line");
+  const key = "maths-booklet-tools:number-line:v1";
+  await expect.poll(() => saved(page, key)).not.toBeNull();
+  await page
+    .getByRole("textbox", { name: "Inequality or value", exact: true })
+    .fill("-7 < x <= 2");
+  const apply = page.getByRole("button", { name: "Apply drawing", exact: true });
+  await apply.click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Or use Widen the line to fit, below.",
+  );
+  const widen = page.getByRole("button", { name: /^Widen the line to fit/ });
+  await expect(widen).toHaveText(
+    "Widen the line to fit (first tick -7, last tick 5)",
+  );
+  const last = page.getByRole("textbox", { name: "Last tick", exact: true });
+  await last.fill("6");
+  await last.press("Enter");
+  await expect(widen).toHaveCount(0);
+  expect(JSON.parse((await saved(page, key))!).document.axis).toMatchObject({
+    minimum: "-5",
+    maximum: "6",
+  });
+  // Asking again offers a widening worked out from the new axis.
+  await apply.click();
+  await expect(widen).toHaveText(
+    "Widen the line to fit (first tick -7, last tick 6)",
+  );
 });

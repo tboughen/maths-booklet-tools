@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { create, validate } from "../../packages/number-line-core/src";
-import { parseNotation, notationSummary } from "./notation";
+import {
+  fitAxis,
+  offerWidening,
+  parseNotation,
+  notationSummary,
+} from "./notation";
 
 describe("number-line notation", () => {
   it.each([
@@ -91,5 +96,69 @@ describe("number-line notation", () => {
       }),
     ).toBe("Custom drawing");
     expect(notationSummary(null)).toBe("Blank number line");
+  });
+});
+
+describe("fitAxis (explicit Widen the line to fit)", () => {
+  const axis = {
+    ...create().document.axis,
+    minimum: "-5",
+    maximum: "5",
+    step: "1",
+  };
+  it("widens by whole steps just far enough, on each side that needs it", () => {
+    expect(fitAxis(axis, parseNotation("-7 < x <= 6"))).toMatchObject({
+      minimum: "-7",
+      maximum: "6",
+      step: "1",
+    });
+    expect(fitAxis(axis, parseNotation("x = 13/2"))).toMatchObject({
+      minimum: "-5",
+      maximum: "7",
+    });
+  });
+  it("leaves a ray one step of room in its direction", () => {
+    expect(fitAxis(axis, parseNotation("x >= 8"))).toMatchObject({
+      minimum: "-5",
+      maximum: "9",
+    });
+    expect(fitAxis(axis, parseNotation("x < -6"))).toMatchObject({
+      minimum: "-7",
+      maximum: "5",
+    });
+  });
+  it("keeps the step, variable and other axis settings, and works with fractional steps", () => {
+    const halves = { ...axis, minimum: "0", maximum: "2", step: "1/2" };
+    const wider = fitAxis(halves, parseNotation("1 <= x < 3"))!;
+    expect(wider).toEqual({ ...halves, maximum: "3" });
+  });
+  it("offers nothing when the drawing already fits or would need more than 100 steps", () => {
+    expect(fitAxis(axis, parseNotation("-3 < x <= 1"))).toBeNull();
+    expect(fitAxis(axis, parseNotation("x = 500"))).toBeNull();
+  });
+});
+
+describe("offerWidening (what the Widen button may offer)", () => {
+  const base = create();
+  const envelope = {
+    ...base,
+    document: {
+      ...base.document,
+      axis: { ...base.document.axis, minimum: "-5", maximum: "5", step: "1" },
+    },
+  };
+  it("offers only the new first and last tick when the widened document is valid", () => {
+    expect(validate(envelope)).toBeTruthy();
+    expect(offerWidening(envelope, parseNotation("-7 < x <= 2"))).toEqual({
+      minimum: "-7",
+      maximum: "5",
+    });
+  });
+  it("offers nothing when the widened line would fail validation, so the original error stays", () => {
+    // 45 tick intervals: fitAxis finds a range, but the line allows at most 32.
+    expect(
+      fitAxis(envelope.document.axis, parseNotation("x = 40")),
+    ).not.toBeNull();
+    expect(offerWidening(envelope, parseNotation("x = 40"))).toBeNull();
   });
 });

@@ -5,7 +5,7 @@ import {
   validate,
   type Envelope,
 } from "../../packages/number-line-core/src";
-import { parseNotation, notationSummary } from "./notation";
+import { offerWidening, parseNotation, notationSummary } from "./notation";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 
 export function NotationPanel({
@@ -24,8 +24,16 @@ export function NotationPanel({
   const [open, setOpen] = useState(true),
     [draft, setDraft] = useState(""),
     [edited, setEdited] = useState(false);
-  const [rangeOpen, setRangeOpen] = useState(false),
-    [range, setRange] = useState(envelope.document.axis);
+  // When a drawing does not fit, the smallest widening that shows it, offered as an explicit action.
+  // Only the first and last tick are kept, with the axis they were worked out from: if the axis
+  // changes meanwhile (Scale card, Undo), the offer is withdrawn rather than reapplying old settings.
+  const [offer, setFit] = useState<{
+    from: string;
+    minimum: string;
+    maximum: string;
+  } | null>(null);
+  const axisKey = JSON.stringify(envelope.document.axis);
+  const fit = offer?.from === axisKey ? offer : null;
   const [error, setError] = useState(""),
     [proposed, setProposed] = useState<Envelope | null>(null);
   const field = useRef<HTMLInputElement>(null);
@@ -37,7 +45,7 @@ export function NotationPanel({
   function cancel() {
     setOpen(true);
     setDraft("");
-    setRangeOpen(false);
+    setFit(null);
     setEdited(false);
     onPending(false);
     setError("");
@@ -47,21 +55,27 @@ export function NotationPanel({
     onApply(next);
     cancel();
   }
-  function submit() {
+  function submit(widen: typeof fit = null) {
     if (disabled) return;
+    const axis = widen
+      ? {
+          ...envelope.document.axis,
+          minimum: widen.minimum,
+          maximum: widen.maximum,
+        }
+      : envelope.document.axis;
+    let solution;
     try {
-      const solution = parseNotation(draft, envelope.document.axis.variable);
+      solution = parseNotation(draft, envelope.document.axis.variable);
       if (solution.kind === envelope.document.solution?.kind)
         solution.id = envelope.document.solution.id;
       const next = validate({
         ...envelope,
-        document: {
-          ...envelope.document,
-          axis: rangeOpen ? range : envelope.document.axis,
-          solution,
-        },
+        document: { ...envelope.document, axis, solution },
       });
       setError("");
+      // Keep a widening on offer while its confirmation is open, so Cancel can be retried.
+      setFit(widen);
       if (canonical(next) === canonical(envelope)) {
         cancel();
         return;
@@ -70,8 +84,16 @@ export function NotationPanel({
       else applied(next);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
+      // Offer a widening only when it would make this exact drawing valid.
+      const wider =
+        solution && !widen ? offerWidening(envelope, solution) : null;
+      setFit(wider && { from: axisKey, ...wider });
     }
   }
+  const axisChanged =
+    !!proposed &&
+    JSON.stringify(proposed.document.axis) !==
+      JSON.stringify(envelope.document.axis);
   return (
     <>
       <p className="quick-drawing-summary">
@@ -88,8 +110,7 @@ export function NotationPanel({
           disabled={disabled}
           onClick={() => {
             setDraft("");
-            setRange(envelope.document.axis);
-            setRangeOpen(false);
+            setFit(null);
             setError("");
             setOpen(true);
           }}
@@ -117,6 +138,7 @@ export function NotationPanel({
                 setEdited(true);
                 onPending(true);
                 setError("");
+                setFit(null);
               }}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
@@ -136,50 +158,28 @@ export function NotationPanel({
             1. Fractions such as 1/2 are accepted. Use a single interval, ray or
             value; expressions are not solved.
           </p>
-          <button
-            aria-expanded={rangeOpen}
-            disabled={disabled}
-            onClick={() => {
-              setRangeOpen(!rangeOpen);
-              if (!rangeOpen) {
-                setRange(envelope.document.axis);
-                setEdited(true);
-                onPending(true);
-              }
-            }}
-          >
-            Edit axis range
-          </button>
-          {rangeOpen && (
-            <div className="quick-input-range">
-              {(["minimum", "maximum", "step"] as const).map((key, i) => (
-                <label key={key}>
-                  {["First tick", "Last tick", "Tick step"][i]}
-                  <input
-                    aria-label={`Notation ${key}`}
-                    value={range[key]}
-                    disabled={disabled}
-                    onChange={(event) => {
-                      setRange({ ...range, [key]: event.target.value });
-                      setEdited(true);
-                      onPending(true);
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
-          )}
           <p
             id="number-notation-error"
             className="quick-error"
             role={error ? "alert" : undefined}
           >
             {error}
+            {fit && " Or use Widen the line to fit, below."}
           </p>
+          {fit && (
+            <button
+              className="quick-fit"
+              disabled={disabled}
+              onClick={() => submit(fit)}
+            >
+              Widen the line to fit (first tick {fit.minimum}, last tick{" "}
+              {fit.maximum})
+            </button>
+          )}
           <div className="quick-actions">
             <button
               disabled={disabled || !edited || !draft.trim()}
-              onClick={submit}
+              onClick={() => submit()}
             >
               Apply drawing
             </button>
@@ -198,9 +198,9 @@ export function NotationPanel({
         >
           <p>
             The solution drawing
-            {rangeOpen ? " and the explicitly entered axis range" : ""} will
-            change. Your prompt, pupil visibility and answer spaces stay saved.
-            You can undo this.
+            {axisChanged ? " and the widened axis range" : ""} will change. Your
+            prompt, pupil visibility and answer spaces stay saved. You can undo
+            this.
           </p>
           <div
             className="notation-confirm-preview"

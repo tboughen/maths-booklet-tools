@@ -1,5 +1,14 @@
 import { canonicalNumber } from "../../packages/ratio-table-core/src/numbers";
-import { compare, type Solution } from "../../packages/number-line-core/src";
+import {
+  add,
+  compare,
+  validate,
+  type Envelope,
+  type LineDocument,
+  type Solution,
+} from "../../packages/number-line-core/src";
+
+type Axis = LineDocument["axis"];
 
 export function parseNotation(raw: string, variable = "x"): Solution {
   if (raw.length > 160) throw Error("Use at most 160 characters.");
@@ -84,4 +93,59 @@ export function notationSummary(solution: Solution | null, variable = "x") {
   )
     return `${v} = ${solution.points[0].value}`;
   return "Custom drawing";
+}
+
+/**
+ * The smallest whole-step widening of the axis that shows every value of a drawing, or null when
+ * the drawing already fits or would need more than 100 extra steps. A ray also gets one step
+ * beyond its start in its direction, so its arrow has room. Nothing calls this silently: the
+ * editor offers it as an explicit "Widen the line to fit" action.
+ */
+export function fitAxis(axis: Axis, solution: Solution): Axis | null {
+  const values =
+    solution.kind === "interval"
+      ? [solution.lower, solution.upper]
+      : solution.kind === "ray"
+        ? [
+            solution.value,
+            ...(solution.stop === null ? [] : [solution.stop]),
+            add(
+              solution.value,
+              axis.step,
+              solution.direction === "left" ? -1 : 1,
+            ),
+          ]
+        : solution.points.map((p) => p.value);
+  let { minimum, maximum } = axis;
+  for (let i = 0; values.some((v) => compare(v, minimum) < 0); i++) {
+    if (i >= 100) return null;
+    minimum = add(minimum, axis.step, -1);
+  }
+  for (let i = 0; values.some((v) => compare(v, maximum) > 0); i++) {
+    if (i >= 100) return null;
+    maximum = add(maximum, axis.step, 1);
+  }
+  return minimum === axis.minimum && maximum === axis.maximum
+    ? null
+    : { ...axis, minimum, maximum };
+}
+
+// The widening offered when a drawing does not fit: only the new first and last tick, and only
+// when the whole document, with this drawing on the widened line, passes validation (so a line
+// with overlapping labels or too many ticks gets no offer and keeps its original error).
+export function offerWidening(
+  envelope: Envelope,
+  solution: Solution,
+): { minimum: string; maximum: string } | null {
+  const wider = fitAxis(envelope.document.axis, solution);
+  if (!wider) return null;
+  try {
+    validate({
+      ...envelope,
+      document: { ...envelope.document, axis: wider, solution },
+    });
+  } catch {
+    return null;
+  }
+  return { minimum: wider.minimum, maximum: wider.maximum };
 }
