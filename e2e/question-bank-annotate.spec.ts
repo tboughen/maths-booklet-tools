@@ -44,6 +44,27 @@ test.describe("question viewer annotations", () => {
     await expect(ink(page)).toHaveCount(2);
   });
 
+  test("the white space around the page is drawable, and the pointer shows the tool", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page);
+    await page.getByRole("button", { name: "Annotate" }).click();
+    const stage = (await page.locator(".qb-stage").boundingBox())!;
+    const pageBox = (await page.locator(".qb-stage canvas").first().boundingBox())!;
+    expect(pageBox.x - stage.x).toBeGreaterThan(80);
+    // Wholly in the margin, then from the margin onto the page.
+    const y = pageBox.y + 60;
+    await page.mouse.move(stage.x + 30, y); await page.mouse.down(); await page.mouse.move(stage.x + 70, y + 30, { steps: 6 }); await page.mouse.up();
+    await page.mouse.move(stage.x + 30, y + 120); await page.mouse.down(); await page.mouse.move(pageBox.x + 120, y + 130, { steps: 10 }); await page.mouse.up();
+    await expect.poll(() => strokes(page)).toBe(2);
+    const cursor = () => page.locator(".qb-stage").evaluate(el => getComputedStyle(el).cursor);
+    expect(await cursor()).toContain("data:image/svg+xml");
+    expect(decodeURIComponent(await cursor())).toContain("#1b1b1b");
+    await page.keyboard.press("h");
+    expect(decodeURIComponent(await cursor())).toContain("#fffc00");
+    await page.keyboard.press("v");
+    expect(await cursor()).not.toContain("data:image");
+  });
+
   test("ink stays with its view: hidden on the mark scheme, back on the question, kept after Next and Previous", async ({ page }) => {
     await open(page);
     await page.keyboard.press("p");
