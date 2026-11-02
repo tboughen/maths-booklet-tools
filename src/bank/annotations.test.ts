@@ -61,8 +61,8 @@ describe("screen-only annotations", () => {
     expect(isStylusEraser({ pointerType: "mouse", buttons: 32, button: 0 })).toBe(false);
   });
   it("remembers tool choices safely", () => {
-    localStorage.setItem("qb-annotate", JSON.stringify({ tool: "laser", penColour: "#c81e1e", size: "huge", fistEraser: false }));
-    expect(readAnnotationPreferences()).toMatchObject({ tool: "laser", penColour: "#c81e1e", size: "medium", fistEraser: false });
+    localStorage.setItem("qb-annotate", JSON.stringify({ tool: "laser", penColour: "#e8343a", size: "huge", fistEraser: false }));
+    expect(readAnnotationPreferences()).toMatchObject({ tool: "laser", penColour: "#e8343a", size: "medium", fistEraser: false });
     localStorage.setItem("qb-annotate", "not json");
     expect(readAnnotationPreferences().tool).toBe("pen");
     localStorage.removeItem("qb-annotate");

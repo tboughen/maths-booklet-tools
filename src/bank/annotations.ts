@@ -8,11 +8,12 @@ export type StrokeKind = "pen" | "highlighter";
 export interface Stroke { id: string; kind: StrokeKind; colour: string; size: number; points: [number, number][] }
 
 export const PEN_COLOURS = [
+  // Cheerful but still at least 3:1 against white, so they read on a projector.
   { value: "#1b1b1b", label: "Black" },
-  { value: "#1f4fa3", label: "Blue" },
-  { value: "#c81e1e", label: "Red" },
-  { value: "#1d7a32", label: "Green" },
-  { value: "#b0186b", label: "Pink" },
+  { value: "#1e6fe8", label: "Blue" },
+  { value: "#e8343a", label: "Red" },
+  { value: "#17a34a", label: "Green" },
+  { value: "#d9339c", label: "Pink" },
 ] as const;
 export const HIGHLIGHTER_COLOURS = [
   // Standard bright highlighter colours, as Tim chose; they sit under the ink in multiply mode.
