@@ -92,7 +92,7 @@
 .qb-notice { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; margin-bottom: 12px; background: #e2f1fe; color: #244b73; border-left: 3px solid #0f62fe; font-size: 14px; }
 .qb-notice button { border: 0; background: transparent; }
 .qb-display { position: fixed; inset: 0; z-index: 100; background: white; overflow: hidden; }
-.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage):not(.qb-display-notes):not(.qb-display-actions) { display: none; }
+.qb-display .qb-header, .qb-display .qb-main > :not(.qb-workspace), .qb-display .qb-results, .qb-display .qb-question-card > :not(.qb-stage-frame):not(.qb-display-notes):not(.qb-display-actions) { display: none; }
 .qb-display .qb-main { max-width: none; padding: 0; margin: 0; }
 .qb-display .qb-workspace { display: block; }
 .qb-display .qb-question-card { border: 0; border-radius: 0; box-shadow: none; }
@@ -366,3 +366,23 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-display-actions { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 8px 190px 8px 12px; border-bottom: 1px solid #dce4ec; background: #f7f9fc; }
 .qb-display-actions > span { margin-right: auto; font-weight: 600; color: #253e59; }
 @media (max-width: 760px) { .qb-display-actions { padding: 54px 8px 8px; } }
+
+/* Zoom and pan (screen only). The frame holds the stage plus the overview map and the Display zoom bar. */
+.qb-stage-frame { position: relative; display: flex; flex: 1; min-height: 0; min-width: 0; }
+.qb-stage-frame > .qb-stage { flex: 1; }
+.qb-stage { touch-action: none; }
+.qb-stage.qb-pannable { cursor: grab; }
+.qb-stage.qb-grabbing { cursor: grabbing; user-select: none; }
+.qb-zoom-level { min-width: 48px; min-height: 36px; padding: 4px 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.qb-zoom-level:hover { background: #edf4ff; }
+.qb-zoom-level output { font-size: 13px; font-variant-numeric: tabular-nums; }
+.qb-display-zoom { position: absolute; right: 16px; bottom: 16px; z-index: 6; padding: 4px; border: 1px solid #cad4df; border-radius: 6px; background: #ffffffee; box-shadow: 0 2px 16px #18324e22; }
+.qb-overview { position: absolute; left: 12px; bottom: 12px; z-index: 6; padding: 6px; border: 1px solid #cad4df; border-radius: 6px; background: #ffffffee; box-shadow: 0 2px 16px #18324e22; }
+.qb-overview-map { position: relative; cursor: pointer; touch-action: none; line-height: 0; }
+.qb-overview-map canvas { display: block; }
+.qb-overview-box { position: absolute; border: 2px solid #1d6fd6; background: #1d6fd61a; border-radius: 2px; pointer-events: none; box-sizing: border-box; }
+.qb-overview-close { position: absolute; top: -10px; right: -10px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 1px solid #cad4df; border-radius: 50%; background: #fff; color: #253e59; cursor: pointer; }
+.qb-overview-toggle { position: absolute; left: 12px; bottom: 12px; z-index: 6; min-width: 36px; padding: 7px; box-shadow: 0 2px 16px #18324e18; }
+@media print { .qb-overview, .qb-overview-toggle, .qb-display-zoom { display: none !important; } }
+/* Small screens: the map would cover too much of the question; pinch and drag are enough there. */
+@media (max-width: 700px), (max-height: 520px) { .qb-overview, .qb-overview-toggle { display: none; } }
