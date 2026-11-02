@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPoint, annotationReducer, hasInk, isFistTouch, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
+import { addPoint, annotationReducer, hasInk, isFistTouch, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
 
 const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, points });
 
@@ -66,5 +66,14 @@ describe("screen-only annotations", () => {
     localStorage.setItem("qb-annotate", "not json");
     expect(readAnnotationPreferences().tool).toBe("pen");
     localStorage.removeItem("qb-annotate");
+  });
+  it("draws a pointer for each tool, and none for Move", () => {
+    const pen = decodeURIComponent(toolCursor("pen", "#e8343a", 3.5, 2)!);
+    expect(pen).toContain("#e8343a");
+    expect(pen).toMatch(/\) 16 16, crosshair$/);
+    expect(decodeURIComponent(toolCursor("highlighter", "#fffc00", 18, 1)!)).toContain("#fffc00");
+    expect(toolCursor("eraser", "", 0, 1)).toMatch(/\) 6 27, cell$/);
+    expect(toolCursor("laser", "", 0, 1)).toContain("crosshair");
+    expect(toolCursor("hand", "", 0, 1)).toBeUndefined();
   });
 });

@@ -135,3 +135,30 @@ export function readAnnotationPreferences(): AnnotationPreferences {
   } catch { return { ...defaultAnnotationPreferences }; }
 }
 
+
+const svgCursor = (body: string, x: number, y: number, fallback: string) =>
+  `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">${body}</svg>`)}") ${x} ${y}, ${fallback}`;
+
+/**
+ * A pointer that looks like the tool, so teachers see what will happen before they touch the page: a dot of the
+ * pen's colour and size, an upright highlighter nib, an eraser with a dotted target at the corner that rubs out,
+ * and a glowing laser dot. Cursors are capped at 32 px, the largest size every browser shows.
+ */
+export function toolCursor(tool: AnnotationTool, colour: string, size: number, scale: number): string | undefined {
+  if (tool === "hand") return undefined;
+  if (tool === "pen") {
+    const r = Math.max(2.5, Math.min(11, size * scale / 2));
+    return svgCursor(`<circle cx="16" cy="16" r="${r + 2}" fill="white" fill-opacity=".9"/><circle cx="16" cy="16" r="${r + 2}" fill="none" stroke="#33415c" stroke-width="1"/><circle cx="16" cy="16" r="${r}" fill="${colour}"/>`, 16, 16, "crosshair");
+  }
+  if (tool === "highlighter") {
+    const w = Math.max(5, Math.min(12, size * scale / 2.5));
+    return svgCursor(`<rect x="${16 - w / 2}" y="3" width="${w}" height="26" rx="1.5" fill="${colour}" stroke="#33415c" stroke-width="1"/><line x1="${16 - w / 2 + 1}" y1="16" x2="${16 + w / 2 - 1}" y2="16" stroke="#33415c" stroke-opacity=".35" stroke-width="1"/>`, 16, 16, "crosshair");
+  }
+  if (tool === "eraser") {
+    return svgCursor(
+      `<g transform="rotate(-35 19 13)"><rect x="9" y="7" width="20" height="12" rx="2.5" fill="white" stroke="#33415c" stroke-width="1.3"/><rect x="9" y="7" width="8" height="12" rx="2.5" fill="#f2a7c3" stroke="#33415c" stroke-width="1.3"/></g>` +
+      `<g stroke="#33415c" stroke-width="1.2" stroke-dasharray="1.5 1.5"><line x1="1" y1="27" x2="11" y2="27"/><line x1="6" y1="22" x2="6" y2="32"/></g><circle cx="6" cy="27" r="1.6" fill="#33415c"/>`,
+      6, 27, "cell");
+  }
+  return svgCursor(`<circle cx="16" cy="16" r="10" fill="#ff2a2a" fill-opacity=".18"/><circle cx="16" cy="16" r="6.5" fill="#ff2a2a" fill-opacity=".35"/><circle cx="16" cy="16" r="4" fill="#ff2a2a" stroke="white" stroke-width="1.2"/>`, 16, 16, "crosshair");
+}

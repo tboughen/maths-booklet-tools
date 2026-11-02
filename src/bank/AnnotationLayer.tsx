@@ -27,6 +27,8 @@ export type ClaimedPointerEvent = PointerEvent & { qbClaimed?: boolean };
 
 const ERASER_RADIUS = 9;
 const LASER_LIFE = 900;
+// Controls that sit on the stage (zoom bar, overview map, error messages) keep their own clicks.
+const MARGIN_IGNORE = "button,a,input,select,textarea,summary,label,[role=alert],.qb-view-error,.qb-overview,.qb-zoom";
 // Shared across layers: a stylus has been used here (fingers then pan instead of drawing), and Space is held (pan).
 const device = { stylus: false, space: false };
 if (typeof window !== "undefined") {
@@ -119,11 +121,27 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
       const highlighter = done.kind === "highlighter";
       commit([...existing, { id: `s${Date.now().toString(36)}-${strokeCount++}`, kind: done.kind, colour: highlighter ? s.highlighterColour : s.penColour, size: highlighter ? s.highlighterSize : s.penSize, points: done.points }]);
     };
+    // The white space around the page is part of the board too: a pen-down there draws on the nearest page,
+    // whose layer then takes the pointer, so the stroke can run on and off the page freely.
+    const stage = el.closest<HTMLElement>(".qb-stage");
+    const margin = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!stage || !target || target.closest(".qb-annotations") || target.closest(MARGIN_IGNORE)) return;
+      let nearest: Element | undefined, best = Infinity;
+      for (const layer of stage.querySelectorAll(".qb-annotations.qb-annotating")) {
+        const r = layer.getBoundingClientRect();
+        const d = Math.hypot(Math.max(r.left - event.clientX, 0, event.clientX - r.right), Math.max(r.top - event.clientY, 0, event.clientY - r.bottom));
+        if (d < best) { best = d; nearest = layer; }
+      }
+      if (nearest === el) down(event);
+    };
+    stage?.addEventListener("pointerdown", margin, true);
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", up);
     return () => {
+      stage?.removeEventListener("pointerdown", margin, true);
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
