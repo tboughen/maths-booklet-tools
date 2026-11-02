@@ -194,7 +194,7 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media (max-width: 1400px) {
   .qb-footer { gap: 6px 16px; }
   .qb-navigation { flex: 1; }
-  .qb-controls { flex-basis: 100%; }
+  .qb-controls { flex-basis: 100%; flex-wrap: wrap; }
 }
 @media (max-width: 1100px) {
   .qb-header { gap: 18px; padding: 8px 16px; }
