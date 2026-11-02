@@ -29,4 +29,24 @@ describe("PDF resource identity",()=>{
     expect(screen.getByRole("link",{name:"Open PDF"})).toHaveAttribute("href","worked.pdf");
     expect(ui.container.querySelector("canvas")).toBeNull();
   });
+  it("keeps the current picture while a zoom change is redrawn, then swaps in the sharp one",async()=>{
+    vi.useFakeTimers();
+    try{
+      const pending:{resolve:(canvas:HTMLCanvasElement)=>void;scale:number}[]=[];
+      mocks.render.mockImplementation((_path,_page,scale)=>new Promise<HTMLCanvasElement>(resolve=>pending.push({resolve,scale})));
+      const ui=render(<PdfView path="q.pdf" view={view} scale={1} retryKey={0}/>);
+      const first=document.createElement("canvas");
+      await act(async()=>pending[0].resolve(first));
+      ui.rerender(<PdfView path="q.pdf" view={view} scale={2} retryKey={0}/>);
+      expect(ui.container.querySelector("canvas")).toBe(first);
+      expect(first.style.width).toBe("200px");
+      expect(ui.container.querySelector(".qb-pdf")).toHaveAttribute("aria-busy","false");
+      expect(pending).toHaveLength(1);
+      await act(async()=>{vi.advanceTimersByTime(200);});
+      expect(pending).toHaveLength(2);
+      const sharp=document.createElement("canvas");
+      await act(async()=>pending[1].resolve(sharp));
+      expect(ui.container.querySelector("canvas")).toBe(sharp);
+    }finally{vi.useRealTimers();}
+  });
 });

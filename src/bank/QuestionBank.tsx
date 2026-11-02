@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, Minus, MoreHorizontal, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Copy, Download, Eye, EyeOff, FileDown, List, Maximize2, MoreHorizontal, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { flushSync } from "react-dom";
 import { PdfView } from "./PdfView";
+import { ZoomControls, ZoomOverview } from "./ZoomControls";
+import { useStageZoom } from "./useStageZoom";
+import { stepZoom } from "./zoom";
 import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
 import { assetUrl, downloadBlob, preloadQuestion, questionImage } from "./pdf";
@@ -47,7 +50,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [stageSize,setStageSize]=useState({width:900,height:500});
   const stage=useRef<HTMLDivElement>(null);
   const searchInput=useRef<HTMLInputElement>(null);
-  const touchStart=useRef<{x:number;y:number}|undefined>(undefined);
+  // The question view a teacher had zoomed into before showing its mark scheme or worked solution.
+  const questionView=useRef<{id:string;zoom:number;scroll:{left:number;top:number}}|undefined>(undefined);
   const app=useRef<HTMLDivElement>(null);
   const go=useCallback((next:BankRoute,replace=false)=>{
     const address=bankAddress(next);
@@ -100,14 +104,35 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     if(newView>=0&&newView<views.length){if(role!=="question")setMode({id:question.id,role,view:newView});else{const updated={...route,question:question.id,view:newView};history.pushState({},"",bankAddress(updated));window.dispatchEvent(new Event("maths-tools:route"));setRoute(updated);}}
     else{const target=results[questionIndex+direction];if(target)go({...route,question:target.id,view:direction<0?target.questionViews.length-1:0});}
   },[question,viewIndex,two,views.length,role,route,results,questionIndex,go]);
-  const reveal=useCallback(()=>{if(question){setMode({id:question.id,role:role==="scheme"?"question":"scheme",view:0});setZoom(1);}},[question,role]);
-  const revealSolution=()=>{if(question?.workedSolution){setMode({id:question.id,role:role==="worked-solution"?"question":"worked-solution",view:0});setZoom(1);}};
+  const pannable=visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0)+32>stageSize.width+1||Math.max(0,...visibleViews.map(v=>v.height*scale))+32>stageSize.height+1;
+  const {requestZoom,restoreScroll,panBy}=useStageZoom({stage,zoom,scale,setZoom,onSwipe:move,layoutKey:`${question?.id}|${role}|${viewIndex}|${two}`,enabled:!!question&&!topicsMode});
+  const zoomStep=useCallback((direction:1|-1)=>requestZoom(stepZoom(zoom,direction)),[requestZoom,zoom]);
+  const zoomFit=useCallback(()=>requestZoom(1),[requestZoom]);
+  // Answers open at fit; going back to the question restores the zoom and position the teacher left.
+  const switchRole=useCallback((next:ViewRole)=>{
+    if(!question)return;
+    if(role==="question"&&stage.current)questionView.current={id:question.id,zoom,scroll:{left:stage.current.scrollLeft,top:stage.current.scrollTop}};
+    setMode({id:question.id,role:next,view:0});
+    const saved=questionView.current;
+    if(next==="question"&&saved?.id===question.id){setZoom(saved.zoom);restoreScroll(saved.scroll);}else setZoom(1);
+  },[question,role,zoom,restoreScroll]);
+  const reveal=useCallback(()=>switchRole(role==="scheme"?"question":"scheme"),[switchRole,role]);
+  const revealSolution=()=>{if(question?.workedSolution)switchRole(role==="worked-solution"?"question":"worked-solution");};
   const leaveDisplay=useCallback(()=>{setDisplay(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>undefined);},[]);
   useEffect(()=>{
     if(!active||topicsMode)return;
     const key=(e:KeyboardEvent)=>{
       if(e.key==="Escape"){leaveDisplay();return;}
       if((e.target as HTMLElement)?.closest("input,select,textarea,dialog,[contenteditable=true]")||reviewOpen)return;
+      if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.startsWith("Arrow")){
+        // Shift + arrows pan a zoomed view; plain arrows still change question (presentation clickers).
+        e.preventDefault();panBy(e.key==="ArrowLeft"?-.15:e.key==="ArrowRight"?.15:0,e.key==="ArrowUp"?-.15:e.key==="ArrowDown"?.15:0);return;
+      }
+      if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
+        if(e.key==="+"||e.key==="="){e.preventDefault();zoomStep(1);return;}
+        if(e.key==="-"||e.key==="_"){e.preventDefault();zoomStep(-1);return;}
+        if(e.key==="0"){e.preventDefault();zoomFit();return;}
+      }
       if(["ArrowRight","PageDown"].includes(e.key)){e.preventDefault();move(1);}
       if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();move(-1);}
       if(e.key.toLowerCase()==="m"){e.preventDefault();reveal();}
@@ -115,7 +140,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     const fullscreen=()=>{if(!document.fullscreenElement)setDisplay(false);};
     window.addEventListener("keydown",key);document.addEventListener("fullscreenchange",fullscreen);
     return()=>{window.removeEventListener("keydown",key);document.removeEventListener("fullscreenchange",fullscreen);};
-  },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen]);
+  },[active,topicsMode,move,reveal,leaveDisplay,reviewOpen,panBy,zoomStep,zoomFit]);
   useEffect(()=>{const q=!topicsMode&&active?results[questionIndex+1]:undefined;if(q)void preloadQuestion(q).catch(()=>undefined);},[results,questionIndex,topicsMode,active]);
 
   const actions=useRef({catalogue,route,question,role,viewIndex,go});actions.current={catalogue,route,question,role,viewIndex,go};
@@ -188,19 +213,22 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
                 <button onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${bankAddress({...route,question:question.id,view:role==="question"?viewIndex:route.view})}`);setNotice("Question link copied.");}catch{setNotice("Copy the question link from your browser address bar.");}}}>Copy link</button>
                 <button onClick={()=>{downloadBlob(new Blob([JSON.stringify({question:question.id,source:question.source,code:route.code,view:viewIndex+1,role,version:catalogue?.version,issue:"Describe the correction here."},null,2)],{type:"application/json"}),`question-feedback-${question.id}.json`);setNotice("Feedback details downloaded. Add a description and keep it with your question-bank notes.");}}>Report a problem</button>
                 {question.equivalentSource&&<p>Also appears as {question.equivalentSource}.</p>}
-                <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>Swipe to navigate on a touch screen.</p>
+                <p>← / → or Page Up / Down: navigate<br/>M: mark scheme · Escape: exit Display<br/>+ / −: zoom · 0: fit · Shift + arrows: pan<br/>Ctrl + wheel or pinch to zoom, drag to pan.<br/>Double-click or double-tap: zoom in or fit.<br/>Swipe to navigate at fit on a touch screen.</p>
               </div></details>
             </div>}
           </div>
           {display&&<div className="qb-display-actions" role="group" aria-label="Answer views"><span>{resource?.label}</span>{answerControls}</div>}
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
-          <div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}`} onTouchStart={e=>{touchStart.current={x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};}} onTouchEnd={e=>{const t=touchStart.current;if(!t||zoom!==1)return;const dx=e.changedTouches[0].clientX-t.x,dy=e.changedTouches[0].clientY-t.y;if(Math.abs(dx)>90&&Math.abs(dy)<60)move(dx<0?1:-1);touchStart.current=undefined;}}>
+          <div className="qb-stage-frame"><div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}${question&&pannable?" qb-pannable":""}`}>
             {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map(v=><PdfView key={`${question.id}|${question.revision}|${role}|${question.workedSolution?.revision||""}|${resource?.pdf}|${v.page}`} path={resource!.pdf} label={resource!.label} view={v} scale={scale} retryKey={reload} overlay={overlay}/>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${topic?.bankCount||0} questions are mapped in the full bank. None is available for this topic yet; ${catalogue.questions.length} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all"});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":"Search another topic"}</button></div>}
+          </div>
+          {question&&<ZoomOverview stage={stage} active={pannable&&zoom>1.001} redrawKey={`${question.id}|${role}|${viewIndex}|${scale}|${overlay}`}/>}
+          {question&&display&&<ZoomControls floating zoom={zoom} onStep={zoomStep} onFit={zoomFit}/>}
           </div>
           <footer className="qb-footer">
           <nav className="qb-navigation" aria-label="Question navigation"><button className="qb-button" disabled={!previous} onClick={()=>move(-1)} title="Previous · Left arrow"><ArrowLeft size={18}/><span>Previous</span></button><div><strong>{question?`Question ${questionIndex+1} of ${results.length}`:"0 questions"}</strong><span>{rangeText}</span></div><button className="qb-button" disabled={!next} onClick={()=>move(1)} title="Next · Right arrow"><span>Next</span><ArrowRight size={18}/></button></nav>
-          {question&&<div className="qb-controls"><div className="qb-zoom"><button className="qb-button qb-icon" aria-label="Zoom out" disabled={zoom<=.5} onClick={()=>setZoom(z=>Math.max(.5,z-.25))}><Minus size={16}/></button><output>{Math.round(zoom*100)}%</output><button className="qb-button qb-icon" aria-label="Zoom in" disabled={zoom>=3} onClick={()=>setZoom(z=>Math.min(3,z+.25))}><Plus size={16}/></button><select aria-label="Fit mode" value={fit} onChange={e=>{setFit(e.target.value as typeof fit);setZoom(1);}}><option value="page">Fit view</option><option value="width">Fit width</option></select><button className="qb-text-button" onClick={()=>{setZoom(1);setFit("page");}}>Reset</button></div><OverlayControls value={overlay} onChange={setOverlay} room={room} onRoomChange={setRoom}/><div className="qb-image-actions"><label><input type="checkbox" checked={wholeImage} onChange={e=>setWholeImage(e.target.checked)}/> Whole question</label><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(true)}><Copy size={16}/>Copy image</button><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(false)}><Download size={16}/>PNG</button></div></div>}
+          {question&&<div className="qb-controls"><ZoomControls zoom={zoom} onStep={zoomStep} onFit={()=>{setFit("page");zoomFit();}} fitMode={{value:fit,onChange:value=>{setFit(value);setZoom(1);}}}/><OverlayControls value={overlay} onChange={setOverlay} room={room} onRoomChange={setRoom}/><div className="qb-image-actions"><label><input type="checkbox" checked={wholeImage} onChange={e=>setWholeImage(e.target.checked)}/> Whole question</label><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(true)}><Copy size={16}/>Copy image</button><button className="qb-button" disabled={imageBusy} onClick={()=>void imageExport(false)}><Download size={16}/>PNG</button></div></div>}
           </footer>
         </section>
       </div>}
