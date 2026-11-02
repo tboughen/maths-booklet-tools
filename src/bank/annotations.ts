@@ -141,7 +141,7 @@ const svgCursor = (body: string, x: number, y: number, fallback: string) =>
 
 /**
  * A pointer that looks like the tool, so teachers see what will happen before they touch the page: a dot of the
- * pen's colour and size, an upright highlighter nib, an eraser with a dotted target where its top and left edges would meet, which is where it rubs out,
+ * pen's colour and size, an upright highlighter nib, a chunky block eraser with a dotted target where its top and left edges would meet, which is where it rubs out,
  * and a glowing laser dot. Cursors are capped at 32 px, the largest size every browser shows.
  */
 export function toolCursor(tool: AnnotationTool, colour: string, size: number, scale: number): string | undefined {
@@ -156,7 +156,7 @@ export function toolCursor(tool: AnnotationTool, colour: string, size: number, s
   }
   if (tool === "eraser") {
     return svgCursor(
-      `<g transform="translate(-2.7 -3.68) rotate(35 20 20)"><rect x="10" y="14" width="20" height="12" rx="2.5" fill="white" stroke="#33415c" stroke-width="1.3"/><rect x="10" y="14" width="8" height="12" rx="2.5" fill="#f2a7c3" stroke="#33415c" stroke-width="1.3"/></g>` +
+      `<g transform="translate(-3.7 -3.86) rotate(35 20 20)"><rect x="11" y="14" width="18" height="11" rx="1.5" fill="#f4b3cb"/><rect x="11.6" y="20.6" width="16.8" height="3.8" rx="1" fill="#de86a9"/><rect x="11" y="14" width="18" height="11" rx="1.5" fill="none" stroke="#33415c" stroke-width="1.3"/></g>` +
       `<g stroke="#33415c" stroke-width="1" stroke-dasharray="1.5 1.5"><line x1="1" y1="6.5" x2="12" y2="6.5"/><line x1="6.5" y1="1" x2="6.5" y2="12"/></g><circle cx="6.5" cy="6.5" r="1.6" fill="#33415c"/>`,
       6, 6, "cell");
   }
