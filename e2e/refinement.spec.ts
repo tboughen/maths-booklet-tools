@@ -5,7 +5,8 @@ import { createHash } from "node:crypto";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 
 const report = resolve(
-  process.env.MATHSDOCK_REFINEMENT_REPORT || "test-results/usability-refinement",
+  process.env.MATHSDOCK_REFINEMENT_REPORT ||
+    "test-results/usability-refinement",
 );
 const tools = [
   [
@@ -74,7 +75,9 @@ for (const [tool, key, paper, stage] of tools) {
     // second localhost server or a machine-specific report directory in CI.
     const fixture = resolve("e2e/fixtures/usability-refinement");
     const source = await readFile(resolve(fixture, `${tool}.json`));
-    const recorded = JSON.parse(await readFile(resolve(fixture, "manifest.json"), "utf8"))[tool];
+    const recorded = JSON.parse(
+      await readFile(resolve(fixture, "manifest.json"), "utf8"),
+    )[tool];
     // Cuboids already measures text bounds through browser getBBox. Its exact
     // Linux crop differs from Windows; the retained platform control changes
     // only the root/background crop, with every drawable/font byte identical.
@@ -98,26 +101,44 @@ for (const [tool, key, paper, stage] of tools) {
     // PNG encoding varies across browser/OS builds. Compare every RGBA byte
     // against the independently hash-verified baseline SVG in this browser,
     // retaining the original physical raster dimensions and 600ppi metadata.
-    const differentChannels = await page.evaluate(async ({ svg, png, width, height }) => {
-      async function pixels(blob: Blob) {
-        const image = new Image(), url = URL.createObjectURL(blob);
-        try {
-          image.src = url;
-          await image.decode();
-          const canvas = document.createElement("canvas");
-          canvas.width = width; canvas.height = height;
-          const ctx = canvas.getContext("2d")!;
-          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(image, 0, 0, width, height);
-          return ctx.getImageData(0, 0, width, height).data;
-        } finally { URL.revokeObjectURL(url); }
-      }
-      const reference = await pixels(new Blob([svg], {type:"image/svg+xml;charset=utf-8"}));
-      const actual = await pixels(await (await fetch(`data:image/png;base64,${png}`)).blob());
-      let differences = 0;
-      for (let i = 0; i < reference.length; i++) if (reference[i] !== actual[i]) differences++;
-      return differences;
-    }, { svg: finalSvg.toString(), png: finalPng.toString("base64"), width: controls.pngWidth, height: controls.pngHeight });
+    const differentChannels = await page.evaluate(
+      async ({ svg, png, width, height }) => {
+        async function pixels(blob: Blob) {
+          const image = new Image(),
+            url = URL.createObjectURL(blob);
+          try {
+            image.src = url;
+            await image.decode();
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d")!;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(image, 0, 0, width, height);
+            return ctx.getImageData(0, 0, width, height).data;
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }
+        const reference = await pixels(
+          new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
+        );
+        const actual = await pixels(
+          await (await fetch(`data:image/png;base64,${png}`)).blob(),
+        );
+        let differences = 0;
+        for (let i = 0; i < reference.length; i++)
+          if (reference[i] !== actual[i]) differences++;
+        return differences;
+      },
+      {
+        svg: finalSvg.toString(),
+        png: finalPng.toString("base64"),
+        width: controls.pngWidth,
+        height: controls.pngHeight,
+      },
+    );
     expect(differentChannels).toBe(0);
     const box = await page.locator(paper).first().boundingBox();
     if (["graph", "value-table-graph"].includes(tool))
@@ -162,9 +183,23 @@ for (const [tool, key, paper, stage] of tools) {
       // Lazy-loaded pages fit the resource after first paint: measure once the layout has settled.
       await expect
         .poll(async () => {
-          const before = JSON.stringify([await resource.boundingBox(), await viewport.boundingBox()]);
-          await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
-          return before === JSON.stringify([await resource.boundingBox(), await viewport.boundingBox()]);
+          const before = JSON.stringify([
+            await resource.boundingBox(),
+            await viewport.boundingBox(),
+          ]);
+          await page.evaluate(
+            () =>
+              new Promise((done) =>
+                requestAnimationFrame(() => requestAnimationFrame(done)),
+              ),
+          );
+          return (
+            before ===
+            JSON.stringify([
+              await resource.boundingBox(),
+              await viewport.boundingBox(),
+            ])
+          );
         })
         .toBe(true);
       const box = await resource.boundingBox(),
@@ -215,7 +250,7 @@ for (const [tool, key, paper, stage] of tools) {
     });
 }
 
-test("typed input is available immediately and cancel restores a fresh usable form", async ({
+test("typed input is one click away with the cursor in it, and cancel restores a fresh usable form", async ({
   page,
 }) => {
   await page.goto("/tools/graph");
@@ -223,7 +258,13 @@ test("typed input is available immediately and cancel restores a fresh usable fo
     name: "Line equation",
     exact: true,
   });
+  // The form opens on request (not on load), with the cursor already in the equation.
+  await expect(line).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Line by equation", exact: true })
+    .click();
   await expect(line).toBeVisible();
+  await expect(line).toBeFocused();
   const box = await line.boundingBox();
   expect(box!.y + box!.height).toBeLessThan(720);
   await line.fill("y = x²");
@@ -232,7 +273,16 @@ test("typed input is available immediately and cancel restores a fresh usable fo
   await page
     .getByRole("button", { name: "Cancel equation edit", exact: true })
     .click();
+  // Cancel closes the form and returns focus to its button; reopening gives a fresh form.
+  await expect(line).toHaveCount(0);
+  const open = page.getByRole("button", {
+    name: "Line by equation",
+    exact: true,
+  });
+  await expect(open).toBeFocused();
+  await open.click();
   await expect(line).toHaveValue("y = x");
+  await expect(line).toHaveAttribute("aria-invalid", "false");
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();

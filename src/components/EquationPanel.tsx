@@ -1,5 +1,5 @@
 import { pageHref } from "../site/routes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { equationFromPoints, parseNumericInput } from "../domain/equations";
 import type { LineEquation } from "../domain/equations";
@@ -50,6 +50,13 @@ export function EquationPanel({
   const [typed, setTyped] = useState(
     formatEquation(existing ?? { kind: "slope", slope: 1, intercept: 0 }),
   );
+  // The panel opens only when asked for, so put the cursor in the equation, ready to type over.
+  const typedInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (persistent) return;
+    typedInput.current?.focus();
+    typedInput.current?.select();
+  }, [persistent]);
   const changed = () => {
     setPending(true);
     onPending(true);
@@ -165,6 +172,7 @@ export function EquationPanel({
           <label>
             Line equation
             <input
+              ref={typedInput}
               aria-label="Line equation"
               aria-describedby={
                 error
