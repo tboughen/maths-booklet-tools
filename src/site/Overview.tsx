@@ -11,6 +11,7 @@ const searchTerms: Record<string, string> = {
   "ratio-table": "proportion scaling unitary fractions",
   "value-table-graph": "table values quadratic parabola plotting",
   cuboids: "volume surface area cubes layers",
+  charts: "statistics bar chart dual comparative composite stacked line graph time series frequency data",
   venn: "sets probability shading intersection union",
   "expanding-factorising":
     "algebra brackets multiplication factorise factorize",
