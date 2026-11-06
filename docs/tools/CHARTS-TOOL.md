@@ -2,7 +2,8 @@
 
 `/tools/charts` makes the bar-family statistical charts in GCSE Foundation papers: bar
 charts, dual (comparative) bar charts, composite (stacked) bar charts and vertical line
-charts. It is browser-only; there is no MCP tool yet.
+charts. Browser editing and export need no service; the optional MCP connector adds
+`chart_capabilities`, `create_chart` and `revise_chart` (see below).
 
 ## Why one tool
 
@@ -38,8 +39,30 @@ tool later rather than a mode here.
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, pictograms, time series graphs,
-frequency polygons, histograms and an MCP create/revise tool. Each would be a separate,
-reviewed extension or tool.
+frequency polygons and histograms. Each would be a separate, reviewed extension or tool.
+
+## MCP connector
+
+`packages/chart-core/src/interchange.ts` adapts the same schema, layout and renderer for
+`services/graph-mcp` (`chart-config.ts`). It follows the capabilities/create/revise pattern:
+
+- `create_chart` takes an exact `envelope` or a `spec` (an `example` with optional `worked`,
+  or `kind`, `categories`, `series` with one numeric string or `null` per category and
+  optional `hidden` indices, `axis`, `presentation`). Omitting both gives the unworked default
+  dual bar chart.
+- `revise_chart` takes the returned envelope, its `contentHash` as `baseHash` and up to 30
+  atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
+  `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
+  `set_presentation`, `set_all_visibility`. Nothing is calculated or filled.
+- `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only. The
+  returned JSON, hash and editor link always keep the saved pupil document, which can contain
+  hidden answers.
+- Responses carry the preview, outlined SVG, verified 600 ppi PNG, JSON, physical size, print
+  guidance and a `/tools/charts#chart=` editor link. The shared placement, bundle and
+  `get_diagram_svg` tools accept kind `charts`.
+
+The connector is live only after a separately approved Render deploy and client refresh.
+Service checks: `npx vitest run services/graph-mcp/chart.test.ts`.
 
 ## Files
 

@@ -20,7 +20,7 @@ export async function receiveSvg(
     if (!first) {
       first = part; identity = stable;
       if (part.kind !== source.kind || part.rendererVersion !== source.envelope.rendererVersion ||
-          part.outputView !== (source.kind === "venn" ? source.outputView ?? "pupil" : undefined) ||
+          part.outputView !== (source.kind === "venn" || source.kind === "charts" ? source.outputView ?? "pupil" : undefined) ||
           (options.expectedSourceContentHash !== undefined && part.sourceContentHash !== options.expectedSourceContentHash) ||
           (options.expectedPhysicalSizeCm !== undefined &&
             (part.physicalSizeCm.width !== options.expectedPhysicalSizeCm.width || part.physicalSizeCm.height !== options.expectedPhysicalSizeCm.height)))
