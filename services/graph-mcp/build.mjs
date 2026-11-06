@@ -40,6 +40,8 @@ for (const directory of [
   "packages/venn-core",
   "packages/algebra-grid-core",
   "packages/bar-model-core",
+  "packages/chart-core",
+  "packages/probability-tree-core",
   "services/graph-mcp",
   "assets/graph-fonts",
 ])

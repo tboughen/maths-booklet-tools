@@ -11,6 +11,8 @@ COPY packages/number-line-core packages/number-line-core
 COPY packages/venn-core packages/venn-core
 COPY packages/algebra-grid-core packages/algebra-grid-core
 COPY packages/bar-model-core packages/bar-model-core
+COPY packages/chart-core packages/chart-core
+COPY packages/probability-tree-core packages/probability-tree-core
 COPY services/graph-mcp services/graph-mcp
 COPY assets/graph-fonts assets/graph-fonts
 RUN npm run build:service
