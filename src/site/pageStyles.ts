@@ -13,3 +13,4 @@ import "../ratio-table/ratio-table.css";
 import "../value-graph/value-graph.css";
 import "../cuboid/cuboid.css";
 import "../charts/charts.css";
+import "../probability-tree/probability-tree.css";

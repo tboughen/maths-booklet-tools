@@ -255,6 +255,7 @@ describe("ratio tools on the shared real MCP service", () => {
       "revise_algebra_grid",
         "bar_model_capabilities", "create_bar_model", "revise_bar_model",
       "chart_capabilities", "create_chart", "revise_chart",
+      "probability_tree_capabilities", "create_probability_tree", "revise_probability_tree",
       "check_diagram_placement",
       "download_diagram_bundle",
       "get_diagram_svg",

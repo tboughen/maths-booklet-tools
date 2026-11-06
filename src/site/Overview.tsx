@@ -13,6 +13,8 @@ const searchTerms: Record<string, string> = {
   cuboids: "volume surface area cubes layers",
   charts: "statistics bar chart dual comparative composite stacked vertical line chart frequency data",
   venn: "sets probability shading intersection union",
+  "probability-tree":
+    "probability tree diagram branches replacement independent dependent conditional given that",
   "expanding-factorising":
     "algebra brackets multiplication factorise factorize",
 };

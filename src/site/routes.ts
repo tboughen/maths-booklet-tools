@@ -17,6 +17,7 @@ export const toolIds = [
   "cuboids",
   "number-line",
   "charts",
+  "probability-tree",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */
