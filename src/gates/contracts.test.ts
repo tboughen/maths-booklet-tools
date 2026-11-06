@@ -22,6 +22,7 @@ import { envelopeSchema as triangle } from "../../packages/triangle-core/src/mod
 import { envelopeSchema as valueGraph } from "../../packages/value-graph-core/src/schema";
 import { envelopeSchema as venn } from "../../packages/venn-core/src/index";
 import { envelopeSchema as charts } from "../../packages/chart-core/src/index";
+import { envelopeSchema as probabilityTree } from "../../packages/probability-tree-core/src/index";
 import { graphService } from "../../services/graph-mcp/server";
 
 const dir = "src/gates/contracts"; // vitest runs from the repository root
@@ -37,7 +38,7 @@ function compare(name: string, actual: unknown) {
 
 const savedFiles: Record<string, z.ZodType> = {
   "algebra-grid": algebraGrid, "bar-model-v1": barModelV1, "bar-model-v2": barModelV2, "bar-model-v3": barModelV3,
-  "bar-model-versioned": barModelVersioned, charts, cuboid, graph, "number-line": numberLine, "ratio-table": ratioTable,
+  "bar-model-versioned": barModelVersioned, charts, cuboid, graph, "number-line": numberLine, "probability-tree": probabilityTree, "ratio-table": ratioTable,
   triangle, "value-graph": valueGraph, venn,
 };
 

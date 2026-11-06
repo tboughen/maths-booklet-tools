@@ -30,15 +30,15 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
     const members = {
       "source.json": Buffer.from(JSON.stringify(source.envelope, null, 2)),
       "diagram.svg": svg.body, "diagram.png": png.body,
-      "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(source.kind === "venn" || source.kind === "charts" ? {outputView: source.outputView ?? "pupil"} : {}), printDpi: 600 }, null, 2)),
-      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/?tool=${route}\n${source.kind === "venn" || source.kind === "charts" ? `Artwork view: ${source.outputView ?? "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
+      "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(source.kind === "venn" || source.kind === "probability-tree" ? {outputView: source.outputView ?? "pupil"} : source.kind === "charts" ? {outputView: source.outputView ?? "pupil"} : {}), printDpi: 600 }, null, 2)),
+      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/?tool=${route}\n${source.kind === "venn" || source.kind === "probability-tree" ? `Artwork view: ${source.outputView ?? "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : source.kind === "charts" ? `Artwork view: ${source.outputView ?? "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
     };
     return { body: Buffer.from(await raster.pack(members, signal)), type: "application/zip" };
   }
   function register(server: McpServer, connectionSignal: AbortSignal) {
     const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
     server.registerTool("check_diagram_placement", {
-      description: "Calculate print consequences without editing. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts, the exact returned envelope, and positive widthMm and/or heightMm. One dimension derives the other; two define a box and report a proportional fit. Warnings describe reduction or stretching; no universal minimum or booklet fit is assumed. effectivePngDpi concerns PNG only. Venn outputView:pupil|answer selects artwork while retaining pupil source. No baseHash is needed. Use when considering a resize, not at every native-size placement.",
+      description: "Calculate print consequences without editing. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree, the exact returned envelope, and positive widthMm and/or heightMm. One dimension derives the other; two define a box and report a proportional fit. Warnings describe reduction or stretching; no universal minimum or booklet fit is assumed. effectivePngDpi concerns PNG only. Venn outputView:pupil|answer selects artwork while retaining pupil source. No baseHash is needed. Use when considering a resize, not at every native-size placement.",
       inputSchema: placementInputSchema, outputSchema: placementOutputSchema, annotations,
     }, async (input, extra) => {
       try {
@@ -48,7 +48,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
       } catch (error) { return failure(error); }
     });
     server.registerTool("download_diagram_bundle", {
-      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
+      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
       inputSchema: diagramSourceSchema,
       outputSchema: z.object({
         kind: diagramKind,
@@ -73,7 +73,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
           content.push({ type: "resource", resource: { uri: `mathsdock-bundle://inline/${randomUUID()}/diagram.zip`, mimeType: file.type, blob } });
         }
         content.unshift({ type: "text", text: download ? "ZIP link ready; archive bytes are generated and validated when downloaded. Retrieve it before claiming file success." : "ZIP is included as bounded file content; save it using the client. No server library was created." });
-        return { structuredContent: { kind: source.kind, ...(source.kind === "venn" || source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), download, inline: !download, filenames: ARCHIVE_NAMES, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance }, content };
+        return { structuredContent: { kind: source.kind, ...(source.kind === "venn" || source.kind === "probability-tree" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), download, inline: !download, filenames: ARCHIVE_NAMES, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance }, content };
       } catch (error) { return failure(error); }
     });
   }

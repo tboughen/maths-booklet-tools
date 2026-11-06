@@ -4093,6 +4093,277 @@
     ],
     "additionalProperties": false
   },
+  "probability-tree": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tool": {
+        "type": "string",
+        "const": "probability-tree"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "probability-tree-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "branches": {
+            "minItems": 2,
+            "maxItems": 60,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^b[0-9]{1,3}$"
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^b[0-9]{1,3}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "outcome": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "probability": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "bold": {
+                  "type": "boolean"
+                },
+                "endOutcome": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "endProbability": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "parent",
+                "outcome",
+                "probability",
+                "bold",
+                "endOutcome",
+                "endProbability"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "stageTitles": {
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 24
+            }
+          },
+          "linkLabels": {
+            "type": "boolean"
+          },
+          "endColumn": {
+            "type": "string",
+            "enum": [
+              "none",
+              "outcome",
+              "both"
+            ]
+          },
+          "endHeadings": {
+            "minItems": 2,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 24
+            }
+          },
+          "questions": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^q[0-9]{1,2}$"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "answer": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "event": {
+                  "maxItems": 24,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^b[0-9]{1,3}$"
+                  }
+                },
+                "given": {
+                  "maxItems": 24,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^b[0-9]{1,3}$"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "answer",
+                "event",
+                "given"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "blankStyle": {
+            "type": "string",
+            "enum": [
+              "dots",
+              "box"
+            ]
+          },
+          "branchMm": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 50
+          },
+          "gapMm": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 24
+          }
+        },
+        "required": [
+          "branches",
+          "stageTitles",
+          "linkLabels",
+          "endColumn",
+          "endHeadings",
+          "questions",
+          "blankStyle",
+          "branchMm",
+          "gapMm"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "tool",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "ratio-table": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

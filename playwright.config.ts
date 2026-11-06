@@ -59,6 +59,7 @@ const suites: Suite[] = [
     use: { viewport: { width: 1280, height: 900 }, trace: "retain-on-failure" },
   },
   { name: "charts", server: "dev", testMatch: "charts.spec.ts" },
+  { name: "probability-tree", server: "dev", testMatch: "probability-tree.spec.ts" },
   { name: "venn", server: "dev", external: env.MATHSDOCK_VENN_URL, testMatch: ["venn.spec.ts", "venn-layouts.spec.ts"] },
   {
     name: "venn-regression", server: "dev", external: env.MATHSDOCK_VENN_URL,

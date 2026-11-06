@@ -14,6 +14,8 @@ import * as numberLine from "../../packages/number-line-core/src/index";
 import { examples as numberLineExamples, example as numberLineExample } from "../../packages/number-line-core/src/examples";
 import * as triangle from "../../packages/triangle-core/src/index";
 import { examples as triangleExamples } from "../../packages/triangle-core/src/examples";
+import * as tree from "../../packages/probability-tree-core/src/index";
+import { examples as treeExamples } from "../../packages/probability-tree-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
 import { examples as vennExamples, teachingExamples as vennTeaching } from "../../packages/venn-core/src/examples";
 
@@ -31,6 +33,7 @@ const rules: { match: (o: Json) => boolean; hide: Plant; show: Plant }[] = [
   { match: o => typeof o.hidden === "boolean" && "value" in o, hide: (o, s) => { o.value = s; o.hidden = true; }, show: (o, s) => { o.value = s; o.hidden = false; } },
   { match: o => typeof o.answerVisible === "boolean" && typeof o.answer === "string", hide: (o, s) => { o.answer = s; o.answerVisible = false; }, show: (o, s) => { o.answer = s; o.answerVisible = true; } },
   { match: o => typeof o.state === "string" && typeof o.text === "string", hide: (o, s) => { o.text = s; o.state = "hidden"; }, show: (o, s) => { o.text = s; o.state = "value"; } },
+  { match: o => typeof o.show === "string" && typeof o.text === "string", hide: (o, s) => { o.text = s; o.show = "hidden"; }, show: (o, s) => { o.text = s; o.show = "show"; } },
   { match: o => typeof o.visibility === "string" && typeof o.text === "string", hide: (o, s) => { o.text = s; o.visibility = "hidden"; }, show: (o, s) => { o.text = s; o.visibility = "show"; } },
   { match: o => typeof o.mode === "string" && typeof o.text === "string" && typeof o.x === "number", hide: (o, s) => { o.text = s; o.mode = "hidden"; }, show: (o, s) => { o.text = s; o.mode = "text"; } },
 ];
@@ -58,6 +61,7 @@ const tools: Tool[] = [
   { name: "bar model v1", envelopes: () => barModel.exampleNames.flatMap(n => [barModel.example(n), barModel.example(n, true)]), validate: barModel.validate, pupilSvg: barModel.renderSvg },
   { name: "bar model v3", envelopes: () => lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), validate: barModelV3.validate, pupilSvg: barModelV3.renderSvg },
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, pupilSvg: cuboid.renderSvg },
+  { name: "probability trees", envelopes: () => treeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: tree.validate, pupilSvg: tree.renderSvg },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, pupilSvg: numberLine.renderSvg },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, pupilSvg: triangle.renderSvg },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, pupilSvg: venn.renderSvg },
