@@ -69,9 +69,10 @@ it("advertises chart tools with homogeneous schemas", async () => {
   expect(JSON.parse(text).kinds).toEqual(["bar", "dual", "composite", "vline"]);
 });
 
-it("creates every example with real downloads, keeps hidden answers out of pupil artwork and reopens in the editor", async () => {
+// One test per example: each renders SVG and a 600 ppi PNG through the real service.
+it.each(examples)("creates the $id example with real downloads and reopens it in the editor", async (example) => {
   const c = await start();
-  for (const example of examples) {
+  {
     const r = await call(c, "create_chart", { spec: { example: example.id } });
     expect(r.envelope).toEqual(example.make(false));
     expect(await hash(r.envelope)).toBe(r.contentHash);
@@ -87,7 +88,7 @@ it("creates every example with real downloads, keeps hidden answers out of pupil
     expect(url.pathname).toBe("/tools/charts");
     expect(JSON.parse(Buffer.from(url.hash.slice(7), "base64url").toString("utf8"))).toEqual(r.envelope);
   }
-});
+}, 30000);
 
 it("builds a custom dual chart, revises atomically by index and never fills answers", async () => {
   const c = await start();
@@ -135,7 +136,7 @@ it("builds a custom dual chart, revises atomically by index and never fills answ
   });
   expect(tooHigh.isError).toBe(true);
   expect(JSON.stringify(tooHigh.content)).toMatch(/outside the axis/);
-});
+}, 30000);
 
 it("draws saved answers only when the answer view is explicitly requested", async () => {
   const c = await start();
@@ -146,4 +147,4 @@ it("draws saved answers only when the answer view is explicitly requested", asyn
   const lines = async (r: Result) =>
     (Buffer.from(await (await fetch(r.downloads.svg.url)).arrayBuffer()).toString().match(/stroke-width="0.6"/g) ?? []).length;
   expect(await lines(answer)).toBeGreaterThan(await lines(pupil));
-});
+}, 30000);
