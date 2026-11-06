@@ -46,8 +46,9 @@ test("hidden values stay saved answers and switching type keeps every data set",
   await page.getByLabel("Show saved answers").uncheck();
   await page.getByRole("button", { name: "Bar chart", exact: true }).click();
   await expect(page.getByText(/draws only the first data set/)).toBeVisible();
-  await page.getByRole("button", { name: "Line graph" }).click();
-  await expect(page.getByTestId("chart-resource").locator("svg polyline")).toHaveCount(3);
+  await page.getByRole("button", { name: "Vertical line chart" }).click();
+  await expect(page.getByTestId("chart-resource").locator("svg line[stroke-width='0.6']")).toHaveCount(5);
+  await expect(page.getByText(/vertical line chart draws only the first data set/)).toBeVisible();
   const doc = (await saved(page)).document;
   expect(doc.series).toHaveLength(2);
   expect(doc.series[1].values[2]).toEqual({ value: "3", show: "hidden" });

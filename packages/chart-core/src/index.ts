@@ -2,18 +2,19 @@ import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 
 /**
- * Bar charts, dual (comparative) bar charts, composite bar charts and line
- * graphs share one categorical axis, one numerical axis, one grid and one key,
- * so they are kinds of one document. Switching kind never discards data.
+ * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
+ * line charts share one categorical axis, one numerical axis, one grid and one
+ * key, so they are kinds of one document. Time series graphs and frequency
+ * polygons need a continuous axis and belong in their own tools. Switching kind never discards data.
  * Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "line"] as const;
+export const kinds = ["bar", "dual", "composite", "vline"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
   dual: "Dual bar chart",
   composite: "Composite bar chart",
-  line: "Line graph",
+  vline: "Vertical line chart",
 };
 export const fills = [
   "grey",
@@ -168,10 +169,11 @@ export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
 export const hasHidden = (e: Envelope) =>
   drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
 
-/** A bar chart draws only its first data set; the others are kept unchanged. */
+/** Single-set charts draw only their first data set; the others are kept unchanged. */
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline";
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
-  return d.kind === "bar" ? d.series.slice(0, 1) : d.series;
+  return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
 }
 
 const NUMBER = /^-?\d{1,9}(\.\d{1,4})?$/;
@@ -208,7 +210,6 @@ export type Target = {
   height: number;
 };
 export type Bar = Target & { fill: Fill; drawn: boolean };
-export type Point = { series: number; category: number; x: number; y: number; drawn: boolean };
 export type Layout = ReturnType<typeof layout>;
 
 /** All positions and teacher-facing issues; issues block export. */
@@ -244,11 +245,11 @@ export function layout(e: Envelope) {
     st = (hi - lo) / 10;
     count = 10;
   }
-  if (d.kind !== "line" && lo !== 0)
-    issues.push("Bar charts start their axis at 0. Change the axis start to 0.");
-  if (d.kind === "bar" && d.series.length > 1)
+  if (lo !== 0)
+    issues.push("These charts start their axis at 0. Change the axis start to 0.");
+  if (singleSet(d.kind) && d.series.length > 1)
     notes.push(
-      "A bar chart draws only the first data set. The other data sets are kept for dual, composite and line charts.",
+      `A ${kindNames[d.kind].toLowerCase()} draws only the first data set. The other data sets are kept for dual and composite bar charts.`,
     );
   const H = d.heightMm,
     major = H / count,
@@ -264,8 +265,7 @@ export function layout(e: Envelope) {
         issues.push(`${where}: enter a number, or leave it blank.`);
         return null;
       }
-      if (d.kind !== "line" && v < 0)
-        issues.push(`${where}: bar values cannot be negative.`);
+      if (v < 0) issues.push(`${where}: values cannot be negative.`);
       else if (d.kind !== "composite" && (v < lo || v > hi))
         issues.push(`${where}: ${formatNumber(v)} is outside the axis (${formatNumber(lo)} to ${formatNumber(hi)}).`);
       return v;
@@ -289,7 +289,7 @@ export function layout(e: Envelope) {
   const slot =
     d.kind === "dual"
       ? Math.max(bw * series.length + bw, labelWidth + 3)
-      : d.kind === "line"
+      : d.kind === "vline"
         ? d.grid === "fine" && minor >= 1
           ? Math.ceil(Math.max(bw, labelWidth + 3) / minor - 1e-6) * minor
           : Math.max(bw, labelWidth + 3)
@@ -298,7 +298,6 @@ export function layout(e: Envelope) {
   const y = (v: number) => y0 + H - ((v - lo) / (hi - lo)) * H;
   const clamp = (v: number) => Math.min(hi, Math.max(lo, v));
   const bars: Bar[] = [],
-    points: Point[] = [],
     targets: Target[] = [];
   d.categories.forEach((_, ci) => {
     const centre = x0 + slot * (ci + 0.5);
@@ -307,10 +306,12 @@ export function layout(e: Envelope) {
       const v = values[si][ci],
         cell = s.values[ci],
         drawn = v !== null && cell.show === "show";
-      if (d.kind === "line") {
-        const py = y(clamp(v ?? lo));
-        if (v !== null) points.push({ series: si, category: ci, x: centre, y: py, drawn });
-        targets.push({ series: si, category: ci, x: centre - 2.5, y: py - 2.5, width: 5, height: 5 });
+      if (d.kind === "vline") {
+        // A vertical line chart draws a single thick line; width 0 marks it.
+        const top = y(clamp(Math.max(0, v ?? 0)));
+        if (v !== null)
+          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn });
+        targets.push({ series: si, category: ci, x: centre - 2.5, y: Math.min(top, y0 + H - 4), width: 5, height: Math.max(y0 + H - top, 4) });
         return;
       }
       const left =
@@ -369,7 +370,6 @@ export function layout(e: Envelope) {
     labelY,
     xTitleY,
     bars,
-    points,
     targets,
     key,
     issues,
@@ -385,18 +385,6 @@ const text = (t: string, x: number, y: number, anchor = "middle") =>
   `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(t)}</text>`;
 const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
-const DASHES = ["", ' stroke-dasharray="1.6 0.9"', ' stroke-dasharray="0.5 0.7"', ' stroke-dasharray="2.4 0.8 0.5 0.8"'];
-function marker(series: number, x: number, y: number) {
-  const r = 1.1,
-    s = ' stroke="black" stroke-width="0.3" fill="none"';
-  if (series === 0)
-    return `<path d="M${n(x - r)},${n(y - r)}L${n(x + r)},${n(y + r)}M${n(x - r)},${n(y + r)}L${n(x + r)},${n(y - r)}"${s}/>`;
-  if (series === 1) return `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}"${s.replace('fill="none"', 'fill="white"')}/>`;
-  if (series === 2)
-    return `<rect x="${n(x - r)}" y="${n(y - r)}" width="${n(2 * r)}" height="${n(2 * r)}"${s.replace('fill="none"', 'fill="white"')}/>`;
-  return `<path d="M${n(x)},${n(y - r * 1.2)}L${n(x + r * 1.1)},${n(y + r * 0.8)}L${n(x - r * 1.1)},${n(y + r * 0.8)}Z"${s.replace('fill="none"', 'fill="white"')}/>`;
-}
-
 export function renderSvg(e: Envelope): string {
   const d = e.document,
     g = layout(e),
@@ -412,49 +400,35 @@ export function renderSvg(e: Envelope): string {
   if (d.grid === "fine") {
     const lines: string[] = [];
     for (let yy = bottom; yy >= p.y - 1e-6; yy -= g.minor) lines.push(`M${n(p.x)},${n(yy)}H${n(right)}`);
-    // Line graphs put a major vertical line through every category's point.
-    const origin = d.kind === "line" ? p.x + g.slot / 2 : p.x;
+    // Vertical line charts put a major grid line through every category.
+    const origin = d.kind === "vline" ? p.x + g.slot / 2 : p.x;
     const first = origin - Math.floor((origin - p.x) / g.minor + 1e-6) * g.minor;
     for (let xx = first; xx <= right + 1e-6; xx += g.minor)
       if (xx > p.x + 1e-6) lines.push(`M${n(xx)},${n(p.y)}V${n(bottom)}`);
     out.push(`<path d="${lines.join("")}" stroke="#cfcfcf" stroke-width="0.15" fill="none"/>`);
     const majors: string[] = [];
-    if (d.kind === "line")
+    if (d.kind === "vline")
       d.categories.forEach((_, i) => majors.push(`M${n(origin + i * g.slot)},${n(p.y)}V${n(bottom)}`));
     else
       for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) majors.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
     out.push(`<path d="${majors.join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`);
   }
+  if (d.grid === "major" && d.kind === "vline")
+    out.push(
+      `<path d="${[...d.categories.map((_, i) => p.x + g.slot * (i + 0.5)), right].map((x) => `M${n(x)},${n(p.y)}V${n(bottom)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
+    );
   if (d.grid !== "none")
     out.push(
       `<path d="${g.ticks.slice(1).map((t) => `M${n(p.x)},${n(t.y)}H${n(right)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
     );
   for (const b of g.bars)
-    if (b.drawn)
+    if (b.drawn && b.width === 0) {
+      if (b.height > 0)
+        out.push(`<line x1="${n(b.x)}" y1="${n(b.y)}" x2="${n(b.x)}" y2="${n(b.y + b.height)}" stroke="black" stroke-width="0.6"/>`);
+    } else if (b.drawn)
       out.push(
         `<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.width)}" height="${n(b.height)}" fill="${fillRef(b.fill)}" stroke="black" stroke-width="0.3"/>`,
       );
-  if (d.kind === "line") {
-    drawnSeries(e).forEach((_, si) => {
-      const pts = g.points.filter((q) => q.series === si);
-      let run: Point[] = [];
-      const flush = () => {
-        if (run.length > 1)
-          out.push(
-            `<polyline points="${run.map((q) => `${n(q.x)},${n(q.y)}`).join(" ")}" fill="none" stroke="black" stroke-width="0.3" stroke-linejoin="round"${DASHES[si]}/>`,
-          );
-        run = [];
-      };
-      let last = -2;
-      for (const q of pts) {
-        if (!q.drawn || q.category !== last + 1) flush();
-        if (q.drawn) run.push(q);
-        last = q.drawn ? q.category : -2;
-      }
-      flush();
-      for (const q of pts) if (q.drawn) out.push(marker(si, q.x, q.y));
-    });
-  }
   // Axes and the numerical scale.
   out.push(
     `<path d="M${n(p.x)},${n(p.y)}V${n(bottom)}H${n(right)}" stroke="black" stroke-width="0.35" fill="none"/>`,
@@ -475,13 +449,7 @@ export function renderSvg(e: Envelope): string {
     out.push(text("Key:", k.x + 4, k.y + 2 + FONT * 0.9, "start"));
     const series = drawnSeries(e);
     for (const row of k.rows) {
-      if (d.kind === "line")
-        out.push(
-          `<line x1="${n(k.x + 4)}" y1="${n(row.y)}" x2="${n(k.x + 12)}" y2="${n(row.y)}" stroke="black" stroke-width="0.3"${DASHES[row.series]}/>` +
-            marker(row.series, k.x + 8, row.y),
-        );
-      else
-        out.push(
+      out.push(
           `<rect x="${n(k.x + 4)}" y="${n(row.y - 2.5)}" width="8" height="5" fill="${fillRef(series[row.series].fill)}" stroke="black" stroke-width="0.3"/>`,
         );
       out.push(text(row.name, k.x + 15, row.y + FONT * 0.33, "start"));

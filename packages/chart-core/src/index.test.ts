@@ -68,12 +68,12 @@ describe("chart core", () => {
     expect(layout(e).issues.join(" ")).toMatch(/outside the axis/);
   });
 
-  it("leaves hidden line points and their joining segments undrawn", () => {
+  it("draws a vertical line chart as single lines, leaving hidden lines for pupils", () => {
     const pupil = renderSvg(examples[2].make(false));
     const worked = renderSvg(examples[2].make(true));
-    expect(pupil.match(/<polyline/g)).toHaveLength(1);
-    expect((pupil.match(/<path d="M[^"]*L[^"]*M[^"]*L/g) ?? []).length).toBe(9);
-    expect((worked.match(/<path d="M[^"]*L[^"]*M[^"]*L/g) ?? []).length).toBe(12);
+    expect(pupil.match(/stroke-width="0.6"/g)).toHaveLength(3);
+    expect(worked.match(/stroke-width="0.6"/g)).toHaveLength(4);
+    expect(worked).not.toMatch(/<rect x="[^"]*" y="[^"]*" width="0"/);
   });
 
   it("adds and removes categories and data sets within the limits", () => {

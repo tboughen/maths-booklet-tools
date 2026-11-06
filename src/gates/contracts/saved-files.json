@@ -2811,7 +2811,7 @@
               "bar",
               "dual",
               "composite",
-              "line"
+              "vline"
             ]
           },
           "categories": {

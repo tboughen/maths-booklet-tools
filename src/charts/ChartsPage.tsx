@@ -34,6 +34,7 @@ import {
   removeSeries,
   renderSvg,
   setAllShown,
+  singleSet,
   validate,
   type Envelope,
   type Fill,
@@ -160,7 +161,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
   const issue = g.issues.join(" ");
   const series = drawnSeries(e);
-  const line = d.kind === "line";
+  const line = d.kind === "vline";
 
   function commit(next: Envelope) {
     if (recovery !== null) return;
@@ -319,7 +320,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
         <PageHeading
           title="Bar and line charts"
-          description="Make bar charts, dual and composite bar charts and line graphs on exam-style axes."
+          description="Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -411,7 +412,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
-                        aria-label={`Edit ${line ? "point" : "bar"}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
+                        aria-label={`Edit ${line ? "line" : "bar"}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
                         title={hiddenHere ? "Hidden answer (pupils draw this)" : undefined}
                         disabled={blocked}
                         style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
@@ -499,7 +500,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onClick={() =>
                       patch((n) => {
                         n.kind = k;
-                        if (k !== "bar" && k !== "line" && n.series.length < 2) {
+                        if (!singleSet(k) && n.series.length < 2) {
                           const two = addSeries({ ...e, document: n });
                           n.series = two.document.series;
                         }
@@ -596,11 +597,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </table>
               </div>
               <p className="ch-note">
-                Leave a value blank for no {line ? "point" : "bar"}; 0 is a value. Hide keeps the value as a saved answer
-                for pupils to {line ? "plot" : "draw"}.
+                Leave a value blank for no {line ? "line" : "bar"}; 0 is a value. Hide keeps the value as a saved answer
+                for pupils to draw.
               </p>
               <div className="ch-row">
-                {d.kind !== "bar" && (
+                {!singleSet(d.kind) && (
                   <>
                     <button type="button" disabled={blocked || d.series.length >= MAX_SERIES} onClick={() => commit(addSeries(e))}>
                       Add data set
@@ -691,9 +692,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   </select>
                 </label>
                 <label>
-                  {line ? "Point spacing (mm)" : "Bar width (mm)"}
+                  {line ? "Line spacing (mm)" : "Bar width (mm)"}
                   <select
-                    aria-label={line ? "Point spacing" : "Bar width"}
+                    aria-label={line ? "Line spacing" : "Bar width"}
                     value={d.barMm}
                     disabled={blocked}
                     onChange={(ev) => patch((n) => void (n.barMm = Number(ev.target.value)))}
@@ -720,7 +721,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               <details>
                 <summary>Editing and printing help</summary>
                 <p className="ch-note">
-                  Click a bar, point or category label to edit its value in the Data table. Enter applies; Escape
+                  Click a bar, line or category label to edit its value in the Data table. Enter applies; Escape
                   restores. Switching chart type keeps every data set. Nothing is calculated or filled in for you.
                 </p>
                 <p className="ch-note">
