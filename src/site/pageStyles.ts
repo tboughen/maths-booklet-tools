@@ -12,3 +12,4 @@ import "../number-line/number-line.css";
 import "../ratio-table/ratio-table.css";
 import "../value-graph/value-graph.css";
 import "../cuboid/cuboid.css";
+import "../charts/charts.css";

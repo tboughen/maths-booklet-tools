@@ -20,6 +20,9 @@ import { examples as vennExamples, teachingExamples as vennTeaching } from "../.
 import * as valueGraph from "../../packages/value-graph-core/src/interchange";
 import { quadraticSources, workedQuadraticExample } from "../value-graph/examples";
 
+import * as chart from "../../packages/chart-core/src/index";
+import { examples as chartExamples } from "../../packages/chart-core/src/examples";
+
 type Json = Record<string, unknown>;
 type Tool = {
   name: string;
@@ -33,6 +36,7 @@ const tools: Tool[] = [
   { name: "algebra grid", envelopes: () => algebraGridExamples.flatMap(n => [algebraGrid.example(n), algebraGrid.example(n, true)]), validate: algebraGrid.validate, parseFile: algebraGrid.parseFile },
   { name: "bar model v1", envelopes: () => barModel.exampleNames.flatMap(n => [barModel.example(n), barModel.example(n, true)]), validate: barModel.validate, parseFile: barModel.parseFile },
   { name: "bar model v3", envelopes: () => lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), validate: (raw: unknown) => barModelVersioned.parseFile(JSON.stringify(raw)), parseFile: barModelVersioned.parseFile },
+  { name: "charts", envelopes: () => chartExamples.flatMap(x => [x.make(false), x.make(true)]), validate: chart.validate, parseFile: chart.parseFile },
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, parseFile: cuboid.parseFile, link: { encode: cuboid.encode, decode: cuboid.decode } },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, parseFile: numberLine.parseFile, link: { encode: numberLine.encode, decode: numberLine.decode } },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
@@ -47,6 +51,7 @@ const states: { match: (o: Json) => boolean; variants: (o: Json) => Json[] }[] =
   { match: o => typeof o.hidden === "boolean" && "value" in o, variants: () => [{ value: null, hidden: false }, ...TEXTS.flatMap(t => [{ value: t, hidden: false }, { value: t, hidden: true }])] },
   { match: o => typeof o.answerVisible === "boolean" && typeof o.answer === "string", variants: () => [{ answer: "", answerVisible: false }, ...TEXTS.flatMap(t => [{ answer: t, answerVisible: false }, { answer: t, answerVisible: true }])] },
   { match: o => typeof o.state === "string" && typeof o.text === "string", variants: () => ["blank", "hidden", "line", "answer-line", "question", "symbol", "value"].flatMap(state => ["", ...TEXTS].map(text => ({ state, text }))) },
+  { match: o => typeof o.show === "string" && typeof o.value === "string", variants: () => ["show", "hidden"].flatMap(show => ["", ...TEXTS].map(value => ({ show, value }))) },
   { match: o => typeof o.visibility === "string" && typeof o.text === "string", variants: () => ["show", "hidden", "line"].flatMap(visibility => ["", ...TEXTS].map(text => ({ visibility, text }))) },
   { match: o => typeof o.mode === "string" && typeof o.text === "string" && typeof o.x === "number", variants: () => ["hidden", "blank", "value", "text"].flatMap(mode => ["", ...TEXTS].map(text => ({ mode, text }))) },
   // Table cells that are a value, a pupil blank or an answer line (plotting quadratics).

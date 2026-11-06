@@ -16,6 +16,7 @@ export const toolIds = [
   "value-table-graph",
   "cuboids",
   "number-line",
+  "charts",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */

@@ -11,6 +11,9 @@ import * as ai from "../../packages/algebra-grid-core/src/interchange";
 import * as bar from "../../packages/bar-model-core/src/versioned";
 import * as bi from "../../packages/bar-model-core/src/versioned-interchange";
 import { barConfig } from "./bar-config";
+import { chartConfig } from "./chart-config";
+import * as chart from "../../packages/chart-core/src/index";
+import * as chi from "../../packages/chart-core/src/interchange";
 import { algebraConfig } from "./algebra-config";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
 import { GraphError } from "../../packages/graph-core/src/interchange";
@@ -27,7 +30,7 @@ import type { DownloadFormat } from "./downloads";
 import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
 type NewSource = Extract<
   DiagramSource,
-  { kind: "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" }
+  { kind: "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" }
 >;
 const lineCreateSchema = z
   .object({
@@ -127,6 +130,7 @@ const configs = [
   },
   algebraConfig,
   barConfig,
+  chartConfig,
 ];
 export function resourceTools(
   raster: RasterQueue,
@@ -146,7 +150,7 @@ export function resourceTools(
       };
     const info = await prepareDiagram(source, raster, signal);
     const svg =
-      source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
+      source.kind === "charts" ? chart.renderSvg(chart.forView(source.envelope, source.outputView ?? "pupil")) : source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -183,7 +187,7 @@ export function resourceTools(
     const info = await prepareDiagram(source, raster, signal);
     const print = await artifacts(source, "png", signal);
     const svg =
-      source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
+      source.kind === "charts" ? chart.renderSvg(chart.forView(source.envelope, source.outputView ?? "pupil")) : source.kind === "bar-model" ? bar.renderSvg(source.envelope) : source.kind === "algebra-grid" ? algebra.renderSvg(source.envelope) : source.kind === "cuboids"
         ? info.crop!.svg
         : source.kind === "number-line"
           ? line.renderSvg(source.envelope)
@@ -215,13 +219,13 @@ export function resourceTools(
       source.kind,
     );
     const hash =
-      source.kind === "bar-model" ? await bar.hash(source.envelope) : source.kind === "algebra-grid" ? await ai.hash(source.envelope) : source.kind === "cuboids"
+      source.kind === "charts" ? await chi.hash(source.envelope) : source.kind === "bar-model" ? await bar.hash(source.envelope) : source.kind === "algebra-grid" ? await ai.hash(source.envelope) : source.kind === "cuboids"
         ? await ci.hash(source.envelope)
         : source.kind === "number-line"
           ? await line.hash(source.envelope)
           : await vi.hash(source.envelope);
     const warnings =
-      source.kind === "bar-model" ? bar.warnings(source.envelope) : source.kind === "algebra-grid" ? algebra.warnings(source.envelope) : source.kind === "cuboids"
+      source.kind === "charts" ? [...chart.layout(source.envelope).notes] : source.kind === "bar-model" ? bar.warnings(source.envelope) : source.kind === "algebra-grid" ? algebra.warnings(source.envelope) : source.kind === "cuboids"
         ? source.envelope.document.shapes.flatMap((s) => cuboid.warnings(s))
         : source.kind === "number-line"
           ? line.warnings(source.envelope)
@@ -265,21 +269,21 @@ export function resourceTools(
       }
     }
     let editorUrl: string | null =
-      source.kind === "bar-model" ? (()=>{try{return bi.editorLink(source.envelope,editorBase);}catch{return null;}})() : source.kind === "algebra-grid" ? ai.editorLink(source.envelope,editorBase) : source.kind === "cuboids"
+      source.kind === "charts" ? chi.editorLink(source.envelope, editorBase) : source.kind === "bar-model" ? (()=>{try{return bi.editorLink(source.envelope,editorBase);}catch{return null;}})() : source.kind === "algebra-grid" ? ai.editorLink(source.envelope,editorBase) : source.kind === "cuboids"
         ? cuboid.editorLink(source.envelope, editorBase)
         : source.kind === "number-line"
           ? line.editorLink(source.envelope, editorBase)
           : vi.editorLink(source.envelope, editorBase);
     if (
       editorUrl &&
-      editorUrl.length > (source.kind === "venn" || source.kind==="bar-model"&&source.envelope.schemaVersion===2 ? 16_000 : 7500)
+      editorUrl.length > (source.kind === "venn" || source.kind === "charts" || source.kind==="bar-model"&&source.envelope.schemaVersion===2 ? 16_000 : 7500)
     )
       editorUrl = null;
     if (!editorUrl)
       warnings.push(
         "Open the editable JSON file rather than an editor link for this resource.",
       );
-    if (source.kind === "venn" || source.kind === "algebra-grid" || source.kind === "bar-model")
+    if (source.kind === "venn" || source.kind === "algebra-grid" || source.kind === "bar-model" || source.kind === "charts")
       warnings.push(
         "Editable JSON and editor links retain the pupil document and may contain hidden answers.",
       );
@@ -305,7 +309,9 @@ export function resourceTools(
               outputView: source.outputView ?? "pupil",
               activeRegions: venn.activeMasks(source.envelope),
             }
-          : {}),
+          : source.kind === "charts"
+            ? { outputView: source.outputView ?? "pupil" }
+            : {}),
       },
       content: [
         ...content,
@@ -379,7 +385,8 @@ export function resourceTools(
         ) => {
           try {
             let envelope: unknown;
-            if (c.kind === "bar-model") envelope = bi.create(args);
+            if (c.kind === "charts") envelope = chi.create(args);
+            else if (c.kind === "bar-model") envelope = bi.create(args);
             else if (c.kind === "algebra-grid") envelope = ai.create(args);
             else if (c.kind === "cuboids") envelope = ci.createCuboid(args);
             else if (c.kind === "venn") envelope = vi.createVenn(args);
@@ -420,7 +427,7 @@ export function resourceTools(
         ) => {
           try {
             const envelope =
-              c.kind === "bar-model" ? await bi.revise(args) : c.kind === "algebra-grid" ? await ai.revise(args) : c.kind === "cuboids"
+              c.kind === "charts" ? await chi.revise(args) : c.kind === "bar-model" ? await bi.revise(args) : c.kind === "algebra-grid" ? await ai.revise(args) : c.kind === "cuboids"
                 ? await ci.reviseCuboid(args)
                 : c.kind === "venn"
                   ? await vi.reviseVenn(args)

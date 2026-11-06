@@ -24,6 +24,7 @@ or reveal answers without the explicit action, mask dividers or silently reancho
 - For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
 - For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
 - For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/tools/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
+- For bar charts, dual (comparative) and composite bar charts and vertical line charts, read `chart_capabilities`, then use `create_chart` or `revise_chart`. Follow the [charts guide](../../../docs/tools/CHARTS-TOOL.md). They do not draw time series, frequency polygons or histograms. Only call these names once actually discovered.
 
 Algebra grids retain integer terms in x, explicit signs, true blanks and hidden
 answers. Product cells are12..18mm independent of paper choice. Supply spec or
