@@ -1,11 +1,19 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu, LINK_DESCRIPTION } from "../site/EditorDownloadMenu";
+import {
+  EditorDownloadMenu,
+  LINK_DESCRIPTION,
+} from "../site/EditorDownloadMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
@@ -56,7 +64,8 @@ function initial() {
         return {
           e: create(),
           recovery: raw,
-          message: "Saved chart data needs recovery. Download the original before starting afresh.",
+          message:
+            "Saved chart data needs recovery. Download the original before starting afresh.",
         };
       }
     }
@@ -64,7 +73,8 @@ function initial() {
     return {
       e: create(),
       recovery: null,
-      message: "Device storage is unavailable. Save an editable file to keep your work.",
+      message:
+        "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
   return { e: create(), recovery: null, message: "" };
@@ -136,7 +146,11 @@ function DraftField({
 
 export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{ past: Envelope[]; present: Envelope; future: Envelope[] }>({
+    [history, setHistory] = useState<{
+      past: Envelope[];
+      present: Envelope;
+      future: Envelope[];
+    }>({
       past: [],
       present: startup.e,
       future: [],
@@ -150,7 +164,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
-    [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
+    [pending, setPending] = useState<{
+      e: Envelope;
+      title: string;
+      explanation: string;
+    } | null>(null);
   const file = useRef<HTMLInputElement>(null),
     expected = useRef<string | null>(null);
   const e = history.present,
@@ -158,7 +176,12 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     displayed = forView(e, view),
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
-  const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
+  const fitted = useResourceFit(
+    (g.width * 96) / 25.4,
+    (g.height * 96) / 25.4,
+    zoom,
+    (w) => (w < 500 ? 72 : 120),
+  );
   const issue = g.issues.join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline";
@@ -169,7 +192,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     setHistory((h) =>
       canonical(h.present) === canonical(valid)
         ? h
-        : { past: [...h.past, h.present].slice(-60), present: valid, future: [] },
+        : {
+            past: [...h.past, h.present].slice(-60),
+            present: valid,
+            future: [],
+          },
     );
     setMessage("");
   }
@@ -187,14 +214,24 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     if (blocked) return;
     setHistory((h) =>
       h.past.length
-        ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] }
+        ? {
+            past: h.past.slice(0, -1),
+            present: h.past[h.past.length - 1],
+            future: [h.present, ...h.future],
+          }
         : h,
     );
   }
   function redo() {
     if (blocked) return;
     setHistory((h) =>
-      h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h,
+      h.future.length
+        ? {
+            past: [...h.past, h.present],
+            present: h.future[0],
+            future: h.future.slice(1),
+          }
+        : h,
     );
   }
   function replacement(
@@ -217,10 +254,16 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     try {
       const raw = localStorage.getItem(STORAGE),
         text = canonical(history.present);
-      if (expected.current !== null && raw !== expected.current && raw !== text) {
+      if (
+        expected.current !== null &&
+        raw !== expected.current &&
+        raw !== text
+      ) {
         setRecovery(raw ?? "");
         setProtectedCopy(false);
-        setMessage("A newer draft exists in another tab. Its saved data is protected.");
+        setMessage(
+          "A newer draft exists in another tab. Its saved data is protected.",
+        );
         return;
       }
       localStorage.setItem(STORAGE, text);
@@ -235,7 +278,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       if (event.key === STORAGE && event.newValue !== expected.current) {
         setRecovery(event.newValue ?? "");
         setProtectedCopy(false);
-        setMessage("Saved chart data changed in another tab. Download its data before replacing it.");
+        setMessage(
+          "Saved chart data changed in another tab. Download its data before replacing it.",
+        );
       }
     };
     window.addEventListener("storage", listener);
@@ -247,7 +292,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (
         (event.ctrlKey || event.metaKey) &&
-        !(event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))
+        !(
+          event.target instanceof HTMLElement &&
+          event.target.closest("input,textarea,select,[contenteditable]")
+        )
       ) {
         if (event.key.toLowerCase() === "z") {
           event.preventDefault();
@@ -263,7 +311,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   });
-  async function run(action: () => Promise<void>, success = "Image copied. Paste with Ctrl+V.") {
+  async function run(
+    action: () => Promise<void>,
+    success = "Image copied. Paste with Ctrl+V.",
+  ) {
     if (blocked || issue) return;
     setBusy(true);
     setMessage("");
@@ -281,7 +332,12 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   useEffect(() => {
     if (!active) return;
     const inspect = () => {
-      if (!location.hash.startsWith("#chart=") || linkSeen.current === location.href || blocked) return;
+      if (
+        !location.hash.startsWith("#chart=") ||
+        linkSeen.current === location.href ||
+        blocked
+      )
+        return;
       linkSeen.current = location.href;
       try {
         const incoming = parseChartLink(location.href);
@@ -297,7 +353,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   });
   function consumeLink() {
     if (linkPending.current && location.hash.startsWith("#chart="))
-      window.history.replaceState(null, "", location.pathname + location.search);
+      window.history.replaceState(
+        null,
+        "",
+        location.pathname + location.search,
+      );
     linkPending.current = false;
     linkSeen.current = "";
   }
@@ -317,7 +377,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
 
   return (
     <div className="app-shell booklet-editor ch-editor">
-      <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
+      <main
+        className="main-content"
+        id={active ? "main-content" : undefined}
+        tabIndex={-1}
+      >
         <PageHeading
           title="Bar and line charts"
           description="Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes."
@@ -339,10 +403,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onCopy={() =>
                 void run(
                   () => copyWord(displayed),
-                  "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.",
+                  "Copied for Word at " +
+                    formatResourceSize(g.width / 10, g.height / 10) +
+                    ". Paste with Ctrl+V.",
                 )
               }
-              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed)))}
+              onCopyClipboard={() =>
+                void run(() => copyPngToClipboard(() => printPng(displayed)))
+              }
               menuId="chart-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
@@ -355,13 +423,38 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={[
-                { label: "Download SVG", action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                { label: "Download PNG (600 ppi)", action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                { label: "Save editable file", action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started.", separator: true },
-                { label: "Open editable file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
+                {
+                  label: "Download SVG",
+                  action: () => downloadImage(displayed, "svg"),
+                  disabled: blocked || !!issue,
+                  success: "SVG download started.",
+                },
+                {
+                  label: "Download PNG (600 ppi)",
+                  action: () => downloadImage(displayed, "png"),
+                  disabled: blocked || !!issue,
+                  success: "PNG download started.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () => downloadEditable(e),
+                  disabled: blocked,
+                  success: "Editable file download started.",
+                  separator: true,
+                },
+                {
+                  label: "Open editable file",
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                  success: "",
+                  picker: true,
+                },
                 {
                   label: "Copy editable link",
-                  action: () => navigator.clipboard.writeText(chartEditorLink(e, location.href)),
+                  action: () =>
+                    navigator.clipboard.writeText(
+                      chartEditorLink(e, location.href),
+                    ),
                   disabled: blocked,
                   success: "Editable link copied.",
                   description: LINK_DESCRIPTION,
@@ -386,7 +479,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   type="checkbox"
                   disabled={blocked}
                   checked={view === "answer"}
-                  onChange={(ev) => setView(ev.target.checked ? "answer" : "pupil")}
+                  onChange={(ev) =>
+                    setView(ev.target.checked ? "answer" : "pupil")
+                  }
                 />
                 Show saved answers
               </label>
@@ -402,20 +497,35 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     height: ((g.height * 96) / 25.4) * fitted.scale,
                   }}
                 >
-                  <div className="ch-art" dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }} />
+                  <div
+                    className="ch-art"
+                    dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }}
+                  />
                   {g.targets.map((t) => {
                     const cell = d.series[t.series].values[t.category];
                     const id = `ch-value-${t.series}-${t.category}`;
-                    const hiddenHere = view === "pupil" && cell.show === "hidden" && cell.value.trim();
+                    const hiddenHere =
+                      view === "pupil" &&
+                      cell.show === "hidden" &&
+                      cell.value.trim();
                     return (
                       <button
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
                         aria-label={`Edit ${line ? "line" : "bar"}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
-                        title={hiddenHere ? "Hidden answer (pupils draw this)" : undefined}
+                        title={
+                          hiddenHere
+                            ? "Hidden answer (pupils draw this)"
+                            : undefined
+                        }
                         disabled={blocked}
-                        style={{ left: px(t.x, g.width), top: px(t.y, g.height), width: px(t.width, g.width), height: px(t.height, g.height) }}
+                        style={{
+                          left: px(t.x, g.width),
+                          top: px(t.y, g.height),
+                          width: px(t.width, g.width),
+                          height: px(t.height, g.height),
+                        }}
                         onClick={() => focusField(id)}
                       />
                     );
@@ -428,7 +538,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       aria-label={`Edit category label ${c || i + 1}`}
                       disabled={blocked}
                       style={{
-                        left: px(g.plot.x + g.slot * i, g.width),
+                        left: px(g.centres[i] - g.slot / 2, g.width),
                         top: px(g.labelY - 4, g.height),
                         width: px(g.slot, g.width),
                         height: px(5.5, g.height),
@@ -437,7 +547,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                <div className="ch-structure" role="group" aria-label="Categories">
+                <div
+                  className="ch-structure"
+                  role="group"
+                  aria-label="Categories"
+                >
                   <button
                     type="button"
                     disabled={blocked || d.categories.length >= MAX_CATEGORIES}
@@ -445,7 +559,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     title="Add category"
                     onClick={() => {
                       commit(addCategory(e));
-                      requestAnimationFrame(() => focusField(`ch-cat-${d.categories.length}`));
+                      requestAnimationFrame(() =>
+                        focusField(`ch-cat-${d.categories.length}`),
+                      );
                     }}
                   >
                     +
@@ -485,7 +601,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               examples={chartGallery}
               active={active}
               disabled={blocked}
-              onUse={(resource, title) => replacement(resource, `Open ${title}?`)}
+              onUse={(resource, title) =>
+                replacement(resource, `Open ${title}?`)
+              }
               onWorked={(resource) => commit(resource)}
             />
             <section className="panel-card ch-panel">
@@ -526,14 +644,22 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                             value={s.name}
                             maxLength={24}
                             disabled={blocked}
-                            onCommit={(v) => patch((n) => void (n.series[si].name = v))}
+                            onCommit={(v) =>
+                              patch((n) => void (n.series[si].name = v))
+                            }
                           />
                           {!line && (
                             <select
                               aria-label={`Fill for ${s.name || `data set ${si + 1}`}`}
                               value={s.fill}
                               disabled={blocked}
-                              onChange={(ev) => patch((n) => void (n.series[si].fill = ev.target.value as Fill))}
+                              onChange={(ev) =>
+                                patch(
+                                  (n) =>
+                                    void (n.series[si].fill = ev.target
+                                      .value as Fill),
+                                )
+                              }
                             >
                               {fills.map((f) => (
                                 <option key={f} value={f}>
@@ -552,12 +678,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         <th scope="row">
                           <DraftField
                             id={`ch-cat-${ci}`}
-                            className={selected === `ch-cat-${ci}` ? "ch-field-selected" : ""}
+                            className={
+                              selected === `ch-cat-${ci}`
+                                ? "ch-field-selected"
+                                : ""
+                            }
                             label={`Category ${ci + 1} label`}
                             value={c}
                             maxLength={16}
                             disabled={blocked}
-                            onCommit={(v) => patch((n) => void (n.categories[ci] = v))}
+                            onCommit={(v) =>
+                              patch((n) => void (n.categories[ci] = v))
+                            }
                           />
                         </th>
                         {series.map((s, si) => {
@@ -567,14 +699,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                             <td key={si}>
                               <DraftField
                                 id={`ch-value-${si}-${ci}`}
-                                className={selected === `ch-value-${si}-${ci}` ? "ch-field-selected" : ""}
+                                className={
+                                  selected === `ch-value-${si}-${ci}`
+                                    ? "ch-field-selected"
+                                    : ""
+                                }
                                 label={`Value for ${name}`}
                                 value={cell.value}
                                 maxLength={12}
                                 inputMode="decimal"
                                 invalid={valueInvalid(si, ci)}
                                 disabled={blocked}
-                                onCommit={(v) => patch((n) => void (n.series[si].values[ci].value = v))}
+                                onCommit={(v) =>
+                                  patch(
+                                    (n) =>
+                                      void (n.series[si].values[ci].value = v),
+                                  )
+                                }
                               />
                               <label className="ch-hide">
                                 <input
@@ -583,7 +724,13 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                                   checked={cell.show === "hidden"}
                                   aria-label={`Hide ${name} for pupils`}
                                   onChange={(ev) =>
-                                    patch((n) => void (n.series[si].values[ci].show = ev.target.checked ? "hidden" : "show"))
+                                    patch(
+                                      (n) =>
+                                        void (n.series[si].values[ci].show = ev
+                                          .target.checked
+                                          ? "hidden"
+                                          : "show"),
+                                    )
                                   }
                                 />
                                 Hide
@@ -597,13 +744,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </table>
               </div>
               <p className="ch-note">
-                Leave a value blank for no {line ? "line" : "bar"}; 0 is a value. Hide keeps the value as a saved answer
-                for pupils to draw.
+                Leave a value blank for no {line ? "line" : "bar"}; 0 is a
+                value. Hide keeps the value as a saved answer for pupils to
+                draw.
               </p>
               <div className="ch-row">
                 {!singleSet(d.kind) && (
                   <>
-                    <button type="button" disabled={blocked || d.series.length >= MAX_SERIES} onClick={() => commit(addSeries(e))}>
+                    <button
+                      type="button"
+                      disabled={blocked || d.series.length >= MAX_SERIES}
+                      onClick={() => commit(addSeries(e))}
+                    >
                       Add data set
                     </button>
                     <button
@@ -615,10 +767,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     </button>
                   </>
                 )}
-                <button type="button" disabled={blocked} onClick={() => commit(setAllShown(e, "hidden"))}>
+                <button
+                  type="button"
+                  disabled={blocked}
+                  onClick={() => commit(setAllShown(e, "hidden"))}
+                >
                   Hide all (pupils draw)
                 </button>
-                <button type="button" disabled={blocked || !hasHidden(e)} onClick={() => commit(setAllShown(e, "show"))}>
+                <button
+                  type="button"
+                  disabled={blocked || !hasHidden(e)}
+                  onClick={() => commit(setAllShown(e, "show"))}
+                >
                   Show all
                 </button>
               </div>
@@ -628,15 +788,36 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               <div className="ch-fields">
                 <label>
                   Axis start
-                  <DraftField label="Axis start" value={d.axis.min} maxLength={12} inputMode="decimal" disabled={blocked} onCommit={(v) => patch((n) => void (n.axis.min = v))} />
+                  <DraftField
+                    label="Axis start"
+                    value={d.axis.min}
+                    maxLength={12}
+                    inputMode="decimal"
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.axis.min = v))}
+                  />
                 </label>
                 <label>
                   Axis end
-                  <DraftField label="Axis end" value={d.axis.max} maxLength={12} inputMode="decimal" disabled={blocked} onCommit={(v) => patch((n) => void (n.axis.max = v))} />
+                  <DraftField
+                    label="Axis end"
+                    value={d.axis.max}
+                    maxLength={12}
+                    inputMode="decimal"
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.axis.max = v))}
+                  />
                 </label>
                 <label>
                   Step
-                  <DraftField label="Axis step" value={d.axis.step} maxLength={12} inputMode="decimal" disabled={blocked} onCommit={(v) => patch((n) => void (n.axis.step = v))} />
+                  <DraftField
+                    label="Axis step"
+                    value={d.axis.step}
+                    maxLength={12}
+                    inputMode="decimal"
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.axis.step = v))}
+                  />
                 </label>
                 <label>
                   Grid
@@ -644,11 +825,21 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     aria-label="Grid"
                     value={d.grid}
                     disabled={blocked}
-                    onChange={(ev) => patch((n) => void (n.grid = ev.target.value as Doc["grid"]))}
+                    onChange={(ev) =>
+                      patch(
+                        (n) => void (n.grid = ev.target.value as Doc["grid"]),
+                      )
+                    }
                   >
                     {gridChoices.map((x) => (
                       <option key={x} value={x}>
-                        {{ none: "No grid", major: "Lines at each step", fine: "Graph paper" }[x]}
+                        {
+                          {
+                            none: "No grid",
+                            major: "Lines at each step",
+                            fine: "Graph paper",
+                          }[x]
+                        }
                       </option>
                     ))}
                   </select>
@@ -659,7 +850,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     aria-label="Small squares per step"
                     value={d.axis.minor}
                     disabled={blocked || d.grid !== "fine"}
-                    onChange={(ev) => patch((n) => void (n.axis.minor = Number(ev.target.value) as Doc["axis"]["minor"]))}
+                    onChange={(ev) =>
+                      patch(
+                        (n) =>
+                          void (n.axis.minor = Number(
+                            ev.target.value,
+                          ) as Doc["axis"]["minor"]),
+                      )
+                    }
                   >
                     {minorChoices.map((x) => (
                       <option key={x} value={x}>
@@ -670,11 +868,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </label>
                 <label>
                   Vertical axis title
-                  <DraftField label="Vertical axis title" value={d.yTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.yTitle = v))} />
+                  <DraftField
+                    label="Vertical axis title"
+                    value={d.yTitle}
+                    maxLength={40}
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.yTitle = v))}
+                  />
                 </label>
                 <label>
                   Horizontal axis title
-                  <DraftField label="Horizontal axis title" value={d.xTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.xTitle = v))} />
+                  <DraftField
+                    label="Horizontal axis title"
+                    value={d.xTitle}
+                    maxLength={40}
+                    disabled={blocked}
+                    onCommit={(v) => patch((n) => void (n.xTitle = v))}
+                  />
                 </label>
                 <label>
                   Chart height (mm)
@@ -682,36 +892,75 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     aria-label="Chart height"
                     value={d.heightMm}
                     disabled={blocked}
-                    onChange={(ev) => patch((n) => void (n.heightMm = Number(ev.target.value)))}
+                    onChange={(ev) =>
+                      patch((n) => void (n.heightMm = Number(ev.target.value)))
+                    }
                   >
-                    {[...new Set([40, 50, 60, 70, 80, 90, 100, 120, 140, d.heightMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
+                    {[
+                      ...new Set([
+                        40,
+                        50,
+                        60,
+                        70,
+                        80,
+                        90,
+                        100,
+                        120,
+                        140,
+                        d.heightMm,
+                      ]),
+                    ]
+                      .sort((a, b) => a - b)
+                      .map((x) => (
+                        <option key={x} value={x}>
+                          {x}
+                        </option>
+                      ))}
                   </select>
                 </label>
-                <label>
-                  {line ? "Line spacing (mm)" : "Bar width (mm)"}
-                  <select
-                    aria-label={line ? "Line spacing" : "Bar width"}
-                    value={d.barMm}
-                    disabled={blocked}
-                    onChange={(ev) => patch((n) => void (n.barMm = Number(ev.target.value)))}
-                  >
-                    {[...new Set([5, 6, 7, 8, 9, 10, 12, 14, 16, 20, d.barMm])].sort((a, b) => a - b).map((x) => (
-                      <option key={x} value={x}>
-                        {x}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {!line && (
+                  <label>
+                    Bar width (mm)
+                    <select
+                      aria-label="Bar width"
+                      value={d.barMm}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => void (n.barMm = Number(ev.target.value)))
+                      }
+                    >
+                      {[
+                        ...new Set([
+                          5,
+                          6,
+                          7,
+                          8,
+                          9,
+                          10,
+                          12,
+                          14,
+                          16,
+                          20,
+                          d.barMm,
+                        ]),
+                      ]
+                        .sort((a, b) => a - b)
+                        .map((x) => (
+                          <option key={x} value={x}>
+                            {x}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
                 <label className="ch-check">
                   <input
                     type="checkbox"
                     disabled={blocked || series.length < 2}
                     checked={d.key}
-                    onChange={(ev) => patch((n) => void (n.key = ev.target.checked))}
+                    onChange={(ev) =>
+                      patch((n) => void (n.key = ev.target.checked))
+                    }
                   />
                   Show key
                 </label>
@@ -721,12 +970,15 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               <details>
                 <summary>Editing and printing help</summary>
                 <p className="ch-note">
-                  Click a bar, line or category label to edit its value in the Data table. Enter applies; Escape
-                  restores. Switching chart type keeps every data set. Nothing is calculated or filled in for you.
+                  Click a bar, line or category label to edit its value in the
+                  Data table. Enter applies; Escape restores. Switching chart
+                  type keeps every data set. Nothing is calculated or filled in
+                  for you.
                 </p>
                 <p className="ch-note">
-                  Copy for Word carries the physical size shown above the chart; preview zoom never changes it. Download
-                  PNG (600 ppi) if your browser blocks copying.
+                  Copy for Word carries the physical size shown above the chart;
+                  preview zoom never changes it. Download PNG (600 ppi) if your
+                  browser blocks copying.
                 </p>
               </details>
             </section>
@@ -738,13 +990,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "chart-recovery.json");
+                downloadBlob(
+                  new Blob([recovery], { type: "application/json" }),
+                  "chart-recovery.json",
+                );
                 setProtectedCopy(true);
               }}
             >
               Download protected data
             </button>
-            <button onClick={() => downloadEditable(e)}>Save current chart</button>
+            <button onClick={() => downloadEditable(e)}>
+              Save current chart
+            </button>
             <button
               disabled={!protectedCopy}
               onClick={() => {
@@ -753,14 +1010,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   if (raw !== recovery) {
                     setRecovery(raw ?? "");
                     setProtectedCopy(false);
-                    setMessage("Saved data changed again. Download this latest copy first.");
+                    setMessage(
+                      "Saved data changed again. Download this latest copy first.",
+                    );
                     return;
                   }
                   expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {
-                  setMessage("Storage is unavailable. Keep your downloaded files.");
+                  setMessage(
+                    "Storage is unavailable. Keep your downloaded files.",
+                  );
                 }
               }}
             >
@@ -786,7 +1047,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             }}
           >
             <p>{pending.explanation}</p>
-            <div className="ratio-import-preview" dangerouslySetInnerHTML={{ __html: renderSvg(pending.e) }} />
+            <div
+              className="ratio-import-preview"
+              dangerouslySetInnerHTML={{ __html: renderSvg(pending.e) }}
+            />
           </RatioDialog>
         )}
       </main>

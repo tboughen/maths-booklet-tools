@@ -76,6 +76,14 @@ describe("chart core", () => {
     expect(worked).not.toMatch(/<rect x="[^"]*" y="[^"]*" width="0"/);
   });
 
+  it("draws a vertical line chart on square grid cells with each line on a grid line", () => {
+    const e = examples[2].make(true),
+      g = layout(e);
+    expect(g.slot).toBeCloseTo(g.major, 9);
+    expect(g.plot.width / g.major).toBeCloseTo(e.document.categories.length + 1, 9);
+    for (const x of g.centres) expect(((x - g.plot.x) / g.major) % 1).toBeCloseTo(0, 9);
+  });
+
   it("adds and removes categories and data sets within the limits", () => {
     let e = create();
     e = addCategory(e);

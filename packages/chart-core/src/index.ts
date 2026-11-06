@@ -285,22 +285,26 @@ export function layout(e: Envelope) {
   const x0 = MARGIN + (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5;
   const y0 = MARGIN + FONT * 0.5;
   const labelWidth = Math.max(0, ...d.categories.map((c) => textWidth(c)));
+  // Neighbouring labels need half of each label's width plus a gap between centres.
+  const widths = d.categories.map((c) => textWidth(c));
+  const pairWidth = Math.max(widths[0] ?? 0, ...widths.slice(1).map((w, i) => (w + widths[i]) / 2));
   const bw = d.barMm;
   const slot =
     d.kind === "dual"
       ? Math.max(bw * series.length + bw, labelWidth + 3)
       : d.kind === "vline"
-        ? d.grid === "fine" && minor >= 1
-          ? Math.ceil(Math.max(bw, labelWidth + 3) / minor - 1e-6) * minor
-          : Math.max(bw, labelWidth + 3)
+        ? // Whole grid squares: lines stand on vertical grid lines one square apart
+          // (or a whole number of squares when labels need more room).
+          Math.max(1, Math.ceil((pairWidth + 1) / major - 1e-6)) * major
         : Math.max(bw * 2, labelWidth + 3);
-  const W = slot * d.categories.length;
+  const centreOf = (ci: number) => (d.kind === "vline" ? x0 + slot * (ci + 1) : x0 + slot * (ci + 0.5));
+  const W = slot * (d.categories.length + (d.kind === "vline" ? 1 : 0));
   const y = (v: number) => y0 + H - ((v - lo) / (hi - lo)) * H;
   const clamp = (v: number) => Math.min(hi, Math.max(lo, v));
   const bars: Bar[] = [],
     targets: Target[] = [];
   d.categories.forEach((_, ci) => {
-    const centre = x0 + slot * (ci + 0.5);
+    const centre = centreOf(ci);
     let stack = 0;
     series.forEach((s, si) => {
       const v = values[si][ci],
@@ -361,6 +365,7 @@ export function layout(e: Envelope) {
     width,
     height,
     plot: { x: x0, y: y0, width: W, height: H },
+    centres: d.categories.map((_, ci) => centreOf(ci)),
     slot,
     ticks: ticks.map((t) => ({ value: t, y: y(t) })),
     major,
@@ -400,23 +405,18 @@ export function renderSvg(e: Envelope): string {
   if (d.grid === "fine") {
     const lines: string[] = [];
     for (let yy = bottom; yy >= p.y - 1e-6; yy -= g.minor) lines.push(`M${n(p.x)},${n(yy)}H${n(right)}`);
-    // Vertical line charts put a major grid line through every category.
-    const origin = d.kind === "vline" ? p.x + g.slot / 2 : p.x;
-    const first = origin - Math.floor((origin - p.x) / g.minor + 1e-6) * g.minor;
-    for (let xx = first; xx <= right + 1e-6; xx += g.minor)
-      if (xx > p.x + 1e-6) lines.push(`M${n(xx)},${n(p.y)}V${n(bottom)}`);
+    for (let xx = p.x + g.minor; xx <= right + 1e-6; xx += g.minor) lines.push(`M${n(xx)},${n(p.y)}V${n(bottom)}`);
     out.push(`<path d="${lines.join("")}" stroke="#cfcfcf" stroke-width="0.15" fill="none"/>`);
     const majors: string[] = [];
-    if (d.kind === "vline")
-      d.categories.forEach((_, i) => majors.push(`M${n(origin + i * g.slot)},${n(p.y)}V${n(bottom)}`));
-    else
-      for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) majors.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
+    for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) majors.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
     out.push(`<path d="${majors.join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`);
   }
-  if (d.grid === "major" && d.kind === "vline")
-    out.push(
-      `<path d="${[...d.categories.map((_, i) => p.x + g.slot * (i + 0.5)), right].map((x) => `M${n(x)},${n(p.y)}V${n(bottom)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
-    );
+  if (d.grid === "major" && d.kind === "vline") {
+    // Square grid: a vertical line every step, the same spacing as the horizontal lines.
+    const verticals: string[] = [];
+    for (let i = 1; p.x + i * g.major <= right + 1e-6; i++) verticals.push(`M${n(p.x + i * g.major)},${n(p.y)}V${n(bottom)}`);
+    out.push(`<path d="${verticals.join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`);
+  }
   if (d.grid !== "none")
     out.push(
       `<path d="${g.ticks.slice(1).map((t) => `M${n(p.x)},${n(t.y)}H${n(right)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
@@ -439,7 +439,7 @@ export function renderSvg(e: Envelope): string {
   for (const t of g.ticks) out.push(text(formatNumber(t.value), p.x - 2.2, t.y + FONT * 0.33, "end"));
   const midY = p.y + p.height / 2 - ((g.yTitle.length - 1) * FONT * 1.15) / 2;
   g.yTitle.forEach((line, i) => out.push(text(line, 2, midY + i * FONT * 1.15 + FONT * 0.33, "start")));
-  d.categories.forEach((c, i) => out.push(text(c, p.x + g.slot * (i + 0.5), g.labelY)));
+  d.categories.forEach((c, i) => out.push(text(c, g.centres[i], g.labelY)));
   if (d.xTitle) out.push(text(d.xTitle, p.x + p.width / 2, g.xTitleY));
   if (g.key) {
     const k = g.key;
