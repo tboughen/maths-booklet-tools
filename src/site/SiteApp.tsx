@@ -12,6 +12,7 @@ import "./pageStyles";
 import { Overview } from "./Overview";
 import { NotFound } from "./NotFound";
 import { SiteHeader } from "./SiteHeader";
+import { SiteFooter } from "./SiteFooter";
 import { upgradeLegacyLink } from "./routes";
 import {
   AssessmentPage,
@@ -180,11 +181,13 @@ export default function SiteApp() {
       {page === "not-found" && (
         <div className="site-page">
           <NotFound />
+          <SiteFooter />
         </div>
       )}
       {(page === "home" || page === "booklet-tools") && (
         <div className="site-page">
           <Overview home={page === "home"} />
+          <SiteFooter />
         </div>
       )}
       {bookletTools.map(
