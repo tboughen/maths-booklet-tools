@@ -134,8 +134,24 @@
   border-block: 1px solid #d7e3ed;
   overflow-wrap: anywhere;
 }
-.booklet-editor .vn-answer-toggle {
-  margin-left: 0;
+/* Answer switches sit in the preview bar's tool slot, after the export size (U1, U5). */
+.answer-preview-toggle,
+.answer-copy-toggle {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 38px;
+  cursor: pointer;
+}
+.answer-preview-toggle input,
+.answer-copy-toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: #2465ad;
+}
+.answer-copy-note {
+  color: #8a1d4f;
+  font-weight: 600;
 }
 .graph-control-group {
   display: contents;

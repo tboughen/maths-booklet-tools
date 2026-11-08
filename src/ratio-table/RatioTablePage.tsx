@@ -665,8 +665,8 @@ export default function RatioTablePage({
               onChange={(e) => void openFile(e.target.files?.[0])}
             />
             <div className="ratio-preview-controls">
-              <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
               <PreviewControls zoom={zoom} onZoom={setZoom} />
+              <ResourceSize width={metrics.widthCm} height={metrics.heightCm} />
               <label>
                 <input
                   type="checkbox"

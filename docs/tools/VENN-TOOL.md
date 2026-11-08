@@ -16,8 +16,9 @@ runtime dependencies or newly published question-bank assets.
   clicking an already-selected Nested button does not change the document.
   Outer set / Inner set label and definition editors follow the actual geometry.
   Renaming changes only the chosen label, retaining every region and shade.
-- Show saved answers replaces the resource-view dropdown. It sits beside file
-  controls immediately below Copy, controls the existing temporary output view,
+- "Teacher copy: show hidden answers" replaces the resource-view dropdown. It sits
+  in the preview bar after the export size, with a note that downloads show the
+  answers too. It controls the existing temporary output view,
   and preserves pupil visibility in autosave/editable files. It is disabled
   during pending edits/replacements/recovery/export like the previous control.
 - One Edit/Shade switch above the diagram is the only mode control. Edit shows

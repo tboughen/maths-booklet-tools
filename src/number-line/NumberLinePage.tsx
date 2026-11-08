@@ -851,8 +851,8 @@ export default function NumberLinePage({
               ]}
             />
             <div className="nl-preview-bar">
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
               <PreviewControls zoom={zoom} onZoom={setZoom} />
+              <ResourceSize width={m.widthCm} height={m.heightCm} />
               <span>
                 {mode === "select"
                   ? "Click a circle to change its type; drag to move it."

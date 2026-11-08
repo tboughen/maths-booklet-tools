@@ -567,6 +567,17 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               ]}
             />
             <div className="cb-preview-bar">
+              <PreviewControls zoom={zoom} onZoom={setZoom} />
+              <ResourceSize
+                width={cropSize.key === cropKey ? cropSize.width : undefined}
+                height={cropSize.key === cropKey ? cropSize.height : undefined}
+                pending={
+                  !issue &&
+                  (cropSize.key !== cropKey ||
+                    (!cropSize.error && cropSize.width === undefined))
+                }
+                error={!!issue || cropSize.error}
+              />
               <label>
                 View{" "}
                 <select
@@ -591,18 +602,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               >
                 Show 1 cm³ cubes
               </button>
-
-              <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <ResourceSize
-                width={cropSize.key === cropKey ? cropSize.width : undefined}
-                height={cropSize.key === cropKey ? cropSize.height : undefined}
-                pending={
-                  !issue &&
-                  (cropSize.key !== cropKey ||
-                    (!cropSize.error && cropSize.width === undefined))
-                }
-                error={!!issue || cropSize.error}
-              />
               <span>Click a label to edit</span>
             </div>
             {issue && (

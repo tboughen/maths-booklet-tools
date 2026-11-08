@@ -1420,8 +1420,8 @@ export default function ValueGraphPage({
               }}
             />
             <div className="ratio-preview-controls">
-              <ResourceSize width={m.widthCm} height={m.heightCm} />
               <PreviewControls zoom={zoom} onZoom={setZoom} />
+              <ResourceSize width={m.widthCm} height={m.heightCm} />
             </div>
             {!!message && (
               <p role="status" className="resource-feedback">

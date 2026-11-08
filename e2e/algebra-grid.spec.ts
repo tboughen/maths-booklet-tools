@@ -142,7 +142,7 @@ test("question and answer placement buttons surround artwork and preserve pupil 
   ).toBeVisible();
   await below.getByRole("button").click();
   await expect(
-    page.getByLabel("Show saved final answer", { exact: true }),
+    page.getByLabel("Print the final answer below the grid", { exact: true }),
   ).toBeChecked();
   await expect
     .poll(async () => (await saved(page)).document.answer)
@@ -169,7 +169,7 @@ test("question and answer placement buttons surround artwork and preserve pupil 
   expect(svg).toContain('y="59"');
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(
-    page.getByLabel("Show saved final answer", { exact: true }),
+    page.getByLabel("Print the final answer below the grid", { exact: true }),
   ).not.toBeChecked();
   await below.getByRole("button").click();
   await below.getByRole("button").click();
@@ -507,7 +507,7 @@ test("edits blank/zero/hidden states, exports pupil visibility and preserves exa
     hidden: true,
   });
   await expect(resource(page).locator("svg text")).toHaveCount(5);
-  await page.getByLabel("Preview saved hidden answers").check();
+  await page.getByLabel("Teacher preview: show hidden answers").check();
   await expect(resource(page).locator("svg text")).toHaveCount(6);
   const svg = (
     await download(page, "Download SVG", info.outputPath("hidden-pupil.svg"))
@@ -971,7 +971,7 @@ test("hidden/blank headings keep writing space and compact again only after an e
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "45mm");
   await expect(resource(page).locator("svg")).toHaveAttribute("width", "39mm");
   await page
-    .getByLabel("Preview saved hidden answers", { exact: true })
+    .getByLabel("Teacher preview: show hidden answers", { exact: true })
     .check();
   await expect(resource(page).locator("svg")).toHaveAttribute("height", "45mm");
   await edit(page, 2, 0, "");
