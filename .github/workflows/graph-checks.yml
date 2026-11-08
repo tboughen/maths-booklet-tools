@@ -109,7 +109,10 @@ jobs:
       # The image already holds this Playwright's Chromium at PLAYWRIGHT_BROWSERS_PATH; nothing to install.
       - name: Show the pinned browser environment
         if: startsWith(matrix.check, 'browser-') || matrix.check == 'built'
-        run: npx playwright --version && ls "$PLAYWRIGHT_BROWSERS_PATH" && fc-list : family | sort -u
+        run: |
+          npx playwright --version
+          ls "$PLAYWRIGHT_BROWSERS_PATH"
+          fc-list : family | sort -u
       - name: Qualify the exact prepared package
         env:
           CHECK: ${{ matrix.check }}
