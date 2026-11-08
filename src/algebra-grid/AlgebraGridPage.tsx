@@ -32,6 +32,7 @@ import {
 } from "../site/EditorDownloadMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
+import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -584,6 +585,7 @@ export default function AlgebraGridPage({
                 onZoom={(value) => setZoom(value ? String(value) : "fit")}
               />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
+              <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />
             </div>
             <p className="ag-guidance">
               Click a cell or the printed question to edit. Blank cells stay
@@ -733,14 +735,6 @@ export default function AlgebraGridPage({
                 Grid: {g.gridWidth.toFixed(1)} × {g.gridHeight.toFixed(1)} mm ·{" "}
                 {d.rows.length} rows × {d.columns.length} columns
               </span>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showAnswers}
-                  onChange={(ev) => setShowAnswers(ev.target.checked)}
-                />
-                Preview saved hidden answers
-              </label>
             </div>
             {message && (
               <p className="ag-message" role="status">
@@ -937,7 +931,7 @@ export default function AlgebraGridPage({
                     })
                   }
                 />
-                Show saved final answer
+                Print the final answer below the grid
               </label>
               <div className="ag-actions">
                 <button disabled={blocked} onClick={fill}>

@@ -171,7 +171,7 @@ on narrow screens. Explicit zoom permits scrolling without changing export size.
 
 SVG embeds portable fonts; PNG is opaque greyscale at 600 ppi. Copy to clipboard
 uses the same PNG. Copy for Word adds the exact physical cm dimensions to HTML.
-Temporary Show saved answers is a preview only: pupil downloads retain saved
+Teacher preview: show hidden answers is a screen-only preview: pupil downloads retain saved
 visibility. Open worked copy creates independent tab/storage and permits answer
 exports without changing the scaffold. A stale saved answer must be resolved
 before showing it. Native Word paste and physical monochrome printing require

@@ -48,6 +48,7 @@ import {
 } from "../site/EditorDownloadMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
+import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { RatioDialog } from "../ratio-table/RatioDialog";
@@ -890,19 +891,14 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 zoom={zoom === "fit" ? 0 : Number(zoom)}
                 onZoom={(value) => setZoom(value ? String(value) : "fit")}
               />
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showAnswers}
-                  disabled={blocked}
-                  onChange={(ev) => setShowAnswers(ev.target.checked)}
-                />{" "}
-                Show saved answers
-              </label>
               <ResourceSize
                 width={exportMetrics.width / 10}
                 height={exportMetrics.height / 10}
+              />
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                disabled={blocked}
+                onChange={setShowAnswers}
               />
               <button
                 disabled={blocked || !hasSavedAnswer}
@@ -2274,7 +2270,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     if (!blocked) {
                       commit(next);
                       setMessage(
-                        "Answer saved and hidden. Choose Show saved answers to preview it, or use a worked version.",
+                        "Answer saved and hidden. Choose Teacher preview: show hidden answers to see it, or use a worked version.",
                       );
                     }
                   }}
@@ -2326,7 +2322,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   view.
                 </p>
                 <p className="tr-note">
-                  Show saved answers is a temporary preview. Downloads keep
+                  Teacher preview: show hidden answers is screen only. Downloads keep
                   saved pupil visibility. Use worked version replaces the
                   current resource; Undo restores it.
                 </p>
