@@ -243,8 +243,9 @@ describe("exact ratio-table documents and revisions", () => {
       envelope,
       "https://example.com/maths-booklet-tools/?tool=question-bank&code=U851#old",
     );
-    expect(new URL(link).search).toBe("?tool=ratio-table");
-    expect(new URL(link).pathname).toBe("/maths-booklet-tools/");
+    expect(new URL(link).search).toBe("");
+    expect(new URL(link).pathname).toBe("/maths-booklet-tools/tools/ratio-table");
+    expect(new URL(ratioEditorLink(envelope, "https://example.com/tools/graph?draft=x")).pathname).toBe("/tools/ratio-table");
     expect(new URL(link).hash).toMatch(/^#ratio-table=/);
   });
 });

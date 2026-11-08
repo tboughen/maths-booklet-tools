@@ -3,7 +3,8 @@ import type { IncomingMessage } from "node:http";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { MathsDockMcpServer, serverVersion } from "./tool-metadata";
+import servicePackage from "./package.json" with { type: "json" };
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import {
@@ -259,8 +260,8 @@ export function graphService(options: ServiceOptions) {
     };
   }
   function mcp(connectionSignal: AbortSignal) {
-    const server = new McpServer(
-      { name: "Maths Booklet Tools", version: "1.0.0" },
+    const server = new MathsDockMcpServer(
+      { name: "Maths Booklet Tools", version: serverVersion(servicePackage.version, options.buildId) },
       {
         instructions:
           "Create and revise MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines, Venn diagrams, expanding/factorising algebra grids, bar models, probability trees and statistical charts (bar, dual, composite and vertical line charts; not time series, frequency polygons or histograms). For horizontal working fractions and 12mm-above/3mm-below handwriting space request spec.schemaVersion:3 explicitly, or upgrade_document{targetSchemaVersion:3} first on an older file. Explicit spec2 and bare legacy requests retain their original versions; upgrade_document without a target still means v1 to v2. V3 Maths captions stack simple a/b fractions; Plain text is explicit for dates/literal slashes, and ambiguity never silently falls back. Bar models retain one shared unit width and stable anchored spans; labels do not determine widths or calculate answers, and referenced deletions require explicit span removal or discard intent. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
@@ -329,7 +330,7 @@ export function graphService(options: ServiceOptions) {
       "create_graph",
       {
         description:
-          "Create a coordinate graph using points, segments or straight lines. Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
+          "Create a coordinate graph using points, segments or straight lines. schemaVersion may be omitted (only 1 exists). Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
         inputSchema: graphSpecSchema,
         outputSchema: graphOutputSchema,
         annotations,

@@ -86,7 +86,13 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
 }
 export function createRatioTable(input: unknown): RatioEnvelope {
   bounded(input, RATIO_MAX_REQUEST_BYTES, "The ratio request");
-  const spec = readSchema(ratioSpecSchema, input),
+  const given = readSchema(ratioSpecSchema, input);
+  // Omitting rows gives the blank starter: two columns, two empty rows.
+  const rows = given.rows ?? [
+    { cells: [{ kind: "empty" as const }, { kind: "empty" as const }] },
+    { cells: [{ kind: "empty" as const }, { kind: "empty" as const }] },
+  ];
+  const spec = { ...given, rows },
     used = new Set(spec.rows.flatMap((r) => (r.id ? [r.id] : [])));
   if (
     spec.schemaVersion === 1 &&
@@ -123,13 +129,7 @@ export function createRatioTable(input: unknown): RatioEnvelope {
   });
 }
 export function emptyRatioTable(): RatioEnvelope {
-  return createRatioTable({
-    schemaVersion: 1,
-    rows: [
-      { cells: [{ kind: "empty" }, { kind: "empty" }] },
-      { cells: [{ kind: "empty" }, { kind: "empty" }] },
-    ],
-  });
+  return createRatioTable({});
 }
 const id = z
   .string()
@@ -500,7 +500,9 @@ export function decodeRatio(payload: string): RatioEnvelope {
 }
 export function ratioEditorLink(envelope: RatioEnvelope, base: string): string {
   const url = new URL(base);
-  url.search = "?tool=ratio-table";
+  // The editor's own page path, such as /tools/ratio-table (old ?tool= links still redirect).
+  url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/ratio-table";
+  url.search = "";
   url.hash = `ratio-table=${encodeRatio(envelope)}`;
   if (url.href.length > RATIO_MAX_LINK_LENGTH)
     throw new RatioError(

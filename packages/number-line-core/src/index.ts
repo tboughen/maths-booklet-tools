@@ -98,7 +98,7 @@ export async function hash(e: Envelope) { const digest = await globalThis.crypto
 export function encode(e: Envelope) { const bytes = new TextEncoder().encode(canonical(e)); let s = ""; bytes.forEach(v => s += String.fromCharCode(v)); return btoa(s).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, ""); }
 export function decode(text: string) { if (text.length > 16000 || !/^[A-Za-z0-9_-]+$/.test(text))
     throw Error("Invalid number-line link."); return parseFile(new TextDecoder().decode(Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), c => c.charCodeAt(0)))); }
-export function editorLink(e: Envelope, base: string) { const u = new URL(base); u.searchParams.set("tool", "number-line"); u.hash = `number-line=${encode(e)}`; return u.href.length > 7500 ? null : u.href; }
+export function editorLink(e: Envelope, base: string) { const u = new URL(base); u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/number-line"; u.search = ""; u.hash = `number-line=${encode(e)}`; return u.href.length > 7500 ? null : u.href; }
 const axisPatch = patchSchema(axisSchema), teachingPatch = patchSchema(teachingSchema);
 export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("set_axis"), axis: axisPatch }).strict(),

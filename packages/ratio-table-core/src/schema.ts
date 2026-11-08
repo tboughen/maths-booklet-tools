@@ -76,11 +76,12 @@ export const DEFAULT_HEADINGS: RatioDocument["headings"] = [
 ];
 export const ratioSpecSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
+    schemaVersion: z.union([z.literal(1), z.literal(2)]).optional(),
     rows: z
       .array(z.object({ id: id.optional(), cells: cellsSchema }).strict())
       .min(1)
-      .max(6),
+      .max(6)
+      .optional(),
     headings: headingsSchema.optional(),
     transitions: z.array(transitionSchema).max(5).optional(),
     size: z.enum(["compact", "standard", "large"]).optional(),

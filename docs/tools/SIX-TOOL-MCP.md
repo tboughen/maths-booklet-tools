@@ -30,6 +30,13 @@ the documented defaults; supply at most one. An imported envelope keeps its save
 version. New Cuboids/Venn use version 2. Number lines use version 1. Mathematical
 numbers are exact strings; physical centimetres and font points are numbers.
 
+Every tool has a teacher-facing `title` (for example "Create a Venn diagram"), and
+`envelope`, `baseHash`, `operations`, `outputView` and printed sizes carry field
+descriptions; both live in `services/graph-mcp/tool-metadata.ts` and change no names,
+inputs or hashes. `serverInfo.version` is the service version plus the first 12
+characters of the `/healthz` build ID, and `tools.listChanged` is false because the
+stateless service never changes its list during a connection.
+
 Revision takes `{envelope, baseHash, operations}` with at most 30 operations.
 Hash mismatch, invalid IDs, incompatible versions or an invalid final layout fail
 the entire call. A failing call never alters the caller's input. Empty operations
@@ -44,7 +51,8 @@ print PNG generation and density validation precede success. Preview pixels are
 not the print file. Retrieve files before claiming a saved download.
 
 Open returned JSON with the existing editor's Open editable file action, or use
-its complete returned editor link. Edit, save the new JSON and supply that exact
+its complete returned editor link, which opens the tool's own page such as
+`/tools/venn#venn=...`. Edit, save the new JSON and supply that exact
 envelope on a future create/revise call. Human editing has no service dependency.
 Saving a new browser edit changes its hash: create from that exact envelope to
 obtain the corresponding revision hash. Do not guess or substitute an old hash.

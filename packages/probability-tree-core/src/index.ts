@@ -840,7 +840,7 @@ export function editorLink(e: Envelope, base: string): string | null {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   const url = new URL(base);
-  url.pathname = url.pathname.replace(/\/?(tools\/[^/]*)?\/?$/, "/") + "tools/probability-tree";
+  url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/probability-tree";
   url.search = "";
   url.hash = "tree=" + btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
   return url.href.length <= MAX_LINK_LENGTH ? url.href : null;

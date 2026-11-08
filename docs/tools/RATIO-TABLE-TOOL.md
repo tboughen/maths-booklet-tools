@@ -101,7 +101,7 @@ returns to the original format. Older website versions cannot open three-column
 files; the current editor can open both formats.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves
 the current table unchanged; a confirmed opening is one undoable change.
-Share links use /tools/ratio-table#ratio-table=... (links from the MCP service use the older ?tool=ratio-table form, which redirects); the fragment stays in the browser.
+Share links, including those from the MCP service, use /tools/ratio-table#ratio-table=... (older ?tool=ratio-table links still redirect); the fragment stays in the browser.
 Anyone holding that link can open the entered values. Oversized links use JSON.
 Files are limited to 64 KiB; canonical envelopes to 8 KiB. Unknown versions and
 foreign graph files refuse. Corrupt device data is preserved until a recovery
