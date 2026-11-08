@@ -117,6 +117,9 @@ const needed = new Set(selected.filter((suite) => !suite.external).map((suite) =
 
 export default defineConfig({
   testDir: "./e2e",
+  // Screenshot baselines (e2e/screenshots.spec.ts) are made only in the pinned Linux image, so one
+  // file per screenshot serves every project that runs them.
+  snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}{ext}",
   workers: 1,
   retries: 0,
   timeout: 30000,
