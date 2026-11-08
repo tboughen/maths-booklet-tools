@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { verifySplitCatalogue } from './package.mjs';
@@ -29,4 +29,12 @@ test('a packaged split catalogue must match the packaged catalogue', () => {
   assert.throws(() => verifySplitCatalogue(site({ index: goodIndex, papers: { [p1]: goodPapers[p1] } })), /P2 is missing/);
   assert.throws(() => verifySplitCatalogue(site({ index: goodIndex, papers: { ...goodPapers, [p1]: { ...goodPapers[p1], questions: { P1_Q1: {} } } } })), /P1 does not match/);
   assert.throws(() => verifySplitCatalogue(site({ index: c => ({ ...goodIndex(c), papers: { P1: '../secret.json', P2: p2 } }), papers: goodPapers })), /P1 is missing/);
+});
+
+test('only a recovery package from before the split may lack the index', () => {
+  const unsplit = site({ index: goodIndex, papers: goodPapers });
+  rmSync(resolve(unsplit, 'bank/catalogue-index.json'));
+  assert.throws(() => verifySplitCatalogue(unsplit), /ENOENT/);
+  verifySplitCatalogue(unsplit, { allowUnsplit: true });
+  assert.throws(() => verifySplitCatalogue(site({ index: c => ({ ...goodIndex(c), version: 'old' }), papers: goodPapers }), { allowUnsplit: true }), /index does not match/);
 });
