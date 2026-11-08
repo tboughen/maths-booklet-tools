@@ -144,7 +144,7 @@ row in the spec's `tools` list; the update run saves its opening document as `so
 `e2e/screenshots.spec.ts` (improvement list L29) takes full-page screenshots of the home page,
 the booklet tools overview, Assessment follow-up and all 11 booklet tools. Each page opens fresh,
 with nothing saved, at desktop (1280 × 800) and phone (375 × 812) sizes, and must match its
-baseline in `e2e/screenshots.spec.ts-snapshots/` to within 0.1% of pixels. These catch layout,
+baseline in `e2e/fixtures/screenshots/` to within 0.1% of pixels. These catch layout,
 spacing, colour and control changes that the export goldens cannot see. Like the goldens they
 run only in the pinned image. After an intended change, regenerate there with
 `npx playwright test --project=release e2e/screenshots.spec.ts --update-snapshots`, then review
