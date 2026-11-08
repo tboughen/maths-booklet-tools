@@ -1071,3 +1071,19 @@ test("Enter applies a cell and moves down the column like a spreadsheet, never p
   await expect(cell(2, "y")).toBeFocused();
   expect((await stored(page)).document.rows[1].cells[1]).toEqual({ kind: "answer-line" });
 });
+
+test("editing guides are on by default, editor only, and turning them off is remembered", async ({ page }) => {
+  await page.goto("/tools/ratio-table");
+  const guides = page.getByLabel("Editing guides", { exact: true });
+  await expect(guides).toBeChecked();
+  await expect(page.locator(".ratio-guides")).toBeVisible();
+  // The guides sit in an editor layer; the rendered resource has none.
+  await expect(page.getByTestId("ratio-preview").locator(".ratio-guides, [stroke-dasharray]")).toHaveCount(0);
+  await guides.uncheck();
+  await expect(page.locator(".ratio-guides")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel("Editing guides", { exact: true })).not.toBeChecked();
+  await page.getByLabel("Editing guides", { exact: true }).check();
+  await page.reload();
+  await expect(page.getByLabel("Editing guides", { exact: true })).toBeChecked();
+});
