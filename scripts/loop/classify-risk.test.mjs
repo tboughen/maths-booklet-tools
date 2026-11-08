@@ -15,6 +15,7 @@ test('paths map to the policy tiers', () => {
     'services/graph-mcp/server.ts': 'T6', 'render.yaml': 'T6', 'src/gates/contracts/mcp-catalogue.json': 'T6',
     'AGENTS.md': 'T7', 'CLAUDE.md': 'T7', 'docs/AUTONOMOUS-LOOP-POLICY.md': 'T7', 'docs/tools/TOOL-CREATION-GUIDE.md': 'T7', 'docs/tools/BAR-MODEL-V3.md': 'T7', 'docs/release/RELEASE-PIPELINE.md': 'T7', 'docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md': 'T7', 'review/rubrics/teacher.md': 'T7', 'review/calibration/cases.json': 'T7', 'scripts/loop/judge.mjs': 'T8', 'scripts/loop/judge.test.mjs': 'T8', 'scripts/ci/plan.test.mjs': 'T8',
     '.github/workflows/quick-checks.yml': 'T8', 'package.json': 'T8', 'scripts/cloudflare/publish.mjs': 'T8', 'public/bank/catalogue.json': 'T8', 'vite.config.ts': 'T8', 'playwright.config.ts': 'T8', 'wrangler.jsonc': 'T8', 'surprise-file': 'T8',
+    '.claude/settings.json': 'T8', 'bankAssets.ts': 'T8', 'workedSolution.ts': 'T8', '.gitmodules': 'T8', '.nvmrc': 'T8', 'tsconfig.app.json': 'T8', 'eslint.config.js': 'T8', 'index.html': 'T8',
   };
   for (const [path, expected] of Object.entries(cases)) assert.equal(tier(path), expected, path);
 });

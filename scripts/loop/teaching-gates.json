@@ -1,0 +1,12 @@
+{
+  "description": "The non-negotiable teaching gates (improvement list L59, docs/AUTONOMOUS-LOOP-POLICY.md section 6). They run on every loop pull request whatever its tier (scripts/ci/plan.mjs runs every unit test on loop/ branches), and a loop pull request may add new files beside them but never edit or delete one: the trusted merge decision sends any such PR to Tim. A failure is never accepted by a golden or baseline update inside a loop PR.",
+  "gates": [
+    { "rule": "A hidden answer never reaches pupil artwork", "files": ["src/gates/answer-canary.test.ts"] },
+    { "rule": "Blank, zero, hidden and answer-line states stay distinct through save and reload", "files": ["src/gates/saved-states.test.ts", "src/gates/saved-files.ts"] },
+    { "rule": "Saved files from earlier versions keep loading identically", "files": ["src/gates/corpus.test.ts", "src/gates/corpus/"] },
+    { "rule": "Exact fractions stay exact", "files": ["src/gates/exact-fractions.test.ts", "src/testing/exact-numbers.property.test.ts", "src/testing/random.ts"] },
+    { "rule": "No editor chrome in exports; physical size and type size never shrink", "files": ["src/gates/export-output.test.ts", "src/gates/outputs.ts", "src/gates/print-baseline.json", "src/testing/print-size.ts"] },
+    { "rule": "Outputs change only through an accepted golden", "files": ["src/gates/goldens.test.ts", "src/gates/golden/", "e2e/export-goldens.spec.ts", "e2e/fixtures/export-goldens/"] },
+    { "rule": "Saved-file schemas and the MCP catalogue change only with Tim", "files": ["src/gates/contracts.test.ts", "src/gates/contracts/"] }
+  ]
+}

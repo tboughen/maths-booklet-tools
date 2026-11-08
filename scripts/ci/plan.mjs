@@ -1,7 +1,7 @@
 // Decides how much of quick-checks.yml a change needs, so a pull request uses one short job
 // and only the CI time its files can affect. Read docs/release/CI-THROUGHPUT.md before changing it.
 //
-//   node scripts/ci/plan.mjs --event=pull_request --base=<sha>   (writes to $GITHUB_OUTPUT when set)
+//   node scripts/ci/plan.mjs --event=pull_request --base=<sha> [--branch=<head branch>]   (writes to $GITHUB_OUTPUT when set)
 //
 // Anything it cannot place runs everything: unknown paths, workflow or config changes, a
 // missing base, and every run that is not a pull request (main, nightly, manual).
@@ -20,7 +20,15 @@ const unimportedTestInputs = /^(?:docs\/|public\/|src\/test\/|src\/gates\/|vites
 
 export const FULL = Object.freeze({ mode: 'full', bank: 'full', lint: true, tests: 'all', build: true, solutionFiles: true, reason: '' });
 
-export function planChecks({ event, paths }) {
+export function planChecks({ event, paths, branch = '' }) {
+  const plan = planFor({ event, paths });
+  // The teaching gates (scripts/loop/teaching-gates.json) run on every loop PR, whatever it touches.
+  if (event === 'pull_request' && branch.startsWith('loop/') && plan.tests !== 'all')
+    return { ...plan, mode: 'full', lint: true, tests: 'all', reason: `${plan.reason}; loop PR, so every unit test and teaching gate runs` };
+  return plan;
+}
+
+function planFor({ event, paths }) {
   if (event !== 'pull_request') return { ...FULL, reason: `${event || 'unknown'} runs check everything` };
   if (!paths) return { ...FULL, reason: 'No comparison baseline, so everything runs' };
   if (paths.length === 0) return { mode: 'skip', bank: 'none', lint: false, tests: 'none', build: false, solutionFiles: false, reason: 'No file changes' };
@@ -49,9 +57,9 @@ export function changedPaths(base) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3) || '';
-  const event = arg('event'), base = arg('base');
+  const event = arg('event'), base = arg('base'), branch = arg('branch');
   const paths = event === 'pull_request' ? changedPaths(base) : null;
-  const plan = planChecks({ event, paths });
+  const plan = planChecks({ event, paths, branch });
   const lines = Object.entries(plan).map(([k, v]) => `${k.replace(/[A-Z]/g, m => '_' + m.toLowerCase())}=${v}`);
   console.log(lines.join('\n'));
   if (paths) console.log(`changed files: ${paths.length}`);

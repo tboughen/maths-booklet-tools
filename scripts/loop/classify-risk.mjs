@@ -6,6 +6,7 @@
 import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { FORBIDDEN_RE } from './forbidden-paths.mjs';
 
 export const TIERS = {
   T0: 'Test additions', T1: 'Non-guidance docs', T2: 'Screen-only UI polish', T3: 'One tool\'s editor behaviour',
@@ -18,7 +19,8 @@ const test = /(?:\.(?:test|spec)\.[cm]?[jt]sx?$|^e2e\/(?!fixtures\/)[^/]+\.ts$|\
 
 // Ordered from highest to lowest: the first matching rule wins for a path.
 const rules = [
-  ['T8', /^(?:scripts\/(?:cloudflare|ci|loop|bank)\/|\.github\/|package(?:-lock)?\.json$|wrangler[^/]*$|vite\.config\.ts$|playwright[^/]*\.config\.[cm]?[jt]s$|public\/bank\/|bankAssets\.ts$|workedSolution\.ts$|\.gitmodules$|\.nvmrc$|tsconfig[^/]*\.json$|eslint\.config\.js$|index\.html$)/],
+  // T8 is exactly the loop's deny-list (forbidden-paths.json), so the two can never drift apart.
+  ['T8', FORBIDDEN_RE],
   ['T7', canonicalGuidance],
   ['T6', /^(?:services\/|Dockerfile|render\.yaml$|\.dockerignore$|src\/gates\/contracts\/mcp-catalogue\.json$)/],
   ['T5', /(?:^|\/)(?:[^/]*interchange[^/]*|schema[^/]*|storage[^/]*|versioned[^/]*)\.[cm]?[jt]sx?$|EMITTED-SCHEMAS\.json$|^src\/gates\/contracts\//],

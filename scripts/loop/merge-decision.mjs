@@ -11,6 +11,8 @@ import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { classifyGitDiff } from './classify-risk.mjs';
+import { forbidden } from './forbidden-paths.mjs';
+import { changedGates } from './teaching-gates.mjs';
 import { checkDiff, netFindings } from '../ci/test-integrity.mjs';
 
 export const JUDGES = ['teacher', 'product', 'adversarial'];
@@ -25,7 +27,7 @@ const HOLD_LABELS = ['loop:hold', 'loop:needs-tim'];
  * @param {string} input.repository  owner/name of the base repository
  * @param {string} [input.defaultBranch] the only branch loop PRs may merge into
  * @param {string} input.judgedSha   head commit the judges reviewed
- * @param {{tier: string, changedLines: number, changedFixtures?: string[]}} input.risk
+ * @param {{tier: string, changedLines: number, changedFixtures?: string[], changedGates?: string[]}} input.risk
  * @param {object[]} input.integrity test-integrity findings for the whole PR
  * @param {object | null} input.review contents of review-shadow.json, or null if the panel did not run
  */
@@ -40,6 +42,10 @@ export function decide({ enabled, tiers, pr, repository, defaultBranch = 'main',
   if (!judgedSha || pr?.head?.sha !== judgedSha) reasons.push('the judges reviewed a different commit from the current head');
   const held = (pr?.labels ?? []).map(l => l.name).filter(n => HOLD_LABELS.includes(n));
   if (held.length) reasons.push(`labelled ${held.join(', ')}`);
+  // The deny-list is checked here as well as by the tier, from the trusted default-branch copy.
+  const denied = (risk.paths ?? []).map(p => p.path ?? p).filter(p => forbidden(p));
+  if (denied.length) reasons.push(`touches paths loop sessions must never author (${denied.slice(0, 3).join(', ')})`);
+  if (risk.changedGates?.length) reasons.push(`edits a non-negotiable teaching gate (${risk.changedGates.slice(0, 3).join(', ')}); scripts/loop/teaching-gates.json`);
   if (!tiers.includes(risk.tier)) reasons.push(`tier ${risk.tier} is not auto-merged in this phase (${tiers.join(', ') || 'none'})`);
   if (risk.changedFixtures?.length) reasons.push(`changes existing fixtures (${risk.changedFixtures.slice(0, 3).join(', ')}); only new fixtures are T0`);
   if (!(risk.changedLines <= LINE_CAP)) reasons.push(`${risk.changedLines} changed lines, over the ${LINE_CAP}-line cap`);
@@ -70,7 +76,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (!/^[0-9a-f]{40}$/.test(base ?? '')) throw new Error(`no merge-base commit (got ${JSON.stringify(base)})`);
   const reviewPath = arg('review') ?? 'review-shadow.json';
   const review = existsSync(reviewPath) ? JSON.parse(readFileSync(reviewPath, 'utf8')) : null;
-  const risk = classifyGitDiff({ base, cwd });
+  const status = execFileSync('git', ['diff', '--no-renames', '--name-status', base, 'HEAD'], { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+    .split('\n').filter(Boolean).map(l => l.split('\t'));
+  const risk = { ...classifyGitDiff({ base, cwd }), changedGates: changedGates(status) };
   const diff = execFileSync('git', ['diff', '--no-renames', '-U0', base, 'HEAD'], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   const integrity = netFindings(checkDiff(diff), diff);
   const tiers = (process.env.LOOP_AUTO_TIERS ?? 'T0,T1').split(',').map(t => t.trim()).filter(Boolean);

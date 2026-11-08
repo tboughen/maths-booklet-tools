@@ -57,6 +57,8 @@ test('tiers, line cap, integrity findings, stale verdicts, holds, drafts, forks,
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 300 } }).merge, true, 'at the cap');
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: Number.NaN } }).merge, false, 'unknown line count');
   assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 5, changedFixtures: ['e2e/fixtures/a.json'] } }).merge, false, 'changed fixture');
+  assert.equal(decide({ ...base(), risk: { tier: 'T0', changedLines: 5, changedGates: ['src/gates/saved-states.test.ts'] } }).merge, false, 'edited teaching gate');
+  assert.match(decide({ ...base(), risk: { tier: 'T0', changedLines: 5, paths: [{ path: 'src/a.test.ts' }, { path: '.claude/settings.json' }] } }).reasons.join(' '), /never author \(\.claude\/settings\.json\)/, 'deny-listed path, whatever the tier says');
   assert.equal(decide({ ...base(), integrity: [{ level: 'warning', kind: 'removed assertion', file: 'src/a.test.ts' }] }).merge, false, 'integrity');
   assert.equal(decide({ ...base(), judgedSha: 'b'.repeat(40) }).merge, false, 'judges saw an older commit');
   assert.equal(decide({ ...base(), judgedSha: undefined }).merge, false, 'no judged commit');
