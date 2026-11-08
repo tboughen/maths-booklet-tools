@@ -73,7 +73,7 @@ test("bar MCP resource survives actual browser edit/save and subsequent MCP revi
     const made = reply.structuredContent as Result,
       link = new URL(made.editorUrl);
     await mark("created");
-    await page.goto(`/?${link.searchParams}${link.hash}`);
+    await page.goto(`${link.pathname}${link.search}${link.hash}`);
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Open bar model", exact: true })

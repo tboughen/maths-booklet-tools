@@ -1,7 +1,7 @@
 {
   "graph": {
     "source": "32fd4c53d5c9b263feb1b4b3b7fe1bcc23804ec5f77168be7210e8b67ad0980b",
-    "svg": "39b4ecb193cd04a43fef5e011047de130a83d4d1b34638670241bdbad2941319",
+    "svg": "66536ef42ba5537ef47c7c61fdb5ecc4f34b608586f30e856782ce3a3815572b",
     "png": "a5feb11ee41675f318e08886b098b823fbb4e5cab8107d9280461da399a20bfc",
     "svgEqual": true,
     "pngEqual": true,
@@ -23,7 +23,7 @@
   },
   "ratio-table": {
     "source": "7aa18e7b8cddf5b34d90a9a14633e617ff6464a3448a44551421b3a8712af685",
-    "svg": "f40fcf9cbdd737b6a37da8ad308fd1c7d03bcd953bd8061f1ff753baa80d056e",
+    "svg": "759ae171e80e2c505cbec089c976abe14732fea4d187d886c4e79160e97d3b1a",
     "png": "defdb29a2a0afab98cea9a48abd869dbc478b79f474cab31d47ec8ce45075ddd",
     "svgEqual": true,
     "pngEqual": true,
@@ -45,7 +45,7 @@
   },
   "value-table-graph": {
     "source": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",
-    "svg": "8a68efc7be80a9ad679ea724f5d6cbc07cfc8b2604b4c6cdc3da766048b75639",
+    "svg": "26005bd669fc7570759176b67a6786710689dd7644e7085cba6149994b73ed87",
     "png": "5e09248a30918e6c3f93fbbd033d31573e608246a5a5ef373e421d8ec0206fe0",
     "svgEqual": true,
     "pngEqual": true,
@@ -88,7 +88,7 @@
     "pngHeight": 1195,
     "platforms": {
       "linux": {
-        "svg": "3ef26034a9db79e91c5cc3b0d6950083d0e66117412fe17589ae353f13032a85",
+        "svg": "b287391839afe61278d70ea31429b59bdcf2b7d6f43fa6e004f2a4f7b65e4ccd",
         "pngWidth": 2200,
         "pngHeight": 1176
       }
@@ -96,7 +96,7 @@
   },
   "number-line": {
     "source": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
-    "svg": "3661200c8f08f86e1f78ebd5dc4cca9d243310faa73ca62628f178d0556ab0a0",
+    "svg": "61d7116312dd9bb7f9b3a5593686daa195e2e9abcae23675c5a6e451270156be",
     "png": "b410d8408792f7784403293c613d3c046f1bf45b57c9c58dd3f5af516c166e07",
     "svgEqual": true,
     "pngEqual": true,
@@ -118,7 +118,7 @@
   },
   "venn": {
     "source": "a6bacf81728839fe9b3e38df9bfcb1f415a282e40d622bb18be02beb20d06fc4",
-    "svg": "477c4ea56711683dab3ebe3ee1eed9e82de96dbd5784a2163f55b28107954efa",
+    "svg": "8d386ada2f47a5568a978a61822f3936e6c8d8bcf16542ab5495eea75dede550",
     "png": "93f61938f0e1ac2b53cfc1d3a111b7d20d5e41fdacabfb98c7c5cec5cfe97165",
     "svgEqual": true,
     "pngEqual": true,
@@ -140,7 +140,7 @@
   },
   "triangle": {
     "source": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
-    "svg": "ecc80667dd9a88aa926de90c46bac28f316cafdf37802389f4bd6977f1825c1e",
+    "svg": "ebc5d4ee2bc76e6f4803ccd566ee02a90210629639670afaf00ed654ce51a984",
     "png": "588a3c746b8b93ba3c1ff014e9feed3846a833bdd56abd0996d7f70f94ce1a36",
     "svgEqual": true,
     "pngEqual": true,
@@ -162,7 +162,7 @@
   },
   "expanding-factorising": {
     "source": "73528044ff6dbf2bd18bcf3b8c2427e217dd42ce5ca926ea4b0fc463c8fc7047",
-    "svg": "c7189b84a12376337b86edeb9263e6958cdfd17df788b90547f1d52fa2161400",
+    "svg": "7d27517a5ada6f4fe60c0e298002235adb3d8a830d831e88b356812a507eea77",
     "png": "9bb6f9eaa712551d192f79f77e2c506a44b9dce6b2ea35d0540f06bf0c869060",
     "svgEqual": true,
     "pngEqual": true,
