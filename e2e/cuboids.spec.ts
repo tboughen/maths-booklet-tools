@@ -630,12 +630,16 @@ test("the printed full-height label edits the separated layers directly", async 
   const label = resource(page)
     .locator("svg text")
     .filter({ hasText: "Full height: 2 cm" });
-  const box = await label.boundingBox();
-  expect(box).not.toBeNull();
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await expect(
-    page.getByRole("textbox", { name: "Edit height", exact: true }),
-  ).toBeFocused();
+  // The diagram is redrawn (with identical markup) just after the view changes, so a label found
+  // first can be detached before its box is read. Retry the read and click until the editor opens.
+  await expect(async () => {
+    const box = await label.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await expect(
+      page.getByRole("textbox", { name: "Edit height", exact: true }),
+    ).toBeFocused({ timeout: 1000 });
+  }).toPass();
   await field(page, "Edit height", "3");
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
   await expect(resource(page)).toContainText("Full height: 3 cm");
