@@ -4,7 +4,16 @@ import { PDFDocument } from "pdf-lib";
 import { assetFile, type ReleaseManifest } from "./release";
 const manifest = JSON.parse(await readFile("cloudflare-release/manifest.json", "utf8")) as ReleaseManifest;
 const downloads: {preset: string; name: string; path: string; pages: number}[] = [];
+// The site's _headers set a Content-Security-Policy (site-headers.mjs). A blocked script, worker,
+// font or image only shows as a console message, so collect them and fail the test.
+const policyViolations = new WeakMap<object, string[]>();
+test.afterEach(async ({page}) => {
+  expect(policyViolations.get(page) ?? [], "Content-Security-Policy violations").toEqual([]);
+});
 test.beforeEach(async ({page, baseURL}) => {
+  const violations: string[] = [];
+  policyViolations.set(page, violations);
+  page.on("console", message => { if (/Content Security Policy/i.test(message.text())) violations.push(message.text()); });
   if (baseURL?.startsWith("http://127.0.0.1:")) {
     // Local transport rehearsal only. The live site serves these through its gated Worker from R2.
     const byKey = new Map(manifest.assets.map(asset => [asset.key, asset]));
