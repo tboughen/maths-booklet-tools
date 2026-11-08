@@ -828,7 +828,14 @@ test("failed copy/link operations keep a useful fallback and valid-file saving s
 test("a missing portable font blocks the real SVG and leaves editable-file fallback available", async ({
   page,
 }) => {
-  await page.route(/STIXTwoMath-Regular.*\.otf/, (route) => route.abort());
+  // Block the font file itself. The dev server also serves the `?import&url` module that names it;
+  // blocking that would stop the lazily loaded editor from loading at all.
+  await page.route(
+    (url) =>
+      /STIXTwoMath-Regular.*\.otf/.test(url.pathname) &&
+      !url.searchParams.has("import"),
+    (route) => route.abort(),
+  );
   const downloads: string[] = [];
   page.on("download", (file) => downloads.push(file.suggestedFilename()));
   await page.goto("/tools/graph");

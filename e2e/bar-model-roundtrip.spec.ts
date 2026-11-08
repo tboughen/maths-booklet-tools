@@ -8,6 +8,11 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import * as c from "../packages/bar-model-core/src";
 import { receiveSvg } from "../services/graph-mcp/svg-consumer";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
+import { ensureServiceBuild } from "./service-build";
+test.beforeAll(() => {
+  test.setTimeout(180000);
+  ensureServiceBuild();
+});
 test("bar MCP resource survives actual browser edit/save and subsequent MCP revision", async ({
   page,
 }, info) => {
