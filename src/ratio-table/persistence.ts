@@ -1,6 +1,7 @@
 import { copyStorageKey } from "../site/copyDocument";
 import {
   emptyRatioTable,
+  starterRatioTable,
   parseRatioFile,
   canonicalRatio,
 } from "../../packages/ratio-table-core/src/interchange";
@@ -17,7 +18,7 @@ export function loadRatioRecovery(): {
   try {
     const raw = localStorage.getItem(RATIO_STORAGE_KEY);
     if (!raw)
-      return { envelope: emptyRatioTable(), recovery: null, error: null };
+      return { envelope: starterRatioTable(), recovery: null, error: null };
     try {
       return { envelope: parseRatioFile(raw), recovery: null, error: null };
     } catch {

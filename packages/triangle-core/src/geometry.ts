@@ -129,6 +129,22 @@ export function create(
     ),
   );
 }
+// The default right-angled triangle with the conventional a, b, c side labels (improvement
+// list U77). Each side is the opposite of the vertex with the same capital letter. Angles stay blank.
+export function starter() {
+  const e = create();
+  for (const [from, to, text] of [
+    ["B", "C", "a"],
+    ["A", "C", "b"],
+    ["A", "B", "c"],
+  ]) {
+    const side = e.document.edges.find(
+      (v) => [v.from, v.to].sort().join("") === [from, to].sort().join(""),
+    );
+    if (side) side.label = label(text, "symbol", "cm");
+  }
+  return validate(e);
+}
 export function centre(e: Envelope): Point {
   const v = e.document.vertices;
   return {

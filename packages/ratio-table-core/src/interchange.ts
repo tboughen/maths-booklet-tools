@@ -131,6 +131,22 @@ export function createRatioTable(input: unknown): RatioEnvelope {
 export function emptyRatioTable(): RatioEnvelope {
   return createRatioTable({});
 }
+// The opening scaffold for a new table (improvement list U18): 3 -> 12 is given and the pupil
+// finds the value for 5. The answer cell is an answer line, never a calculated value.
+export function starterRatioTable(): RatioEnvelope {
+  return createRatioTable({
+    schemaVersion: 1,
+    rows: [
+      {
+        cells: [
+          { kind: "number", value: "3" },
+          { kind: "number", value: "12" },
+        ],
+      },
+      { cells: [{ kind: "number", value: "5" }, { kind: "answer-line" }] },
+    ],
+  });
+}
 const id = z
   .string()
   .min(1)

@@ -1,5 +1,10 @@
 # MathsDock Triangles — editor and print behaviour
 
+A new diagram, and Reset, open on the right-angled triangle with the sides
+labelled a, b and c opposite A, B and C (improvement list U77). Angles stay
+blank and no lengths are given. Saved diagrams, links, files and recovery are
+unchanged; a diagram that needs recovery still opens unlabelled.
+
 ## Wedge and area refinement, 17 October 2026 (local review)
 
 The interior shaded wedge is the angle control, including Blank/Hidden and
