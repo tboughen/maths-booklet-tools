@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
+import { samePrintSizeProblems, svgPrintSizeProblems } from "../src/testing/print-size";
 
 // Browser-export goldens (improvement list L13). Each tool opens a saved document, then the real
 // File menu downloads its editable file, SVG and 600 ppi PNG. Those are compared with goldens kept in
@@ -193,14 +194,15 @@ for (const [tool, key] of tools) {
     const editable = (await download(page, "Save editable file")).toString();
     if (source) expect(JSON.parse(editable)).toEqual(JSON.parse(source));
     else source = editable;
-    const svg = await outline(
-      page,
-      (await download(page, "Download SVG")).toString(),
-    );
+    const rawSvg = (await download(page, "Download SVG")).toString();
+    const svg = await outline(page, rawSvg);
     const png = await download(page, "Download PNG (600 ppi)");
     const size = png.readUInt32BE(16),
       height = png.readUInt32BE(20);
     verifyPrintBytes(png, size, height);
+    // The downloaded SVG and PNG print at the same size in millimetres (src/testing/print-size.ts).
+    expect(svgPrintSizeProblems(rawSvg)).toEqual([]);
+    expect(samePrintSizeProblems(rawSvg, png)).toEqual([]);
 
     if (updating) {
       await mkdir(folder, { recursive: true });

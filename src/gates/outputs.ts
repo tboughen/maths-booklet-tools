@@ -1,6 +1,7 @@
 // Shared by the output gates: every gallery example, pupil and worked, rendered by the shared core
 // renderers the exports use, and the physical size its SVG root declares.
 import * as gallery from "../examples/galleryCatalogue";
+import { svgPrintSize } from "../testing/print-size";
 
 export type Entry = { id: string; make: (worked: boolean) => unknown; render: (r: never) => string; worked?: boolean };
 export const galleries: Record<string, Entry[]> = {
@@ -13,6 +14,8 @@ export const galleries: Record<string, Entry[]> = {
   triangles: gallery.triangleGallery as Entry[],
   "algebra grid": gallery.algebraGallery as Entry[],
   "bar model": gallery.barGallery as unknown as Entry[],
+  charts: gallery.chartGallery as Entry[],
+  "probability trees": gallery.treeGallery as Entry[],
 };
 
 export function renders(entries: Entry[]) {
@@ -24,11 +27,5 @@ export function renders(entries: Entry[]) {
   return out;
 }
 
-const MM: Record<string, number> = { mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72 };
-export function physical(svg: string) {
-  const root = svg.match(/<svg\b[^>]*>/)?.[0] ?? "";
-  const attr = (n: string) => root.match(new RegExp(`\\s${n}="([^"]+)"`))?.[1];
-  const size = (v?: string) => { const m = v?.match(/^([\d.]+)(mm|cm|in|pt)$/); return m ? Number(m[1]) * MM[m[2]] : NaN; };
-  const [, , vw, vh] = (attr("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-  return { widthMm: size(attr("width")), heightMm: size(attr("height")), vw, vh };
-}
+/** The physical size an SVG root declares (src/testing/print-size.ts). */
+export const physical = svgPrintSize;

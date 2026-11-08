@@ -7,6 +7,7 @@
 // run src/gates. Lowering a baseline value needs Tim (never shrink type to make things fit).
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { minFontPt, svgPrintSizeProblems } from "../testing/print-size";
 import { galleries, physical, renders } from "./outputs";
 
 // Markup that belongs to the editor, never to a printed resource.
@@ -21,15 +22,6 @@ const chrome: [string, RegExp][] = [
   ["focus ring", /outline\s*:|:focus/i],
   ["external reference", /\s(?:xlink:)?href="(?:https?:)?\/\//i],
 ];
-
-// Smallest declared font size, in points at print size.
-function minFontPt(svg: string, mmPerUnit: number) {
-  const sizes = [...svg.matchAll(/font-size(?:="|\s*:\s*)([\d.]+)(px|pt|mm)?/g)].map(m => {
-    const n = Number(m[1]), unit = m[2];
-    return unit === "pt" ? n : unit === "mm" ? n * 72 / 25.4 : n * mmPerUnit * 72 / 25.4;
-  });
-  return sizes.length ? Math.min(...sizes) : null;
-}
 
 const baselinePath = "src/gates/print-baseline.json"; // vitest runs from the repository root
 const baseline: Record<string, number> = JSON.parse(readFileSync(baselinePath, "utf8"));
@@ -48,17 +40,12 @@ describe("export output", () => {
       });
 
       it("has an absolute print size that keeps the viewBox aspect", () => {
-        const bad = outputs.flatMap(o => {
-          const p = physical(o.svg);
-          if (!(p.widthMm > 0 && p.heightMm > 0)) return [`${o.id}: width/height not in mm, cm, in or pt`];
-          if (!(p.vw > 0 && p.vh > 0)) return [`${o.id}: missing viewBox`];
-          return Math.abs(p.widthMm / p.vw - p.heightMm / p.vh) > 0.005 * (p.widthMm / p.vw) ? [`${o.id}: width and height scale differently`] : [];
-        });
+        const bad = outputs.flatMap(o => svgPrintSizeProblems(o.svg).map(p => `${o.id}: ${p}`));
         expect(bad).toEqual([]);
       });
 
       it("never declares type smaller than the baseline", () => {
-        const mins = outputs.map(o => { const p = physical(o.svg); return minFontPt(o.svg, p.widthMm / p.vw); }).filter((v): v is number => v !== null);
+        const mins = outputs.map(o => { return minFontPt(o.svg, physical(o.svg).mmPerUnit); }).filter((v): v is number => v !== null);
         if (!mins.length) return;
         const min = Math.round(Math.min(...mins) * 100) / 100;
         observed[tool] = min;
