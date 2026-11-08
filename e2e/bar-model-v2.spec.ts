@@ -152,7 +152,13 @@ async function label(page: Page, text: string) {
   await page.getByLabel("Saved label", { exact: true }).fill(text);
   await page.getByRole("button", { name: "Apply", exact: true }).click();
 }
+async function openStarters(page: Page) {
+  const start = page.locator("details.bm-start-model");
+  if (!(await start.evaluate((el: HTMLDetailsElement) => el.open)))
+    await start.locator("summary").click();
+}
 async function useStarter(page: Page, name: string) {
+  await openStarters(page);
   await page.getByRole("button", { name, exact: true }).click();
   await page
     .getByRole("button", { name: "Use this model", exact: true })
@@ -263,6 +269,7 @@ test("teacher route creates seven-four comparison and between difference without
   page,
 }) => {
   await page.goto("/tools/bar-model");
+  await openStarters(page);
   await page.getByLabel("Longer bar length (shared units)").fill("7");
   await page.getByLabel("Shorter bar length (shared units)").fill("4");
   await useStarter(page, "Comparison");

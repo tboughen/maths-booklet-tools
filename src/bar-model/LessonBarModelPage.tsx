@@ -1604,8 +1604,16 @@ export default function LessonBarModelPage({
               </Panel>
             )}
             <Panel>
-              <div className="bm-settings">
-                <h2>Start a model</h2>
+              {/* A generator for a new model, kept apart from the current model's inspector (U106):
+                  its settings never describe the diagram on screen. */}
+              <details className="bm-settings bm-start-model">
+                <summary>
+                  <h2>Start a new model</h2>
+                </summary>
+                <p className="bm-note">
+                  These settings only shape a new model. Starting one replaces
+                  the current model; Undo brings it back.
+                </p>
                 <label>
                   Equal sections
                   <input
@@ -1688,12 +1696,23 @@ export default function LessonBarModelPage({
                     </button>
                   ))}
                 </div>
-              </div>
+              </details>
             </Panel>
             {d && currentBar && (
               <Panel>
                 <div className="bm-settings">
-                  <h2>Sections and labels</h2>
+                  <h2>Current model</h2>
+                  <p className="bm-note" role="status">
+                    {d.bars.length} {d.bars.length === 1 ? "bar" : "bars"} ·{" "}
+                    {d.bars.reduce((n, b) => n + b.parts.length, 0)}{" "}
+                    {d.bars.reduce((n, b) => n + b.parts.length, 0) === 1
+                      ? "section"
+                      : "sections"}
+                    {d.annotations.length
+                      ? ` · ${d.annotations.length} ${d.annotations.length === 1 ? "annotation" : "annotations"}`
+                      : ""}
+                  </p>
+                  <h3>Sections and labels</h3>
                   <label>
                     Bar
                     <select
