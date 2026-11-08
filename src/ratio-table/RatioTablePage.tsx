@@ -61,6 +61,25 @@ type Pending = {
   fromLink?: boolean;
   description?: string;
 };
+// Editing guides show where the empty rows are; they never appear in exports (U19). On unless
+// the teacher has turned them off on this device.
+const GUIDES_PREFERENCE = "maths-booklet-tools:ratio-table:guides";
+function readGuidesPreference() {
+  try {
+    return localStorage.getItem(GUIDES_PREFERENCE) !== "off";
+  } catch {
+    return true;
+  }
+}
+function saveGuidesPreference(on: boolean) {
+  try {
+    if (on) localStorage.removeItem(GUIDES_PREFERENCE);
+    else localStorage.setItem(GUIDES_PREFERENCE, "off");
+  } catch {
+    // Optional device preference.
+  }
+}
+
 export default function RatioTablePage({
   active = true,
 }: {
@@ -79,7 +98,7 @@ export default function RatioTablePage({
   const [exportsOpen, setExportsOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
-    [guides, setGuides] = useState(false);
+    [guides, setGuides] = useState(readGuidesPreference);
   const [pending, setPending] = useState<Pending | null>(null),
     [inputVersion, setInputVersion] = useState(0);
   const [selection, setSelection] = useState<RatioSelection>(null);
@@ -652,7 +671,10 @@ export default function RatioTablePage({
                 <input
                   type="checkbox"
                   checked={guides}
-                  onChange={(e) => setGuides(e.target.checked)}
+                  onChange={(e) => {
+                    setGuides(e.target.checked);
+                    saveGuidesPreference(e.target.checked);
+                  }}
                 />
                 Editing guides
               </label>
