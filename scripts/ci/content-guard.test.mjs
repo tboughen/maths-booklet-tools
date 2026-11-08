@@ -49,3 +49,8 @@ test('nothing currently tracked would fail if it were added again', () => {
     .filter(f => !f.startsWith('public/bank/assets'));
   assert.deepEqual(checkContent(tracked, '').map(f => f.file), []);
 });
+
+test('placeholder user names in documentation are not leaks', () => {
+  assert.equal(localPath('such as `C:\\Users\\<name>`.'), null);
+  assert.equal(localPath('copy it to /Users/<you>/Downloads/'), null);
+});

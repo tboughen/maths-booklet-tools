@@ -42,7 +42,7 @@ export const restrictedName = [
 
 // A local home folder with a real-looking user name. Generic CI and container homes are not leaks.
 const genericHome = /^(?:runner|user|node|root|ubuntu|vscode|codespace|you|me|name|username|<[^>]+>|\$\w+|\.\.\.)$/i;
-const windowsUser = /\b[A-Za-z]:(?:\\\\|\\|\/)Users(?:\\\\|\\|\/)([^\\/"'\s]+)/;
+const windowsUser = /\b[A-Za-z]:(?:\\\\|\\|\/)Users(?:\\\\|\\|\/)([^\\/"'`\s]+)/;
 const unixUser = /(?:^|[\s"'`(=:])\/(?:Users|home)\/([^/"'\s`)]+)\//;
 
 export function localPath(text) {
