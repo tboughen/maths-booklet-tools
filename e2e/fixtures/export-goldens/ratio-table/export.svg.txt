@@ -1,0 +1,22 @@
+<svg aria-label="Ratio table" height="3.3cm" role="img" viewBox="0 0 330 330" width="3.3cm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <title>
+    "Ratio table"
+  <desc>
+    "Use the accompanying editable file to change this table."
+  <rect fill="white" height="330" width="330">
+  <g fill="none" font-family="STIX Two Text" stroke="#202020">
+    <path class="ratio-rules" d="M165 15V315M15 115H315" stroke-width="7.94">
+    <text fill="#202020" font-size="42.33" font-style="italic" stroke="none" text-anchor="middle" x="71" y="78.12">
+      "x"
+    <path d="M90.59 65H114.59" stroke-width="2">
+    <path d="M114.59 65l-8 -5v10Z" fill="#202020" stroke="none">
+    <text fill="#202020" font-size="42.33" font-style="italic" stroke="none" text-anchor="middle" x="221" y="78.12">
+      "y"
+    <path d="M252.44 77V53" stroke-width="2">
+    <path d="M252.44 53l-5 8h10Z" fill="#202020" stroke="none">
+    <g class="ratio-cell" data-column="0" data-kind="empty" data-row="row-1">
+    <g class="ratio-cell" data-column="1" data-kind="empty" data-row="row-1">
+    <g class="ratio-cell" data-column="0" data-kind="empty" data-row="row-2">
+    <g class="ratio-cell" data-column="1" data-kind="empty" data-row="row-2">

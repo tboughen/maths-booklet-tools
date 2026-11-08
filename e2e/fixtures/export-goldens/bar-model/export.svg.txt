@@ -1,0 +1,9 @@
+<svg aria-label="Bar model" height="28mm" role="img" style="font-kerning:none;font-variant-ligatures:none" viewBox="0 0 28.4 28" width="28.4mm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <rect fill="#fff" height="28" width="28.4">
+  <g>
+    <rect fill="#fff" height="12" stroke-width="0.3" stroke="#000" width="10" x="4.2" y="11.8">
+    <rect fill="#fff" height="12" stroke-width="0.3" stroke="#000" width="10" x="14.2" y="11.8">
+  <g fill="none" stroke-width="0.25" stroke="#000">
+    <path d="M4.2 10.8Q4.2 8.8 6.2 8.8H12.2Q14.2 8.8 14.2 6.8Q14.2 8.8 16.2 8.8H22.2Q24.2 8.8 24.2 10.8">
