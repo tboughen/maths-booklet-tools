@@ -1,0 +1,132 @@
+<svg aria-labelledby="diagram-title diagram-desc" height="11.12cm" role="img" viewBox="0 0 1139 1112" width="11.39cm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <title id="diagram-title">
+    "Coordinate graph"
+  <desc id="diagram-desc">
+    "A one centimetre square grid containing 0 plotted objects."
+  <rect fill="#ffffff" height="100%" width="100%">
+  <defs>
+    <clipPath id="plot-clip">
+      <rect height="1000" width="1000" x="49" y="70">
+  <g class="grid-lines" fill="none" stroke-width="5.29" stroke="#a9abaa">
+    <line x1="49" x2="49" y1="70" y2="1070">
+    <line x1="149" x2="149" y1="70" y2="1070">
+    <line x1="249" x2="249" y1="70" y2="1070">
+    <line x1="349" x2="349" y1="70" y2="1070">
+    <line x1="449" x2="449" y1="70" y2="1070">
+    <line x1="549" x2="549" y1="70" y2="1070">
+    <line x1="649" x2="649" y1="70" y2="1070">
+    <line x1="749" x2="749" y1="70" y2="1070">
+    <line x1="849" x2="849" y1="70" y2="1070">
+    <line x1="949" x2="949" y1="70" y2="1070">
+    <line x1="1049" x2="1049" y1="70" y2="1070">
+    <line x1="49" x2="1049" y1="70" y2="70">
+    <line x1="49" x2="1049" y1="170" y2="170">
+    <line x1="49" x2="1049" y1="270" y2="270">
+    <line x1="49" x2="1049" y1="370" y2="370">
+    <line x1="49" x2="1049" y1="470" y2="470">
+    <line x1="49" x2="1049" y1="570" y2="570">
+    <line x1="49" x2="1049" y1="670" y2="670">
+    <line x1="49" x2="1049" y1="770" y2="770">
+    <line x1="49" x2="1049" y1="870" y2="870">
+    <line x1="49" x2="1049" y1="970" y2="970">
+    <line x1="49" x2="1049" y1="1070" y2="1070">
+  <defs>
+    <marker id="axis-arrow" markerHeight="25" markerUnits="userSpaceOnUse" markerWidth="25" orient="auto" refX="8.5" refY="5" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224">
+  <g class="graph-axes" fill="none" stroke-width="7.06" stroke="#1f2224">
+    <line marker-end="url(#axis-arrow)" x1="49" x2="1072.33" y1="570" y2="570">
+    <line marker-end="url(#axis-arrow)" x1="549" x2="549" y1="1070" y2="46.67">
+  <g class="axis-labels" fill="#242628" font-family="'STIX Two Text', 'STIX Two Math', serif" font-size="42.33">
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="18.1" y="581.01">
+      <text text-anchor="middle" x="49" y="615.72">
+        "−5"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="118.1" y="581.01">
+      <text text-anchor="middle" x="149" y="615.72">
+        "−4"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="218.1" y="581.01">
+      <text text-anchor="middle" x="249" y="615.72">
+        "−3"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="318.1" y="581.01">
+      <text text-anchor="middle" x="349" y="615.72">
+        "−2"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="418.1" y="581.01">
+      <text text-anchor="middle" x="449" y="615.72">
+        "−1"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="626.99" y="581.01">
+      <text text-anchor="middle" x="649" y="615.72">
+        "1"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="726.99" y="581.01">
+      <text text-anchor="middle" x="749" y="615.72">
+        "2"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="826.99" y="581.01">
+      <text text-anchor="middle" x="849" y="615.72">
+        "3"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="926.99" y="581.01">
+      <text text-anchor="middle" x="949" y="615.72">
+        "4"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="1026.99" y="581.01">
+      <text text-anchor="middle" x="1049" y="615.72">
+        "5"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="492.97" y="49.68">
+      <text text-anchor="end" x="537" y="84.39">
+        "5"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="492.97" y="149.68">
+      <text text-anchor="end" x="537" y="184.39">
+        "4"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="492.97" y="249.68">
+      <text text-anchor="end" x="537" y="284.39">
+        "3"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="492.97" y="349.68">
+      <text text-anchor="end" x="537" y="384.39">
+        "2"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="492.97" y="449.68">
+      <text text-anchor="end" x="537" y="484.39">
+        "1"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="475.19" y="649.68">
+      <text text-anchor="end" x="537" y="684.39">
+        "−1"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="475.19" y="749.68">
+      <text text-anchor="end" x="537" y="784.39">
+        "−2"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="475.19" y="849.68">
+      <text text-anchor="end" x="537" y="884.39">
+        "−3"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="475.19" y="949.68">
+      <text text-anchor="end" x="537" y="984.39">
+        "−4"
+    <g class="axis-number">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="475.19" y="1049.68">
+      <text text-anchor="end" x="537" y="1084.39">
+        "−5"
+    <g class="axis-number axis-number-origin">
+      <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="488.89" y="581.01">
+      <text text-anchor="end" transform="translate(532.91 615.72) skewX(-12) translate(-532.91 -615.72)" x="532.91" y="615.72">
+        "0"
+    <text class="axis-name axis-name-x" font-family="'STIX Two Text', 'STIX Two Math', serif" x="1097" y="615.72">
+      "𝑥"
+    <text class="axis-name axis-name-y" font-family="'STIX Two Text', 'STIX Two Math', serif" text-anchor="end" x="529" y="40">
+      "𝑦"
+  <g clip-path="url(#plot-clip)" fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
+  <g fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
+  <g fill="#202224" font-family="'STIX Two Text', 'STIX Two Math', serif" font-size="35.28" font-style="italic">

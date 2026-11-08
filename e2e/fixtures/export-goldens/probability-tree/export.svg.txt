@@ -1,0 +1,56 @@
+<svg aria-label="Probability tree diagram with 2 stages" height="73.8mm" role="img" viewBox="0 0 98 73.8" width="98mm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <rect fill="white" height="73.8" width="98">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="2" x2="34" y1="39.8" y2="22.3">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="46.01" x2="78.01" y1="22.3" y2="15.3">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="46.01" x2="78.01" y1="22.3" y2="29.3">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="2" x2="34" y1="39.8" y2="57.3">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="46.01" x2="78.01" y1="57.3" y2="50.3">
+  <line stroke-linecap="round" stroke-width="0.3" stroke="black" x1="46.01" x2="78.01" y1="57.3" y2="64.3">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="35.5" y="23.58">
+    "Red"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="18" y="22.88">
+    "3"
+  <line stroke-width="0.25" stroke="black" x1="16.64" x2="19.36" y1="23.78" y2="23.78">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="18" y="27.47">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="79.51" y="16.58">
+    "Red"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="11.61">
+    "3"
+  <line stroke-width="0.25" stroke="black" x1="60.65" x2="63.37" y1="12.51" y2="12.51">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="16.2">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="79.51" y="30.58">
+    "Blue"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="31.18">
+    "5"
+  <line stroke-width="0.25" stroke="black" x1="60.65" x2="63.37" y1="32.09" y2="32.09">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="35.78">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="35.5" y="58.58">
+    "Blue"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="18" y="54.92">
+    "5"
+  <line stroke-width="0.25" stroke="black" x1="16.64" x2="19.36" y1="55.82" y2="55.82">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="18" y="59.51">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="79.51" y="51.58">
+    "Red"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="46.61">
+    "3"
+  <line stroke-width="0.25" stroke="black" x1="60.65" x2="63.37" y1="47.51" y2="47.51">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="51.2">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="79.51" y="65.58">
+    "Blue"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="66.19">
+    "5"
+  <line stroke-width="0.25" stroke="black" x1="60.65" x2="63.37" y1="67.08" y2="67.08">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="62.01" y="70.78">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" font-weight="bold" text-anchor="middle" x="39.25" y="5.88">
+    "First counter"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" font-weight="bold" text-anchor="middle" x="83.26" y="5.88">
+    "Second counter"

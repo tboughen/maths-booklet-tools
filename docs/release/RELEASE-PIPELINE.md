@@ -98,6 +98,47 @@ records are under `cloudflare-release/evidence`. The GitHub artifact is
 and artifact IDs matter; an artifact named “latest” is insufficient. Copy retained
 current/previous packages before their retention expires.
 
+### Pinned browser environment
+
+The qualification's website checks (units, catalogue, publisher, built and both browser shards)
+run inside `mcr.microsoft.com/playwright:v<version>-noble`, pinned by digest in
+`graph-checks.yml`. That fixes the Chromium build, system fonts and libraries that export
+fingerprints, print PNGs and layout fits depend on. Plain machines differ: on 8 Nov 2026 the
+cuboids refinement fingerprint failed on a cloud host and passed in the pinned image. The tag
+must equal `@playwright/test` in `package.json`; `scripts/ci/playwright-image.test.mjs` fails
+when they drift. To upgrade Playwright, change both together and take the new digest from
+`docker pull` (or the registry's `docker-content-digest` header).
+
+To reproduce a browser shard's output locally, run the same image over a prepared package:
+
+```bash
+docker run --rm --ipc=host -v "$PWD:$PWD" -v "$PACKAGE:$PACKAGE" -w "$PWD" \
+  -e MATHSDOCK_RELEASE_PACKAGE="$PACKAGE" -e PLAYWRIGHT_CHANNEL=chromium -e MATHSDOCK_PINNED_BROWSER=1 \
+  mcr.microsoft.com/playwright:v1.63.0-noble@sha256:<digest from graph-checks.yml> \
+  npx playwright test --project=release e2e/refinement.spec.ts e2e/export-goldens.spec.ts
+```
+
+### Export goldens
+
+`e2e/export-goldens.spec.ts` opens a saved document in each of the 11 booklet tools and downloads
+the real editable file, SVG and 600 ppi PNG (improvement list L13). Goldens live in
+`e2e/fixtures/export-goldens/<tool>/`:
+
+- `source.json` is the document. The editable download must equal it exactly.
+- `export.svg.txt` is a canonical outline of the SVG, one line per element. Attributes are sorted,
+  numbers are rounded to 0.01 and embedded font data is elided. A failure shows the element and
+  attribute that changed.
+- `png.json` holds the PNG's pixel size, and the PNG must declare 600 ppi.
+- `export.png` is the PNG reduced to 600 px wide. The reduced export may differ from it in at most
+  0.05% of pixels, by more than 48 in any channel. In the pinned image the difference is 0 pixels.
+  Outside it, font rasterising alone moves up to 0.55%.
+
+The tests run only where `MATHSDOCK_PINNED_BROWSER=1`, which `graph-checks.yml` sets in the pinned
+image. Elsewhere they skip with that reason, and in CI a missing mark fails. After an intended
+output change, regenerate in the image with `-e MATHSDOCK_UPDATE_GOLDENS=1` added to the command
+above, then review the outline diff and the reduced PNGs before committing. A new tool needs only a
+row in the spec's `tools` list; the update run saves its opening document as `source.json`.
+
 Built browser rehearsal uses locally intercepted R2 requests and says so in its
 evidence. Production and HTTPS preview verification use real R2 without that
 interception. Passing the former does not claim the latter.

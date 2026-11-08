@@ -1,0 +1,23 @@
+<svg aria-label="Venn diagram with 2 sets" height="8.5cm" role="img" viewBox="0 0 120 85" width="12cm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <defs>
+    <pattern height="2" id="vn-hatch" patternUnits="userSpaceOnUse" width="2">
+      <path d="M-1,1L1,-1M0,2L2,0M1,3L3,1" stroke-width="0.18" stroke="#555">
+  <rect fill="white" height="85" width="120">
+  <rect fill="none" height="81" stroke-width="0.3" stroke="black" width="116" x="2" y="2">
+  <ellipse cx="44" cy="43" fill="none" rx="25" ry="25" stroke-width="0.3" stroke="black">
+  <ellipse cx="76" cy="43" fill="none" rx="25" ry="25" stroke-width="0.3" stroke="black">
+  <g data-region="0">
+  <g data-region="1">
+  <g data-region="2">
+  <g data-region="3">
+  <rect fill="white" height="5.55" width="6.27" x="3.87" y="6.01">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="4.27" text-anchor="middle" x="7" y="10.28">
+    "ξ"
+  <rect fill="white" height="5.55" width="5.06" x="22.32" y="23.94">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="4.27" font-style="italic" text-anchor="middle" x="24.85" y="28.21">
+    "A"
+  <rect fill="white" height="5.55" width="4.64" x="92.83" y="23.94">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="4.27" font-style="italic" text-anchor="middle" x="95.15" y="28.21">
+    "B"

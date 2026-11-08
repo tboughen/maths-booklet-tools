@@ -1,0 +1,44 @@
+<svg aria-label="Number line from -5 to 5; step 1; blank." height="2.3cm" role="img" viewBox="0 0 140 23" width="14cm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <style>
+    "text{stroke:none}"
+  <rect fill="white" height="23" width="140">
+  <g fill="#111" font-family="STIX Two Text" font-size="3.88" stroke-width="0.2" stroke="#111">
+    <path d="M4 12H132">
+    <path d="M132 12l-2.5 -1.1v2.2Z" fill="#111" stroke="none">
+    <text font-style="italic" x="134" y="13.2">
+      "x"
+    <path d="M7 12v2">
+    <text text-anchor="middle" x="7" y="18">
+      "−5"
+    <path d="M19.1 12v2">
+    <text text-anchor="middle" x="19.1" y="18">
+      "−4"
+    <path d="M31.2 12v2">
+    <text text-anchor="middle" x="31.2" y="18">
+      "−3"
+    <path d="M43.3 12v2">
+    <text text-anchor="middle" x="43.3" y="18">
+      "−2"
+    <path d="M55.4 12v2">
+    <text text-anchor="middle" x="55.4" y="18">
+      "−1"
+    <path d="M67.5 12v2">
+    <text text-anchor="middle" x="67.5" y="18">
+      "0"
+    <path d="M79.6 12v2">
+    <text text-anchor="middle" x="79.6" y="18">
+      "1"
+    <path d="M91.7 12v2">
+    <text text-anchor="middle" x="91.7" y="18">
+      "2"
+    <path d="M103.8 12v2">
+    <text text-anchor="middle" x="103.8" y="18">
+      "3"
+    <path d="M115.9 12v2">
+    <text text-anchor="middle" x="115.9" y="18">
+      "4"
+    <path d="M128 12v2">
+    <text text-anchor="middle" x="128" y="18">
+      "5"

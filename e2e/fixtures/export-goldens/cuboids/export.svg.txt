@@ -1,0 +1,28 @@
+<svg aria-label="Cuboid diagrams" height="4.98cm" role="img" viewBox="3.07 5.87 93.13 49.8" width="9.31cm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <defs>
+    <marker id="arrow" markerHeight="1.6" markerUnits="userSpaceOnUse" markerWidth="1.6" orient="auto-start-reverse" refX="6" refY="3" viewBox="0 0 6 6">
+      <path d="M0 0 L6 3 L0 6 Z" fill="black">
+  <rect fill="white" height="49.8" width="93.13" x="3.07" y="5.87">
+  <g>
+    <g data-height-mm="24.1" data-shape="cuboid-1" data-view="plain" data-width-mm="48.19">
+      <g data-layer="1">
+        <polygon data-face="top" fill="white" points="16.87,20.65 65.06,20.65 83.13,8 34.94,8">
+        <polygon data-face="right" fill="white" points="65.06,44.75 83.13,32.1 83.13,8 65.06,20.65">
+        <polygon data-face="front" fill="white" points="16.87,44.75 65.06,44.75 65.06,20.65 16.87,20.65">
+        <path d="M16.87,44.75L65.06,44.75" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M65.06,44.75L65.06,20.65" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M65.06,20.65L16.87,20.65" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M16.87,20.65L16.87,44.75" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M16.87,20.65L34.94,8" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M34.94,8L83.13,8" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M83.13,8L65.06,20.65" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M65.06,44.75L83.13,32.1" fill="none" stroke-width="0.25" stroke="black">
+        <path d="M83.13,32.1L83.13,8" fill="none" stroke-width="0.25" stroke="black">
+      <text fill="black" font-family="STIX Two Text,serif" font-size="3.88" text-anchor="middle" x="40.96" y="52.75">
+        "4 cm"
+      <text fill="black" font-family="STIX Two Text,serif" font-size="3.88" text-anchor="start" x="86.13" y="42.42">
+        "3 cm"
+      <text fill="black" font-family="STIX Two Text,serif" font-size="3.88" text-anchor="end" x="12.87" y="33.7">
+        "2 cm"

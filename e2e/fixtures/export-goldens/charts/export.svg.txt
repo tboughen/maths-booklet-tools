@@ -1,0 +1,66 @@
+<svg aria-label="Dual bar chart of Frequency" height="81.8mm" role="img" viewBox="0 0 147.3 81.8" width="147.3mm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <defs>
+    <pattern height="1.4" id="ch-hatch" patternTransform="rotate(45)" patternUnits="userSpaceOnUse" width="1.4">
+      <rect fill="white" height="1.4" width="1.4">
+      <line stroke-width="0.25" stroke="black" x1="0" x2="0" y1="0" y2="1.4">
+    <pattern height="1.6" id="ch-crosshatch" patternTransform="rotate(45)" patternUnits="userSpaceOnUse" width="1.6">
+      <rect fill="white" height="1.6" width="1.6">
+      <path d="M0,0V1.6M0,0H1.6" stroke-width="0.22" stroke="black">
+    <pattern height="1.5" id="ch-dots" patternUnits="userSpaceOnUse" width="1.5">
+      <rect fill="white" height="1.5" width="1.5">
+      <circle cx="0.75" cy="0.75" fill="black" r="0.3">
+  <rect fill="white" height="81.8" width="147.3">
+  <path d="M28.77,66.94H112.77M28.77,59.94H112.77M28.77,52.94H112.77M28.77,45.94H112.77M28.77,38.94H112.77M28.77,31.94H112.77M28.77,24.94H112.77M28.77,17.94H112.77M28.77,10.94H112.77M28.77,3.94H112.77" fill="none" stroke-width="0.25" stroke="#a6a6a6">
+  <rect fill="#9a9a9a" height="35" stroke-width="0.3" stroke="black" width="7" x="32.27" y="38.94">
+  <rect fill="url(#ch-hatch)" height="49" stroke-width="0.3" stroke="black" width="7" x="39.27" y="24.94">
+  <rect fill="#9a9a9a" height="42" stroke-width="0.3" stroke="black" width="7" x="53.27" y="31.94">
+  <rect fill="url(#ch-hatch)" height="28" stroke-width="0.3" stroke="black" width="7" x="60.27" y="45.94">
+  <rect fill="#9a9a9a" height="56" stroke-width="0.3" stroke="black" width="7" x="74.27" y="17.94">
+  <rect fill="url(#ch-hatch)" height="42" stroke-width="0.3" stroke="black" width="7" x="81.27" y="31.94">
+  <rect fill="#9a9a9a" height="21" stroke-width="0.3" stroke="black" width="7" x="95.27" y="52.94">
+  <rect fill="url(#ch-hatch)" height="14" stroke-width="0.3" stroke="black" width="7" x="102.27" y="59.94">
+  <path d="M28.77,3.94V73.94H112.77" fill="none" stroke-width="0.35" stroke="black">
+  <path d="M27.27,73.94H28.77M27.27,66.94H28.77M27.27,59.94H28.77M27.27,52.94H28.77M27.27,45.94H28.77M27.27,38.94H28.77M27.27,31.94H28.77M27.27,24.94H28.77M27.27,17.94H28.77M27.27,10.94H28.77M27.27,3.94H28.77" fill="none" stroke-width="0.3" stroke="black">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="75.22">
+    "0"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="68.22">
+    "1"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="61.22">
+    "2"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="54.22">
+    "3"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="47.22">
+    "4"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="40.22">
+    "5"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="33.22">
+    "6"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="26.22">
+    "7"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="19.22">
+    "8"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="12.22">
+    "9"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="end" x="26.57" y="5.22">
+    "10"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="2" y="40.22">
+    "Frequency"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="39.27" y="78.55">
+    "Car"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="60.27" y="78.55">
+    "Bus"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="81.27" y="78.55">
+    "Walk"
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="middle" x="102.27" y="78.55">
+    "Cycle"
+  <rect fill="white" height="22.64" stroke-width="0.25" stroke="black" width="26.43" x="118.77" y="27.62">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="122.77" y="33.11">
+    "Key:"
+  <rect fill="#9a9a9a" height="5" stroke-width="0.3" stroke="black" width="8" x="122.77" y="35.44">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="133.77" y="39.22">
+    "boys"
+  <rect fill="url(#ch-hatch)" height="5" stroke-width="0.3" stroke="black" width="8" x="122.77" y="42.32">
+  <text fill="black" font-family="STIX Two Text,STIX Two Math,serif" font-size="3.88" text-anchor="start" x="133.77" y="46.1">
+    "girls"

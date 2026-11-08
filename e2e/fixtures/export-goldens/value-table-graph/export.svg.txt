@@ -1,0 +1,128 @@
+<svg aria-label="Table of values and coordinate graph" height="194mm" role="img" viewBox="0 0 141 194" width="141mm" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
+  <rect fill="white" height="100%" width="100%">
+  <g fill="black" font-family="'STIX Two Text', serif">
+    <text font-size="4.23" text-anchor="middle" x="70.5" y="7">
+      <tspan font-style="italic">
+        "y"
+      "="
+      <tspan font-style="italic">
+        "x"
+      "² −"
+      <tspan font-style="italic">
+        "x"
+      "− 6"
+    <path d="M18.5 11h104" stroke-width="0.18" stroke="#888">
+    <path d="M18.5 21h104" stroke-width="0.18" stroke="#888">
+    <path d="M18.5 31h104" stroke-width="0.18" stroke="#888">
+    <path d="M18.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M31.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M44.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M57.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M70.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M83.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M96.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M109.5 11v20" stroke-width="0.18" stroke="#888">
+    <path d="M122.5 11v20" stroke-width="0.18" stroke="#888">
+    <text font-size="4.23" font-style="italic" text-anchor="middle" x="25" y="17.27">
+      "x"
+    <text font-size="4.23" font-style="italic" text-anchor="middle" x="25" y="27.27">
+      "y"
+    <text font-size="4.23" text-anchor="middle" x="38" y="17.27">
+      "−3"
+    <text font-size="4.23" text-anchor="middle" x="38" y="27.27">
+      "6"
+    <text font-size="4.23" text-anchor="middle" x="51" y="17.27">
+      "−2"
+    <text font-size="4.23" text-anchor="middle" x="64" y="17.27">
+      "−1"
+    <text font-size="4.23" text-anchor="middle" x="77" y="17.27">
+      "0"
+    <text font-size="4.23" text-anchor="middle" x="77" y="27.27">
+      "−6"
+    <text font-size="4.23" text-anchor="middle" x="90" y="17.27">
+      "1"
+    <text font-size="4.23" text-anchor="middle" x="103" y="17.27">
+      "2"
+    <text font-size="4.23" text-anchor="middle" x="116" y="17.27">
+      "3"
+    <g data-layer="grid">
+      <path d="M13 46v140M15 46v140M17 46v140M19 46v140M23 46v140M25 46v140M27 46v140M29 46v140M33 46v140M35 46v140M37 46v140M39 46v140M43 46v140M45 46v140M47 46v140M49 46v140M53 46v140M55 46v140M57 46v140M59 46v140M63 46v140M65 46v140M67 46v140M69 46v140M73 46v140M75 46v140M77 46v140M79 46v140M83 46v140M85 46v140M87 46v140M89 46v140M93 46v140M95 46v140M97 46v140M99 46v140M103 46v140M105 46v140M107 46v140M109 46v140M113 46v140M115 46v140M117 46v140M119 46v140M123 46v140M125 46v140M127 46v140M129 46v140M11 184h120M11 182h120M11 180h120M11 178h120M11 174h120M11 172h120M11 170h120M11 168h120M11 164h120M11 162h120M11 160h120M11 158h120M11 154h120M11 152h120M11 150h120M11 148h120M11 144h120M11 142h120M11 140h120M11 138h120M11 134h120M11 132h120M11 130h120M11 128h120M11 124h120M11 122h120M11 120h120M11 118h120M11 114h120M11 112h120M11 110h120M11 108h120M11 104h120M11 102h120M11 100h120M11 98h120M11 94h120M11 92h120M11 90h120M11 88h120M11 84h120M11 82h120M11 80h120M11 78h120M11 74h120M11 72h120M11 70h120M11 68h120M11 64h120M11 62h120M11 60h120M11 58h120M11 54h120M11 52h120M11 50h120M11 48h120" data-grid-tier="fine" fill="none" stroke-width="0.18" stroke="#b3b3b3">
+      <path d="M21 46v140M41 46v140M61 46v140M81 46v140M101 46v140M121 46v140M11 186h120M11 166h120M11 146h120M11 126h120M11 106h120M11 86h120M11 66h120M11 46h120" data-grid-tier="intermediate" fill="none" stroke-width="0.36" stroke="#b3b3b3">
+      <path d="M11 46v140M31 46v140M51 46v140M71 46v140M91 46v140M111 46v140M131 46v140M11 176h120M11 156h120M11 136h120M11 116h120M11 96h120M11 76h120M11 56h120" data-grid-tier="heavy" fill="none" stroke-width="0.5" stroke="#b3b3b3">
+    <g data-layer="axes" stroke-width="0.3" stroke="black">
+      <path d="M11 116H136M71 186V41" fill="none">
+      <path d="M136 116l-2 -1v2zM71 41l-1 2h2z" fill="black" stroke="none">
+    <text font-size="4.23" font-style="italic" text-anchor="middle" x="137.5" y="119">
+      "x"
+    <text font-size="4.23" font-style="italic" text-anchor="middle" x="68" y="40">
+      "y"
+    <g data-font-points="12" data-layer="axis-values">
+      <rect fill="white" height="4.06" width="6.14" x="7.93" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="11" y="120">
+        "−3"
+      <rect fill="white" height="4.06" width="6.14" x="27.93" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="31" y="120">
+        "−2"
+      <rect fill="white" height="4.06" width="6.14" x="47.93" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="51" y="120">
+        "−1"
+      <rect fill="white" height="4.06" width="3.1" x="89.45" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="91" y="120">
+        "1"
+      <rect fill="white" height="4.06" width="3.1" x="109.45" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="111" y="120">
+        "2"
+      <rect fill="white" height="4.06" width="3.1" x="129.45" y="116.74">
+      <text font-size="4.23" text-anchor="middle" x="131" y="120">
+        "3"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="184.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="187.27">
+        "−7"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="174.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="177.27">
+        "−6"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="164.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="167.27">
+        "−5"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="154.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="157.27">
+        "−4"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="144.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="147.27">
+        "−3"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="134.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="137.27">
+        "−2"
+      <rect fill="white" height="4.06" width="6.14" x="63.76" y="124.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="127.27">
+        "−1"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="104.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="107.27">
+        "1"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="94.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="97.27">
+        "2"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="84.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="87.27">
+        "3"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="74.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="77.27">
+        "4"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="64.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="67.27">
+        "5"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="54.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="57.27">
+        "6"
+      <rect fill="white" height="4.06" width="3.1" x="66.8" y="44.01">
+      <text font-size="4.23" text-anchor="end" x="69.4" y="47.27">
+        "7"
+      <text font-size="4.23" font-style="italic" text-anchor="end" x="69" y="120">
+        "O"
+    <defs>
+      <clipPath id="vg-plot-clip">
+        <rect height="140" width="120" x="11" y="46">
+    <g clip-path="url(#vg-plot-clip)" data-layer="plots" fill="none" stroke-width="0.42" stroke="black">
+    <g data-layer="point-markers" fill="none" stroke-width="0.42" stroke="black">
