@@ -1,0 +1,95 @@
+name: Deploy MCP
+# Deploys the graph MCP service on Render from main, then waits until the live /healthz buildId
+# matches the buildId of the main commit this run checked out (services/graph-mcp/build.mjs).
+#
+# Manual only. Running this IS a service deploy, so it needs Tim's explicit go-ahead every time
+# (CLAUDE.md, release and safety). It never runs on push or pull requests.
+#
+# Needs the repository secret RENDER_DEPLOY_HOOK (the Render service's Deploy Hook URL). Anyone who
+# has that URL can deploy, so it is never printed. Render deploys the tip of the branch the service
+# is set to (main); if main moves during the run, the buildIds will not match and the run fails.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Deploy even if the live service already reports this commit's buildId
+        type: boolean
+        default: false
+      wait_minutes:
+        description: How long to wait for the new build to go live
+        type: number
+        default: 25
+permissions:
+  contents: read
+concurrency:
+  group: deploy-mcp
+  cancel-in-progress: false
+env:
+  SERVICE_URL: https://maths-booklet-graph-mcp.onrender.com
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Require main
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/main
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Work out the expected buildId
+        id: expected
+        run: |
+          node services/graph-mcp/build.mjs
+          build_id=$(node -p 'require("./service-dist/manifest.json").buildId')
+          echo "buildId=$build_id" >> "$GITHUB_OUTPUT"
+          echo "Commit $GITHUB_SHA has buildId $build_id"
+      - name: Read the live buildId
+        id: before
+        run: |
+          live=$(curl -fsS -m 90 --retry 3 --retry-all-errors "$SERVICE_URL/healthz" | jq -r .buildId) || live=unreachable
+          echo "buildId=$live" >> "$GITHUB_OUTPUT"
+          echo "Live buildId before deploy: $live"
+      - name: Trigger the Render deploy
+        if: ${{ inputs.force || steps.before.outputs.buildId != steps.expected.outputs.buildId }}
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::The RENDER_DEPLOY_HOOK secret is not set."
+            exit 1
+          fi
+          # -s keeps curl from echoing the URL; only the deploy id from Render's reply is shown.
+          reply=$(curl -sS -f -m 60 -X POST "$HOOK" 2>/dev/null) || {
+            echo "::error::Render refused the deploy hook request."
+            exit 1
+          }
+          echo "Render accepted the deploy: $(jq -r '.deploy.id // "no deploy id in reply"' <<<"$reply" 2>/dev/null || echo "reply was not JSON")"
+      - name: Wait for the new build to go live
+        env:
+          EXPECTED: ${{ steps.expected.outputs.buildId }}
+          WAIT_MINUTES: ${{ inputs.wait_minutes }}
+        run: |
+          deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
+          while :; do
+            live=$(curl -fsS -m 90 "$SERVICE_URL/healthz" | jq -r .buildId 2>/dev/null) || live=unreachable
+            echo "$(date -u +%H:%M:%S) live buildId: $live"
+            if [ "$live" = "$EXPECTED" ]; then
+              echo "### MCP deploy live" >> "$GITHUB_STEP_SUMMARY"
+              echo "Commit \`$GITHUB_SHA\`, buildId \`$EXPECTED\`." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::After $WAIT_MINUTES minutes the live buildId is $live, not $EXPECTED. Check the deploy log in Render."
+              echo "### MCP deploy NOT confirmed" >> "$GITHUB_STEP_SUMMARY"
+              echo "Expected buildId \`$EXPECTED\` for \`$GITHUB_SHA\`; live reports \`$live\`." >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            sleep 30
+          done

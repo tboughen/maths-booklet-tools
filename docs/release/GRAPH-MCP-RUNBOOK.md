@@ -84,6 +84,13 @@ continuation or one line. Run the smoke command from a second terminal.
 under 512 MiB. It deploys nothing. The website is released through cloudflare.yml
 (see RELEASE-PIPELINE.md). npm test builds the service before running its tests.
 
+.github/workflows/deploy-mcp.yml ("Deploy MCP") is the manual service deploy. Run it
+from main only with Tim's explicit go-ahead for that deploy. It works out the
+expected buildId for the checked-out main commit, calls the Render Deploy Hook
+(secret RENDER_DEPLOY_HOOK, never printed), and passes only when the live
+/healthz buildId matches. If the live service already reports that buildId it
+skips the hook unless `force` is ticked. It does not run the smoke check.
+
 ## Free host
 
 Tim's free-only instruction supersedes the earlier paid-host proposal.
