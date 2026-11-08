@@ -4,49 +4,9 @@
 // link codec), reloaded through the real parser and compared. Then each teaching slot is set to
 // each state in turn (blank, zero, hidden answer, answer line, value) and round-tripped the same way.
 import { describe, expect, it } from "vitest";
-import * as algebraGrid from "../../packages/algebra-grid-core/src/index";
-import { exampleNames as algebraGridExamples } from "../../packages/algebra-grid-core/src/interchange";
-import * as barModel from "../../packages/bar-model-core/src/index";
-import * as barModelVersioned from "../../packages/bar-model-core/src/versioned";
-import { lessonExample, lessonExampleNames } from "../../packages/bar-model-core/src/lesson-examples-v3";
-import * as cuboid from "../../packages/cuboid-core/src/index";
-import { examples as cuboidExamples } from "../../packages/cuboid-core/src/examples";
-import * as numberLine from "../../packages/number-line-core/src/index";
-import { examples as numberLineExamples, example as numberLineExample } from "../../packages/number-line-core/src/examples";
-import * as triangle from "../../packages/triangle-core/src/index";
-import { examples as triangleExamples } from "../../packages/triangle-core/src/examples";
-import * as venn from "../../packages/venn-core/src/index";
-import { examples as vennExamples, teachingExamples as vennTeaching } from "../../packages/venn-core/src/examples";
-import * as valueGraph from "../../packages/value-graph-core/src/interchange";
-import { quadraticSources, workedQuadraticExample } from "../value-graph/examples";
-
-import * as chart from "../../packages/chart-core/src/index";
-import { examples as chartExamples } from "../../packages/chart-core/src/examples";
-import * as tree from "../../packages/probability-tree-core/src/index";
-import { examples as treeExamples } from "../../packages/probability-tree-core/src/examples";
+import { tools } from "./saved-files";
 
 type Json = Record<string, unknown>;
-type Tool = {
-  name: string;
-  envelopes: () => unknown[];
-  validate: (raw: unknown) => unknown;
-  parseFile: (text: string) => unknown;
-  link?: { encode: (e: never) => string; decode: (s: string) => unknown };
-};
-
-const tools: Tool[] = [
-  { name: "algebra grid", envelopes: () => algebraGridExamples.flatMap(n => [algebraGrid.example(n), algebraGrid.example(n, true)]), validate: algebraGrid.validate, parseFile: algebraGrid.parseFile },
-  { name: "bar model v1", envelopes: () => barModel.exampleNames.flatMap(n => [barModel.example(n), barModel.example(n, true)]), validate: barModel.validate, parseFile: barModel.parseFile },
-  { name: "bar model v3", envelopes: () => lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), validate: (raw: unknown) => barModelVersioned.parseFile(JSON.stringify(raw)), parseFile: barModelVersioned.parseFile },
-  { name: "charts", envelopes: () => chartExamples.flatMap(x => [x.make(false), x.make(true)]), validate: chart.validate, parseFile: chart.parseFile },
-  { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, parseFile: cuboid.parseFile, link: { encode: cuboid.encode, decode: cuboid.decode } },
-  { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, parseFile: numberLine.parseFile, link: { encode: numberLine.encode, decode: numberLine.decode } },
-  { name: "probability trees", envelopes: () => treeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: tree.validate, parseFile: tree.parseFile },
-  { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
-  { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, parseFile: venn.parseFile },
-  { name: "plotting quadratics", envelopes: () => quadraticSources.flatMap(x => [valueGraph.preset(x.name), workedQuadraticExample(x.name)]), validate: (raw: unknown) => valueGraph.parseFile(JSON.stringify(raw)), parseFile: valueGraph.parseFile, link: { encode: valueGraph.encode, decode: valueGraph.decode } },
-];
-
 // The ways a teaching slot can be set. Each tool accepts only some; the validator decides.
 const TEXTS = ["Qzx7canary", "+917", "0"];
 const REPLACE = "__replace__"; // the variant replaces the whole slot instead of merging into it
@@ -109,7 +69,8 @@ describe("teaching states survive save and reload", () => {
       }
       expect(lost).toEqual([]);
       expect(examples).toBeGreaterThan(0);
-      expect(variants).toBeGreaterThan(0);
+      if (tool.teachingSlots === false) expect(variants).toBe(0);
+      else expect(variants).toBeGreaterThan(0);
     }, 60000);
   }
 });

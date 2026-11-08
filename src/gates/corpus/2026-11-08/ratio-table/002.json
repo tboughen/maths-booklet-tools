@@ -1,0 +1,79 @@
+{
+  "kind": "ratio-table",
+  "schemaVersion": 1,
+  "rendererVersion": "ratio-1",
+  "styleProfile": "ratio-lesson-v1",
+  "document": {
+    "headings": [
+      {
+        "text": "kg",
+        "italic": false,
+        "direction": "none"
+      },
+      {
+        "text": "GBP",
+        "italic": false,
+        "direction": "none"
+      }
+    ],
+    "rows": [
+      {
+        "id": "given",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "2.5"
+          },
+          {
+            "kind": "number",
+            "value": "3.6"
+          }
+        ]
+      },
+      {
+        "id": "unit",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "1"
+          },
+          {
+            "kind": "number",
+            "value": "1.44"
+          }
+        ]
+      },
+      {
+        "id": "target",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "3.5"
+          },
+          {
+            "kind": "number",
+            "value": "5.04"
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": "given",
+        "to": "unit",
+        "operation": "divide",
+        "factor": "2.5"
+      },
+      {
+        "from": "unit",
+        "to": "target",
+        "operation": "multiply",
+        "factor": "3.5"
+      }
+    ],
+    "size": "standard",
+    "mode": "annotated",
+    "showArrows": true,
+    "showOperations": true
+  }
+}

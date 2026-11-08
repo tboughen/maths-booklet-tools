@@ -1,0 +1,50 @@
+{
+  "tool": "charts",
+  "schemaVersion": 1,
+  "rendererVersion": "charts-1",
+  "document": {
+    "kind": "bar",
+    "categories": [
+      "Apple",
+      "Banana",
+      "Orange",
+      "Pear"
+    ],
+    "series": [
+      {
+        "name": "pupils",
+        "fill": "grey",
+        "values": [
+          {
+            "value": "7",
+            "show": "show"
+          },
+          {
+            "value": "4",
+            "show": "show"
+          },
+          {
+            "value": "9",
+            "show": "show"
+          },
+          {
+            "value": "2",
+            "show": "show"
+          }
+        ]
+      }
+    ],
+    "axis": {
+      "min": "0",
+      "max": "10",
+      "step": "2",
+      "minor": 2
+    },
+    "xTitle": "Favourite fruit",
+    "yTitle": "Frequency",
+    "grid": "fine",
+    "key": false,
+    "heightMm": 60,
+    "barMm": 10
+  }
+}

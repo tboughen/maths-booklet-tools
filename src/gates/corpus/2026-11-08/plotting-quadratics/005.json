@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "value-graph-1",
+  "styleProfile": "exam-v1",
+  "document": {
+    "equation": {
+      "a": "1",
+      "b": "-2",
+      "c": "2"
+    },
+    "columns": [
+      {
+        "id": "c1",
+        "x": "-2",
+        "y": {
+          "kind": "value",
+          "value": "10"
+        }
+      },
+      {
+        "id": "c2",
+        "x": "-1",
+        "y": {
+          "kind": "blank"
+        }
+      },
+      {
+        "id": "c3",
+        "x": "0",
+        "y": {
+          "kind": "value",
+          "value": "2"
+        }
+      },
+      {
+        "id": "c4",
+        "x": "1",
+        "y": {
+          "kind": "blank"
+        }
+      },
+      {
+        "id": "c5",
+        "x": "2",
+        "y": {
+          "kind": "blank"
+        }
+      },
+      {
+        "id": "c6",
+        "x": "3",
+        "y": {
+          "kind": "value",
+          "value": "5"
+        }
+      },
+      {
+        "id": "c7",
+        "x": "4",
+        "y": {
+          "kind": "blank"
+        }
+      }
+    ],
+    "graph": {
+      "bounds": {
+        "xMin": "-2.5",
+        "xMax": "4.5",
+        "yMin": "-3",
+        "yMax": "11"
+      },
+      "xUnitsPer10mm": "1/2",
+      "yUnitsPer10mm": "1",
+      "minorPitchMm": 2,
+      "intermediatePitchMm": 10,
+      "heavyPitchMm": 20,
+      "xLabelEvery": "1",
+      "yLabelEvery": "2",
+      "originLabel": "O",
+      "axisStyle": "exam",
+      "positiveEndArrows": true,
+      "series": [],
+      "curves": [],
+      "referenceLines": []
+    },
+    "presentation": {
+      "composition": "combined",
+      "showEquation": true,
+      "showMarkers": true,
+      "showJoins": true,
+      "showCurves": true,
+      "showReferenceLines": true,
+      "decimalPlaces": null
+    },
+    "print": {
+      "tableWidthMm": 104,
+      "tableRowHeightMm": 10,
+      "gapMm": 8
+    }
+  }
+}

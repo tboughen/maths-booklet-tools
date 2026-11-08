@@ -1,0 +1,129 @@
+{
+  "kind": "bar-model",
+  "schemaVersion": 1,
+  "rendererVersion": "bar-model-1",
+  "styleProfile": "lesson-v1",
+  "document": {
+    "bars": [
+      {
+        "id": "b1",
+        "name": {
+          "text": "Longer share",
+          "state": "value"
+        },
+        "offset": "0",
+        "parts": [
+          {
+            "id": "b1p1",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p2",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p3",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p4",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p5",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          }
+        ]
+      },
+      {
+        "id": "b2",
+        "name": {
+          "text": "Shorter share",
+          "state": "value"
+        },
+        "offset": "0",
+        "parts": [
+          {
+            "id": "b2p1",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b2p2",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b2p3",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          }
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "id": "difference",
+        "from": {
+          "barId": "b2",
+          "partId": "b2p3",
+          "edge": "end"
+        },
+        "to": {
+          "barId": "b1",
+          "partId": "b1p5",
+          "edge": "end"
+        },
+        "label": {
+          "text": "2 units",
+          "state": "value"
+        },
+        "side": "below",
+        "style": "brace"
+      }
+    ],
+    "presentation": {
+      "unitMm": 10,
+      "barHeightMm": 10,
+      "fontPt": 12,
+      "nameWidthMm": 28
+    }
+  }
+}

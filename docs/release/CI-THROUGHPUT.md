@@ -52,6 +52,12 @@ every step, so anything a pull-request plan skipped is still checked within a da
   `saved-states.test.ts` saves every example as its editable file (and link, where the tool has
   a link codec), reloads it through the real parser, and repeats that with each teaching slot set
   to blank, zero, hidden answer, answer line and value; any lost or merged state fails.
+  `corpus.test.ts` keeps old saved files opening: `src/gates/corpus/<date>/<tool>/` holds every
+  example's editable file as saved on that date (first frozen 8 November 2026), and each must load
+  through today's parser unchanged, save again the same and survive its link. Dated files are never
+  edited (test integrity warns if one is); freeze a new date with
+  `WRITE_CORPUS=YYYY-MM-DD npx vitest run src/gates/corpus.test.ts`. A deliberate upgrade that
+  rewrites old files on load is listed file by file in `corpus/UPGRADES.json` with Tim's approval.
 - **Judge panel (shadow).** `judge-panel.yml` runs beside quick checks on every non-draft pull
   request: three judges (teacher, product, adversarial; rubrics in `review/rubrics/`) review the
   diff with the Claude API and report verdicts and findings in the job summary and the
