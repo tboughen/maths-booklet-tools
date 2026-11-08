@@ -1,0 +1,178 @@
+{
+  "tool": "probability-tree",
+  "schemaVersion": 1,
+  "rendererVersion": "probability-tree-1",
+  "document": {
+    "branches": [
+      {
+        "id": "b1",
+        "parent": null,
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "4/10",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b2",
+        "parent": "b1",
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "3/9",
+          "show": "show"
+        },
+        "bold": true,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b3",
+        "parent": "b1",
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "6/9",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b4",
+        "parent": null,
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "6/10",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b5",
+        "parent": "b4",
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "4/9",
+          "show": "show"
+        },
+        "bold": true,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b6",
+        "parent": "b4",
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "5/9",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      }
+    ],
+    "stageTitles": [
+      "First counter",
+      "Second counter"
+    ],
+    "linkLabels": true,
+    "endColumn": "none",
+    "endHeadings": [
+      "Outcome",
+      "Probability"
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "text": "P(second counter is red) =",
+        "answer": {
+          "text": "2/5",
+          "show": "hidden"
+        },
+        "event": [
+          "b2",
+          "b5"
+        ],
+        "given": []
+      },
+      {
+        "id": "q2",
+        "text": "P(first is red given that the second is red) =",
+        "answer": {
+          "text": "1/3",
+          "show": "hidden"
+        },
+        "event": [
+          "b2"
+        ],
+        "given": [
+          "b2",
+          "b5"
+        ]
+      }
+    ],
+    "blankStyle": "dots",
+    "branchMm": 32,
+    "gapMm": 14
+  }
+}

@@ -296,6 +296,62 @@
    "png600": "3260x1643",
    "pixels": "2ab65c5c0693f6c1"
   },
+  "charts: chart-bar-draw": {
+   "json": "2cc403a9527ddd22",
+   "svg": "d62afcb5180c4be7",
+   "mm": "111.8x77.6",
+   "png600": "2641x1833",
+   "pixels": "69b4275191124001"
+  },
+  "charts: chart-bar-draw (worked)": {
+   "json": "4931421172fb64c1",
+   "svg": "75100670549c37ff",
+   "mm": "111.8x77.6",
+   "png600": "2641x1833",
+   "pixels": "a2b5dbc580edd0a8"
+  },
+  "charts: chart-composite-sales": {
+   "json": "231b9298ad7c8010",
+   "svg": "6b1bc4b764db39e1",
+   "mm": "145.1x101.8",
+   "png600": "3428x2405",
+   "pixels": "35ae1397031d1bf3"
+  },
+  "charts: chart-composite-sales (worked)": {
+   "json": "231b9298ad7c8010",
+   "svg": "6b1bc4b764db39e1",
+   "mm": "145.1x101.8",
+   "png600": "3428x2405",
+   "pixels": "35ae1397031d1bf3"
+  },
+  "charts: chart-dual-transport": {
+   "json": "11751d94077ca0b0",
+   "svg": "9dd9b08ecae88499",
+   "mm": "168.3x81.8",
+   "png600": "3976x1932",
+   "pixels": "3283a91e511e37ec"
+  },
+  "charts: chart-dual-transport (worked)": {
+   "json": "a40e14e43b7bf660",
+   "svg": "3516af8077d10dec",
+   "mm": "168.3x81.8",
+   "png600": "3976x1932",
+   "pixels": "1e5ceb2f84c8b7f0"
+  },
+  "charts: chart-vline-cars": {
+   "json": "b4afd19fd8472d86",
+   "svg": "fff25f4f64245caf",
+   "mm": "82.2x77.6",
+   "png600": "1942x1833",
+   "pixels": "4c43ff8a490403df"
+  },
+  "charts: chart-vline-cars (worked)": {
+   "json": "a0df2b71a0ac2959",
+   "svg": "c553185b77801542",
+   "mm": "82.2x77.6",
+   "png600": "1942x1833",
+   "pixels": "c877fbf859027729"
+  },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12": {
    "json": "a6055531febbdf33",
    "svg": "31384e61bad1b541",
@@ -729,6 +785,90 @@
    "mm": "141x134",
    "png600": "3331x3165",
    "pixels": "ff0cb26b711403c8"
+  },
+  "probability trees: tree-darts": {
+   "json": "cbf56c04bcacb580",
+   "svg": "df58d69bc753d6cb",
+   "mm": "99.3x92.1",
+   "png600": "2346x2176",
+   "pixels": "c90d33bac21b5357"
+  },
+  "probability trees: tree-darts (worked)": {
+   "json": "bb3c167bc955d4be",
+   "svg": "81552fae9597fb9c",
+   "mm": "99.3x77.4",
+   "png600": "2346x1828",
+   "pixels": "f3d66c71dc7d790d"
+  },
+  "probability trees: tree-given-that": {
+   "json": "039911e0d4c5d1b1",
+   "svg": "9c0e3647c6ce3fb5",
+   "mm": "102.7x104.3",
+   "png600": "2426x2464",
+   "pixels": "ea798a455895cd11"
+  },
+  "probability trees: tree-given-that (worked)": {
+   "json": "3780e041be73d612",
+   "svg": "fc13e3649dbe675d",
+   "mm": "99.7x104.3",
+   "png600": "2355x2464",
+   "pixels": "d1b199dd8dec454a"
+  },
+  "probability trees: tree-three-coins": {
+   "json": "99a7efab9f17b30e",
+   "svg": "fc439b46c5c90eda",
+   "mm": "146.5x141.8",
+   "png600": "3461x3350",
+   "pixels": "bbb8257418f5b8a8"
+  },
+  "probability trees: tree-three-coins (worked)": {
+   "json": "65eba04072009043",
+   "svg": "4db01d1c2d0e8fea",
+   "mm": "149.2x141.8",
+   "png600": "3524x3350",
+   "pixels": "c5ec2bdc48e04865"
+  },
+  "probability trees: tree-two-bags": {
+   "json": "a9a37009b29101ba",
+   "svg": "3a429788e16972e7",
+   "mm": "96.9x91.6",
+   "png600": "2289x2164",
+   "pixels": "e5725d8da9af652a"
+  },
+  "probability trees: tree-two-bags (worked)": {
+   "json": "282e16401d12b823",
+   "svg": "badd454838f205cd",
+   "mm": "96.9x91",
+   "png600": "2289x2150",
+   "pixels": "2ee40578641398ac"
+  },
+  "probability trees: tree-unequal": {
+   "json": "f2d4178d0746883f",
+   "svg": "ca45bececddad8bb",
+   "mm": "120x90.9",
+   "png600": "2835x2147",
+   "pixels": "3a09de1ede7faa4f"
+  },
+  "probability trees: tree-unequal (worked)": {
+   "json": "e9b7c8015033ae73",
+   "svg": "f65b28c5e5d5426a",
+   "mm": "120x81.1",
+   "png600": "2835x1916",
+   "pixels": "e689e578cf9fb9d0"
+  },
+  "probability trees: tree-without-replacement": {
+   "json": "1826b7b998704739",
+   "svg": "7f1a624371c1fbe0",
+   "mm": "137.1x96.5",
+   "png600": "3239x2280",
+   "pixels": "e4e17b065c8408cb"
+  },
+  "probability trees: tree-without-replacement (worked)": {
+   "json": "48c6a0786fc2290a",
+   "svg": "3e3475e6abe3037d",
+   "mm": "140.9x96.5",
+   "png600": "3328x2280",
+   "pixels": "a87574f6699333e7"
   },
   "ratio table: ratio-1MA1_NOV_2017_3F_Q12": {
    "json": "d6c85dd42a56129b",

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "graph-1",
+  "styleProfile": "portable-v1",
+  "document": {
+    "version": 1,
+    "axes": {
+      "x": {
+        "negativeSquares": 5,
+        "positiveSquares": 7,
+        "unitsPerSquare": 0.5
+      },
+      "y": {
+        "negativeSquares": 7,
+        "positiveSquares": 8,
+        "unitsPerSquare": 1
+      }
+    },
+    "objects": [],
+    "selectedObjectId": null
+  }
+}

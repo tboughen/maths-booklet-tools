@@ -1,0 +1,333 @@
+{
+  "tool": "probability-tree",
+  "schemaVersion": 1,
+  "rendererVersion": "probability-tree-1",
+  "document": {
+    "branches": [
+      {
+        "id": "b1",
+        "parent": null,
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b2",
+        "parent": "b1",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b3",
+        "parent": "b2",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "H, H, H",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b4",
+        "parent": "b2",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "H, H, T",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b5",
+        "parent": "b1",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b6",
+        "parent": "b5",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "H, T, H",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b7",
+        "parent": "b5",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "H, T, T",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b8",
+        "parent": null,
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b9",
+        "parent": "b8",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b10",
+        "parent": "b9",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "T, H, H",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b11",
+        "parent": "b9",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "T, H, T",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b12",
+        "parent": "b8",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b13",
+        "parent": "b12",
+        "outcome": {
+          "text": "H",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "T, T, H",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "b14",
+        "parent": "b12",
+        "outcome": {
+          "text": "T",
+          "show": "show"
+        },
+        "probability": {
+          "text": "1/2",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "T, T, T",
+          "show": "show"
+        },
+        "endProbability": {
+          "text": "1/8",
+          "show": "show"
+        }
+      }
+    ],
+    "stageTitles": [
+      "1st coin",
+      "2nd coin",
+      "3rd coin"
+    ],
+    "linkLabels": true,
+    "endColumn": "both",
+    "endHeadings": [
+      "Outcome",
+      "Probability"
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "text": "P(exactly two heads) =",
+        "answer": {
+          "text": "3/8",
+          "show": "show"
+        },
+        "event": [
+          "b4",
+          "b6",
+          "b10"
+        ],
+        "given": []
+      }
+    ],
+    "blankStyle": "dots",
+    "branchMm": 24,
+    "gapMm": 11
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "tool": "probability-tree",
+  "schemaVersion": 1,
+  "rendererVersion": "probability-tree-1",
+  "document": {
+    "branches": [
+      {
+        "id": "b1",
+        "parent": null,
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "5/8",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "hidden"
+        }
+      },
+      {
+        "id": "b2",
+        "parent": "b1",
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "4/7",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "Red, Red",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "5/14",
+          "show": "hidden"
+        }
+      },
+      {
+        "id": "b3",
+        "parent": "b1",
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "3/7",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "Red, Blue",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "15/56",
+          "show": "hidden"
+        }
+      },
+      {
+        "id": "b4",
+        "parent": null,
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "3/8",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "",
+          "show": "hidden"
+        }
+      },
+      {
+        "id": "b5",
+        "parent": "b4",
+        "outcome": {
+          "text": "Red",
+          "show": "show"
+        },
+        "probability": {
+          "text": "5/7",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "Blue, Red",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "15/56",
+          "show": "hidden"
+        }
+      },
+      {
+        "id": "b6",
+        "parent": "b4",
+        "outcome": {
+          "text": "Blue",
+          "show": "show"
+        },
+        "probability": {
+          "text": "2/7",
+          "show": "show"
+        },
+        "bold": false,
+        "endOutcome": {
+          "text": "Blue, Blue",
+          "show": "hidden"
+        },
+        "endProbability": {
+          "text": "3/28",
+          "show": "hidden"
+        }
+      }
+    ],
+    "stageTitles": [
+      "First counter",
+      "Second counter"
+    ],
+    "linkLabels": true,
+    "endColumn": "both",
+    "endHeadings": [
+      "Outcome",
+      "Probability"
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "text": "P(both the same colour) =",
+        "answer": {
+          "text": "13/28",
+          "show": "hidden"
+        },
+        "event": [
+          "b2",
+          "b6"
+        ],
+        "given": []
+      }
+    ],
+    "blankStyle": "dots",
+    "branchMm": 32,
+    "gapMm": 14
+  }
+}

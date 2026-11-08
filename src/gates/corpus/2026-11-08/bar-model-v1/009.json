@@ -1,0 +1,138 @@
+{
+  "kind": "bar-model",
+  "schemaVersion": 1,
+  "rendererVersion": "bar-model-1",
+  "styleProfile": "lesson-v1",
+  "document": {
+    "bars": [
+      {
+        "id": "b1",
+        "name": {
+          "text": "Jars",
+          "state": "value"
+        },
+        "offset": "0",
+        "parts": [
+          {
+            "id": "b1p1",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": true
+          },
+          {
+            "id": "b1p2",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": true
+          },
+          {
+            "id": "b1p3",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": true
+          },
+          {
+            "id": "b1p4",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p5",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p6",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p7",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          },
+          {
+            "id": "b1p8",
+            "weight": "1",
+            "label": {
+              "text": "",
+              "state": "blank"
+            },
+            "shade": false
+          }
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "id": "whole",
+        "from": {
+          "barId": "b1",
+          "partId": "b1p1",
+          "edge": "start"
+        },
+        "to": {
+          "barId": "b1",
+          "partId": "b1p8",
+          "edge": "end"
+        },
+        "label": {
+          "text": "400",
+          "state": "value"
+        },
+        "side": "above",
+        "style": "brace"
+      },
+      {
+        "id": "selected",
+        "from": {
+          "barId": "b1",
+          "partId": "b1p1",
+          "edge": "start"
+        },
+        "to": {
+          "barId": "b1",
+          "partId": "b1p3",
+          "edge": "end"
+        },
+        "label": {
+          "text": "150",
+          "state": "hidden"
+        },
+        "side": "below",
+        "style": "brace"
+      }
+    ],
+    "presentation": {
+      "unitMm": 10,
+      "barHeightMm": 10,
+      "fontPt": 12,
+      "nameWidthMm": 28
+    }
+  }
+}

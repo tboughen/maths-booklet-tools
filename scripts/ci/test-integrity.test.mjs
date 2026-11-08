@@ -31,6 +31,12 @@ test('changed print baselines are reported', () => {
   assert.deepEqual(kinds(diff('e2e/a11y-baseline.json', ['+    "color-contrast"'])), ['warning:changed-baseline']);
 });
 
+test('the dated saved-file corpus may only grow', () => {
+  assert.deepEqual(kinds(diff('src/gates/corpus/2026-11-08/venn/001.json', ['-  "schemaVersion": 2,', '-  "x": 1,', '+  "schemaVersion": 3,'])), ['warning:changed-corpus']);
+  assert.deepEqual(kinds(diff('src/gates/corpus/2026-11-08/venn/001.json', ['-  "schemaVersion": 2,'], 'deleted file mode 100644\n')), ['warning:changed-corpus']);
+  assert.deepEqual(kinds(diff('src/gates/corpus/2027-01-01/venn/001.json', ['+  "schemaVersion": 2,'], 'new file mode 100644\n')), []);
+});
+
 test('contract snapshot changes are reported once per file', () => {
   assert.deepEqual(kinds(diff('src/gates/contracts/saved-files.json', ['-    "maxLength": 80', '+    "maxLength": 120'])), ['warning:changed-contract']);
   assert.deepEqual(kinds(diff('review/calibration/cases.json', ['-    "expect": "fail"', '+    "expect": "pass"'])), ['warning:changed-judge-oracle']);

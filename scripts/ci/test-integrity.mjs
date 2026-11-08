@@ -18,13 +18,15 @@ const focusOnly = /^(?:test|it|describe)(?:\.describe)?\.only\s*\(/;
 const disabled = /^(?:test|it|describe)(?:\.describe)?\.(?:skip|fixme|todo)\s*\(|^x(?:it|describe)\s*\(/;
 const loose = /\.(?:toBeTruthy|toBeDefined|toBeFalsy|toBeCloseTo|toMatchObject|toContain|toBeGreaterThan(?:OrEqual)?|toBeLessThan(?:OrEqual)?)\s*\(/;
 const hash = /\b[0-9a-f]{40,64}\b/;
+// Dated saved-file corpus (src/gates/corpus.test.ts): files are only ever added, never edited or removed.
+const corpusFile = /^src\/gates\/corpus\/\d{4}-\d{2}-\d{2}\//;
 
 export function checkDiff(diff) {
   const findings = [];
   let file = null, deleted = false;
   for (const line of diff.split('\n')) {
     if (line.startsWith('diff --git ')) { file = line.split(' b/').pop(); deleted = false; continue; }
-    if (line.startsWith('deleted file mode')) { deleted = true; if (testFile.test(file)) findings.push({ level: 'warning', file, kind: 'deleted-test-file', text: '' }); continue; }
+    if (line.startsWith('deleted file mode')) { deleted = true; if (testFile.test(file)) findings.push({ level: 'warning', file, kind: 'deleted-test-file', text: '' }); if (corpusFile.test(file)) findings.push({ level: 'warning', file, kind: 'changed-corpus', text: 'dated saved-file corpus file removed' }); continue; }
     if (!file || deleted || line.startsWith('+++') || line.startsWith('---')) continue;
     const added = line.startsWith('+'), removed = line.startsWith('-');
     if (!added && !removed) continue;
@@ -38,6 +40,7 @@ export function checkDiff(diff) {
     if (/^src\/gates\/contracts\//.test(file) && !findings.some(f => f.file === file && f.kind === 'changed-contract')) findings.push({ level: 'warning', file, kind: 'changed-contract', text: 'saved-file schema or MCP catalogue changed: needs Tim (tier T5/T6)' });
     if (/^review\/(?:calibration|rubrics)\//.test(file) && !findings.some(f => f.file === file && f.kind === 'changed-judge-oracle')) findings.push({ level: 'warning', file, kind: 'changed-judge-oracle', text: 'judge rubric or calibration case changed: needs Tim (tier T7)' });
     if (/baseline\.json$/.test(file) && !findings.some(f => f.file === file && f.kind === 'changed-baseline')) findings.push({ level: 'warning', file, kind: 'changed-baseline', text });
+    if (removed && corpusFile.test(file) && !findings.some(f => f.file === file && f.kind === 'changed-corpus')) findings.push({ level: 'warning', file, kind: 'changed-corpus', text: 'dated saved-file corpus file edited: add a new dated corpus or list an approved upgrade instead' });
     if (removed && controlFile.test(file) && hash.test(text)) findings.push({ level: 'warning', file, kind: 'changed-control-hash', text });
   }
   return findings;

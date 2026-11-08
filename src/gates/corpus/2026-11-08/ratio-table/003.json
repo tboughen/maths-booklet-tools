@@ -1,0 +1,70 @@
+{
+  "kind": "ratio-table",
+  "schemaVersion": 2,
+  "rendererVersion": "ratio-2",
+  "styleProfile": "ratio-lesson-v1",
+  "document": {
+    "headings": [
+      {
+        "text": "Butter",
+        "italic": false,
+        "direction": "none"
+      },
+      {
+        "text": "Flour",
+        "italic": false,
+        "direction": "none"
+      },
+      {
+        "text": "Sugar",
+        "italic": false,
+        "direction": "none"
+      }
+    ],
+    "rows": [
+      {
+        "id": "recipe",
+        "cells": [
+          {
+            "kind": "number",
+            "value": "125"
+          },
+          {
+            "kind": "number",
+            "value": "200"
+          },
+          {
+            "kind": "number",
+            "value": "50"
+          }
+        ]
+      },
+      {
+        "id": "one-biscuit",
+        "cells": [
+          {
+            "kind": "answer-line"
+          },
+          {
+            "kind": "answer-line"
+          },
+          {
+            "kind": "answer-line"
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": "recipe",
+        "to": "one-biscuit",
+        "operation": "divide",
+        "factor": "12"
+      }
+    ],
+    "size": "standard",
+    "mode": "annotated",
+    "showArrows": true,
+    "showOperations": true
+  }
+}

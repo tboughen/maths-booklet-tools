@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "graph-1",
+  "styleProfile": "portable-v1",
+  "document": {
+    "version": 1,
+    "axes": {
+      "x": {
+        "negativeSquares": 5,
+        "positiveSquares": 9,
+        "unitsPerSquare": 0.5
+      },
+      "y": {
+        "negativeSquares": 8,
+        "positiveSquares": 6,
+        "unitsPerSquare": 1
+      }
+    },
+    "objects": [
+      {
+        "id": "example-line",
+        "kind": "straight",
+        "display": "segment",
+        "strokeStyle": "solid",
+        "start": {
+          "x": -2,
+          "y": -7
+        },
+        "end": {
+          "x": 4,
+          "y": 5
+        },
+        "equationVisible": false
+      }
+    ],
+    "selectedObjectId": null
+  }
+}

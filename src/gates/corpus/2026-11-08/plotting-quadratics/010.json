@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "value-graph-1",
+  "styleProfile": "exam-v1",
+  "document": {
+    "equation": {
+      "a": "2",
+      "b": "4",
+      "c": "1"
+    },
+    "columns": [
+      {
+        "id": "c1",
+        "x": "-3",
+        "y": {
+          "kind": "value",
+          "value": "7"
+        }
+      },
+      {
+        "id": "c2",
+        "x": "-2",
+        "y": {
+          "kind": "value",
+          "value": "1"
+        }
+      },
+      {
+        "id": "c3",
+        "x": "-1",
+        "y": {
+          "kind": "value",
+          "value": "-1"
+        }
+      },
+      {
+        "id": "c4",
+        "x": "0",
+        "y": {
+          "kind": "value",
+          "value": "1"
+        }
+      },
+      {
+        "id": "c5",
+        "x": "1",
+        "y": {
+          "kind": "value",
+          "value": "7"
+        }
+      },
+      {
+        "id": "c6",
+        "x": "2",
+        "y": {
+          "kind": "value",
+          "value": "17"
+        }
+      }
+    ],
+    "graph": {
+      "bounds": {
+        "xMin": "-3.5",
+        "xMax": "2.5",
+        "yMin": "-2",
+        "yMax": "18"
+      },
+      "xUnitsPer10mm": "1/2",
+      "yUnitsPer10mm": "1",
+      "minorPitchMm": 2,
+      "intermediatePitchMm": 10,
+      "heavyPitchMm": 20,
+      "xLabelEvery": "1",
+      "yLabelEvery": "1",
+      "originLabel": "O",
+      "axisStyle": "exam",
+      "positiveEndArrows": true,
+      "series": [
+        {
+          "id": "points",
+          "source": "table",
+          "points": [
+            {
+              "id": "p-c1",
+              "x": "-3",
+              "y": "7",
+              "columnId": "c1"
+            },
+            {
+              "id": "p-c2",
+              "x": "-2",
+              "y": "1",
+              "columnId": "c2"
+            },
+            {
+              "id": "p-c3",
+              "x": "-1",
+              "y": "-1",
+              "columnId": "c3"
+            },
+            {
+              "id": "p-c4",
+              "x": "0",
+              "y": "1",
+              "columnId": "c4"
+            },
+            {
+              "id": "p-c5",
+              "x": "1",
+              "y": "7",
+              "columnId": "c5"
+            },
+            {
+              "id": "p-c6",
+              "x": "2",
+              "y": "17",
+              "columnId": "c6"
+            }
+          ],
+          "connection": "none"
+        }
+      ],
+      "curves": [
+        {
+          "id": "quadratic",
+          "equation": {
+            "a": "2",
+            "b": "4",
+            "c": "1"
+          },
+          "min": "-3",
+          "max": "2"
+        }
+      ],
+      "referenceLines": []
+    },
+    "presentation": {
+      "composition": "combined",
+      "showEquation": true,
+      "showMarkers": true,
+      "showJoins": true,
+      "showCurves": true,
+      "showReferenceLines": true,
+      "decimalPlaces": null
+    },
+    "print": {
+      "tableWidthMm": 104,
+      "tableRowHeightMm": 10,
+      "gapMm": 8
+    }
+  }
+}

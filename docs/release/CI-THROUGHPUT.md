@@ -44,9 +44,25 @@ every step, so anything a pull-request plan skipped is still checked within a da
   example, pupil and worked, and fails on editor chrome, a non-absolute print size, a distorted
   aspect, or declared type smaller than `print-baseline.json`. Raise the baseline after a deliberate
   increase with `UPDATE_PRINT_BASELINE=1 npx vitest run src/gates`; lowering it needs Tim.
+  The size checks come from `src/testing/print-size.ts`, the shared millimetre library: the SVG's
+  printed size, the smallest type in points, a PNG's printed size from its pixels and `pHYs`
+  density, and whether a PNG prints at the same size as its SVG. The browser export goldens
+  (`e2e/export-goldens.spec.ts`) use the same library to check that every downloaded SVG and
+  600 ppi PNG print at the same size.
   `saved-states.test.ts` saves every example as its editable file (and link, where the tool has
   a link codec), reloads it through the real parser, and repeats that with each teaching slot set
   to blank, zero, hidden answer, answer line and value; any lost or merged state fails.
+  `corpus.test.ts` keeps old saved files opening: `src/gates/corpus/<date>/<tool>/` holds every
+  example's editable file as saved on that date (first frozen 8 November 2026), and each must load
+  through today's parser unchanged, save again the same and survive its link. Dated files are never
+  edited (test integrity warns if one is); freeze a new date with
+  `WRITE_CORPUS=YYYY-MM-DD npx vitest run src/gates/corpus.test.ts`. A deliberate upgrade that
+  rewrites old files on load is listed file by file in `corpus/UPGRADES.json` with Tim's approval.
+- **Property tests** use the seeded generator in `src/testing/random.ts` (`forAll`), so every run
+  is reproducible. `src/testing/exact-numbers.property.test.ts` checks exact fractions, decimals,
+  scaling and quadratic table values against plain bigint arithmetic, and `saved-states.test.ts`
+  sets random mixes of teaching states across a whole file at once. A failure names its seed:
+  replay it with `PROPERTY_SEED=<seed>`, and search longer with `PROPERTY_RUNS=<multiplier>`.
 - **Judge panel (shadow).** `judge-panel.yml` runs beside quick checks on every non-draft pull
   request: three judges (teacher, product, adversarial; rubrics in `review/rubrics/`) review the
   diff with the Claude API and report verdicts and findings in the job summary and the
