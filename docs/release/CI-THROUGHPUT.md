@@ -21,6 +21,12 @@ base) and writes a plan to the job outputs. Its unit tests are in `scripts/ci/pl
 Pushes to `main`, the nightly run (02:17 UTC) and manual runs always use the full bank and run
 every step, so anything a pull-request plan skipped is still checked within a day.
 
+- **Restricted content.** Every pull request runs `scripts/ci/content-guard.mjs`, which fails when
+  the change adds a PDF, image or office file outside the allowlisted folders (bank files belong in
+  the `mathsdock-bank` submodule), a file named like an original paper, mark scheme, worked master,
+  class list or pupil data, or a line with a local machine path such as `C:\Users\<name>`. Only
+  additions are checked. A new artwork folder is allowed by adding it to `allowedBinaryFolders` in
+  the same pull request.
 - **Test integrity.** Every pull request runs `scripts/ci/test-integrity.mjs`. A new `.only` fails
   the job. Removed or loosened assertions, new `skip`/`fixme`, deleted test files and changed
   control hashes appear as warnings and in the job summary for review
