@@ -51,3 +51,12 @@ test('the lite bank list is a sorted set of bank question folders', () => {
   assert.deepEqual(lines, [...new Set(lines)].sort());
   for (const line of lines) assert.match(line, /^[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+$/);
 });
+
+test('a loop PR always runs every unit test, so the teaching gates run whatever it touches', () => {
+  for (const paths of [['src/venn/VennPage.tsx'], ['docs/tools/VENN-TOOL.md']]) {
+    const plan = planChecks({ event: 'pull_request', paths, branch: 'loop/12-venn' });
+    assert.equal(plan.tests, 'all', paths[0]);
+    assert.match(plan.reason, /loop PR/);
+  }
+  assert.equal(planChecks({ event: 'pull_request', paths: ['src/venn/VennPage.tsx'], branch: 'claude/thread' }).tests, 'affected');
+});

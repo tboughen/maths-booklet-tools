@@ -1,0 +1,20 @@
+{
+  "description": "Paths a loop session must never author (tier T8, docs/AUTONOMOUS-LOOP-POLICY.md section 3). Enforced in two places: scripts/loop/guard-edit.mjs blocks edits in loop sessions, and scripts/loop/forbidden-paths.mjs plus the trusted merge decision refuse any loop/ pull request that touches them. classify-risk.mjs builds its T8 rule from this list. Each pattern is a JavaScript regular expression matched against the repository-relative path.",
+  "paths": [
+    { "pattern": "^scripts/(?:cloudflare|ci|loop|bank)/", "why": "release, CI, loop and bank tooling" },
+    { "pattern": "^\\.github/", "why": "workflows and repository automation" },
+    { "pattern": "^\\.claude/", "why": "Claude Code settings and hooks, including this guard" },
+    { "pattern": "^package(?:-lock)?\\.json$", "why": "dependencies and scripts" },
+    { "pattern": "^wrangler[^/]*$", "why": "Cloudflare Worker configuration" },
+    { "pattern": "^vite\\.config\\.ts$", "why": "build and test configuration" },
+    { "pattern": "^playwright[^/]*\\.config\\.[cm]?[jt]s$", "why": "browser test configuration" },
+    { "pattern": "^public/bank/", "why": "question-bank files" },
+    { "pattern": "^bankAssets\\.ts$", "why": "question-bank asset list" },
+    { "pattern": "^workedSolution\\.ts$", "why": "worked-solution registration" },
+    { "pattern": "^\\.gitmodules$", "why": "the private bank submodule link" },
+    { "pattern": "^\\.nvmrc$", "why": "the Node version" },
+    { "pattern": "^tsconfig[^/]*\\.json$", "why": "TypeScript configuration" },
+    { "pattern": "^eslint\\.config\\.js$", "why": "lint rules" },
+    { "pattern": "^index\\.html$", "why": "the site entry page and its security headers" }
+  ]
+}

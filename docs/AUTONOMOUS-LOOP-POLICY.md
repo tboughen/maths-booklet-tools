@@ -49,10 +49,17 @@ Unknown paths are the highest tier. A PR takes the tier of its riskiest file.
 | T5 | Saved schema, interchange, storage keys | `**/interchange*`, `**/schema*`, `**/storage*`, emitted schemas | always | Tim |
 | T6 | MCP service and advertised metadata | `services/**`, `Dockerfile*`, `render.yaml`, `tsconfig.service.json` | always | Tim |
 | T7 | Guidance and teaching rules | `AGENTS.md`, `CLAUDE.md`, canonical docs, this policy, `.agents/skills/**`, judge rubrics | always | Tim |
-| T8 | Release, infrastructure, bank, credentials | `scripts/cloudflare/**`, `scripts/ci/**`, `.github/**`, `package*.json`, `wrangler*`, `vite.config.ts`, Playwright configs, `public/bank/**`, `bankAssets.ts` | loop sessions must not author these | never by the loop |
+| T8 | Release, infrastructure, bank, credentials | the deny-list in `scripts/loop/forbidden-paths.json`: `scripts/{cloudflare,ci,loop,bank}/**`, `.github/**`, `.claude/**`, `package*.json`, `wrangler*`, `vite.config.ts`, Playwright configs, `public/bank/**`, `bankAssets.ts` and other root config | loop sessions must not author these | never by the loop |
 
 Loop PRs are capped at 300 changed lines (fixtures excluded), one tool area and one issue. Larger
 PRs go to `loop:needs-tim`.
+
+The T8 deny-list is enforced in two places. In a loop session (`MATHSDOCK_LOOP_SESSION=1`, or a
+checkout on a `loop/` branch), the Claude Code hook `scripts/loop/guard-edit.mjs`, registered in
+`.claude/settings.json`, refuses to edit those paths; other sessions are unaffected. On a `loop/`
+pull request, the quick-checks step "Refuse deny-listed paths on loop branches" fails, and the
+trusted merge decision, run from the default branch, sends the PR to Tim. The classifier's T8 rule
+is built from the same file, so the tier and the deny-list cannot drift apart.
 
 ## 4. Phases
 
@@ -121,7 +128,13 @@ golden is T4 or higher and waits for Tim.
 
 ## 6. Rules that always apply
 
-These hold for every PR, whoever wrote it, and no golden update inside a loop PR can override them:
+These hold for every PR, whoever wrote it, and no golden update inside a loop PR can override them.
+The gates that check them are listed once, in `scripts/loop/teaching-gates.json`. Every loop PR runs
+all of them, because quick checks run every unit test on a `loop/` branch. A loop PR may add tests or
+a new dated corpus beside them, but if it edits or deletes a gate file, its baseline or its fixtures,
+the trusted merge decision sends it to Tim. `scripts/loop/workflow-secrets.test.mjs` checks the
+secrets rule below against every workflow.
+
 
 - Never calculate, fill or reveal answers, and never change a saved schema implicitly.
 - Blank, zero, hidden and answer-line states stay distinct; exact fractions stay exact.
