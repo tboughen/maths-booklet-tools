@@ -122,7 +122,7 @@ test("actual algebra MCP link retains pupil blanks through a mobile edit and Und
     item = evidence.items["algebra-factor"],
     u = new URL(item.editorUrl);
   await page.setViewportSize({ width: 320, height: 800 });
-  await page.goto(`/?${u.searchParams}${u.hash}`);
+  await page.goto(`${u.pathname}${u.search}${u.hash}`);
   await page
     .getByRole("button", { name: "Apply replacement", exact: true })
     .click();
@@ -231,7 +231,7 @@ for (const c of cases.filter((c) =>
     const item = evidence.items[c.name],
       u = new URL(item.editorUrl);
     await page.setViewportSize({ width: 320, height: 800 });
-    await page.goto(`/?${u.searchParams.toString()}${u.hash}`);
+    await page.goto(`${u.pathname}${u.search}${u.hash}`);
     await page
       .getByRole("dialog")
       .getByRole("button", { name: c.confirm, exact: true })

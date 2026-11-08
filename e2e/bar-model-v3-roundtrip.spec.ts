@@ -87,7 +87,7 @@ test("v3 bar MCP resource survives secondary-label and caption browser edits and
     const made = reply.structuredContent as Result,
       link = new URL(made.editorUrl);
     await mark("created");
-    await page.goto(`/?${link.searchParams}${link.hash}`);
+    await page.goto(`${link.pathname}${link.search}${link.hash}`);
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Open bar model", exact: true })

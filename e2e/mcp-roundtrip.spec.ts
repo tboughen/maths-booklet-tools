@@ -32,18 +32,18 @@ test('complete MCP to editor saved-file to MCP revision preserves pupil source',
     expect(reply.isError).not.toBe(true);
     type Result = { envelope: Envelope; contentHash: string; editorUrl: string; downloads: Record<string, { url: string }>; printRaster: { width: number; height: number } };
     const made = reply.structuredContent as unknown as Result, link = new URL(made.editorUrl);
-    expect(link.origin).toBe('https://mathsdock.co.uk'); expect(link.searchParams.get('tool')).toBe('expanding-factorising');
+    expect(link.origin).toBe('https://mathsdock.co.uk'); expect(link.pathname).toBe('/tools/expanding-factorising');
     const key = 'maths-booklet-tools:algebra-grid:v1';
     await page.goto('/tools/expanding-factorising', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-testid="algebra-resource"]')).toBeVisible();
     const preceding = await page.evaluate(k => localStorage.getItem(k), key);
-    await page.goto(`/?${link.searchParams}${link.hash}`);
+    await page.goto(`${link.pathname}${link.search}${link.hash}`);
     await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
     expect(await page.evaluate(k => localStorage.getItem(k), key)).toBe(preceding);
     // A fresh document models reopening the cancelled link; mounted editors
     // deliberately suppress duplicate handling of an already-seen URL.
     await page.reload();
-    await page.goto(`/?${link.searchParams}${link.hash}`);
+    await page.goto(`${link.pathname}${link.search}${link.hash}`);
     await page.getByRole('button', { name: 'Apply replacement', exact: true }).click();
     await expect.poll(async () => JSON.parse(await page.evaluate(k => localStorage.getItem(k)!, key))).toEqual(made.envelope);
     await page.locator('[data-ag-cell="0-2"]').click();
