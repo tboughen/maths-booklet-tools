@@ -20,7 +20,7 @@ import { ArrowDown, MousePointer2, Type } from "lucide-react";
 import {
   applyRatioOperations,
   decodeRatio,
-  emptyRatioTable,
+  starterRatioTable,
   parseRatioFile,
   ratioEditorLink,
   ratioMetrics,
@@ -581,7 +581,7 @@ export default function RatioTablePage({
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(emptyRatioTable(), "Reset this table?")}
+              onReset={() => replace(starterRatioTable(), "Reset this table?")}
               resetDisabled={structureDisabled}
               exportDisabled={exportDisabled}
               busy={busy}

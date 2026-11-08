@@ -36,6 +36,11 @@ Every change and confirmed example/file/link replacement is undoable.
 
 ## Direct editing and controls
 
+A new table, and Reset, open on a small scaffold: 3 → 12 given and 5 → an answer
+line (improvement list U18). Nothing is calculated. Saved tables, links, files
+and recovery are unchanged; a table that needs recovery still opens blank, and
+an MCP request without rows still makes a blank table.
+
 The toolbar matches Graph tool: Edit, Add arrow and Edit headings, then history,
 Reset and Copy for Word. Lower-emphasis structural actions are grouped separately.
 Click a heading or cell and type; Enter applies, Escape restores and Tab moves

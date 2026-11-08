@@ -16,6 +16,7 @@ import {
   canonical,
   caption,
   create,
+  starter,
   editLabel,
   getLabel,
   isStale,
@@ -134,7 +135,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: create(),
+      e: starter(),
       raw,
       recovery: null as string | null,
       message: "",
@@ -144,7 +145,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: create(),
+      e: starter(),
       raw: null,
       recovery: null as string | null,
       message:
@@ -804,7 +805,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onUndo={undo}
               onRedo={redo}
               onReset={() =>
-                replacement(create(), "Reset the triangle diagram?")
+                replacement(starter(), "Reset the triangle diagram?")
               }
               resetDisabled={blocked}
               exportDisabled={blocked || !!exportMetrics.issues.length}
