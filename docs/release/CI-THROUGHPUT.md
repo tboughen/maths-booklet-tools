@@ -27,6 +27,10 @@ every step, so anything a pull-request plan skipped is still checked within a da
   class list or pupil data, or a line with a local machine path such as `C:\Users\<name>`. Only
   additions are checked. A new artwork folder is allowed by adding it to `allowedBinaryFolders` in
   the same pull request.
+- **Bundle budget.** Whenever the build runs, `scripts/ci/bundle-budget.mjs` measures the gzip size
+  of first-load JavaScript and CSS (what `index.html` loads before any page), the largest chunk and
+  all JavaScript, and fails when one passes `scripts/ci/bundle-budget.json`. Lazy-load new code, or
+  raise the budget in the same pull request and say why.
 - **Test integrity.** Every pull request runs `scripts/ci/test-integrity.mjs`. A new `.only` fails
   the job. Removed or loosened assertions, new `skip`/`fixme`, deleted test files and changed
   control hashes appear as warnings and in the job summary for review

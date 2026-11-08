@@ -113,6 +113,10 @@ jobs:
         env:
           MATHSDOCK_SKIP_BANK_ASSETS: "1"
           MATHSDOCK_SKIP_SOLUTION_FILES: ${{ steps.plan.outputs.solution_files == 'true' && '0' || '1' }}
+      # Gzip size budget for first load, largest chunk and all JavaScript (scripts/ci/bundle-budget.json).
+      - name: Check bundle size budget
+        if: steps.plan.outputs.build == 'true'
+        run: node scripts/ci/bundle-budget.mjs
       # Browser gates: page smoke and axe accessibility ratchet (e2e/gates.spec.ts).
       - name: Restore the Playwright browser
         if: steps.plan.outputs.build == 'true'
