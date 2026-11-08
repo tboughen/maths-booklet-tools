@@ -59,6 +59,8 @@ export function preflight(state, config = CONFIG) {
   if (state.loopEnabled !== true) reasons.push('the loop is switched off (MATHSDOCK_LOOP_ENABLED is not "true")');
   if (typeof config.monthlySpendCapUSD !== 'number') reasons.push('no monthly spend cap is set in scripts/loop/config.json (Tim sets monthlySpendCapUSD)');
   else if (!(Number(state.monthSpendUSD) < config.monthlySpendCapUSD)) reasons.push(`this month's spend (${state.monthSpendUSD} USD) has reached the cap of ${config.monthlySpendCapUSD} USD`);
+  const paused = (state.issues ?? []).filter(i => (i.labels ?? []).includes('loop:paused'));
+  if (paused.length) reasons.push(`the loop is paused until issue #${paused[0].number} is closed (${paused[0].title})`);
   const prs = state.pullRequests ?? [];
   const loopPRs = prs.filter(p => isLoopBranch(p.headRefName));
   const tonight = loopPRs.filter(p => now - Date.parse(p.createdAt) < DAY).length;

@@ -152,7 +152,13 @@ secrets rule below against every workflow.
 ## 7. Reversal, suspension and reporting
 
 - **Revert.** If a loop merge breaks `main`, the loop reverts its own commit and pauses until the
-  cause is fixed. It never reverts anyone else's commit; it opens an issue instead.
+  cause is fixed. It never reverts anyone else's commit; it opens an issue instead. The "Loop
+  post-merge" workflow does this when quick checks fail on a push to `main`
+  (`scripts/loop/post-merge.mjs`). For a loop merge, it opens a `loop:paused` issue (every loop
+  preflight stops while it is open), cancels queued loop merges, and opens the revert as a draft
+  pull request from `loop-revert/<commit>`. A person checks that the failure is real, marks the
+  revert ready (which runs its checks) and merges it, then closes the issue to resume. For any other
+  commit it opens a `main:failing` issue and reverts nothing.
 - **Suspension.** Auto-merge stops when: the repository variable `MATHSDOCK_LOOP_ENABLED` is not
   `true`; a PR has `loop:hold`; judge calibration falls below threshold; Tim rejects or reverts
   any PR the panel passed unanimously (until he reviews why and resumes it; resumed misses still

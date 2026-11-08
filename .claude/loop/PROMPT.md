@@ -21,7 +21,7 @@ in the shape described at the top of `scripts/loop/preflight.mjs`:
 
 - whether the repository variable `MATHSDOCK_LOOP_ENABLED` is exactly `true`;
 - this month's Anthropic spend in US dollars, from the figure Tim records for the loop;
-- every open issue labelled `loop:candidate`, with its body and labels;
+- every open issue labelled `loop:candidate` or `loop:paused`, with its body and labels;
 - every pull request opened in the last 7 days and every open pull request, with its head branch,
   state, creation time and changed files.
 

@@ -37,6 +37,16 @@
       "description": "Opened by the loop in shadow mode"
     },
     {
+      "name": "loop:paused",
+      "color": "b60205",
+      "description": "A loop merge broke main; the loop stops until this issue is closed"
+    },
+    {
+      "name": "main:failing",
+      "color": "b60205",
+      "description": "Quick checks are failing on main"
+    },
+    {
       "name": "tier:T0",
       "color": "ededed",
       "description": "Expected risk tier T0: Test additions"
