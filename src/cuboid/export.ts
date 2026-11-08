@@ -17,7 +17,9 @@ import {
 } from "../export/clipboard";
 
 export async function prepareImage(e: Envelope) {
-  const source = await embedPortableFonts(renderSvg(e));
+  // Measure with the page's own STIX fonts and embed the (subset) fonts only after cropping: a
+  // subset @font-face placed in the page would replace the editor's full STIX face while measuring.
+  const source = renderSvg(e);
   const svg = new DOMParser().parseFromString(source, "image/svg+xml")
     .documentElement as unknown as SVGSVGElement;
   const background = svg.querySelector(":scope > rect")!;
@@ -28,6 +30,7 @@ export async function prepareImage(e: Envelope) {
   }
   svg.append(art);
   background.remove();
+  let cropped: { svg: string; width: number; height: number };
   const host = document.createElement("div");
   host.inert = true;
   host.setAttribute("aria-hidden", "true");
@@ -84,10 +87,11 @@ export async function prepareImage(e: Envelope) {
     background.setAttribute("width", String(right - x));
     background.setAttribute("height", String(bottom - y));
     svg.insertBefore(background, art);
-    return { svg: new XMLSerializer().serializeToString(svg), width, height };
+    cropped = { svg: new XMLSerializer().serializeToString(svg), width, height };
   } finally {
     host.remove();
   }
+  return { ...cropped, svg: await embedPortableFonts(cropped.svg) };
 }
 
 async function rasterImage(m: Awaited<ReturnType<typeof prepareImage>>) {
