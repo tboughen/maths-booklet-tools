@@ -33,7 +33,7 @@ Per-tool records:
 - [CI throughput](release/CI-THROUGHPUT.md): what each pull request runs, the lite bank, caches and batching.
 - [MCP release playbook](release/MCP-RELEASE-PLAYBOOK.md), [checklist](release/MCP-RELEASE-CHECKLIST.md), [coverage map](release/MCP-RELEASE-COVERAGE.json) and [compatibility template](release/MCP-COMPATIBILITY-TEMPLATE.json).
 - [MCP connector acceptance](release/MCP-CONNECTOR-ACCEPTANCE.md).
-- Graph service: [runbook](release/GRAPH-MCP-RUNBOOK.md) and [ChatGPT connection](release/GRAPH-MCP-CONNECTION.md).
+- Graph service: [runbook](release/GRAPH-MCP-RUNBOOK.md), [ChatGPT connection](release/GRAPH-MCP-CONNECTION.md) and [Claude connection](release/CLAUDE-CONNECTION.md).
 
 ## content/ — questions, worked solutions and lesson resources
 

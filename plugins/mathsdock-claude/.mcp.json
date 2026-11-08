@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "mathsdock": {
+      "type": "http",
+      "url": "https://maths-booklet-graph-mcp.onrender.com/mcp"
+    }
+  }
+}

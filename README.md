@@ -71,7 +71,8 @@ The optional stateless MCP service exposes `graph_capabilities`, `create_graph`
 and `revise_graph` for direct graph creation without computer use. Human drawing
 and exports work independently of that service.
 See [operations and release](docs/release/GRAPH-MCP-RUNBOOK.md) and
-[ChatGPT connection and acceptance](docs/release/GRAPH-MCP-CONNECTION.md).
+[ChatGPT connection and acceptance](docs/release/GRAPH-MCP-CONNECTION.md), and
+[Claude connection](docs/release/CLAUDE-CONNECTION.md) for claude.ai, Claude Desktop and Claude Code.
 Adding these files does not deploy a service or connect a ChatGPT account.
 
 Free hosting is configured in `render.yaml`. Use a free Render workspace without
