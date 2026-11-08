@@ -18,6 +18,7 @@ const families: Record<string, string> = {
   bar_model: "bar model",
   chart: "bar or line chart",
   probability_tree: "probability tree",
+  triangle: "triangle diagram",
 };
 const sentence = (text: string) => text[0].toUpperCase() + text.slice(1);
 export const TOOL_TITLES: Readonly<Record<string, string>> = {

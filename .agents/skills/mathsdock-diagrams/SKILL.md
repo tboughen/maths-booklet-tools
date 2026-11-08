@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams and bar models through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams, bar models and Triangle diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
 ---
 
 # MathsDock diagrams
@@ -156,3 +156,7 @@ and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
 One Undo restores the original version. Website readers for all three versions
 must precede production v3 issuance; service/package/client and human acceptance
 remain separate. SDK proof is not actual intended-client adoption.
+
+## Triangle MCP integration
+
+Read [the Triangle MCP contract](../../../docs/tools/TRIANGLE-MCP.md) for triangle_capabilities, create_triangle and revise_triangle, plus kind triangle in placement, bundles and original SVG delivery. Only call actually discovered tools; source implementation or newer skill text does not establish deployment/client import. Preserve pupil labels, blanks, v1/v2 files and hidden answers. Use returned calculationContexts for named target/owner/input mappings; calculate or reveal answers only explicitly. Never measure drawn proportions. Keep actual host discovery, execution and exact file saving separate from SDK qualification.
