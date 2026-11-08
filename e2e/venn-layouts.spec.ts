@@ -185,7 +185,7 @@ test("caption choices, nested label edits, view export and editable-file present
   await boot(page, e);
   const original = canonical(await saved(page));
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
   await expect(page.locator('.vn-art [data-region="1"]')).toHaveText("2,6,10");
   expect(canonical(await saved(page))).toBe(original);
@@ -204,7 +204,7 @@ test("caption choices, nested label edits, view export and editable-file present
   );
   expect(readFileSync(file, "utf8")).toBe(original);
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .uncheck();
   await expect(page.locator('.vn-art [data-region="1"]')).toHaveText("");
   await page
@@ -231,7 +231,7 @@ test("caption choices, nested label edits, view export and editable-file present
   await page.locator("input[type=file]").setInputFiles(file);
   await confirm(page);
   await expect(
-    page.getByRole("checkbox", { name: "Show saved answers", exact: true }),
+    page.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }),
   ).not.toBeChecked();
   expect(canonical(await saved(page))).toBe(original);
 });
@@ -342,7 +342,7 @@ for (const width of [320, 375, 768, 1440])
       teachingExamples.find((x) => x.id === "nested")!.make(false),
     );
     await page
-      .getByRole("checkbox", { name: "Show saved answers", exact: true })
+      .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
       .check();
     for (const mask of [0, 1, 3]) {
       await page.locator(`[data-region-hit="${mask}"]`).click();
@@ -447,7 +447,7 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
   expect(e.document.sets).toBe(1);
   await expect(page.locator('.vn-art [data-region="1"]')).toHaveText("");
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
   expect(
     (await page.locator('.vn-art [data-region="1"]').textContent())!.replace(
@@ -458,7 +458,7 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
   await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
   await page.getByRole("link", { name: "Venn diagrams", exact: true }).click();
   await expect(
-    page.getByRole("checkbox", { name: "Show saved answers", exact: true }),
+    page.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }),
   ).toBeChecked();
   expect(await saved(page)).toEqual(e);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -478,7 +478,7 @@ test("answer-view label overflow is retained and correctable without exposing pu
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
   await expect(page.getByRole("alert")).toContainText("inner set label");
   await expect(
@@ -497,7 +497,7 @@ test("answer-view label overflow is retained and correctable without exposing pu
   await expect(page.getByRole("alert")).toHaveCount(0);
   expect((await saved(page)).document.labels[2].visibility).toBe("hidden");
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .uncheck();
   await expect(page.locator(".vn-art svg")).not.toContainText("Multiples of 4");
 });
@@ -586,7 +586,7 @@ test("single Nested choice reopens reverse-nested files exactly and label edits 
   expect(edited.document.labels[1].text).toBe("Part");
   await page.getByRole("tab", { name: "Diagram", exact: true }).click();
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
   await expect(page.locator(".vn-art svg")).toContainText("Part ⊆ Whole");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -595,7 +595,7 @@ test("single Nested choice reopens reverse-nested files exactly and label edits 
   await page.reload();
   expect(canonical(await saved(page))).toBe(original);
   await expect(
-    page.getByRole("checkbox", { name: "Show saved answers", exact: true }),
+    page.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }),
   ).not.toBeChecked();
 });
 
@@ -658,7 +658,7 @@ for (const width of [320, 375, 768, 1440])
     await page.keyboard.press("Escape");
     await labels.click();
     const answers = page.getByRole("checkbox", {
-      name: "Show saved answers",
+      name: "Teacher copy: show hidden answers",
       exact: true,
     });
     await answers.focus();

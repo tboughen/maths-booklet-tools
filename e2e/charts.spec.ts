@@ -41,9 +41,9 @@ test("edits a bar from the chart, keeps invalid drafts visible and undoes", asyn
 test("hidden values stay saved answers and switching type keeps every data set", async ({ page }) => {
   await boot(page, examples[0].make(false));
   await expect(bars(page)).toHaveCount(9);
-  await page.getByLabel("Show saved answers").check();
+  await page.getByLabel("Teacher copy: show hidden answers").check();
   await expect(bars(page)).toHaveCount(10);
-  await page.getByLabel("Show saved answers").uncheck();
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
   await page.getByRole("button", { name: "Bar chart", exact: true }).click();
   await expect(page.getByText(/draws only the first data set/)).toBeVisible();
   await page.getByRole("button", { name: "Vertical line chart" }).click();

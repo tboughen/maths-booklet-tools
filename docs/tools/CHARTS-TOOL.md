@@ -25,7 +25,7 @@ tool later rather than a mode here.
   Mock set 8 3F Q8 vertical line chart) and one blank "draw a bar chart" scaffold.
 - **Pupil states:** each value is blank (no bar or line), a number (0 draws nothing above the
   axis but is stored as 0), or a number hidden for pupils to draw. Hidden values are saved
-  answers shown only by **Show saved answers** or the worked example.
+  answers shown only by **Teacher copy: show hidden answers** or the worked example.
 - **Direct editing:** clicking a bar, line or category label focuses its field in the Data
   table. Round + and − controls beside the chart add or remove the last category.
 - **Validation:** values and axis numbers stay as typed. Non-numbers, negative values, values

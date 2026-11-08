@@ -7,6 +7,7 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu, LINK_DESCRIPTION } from "../site/EditorDownloadMenu";
 import { ResourceSize } from "../site/ResourceSize";
+import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
@@ -400,11 +401,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             />
             <div className="pt-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <label className="pt-answer-toggle">
-                <input type="checkbox" disabled={blocked} checked={view === "answer"} onChange={(ev) => setView(ev.target.checked ? "answer" : "pupil")} />
-                Show saved answers
-              </label>
               <ResourceSize width={g.width / 10} height={g.height / 10} />
+              <AnswerCopyToggle
+                checked={view === "answer"}
+                disabled={blocked}
+                onChange={(checked) => setView(checked ? "answer" : "pupil")}
+              />
             </div>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">

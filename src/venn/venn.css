@@ -122,19 +122,6 @@
   background: #e2efff;
   border-color: #386ba5;
 }
-.vn-answer-toggle {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  margin-left: auto;
-  min-height: 38px;
-  cursor: pointer;
-}
-.vn-answer-toggle input {
-  width: 17px;
-  height: 17px;
-  accent-color: #2465ad;
-}
 .vn-structure label {
   display: flex;
   gap: 8px;
@@ -346,9 +333,6 @@
   }
 }
 @media (max-width: 480px) {
-  .vn-answer-toggle {
-    margin-left: 0;
-  }
   .vn-scroll {
     padding: 16px;
   }

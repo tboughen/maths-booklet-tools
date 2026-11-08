@@ -10,6 +10,7 @@ import {
   LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
 import { ResourceSize } from "../site/ResourceSize";
+import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -587,18 +588,12 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             />
             <div className="vn-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
-              <label className="vn-answer-toggle">
-                <input
-                  type="checkbox"
-                  disabled={blocked}
-                  checked={view === "answer"}
-                  onChange={(ev) =>
-                    setView(ev.target.checked ? "answer" : "pupil")
-                  }
-                />
-                Show saved answers
-              </label>
               <ResourceSize width={g.width / 10} height={g.height / 10} />
+              <AnswerCopyToggle
+                checked={view === "answer"}
+                disabled={blocked}
+                onChange={(checked) => setView(checked ? "answer" : "pupil")}
+              />
             </div>
             <div
               className="vn-scroll"

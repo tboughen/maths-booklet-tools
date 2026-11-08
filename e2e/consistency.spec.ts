@@ -572,7 +572,7 @@ test("Venn editable links preserve reverse nesting, Unicode and pupil state desp
   );
   await page.reload();
   await page
-    .getByRole("checkbox", { name: "Show saved answers", exact: true })
+    .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
   await openMenu(page);
   await page.getByRole("menuitem", { name: /^Copy editable link/ }).click();
@@ -596,7 +596,7 @@ test("Venn editable links preserve reverse nesting, Unicode and pupil state desp
     .getByRole("button", { name: "Use this diagram", exact: true })
     .click();
   await expect(
-    fresh.getByRole("checkbox", { name: "Show saved answers", exact: true }),
+    fresh.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }),
   ).not.toBeChecked();
   expect(
     canonicalVenn(

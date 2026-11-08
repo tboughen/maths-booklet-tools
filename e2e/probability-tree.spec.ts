@@ -27,7 +27,7 @@ test("edits a probability from the tree, hides it for pupils and undoes", async 
   expect((await saved(page)).document.branches[2].probability).toEqual({ text: "4/7", show: "show" });
   await page.getByLabel("Hide probability for Red, Blue").check();
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(1);
-  await page.getByLabel("Show saved answers").check();
+  await page.getByLabel("Teacher copy: show hidden answers").check();
   await expect(page.getByTestId("tree-resource").locator("svg line[stroke-dasharray]")).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Undo" }).click();

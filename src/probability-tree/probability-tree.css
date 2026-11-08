@@ -218,7 +218,6 @@
   border-color: #386ba5;
   color: var(--ink, #213c59);
 }
-.pt-answer-toggle input,
 .pt-hide input,
 .pt-check input {
   accent-color: #2465ad;
