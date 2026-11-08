@@ -1,5 +1,6 @@
 import { compareAccessibility, type QuestionPerformance } from "./performance";
 import { validateWorkedSolution, type WorkedSolution } from "../../workedSolution";
+import { paperDetailPath, type DetailKey } from "../../bankCatalogueSplit";
 
 export type Tier = "all" | "F" | "H";
 export type CalculatorFilter = "all" | "yes" | "no";
@@ -28,7 +29,11 @@ export interface BankPart {
   notes: string[];
 }
 
-export interface BankQuestion {
+/** A question as the catalogue index lists it: everything except its views, PDFs and worked solution. */
+/** A part as the catalogue index lists it. */
+export type BankListPart = Pick<BankPart, "label" | "marks" | "codes">;
+
+export interface BankListQuestion {
   performance?: QuestionPerformance;
   id: string;
   source: string;
@@ -41,8 +46,24 @@ export interface BankQuestion {
   collection: string;
   marks: number;
   codes: string[];
-  parts: BankPart[];
+  parts: BankListPart[];
   description: string;
+  scaleSensitive: boolean;
+  writingSpacePolicy?: "source" | "generated" | "none";
+  equivalentId?: string;
+  equivalentSource?: string;
+  review: "reviewed" | "draft";
+  revision: string;
+  sourceErrata?: {note: string}[];
+  schemeSourceNote?: string;
+  /** Index only: how many question views the detail file holds. */
+  questionViewCount?: number;
+  /** Index only: whether the detail file holds a worked solution. */
+  hasWorkedSolution?: boolean;
+}
+
+/** The fields kept in the per-paper detail files (`DETAIL_KEYS` in bankCatalogueSplit.ts). */
+export interface BankQuestionDetail {
   questionViews: BankView[];
   schemeViews: BankView[];
   questionPdf: string;
@@ -50,15 +71,14 @@ export interface BankQuestion {
   schemePdf: string;
   workedSolution?: WorkedSolution;
   printPages: {width: number; height: number}[];
-  scaleSensitive: boolean;
-  writingSpacePolicy?: "source" | "generated" | "none";
   exportRouting74?: { policy: "q8-classroom-compact74"; scopeSHA256: string; authoritySHA256: string };
-  equivalentId?: string;
-  equivalentSource?: string;
-  review: "reviewed" | "draft";
-  revision: string;
-  sourceErrata?: {note: string}[];
-  schemeSourceNote?: string;
+}
+// The split must move exactly these fields; this fails to compile if the two lists drift apart.
+const detailKeysMatch: [Exclude<keyof BankQuestionDetail, DetailKey>, Exclude<DetailKey, keyof BankQuestionDetail>] extends [never, never] ? true : false = true;
+void detailKeysMatch;
+
+export interface BankQuestion extends BankListQuestion, BankQuestionDetail {
+  parts: BankPart[];
 }
 
 export interface BankTopic {
@@ -70,7 +90,7 @@ export interface BankTopic {
   availableCount?: number;
 }
 
-export interface BankCatalogue {
+export interface BankCatalogue<Q extends BankListQuestion = BankQuestion> {
   paperQuestionCounts?: Record<string, number>;
   schemaVersion: 1;
   version: string;
@@ -79,7 +99,9 @@ export interface BankCatalogue {
   pilotCodes: string[];
   aliases: Record<string, string>;
   topics: BankTopic[];
-  questions: BankQuestion[];
+  questions: Q[];
+  /** Index only: each paper's detail file. */
+  papers?: Record<string, string>;
   scope: {sets: number; papers: number; sourceQuestions: number; publishedQuestions: number};
   publication?: {status: "draft" | "partial" | "complete"; label: string; heading: string; description: string};
 }
@@ -97,7 +119,7 @@ export interface BankRoute {
 export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", question: "", view: 0};
 export const normalizeCode = (code: string) => code.replace(/\s/g, "").toUpperCase();
 
-export function readRoute(search: string, catalogue?: BankCatalogue): BankRoute {
+export function readRoute(search: string, catalogue?: BankCatalogue<BankListQuestion>): BankRoute {
   const p = new URLSearchParams(search);
   const raw = normalizeCode(p.get("code") || "");
   return {
@@ -125,25 +147,25 @@ export function routeQuery(route: BankRoute): string {
   return query ? `?${query}` : "";
 }
 
-export function topicQuestions(catalogue: BankCatalogue, code: string): BankQuestion[] {
+export function topicQuestions<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, code: string): Q[] {
   return catalogue.questions.filter(q => !code || q.codes.includes(code)).sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 }
 
-export function filterQuestions(catalogue: BankCatalogue, route: BankRoute): BankQuestion[] {
+export function filterQuestions<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, route: BankRoute): Q[] {
   const questions = topicQuestions(catalogue, route.code).filter(q => questionEligible(q, route));
   // Filter first: retain the matching tier and mapping, including old direct links.
   return (route.code ? distinctQuestions(questions, route.question) : questions).sort(compareAccessibility);
 }
 
-export const questionIdentity = (q: BankQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
+export const questionIdentity = (q: BankListQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 
-export function questionEligible(q: BankQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection">): boolean {
+export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection">): boolean {
   return (filters.tier === "all" || q.tier === filters.tier) &&
     (filters.calculator === "all" || q.calculator === (filters.calculator === "yes")) &&
     (filters.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === filters.collection);
 }
 
-function distinctQuestions(questions: BankQuestion[], preferredId = ""): BankQuestion[] {
+function distinctQuestions<Q extends BankListQuestion>(questions: Q[], preferredId = ""): Q[] {
   const key = questionIdentity;
   const preferred = questions.find(q => q.id === preferredId);
   const seen = new Set<string>();
@@ -155,12 +177,12 @@ function distinctQuestions(questions: BankQuestion[], preferredId = ""): BankQue
   });
 }
 
-export function matchingParts(question: BankQuestion, code: string): {labels: string[]; marks: number} {
+export function matchingParts(question: BankListQuestion, code: string): {labels: string[]; marks: number} {
   const parts = question.parts.filter(p => !code || p.codes.includes(code));
   return {labels: parts.map(p => p.label), marks: parts.reduce((n, p) => n + p.marks, 0)};
 }
 
-export function exportSelection(catalogue: BankCatalogue, ids: string[]): {questions: BankQuestion[]; marks: number; version: string} {
+export function exportSelection<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, ids: string[]): {questions: Q[]; marks: number; version: string} {
   const byId = new Map(catalogue.questions.map(q => [q.id, q]));
   const unique = [...new Set(ids)];
   if (!unique.length) throw new Error("Choose at least one question.");
@@ -172,7 +194,7 @@ export function exportSelection(catalogue: BankCatalogue, ids: string[]): {quest
   return {questions, marks: questions.reduce((n, q) => n + q.marks, 0), version: catalogue.version};
 }
 
-export function emptyReason(catalogue: BankCatalogue, route: BankRoute): "unknown" | "filtered" | "no-bank-match" | "not-in-pilot" | null {
+export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: BankRoute): "unknown" | "filtered" | "no-bank-match" | "not-in-pilot" | null {
   const topic = catalogue.topics.find(t => t.code === route.code);
   if (route.code && !topic) return "unknown";
   if (filterQuestions(catalogue, route).length) return null;
@@ -181,7 +203,35 @@ export function emptyReason(catalogue: BankCatalogue, route: BankRoute): "unknow
 }
 
 export function verifyCatalogue(data: unknown): BankCatalogue {
-  const d = data as BankCatalogue;
+  return checkCatalogue(data, true) as BankCatalogue;
+}
+
+/** Checks the light catalogue index (`bank/catalogue-index.json`); details are checked as they load. */
+export function verifyCatalogueIndex(data: unknown): BankCatalogue<BankListQuestion> & {papers: Record<string, string>} {
+  const d = checkCatalogue(data, false);
+  const papers = d.papers;
+  if (!papers || typeof papers !== "object") throw new Error("This catalogue could not be read. Reload the page or use a saved PDF.");
+  for (const q of d.questions) {
+    if (!paperDetailPath(papers[q.paperId]) || !Number.isInteger(q.questionViewCount) || (q.questionViewCount ?? 0) < 1 || typeof q.hasWorkedSolution !== "boolean") {
+      throw new Error("A question failed its catalogue check. Please report the affected question.");
+    }
+  }
+  return d as BankCatalogue<BankListQuestion> & {papers: Record<string, string>};
+}
+
+/** Checks one question once its detail has been merged in from its paper file. */
+export function verifyQuestionDetail(q: BankQuestion): BankQuestion {
+  if (q.workedSolution !== undefined) validateWorkedSolution(q.workedSolution, q.revision);
+  if (!q.questionViews?.length || !q.schemeViews?.length || !q.questionPdf || !q.printPdf || !q.schemePdf
+    || (q.questionViewCount !== undefined && q.questionViewCount !== q.questionViews.length)
+    || (q.hasWorkedSolution !== undefined && q.hasWorkedSolution !== (q.workedSolution !== undefined))) {
+    throw new Error("A question failed its catalogue check. Please report the affected question.");
+  }
+  return q;
+}
+
+function checkCatalogue(data: unknown, detail: boolean): BankCatalogue<BankListQuestion> {
+  const d = data as BankCatalogue<BankListQuestion>;
   if (d?.schemaVersion !== 1 || !Array.isArray(d.questions) || !Array.isArray(d.topics) || !d.version || !d.aliases) {
     throw new Error("This catalogue could not be read. Reload the page or use a saved PDF.");
   }
@@ -189,11 +239,12 @@ export function verifyCatalogue(data: unknown): BankCatalogue {
   const byId = new Map(d.questions.map(q => [q.id, q]));
   const codes = new Set(d.topics.map(t => t.code));
   for (const q of d.questions) {
-    if (q.workedSolution !== undefined) validateWorkedSolution(q.workedSolution, q.revision);
+    const full = q as BankQuestion;
+    if (detail && full.workedSolution !== undefined) validateWorkedSolution(full.workedSolution, q.revision);
     if (q.review !== "reviewed" && !(d.publication?.status === "draft" && q.review === "draft")) {
       throw new Error("This question has not passed review and cannot be included in a released catalogue.");
     }
-    if (ids.has(q.id) || !q.questionViews.length || !q.schemeViews.length || !q.questionPdf || !q.printPdf || !q.schemePdf || q.codes.some(c => !codes.has(c))) {
+    if (ids.has(q.id) || (detail && (!full.questionViews.length || !full.schemeViews.length || !full.questionPdf || !full.printPdf || !full.schemePdf)) || q.codes.some(c => !codes.has(c))) {
       throw new Error("A question failed its catalogue check. Please report the affected question.");
     }
     if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) throw new Error("Question writing-space policy is invalid.");

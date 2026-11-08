@@ -9,7 +9,8 @@ vi.mock("./pdf",()=>({assetUrl:(p:string)=>p,downloadBlob:mocks.downloadBlob}));
 const question={id:"test",source:"Test source",marks:4,tier:"F",calculator:false,parts:[],questionViews:[],schemeViews:[]} as unknown as BankQuestion;
 const entries=[{key:"test",question,matchingCodes:["U1"],matchedParts:[],otherParts:[]}];
 const pair={questions:new Blob(["question"]),schemes:new Blob(["scheme"])} as ExportResult;
-const props={open:true,active:true,entries,version:"v1",excluded:0,onClose:vi.fn(),onRemove:vi.fn(),onMove:vi.fn(),onRestore:vi.fn()};
+const loadDetails=vi.fn(async<Q,>(questions:Q[])=>questions) as unknown as <Q,>(questions:Q[])=>Promise<(Q&BankQuestion)[]>;
+const props={loadDetails,open:true,active:true,entries,version:"v1",excluded:0,onClose:vi.fn(),onRemove:vi.fn(),onMove:vi.fn(),onRestore:vi.fn()};
 beforeAll(()=>{HTMLDialogElement.prototype.showModal=function(){this.setAttribute("open","");};HTMLDialogElement.prototype.close=function(){this.removeAttribute("open");};});
 describe("paper export lifecycle",()=>{
   it("ignores a late completion after cancellation and allows a clean retry",async()=>{
@@ -17,6 +18,7 @@ describe("paper export lifecycle",()=>{
     mocks.makePapers.mockImplementationOnce(()=>new Promise<ExportResult>(r=>{resolve=r;})).mockResolvedValueOnce(pair);
     render(<PaperReviewDialog {...props}/>);
     fireEvent.click(screen.getByRole("button",{name:"Prepare both PDFs"}));
+    await waitFor(()=>expect(mocks.makePapers).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button",{name:"Cancel export"}));
     await act(async()=>resolve(pair));
     expect(screen.queryByRole("button",{name:"Questions PDF"})).not.toBeInTheDocument();
@@ -43,5 +45,13 @@ describe("paper export lifecycle",()=>{
     await waitFor(()=>expect(screen.getByRole("alert")).toHaveTextContent("Scheme asset unavailable"));
     expect(screen.getByText("1. Test source")).toBeInTheDocument();
     expect(screen.queryByRole("button",{name:"Questions PDF"})).not.toBeInTheDocument();
+  });
+  it("fetches the questions' paper files before exporting and reports a failed fetch",async()=>{
+    mocks.makePapers.mockClear();
+    const failing=vi.fn().mockRejectedValueOnce(new Error("This question could not be loaded. Check your connection and try again."));
+    render(<PaperReviewDialog {...props} loadDetails={failing as unknown as typeof loadDetails}/>);fireEvent.click(screen.getByRole("button",{name:"Prepare both PDFs"}));
+    await waitFor(()=>expect(screen.getByRole("alert")).toHaveTextContent("This question could not be loaded"));
+    expect(failing).toHaveBeenCalledWith([question]);
+    expect(mocks.makePapers).not.toHaveBeenCalled();
   });
 });

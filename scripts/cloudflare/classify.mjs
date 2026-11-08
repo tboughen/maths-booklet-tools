@@ -23,7 +23,7 @@ export function classifyPaths(paths, conservative = false) {
       'scripts/verify-direct-svg-consumption.py',
       'scripts/verify-example-controls.mjs',
     ].includes(path)) category = 'qualification';
-    else if (/^(scripts\/|\.github\/|package(-lock)?\.json$|.*config\.|wrangler|\.nvmrc$|\.gitignore$|\.gitmodules$|\.gitattributes$|bankAssets\.ts$|public\/bank\/pdfjs\/)/.test(path)) category = 'infrastructure';
+    else if (/^(scripts\/|\.github\/|package(-lock)?\.json$|.*config\.|wrangler|\.nvmrc$|\.gitignore$|\.gitmodules$|\.gitattributes$|bankAssets\.ts$|bankCatalogueSplit\.ts$|public\/bank\/pdfjs\/)/.test(path)) category = 'infrastructure';
     else category = 'unknown';
     categories.add(category); reasons.push(`${category}: ${path}`);
     if (category === 'infrastructure' || category === 'unknown') inventoryReasons.push(`${category}: ${path}`);

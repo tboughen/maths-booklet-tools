@@ -18,7 +18,7 @@ const server = createServer((request, response) => {
     if (pathname === '_headers' || pathname.includes('..') || pathname.includes('\\')) { response.writeHead(404).end(); return; }
     const name = pathname && existsSync(resolve(root, pathname)) ? pathname : 'index.html';
     const bytes = readFileSync(inside(root, name));
-    response.writeHead(200, { ...headersFor(rules, `/${pathname}`), 'Content-Type': types[extname(name)] || 'application/octet-stream', 'Content-Length': bytes.length, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': name === 'bank/catalogue.json' ? 'no-cache' : 'no-store' });
+    response.writeHead(200, { ...headersFor(rules, `/${pathname}`), 'Content-Type': types[extname(name)] || 'application/octet-stream', 'Content-Length': bytes.length, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': name === 'bank/catalogue.json' || name === 'bank/catalogue-index.json' ? 'no-cache' : name.startsWith('bank/catalogue-papers/') ? 'public, max-age=31536000, immutable' : 'no-store' });
     response.end(request.method === 'HEAD' ? undefined : bytes);
   } catch { response.writeHead(404).end(); }
 });

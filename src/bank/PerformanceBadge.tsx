@@ -1,7 +1,7 @@
-import type { BankCatalogue, BankQuestion, Tier } from "./model";
+import type { BankCatalogue, BankListQuestion, Tier } from "./model";
 import { percentageColour } from "./performance";
 
-export function PerformanceBadge({question, catalogue, tier = "all"}: {question: BankQuestion; catalogue?: BankCatalogue; tier?: Tier}) {
+export function PerformanceBadge({question, catalogue, tier = "all"}: {question: BankListQuestion; catalogue?: BankCatalogue<BankListQuestion>; tier?: Tier}) {
   const other = tier === "all" && question.equivalentId ? catalogue?.questions.find(q=>q.id===question.equivalentId) : undefined;
   const appearances = other ? [question, other].sort((a,b)=>a.tier.localeCompare(b.tier)) : [question];
   return <span className="qb-performance-group">{appearances.map(q => {

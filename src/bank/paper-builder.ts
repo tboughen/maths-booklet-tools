@@ -1,20 +1,20 @@
-import { normalizeCode, questionIdentity, type BankCatalogue, type BankQuestion } from "./model";
+import { normalizeCode, questionIdentity, type BankCatalogue, type BankListQuestion } from "./model";
 import type { Coverage } from "./coverage";
 import { compareAccessibility } from "./performance";
 
 export interface PaperDraft { codes: string[]; manual: Record<string,string>; excluded: string[]; order: string[]; version: string; manuallyOrdered?: boolean }
-export interface PaperEntry { key: string; question: BankQuestion; matchingCodes: string[]; matchedParts: string[]; otherParts: string[] }
+export interface PaperEntry<Q extends BankListQuestion = BankListQuestion> { key: string; question: Q; matchingCodes: string[]; matchedParts: string[]; otherParts: string[] }
 export const emptyDraft = (version = ""): PaperDraft => ({codes: [], manual: {}, excluded: [], order: [], version});
 export type DraftAction =
   | {type: "code"; code: string; checked: boolean}
-  | {type: "question"; question: BankQuestion; checked: boolean}
-  | {type: "add"; questions: BankQuestion[]}
+  | {type: "question"; question: BankListQuestion; checked: boolean}
+  | {type: "add"; questions: BankListQuestion[]}
   | {type: "exclude"; key: string}
   | {type: "restore"}
   | {type: "clear"}
   | {type: "remember"; keys: string[]}
   | {type: "move"; key: string; direction: number; visible: string[]}
-  | {type: "reconcile"; catalogue: BankCatalogue};
+  | {type: "reconcile"; catalogue: BankCatalogue<BankListQuestion>};
 
 export function draftReducer(state: PaperDraft, action: DraftAction): PaperDraft {
   switch (action.type) {
@@ -48,8 +48,8 @@ export function draftReducer(state: PaperDraft, action: DraftAction): PaperDraft
   }
 }
 
-export function draftEntries(coverage: Coverage, state: PaperDraft): PaperEntry[] {
-  const entries: PaperEntry[] = [], selected = new Set(state.codes), excluded = new Set(state.excluded);
+export function draftEntries<Q extends BankListQuestion>(coverage: Coverage<Q>, state: PaperDraft): PaperEntry<Q>[] {
+  const entries: PaperEntry<Q>[] = [], selected = new Set(state.codes), excluded = new Set(state.excluded);
   const candidates = new Set(Object.keys(state.manual));
   for (const code of state.codes) for (const key of coverage.codes.get(code) || []) candidates.add(key);
   const eligible = [...candidates].filter(key=>coverage.groups.has(key)).sort((a,b)=>{

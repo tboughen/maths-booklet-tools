@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { Resvg } from "@resvg/resvg-js";
 import type { BankCatalogue, BankQuestion } from "../src/bank/model";
+import { routeCatalogue } from "./catalogue-route";
 
 const prefix="bank/assets/worked-fixture/";
 const target="SYNTHETIC_1F_Q1";
@@ -33,7 +34,7 @@ async function seed(page:Page) {
   const crossover={...question,id:"SYNTHETIC_1H_Q1",source:"Synthetic higher Q1",tier:"H" as const,paperId:"SYNTHETIC_1H",equivalentId:target,equivalentSource:question.source,workedSolution:undefined};
   catalogue.questions=[question,other,crossover];
   const requests:string[]=[];
-  await page.route("**/bank/catalogue.json",route=>route.fulfill({json:catalogue}));
+  await routeCatalogue(page,catalogue);
   await page.route("**/bank/assets/worked-fixture/**",route=>{
     const path=new URL(route.request().url()).pathname.slice(1);requests.push(path);
     const body=bodies.get(path);

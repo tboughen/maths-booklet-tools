@@ -31,6 +31,7 @@ function packageFixture() {
   const catalogue = '{"questions":[]}';
   writeFileSync(resolve(directory, 'site/index.html'), '<html>qualified</html>');
   writeFileSync(resolve(directory, 'site/bank/catalogue.json'), catalogue);
+  writeFileSync(resolve(directory, 'site/bank/catalogue-index.json'), '{"questions":[],"papers":{}}');
   save(resolve(directory, 'inventory.json'), { ...manifest, catalogueSha256: sha256(catalogue) });
   const inputs = { repository, sourceTree: 'tree', classification: { required: ['units'], website: true } }, files = fileManifest(directory);
   const release = { schemaVersion: 1, releaseId: digestObject({ inputs, files }), sourceCommit: 'commit', inputs, files, createdAt: new Date().toISOString() };

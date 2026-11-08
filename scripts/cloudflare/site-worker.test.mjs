@@ -134,6 +134,6 @@ test('release smoke check fails if the bank answers without sign-in', async () =
   const manifest = { assets: [{ key }] }, metrics = { count() {} };
   const seen = [];
   await verifyGate(manifest, 'https://mathsdock.co.uk', metrics, async (url, init) => { seen.push([url, init.redirect]); return new Response(null, { status: 302, headers: { location: `${team}/cdn-cgi/access/login` } }); });
-  assert.deepEqual(seen, [[`https://mathsdock.co.uk/${key}`, 'manual'], ['https://mathsdock.co.uk/bank/catalogue.json', 'manual']]);
+  assert.deepEqual(seen, [[`https://mathsdock.co.uk/${key}`, 'manual'], ['https://mathsdock.co.uk/bank/catalogue.json', 'manual'], ['https://mathsdock.co.uk/bank/catalogue-index.json', 'manual']]);
   await assert.rejects(verifyGate(manifest, 'https://mathsdock.co.uk', metrics, async () => new Response('open', { status: 200 })), /not behind staff sign-in/);
 });

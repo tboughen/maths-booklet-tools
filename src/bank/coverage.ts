@@ -1,8 +1,8 @@
-import { questionEligible, questionIdentity, type BankCatalogue, type BankQuestion, type BankRoute } from "./model";
+import { questionEligible, questionIdentity, type BankCatalogue, type BankListQuestion, type BankRoute } from "./model";
 
 export type PaperFilters = Pick<BankRoute, "tier" | "collection" | "calculator">;
-export interface Coverage {
-  groups: Map<string, BankQuestion[]>;
+export interface Coverage<Q extends BankListQuestion = BankListQuestion> {
+  groups: Map<string, Q[]>;
   codes: Map<string, Set<string>>;
   foundation: Map<string, Set<string>>;
   higher: Map<string, Set<string>>;
@@ -13,8 +13,8 @@ export interface Coverage {
 }
 
 /** Index the eligible appearances before grouping mapped identities. */
-export function catalogueCoverage(catalogue: BankCatalogue, filters: PaperFilters): Coverage {
-  const groups = new Map<string, BankQuestion[]>();
+export function catalogueCoverage<Q extends BankListQuestion>(catalogue: BankCatalogue<Q>, filters: PaperFilters): Coverage<Q> {
+  const groups = new Map<string, Q[]>();
   const codes = new Map<string, Set<string>>(), foundation = new Map<string, Set<string>>(), higher = new Map<string, Set<string>>();
   const examSeries = new Set<string>(), mockSeries = new Set<string>(), examPapers = new Set<string>(), mockPapers = new Set<string>();
   for (const q of [...catalogue.questions].sort((a,b) => a.order-b.order || a.id.localeCompare(b.id))) {

@@ -29,7 +29,7 @@ export function assetFile(publicRoot: string, path: string): string {
 }
 
 export function sourceFingerprint(root: string): string {
-  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "workedSolution.ts", "index.html", "scripts/cloudflare/release.ts", "scripts/bank/solution-files.ts"];
+  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "bankCatalogueSplit.ts", "workedSolution.ts", "index.html", "scripts/cloudflare/release.ts", "scripts/bank/solution-files.ts"];
   const walk = (directory: string) => {
     for (const item of readdirSync(resolve(root, directory), {withFileTypes: true})) {
       const path = `${directory}/${item.name}`;

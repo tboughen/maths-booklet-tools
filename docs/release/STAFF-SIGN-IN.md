@@ -9,7 +9,8 @@ domain only (policy `School staff only`) plus the release service token (policy
 `Release checks`).
 
 Do not split the site into a whole-host app and a `/bank` path app. The website
-loads `/bank/catalogue.json` and `/bank/assets/*` with background requests, and
+loads `/bank/catalogue-index.json`, `/bank/catalogue-papers/*` and `/bank/assets/*`
+with background requests, and
 each Access application needs its own token: a request to the second app is
 redirected to the team sign-in page, which a background request cannot follow,
 so the bank fails with "network error". This happened on 31 October.
