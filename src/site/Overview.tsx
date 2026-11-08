@@ -39,7 +39,7 @@ export function Overview({ home = false }: { home?: boolean }) {
       {home ? (
         <PageHeading
           title="MathsDock"
-          description="Reviewed exam questions, paper building, assessment follow-up and diagram tools for maths staff."
+          description="Reviewed GCSE exam questions, practice papers, assessment follow-up and print-ready diagram tools, made for maths department staff."
         />
       ) : (
         <PageHeading

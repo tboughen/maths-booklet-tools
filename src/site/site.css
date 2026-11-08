@@ -55,6 +55,10 @@ body { background: #f2f5f8; }
 .site-panel, .booklet-editor .panel-card { background: white; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
 .site-overview { max-width: 1120px; padding: 36px 20px; margin: 0 auto; }
 .site-overview .page-heading { margin-bottom: 24px; }
+.site-footer { margin-top: 24px; border-top: 1px solid var(--line); background: var(--paper); }
+.site-footer-inner { max-width: 1120px; margin: 0 auto; padding: 24px 20px 32px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 32px; }
+.site-footer h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #213c59; }
+.site-footer p { margin: 0 0 8px; max-width: 60ch; font-size: 14px; line-height: 1.55; color: var(--muted); }
 .overview-cards { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
 .overview-cards:not(.overview-tool-cards) { grid-auto-rows: 1fr; }
 .overview-card { display: flex; flex-direction: column; align-items: start; padding: 28px; border: 1px solid var(--line); border-radius: 6px; background: white; box-shadow: var(--shadow); text-decoration: none; }
@@ -156,6 +160,7 @@ body { background: #f2f5f8; }
   .site-tool-navigation { padding-inline: 8px; }
   .site-tool-navigation a { padding-inline: 9px; }
   .site-overview { padding: 24px 12px; }
+  .site-footer-inner { grid-template-columns: 1fr; gap: 16px; padding: 20px 12px 24px; }
   .overview-cards { grid-template-columns: 1fr; gap: 12px; }
   .overview-card { padding: 22px; }
   .booklet-editor .main-content { padding: 14px 10px 20px; }
