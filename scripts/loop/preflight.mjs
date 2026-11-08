@@ -91,7 +91,7 @@ export function preflight(state, config = CONFIG) {
   return { go: false, reasons: ['no loop:candidate issue is free to work on'], skipped };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const file = process.argv.find(a => a.startsWith('--state='))?.slice(8);
   if (!file) throw Error('Usage: node scripts/loop/preflight.mjs --state=loop-state.json');
   const result = preflight(JSON.parse(readFileSync(file, 'utf8')));

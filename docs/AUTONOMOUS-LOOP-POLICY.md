@@ -174,9 +174,17 @@ secrets rule below against every workflow.
   never dispatches release qualification.
 - **Weekly digest for Tim** (aim: under 15 minutes): merged PRs grouped by tool with before and
   after images, PRs waiting for him and why, reverts, flaky tests, judge calibration, spend, and a
-  sample of ten merged or rejected PRs for him to agree or disagree with.
+  sample of ten merged or rejected PRs for him to agree or disagree with. `scripts/loop/digest.mjs`
+  writes it; run "Loop digest" from the Actions tab, optionally with this month's spend and a
+  calibration run ID. It posts nothing and runs only by hand until Tim chooses a schedule. Before
+  and after images are not in it yet.
+- **Judge calibration targets.** `scripts/loop/calibrate.mjs` reports whether a run meets the
+  targets: at least 90% of known-bad changes failed, every blocking case (answer reveal, implicit
+  saved-file change, export chrome) failed, and at most 10% of good changes failed. A run that
+  misses is a suspension trigger as above.
 - **Release summary.** When Tim dispatches qualification, the evidence lists every merge since the
-  last publication with its tier, so he sees what a release would ship.
+  last publication with its tier and whether the loop wrote it, so he sees what a release would
+  ship (`scripts/loop/release-summary.mjs`, in the prepare job's summary when a base is given).
 
 ## 8. Still needed from Tim
 

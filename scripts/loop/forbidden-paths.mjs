@@ -31,7 +31,7 @@ export function forbidden(path) {
 
 export const isLoopBranch = branch => typeof branch === 'string' && branch.startsWith('loop/');
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3) || '';
   const base = arg('base') || 'HEAD^1', branch = arg('branch');
   const paths = execFileSync('git', ['diff', '--no-renames', '--name-only', base, 'HEAD'], { encoding: 'utf8' }).split('\n').filter(Boolean);

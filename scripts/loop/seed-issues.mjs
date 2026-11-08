@@ -43,7 +43,7 @@ export function seed(existing = []) {
   return BACKLOG.filter(e => !have.has(e.item)).map(issueFor);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
   const bad = BACKLOG.flatMap(e => problems(e).map(p => `${e.item}: ${p}`));
   if (bad.length) throw Error(`backlog.json has problems:\n${bad.join('\n')}`);

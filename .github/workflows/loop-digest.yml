@@ -1,0 +1,48 @@
+name: Loop digest
+# The loop digest for Tim (scripts/loop/digest.mjs, improvement list L50): merged loop PRs, PRs
+# waiting for him, rejected or reverted ones, judge calibration and spend. It writes the digest to
+# this run's summary and posts nothing. It runs only by hand; a weekly schedule is Tim's decision.
+on:
+  workflow_dispatch:
+    inputs:
+      spend:
+        description: This month's loop spend in US dollars, from the Anthropic Console (optional)
+        type: string
+      calibration_run:
+        description: A "Judge calibration" run ID to include (optional)
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Read the recent pull requests
+        run: gh pr list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title,headRefName,state,createdAt,mergedAt,closedAt,labels,files,url > "$RUNNER_TEMP/prs.json"
+      - name: Fetch the calibration results
+        if: inputs.calibration_run != ''
+        continue-on-error: true
+        run: gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name judge-calibration --dir "$RUNNER_TEMP/calibration"
+        env:
+          RUN: ${{ inputs.calibration_run }}
+      - name: Write the digest
+        run: node scripts/loop/digest.mjs "--prs=$RUNNER_TEMP/prs.json" "--calibration=$RUNNER_TEMP/calibration/calibration.json" "--spend=$SPEND" "--enabled=$ENABLED" | tee digest.md
+        env:
+          SPEND: ${{ inputs.spend }}
+          ENABLED: ${{ vars.MATHSDOCK_LOOP_ENABLED }}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: loop-digest
+          path: digest.md
+          retention-days: 90
