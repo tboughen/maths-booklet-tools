@@ -37,7 +37,11 @@ if(process.argv.includes("--write-examples")){
   for(const worked of[false,true])await writeFile(`${doc}/${name}-${worked?"worked":"pupil"}.json`,v.canonical(examples.lessonExample(name,worked))+"\n");
   await writeFile(`src/assets/example-previews/bar-lesson-v3-${name}.svg`,await readFile(join(output,`${name}-pupil-grey.svg`)));
  }
- await writeFile("src/assets/tool-previews/bar-model.svg",await readFile(join(output,"R1-worked-grey.svg")));
- await writeFile(`${doc}/tool-card.json`,v.canonical(examples.lessonExample("R1",true))+"\n");
+ // The All tools card is R1 worked, with a true minus sign (U+2212) in the second working line (U107).
+ const card=examples.lessonExample("R1",true);
+ for(const caption of card.document.captions)caption.label.text=caption.label.text.replaceAll(" - "," − ");
+ await save("tool-card",card);
+ await writeFile("src/assets/tool-previews/bar-model.svg",await readFile(join(output,"tool-card.svg")));
+ await writeFile(`${doc}/tool-card.json`,v.canonical(card)+"\n");
 }
 console.log(JSON.stringify({output,records:records.length,dense:records.find(r=>r.name==="dense-v3"),heights:records.filter(r=>r.name.endsWith("pupil-grey")).map(r=>({name:r.name,heightMm:r.heightMm}))}));
