@@ -139,6 +139,17 @@ output change, regenerate in the image with `-e MATHSDOCK_UPDATE_GOLDENS=1` adde
 above, then review the outline diff and the reduced PNGs before committing. A new tool needs only a
 row in the spec's `tools` list; the update run saves its opening document as `source.json`.
 
+### Screenshot baselines
+
+`e2e/screenshots.spec.ts` (improvement list L29) takes full-page screenshots of the home page,
+the booklet tools overview, Assessment follow-up and all 11 booklet tools. Each page opens fresh,
+with nothing saved, at desktop (1280 × 800) and phone (375 × 812) sizes, and must match its
+baseline in `e2e/fixtures/screenshots/` to within 0.1% of pixels. These catch layout,
+spacing, colour and control changes that the export goldens cannot see. Like the goldens they
+run only in the pinned image. After an intended change, regenerate there with
+`npx playwright test --project=release e2e/screenshots.spec.ts --update-snapshots`, then review
+the changed images in the pull request.
+
 Built browser rehearsal uses locally intercepted R2 requests and says so in its
 evidence. Production and HTTPS preview verification use real R2 without that
 interception. Passing the former does not claim the latter.
