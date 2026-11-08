@@ -13,6 +13,8 @@ test("all 27 filter combinations have correct table counts and preserve selected
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");
   await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("");
+  // The table opens on codes with questions; this check covers every code.
+  await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Show",exact:true}).selectOption("all");
   const proof=[];
   for(const tier of ["all","F","H"])for(const collection of ["all","past","mock"])for(const calculator of ["all","yes","no"]){
     const builder=page.getByRole("region",{name:"Build a paper by topic",exact:true});
@@ -64,6 +66,21 @@ test("shared code/manual selection survives navigation, excludes once, restores 
   await dialog.getByRole("button",{name:/Restore individually removed/}).click();
   await expect(dialog).toContainText("1 complete question · 4 marks");
   await page.keyboard.press("Escape");await expect(dialog).not.toBeVisible();
+});
+
+test("the paper survives a reload and Clear paper removes it",async({page})=>{
+  await page.goto("/question-bank?bankView=topics");
+  const search=page.getByRole("searchbox",{name:"Search codes or topics"}),summary=page.getByRole("region",{name:"Your paper",exact:true});
+  await search.fill("U538");await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
+  await expect(summary).toContainText("1 selected code");
+  const before=await summary.getByRole("status").first().textContent();
+  await page.reload();
+  await expect(summary).toContainText(before!);
+  await expect(summary.getByRole("button",{name:"Untick U538",exact:true})).toBeVisible();
+  await summary.getByRole("button",{name:"Clear paper",exact:true}).click();
+  await expect(summary).toContainText("0 selected codes · 0 distinct questions");
+  await page.reload();
+  await expect(summary).toContainText("0 selected codes · 0 distinct questions");
 });
 
 test("actual browser downloads retain multipart, crossover, writing space and physical scale in both layouts",async({page})=>{
