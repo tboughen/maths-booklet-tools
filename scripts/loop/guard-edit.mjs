@@ -38,7 +38,7 @@ export function check(input, { env = process.env, branch, root } = {}) {
   };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   let input;
   try { input = JSON.parse(readFileSync(0, 'utf8') || '{}'); } catch { process.exit(0); }
   const result = check(input);

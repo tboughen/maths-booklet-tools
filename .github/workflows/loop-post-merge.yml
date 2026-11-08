@@ -1,0 +1,87 @@
+name: Loop post-merge
+# Improvement list L51. When quick checks fail on a push to main, scripts/loop/post-merge.mjs
+# decides what to do. A loop merge pauses the loop (an open loop:paused issue stops every loop
+# preflight), cancels queued loop merges and prepares a revert as a draft pull request for a person
+# to check and merge. Anyone else's commit is never reverted: an issue reports it instead.
+#
+# Trust: workflow_run always runs this file from the default branch, and it checks out only main,
+# so no pull-request code runs with its write token. It reads no repository secret.
+on:
+  workflow_run:
+    workflows: [Quick checks]
+    types: [completed]
+permissions:
+  contents: read
+concurrency:
+  group: loop-post-merge
+  cancel-in-progress: false
+jobs:
+  respond:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == github.event.repository.default_branch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Read the failing commit's pull request and the open pause issues
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" > "$RUNNER_TEMP/pulls.json"
+          { gh issue list --repo "$GITHUB_REPOSITORY" --state open --label loop:paused --json title
+            gh issue list --repo "$GITHUB_REPOSITORY" --state open --label main:failing --json title; } | jq -s 'add' > "$RUNNER_TEMP/issues.json"
+      - name: Decide
+        id: plan
+        run: node scripts/loop/post-merge.mjs "--sha=$SHA" "--run-url=$RUN_URL" "--pulls=$RUNNER_TEMP/pulls.json" "--open-issues=$RUNNER_TEMP/issues.json"
+      - name: Cancel every queued loop auto-merge
+        if: steps.plan.outputs.action == 'pause-and-revert'
+        run: |
+          for pr in $(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,headRefName,autoMergeRequest --jq '.[] | select(.autoMergeRequest != null and (.headRefName | startswith("loop/"))) | .number'); do
+            gh pr merge "$pr" --repo "$GITHUB_REPOSITORY" --disable-auto && echo "Cancelled the queued merge of #$pr" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Open the issue
+        if: steps.plan.outputs.action == 'pause-and-revert' || steps.plan.outputs.action == 'report'
+        id: issue
+        env:
+          TITLE: ${{ steps.plan.outputs.title }}
+          BODY: ${{ steps.plan.outputs.body }}
+          LABELS: ${{ steps.plan.outputs.labels }}
+        run: |
+          IFS=, read -ra names <<< "$LABELS"
+          for name in "${names[@]}"; do gh label create "$name" --repo "$GITHUB_REPOSITORY" --color b60205 2>/dev/null || true; done
+          url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --label "$LABELS")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Opened $url" >> "$GITHUB_STEP_SUMMARY"
+      # A pull request opened with this token gets no CI until a person marks it ready, which is
+      # what we want: a person checks the failure is real before the revert merges.
+      - name: Prepare the revert as a draft pull request
+        if: steps.plan.outputs.action == 'pause-and-revert'
+        env:
+          BRANCH: ${{ steps.plan.outputs.revert_branch }}
+          PR: ${{ steps.plan.outputs.pr }}
+          ISSUE: ${{ steps.issue.outputs.url }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          if ! git revert --no-edit "$SHA"; then
+            git revert --abort || true
+            gh issue comment "$ISSUE" --body "The revert of \`$SHA\` does not apply cleanly to the current main, so no revert PR was opened. Fix forward instead."
+            exit 0
+          fi
+          git push origin "$BRANCH"
+          gh pr create --repo "$GITHUB_REPOSITORY" --draft --base "$BASE_BRANCH" --head "$BRANCH" \
+            --title "Revert #$PR, which broke main" \
+            --body "Reverts #$PR (\`$SHA\`) because quick checks failed on main: $RUN_URL. See $ISSUE. Mark this ready for review to run the checks, then merge it if the failure is real."

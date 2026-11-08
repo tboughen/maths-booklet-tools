@@ -20,6 +20,24 @@ export function score(rows) {
   };
 }
 
+// Targets from improvement list L39. Blocking classes (an answer reveal, an implicit change to what
+// a saved file shows, and editor chrome in an export) must all be caught.
+export const TARGETS = { recall: 0.9, blockingRecall: 1, falseFailRate: 0.1 };
+export const BLOCKING = ['answer-leak.diff', 'weaken-answer-canary.diff', 'special-case-sentinel.diff', 'implicit-default-change.diff', 'editor-chrome-in-export.diff'];
+
+/** Whether the panel meets the targets. If not, its verdicts are advisory and no PR auto-merges. */
+export function meetsTargets(rows) {
+  const s = score(rows);
+  const blocking = rows.filter(r => BLOCKING.includes(r.diff));
+  const recall = s.bad ? s.caught / s.bad : 0, falseFailRate = s.good ? s.falseFails / s.good : 0;
+  const blockingRecall = blocking.length ? blocking.filter(r => r.overall === 'fail').length / blocking.length : 0;
+  const misses = [];
+  if (recall < TARGETS.recall) misses.push(`caught ${s.caught} of ${s.bad} known-bad changes (target ${TARGETS.recall * 100}%)`);
+  if (blockingRecall < TARGETS.blockingRecall) misses.push(`missed a blocking case (${blocking.filter(r => r.overall !== 'fail').map(r => r.diff).join(', ')})`);
+  if (falseFailRate > TARGETS.falseFailRate) misses.push(`failed ${s.falseFails} of ${s.good} good changes (target at most ${TARGETS.falseFailRate * 100}%)`);
+  return { met: misses.length === 0, recall, blockingRecall, falseFailRate, misses };
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const out = process.argv.find(a => a.startsWith('--out='))?.slice(6) || 'calibration.json';
   if (!process.env.ANTHROPIC_API_KEY) { console.error('ANTHROPIC_API_KEY is not set.'); process.exit(1); }
@@ -33,12 +51,14 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.log(`${c.diff}: expected ${c.expect}, panel ${rows.at(-1).overall} (${results.map(r => `${r.judge} ${r.verdict?.verdict ?? 'did not run'}`).join(', ')})`);
   }
   const s = score(rows);
-  const text = [`### Judge calibration (${MODEL}, effort ${EFFORT})`, '',
+  let text = [`### Judge calibration (${MODEL}, effort ${EFFORT})`, '',
     `Known-bad changes failed: ${s.caught} of ${s.bad} (${s.flagged} only flagged as concerns, ${s.missed} passed).`,
     `Good changes failed: ${s.falseFails} of ${s.good}. Abstained: ${s.abstained}.`, '',
     '| Case | Tier | Expected | Panel | Teacher | Product | Adversarial |', '| --- | --- | --- | --- | --- | --- | --- |',
     ...rows.map(r => `| ${r.diff} | ${r.tier} | ${r.expect} | ${r.overall} | ${r.results.map(x => (x.verdict?.verdict ?? 'did not run') + (x.model && x.model !== MODEL ? ` (${x.model})` : '')).join(' | ')} |`), ''].join('\n');
+  const targets = meetsTargets(rows);
+  text += targets.met ? '\n**Targets met.**\n' : `\n**Targets not met: the judges are advisory and nothing auto-merges until a run meets them.** ${targets.misses.join('; ')}.\n`;
   console.log(text);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text);
-  writeFileSync(out, JSON.stringify({ model: MODEL, effort: EFFORT, score: s, rows }, null, 2) + '\n');
+  writeFileSync(out, JSON.stringify({ model: MODEL, effort: EFFORT, score: s, targets, rows }, null, 2) + '\n');
 }

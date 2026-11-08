@@ -54,6 +54,17 @@ jobs:
           if [ -n "$BASE" ]; then args+=("--base=$BASE"); fi
           if [ -n "$REUSE" ]; then args+=("--reuse-run=$REUSE"); fi
           node scripts/cloudflare/pipeline.mjs prepare "${args[@]}"
+      # Improvement list L62: what changed since the last publication, with tiers and loop merges, for
+      # Tim's release decision. Information only: it never fails qualification.
+      - name: Summarise the changes since the last publication
+        if: inputs.base != ''
+        continue-on-error: true
+        env:
+          BASE: ${{ inputs.base }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state merged --limit 300 --json number,headRefName,labels > "$RUNNER_TEMP/prs.json" || rm -f "$RUNNER_TEMP/prs.json"
+          node scripts/loop/release-summary.mjs "--base=$BASE" "--prs=$RUNNER_TEMP/prs.json"
       - uses: actions/upload-artifact@v6
         with:
           name: prepared-release

@@ -152,7 +152,13 @@ secrets rule below against every workflow.
 ## 7. Reversal, suspension and reporting
 
 - **Revert.** If a loop merge breaks `main`, the loop reverts its own commit and pauses until the
-  cause is fixed. It never reverts anyone else's commit; it opens an issue instead.
+  cause is fixed. It never reverts anyone else's commit; it opens an issue instead. The "Loop
+  post-merge" workflow does this when quick checks fail on a push to `main`
+  (`scripts/loop/post-merge.mjs`). For a loop merge, it opens a `loop:paused` issue (every loop
+  preflight stops while it is open), cancels queued loop merges, and opens the revert as a draft
+  pull request from `loop-revert/<commit>`. A person checks that the failure is real, marks the
+  revert ready (which runs its checks) and merges it, then closes the issue to resume. For any other
+  commit it opens a `main:failing` issue and reverts nothing.
 - **Suspension.** Auto-merge stops when: the repository variable `MATHSDOCK_LOOP_ENABLED` is not
   `true`; a PR has `loop:hold`; judge calibration falls below threshold; Tim rejects or reverts
   any PR the panel passed unanimously (until he reviews why and resumes it; resumed misses still
@@ -174,9 +180,17 @@ secrets rule below against every workflow.
   never dispatches release qualification.
 - **Weekly digest for Tim** (aim: under 15 minutes): merged PRs grouped by tool with before and
   after images, PRs waiting for him and why, reverts, flaky tests, judge calibration, spend, and a
-  sample of ten merged or rejected PRs for him to agree or disagree with.
+  sample of ten merged or rejected PRs for him to agree or disagree with. `scripts/loop/digest.mjs`
+  writes it; run "Loop digest" from the Actions tab, optionally with this month's spend and a
+  calibration run ID. It posts nothing and runs only by hand until Tim chooses a schedule. Before
+  and after images are not in it yet.
+- **Judge calibration targets.** `scripts/loop/calibrate.mjs` reports whether a run meets the
+  targets: at least 90% of known-bad changes failed, every blocking case (answer reveal, implicit
+  saved-file change, export chrome) failed, and at most 10% of good changes failed. A run that
+  misses is a suspension trigger as above.
 - **Release summary.** When Tim dispatches qualification, the evidence lists every merge since the
-  last publication with its tier, so he sees what a release would ship.
+  last publication with its tier and whether the loop wrote it, so he sees what a release would
+  ship (`scripts/loop/release-summary.mjs`, in the prepare job's summary when a base is given).
 
 ## 8. Still needed from Tim
 
@@ -191,3 +205,23 @@ Each of these is a one-off decision; none is needed until the matching phase.
 7. Approve the auto-merge step itself: a workflow change (tier T8, so a thread PR, never a loop PR)
    that merges a loop PR only under the unanimous-pass rule (before the first phase 2 merge).
    Done 1 Nov: `loop-auto-merge.yml` merged in #105 and switched on by Tim at 17:10.
+
+## 9. Loop sessions
+
+A loop session follows `.claude/loop/PROMPT.md`: a fresh clone of `main`, `MATHSDOCK_LOOP_SESSION=1`,
+the guidance read first, one issue, one `loop/<issue>-<slug>` branch, one pull request labelled
+`loop:shadow`, then stop. It never merges, deploys or dispatches release workflows.
+
+Before any work it runs `scripts/loop/preflight.mjs` over facts it gathers with its GitHub tools.
+Preflight stops the session when the loop is switched off, no monthly spend cap is set, the cap is
+reached, three loop PRs were opened in the last 24 hours, or five are open (the caps are in
+`scripts/loop/config.json`). Otherwise it picks the oldest `loop:candidate` issue that is not held,
+taken or above the tiers the loop authors (T0 to T3), declares only allowed paths, and overlaps no
+open pull request's files. That last check keeps faith with other people's work.
+
+The backlog is GitHub issues made with the "Loop item" form (`.github/ISSUE_TEMPLATE/loop-item.yml`)
+and the labels in `scripts/loop/labels.json`. Remove `loop:candidate` to veto an item.
+`scripts/loop/backlog.json` holds the open AutoDev queue. `scripts/loop/seed-issues.mjs` turns it
+into issues as a dry run and creates nothing; seeding them is Tim's decision. Items that need Tim's
+call are seeded with `loop:needs-tim`.
+
