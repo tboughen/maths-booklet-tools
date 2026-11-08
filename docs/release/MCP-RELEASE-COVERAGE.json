@@ -18,6 +18,12 @@
     ],
     "provenance": "real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"
   },
+  "triangleJourneyCases": {
+    "total": 9,
+    "consumer": "e2e/triangle-mcp.spec.ts",
+    "fixtures": "services/graph-mcp/fixtures/triangle",
+    "provenance": "retained actual MCP sources, including v1/v2 and hidden answers; desktop/mobile browser rehearsal"
+  },
   "browserProducer": {
     "profile": "browser",
     "editableSources": [
@@ -172,6 +178,16 @@
         "services/graph-mcp/verify-consumption.ts",
         "services/graph-mcp/smoke.ts",
         "scripts/verify-diagram-consumption.py"
+      ]
+    },
+    {
+      "guarantee": "Triangle v1/v2 source, SVG, 600ppi PNG, bundles, placement and original-SVG vector saving",
+      "owner": [
+        "full protocol collector (Triangle cases remain outside browser profile)",
+        "services/graph-mcp/verify-triangle.ts",
+        "e2e/triangle-mcp.spec.ts",
+        "independent vector consumer",
+        "Triangle core/service regressions"
       ]
     }
   ],

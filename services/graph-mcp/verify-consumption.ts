@@ -207,13 +207,22 @@ try {
     const v3Revised = await call("revise_bar_model", { envelope: v3.envelope, baseHash: v3.contentHash, operations: [{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"inside",label:{text:"1/5",state:"line"}}, {op:"update_caption",caption:{id:"caption1",label:{text:"n/5 of 45 = 36",state:"value"},alignment:"centre",format:"maths"}}] }); await save("bar-v3-revised", v3Revised); await saveDirect("bar-v3-revised", "bar-model", v3Revised);
     const v3Maximum = await call("create_bar_model", { envelope: denseV3() }); await save("bar-v3-dense", v3Maximum); await saveDirect("bar-v3-dense", "bar-model", v3Maximum, undefined, 49152);
   }
+  if (full) {
+    const triangle=await call("create_triangle",{spec:{labels:[{ref:"e:AB",label:{state:"value",text:"3"}},{ref:"e:AC",label:{state:"value",text:"4"}},{ref:"e:BC",label:{state:"symbol",text:"x"}}]}});await save("triangle",triangle);
+    const triangleArea=await call("revise_triangle",{envelope:triangle.envelope,baseHash:triangle.contentHash,operations:[{op:"set_area",triangleId:"T1",label:{state:"answer-line",prefix:"Area = "}}]});await save("triangle-area-v2",triangleArea);
+    const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind:"triangle",envelope:triangle.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
+    const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());
+    assert.deepEqual(JSON.parse(Buffer.from(unzipSync(bytes)["source.json"]).toString()),triangle.envelope);await writeFile(resolve(output,"triangle-bundle.zip"),bytes);
+    const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind:"triangle",envelope:triangle.envelope,widthMm:triangle.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1);
+    await saveDirect("triangle","triangle",triangle);await saveDirect("triangle-area-v2","triangle",triangleArea);
+  }
   for(const [kind,data] of [["bar-model",barRevised],["graph",graph],["value-graph",combined],["cuboids",cuboidRevised],["number-line",lineRevised],["venn",vennRevised],["algebra-grid",algebra]] as const){
     if (!full && ["graph", "value-graph"].includes(kind)) continue;
     const reply=await client.callTool({name:"download_diagram_bundle",arguments:{kind,envelope:data.envelope}});assert.notEqual(reply.isError,true,JSON.stringify(reply.content));
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     if (full) { const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1); }
   }
-  for(const name of ["bar_model_capabilities","create_bar_model","revise_bar_model"]) assert(tools.some(t=>t.name===name));
+  for(const name of ["bar_model_capabilities","create_bar_model","revise_bar_model","triangle_capabilities","create_triangle","revise_triangle"]) assert(tools.some(t=>t.name===name));
   if (full) {
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],

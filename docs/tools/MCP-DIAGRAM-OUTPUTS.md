@@ -156,3 +156,9 @@ otherwise explain that affected links need regeneration.
 ## Bar modelling
 
 The additive bar-model kind uses the same source, original-SVG chunk, placement and bundle protocols. See [Bar-model MCP](BAR-MODEL-MCP.md) for its complete creation/revision contract. Bars have pupil output only; explicit source revisions reveal saved answers. Actual service/client adoption remains a separate release stage.
+## Triangle adapter
+
+The Triangle candidate adds kind `triangle` to the three generic output tools.
+See [Triangle MCP](TRIANGLE-MCP.md) for exact payloads and release stages. It uses
+saved visibility and explicit answer/worked revisions, with no outputView.
+Preserve actual layout dimensions, whitespace, v1/v2 source and hidden answers.

@@ -50,7 +50,7 @@ const suites: Suite[] = [
   { name: "consistency", server: "dev", external: env.MATHSDOCK_CONSISTENCY_URL, use: { launchOptions: downloads("consistency") } },
   { name: "refinement", server: "dev", use: { launchOptions: downloads("refinement") } },
   {
-    name: "triangle", server: "dev", external: env.MATHSDOCK_TRIANGLE_URL, testMatch: "triangle.spec.ts",
+    name: "triangle", server: "dev", external: env.MATHSDOCK_TRIANGLE_URL, testMatch: ["triangle.spec.ts", "triangle-mcp.spec.ts"],
     outputDir: env.MATHSDOCK_TRIANGLE_TEST_OUTPUT,
     use: { launchOptions: downloads("triangle"), screenshot: "only-on-failure", trace: "retain-on-failure" },
   },
