@@ -291,7 +291,7 @@ test("a late bank response cannot hijack another page or lock its scrolling", as
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route("**/bank/catalogue.json", async (route) => {
+  await page.route("**/bank/catalogue-index.json", async (route) => {
     await gate;
     await route.continue();
   });

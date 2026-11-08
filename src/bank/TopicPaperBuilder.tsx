@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { normalizeCode, type BankCatalogue, type BankRoute } from "./model";
+import { normalizeCode, type BankCatalogue, type BankListQuestion, type BankRoute } from "./model";
 import type { Coverage, PaperFilters } from "./coverage";
 import type { PaperDraft, PaperEntry } from "./paper-builder";
 
-interface Props { catalogue: BankCatalogue; coverage: Coverage; overall: Coverage; filters: PaperFilters; draft: PaperDraft; entries: PaperEntry[]; onCode: (code:string,checked:boolean)=>void; onFilters: (filters:PaperFilters)=>void; onBrowse: (code:string)=>void }
+interface Props { catalogue: BankCatalogue<BankListQuestion>; coverage: Coverage; overall: Coverage; filters: PaperFilters; draft: PaperDraft; entries: PaperEntry[]; onCode: (code:string,checked:boolean)=>void; onFilters: (filters:PaperFilters)=>void; onBrowse: (code:string)=>void }
 type Sort = "code" | "title" | "available" | "included" | "foundation" | "higher";
 export function TopicPaperBuilder({catalogue,coverage,overall,filters,draft,entries,onCode,onFilters,onBrowse}: Props) {
   const [search,setSearch] = useState(""), [show,setShow] = useState("covered"), [sort,setSort] = useState<Sort>("code"), [direction,setDirection] = useState(1);

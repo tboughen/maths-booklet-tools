@@ -138,7 +138,7 @@ export async function verifyRange(manifest, origin, metrics, fetcher = fetch) {
 // its sign-in page (302) or the Worker refuses (401/403).
 export async function verifyGate(manifest, origin, metrics, fetcher = fetch) {
   const asset = manifest.assets[0];
-  for (const url of [siteAssetUrl(origin, asset.key), siteAssetUrl(origin, 'bank/catalogue.json')]) {
+  for (const url of [siteAssetUrl(origin, asset.key), siteAssetUrl(origin, 'bank/catalogue.json'), siteAssetUrl(origin, 'bank/catalogue-index.json')]) {
     metrics.count('gateCheck');
     const response = await fetcher(url, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(15000) });
     await response.body?.cancel();

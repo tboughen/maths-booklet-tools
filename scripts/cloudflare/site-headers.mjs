@@ -37,6 +37,9 @@ export const securityHeaders = {
 
 export const siteHeaders = [
   '/bank/catalogue.json', '  Cache-Control: no-cache',
+  '/bank/catalogue-index.json', '  Cache-Control: no-cache',
+  // Paper detail files are named by their content hash (bankCatalogueSplit.ts), so they never change.
+  '/bank/catalogue-papers/*', '  Cache-Control: public, max-age=31536000, immutable',
   '/assets/*', '  Cache-Control: public, max-age=31536000, immutable',
   '/*', ...Object.entries(securityHeaders).map(([name, value]) => `  ${name}: ${value}`),
   '',

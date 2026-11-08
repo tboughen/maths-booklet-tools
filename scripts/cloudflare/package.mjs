@@ -5,7 +5,7 @@ import { classify } from './classify.mjs';
 import { validateInventory } from './inventory.mjs';
 
 export const siteWorker = 'scripts/cloudflare/site-worker.mjs';
-export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
+export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'bankCatalogueSplit.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
 export function packageRelease(root, { base, directory = resolve(root, 'cloudflare-release/package') } = {}) {
@@ -61,7 +61,21 @@ export function verifyPackage(directory, { allowExpiredForRecovery = false, allo
   }
   const inventory = validateInventory(json(resolve(directory, 'inventory.json')));
   if (sha256(readFileSync(resolve(directory, 'site/bank/catalogue.json'))) !== inventory.catalogueSha256) throw new Error('Packaged catalogue does not match inventory');
+  verifySplitCatalogue(resolve(directory, 'site'));
   return release;
+}
+// The split catalogue (bankCatalogueSplit.ts) must describe the packaged catalogue: the same
+// version, the same questions in order, and an existing detail file for every paper that holds
+// exactly that paper's questions.
+export function verifySplitCatalogue(site) {
+  const catalogue = json(resolve(site, 'bank/catalogue.json')), index = json(resolve(site, 'bank/catalogue-index.json'));
+  if (index.version !== catalogue.version || index.questions?.length !== catalogue.questions.length || index.questions.some((q, i) => q.id !== catalogue.questions[i].id)) throw new Error('Packaged catalogue index does not match the catalogue');
+  for (const [paperId, path] of Object.entries(index.papers || {})) {
+    if (!/^bank\/catalogue-papers\/[A-Za-z0-9_-]+\.[a-f0-9]{16}\.json$/.test(path) || !existsSync(resolve(site, path))) throw new Error(`Packaged catalogue detail for ${paperId} is missing`);
+    const detail = json(resolve(site, path)), expected = catalogue.questions.filter(q => q.paperId === paperId).map(q => q.id);
+    if (detail.version !== catalogue.version || detail.paperId !== paperId || JSON.stringify(Object.keys(detail.questions)) !== JSON.stringify(expected)) throw new Error(`Packaged catalogue detail for ${paperId} does not match the catalogue`);
+  }
+  if (catalogue.questions.some(q => !index.papers?.[q.paperId])) throw new Error('Packaged catalogue index is missing a paper');
 }
 export function validateSource(root, release) {
   const source = cleanSource(root);

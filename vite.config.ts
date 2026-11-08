@@ -1,13 +1,28 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { readFileSync, readdirSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { catalogueAssetPaths } from "./bankAssets";
+import { INDEX_PATH, PAPER_FOLDER, splitCatalogue } from "./bankCatalogueSplit";
 import { prepareRelease, sourceFingerprint } from "./scripts/cloudflare/release";
 import { verifyReusableCatalogue } from "./scripts/cloudflare/package.mjs";
 import { verifyCatalogueSolutionFiles } from "./scripts/bank/solution-files";
 import { robotsTxt, siteHeaders } from "./scripts/cloudflare/site-headers.mjs";
+
+// The split catalogue (bankCatalogueSplit.ts) is always derived from the catalogue JSON being published.
+const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
+const splitJson = (json: string) => splitCatalogue(JSON.parse(json), sha256);
+let devSplit: { mtime: number; files: Map<string, string> } | undefined;
+function devSplitFile(path: string): string | undefined {
+  const mtime = statSync("public/bank/catalogue.json").mtimeMs;
+  if (devSplit?.mtime !== mtime) {
+    const split = splitJson(readFileSync("public/bank/catalogue.json", "utf8"));
+    devSplit = { mtime, files: new Map([[INDEX_PATH, split.index], ...split.files.map(f => [f.path, f.json] as [string, string])]) };
+  }
+  return devSplit.files.get(path);
+}
 
 export default defineConfig(({ command, mode }) => ({
   // Bank files are fetched from the site's own /bank/assets/* (gated by Cloudflare Access).
@@ -15,6 +30,20 @@ export default defineConfig(({ command, mode }) => ({
   build: mode === "cloudflare" ? { outDir: "dist-cloudflare" } : {},
   publicDir: command === "serve" ? "public" : false,
   plugins: [react(), {
+    name: "split-question-bank-catalogue",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const path = decodeURIComponent((request.url || "").split("?")[0]).replace(/^\//, "");
+        if (path !== INDEX_PATH && !path.startsWith(PAPER_FOLDER)) return next();
+        const body = devSplitFile(path);
+        if (body === undefined) { response.statusCode = 404; response.end(); return; }
+        response.setHeader("Content-Type", "application/json");
+        response.setHeader("Cache-Control", "no-cache");
+        response.end(body);
+      });
+    },
+  }, {
     name: "reviewed-question-bank-assets",
     apply: "build",
     async generateBundle() {
@@ -45,6 +74,9 @@ export default defineConfig(({ command, mode }) => ({
         }
         const release = cached ? { ...cached, manifest: { ...cached.manifest, sourceFingerprint: sourceFingerprint(".") } } : prepareRelease("public", commit, sourceFingerprint("."));
         this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
+        const split = splitJson(release.catalogueJson);
+        this.emitFile({type: "asset", fileName: INDEX_PATH, source: split.index});
+        for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});
         this.emitFile({type: "asset", fileName: "_headers", source: siteHeaders});
         mkdirSync("cloudflare-release", {recursive: true});
         writeFileSync("cloudflare-release/manifest.json", JSON.stringify(release.manifest, null, 2));
@@ -52,6 +84,9 @@ export default defineConfig(({ command, mode }) => ({
         writeFileSync("cloudflare-release/evidence/catalogue-build.json", JSON.stringify({ status: cached ? 'reused' : 'cold', reason: cacheReason }));
       } else {
         add("bank/catalogue.json");
+        const split = splitJson(readFileSync("public/bank/catalogue.json", "utf8"));
+        this.emitFile({type: "asset", fileName: INDEX_PATH, source: split.index});
+        for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});
         // Quick pull-request checks skip copying the multi-gigabyte bank; release builds never set this.
         if (process.env.MATHSDOCK_SKIP_BANK_ASSETS !== "1") for (const asset of catalogueAssetPaths(catalogue)) add(asset);
       }

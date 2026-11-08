@@ -1,5 +1,5 @@
 import data from "./performance-data.json" with {type: "json"};
-import type { BankCatalogue, BankQuestion } from "./model";
+import type { BankCatalogue, BankListQuestion } from "./model";
 
 export interface QuestionPerformance { percentage: number; kind: "measured" | "estimated" }
 interface SourceScore { percentage: number; marks: number }
@@ -17,7 +17,7 @@ export function estimatePercentage(position: number, curve: {position: number; p
   return curve[curve.length-1].percentage;
 }
 
-export function performanceFor(question: BankQuestion, count = paperCounts[question.paperId]): QuestionPerformance | undefined {
+export function performanceFor(question: BankListQuestion, count = paperCounts[question.paperId]): QuestionPerformance | undefined {
   const measured = scores[`${question.paperId}/${question.number}`];
   if (measured && measured.marks === question.marks) return {kind: "measured", percentage: measured.percentage};
   if (!Number.isInteger(count) || count < 1 || question.number < 1 || question.number > count) return undefined;
@@ -26,11 +26,11 @@ export function performanceFor(question: BankQuestion, count = paperCounts[quest
 }
 
 /** Enrich in memory; published questions, mappings and assets remain untouched. */
-export function withPerformance(catalogue: BankCatalogue): BankCatalogue {
+export function withPerformance<C extends BankCatalogue<BankListQuestion>>(catalogue: C): C {
   return {...catalogue, questions: catalogue.questions.map(question => ({...question, performance: performanceFor(question, catalogue.paperQuestionCounts?.[question.paperId] ?? paperCounts[question.paperId])}))};
 }
 
-export function compareAccessibility(a: BankQuestion, b: BankQuestion): number {
+export function compareAccessibility(a: BankListQuestion, b: BankListQuestion): number {
   if (a.tier !== b.tier) return a.tier === "F" ? -1 : 1;
   const first = a.performance?.percentage, second = b.performance?.percentage;
   if (first === undefined && second !== undefined) return 1;

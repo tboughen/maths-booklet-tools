@@ -217,6 +217,12 @@ new files inside `public/bank/assets` first, then commit `catalogue.json` and th
 updated submodule link in this repository. The release bank fingerprint
 (`HEAD:public/bank`) includes that link, so qualification still pins exact files.
 
+`catalogue.json` stays the only catalogue file to edit. Every build derives the
+light `bank/catalogue-index.json` and one `bank/catalogue-papers/<paperId>.<hash>.json`
+detail file per paper from it (`bankCatalogueSplit.ts`); the question bank page
+loads the index first and a paper's file only when one of its questions is
+opened, previewed or exported. Never edit or commit the derived files.
+
 The bank repository is private. Workflows check it out at the linked commit with the
 `BANK_READ_TOKEN` repository secret: a fine-grained token with read-only Contents
 access to `tboughen/mathsdock-bank` only. Renew it before it expires.

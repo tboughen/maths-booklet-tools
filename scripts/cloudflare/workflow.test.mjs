@@ -170,6 +170,7 @@ test('real clean Git/package fixture reuses exact catalogue and rejects altered 
   mkdirSync(resolve(root, 'dist-cloudflare/bank'), { recursive: true });
   const catalogue = '{"questions":[]}';
   writeFileSync(resolve(root, 'dist-cloudflare/bank/catalogue.json'), catalogue);
+  writeFileSync(resolve(root, 'dist-cloudflare/bank/catalogue-index.json'), '{"questions":[],"papers":{}}');
   save(resolve(root, 'cloudflare-release/manifest.json'), { ...manifest, assets: [asset], sourceCommit: first, catalogueSha256: sha256(catalogue) });
   packageRelease(root, { base: first, directory: cache });
   const reused = verifyReusableCatalogue(root, cache);
