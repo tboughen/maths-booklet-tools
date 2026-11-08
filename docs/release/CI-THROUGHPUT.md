@@ -58,6 +58,11 @@ every step, so anything a pull-request plan skipped is still checked within a da
   edited (test integrity warns if one is); freeze a new date with
   `WRITE_CORPUS=YYYY-MM-DD npx vitest run src/gates/corpus.test.ts`. A deliberate upgrade that
   rewrites old files on load is listed file by file in `corpus/UPGRADES.json` with Tim's approval.
+- **Property tests** use the seeded generator in `src/testing/random.ts` (`forAll`), so every run
+  is reproducible. `src/testing/exact-numbers.property.test.ts` checks exact fractions, decimals,
+  scaling and quadratic table values against plain bigint arithmetic, and `saved-states.test.ts`
+  sets random mixes of teaching states across a whole file at once. A failure names its seed:
+  replay it with `PROPERTY_SEED=<seed>`, and search longer with `PROPERTY_RUNS=<multiplier>`.
 - **Judge panel (shadow).** `judge-panel.yml` runs beside quick checks on every non-draft pull
   request: three judges (teacher, product, adversarial; rubrics in `review/rubrics/`) review the
   diff with the Claude API and report verdicts and findings in the job summary and the

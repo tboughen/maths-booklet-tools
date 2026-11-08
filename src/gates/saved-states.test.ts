@@ -4,6 +4,7 @@
 // link codec), reloaded through the real parser and compared. Then each teaching slot is set to
 // each state in turn (blank, zero, hidden answer, answer line, value) and round-tripped the same way.
 import { describe, expect, it } from "vitest";
+import { forAll } from "../testing/random";
 import { tools } from "./saved-files";
 
 type Json = Record<string, unknown>;
@@ -71,6 +72,34 @@ describe("teaching states survive save and reload", () => {
       expect(examples).toBeGreaterThan(0);
       if (tool.teachingSlots === false) expect(variants).toBe(0);
       else expect(variants).toBeGreaterThan(0);
+    }, 60000);
+  }
+});
+
+// Property (L18): teachers set many slots in one file, not one at a time. Set every slot of a
+// random example to a random state at once; whatever the validator accepts must save and reload
+// exactly, as a file and through its link.
+describe("random mixes of teaching states survive save and reload", () => {
+  for (const tool of tools.filter((t) => t.teachingSlots !== false)) {
+    it(tool.name, () => {
+      const envelopes = tool.envelopes().map((raw) => tool.validate(raw));
+      let changed = 0;
+      forAll(150, (r) => {
+        let e: unknown = r.pick(envelopes);
+        for (const slot of slots(e)) {
+          if (r.bool(0.3)) continue;
+          try {
+            e = tool.validate(withVariant(e, slot.path, r.pick(slot.variants)));
+            changed++;
+          } catch {
+            /* the validator refuses this state for this slot; leave the slot as it was */
+          }
+        }
+        expect(canonical(tool.parseFile(JSON.stringify(e)))).toBe(canonical(e));
+        if (tool.link) expect(canonical(tool.link.decode(tool.link.encode(e as never)))).toBe(canonical(e));
+      });
+      // The mixes really vary the teaching states, not only the untouched examples.
+      expect(changed).toBeGreaterThan(0);
     }, 60000);
   }
 });
