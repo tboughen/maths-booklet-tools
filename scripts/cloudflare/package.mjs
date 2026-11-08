@@ -61,13 +61,16 @@ export function verifyPackage(directory, { allowExpiredForRecovery = false, allo
   }
   const inventory = validateInventory(json(resolve(directory, 'inventory.json')));
   if (sha256(readFileSync(resolve(directory, 'site/bank/catalogue.json'))) !== inventory.catalogueSha256) throw new Error('Packaged catalogue does not match inventory');
-  verifySplitCatalogue(resolve(directory, 'site'));
+  // A recovery package published before the split (8 Nov 2026) has no index; anything newer must.
+  verifySplitCatalogue(resolve(directory, 'site'), { allowUnsplit: allowExpiredForRecovery });
   return release;
 }
 // The split catalogue (bankCatalogueSplit.ts) must describe the packaged catalogue: the same
 // version, the same questions in order, and an existing detail file for every paper that holds
-// exactly that paper's questions.
-export function verifySplitCatalogue(site) {
+// exactly that paper's questions. `allowUnsplit` accepts a recovery package from before the split,
+// which has no index at all; a package with an index is always checked in full.
+export function verifySplitCatalogue(site, { allowUnsplit = false } = {}) {
+  if (allowUnsplit && !existsSync(resolve(site, 'bank/catalogue-index.json'))) return;
   const catalogue = json(resolve(site, 'bank/catalogue.json')), index = json(resolve(site, 'bank/catalogue-index.json'));
   if (index.version !== catalogue.version || index.questions?.length !== catalogue.questions.length || index.questions.some((q, i) => q.id !== catalogue.questions[i].id)) throw new Error('Packaged catalogue index does not match the catalogue');
   for (const [paperId, path] of Object.entries(index.papers || {})) {
