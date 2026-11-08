@@ -7,6 +7,7 @@ import { catalogueAssetPaths } from "./bankAssets";
 import { prepareRelease, sourceFingerprint } from "./scripts/cloudflare/release";
 import { verifyReusableCatalogue } from "./scripts/cloudflare/package.mjs";
 import { verifyCatalogueSolutionFiles } from "./scripts/bank/solution-files";
+import { robotsTxt, siteHeaders } from "./scripts/cloudflare/site-headers.mjs";
 
 export default defineConfig(({ command, mode }) => ({
   // Bank files are fetched from the site's own /bank/assets/* (gated by Cloudflare Access).
@@ -31,6 +32,8 @@ export default defineConfig(({ command, mode }) => ({
         }
       };
       add("favicon.svg");
+      // Staff-only site: ask every crawler to stay out (the SPA fallback would otherwise answer with HTML).
+      this.emitFile({type: "asset", fileName: "robots.txt", source: robotsTxt});
       tree("brand");
       if (mode === "cloudflare") {
         const commit = execFileSync("git", ["rev-parse", "HEAD"], {encoding: "utf8"}).trim();
@@ -42,7 +45,7 @@ export default defineConfig(({ command, mode }) => ({
         }
         const release = cached ? { ...cached, manifest: { ...cached.manifest, sourceFingerprint: sourceFingerprint(".") } } : prepareRelease("public", commit, sourceFingerprint("."));
         this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
-        this.emitFile({type: "asset", fileName: "_headers", source: "/bank/catalogue.json\n  Cache-Control: no-cache\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n"});
+        this.emitFile({type: "asset", fileName: "_headers", source: siteHeaders});
         mkdirSync("cloudflare-release", {recursive: true});
         writeFileSync("cloudflare-release/manifest.json", JSON.stringify(release.manifest, null, 2));
         mkdirSync("cloudflare-release/evidence", {recursive: true});
