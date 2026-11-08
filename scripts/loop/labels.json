@@ -1,0 +1,80 @@
+{
+  "description": "Labels the loop uses (improvement list L44). Create them once with the colours below.",
+  "labels": [
+    {
+      "name": "loop:candidate",
+      "color": "0e8a16",
+      "description": "Free for the loop to pick up; remove to veto"
+    },
+    {
+      "name": "loop:in-progress",
+      "color": "fbca04",
+      "description": "A loop session is working on it"
+    },
+    {
+      "name": "loop:needs-tim",
+      "color": "d93f0b",
+      "description": "Waiting for Tim's decision or review"
+    },
+    {
+      "name": "loop:blocked",
+      "color": "b60205",
+      "description": "Cannot proceed; see the latest comment"
+    },
+    {
+      "name": "loop:hold",
+      "color": "000000",
+      "description": "Never merge automatically"
+    },
+    {
+      "name": "loop:reverted",
+      "color": "5319e7",
+      "description": "A loop merge for this item was reverted"
+    },
+    {
+      "name": "loop:shadow",
+      "color": "c5def5",
+      "description": "Opened by the loop in shadow mode"
+    },
+    {
+      "name": "tier:T0",
+      "color": "ededed",
+      "description": "Expected risk tier T0: Test additions"
+    },
+    {
+      "name": "tier:T1",
+      "color": "ededed",
+      "description": "Expected risk tier T1: Non-guidance docs"
+    },
+    {
+      "name": "tier:T2",
+      "color": "ededed",
+      "description": "Expected risk tier T2: Screen-only UI polish"
+    },
+    {
+      "name": "tier:T3",
+      "color": "ededed",
+      "description": "Expected risk tier T3: One tool's editor behaviour"
+    },
+    {
+      "name": "tier:T4",
+      "color": "ededed",
+      "description": "Expected risk tier T4: Core maths and renderers"
+    },
+    {
+      "name": "tier:T5",
+      "color": "ededed",
+      "description": "Expected risk tier T5: Saved schema, interchange, storage"
+    },
+    {
+      "name": "tier:T6",
+      "color": "ededed",
+      "description": "Expected risk tier T6: MCP service and advertised metadata"
+    },
+    {
+      "name": "tier:T7",
+      "color": "ededed",
+      "description": "Expected risk tier T7: Guidance and teaching rules"
+    }
+  ]
+}

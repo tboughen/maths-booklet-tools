@@ -1,0 +1,45 @@
+name: Loop item
+description: One small improvement for the loop to pick up (docs/AUTONOMOUS-LOOP-POLICY.md). Remove loop:candidate to veto it.
+title: "[loop] "
+labels: ["loop:candidate"]
+body:
+  - type: input
+    id: item
+    attributes:
+      label: Item
+      description: The improvement-list code, such as U4 or L24.
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Tier
+      description: The expected risk tier. The PR's real tier comes from scripts/loop/classify-risk.mjs.
+      options: [T0, T1, T2, T3, T4, T5, T6, T7]
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: One tool or site area, such as venn or site.
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Paths
+      description: The files the change may touch, one glob per line (src/venn/**). The loop skips the item while an open PR touches them.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true when it is done, and which tests show it.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes

@@ -1,0 +1,12 @@
+{
+  "description": "Budget caps and limits for loop sessions (improvement list L52). scripts/loop/preflight.mjs reads this before a session starts any work; hitting a cap stops the loop for that night rather than slowing it. Tim sets monthlySpendCapUSD; while it is null, preflight refuses to start a session.",
+  "maxSessionsPerNight": 3,
+  "maxOpenLoopPRs": 5,
+  "maxChangedLines": 300,
+  "authorTiers": ["T0", "T1", "T2", "T3"],
+  "autoMergeTiers": ["T0", "T1"],
+  "maxJudgeOutputTokensPerCall": 16000,
+  "judgesPerPR": 3,
+  "monthlySpendCapUSD": null,
+  "neverDispatch": ["graph-checks.yml", "cloudflare.yml", "deploy-mcp.yml"]
+}
