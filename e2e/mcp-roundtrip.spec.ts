@@ -8,6 +8,11 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { hash } from '../packages/algebra-grid-core/src/interchange';
 import type { Envelope } from '../packages/algebra-grid-core/src';
 import { verifyPrintBytes } from '../packages/graph-core/src/png-bytes';
+import { ensureServiceBuild } from "./service-build";
+test.beforeAll(() => {
+  test.setTimeout(180000);
+  ensureServiceBuild();
+});
 
 test('complete MCP to editor saved-file to MCP revision preserves pupil source', async ({ page }, info) => {
   const reserve = createServer(); await new Promise<void>(r => reserve.listen(0, '127.0.0.1', r));

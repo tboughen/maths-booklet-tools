@@ -13,6 +13,11 @@ import {
 } from "../packages/bar-model-core/src/versioned";
 import { receiveSvg } from "../services/graph-mcp/svg-consumer";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
+import { ensureServiceBuild } from "./service-build";
+test.beforeAll(() => {
+  test.setTimeout(180000);
+  ensureServiceBuild();
+});
 test("v2 bar MCP resource survives secondary-label and caption browser edits and exact MCP revision", async ({
   page,
 }, info) => {
