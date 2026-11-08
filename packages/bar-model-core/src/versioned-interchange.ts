@@ -552,7 +552,9 @@ export function editorLink(e: c.Envelope, base: string) {
   let binary = "";
   bytes.forEach((v) => (binary += String.fromCharCode(v)));
   const u = new URL(base);
-  u.search = "?tool=bar-model";
+  // The editor's own page path, such as /tools/bar-model (old ?tool= links still redirect).
+  u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/bar-model";
+  u.search = "";
   u.hash =
     "bar-model=" +
     btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");

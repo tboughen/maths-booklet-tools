@@ -308,7 +308,9 @@ export function decode(s: string) {
 }
 export function editorLink(e: Envelope, base: string) {
   const u = new URL(base);
-  u.search = "?tool=cuboids";
+  // The editor's own page path, such as /tools/cuboids (old ?tool= links still redirect).
+  u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/cuboids";
+  u.search = "";
   u.hash = `cuboids=${encode(e)}`;
   return u.href;
 }

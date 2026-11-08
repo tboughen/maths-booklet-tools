@@ -280,7 +280,7 @@ describe("ratio tools on the shared real MCP service", () => {
     });
     expect(data.description).not.toContain("2/3");
     expect(data.contentHash).toBe(await ratioHash(data.envelope));
-    expect(data.editorUrl).toContain("?tool=ratio-table#ratio-table=");
+    expect(data.editorUrl).toContain("/tools/ratio-table#ratio-table=");
     expect(data.printVerified).toBe(true);
     for (const format of ["json", "svg", "png"]) {
       const response = await fetch(data.downloads[format].url);

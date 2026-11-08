@@ -59,7 +59,7 @@ without modifying the input. Do not request a calculation without user intent.
 
 Returns exact version1/algebra-grid-1/departmental-v1 source and SHA256 of its
 canonical JSON,preview,outlined SVG,verified600ppi PNG,JSON,physicalSizeCm,
-printGuidance and bounded editor URL (`?tool=expanding-factorising#algebra-grid=`).
+printGuidance and bounded editor URL (`/tools/expanding-factorising#algebra-grid=`).
 Oversized links use existing bounded inline file content/JSON reopening. Pupil
 visibility is the artwork default; revealing answers is an explicit revision.
 No alternate outputView for this family. No UI controls or teacher warnings print.

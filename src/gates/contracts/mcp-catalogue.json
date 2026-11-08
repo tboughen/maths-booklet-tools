@@ -1,6 +1,7 @@
 [
   {
     "name": "algebra_grid_capabilities",
+    "title": "Expanding and factorising grid options",
     "description": "Read supported algebra-grid content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -20,6 +21,7 @@
   },
   {
     "name": "bar_model_capabilities",
+    "title": "Bar model options",
     "description": "Read supported bar-model content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -39,6 +41,7 @@
   },
   {
     "name": "chart_capabilities",
+    "title": "Bar or line chart options",
     "description": "Read supported charts content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -58,6 +61,7 @@
   },
   {
     "name": "check_diagram_placement",
+    "title": "Check a diagram's print size",
     "description": "Calculate print consequences without editing. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree, the exact returned envelope, and positive widthMm and/or heightMm. One dimension derives the other; two define a box and report a proportional fit. Warnings describe reduction or stretching; no universal minimum or booklet fit is assumed. effectivePngDpi concerns PNG only. Venn outputView:pupil|answer selects artwork while retaining pupil source. No baseHash is needed. Use when considering a resize, not at every native-size placement.",
     "inputSchema": {
       "type": "object",
@@ -75,7 +79,8 @@
             "bar-model",
             "charts",
             "probability-tree"
-          ]
+          ],
+          "description": "The diagram family the envelope belongs to."
         },
         "envelope": {
           "type": "object",
@@ -110,9 +115,11 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -120,10 +127,12 @@
           ]
         },
         "widthMm": {
+          "description": "Target printed width in millimetres. Nothing is edited.",
           "type": "number",
           "exclusiveMinimum": 0
         },
         "heightMm": {
+          "description": "Target printed height in millimetres. Nothing is edited.",
           "type": "number",
           "exclusiveMinimum": 0
         }
@@ -276,11 +285,13 @@
   },
   {
     "name": "create_algebra_grid",
+    "title": "Create a expanding and factorising grid",
     "description": "Create expanding/factorising multiplication grids with internal lines only. Supply exact envelope OR spec:{example?,rowCount?,columnCount?,cellMm?,settings?,cells?}. Counts2..7 include headings; default blank3x3. Examples single,double,signed,cubic,factor,negative,common,source-expand,source-factor preserve pupil blanks. Settings: mode:expand|factorise,expression,questionVisible,gridVisible,answerLines:0..3,compactHeadings,gridLineMm:0.35|0.5|0.79375,paper:A4|A3,orientation:portrait|landscape,intentionalError. cells:[{rowId,columnId,value:string|null,hidden?}],initial IDs r0/c0 etc. Product cells12..18mm,default15. Null is blank;zero is not blank. Never infer answers. Returns preview,outlined SVG,verified600ppi PNG,JSON,hash,physicalSizeCm and bounded editor link. Editable files/links retain hidden answers.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "type": "object",
           "properties": {
             "kind": {
@@ -507,6 +518,7 @@
           "additionalProperties": false
         },
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "example": {
@@ -534,6 +546,7 @@
               "maximum": 7
             },
             "cellMm": {
+              "description": "Printed size in millimetres.",
               "type": "number",
               "minimum": 12,
               "maximum": 18
@@ -553,7 +566,7 @@
                   "type": "boolean"
                 },
                 "gridLineMm": {
-                  "default": 0.2,
+                  "description": "Printed size in millimetres.",
                   "anyOf": [
                     {
                       "type": "number",
@@ -880,7 +893,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -1101,11 +1115,13 @@
   },
   {
     "name": "create_bar_model",
+    "title": "Create a bar model",
     "description": "For horizontal working fractions and handwriting space use explicit spec.schemaVersion:3; same v2 fields plus captions[].format:maths(default)|plain, minimum barHeightMm8..24. Maths a/b supports simple atoms or one parenthesised group, never nested fractions; ambiguity fails. Every explicit line reserves12mm above/3mm below its0.25mm underline,8mm long; inside lines produce uniform actual bars>=20mm. See capabilities.v3 complete schemas. Existing v1/v2 rendering remains frozen. For the improved layout explicitly supply spec:{schemaVersion:2,starter:part-whole|comparison|equal-sections|inline-ratio,count?,ratio?:positive-integer-array,partitioned?,comparisonLengths?:[longer,shorter],bars?,annotations?,captions?,title?,presentation?}. See capabilities.v2.specSchema for complete strict nested fields. V2 parts have labels:{inside,above?,below?} and fill:none|neutral|blue|green|amber; each label is {text,state}. annotations:[{id,scope:{kind:whole,barId}|{kind:range,from,to},label,decoration:none|brace|dimension,placement:above|below|inside|between}]. Whole scope follows a bar; fixed endpoints stay fixed. Captions:{id,label,alignment:left|centre|right},max3; title is a label. Output grey/colour is saved. Bare requests and legacy specs remain v1; never mix v1 fields with schemaVersion:2. Create editable Bar modelling resources. Supply spec OR exact envelope, never both. spec:{example?:BM01..BM09|H07|H18|source-sharing,worked?:false,bars?,spans?,presentation?}; example and custom bars/spans are mutually exclusive. Omit for BM01 unworked sharing64 in3:5. bars:[{id,name:{text,state},offset:numeric-string,parts:[{id,weight:positive-numeric-string,label:{text,state},shade:boolean}]}]. spans:[{id,from:{barId,partId,edge:start|end},to:{barId,partId,edge},label:{text,state},side:above|below,style:brace|dimension}]. Labels state:value|blank|question|line|hidden; hidden retains text. Shared presentation:{unitMm:4..16,barHeightMm:8..16,fontPt:10..14,nameWidthMm:20..60}. Up to6bars,24parts/bar,96parts,18spans,32KiB. Exact geometry fractions/decimals,algebra labels never evaluated. Whole/share/difference braces anchor actual boundaries. No automatic calculation. Returns canonical envelope/hash,preview,SVG,600ppiPNG,JSON,versions,native size,print facts,bounded editor link and warnings. Editable files/links retain hidden answers; pupil output default.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "anyOf": [
             {
               "type": "object",
@@ -1351,21 +1367,25 @@
                   "type": "object",
                   "properties": {
                     "unitMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 4,
                       "maximum": 16
                     },
                     "barHeightMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 8,
                       "maximum": 16
                     },
                     "fontPt": {
+                      "description": "Printed text size in points.",
                       "type": "number",
                       "minimum": 10,
                       "maximum": 14
                     },
                     "nameWidthMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 20,
                       "maximum": 60
@@ -1381,7 +1401,8 @@
               "properties": {
                 "schemaVersion": {
                   "type": "number",
-                  "const": 2
+                  "const": 2,
+                  "description": "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request."
                 },
                 "starter": {
                   "type": "string",
@@ -1822,16 +1843,19 @@
                   "type": "object",
                   "properties": {
                     "unitMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 4,
                       "maximum": 16
                     },
                     "barHeightMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 8,
                       "maximum": 16
                     },
                     "fontPt": {
+                      "description": "Printed text size in points.",
                       "type": "number",
                       "minimum": 10,
                       "maximum": 14
@@ -1842,6 +1866,7 @@
                       "maximum": 18
                     },
                     "nameWidthMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 8,
                       "maximum": 60
@@ -1867,7 +1892,8 @@
               "properties": {
                 "schemaVersion": {
                   "type": "number",
-                  "const": 3
+                  "const": 3,
+                  "description": "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request."
                 },
                 "starter": {
                   "type": "string",
@@ -2316,16 +2342,19 @@
                   "type": "object",
                   "properties": {
                     "unitMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 4,
                       "maximum": 16
                     },
                     "barHeightMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 8,
                       "maximum": 24
                     },
                     "fontPt": {
+                      "description": "Printed text size in points.",
                       "type": "number",
                       "minimum": 10,
                       "maximum": 14
@@ -2336,6 +2365,7 @@
                       "maximum": 18
                     },
                     "nameWidthMm": {
+                      "description": "Printed size in millimetres.",
                       "type": "number",
                       "minimum": 8,
                       "maximum": 60
@@ -2359,6 +2389,7 @@
           ]
         },
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "oneOf": [
             {
               "type": "object",
@@ -4924,7 +4955,8 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -5145,11 +5177,13 @@
   },
   {
     "name": "create_chart",
+    "title": "Create a bar or line chart",
     "description": "Create an exam-style statistical chart: kind bar (bar chart), dual (comparative/dual bar chart), composite (stacked) or vline (vertical line chart). Supply exact envelope OR spec:{example?,worked?,kind?,categories?:[label],series?:[{name,fill?,values:[numeric string|null per category],hidden?:[category indices]}],axis?:{min?,max?,step?,minor?},presentation?:{xTitle?,yTitle?,grid?:none|major|fine,key?,heightMm?,barMm?}}. Examples dual-transport, composite-sales, vline-cars, bar-draw are source-linked starters that keep pupil blanks; worked:true shows saved answers. Custom categories require series with one value per category. The axis starts at 0 and its step must divide the range; values above the axis, negative values and widths over 18 cm are rejected. Null is blank; zero is not blank; hidden values are saved answers and are not drawn in pupil output. Never invent data or answers. outputView defaults pupil; answer must be explicitly requested. Not for time series, frequency polygons or histograms. Returns preview, outlined SVG, verified 600 ppi PNG, editable JSON, contentHash, physicalSizeCm and a bounded editor link.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "type": "object",
           "properties": {
             "tool": {
@@ -5344,6 +5378,7 @@
           "additionalProperties": false
         },
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "example": {
@@ -5512,6 +5547,7 @@
           "additionalProperties": false
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -5717,7 +5753,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -5938,14 +5975,17 @@
   },
   {
     "name": "create_cuboid",
+    "title": "Create a cuboid",
     "description": "Create one to three cuboids, cubes, cube grids or separated layers. Use spec.shapes with dimensions:{width,depth,height}, unit, labels and presentation; omitted shape fields use unworked defaults. Or supply an existing envelope, never both. New requests use cuboids-2; older envelopes retain their version. Rendering crops around actual artwork at unchanged scale. Large layer/cube combinations may exceed service print limits. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "widthCm": {
+              "description": "Printed width in centimetres at 100% size.",
               "type": "number",
               "minimum": 4,
               "maximum": 18
@@ -6330,6 +6370,7 @@
           "additionalProperties": false
         },
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "type": "object",
           "properties": {
             "tool": {
@@ -7326,7 +7367,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -7547,11 +7589,14 @@
   },
   {
     "name": "create_graph",
-    "description": "Create a coordinate graph using points, segments or straight lines. Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
+    "title": "Create a coordinate graph",
+    "description": "Create a coordinate graph using points, segments or straight lines. schemaVersion may be omitted (only 1 exists). Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "schemaVersion": {
+          "default": 1,
+          "description": "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request.",
           "type": "number",
           "const": 1
         },
@@ -8059,7 +8104,6 @@
         }
       },
       "required": [
-        "schemaVersion",
         "objects"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -8362,7 +8406,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string",
@@ -8577,11 +8622,13 @@
   },
   {
     "name": "create_number_line",
+    "title": "Create a number line",
     "description": "Create an examination number line. Supply spec:{axis?,solution?,teaching?,widthCm?} or an existing envelope. axis has minimum,maximum,step numeric strings; solution is null, interval, ray or points with stable IDs. Preserve solutionVisible, tick-label answer lines, prompt and answer visibility. Omit both for a blank -5..5 axis. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "axis": {
@@ -8843,6 +8890,7 @@
               "additionalProperties": false
             },
             "widthCm": {
+              "description": "Printed width in centimetres at 100% size.",
               "type": "number",
               "minimum": 8,
               "maximum": 18
@@ -8851,6 +8899,7 @@
           "additionalProperties": false
         },
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "type": "object",
           "properties": {
             "schemaVersion": {
@@ -9514,7 +9563,8 @@
             "kind",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -9735,11 +9785,13 @@
   },
   {
     "name": "create_probability_tree",
+    "title": "Create a probability tree",
     "description": "Create an exam-style probability tree drawn left to right. Supply exact envelope OR spec:{example?|stages?|branches?, worked?, bag?, hide?, settings?, questions?}. example: two-bags, darts, without-replacement, unequal, given-that, three-coins. stages:[{outcomes:[\"Red\",\"Blue\"],probabilities?:[\"3/8\",\"5/8\"]}] repeats each stage after every path (equal tree). branches:[{id:\"b1\",parent:null,outcome,probability?,hidden?:[\"probability\"],bold?}] for unequal trees; parents precede children; 2-4 branches per point; up to 4 stages. bag:{counts:[5,3],replacement:false} writes unsimplified fractions from the counts by branch position. hide: none|probabilities|end|all saves those values as hidden answers with pupil spaces. settings:{stageTitles,linkLabels,endColumn:none|outcome|both,endHeadings,blankStyle:dots|box,branchMm,gapMm}. questions:[{text:\"P(both red) =\",event:[\"Red, Red\"],given?:[...],answer?,answerShow?,calculate?:true}] print below the tree; paths are end branch IDs or outcome names joined by \", \"; given-that questions use given. Only calculate:true computes an answer. outputView pupil (default) or answer. Never infer or fill answers otherwise. Returns preview, SVG, verified 600 ppi PNG, JSON, contentHash, physicalSizeCm and editor link. Editable files and links retain hidden answers.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "type": "object",
           "properties": {
             "tool": {
@@ -10010,6 +10062,7 @@
           "additionalProperties": false
         },
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "example": {
@@ -10246,6 +10299,7 @@
           "additionalProperties": false
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -10527,7 +10581,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -10748,11 +10803,13 @@
   },
   {
     "name": "create_ratio_table",
-    "description": "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
+    "title": "Create a ratio table",
+    "description": "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Omit rows for a blank two-column table with two empty rows. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "schemaVersion": {
+          "description": "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request.",
           "anyOf": [
             {
               "type": "number",
@@ -10933,10 +10990,6 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "schemaVersion",
-        "rows"
-      ],
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false
     },
@@ -11165,7 +11218,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string",
@@ -11383,6 +11437,7 @@
   },
   {
     "name": "create_value_graph",
+    "title": "Create a table of values and graph",
     "description": "Create a table of values and exam grid. Omit envelope for the June 2018 scaffold with five blank y cells and no plotted work. Supply a full schemaVersion 1 / rendererVersion value-graph-1 / styleProfile exam-v1 envelope to customize. Numeric data are strings, including fractions. Columns have id,x,y:{kind:blank|answer-line} or y:{kind:value,value:string}. Preserve pupil blanks. A curve is an explicit graph.curves object with id,equation:{a,b,c},min,max; straight joins are a series.connection, never a quadratic curve. Returns real SVG/600 ppi PNG/JSON, hash and editable link.",
     "inputSchema": {
       "type": "object",
@@ -11839,7 +11894,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         }
       },
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -12300,7 +12356,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -12506,11 +12563,13 @@
   },
   {
     "name": "create_venn",
+    "title": "Create a Venn diagram",
     "description": "Create editable one/two/three-set Venn diagrams. Supply spec with sets,shape,arrangement,widthCm,fontPt,labels:[{set,label}],definitions:[{set,text}],regions:[{mask,region}],showDefinitions,caption; or an existing envelope, never both. Region mask0 is outside; bits A=1 B=2 C=4. arrangements overlap/separate/b-inside-a/a-inside-b (non-overlap only two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView defaults pupil; answer must be explicitly requested. Returned JSON/editor source always preserves pupil visibility and can include hidden answers. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
       "properties": {
         "spec": {
+          "description": "Settings for a new resource; settings left out take their defaults. Supply spec or envelope, not both.",
           "type": "object",
           "properties": {
             "sets": {
@@ -12681,11 +12740,13 @@
               "type": "boolean"
             },
             "widthCm": {
+              "description": "Printed width in centimetres at 100% size.",
               "type": "number",
               "minimum": 8,
               "maximum": 16
             },
             "fontPt": {
+              "description": "Printed text size in points.",
               "type": "number",
               "minimum": 9,
               "maximum": 14
@@ -12694,6 +12755,7 @@
           "additionalProperties": false
         },
         "envelope": {
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand.",
           "oneOf": [
             {
               "type": "object",
@@ -13033,6 +13095,7 @@
           ]
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -13383,7 +13446,8 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -13604,6 +13668,7 @@
   },
   {
     "name": "cuboid_capabilities",
+    "title": "Cuboid options",
     "description": "Read supported cuboids content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -13623,6 +13688,7 @@
   },
   {
     "name": "download_diagram_bundle",
+    "title": "Download diagram files",
     "description": "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require explicit revise_graph conversion first.",
     "inputSchema": {
       "type": "object",
@@ -13640,7 +13706,8 @@
             "bar-model",
             "charts",
             "probability-tree"
-          ]
+          ],
+          "description": "The diagram family the envelope belongs to."
         },
         "envelope": {
           "type": "object",
@@ -13675,9 +13742,11 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -13708,7 +13777,8 @@
             "bar-model",
             "charts",
             "probability-tree"
-          ]
+          ],
+          "description": "The diagram family the envelope belongs to."
         },
         "outputView": {
           "type": "string",
@@ -13837,6 +13907,7 @@
   },
   {
     "name": "get_diagram_svg",
+    "title": "Get a diagram's SVG",
     "description": "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree and the exact returned envelope; no URL or baseHash. Venn, charts and probability-tree outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
     "inputSchema": {
       "type": "object",
@@ -13854,7 +13925,8 @@
             "bar-model",
             "charts",
             "probability-tree"
-          ]
+          ],
+          "description": "The diagram family the envelope belongs to."
         },
         "envelope": {
           "type": "object",
@@ -13889,9 +13961,11 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -13936,7 +14010,8 @@
             "bar-model",
             "charts",
             "probability-tree"
-          ]
+          ],
+          "description": "The diagram family the envelope belongs to."
         },
         "filename": {
           "type": "string",
@@ -14055,6 +14130,7 @@
   },
   {
     "name": "graph_capabilities",
+    "title": "Coordinate graph options",
     "description": "Read supported graph objects, axes, limits and rendering version before choosing settings.",
     "inputSchema": {
       "type": "object",
@@ -14236,6 +14312,7 @@
   },
   {
     "name": "number_line_capabilities",
+    "title": "Number line options",
     "description": "Read supported number-line content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -14255,6 +14332,7 @@
   },
   {
     "name": "probability_tree_capabilities",
+    "title": "Probability tree options",
     "description": "Read supported probability-tree content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",
@@ -14274,6 +14352,7 @@
   },
   {
     "name": "ratio_table_capabilities",
+    "title": "Ratio table options",
     "description": "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style one-, two- or three-column diagrams. columns: 2 and rendererVersion: ratio-1 are legacy defaults, not limits; supportedColumns and rendererVersions list full support. Returned envelopes normalize to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Adding/removing rows or columns can change the returned version; always reuse the returned envelope and contentHash. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
     "inputSchema": {
       "type": "object",
@@ -14455,6 +14534,7 @@
   },
   {
     "name": "revise_algebra_grid",
+    "title": "Edit a expanding and factorising grid",
     "description": "Atomically revise exact algebra-grid envelope with baseHash:contentHash and operations(max30). set_cell {rowId,columnId,value:string|null,hidden?}; set_settings {settings:{mode?,expression?,questionVisible?,gridVisible?,answerLines?,compactHeadings?,gridLineMm?,paper?,orientation?,intentionalError?}}; set_cell_size {cellMm:12..18} resets width overrides; set_column_width {columnId,widthMm:12..45}; add_row {},remove_row {},add_column {},remove_column {} append/remove last edge; fill_products {overwrite:false} requires true for occupied products; collect_answer {} needs complete products; calculate_answer {} supplies only final answer,preserving every pupil blank; worked_copy {} explicitly returns a worked variant; set_answer_visibility {visible}. Integer terms in x,powers0..6. Automatic factorising:monic quadratics3x3 or single-row common factors;other shapes need correct headings. Stable IDs come from returned envelope. Empty operations refresh links. Calculate only when explicitly requested. Returns preview,outlined SVG,600ppi PNG,JSON,native dimensions and editor link;hidden answers remain in editable source.",
     "inputSchema": {
       "type": "object",
@@ -14683,11 +14763,13 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -14752,7 +14834,7 @@
                         "type": "boolean"
                       },
                       "gridLineMm": {
-                        "default": 0.2,
+                        "description": "Printed size in millimetres.",
                         "anyOf": [
                           {
                             "type": "number",
@@ -14824,7 +14906,8 @@
                   "cellMm": {
                     "type": "number",
                     "minimum": 12,
-                    "maximum": 18
+                    "maximum": 18,
+                    "description": "Printed size in millimetres."
                   }
                 },
                 "required": [
@@ -14982,7 +15065,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -15223,7 +15307,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -15444,6 +15529,7 @@
   },
   {
     "name": "revise_bar_model",
+    "title": "Edit a bar model",
     "description": "Explicit upgrade_document{targetSchemaVersion:3} upgrades v1/v2 to horizontal fractions and larger handwriting spaces; once FIRST, original hash checked before changes, later failure rolls back all. No target keeps prior v1→v2 meaning. V3 captions add format:maths|plain and set_presentation accepts minimum barHeightMm8..24. V2 operations add upgrade_document{} (exactly once FIRST on v1); set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to:{barId,partId,slot},mode:move|copy,overwrite?:false}; set_annotation{annotation}; remove_annotation{annotationId}; equal_sections{barId,count,discardContent?:false} preserves exact total; changed count replaces IDs and needs explicit discard for affected labels/fills/fixed anchors. set_fill{barId,partIds,fill}; add_caption/update_caption{caption}; remove_caption{captionId}; set_title{label:null|Label}; set_presentation{presentation,autoName?}; set_quantity_name{barId,label}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}. Refer to the complete emitted operation schema. Without explicit upgrade, legacy sources stay v1 and reject new features. A later failure rolls back the entire batch including upgrade. Retained hidden destinations require explicit overwrite. Between annotations must still attach to adjacent bars. Revise exact bar-model envelope with baseHash=contentHash and operations(max30,atomic). set_label {target:{barId,partId?}|{spanId},label:{text,state}}; set_part {barId,partId,weight?,shade?}; add_bar {bar,afterId?}; remove_bar {barId,discardSpans?:false}; add_part {barId,part,afterId?}; remove_part {barId,partId,discardSpans?:false}; add_span {span}; set_span {span} replaces exact identified span; remove_span {spanId}; set_alignment {barId,offset}; set_print {presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?}}; reveal_saved_answers {} only on explicit request. Use complete bar/part/span schemas from create_bar_model and stable returned IDs. Removal of referenced parts/bars requires discardSpans:true or prior explicit span removal; never reanchors. Label state changes preserve supplied saved text. No implicit maths, answer reveal or resizing from labels. Empty operations refresh files/links. Returns envelope/hash,preview,SVG,verified600ppiPNG,JSON,native dimensions,versions,print facts and warnings; editable files/links retain hidden answers.",
     "inputSchema": {
       "type": "object",
@@ -16726,11 +16812,13 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -17344,21 +17432,25 @@
                     "type": "object",
                     "properties": {
                       "unitMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 4,
                         "maximum": 16
                       },
                       "barHeightMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 8,
                         "maximum": 16
                       },
                       "fontPt": {
+                        "description": "Printed text size in points.",
                         "type": "number",
                         "minimum": 10,
                         "maximum": 14
                       },
                       "nameWidthMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 20,
                         "maximum": 60
@@ -18169,16 +18261,19 @@
                     "type": "object",
                     "properties": {
                       "unitMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 4,
                         "maximum": 16
                       },
                       "barHeightMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 8,
                         "maximum": 24
                       },
                       "fontPt": {
+                        "description": "Printed text size in points.",
                         "type": "number",
                         "minimum": 10,
                         "maximum": 14
@@ -18189,6 +18284,7 @@
                         "maximum": 18
                       },
                       "nameWidthMm": {
+                        "description": "Printed size in millimetres.",
                         "type": "number",
                         "minimum": 8,
                         "maximum": 60
@@ -18628,7 +18724,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -19921,7 +20018,8 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -20142,6 +20240,7 @@
   },
   {
     "name": "revise_chart",
+    "title": "Edit a bar or line chart",
     "description": "Revise the returned chart envelope atomically with baseHash:contentHash and operations (max30), using 0-based indices. set_kind {kind:bar|dual|composite|vline} keeps every data set; set_value {series,category,value:string|null,hidden?}; set_category {category,label}; add_category {label?} appends with blank values; remove_category {category}; add_series {name,fill?} with blank values; remove_series {series}; set_series {series,name?,fill?}; set_axis {axis:{min?,max?,step?,minor?}}; set_presentation {presentation:{xTitle?,yTitle?,grid?,key?,heightMm?,barMm?}}; set_all_visibility {hidden} hides or shows every value (draw-the-chart tasks). Values are never calculated or filled. outputView pupil|answer affects artwork only; retain the returned pupil source/hash. Empty operations refresh links. Returns preview, SVG, 600 ppi PNG, JSON, native size and editor link; hidden answers remain in editable source.",
     "inputSchema": {
       "type": "object",
@@ -20338,11 +20437,13 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -20677,9 +20778,11 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -20890,7 +20993,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -21111,6 +21215,7 @@
   },
   {
     "name": "revise_cuboid",
+    "title": "Edit a cuboid",
     "description": "Revise the returned cuboid envelope with baseHash and atomic operations (max30). add_shape {afterId?,shape}; remove_shape {id}; replace_shape {id,shape} retains ID; set_dimension {id,axis:width|depth|height,value}; set_unit {id,unit} converts physical dimensions; set_cube {id,enabled,referenceAxis?} requires an explicit reference when enabling; set_cube_side {id,value} is in the displayed unit; set_view {id,view}; set_projection {id,direction?,projection?,schematic?,proportions?}; set_label {id,key,label}; set_appearance {id,appearance}; set_presentation {id,settings}; set_print {widthCm}; upgrade_document {}. Version-2 appearance requires explicit upgrade_document for legacy files. Worked calculations remain explicit; custom captions are retained. Empty operations refresh links. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
@@ -21609,11 +21714,13 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -22827,7 +22934,8 @@
                   "widthCm": {
                     "type": "number",
                     "minimum": 4,
-                    "maximum": 18
+                    "maximum": 18,
+                    "description": "Printed width in centimetres at 100% size."
                   }
                 },
                 "required": [
@@ -22850,7 +22958,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -23358,7 +23467,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -23579,6 +23689,7 @@
   },
   {
     "name": "revise_graph",
+    "title": "Edit a coordinate graph",
     "description": "Revise the exact returned envelope using its contentHash as baseHash. Apply operations atomically. replace_object retains ID; set_label shows, hides or moves a line equation; set_axes sets both axes. An empty operations array refreshes download links. Also accepts human editable JSON; legacy font changes to portable with a warning.",
     "inputSchema": {
       "type": "object",
@@ -23877,11 +23988,13 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 100,
@@ -24936,7 +25049,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -25244,7 +25358,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string",
@@ -25459,6 +25574,7 @@
   },
   {
     "name": "revise_number_line",
+    "title": "Edit a number line",
     "description": "Revise a number line atomically using envelope, baseHash and max30 operations. set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} also removes incident joins; set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions. A truncated ray requires intentional:true. Empty operations refresh links. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
@@ -25778,11 +25894,13 @@
             "kind",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -26293,7 +26411,8 @@
                   "widthCm": {
                     "type": "number",
                     "minimum": 8,
-                    "maximum": 18
+                    "maximum": 18,
+                    "description": "Printed width in centimetres at 100% size."
                   }
                 },
                 "required": [
@@ -26303,7 +26422,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -26657,7 +26777,8 @@
             "kind",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -26878,6 +26999,7 @@
   },
   {
     "name": "revise_probability_tree",
+    "title": "Edit a probability tree",
     "description": "Revise a probability tree atomically using envelope, baseHash:contentHash and max 30 operations. set_label {branchId,part:outcome|probability|endOutcome|endProbability,text?,show?}; set_outcome_name {branchId,text} follows linkLabels across a stage; set_bold {branchId,bold}; extend_branch {branchId,count?} adds branches after one path end (unequal trees); end_path {branchId}; add_branch {parentId|null}; remove_last_branch {parentId|null}; add_stage {}; remove_stage {}; fill_from_bag {counts,replacement,overwrite} needs overwrite:true when probabilities exist; fill_complements {} writes 1 − p where exactly one sibling is empty; fill_end {part:outcome|probability}; set_visibility {part:probabilities|end|all,show}; set_settings {settings}; add_question {question}; set_question {questionId,question}; remove_question {questionId}; calculate_question {questionId}. Fills and calculations happen only when requested and keep visibility. Stable IDs come from the returned envelope. Empty operations refresh links. outputView pupil|answer affects artwork only.",
     "inputSchema": {
       "type": "object",
@@ -27150,11 +27272,13 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -27676,9 +27800,11 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -27965,7 +28091,8 @@
             "rendererVersion",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -28186,6 +28313,7 @@
   },
   {
     "name": "revise_ratio_table",
+    "title": "Edit a ratio table",
     "description": "Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Each operation is an object with op and these fields: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor}}; remove_transition {from}; set_headings {headings}; set_size {size}; set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {\"op\":\"set_transition\",\"transition\":{\"from\":\"start\",\"to\":\"target\",\"operation\":\"multiply\",\"factor\":\"4\"}}. Do not put transition fields at the operation top level. Numeric values/factors are strings; column indexes are zero-based; after is a row ID or null. Heading direction is right/up/none and italic is boolean. add_column appends the heading and empty cells. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and all source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Row/column changes normalize the result to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Preserve unchanged values/settings, reuse the returned envelope/hash and show the returned image and links.",
     "inputSchema": {
       "type": "object",
@@ -28412,11 +28540,13 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 20,
@@ -29126,7 +29256,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string",
@@ -29344,6 +29475,7 @@
   },
   {
     "name": "revise_value_graph",
+    "title": "Edit a table of values and graph",
     "description": "Atomically revise the exact returned envelope with its contentHash as baseHash. All numeric values are strings; references use stable IDs, not indexes. Operations: set_equation {equation:{a,b,c}}; set_cell {columnId,x?,y?}; insert_column {afterId,column:{id,x,y}}; remove_column {columnId}; replace_columns {columns}; calculate_cells {columnIds,overwrite:boolean}; set_graph {settings}; plot_series {id,source:table|equation,columnIds,connection:none|straight-joins}; put_series {series:{id,source,points:[{id,x,y,columnId?}],connection}}; remove_series {id}; set_connection {id,connection}; move_point {seriesId,pointId,x,y,linked:update-table|detach}; set_curve {curve:null|{id,equation:{a,b,c},min,max}}; set_reference_lines {lines:[{id,y}]}; set_presentation {settings}; set_print {settings}. calculate_cells alone supplies answers and requires overwrite:true to replace existing values. Equation edits retain cells/plots. plot_series source:table skips blank cells and includes zero; source:equation explicitly calculates points without filling the table. Empty operations refresh links. Preserve returned envelope/hash after every revision.",
     "inputSchema": {
       "type": "object",
@@ -29800,11 +29932,13 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 40,
@@ -30640,7 +30774,8 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         }
       },
       "required": [
@@ -31106,7 +31241,8 @@
             "styleProfile",
             "document"
           ],
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -31312,6 +31448,7 @@
   },
   {
     "name": "revise_venn",
+    "title": "Edit a Venn diagram",
     "description": "Revise Venn envelope/baseHash atomically (max30). set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?}; upgrade_document {}. Expressions use stable A/B/C IDs, union/intersection/complement and brackets. Lossy layout changes require the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need explicit upgrade for new layouts. outputView pupil|answer affects artwork only; retain returned pupil source/hash. Empty operations refresh links. Return a preview, SVG, verified 600 ppi PNG, editable JSON, contentHash, actual physicalSizeCm and an editor link where bounded. Preserve pupil blanks/hidden answers and retain the returned envelope/hash. Numeric mathematical values are strings. Never infer answers.",
     "inputSchema": {
       "type": "object",
@@ -31653,11 +31790,13 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "baseHash": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "The contentHash returned with this exact envelope. If the envelope has changed, the revision is refused and nothing is applied."
         },
         "operations": {
           "maxItems": 30,
@@ -31960,11 +32099,13 @@
                     "const": "set_print"
                   },
                   "widthCm": {
+                    "description": "Printed width in centimetres at 100% size.",
                     "type": "number",
                     "minimum": 8,
                     "maximum": 16
                   },
                   "fontPt": {
+                    "description": "Printed text size in points.",
                     "type": "number",
                     "minimum": 9,
                     "maximum": 14
@@ -31989,9 +32130,11 @@
                 "additionalProperties": false
               }
             ]
-          }
+          },
+          "description": "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links."
         },
         "outputView": {
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -32347,7 +32490,8 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
           "type": "string"
@@ -32568,6 +32712,7 @@
   },
   {
     "name": "value_graph_capabilities",
+    "title": "Table of values and graph options",
     "description": "Read table-of-values and quadratic graph limits, print style and supported operations. This is the tool for exam graph paper, partial tables, quadratic curves and deliberate straight-join errors.",
     "inputSchema": {
       "type": "object",
@@ -32587,6 +32732,7 @@
   },
   {
     "name": "venn_capabilities",
+    "title": "Venn diagram options",
     "description": "Read supported venn content, versions, limits, presentation and revision operations before creating a resource.",
     "inputSchema": {
       "type": "object",

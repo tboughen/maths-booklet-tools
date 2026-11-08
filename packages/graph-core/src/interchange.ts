@@ -120,7 +120,8 @@ export const objectInputSchema = z.union([
 ]);
 export const graphSpecSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    // Only version 1 exists, so it may be omitted (M6).
+    schemaVersion: z.literal(1).default(1),
     axes: axesSchema.optional(),
     objects: z.array(objectInputSchema).max(50),
   })
@@ -474,7 +475,9 @@ export function decodeEnvelope(payload: string): GraphEnvelope {
 }
 export function editorLink(envelope: GraphEnvelope, base: string): string {
   const url = new URL(base);
-  url.search = "?tool=graph";
+  // The editor's own page path, such as /tools/graph (old ?tool= links still redirect).
+  url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/graph";
+  url.search = "";
   url.hash = `graph=${encodeEnvelope(envelope)}`;
   if (url.href.length > MAX_LINK_LENGTH)
     throw new GraphError(

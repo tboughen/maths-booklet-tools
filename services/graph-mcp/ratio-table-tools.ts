@@ -306,7 +306,7 @@ export function ratioTools(
       "create_ratio_table",
       {
         description:
-          "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
+          "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Omit rows for a blank two-column table with two empty rows. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
         inputSchema: ratioSpecSchema,
         outputSchema: ratioOutputSchema,
         annotations,

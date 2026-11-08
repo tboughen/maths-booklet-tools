@@ -205,7 +205,9 @@ export async function revise(input: unknown) {
 export function editorLink(e: core.Envelope, base: string) {
   const bytes = new TextEncoder().encode(core.canonical(e));
   const u = new URL(base);
-  u.search = "?tool=expanding-factorising";
+  // The editor's own page path, such as /tools/expanding-factorising (old ?tool= links still redirect).
+  u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/expanding-factorising";
+  u.search = "";
   u.hash =
     "algebra-grid=" +
     btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))

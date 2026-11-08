@@ -282,7 +282,9 @@ export function editorLink(e: Envelope, base: string) {
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
   const u = new URL(base);
-  u.search = "?tool=venn";
+  // The editor's own page path, such as /tools/venn (old ?tool= links still redirect).
+  u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/venn";
+  u.search = "";
   u.hash = `venn=${btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "")}`;
   return u.href.length <= 16_000 ? u.href : null;
 }

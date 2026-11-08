@@ -148,7 +148,7 @@ describe("three new families through actual MCP/HTTP", () => {
       const { client } = await start();
       const a = await call(client, `create_${c.name}`, c.args);
       expect(a.printVerified).toBe(true);
-      expect(a.editorUrl).toContain("https://mathsdock.co.uk/?tool=");
+      expect(a.editorUrl).toMatch(/^https:\/\/mathsdock\.co\.uk\/tools\/[a-z-]+#/);
       const n = await call(client, `revise_${c.name}`, {
         envelope: a.envelope,
         baseHash: a.contentHash,

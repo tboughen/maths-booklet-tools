@@ -41,7 +41,9 @@ export function decode(token: string): ValueEnvelope {
 export function editorLink(e: ValueEnvelope, base: string): string {
   const url = new URL(base);
   const draft = url.searchParams.get("draft");
-  url.search = "?tool=value-table-graph";
+  // The editor's own page path, such as /tools/value-table-graph (old ?tool= links still redirect).
+  url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/value-table-graph";
+  url.search = "";
   if (draft && /^[a-zA-Z0-9_-]{1,40}$/.test(draft))
     url.searchParams.set("draft", draft);
   url.hash = "values=" + encode(e);
