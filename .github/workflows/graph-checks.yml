@@ -68,6 +68,13 @@ jobs:
     runs-on: ubuntu-latest
     # The browser shards and the service check run 12-15 minutes on a normal day.
     timeout-minutes: 25
+    # Output-sensitive checks (export fingerprints, print PNGs, layout fits) run in a pinned
+    # Playwright image, so the browser build, system fonts and libraries are the same on every run
+    # (improvement list L3). The tag must match @playwright/test in package.json; the digest pins
+    # the exact image. scripts/ci/playwright-image.test.mjs keeps them in step.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -76,6 +83,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # The container runs as root over a workspace the runner owns; let git read both checkouts.
+      - name: Trust the checkout inside the container
+        run: git config --global --add safe.directory '*'
       - name: Find the linked question-bank commit
         id: bank
         run: echo "sha=$(git rev-parse HEAD:public/bank/assets)" >> "$GITHUB_OUTPUT"
@@ -96,8 +106,10 @@ jobs:
         with:
           name: prepared-release
           path: cloudflare-release
-      - if: startsWith(matrix.check, 'browser-') || matrix.check == 'built'
-        run: npx playwright install --with-deps chromium
+      # The image already holds this Playwright's Chromium at PLAYWRIGHT_BROWSERS_PATH; nothing to install.
+      - name: Show the pinned browser environment
+        if: startsWith(matrix.check, 'browser-') || matrix.check == 'built'
+        run: npx playwright --version && ls "$PLAYWRIGHT_BROWSERS_PATH" && fc-list : family | sort -u
       - name: Qualify the exact prepared package
         env:
           CHECK: ${{ matrix.check }}

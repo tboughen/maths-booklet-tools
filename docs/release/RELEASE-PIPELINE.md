@@ -98,6 +98,26 @@ records are under `cloudflare-release/evidence`. The GitHub artifact is
 and artifact IDs matter; an artifact named “latest” is insufficient. Copy retained
 current/previous packages before their retention expires.
 
+### Pinned browser environment
+
+The qualification's website checks (units, catalogue, publisher, built and both browser shards)
+run inside `mcr.microsoft.com/playwright:v<version>-noble`, pinned by digest in
+`graph-checks.yml`. That fixes the Chromium build, system fonts and libraries that export
+fingerprints, print PNGs and layout fits depend on. Plain machines differ: on 8 Nov 2026 the
+cuboids refinement fingerprint failed on a cloud host and passed in the pinned image. The tag
+must equal `@playwright/test` in `package.json`; `scripts/ci/playwright-image.test.mjs` fails
+when they drift. To upgrade Playwright, change both together and take the new digest from
+`docker pull` (or the registry's `docker-content-digest` header).
+
+To reproduce a browser shard's output locally, run the same image over a prepared package:
+
+```bash
+docker run --rm --ipc=host -v "$PWD:$PWD" -v "$PACKAGE:$PACKAGE" -w "$PWD" \
+  -e MATHSDOCK_RELEASE_PACKAGE="$PACKAGE" -e PLAYWRIGHT_CHANNEL=chromium \
+  mcr.microsoft.com/playwright:v1.63.0-noble@sha256:<digest from graph-checks.yml> \
+  npx playwright test --project=release e2e/refinement.spec.ts
+```
+
 Built browser rehearsal uses locally intercepted R2 requests and says so in its
 evidence. Production and HTTPS preview verification use real R2 without that
 interception. Passing the former does not claim the latter.
