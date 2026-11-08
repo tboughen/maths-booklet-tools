@@ -1,12 +1,16 @@
 @font-face {
   font-family: "STIX Two Text";
   font-style: normal;
-  src: url("../../assets/graph-fonts/STIXTwoText-Regular.otf");
+  src:
+    url("../assets/fonts/STIXTwoText-Regular.woff2") format("woff2"),
+    url("../../assets/graph-fonts/STIXTwoText-Regular.otf") format("opentype");
 }
 @font-face {
   font-family: "STIX Two Text";
   font-style: italic;
-  src: url("../../assets/graph-fonts/STIXTwoText-Italic.otf");
+  src:
+    url("../assets/fonts/STIXTwoText-Italic.woff2") format("woff2"),
+    url("../../assets/graph-fonts/STIXTwoText-Italic.otf") format("opentype");
 }
 .vg-editor fieldset {
   border: 0;
