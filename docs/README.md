@@ -38,6 +38,7 @@ Per-tool records:
 ## content/ — questions, worked solutions and lesson resources
 
 - [Maths Resource Design Guide](content/MATHS-RESOURCE-DESIGN-GUIDE.md) (text copy; the [.docx](content/MATHS-RESOURCE-DESIGN-GUIDE.docx) is the master) and the [lesson resource project instructions](content/RESOURCE-PROJECT-INSTRUCTIONS.md), including the PLAN, FINALISE and PRODUCE commands.
+- [Worksheet renderer](content/WORKSHEET-RENDERER.md): the A3 worksheet document, layout rules and the evidence behind the MathsDock style (wave 3).
 - [Per-question worked solutions](content/WORKED-SOLUTION-REGISTRATION.md).
 - [Automatic question accessibility](content/ACCESSIBILITY-TESTING.md).
 - [Past-paper examples in Graph tool and Ratio tables](content/TOOL-SOURCE-EXAMPLES.md).

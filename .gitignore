@@ -16,3 +16,6 @@ cloudflare-release
 *.credentials.xml
 
 tmp/usability
+
+# Worksheet renderer review samples (scripts/resource/samples.mjs)
+output/resource-samples/
