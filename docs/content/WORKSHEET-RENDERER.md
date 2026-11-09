@@ -37,8 +37,8 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 ## MathsDock style, and the evidence behind it
 
 One style, `mathsdock`, taken from the website: Inter (the site's interface font), logo navy
-`#173c65` for titles and headings, the site's soft blue `#eaf1fa` for number tiles and info
-cards, and white cards with a thin grey frame and rounded corners like the home-page cards.
+`#173c65` for titles and headings, solid navy number and stage tiles, a soft blue for info
+cards and the group label, and white cards with a mid-grey frame and rounded corners like the home-page cards.
 Body text uses the site's ink `#262720`; saved answers use dark pink in the answers view only.
 
 Each rule has a reason. Treat the research as general findings about learning materials, not
@@ -53,7 +53,7 @@ trials of these worksheets.
 | Columns hold about 70 characters a line. | Readability studies of line length generally favour moderate lengths over very long lines (Dyson, 2004, review). |
 | More space between cards than inside them; parts are indented under their question. | Proximity (Gestalt): items close together are read as a group. |
 | Working space is sized by task, and spare height goes to working and drawing space. | The design guide: allocate space by the work pupils must do, and use the full page. |
-| Tints stay light and text stays near-black. | Pages must still work in greyscale (design guide). |
+| Card frames are mid-grey at 0.45 mm, number and stage tiles are solid navy with white numbers, and info cards have a navy edge. Text stays near-black. | Questions must stay clearly separated on a black-and-white printer (the design guide asks for a monochrome check). Pale tints alone fade out in greyscale. |
 
 Open question for Tim: dyslexia guidance often asks for at least 12 pt. Inter 10 pt is about the
 size of 10.5 pt Arial. A larger-print setting (fewer questions a side) is a later option.
