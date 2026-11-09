@@ -61,7 +61,7 @@ export const n = (v: number) => String(Math.round(v * 100) / 100);
 export function textSvg(line: Line, x: number, y: number, size: number, fill: string, anchor: "start" | "middle" | "end" = "start") {
   const spans = line
     .map((r) => {
-      const attr = r.style === "bold" ? ' font-weight="700"' : r.style === "italic" ? ' font-style="italic"' : "";
+      const attr = r.style === "bold" ? ' font-weight="600"' : r.style === "italic" ? ' font-style="italic"' : "";
       return attr ? `<tspan${attr}>${esc(r.text)}</tspan>` : esc(r.text);
     })
     .join("");

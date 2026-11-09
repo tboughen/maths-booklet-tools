@@ -29,9 +29,9 @@ const font = async (file, family, weight, style) =>
   `@font-face{font-family:"${family}";src:url(data:font/${file.endsWith(".otf") ? "otf" : "woff2"};base64,${(await readFile(join(root, file))).toString("base64")});font-weight:${weight};font-style:${style}}`;
 const css = (
   await Promise.all([
-    font("assets/resource-fonts/Lato-Regular.woff2", "Lato", 400, "normal"),
-    font("assets/resource-fonts/Lato-Bold.woff2", "Lato", 700, "normal"),
-    font("assets/resource-fonts/Lato-Italic.woff2", "Lato", 400, "italic"),
+    font("assets/resource-fonts/Inter-Regular.woff2", "Inter", 400, "normal"),
+    font("assets/resource-fonts/Inter-SemiBold.woff2", "Inter", 600, "normal"),
+    font("assets/resource-fonts/Inter-Italic.woff2", "Inter", 400, "italic"),
     font("assets/graph-fonts/STIXTwoText-Regular.otf", "STIX Two Text", 400, "normal"),
     font("assets/graph-fonts/STIXTwoText-Italic.otf", "STIX Two Text", 400, "italic"),
     font("assets/graph-fonts/STIXTwoMath-Regular.otf", "STIX Two Math", 400, "normal"),
@@ -43,7 +43,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 const report = [];
 for (const [id, doc] of [["comparative-bar-charts", r.comparativeBarCharts], ["tree-diagrams", r.treeDiagrams]])
-  for (const style of ["cards", "lines"])
+  for (const style of Object.keys(r.styles))
     for (const view of ["pupil", "answers"]) {
       const { pages, issues } = r.renderResource(doc, { style, view });
       const name = `${id}_${style}${view === "answers" ? "_answers" : ""}`;

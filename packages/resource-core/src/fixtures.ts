@@ -78,8 +78,11 @@ export const comparativeBarCharts: Resource = validate({
                   part("Use the key. Which bars represent Class A? Which represent Class B?", { type: "answerLine", prefix: "Class A:", suffix: "", answer: "white", inline: true }, { type: "answerLine", prefix: "Class B:", suffix: "", answer: "hatched", inline: true }),
                   part("How many pupils in Class A usually walk to school?", line("", "8")),
                   part("Complete the sentence: the Class B bar above Bus shows that ______ pupils in Class B usually travel by bus."),
-                  part("What is the most common travel method in Class A?", line("", "Walk")),
-                  part("What is the most common travel method in Class B?", line("", "Bus")),
+                  part(
+                    "What is the most common travel method in each class?",
+                    { type: "answerLine", prefix: "Class A:", suffix: "", answer: "Walk", inline: true },
+                    { type: "answerLine", prefix: "Class B:", suffix: "", answer: "Bus", inline: true },
+                  ),
                 ],
               },
               {
@@ -101,9 +104,9 @@ export const comparativeBarCharts: Resource = validate({
               {
                 title: "Complete the second group",
                 items: [
-                  t("Pupils in two classes choose their favourite activity. Each pupil chooses one activity."),
+                  t("Each pupil in two classes chose one favourite activity."),
                   table(["Activity", "Class A", "Class B"], [["Reading", "6", "8"], ["Gaming", "10", "6"], ["Sport", "8", "10"]]),
-                  part("Complete the comparative bar chart. The Class A bars have already been drawn."),
+                  part("Draw the Class B bars. The Class A bars are already drawn."),
                   chart(activities, [
                       { name: "Class A", fill: "white", values: ["6", "10", "8"] },
                       { name: "Class B", fill: "hatch", values: ["8", "6", "10"], hidden: [0, 1, 2] },
@@ -115,17 +118,14 @@ export const comparativeBarCharts: Resource = validate({
                 title: "Draw both groups from another survey",
                 items: [
                   table(["Activity", "Class A", "Class B"], [["Reading", "6", "10"], ["Gaming", "10", "6"], ["Sport", "8", "8"]]),
-                  part("Draw both sets of bars on the supplied axes."),
+                  part("Draw both sets of bars, then find each combined total."),
                   chart(activities, [
                       { name: "Class A", fill: "white", values: ["6", "10", "8"], hidden: [0, 1, 2] },
                       { name: "Class B", fill: "hatch", values: ["10", "6", "8"], hidden: [0, 1, 2] },
                     ], 12, 2, { xTitle: "", heightMm: 40 }),
-                  part(
-                    "Find the combined totals.",
-                    { type: "answerLine", prefix: "Reading:", suffix: "", answer: "16", inline: true },
-                    { type: "answerLine", prefix: "Gaming:", suffix: "", answer: "16", inline: true },
-                    { type: "answerLine", prefix: "Sport:", suffix: "", answer: "16", inline: true },
-                  ),
+                  { type: "answerLine", prefix: "Reading:", suffix: "", answer: "16", inline: true },
+                  { type: "answerLine", prefix: "Gaming:", suffix: "", answer: "16", inline: true },
+                  { type: "answerLine", prefix: "Sport:", suffix: "", answer: "16", inline: true },
                   part("What do you notice about the totals?", line("", "They are all 16")),
                 ],
               },
@@ -156,8 +156,11 @@ export const comparativeBarCharts: Resource = validate({
                 title: "Compare categories and totals",
                 items: [
                   t("Use your chart from Question 5."),
-                  part("How many pupils are in the Year 7 group?", line("", "24")),
-                  part("How many pupils are in the Year 8 group?", line("", "24")),
+                  part(
+                    "How many pupils are in each group?",
+                    { type: "answerLine", prefix: "Year 7:", suffix: "", answer: "24", inline: true },
+                    { type: "answerLine", prefix: "Year 8:", suffix: "", answer: "24", inline: true },
+                  ),
                   part("Which two lunch options have the same combined total? What is that total?", line("", "Sandwich and pasta, 18")),
                   part("Which lunch option has the greatest difference? What is that difference?", line("", "Sandwich, 6")),
                 ],
@@ -178,7 +181,7 @@ export const comparativeBarCharts: Resource = validate({
                   t("Pupils in two classes choose their favourite sport. Each pupil chooses one sport."),
                   table(["Sport", "Class A", "Class B"], [["Football", "13", "7"], ["Swimming", "4", "6"], ["Tennis", "3", "5"], ["Basketball", "4", "6"]]),
                   t("Draw a comparative bar chart to represent the data. Choose a suitable scale. Include a title, labelled axes and a key."),
-                  space(90, "drawing"),
+                  space(86, "drawing"),
                 ],
               },
               {
@@ -205,7 +208,7 @@ export const comparativeBarCharts: Resource = validate({
                 items: [
                   t("A school library records the number of books borrowed in January and March."),
                   table(["Type of book", "January", "March"], [["Fiction", "30", "40"], ["Non-fiction", "20", "10"], ["Comics", "10", "20"]]),
-                  part("Draw a comparative bar chart. Choose a suitable scale and include a title, labelled axes and a key.", space(50, "drawing")),
+                  part("Draw a comparative bar chart. Choose a suitable scale and include a title, labelled axes and a key.", space(48, "drawing")),
                   part("How many more books were borrowed in March than in January?", line("", "10")),
                 ],
               },

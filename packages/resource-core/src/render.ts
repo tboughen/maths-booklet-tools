@@ -62,7 +62,7 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
   const out: string[] = [];
   let y = 0;
   const row = (cells: { text: string; bold?: boolean; fill?: string }[], h: number, header: boolean) => {
-    if (header) out.push(`<rect x="0" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${ctx.st.tint}"/>`);
+    if (header) out.push(`<rect x="0" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${ctx.st.tableHead}"/>`);
     cells.forEach((c, j) => {
       if (!c.text) return;
       const line: Line = parseRuns(c.text, c.bold ? "bold" : "regular");
@@ -181,12 +181,11 @@ function leaf(item: Leaf, w: number, ctx: Ctx, extra: number): Frag {
     case "info": {
       const pad = 2.4;
       const f = para(item.text, w - pad * 2, ctx, { x: pad });
-      const r = st.id === "cards" ? 1.2 : 0;
-      return { h: f.h + pad * 2, svg: `<rect width="${n(w)}" height="${n(f.h + pad * 2)}" rx="${r}" fill="${st.tint}"/>${at(f, 0, pad)}` };
+      return { h: f.h + pad * 2, svg: `<rect width="${n(w)}" height="${n(f.h + pad * 2)}" rx="1.2" fill="${st.tint}"/>${at(f, 0, pad)}` };
     }
     case "claim": {
       const f = para(`“${item.text}”`, w - 5, ctx, { x: 4.2, base: "italic" });
-      return { h: f.h + 1, svg: `<rect x="0.6" y="0" width="0.8" height="${n(f.h + 1)}" fill="${st.accent}"/>${at(f, 0, 0.5)}` };
+      return { h: f.h + 1, svg: `<rect x="0.6" y="0" width="0.8" height="${n(f.h + 1)}" fill="${st.navy}"/>${at(f, 0, 0.5)}` };
     }
     case "bullets": {
       let y = 0;
@@ -264,62 +263,59 @@ function card(c: Card, number: number, w: number, ctx: Ctx, extra: number, stret
   const st = ctx.st,
     pad = S.cardPad;
   const body = items(c.items, w - pad * 2, ctx, extra);
-  const top = pad + S.badge + S.itemGap;
+  const top = pad + S.tile + S.itemGap;
   const h = top + body.h + pad + stretch;
   const out: string[] = [];
-  const titleY = pad + S.badge / 2 + S.cardTitle * 0.34;
-  if (st.id === "cards") {
-    out.push(`<rect x="0.2" y="0.2" width="${n(w - 0.4)}" height="${n(h - 0.4)}" rx="1.6" fill="white" stroke="${st.rule}" stroke-width="0.35"/>`);
-    out.push(`<rect x="${pad}" y="${pad}" width="${S.badge}" height="${S.badge}" rx="0.9" fill="${st.accent}"/>`);
-    out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.badge / 2, titleY, S.cardTitle, "white", "middle"));
-    out.push(textSvg(parseRuns(c.title, "bold"), pad + S.badge + 2.8, titleY, S.cardTitle, st.ink));
-  } else {
-    out.push(textSvg([{ text: `${number}.`, style: "bold" }], 0, titleY, S.cardTitle * 1.15, st.accent));
-    out.push(textSvg(parseRuns(c.title, "bold"), pad + S.badge + 1, titleY, S.cardTitle, st.ink));
-  }
-  if (plainWidth(c.title, S.cardTitle, "bold") > w - pad * 2 - S.badge - 3) issue(ctx, "The card title is wider than the card.");
-  const bodyX = st.id === "cards" ? pad : 0;
-  out.push(at(body, bodyX, top));
+  const titleY = pad + S.tile / 2 + S.cardTitle * 0.36;
+  // A white framed card with a soft-blue number tile, as on the MathsDock home page.
+  out.push(`<rect x="0.15" y="0.15" width="${n(w - 0.3)}" height="${n(h - 0.3)}" rx="2" fill="white" stroke="${st.rule}" stroke-width="0.3"/>`);
+  out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.tint}"/>`);
+  out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, st.navy, "middle"));
+  out.push(textSvg(parseRuns(c.title, "bold"), pad + S.tile + 2.8, titleY, S.cardTitle, st.navy));
+  if (plainWidth(c.title, S.cardTitle, "bold") > w - pad * 2 - S.tile - 3) issue(ctx, "The card title is wider than the card.");
+  out.push(at(body, pad, top));
   return { h, svg: out.join("") };
 }
 
 export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
   const doc = resource.document;
-  const st = styles[options.style ?? "cards"];
+  const st = styles[options.style ?? "mathsdock"];
   const ctx: Ctx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { side: 0, column: 0, question: 0 } };
   const P = S.page,
     m = S.margin;
   const colW = (P.width - m * 2 - S.gutter * 2) / 3;
   const colTop = m + S.headerHeight;
-  const cardsTop = colTop + S.columnHeadingBand + 3;
+  const cardsTop = colTop + S.columnHeadingBand + 2.5;
   const avail = P.height - m - cardsTop;
   let number = 0;
   const pages = doc.sides.map((side, s) => {
     const out: string[] = [];
-    // Header: title, objective and instruction left; group, name line and side right.
-    out.push(textSvg(parseRuns(doc.title, "bold"), m, m + 7, S.title, st.accent));
+    // Header: title, objective and instruction left; group, name line and side right; a hairline below.
+    out.push(textSvg(parseRuns(doc.title, "bold"), m, m + 6.6, S.title, st.navy));
     const objective = [doc.code, doc.objective].filter(Boolean).join(" • ");
-    out.push(textSvg(parseRuns(objective), m, m + 13, S.objective, st.muted));
-    if (side.instruction) out.push(textSvg(parseRuns(side.instruction), m, m + 18.5, S.objective, st.ink));
+    out.push(textSvg(parseRuns(objective), m, m + 12.2, S.objective, st.muted));
+    if (side.instruction) out.push(textSvg(parseRuns(side.instruction), m, m + 16.4, S.objective, st.ink));
     const right = P.width - m;
-    if (doc.group) out.push(textSvg(parseRuns(doc.group, "bold"), right, m + 5, S.objective, st.accent, "end"));
-    if (doc.nameLine) {
-      out.push(textSvg(parseRuns("Name:"), right - 72, m + 13, S.objective, st.ink));
-      out.push(`<line x1="${n(right - 60)}" y1="${n(m + 13.6)}" x2="${n(right)}" y2="${n(m + 13.6)}" stroke="${st.ink}" stroke-width="0.3"/>`);
+    if (doc.group) {
+      const gw = plainWidth(doc.group, S.objective, "bold") + 5;
+      out.push(`<rect x="${n(right - gw)}" y="${n(m)}" width="${n(gw)}" height="6" rx="1.3" fill="${st.tint}"/>`);
+      out.push(textSvg(parseRuns(doc.group, "bold"), right - gw / 2, m + 3 + S.objective * 0.36, S.objective, st.navy, "middle"));
     }
-    out.push(textSvg(parseRuns(`Side ${s + 1}`), right, m + 18.5, S.objective, st.muted, "end"));
-    if (st.id === "lines") out.push(`<line x1="${m}" y1="${n(colTop - 2.5)}" x2="${n(right)}" y2="${n(colTop - 2.5)}" stroke="${st.rule}" stroke-width="0.35"/>`);
+    if (doc.nameLine) {
+      out.push(textSvg(parseRuns("Name"), right - 76, m + 13.6, S.objective, st.ink));
+      out.push(`<line x1="${n(right - 66)}" y1="${n(m + 14.2)}" x2="${n(right)}" y2="${n(m + 14.2)}" stroke="${st.ink}" stroke-width="0.3"/>`);
+    }
+    out.push(textSvg(parseRuns(`Side ${s + 1} of 2`), right, m + 16.4, S.objective * 0.9, st.muted, "end"));
+    out.push(`<line x1="${m}" y1="${n(colTop - 1.3)}" x2="${n(right)}" y2="${n(colTop - 1.3)}" stroke="${st.rule}" stroke-width="0.3"/>`);
 
     side.columns.forEach((col, c) => {
       const x = m + c * (colW + S.gutter);
       ctx.where = { side: s + 1, column: c + 1, question: 0 };
-      if (st.id === "cards") {
-        out.push(`<rect x="${n(x)}" y="${n(colTop)}" width="${n(colW)}" height="${S.columnHeadingBand}" rx="1.2" fill="${st.accent}"/>`);
-        out.push(textSvg(parseRuns(col.heading, "bold"), x + 3, colTop + S.columnHeadingBand / 2 + S.columnHeading * 0.34, S.columnHeading, "white"));
-      } else {
-        out.push(textSvg(parseRuns(col.heading, "bold"), x, colTop + S.columnHeadingBand / 2 + S.columnHeading * 0.34, S.columnHeading, st.accent));
-        out.push(`<line x1="${n(x)}" y1="${n(colTop + S.columnHeadingBand)}" x2="${n(x + colW)}" y2="${n(colTop + S.columnHeadingBand)}" stroke="${st.accent}" stroke-width="0.5"/>`);
-      }
+      // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
+      const tileY = colTop + (S.columnHeadingBand - S.tile) / 2;
+      out.push(`<rect x="${n(x)}" y="${n(tileY)}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
+      out.push(textSvg([{ text: String.fromCharCode(65 + s * 3 + c), style: "bold" }], x + S.tile / 2, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, "white", "middle"));
+      out.push(textSvg(parseRuns(col.heading, "bold"), x + S.tile + 2.8, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, st.navy));
       const numbers = col.cards.map(() => ++number);
       // Measure, then give spare height to working and drawing spaces (or let the last card reach the foot).
       const quiet: Ctx = { ...ctx, issues: [], diagrams: 0 };
@@ -334,14 +330,13 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
         ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
         const stretch = spare > 0 && !spaces && i === col.cards.length - 1 ? spare : 0;
         const f = card(cd, numbers[i], colW, ctx, extra, stretch);
-        if (st.id === "lines" && i > 0) out.push(`<line x1="${n(x)}" y1="${n(y - S.cardGap / 2)}" x2="${n(x + colW)}" y2="${n(y - S.cardGap / 2)}" stroke="${st.rule}" stroke-width="0.3"/>`);
         out.push(at(f, x, y));
         y += f.h + S.cardGap;
       });
     });
     const style = options.fontCss ? `<style>${options.fontCss}</style>` : "";
     const label = `${doc.title}, side ${s + 1}${ctx.view === "answers" ? ", answers" : ""}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Lato, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
   return { pages, issues: ctx.issues };
 }

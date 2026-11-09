@@ -24,13 +24,13 @@ describe("resource worksheet renderer", () => {
     it(`keeps saved answers out of the pupil view of ${name}`, () => {
       const pupil = renderResource(doc).pages.join("");
       const answers = renderResource(doc, { view: "answers" }).pages.join("");
-      expect(pupil).not.toContain(styles.cards.answer);
-      expect(answers).toContain(styles.cards.answer);
+      expect(pupil).not.toContain(styles.mathsdock.answer);
+      expect(answers).toContain(styles.mathsdock.answer);
     });
 
     it(`places ${name} identically in the pupil and answers views`, () => {
       // Card frames carry the layout: the same rectangles must appear in both views.
-      const frames = (svg: string) => svg.match(/<rect x="0.2" y="0.2" width="[\d.]+" height="[\d.]+"/g);
+      const frames = (svg: string) => svg.match(/<rect x="0.15" y="0.15" width="[\d.]+" height="[\d.]+"/g);
       const a = renderResource(doc).pages.map(frames);
       const b = renderResource(doc, { view: "answers" }).pages.map(frames);
       expect(b).toEqual(a);
@@ -52,7 +52,7 @@ describe("resource worksheet renderer", () => {
     doc.document.sides[0].columns[0].cards[0].items.push({ type: "space", kind: "working", heightMm: 200 });
     const r = renderResource(doc);
     expect(r.issues.some((i) => i.side === 1 && i.column === 1 && /needs [\d.]+ mm more height/.test(i.message))).toBe(true);
-    expect(r.pages[0]).toContain('font-size="3.18"');
+    expect(r.pages[0]).toContain('font-size="3.53"');
   });
 
   it("refuses markup and unknown blocks", () => {
