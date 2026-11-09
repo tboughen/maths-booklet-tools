@@ -18,6 +18,7 @@ export const toolIds = [
   "number-line",
   "charts",
   "probability-tree",
+  "worksheet",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */

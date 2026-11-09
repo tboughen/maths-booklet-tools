@@ -27,6 +27,8 @@ export function writeWorksheetPdf(
   const doc = new PDFDocument({
     autoFirstPage: false,
     margin: 0,
+    // No standard font: the browser build has none, and every glyph uses the embedded fonts.
+    font: null,
     pdfVersion: "1.7",
     info: { Title: title, Creator: "MathsDock", Producer: "MathsDock", CreationDate: new Date(0) },
   });
