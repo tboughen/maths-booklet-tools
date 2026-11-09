@@ -75,7 +75,6 @@ export const comparativeBarCharts: Resource = validate({
                     1,
                     { xTitle: "Travel method", yTitle: "Pupils", heightMm: 40 },
                   ),
-                  part("Use the key. Which bars represent Class A? Which represent Class B?", { type: "answerLine", prefix: "Class A:", suffix: "", answer: "white", inline: true }, { type: "answerLine", prefix: "Class B:", suffix: "", answer: "hatched", inline: true }),
                   part("How many pupils in Class A usually walk to school?", line("", "8")),
                   part("Complete the sentence: the Class B bar above Bus shows that ______ pupils in Class B usually travel by bus."),
                   part(
@@ -88,7 +87,6 @@ export const comparativeBarCharts: Resource = validate({
               {
                 title: "Compare the classes",
                 items: [
-                  t("Use the chart from Question 1."),
                   { type: "info", text: "Compare the two bars for a category. Subtract to find a difference; add to find a combined total." },
                   part("Which travel method is used by the same number of pupils in both classes?", line("", "Car")),
                   part("How many more pupils in Class B travel by bus than in Class A?", line("", "4")),
@@ -181,7 +179,7 @@ export const comparativeBarCharts: Resource = validate({
                   t("Pupils in two classes choose their favourite sport. Each pupil chooses one sport."),
                   table(["Sport", "Class A", "Class B"], [["Football", "13", "7"], ["Swimming", "4", "6"], ["Tennis", "3", "5"], ["Basketball", "4", "6"]]),
                   t("Draw a comparative bar chart to represent the data. Choose a suitable scale. Include a title, labelled axes and a key."),
-                  space(86, "drawing"),
+                  space(85, "drawing"),
                 ],
               },
               {
@@ -247,7 +245,7 @@ export const comparativeBarCharts: Resource = validate({
                     ],
                     10,
                     1,
-                    { xTitle: "Lunch", yTitle: "Pupils", heightMm: 46 },
+                    { xTitle: "Lunch", yTitle: "Pupils", heightMm: 40 },
                   ),
                   part("Find how many pupils in Class B chose salad.", line("", "5")),
                   part("Add the missing bar to the chart."),
@@ -257,7 +255,7 @@ export const comparativeBarCharts: Resource = validate({
               {
                 title: "Create a comparative chart",
                 items: [
-                  t("Two groups each contain 12 pupils. Every pupil chooses one favourite activity from reading, gaming and sport. Create results that meet all three conditions:"),
+                  t("Two groups of 12 pupils each choose one favourite activity: reading, gaming or sport. Make up results that meet all three conditions:"),
                   {
                     type: "bullets",
                     items: [
@@ -266,7 +264,7 @@ export const comparativeBarCharts: Resource = validate({
                       "The same number of pupils in each group choose gaming.",
                     ],
                   },
-                  part("Draw one comparative bar chart showing your results for both groups. Choose a suitable scale and include a title, labelled axes and a key.", space(36, "drawing")),
+                  part("Draw a comparative bar chart of your results with a suitable scale, a title, labelled axes and a key.", space(34, "drawing")),
                   part("Could a different set of results also meet all the conditions? Explain.", space(10)),
                 ],
               },
@@ -373,7 +371,7 @@ export const treeDiagrams: Resource = validate({
               {
                 title: "Coin first, then spinner",
                 items: [
-                  t("A coin has two possible results: heads (H) and tails (T). A spinner has three possible results: red (R), blue (B) and green (G). The coin is tossed first, then the spinner is spun."),
+                  t("A coin lands heads (H) or tails (T). A spinner lands red (R), blue (B) or green (G). The coin is tossed first, then the spinner is spun."),
                   part("Complete the tree diagram."),
                   tree([["H", "T"], ["R", "B", "G"]], { hideOutcome: ["T,R", "T,B", "T,G"] }),
                   part("List all the possible outcomes.", outcomes("HR", "HB", "HG", "TR", "TB", "TG")),

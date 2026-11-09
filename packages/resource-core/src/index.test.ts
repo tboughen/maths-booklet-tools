@@ -52,7 +52,7 @@ describe("resource worksheet renderer", () => {
     doc.document.sides[0].columns[0].cards[0].items.push({ type: "space", kind: "working", heightMm: 200 });
     const r = renderResource(doc);
     expect(r.issues.some((i) => i.side === 1 && i.column === 1 && /needs [\d.]+ mm more height/.test(i.message))).toBe(true);
-    expect(r.pages[0]).toContain('font-size="3.53"');
+    expect(r.pages[0]).toContain('font-size="3.88"');
   });
 
   it("refuses markup and unknown blocks", () => {

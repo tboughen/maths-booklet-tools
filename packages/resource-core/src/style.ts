@@ -48,7 +48,7 @@ export const SIZE = {
   columnHeading: 12 * pt,
   columnHeadingBand: 7,
   cardTitle: 11 * pt,
-  body: 10 * pt,
+  body: 11 * pt,
   lineHeight: 1.4,
   cardPad: 3,
   cardGap: 3.5,

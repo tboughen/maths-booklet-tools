@@ -302,10 +302,10 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       out.push(textSvg(parseRuns(doc.group, "bold"), right - gw / 2, m + 3 + S.objective * 0.36, S.objective, st.navy, "middle"));
     }
     if (doc.nameLine) {
-      out.push(textSvg(parseRuns("Name"), right - 76, m + 13.6, S.objective, st.ink));
-      out.push(`<line x1="${n(right - 66)}" y1="${n(m + 14.2)}" x2="${n(right)}" y2="${n(m + 14.2)}" stroke="${st.ink}" stroke-width="0.3"/>`);
+      out.push(textSvg(parseRuns("Name"), right - 76, m + 11, S.objective, st.ink));
+      out.push(`<line x1="${n(right - 66)}" y1="${n(m + 11.6)}" x2="${n(right)}" y2="${n(m + 11.6)}" stroke="${st.ink}" stroke-width="0.3"/>`);
     }
-    out.push(textSvg(parseRuns(`Side ${s + 1} of 2`), right, m + 16.4, S.objective * 0.9, st.muted, "end"));
+    out.push(textSvg(parseRuns(`Side ${s + 1} of 2`), right, m + 16.4, S.objective, st.muted, "end"));
     out.push(`<line x1="${m}" y1="${n(colTop - 1.3)}" x2="${n(right)}" y2="${n(colTop - 1.3)}" stroke="${st.rule}" stroke-width="0.3"/>`);
 
     side.columns.forEach((col, c) => {
