@@ -1,0 +1,53 @@
+@font-face { font-family: "MathsDock Worksheet"; font-style: normal; font-weight: 400; font-display: block; src: url("../../assets/resource-fonts/Inter-Regular.ttf") format("truetype"); }
+@font-face { font-family: "MathsDock Worksheet"; font-style: normal; font-weight: 600; font-display: block; src: url("../../assets/resource-fonts/Inter-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "MathsDock Worksheet"; font-style: italic; font-weight: 400; font-display: block; src: url("../../assets/resource-fonts/Inter-Italic.ttf") format("truetype"); }
+
+.ws-preview-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 8px 0; }
+.ws-message { margin: 4px 0 8px; color: var(--ink, #262720); }
+.ws-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; padding: 10px 12px; border: 1px solid var(--line, #c9d2dd); border-radius: 8px; background: #f6f8fb; }
+.ws-confirm p { flex: 1 1 260px; margin: 0; }
+.ws-pages { display: grid; gap: 16px; }
+.ws-page { margin: 0; }
+.ws-page figcaption { font-size: 0.85rem; color: var(--muted, #5d6470); margin-bottom: 4px; }
+.ws-art { background: #fff; box-shadow: 0 0 0 1px #d5dbe3, 0 2px 8px rgba(23, 60, 101, 0.08); }
+.ws-art svg { display: block; width: 100%; height: auto; }
+.ws-checks h2, .ws-outline h2 { font-size: 1rem; margin: 0 0 8px; }
+.ws-checks ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; }
+.ws-checks li { display: flex; gap: 8px; }
+.ws-checks li span { font-weight: 700; color: #1f7a4d; }
+.ws-checks li.problem span, .ws-checks li.problem { color: #a4161a; }
+.ws-outline { display: grid; gap: 8px; max-height: calc(100vh - 160px); overflow: auto; }
+.ws-field { display: grid; gap: 2px; font-size: 0.85rem; }
+.ws-field > span { color: var(--muted, #5d6470); }
+.ws-field input, .ws-field textarea, .ws-field select, .ws-cell select { font: inherit; font-size: 0.9rem; padding: 4px 6px; border: 1px solid #c9d2dd; border-radius: 6px; min-width: 0; }
+.ws-field textarea { resize: vertical; }
+.ws-number input { width: 6em; }
+.ws-side > summary, .ws-card > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.ws-column { display: grid; gap: 6px; margin: 8px 0 12px; padding-left: 8px; border-left: 3px solid #dde7f3; }
+.ws-card { padding: 4px 8px; border: 1px solid #d5dbe3; border-radius: 6px; display: grid; gap: 6px; }
+.ws-card[open] { padding-bottom: 10px; }
+.ws-q { display: inline-grid; place-items: center; min-width: 1.5em; height: 1.5em; border-radius: 4px; background: #173c65; color: #fff; font-size: 0.8rem; }
+.ws-card-moves { display: flex; gap: 4px; }
+.ws-part { display: grid; gap: 6px; padding-left: 10px; border-left: 2px solid #eef2f7; }
+.ws-table-edit { display: grid; gap: 4px; }
+.ws-table-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.ws-cell { display: grid; gap: 2px; }
+.ws-cell--hidden input { border-color: #b0125b; }
+.ws-cell--blank input { background: #f6f8fb; }
+.ws-line-edit { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px; }
+.ws-note { margin: 0; font-size: 0.85rem; color: var(--muted, #5d6470); }
+.ws-ai { display: grid; gap: 8px; }
+.ws-ai h2 { display: flex; align-items: center; gap: 6px; font-size: 1rem; margin: 0; }
+.ws-ai h3 { font-size: 0.95rem; margin: 6px 0 0; }
+.ws-ai h4 { font-size: 0.85rem; margin: 8px 0 2px; }
+.ws-ai-settings { display: grid; gap: 8px; padding: 6px 8px; border: 1px solid #d5dbe3; border-radius: 6px; }
+.ws-ai-settings[open] { padding-bottom: 10px; }
+.ws-ai-settings > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; overflow-wrap: anywhere; }
+.ws-ai-settings[open] > :not(summary) { margin-top: 8px; }
+.ws-ai-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ws-check { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; }
+.ws-hint { margin: 0; font-size: 0.8rem; color: var(--muted, #5d6470); }
+.ws-hint:empty { display: none; }
+.ws-hint.problem { color: #a4161a; }
+.ws-ai-notes > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.ws-pre { margin: 0; white-space: pre-wrap; font-size: 0.85rem; max-height: 320px; overflow: auto; }

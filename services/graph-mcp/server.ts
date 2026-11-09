@@ -38,6 +38,7 @@ import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
 import { ValueDownloads } from "./value-downloads";
 import { valueGraphTools } from "./value-graph-tools";
+import { WorksheetDownloads, worksheetTools } from "./worksheet-tools";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools } from "./resource-tools";
 import { BundleDownloads } from "./bundle-downloads";
@@ -53,6 +54,8 @@ export interface ServiceOptions {
   activeKey: string;
   workerFile?: string;
   fontRoot?: string;
+  /** Worksheet text fonts; defaults to assets/resource-fonts. */
+  textFontRoot?: string;
   renderTimeoutMs?: number;
   dailyBytes?: number;
   /** Keeps the daily served-byte total across sleeps and restarts. */
@@ -105,6 +108,7 @@ export function graphService(options: ServiceOptions) {
     options.workerFile ?? resolve("service-dist/raster-worker.js"),
     options.fontRoot ?? resolve("assets/graph-fonts"),
     options.renderTimeoutMs,
+    options.textFontRoot ?? resolve("assets/resource-fonts"),
   );
   const limits = new TrafficLimits(options.dailyBytes, {
     store: options.quotaStore,
@@ -116,6 +120,8 @@ export function graphService(options: ServiceOptions) {
   const values = valueGraphTools(raster, valueDownloads, limits, options.editorUrl);
   const resourceDownloads = new ResourceDownloads(base.href, options.keys, options.activeKey);
   const resources = resourceTools(raster, resourceDownloads, limits, options.editorUrl);
+  const worksheetDownloads = new WorksheetDownloads(base.href, options.keys, options.activeKey);
+  const worksheets = worksheetTools(raster, worksheetDownloads, limits);
   const artifacts = async (
     envelope: GraphEnvelope,
     format: DownloadFormat,
@@ -264,7 +270,7 @@ export function graphService(options: ServiceOptions) {
       { name: "Maths Booklet Tools", version: serverVersion(servicePackage.version, options.buildId) },
       {
         instructions:
-          "Create and revise MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines, Venn diagrams, expanding/factorising algebra grids, bar models, probability trees, Triangle diagrams and statistical charts (bar, dual, composite and vertical line charts; not time series, frequency polygons or histograms). For horizontal working fractions and 12mm-above/3mm-below handwriting space request spec.schemaVersion:3 explicitly, or upgrade_document{targetSchemaVersion:3} first on an older file. Explicit spec2 and bare legacy requests retain their original versions; upgrade_document without a target still means v1 to v2. V3 Maths captions stack simple a/b fractions; Plain text is explicit for dates/literal slashes, and ambiguity never silently falls back. Bar models retain one shared unit width and stable anchored spans; labels do not determine widths or calculate answers, and referenced deletions require explicit span removal or discard intent. Triangle preserves explicit labels, topology and saved answers; calculate only on request, never measure drawn proportions. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
+          "Create and revise MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines, Venn diagrams, expanding/factorising algebra grids, bar models, probability trees, Triangle diagrams and statistical charts (bar, dual, composite and vertical line charts; not time series, frequency polygons or histograms). For a finalised two-sided A3 worksheet (the PRODUCE step), call create_worksheet with the whole document and report any layout issues it returns. For horizontal working fractions and 12mm-above/3mm-below handwriting space request spec.schemaVersion:3 explicitly, or upgrade_document{targetSchemaVersion:3} first on an older file. Explicit spec2 and bare legacy requests retain their original versions; upgrade_document without a target still means v1 to v2. V3 Maths captions stack simple a/b fractions; Plain text is explicit for dates/literal slashes, and ambiguity never silently falls back. Bar models retain one shared unit width and stable anchored spans; labels do not determine widths or calculate answers, and referenced deletions require explicit span removal or discard intent. Triangle preserves explicit labels, topology and saved answers; calculate only on request, never measure drawn proportions. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
       },
     );
     const annotations = {
@@ -370,6 +376,7 @@ export function graphService(options: ServiceOptions) {
     values.register(server, connectionSignal);
     resources.register(server, connectionSignal);
     diagramOutputs.register(server, connectionSignal);
+    worksheets.register(server, connectionSignal);
     return server;
   }
   const service = createServer({ maxHeaderSize: 16 * 1024 }, async (req, res) => {
@@ -433,6 +440,18 @@ export function graphService(options: ServiceOptions) {
         const file = await resources.artifacts(source, format, abort.signal);
         limits.output(file.body.length); bytes = file.body.length;
         res.writeHead(200, {"Content-Type":file.type,"Content-Disposition":`attachment; filename="mathsdock-${source.kind}.${format}"`,"Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; sandbox"});
+        res.end(file.body); return;
+      }
+      if (req.method === "GET" && url.pathname === "/worksheet/download") {
+        const { resource, format, view } = worksheetDownloads.verify(url);
+        const abort = new AbortController();
+        res.once("close", () => { if (!res.writableFinished) abort.abort(); });
+        const file = await worksheets.artifacts(resource, format, view, abort.signal);
+        limits.output(file.body.length); bytes = file.body.length;
+        const ascii = file.name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
+        res.writeHead(200, { "Content-Type": file.type,
+          "Content-Disposition": `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+          "Content-Security-Policy": "default-src 'none'; sandbox" });
         res.end(file.body); return;
       }
       if (req.method === "GET" && url.pathname === "/diagram-bundle/download") {

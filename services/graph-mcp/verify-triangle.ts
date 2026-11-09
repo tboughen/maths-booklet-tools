@@ -74,7 +74,7 @@ async function save(name:string,r:Awaited<ReturnType<typeof call>>) {
 try {
   await c.connect(new StreamableHTTPClientTransport(new URL(base+"/mcp"),{fetch:request}));
   const catalogue=await discoverTools(cursor=>c.listTools(cursor?{cursor}:undefined));
-  assert.equal(catalogue.length,36);
+  assert.equal(catalogue.length,38);
   await writeFile(resolve(output,"catalogue.json"),JSON.stringify(catalogue,null,2));
   const cap=await c.callTool({name:"triangle_capabilities",arguments:{}});assert(!cap.isError);
   await writeFile(resolve(output,"capabilities.json"),JSON.stringify(cap,null,2));

@@ -14,8 +14,10 @@ COPY packages/bar-model-core packages/bar-model-core
 COPY packages/chart-core packages/chart-core
 COPY packages/probability-tree-core packages/probability-tree-core
 COPY packages/triangle-core packages/triangle-core
+COPY packages/resource-core packages/resource-core
 COPY services/graph-mcp services/graph-mcp
 COPY assets/graph-fonts assets/graph-fonts
+COPY assets/resource-fonts assets/resource-fonts
 RUN npm run build:service
 
 FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
@@ -25,6 +27,7 @@ COPY services/graph-mcp/package.json services/graph-mcp/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build --chown=node:node /app/service-dist ./service-dist
 COPY --chown=node:node assets/graph-fonts ./assets/graph-fonts
+COPY --chown=node:node assets/resource-fonts ./assets/resource-fonts
 USER node
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD ["node", "service-dist/healthcheck.js"]
