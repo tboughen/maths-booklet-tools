@@ -10,6 +10,7 @@ import { fileName, renderResource, validate, type Item, type Resource } from "..
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { downloadEditable, downloadPdf, editableName } from "./export";
 import { moveCard, type Move } from "./edit";
+import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
@@ -108,10 +109,11 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const [answers, setAnswers] = useState(false);
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const [pending, setPending] = useState<{ r: Resource; title: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const r = history.present;
-  const blocked = busy || recovery !== null || pending !== null;
+  const blocked = busy || aiBusy || recovery !== null || pending !== null;
   const shown = useMemo(() => renderResource(r, { view: answers ? "answers" : "pupil" }), [r, answers]);
   const issues = shown.issues;
 
@@ -279,7 +281,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Worksheets" description="Open a MathsDock worksheet file, change its wording and answer spaces, and download the A3 PDFs.">
+        <PageHeading title="Worksheets" description="Make an A3 worksheet from a learning objective with your own AI key, or open a worksheet file. Change its wording and answer spaces, and download the A3 PDFs.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
@@ -389,6 +391,15 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
             </div>
           </Panel>
           <aside className="inspector-stack" aria-label="Worksheet settings">
+            <AiPanel
+              current={r}
+              disabled={busy || recovery !== null || pending !== null}
+              onBusyChange={setAiBusy}
+              onApply={(next, note) => {
+                commit(next);
+                setMessage(note);
+              }}
+            />
             <section className="panel-card ws-checks" aria-label="Checks">
               <h2>Checks</h2>
               <ul>

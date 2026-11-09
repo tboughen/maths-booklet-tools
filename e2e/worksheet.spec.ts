@@ -89,3 +89,52 @@ test("downloads two-page A3 vector PDFs named by the guide and opens a saved fil
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.title).toBe(treeDiagrams.document.title);
 });
+
+// The AI maker talks straight to the provider with the teacher's key; here the provider is a recorded-shape stream.
+function claudeStream(input: unknown) {
+  const json = JSON.stringify(input);
+  const ev = (type: string, data: object) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
+  return [
+    ev("message_start", { message: { id: "msg_1", type: "message", role: "assistant", model: "claude-opus-5-5", content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 9000, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 20000 } } }),
+    ev("content_block_start", { index: 0, content_block: { type: "tool_use", id: "toolu_1", name: "submit_worksheet", input: {} } }),
+    ev("content_block_delta", { index: 0, delta: { type: "input_json_delta", partial_json: json } }),
+    ev("content_block_stop", { index: 0 }),
+    ev("message_delta", { delta: { stop_reason: "tool_use", stop_sequence: null }, usage: { output_tokens: 12000 } }),
+    ev("message_stop", {}),
+  ].join("");
+}
+
+test("makes a worksheet from a scheme objective with the teacher's own Claude key, then undoes it", async ({ page }) => {
+  const scheme = { schemaVersion: 1, kind: "scheme-of-work", name: "Department scheme", units: [{ code: "SP2", title: "Presentation of data", years: [8], objectives: [{ code: "SP2.06", level: "C", text: "Construct and interpret comparative bar charts" }] }] };
+  await page.route("**/bank/assets/schemes/school.json", (route) => route.fulfill({ json: scheme }));
+  const sent: { headers: Record<string, string>; body: { messages: { content: string }[]; model: string } }[] = [];
+  await page.route("https://api.anthropic.com/**", async (route) => {
+    const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "POST, GET, OPTIONS" };
+    if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    sent.push({ headers: route.request().headers(), body: route.request().postDataJSON() });
+    await route.fulfill({ headers: { ...cors, "content-type": "text/event-stream" }, body: claudeStream({ plan: "Read, then complete, then build comparative bar charts.", flags: "Assumed no calculator.", resource: comparativeBarCharts }) });
+  });
+  await boot(page, treeDiagrams);
+  const ai = page.getByRole("region", { name: "Make with AI" });
+  await ai.getByLabel("Your API key").fill("sk-ant-api03-test-key-0000000000000000");
+  await ai.getByLabel("Unit").selectOption("SP2");
+  await ai.getByRole("combobox", { name: /^Objective\b/ }).selectOption("SP2.06");
+  await expect(ai.getByLabel("Objective code")).toHaveValue("SP2.06");
+  await expect(ai.getByLabel("Year or tier")).toHaveValue("Year 8");
+  await ai.getByRole("button", { name: "Make worksheet" }).click();
+  await expect(page.locator(".ws-message")).toContainText("New worksheet made by claude-opus-5-5");
+  expect((await saved(page)).document.title).toBe("Comparative bar charts");
+  expect(sent).toHaveLength(1);
+  expect(sent[0].headers.authorization).toBe("Bearer sk-ant-api03-test-key-0000000000000000");
+  expect(sent[0].headers["anthropic-dangerous-direct-browser-access"]).toBe("true");
+  expect(sent[0].body.messages[0].content).toContain("Objective code: SP2.06");
+  await ai.getByText("Teacher notes from the AI").click();
+  await expect(ai).toContainText("Assumed no calculator.");
+  await expect(ai).toContainText("about $0.");
+  // The key stays in this tab only, and never in the worksheet.
+  const stored = await page.evaluate(() => ({ local: JSON.stringify(localStorage), session: JSON.stringify(sessionStorage) }));
+  expect(stored.local).not.toContain("sk-ant-api03");
+  expect(stored.session).toContain("sk-ant-api03");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.title).toBe(treeDiagrams.document.title);
+});
