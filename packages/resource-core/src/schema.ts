@@ -124,7 +124,8 @@ export const resourceSchema = z
         nameLine: z.boolean().default(true),
         sides: z.array(sideSchema).length(2),
       })
-      .strict(),
+      .strict()
+      .describe("The worksheet: header fields and exactly two sides, each with three strand columns of question cards."),
   })
   .strict();
 

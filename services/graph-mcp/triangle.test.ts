@@ -51,9 +51,9 @@ function homogeneous(v: unknown): void {
   expect("prefixItems" in obj || "additionalItems" in obj).toBe(false);
   Object.values(obj).forEach(homogeneous);
 }
-it("advertises all 36 tools with compatible input AND output schemas and complete Triangle metadata", async () => {
+it("advertises all 38 tools with compatible input AND output schemas and complete Triangle metadata", async () => {
   const c = await start(), tools = (await c.listTools()).tools;
-  expect(tools).toHaveLength(36);
+  expect(tools).toHaveLength(38);
   for (const name of ["triangle_capabilities","create_triangle","revise_triangle"]) expect(tools.some(t => t.name === name)).toBe(true);
   for (const t of tools) { homogeneous(t.inputSchema); homogeneous(t.outputSchema); }
   expect(() => homogeneous({ type:"array",items:[{type:"string"}] })).toThrow();

@@ -1,6 +1,7 @@
 import { Resvg } from "@resvg/resvg-js";
 import { join } from "node:path";
 import { packArchive } from "./archive";
+import { worksheetPdf } from "./worksheet-pdf";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import {
   setDensityBytes,
@@ -15,7 +16,10 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
-    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "triangle";
+    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "triangle" | "worksheet";
+    /** Worksheet text fonts (assets/resource-fonts), loaded beside the diagram fonts. */
+    textFontRoot?: string;
+    pdf?: { pages: string[]; title: string };
     measureCrop?: boolean;
     archive?: Record<string, Uint8Array>;
   }) => {
@@ -23,6 +27,14 @@ process.once(
       if (job.archive) {
         const zip = packArchive(job.archive);
         process.send?.({ zip }, () => process.exit(0));
+        return;
+      }
+      if (job.pdf) {
+        if (!job.textFontRoot) throw Error("Worksheet fonts are missing.");
+        worksheetPdf(job.pdf.pages, job.pdf.title, { text: job.textFontRoot, diagrams: job.fontRoot }).then(
+          (pdf) => process.send?.({ pdf }, () => process.exit(0)),
+          () => process.send?.({ code: "render_failed", error: "The PDF could not be made." }, () => process.exit(1)),
+        );
         return;
       }
       if (job.measureCrop) {
@@ -55,7 +67,9 @@ process.once(
             "STIXTwoText-Regular.otf",
             "STIXTwoText-Italic.otf",
             "STIXTwoMath-Regular.otf",
-          ].map((f) => join(job.fontRoot, f)),
+          ]
+            .map((f) => join(job.fontRoot, f))
+            .concat(job.textFontRoot ? ["Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Italic.ttf"].map((f) => join(job.textFontRoot!, f)) : []),
           defaultFontFamily: "STIX Two Text",
         },
         logLevel: "off",

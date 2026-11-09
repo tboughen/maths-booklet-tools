@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { validateArchiveMembers } from "./archive";
 export type Crop = { svg: string; widthCm: number; heightCm: number };
-type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop };
+type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop; pdf?: Uint8Array };
 export class RasterQueue {
   private active = false;
   private waiting: Array<() => void> = [];
@@ -11,7 +11,25 @@ export class RasterQueue {
     private workerFile = resolve("service-dist/raster-worker.js"),
     private fontRoot = resolve("assets/graph-fonts"),
     private timeoutMs = 15000,
+    private textFontRoot = resolve("assets/resource-fonts"),
   ) {}
+  /** Screen preview of one worksheet page, with the worksheet text fonts loaded. */
+  async worksheetPng(svg: string, width: number, height: number, signal?: AbortSignal): Promise<Uint8Array> {
+    if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width * height > 8_000_000)
+      throw new GraphError("size_limit", "The preview exceeds 8 million pixels.");
+    const result = await this.run(
+      { svg, width, height, print: false, outlined: false, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot, artifactKind: "worksheet" },
+      signal,
+    );
+    if (!result.png) throw new GraphError("render_failed", "No preview was generated.");
+    return result.png;
+  }
+  /** Vector PDF of worksheet pages. */
+  async worksheetPdf(pages: string[], title: string, signal?: AbortSignal): Promise<Uint8Array> {
+    const result = await this.run({ pdf: { pages, title }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
+    if (!result.pdf) throw new GraphError("render_failed", "No PDF was generated.");
+    return result.pdf;
+  }
   async render(
     svg: string,
     width: number,
@@ -124,7 +142,7 @@ export class RasterQueue {
             if (message.error)
               finish(new GraphError(message.code ?? "render_failed", message.error));
             else if (
-              (message.zip?.byteLength ?? message.png?.byteLength ??
+              (message.zip?.byteLength ?? message.png?.byteLength ?? message.pdf?.byteLength ??
                 Buffer.byteLength(message.svg ?? message.crop?.svg ?? "")) >
               10 * 1024 * 1024
             )

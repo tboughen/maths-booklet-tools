@@ -60,14 +60,38 @@ from 8.7 pt to 14.3 pt main text. At 12 pt the golden sheets no longer fit two s
 moving questions; at 11 pt they fit with small wording trims. Dyslexia guidance often asks for
 12 pt, so a larger-print setting (fewer questions a side) stays a later option.
 
+## PDF
+
+`services/graph-mcp/worksheet-pdf.ts` writes the PDF with PDFKit and svg-to-pdfkit: one page per
+rendered SVG at its own millimetre size, text kept as text with subset embedded fonts (Inter for
+the sheet, STIX Two for diagrams), no raster images. It needs no browser, so the free Render
+service can run it. The Inter files are TrueType because the PDF writer cannot subset WOFF2.
+
+## MCP tools
+
+`worksheet_capabilities` lists the layout, item types and limits. `create_worksheet` takes a whole
+resource document (the PRODUCE step from a finalised question set; diagrams are the exact envelopes
+from `create_chart` or `create_probability_tree`) and returns:
+
+- a screen preview of each side (pupil view);
+- signed links to the pupil PDF, the answers PDF and the editable JSON, named by the guide's
+  convention (the worksheet travels deflated inside the link; files are embedded in the reply when
+  a link would be too long);
+- `printReady` and the layout issues. Overflow is reported, never fixed by shrinking: the client
+  revises the document and calls `create_worksheet` again;
+- a `contentHash` of the document.
+
+The PDFs and previews run in the service's render worker, so they share its queue, timeout and
+daily output quota. `services/graph-mcp/worksheet-tools.test.ts` covers the round trip.
+
 ## Samples and checks
 
 `node scripts/resource/samples.mjs [outDir]` renders the golden fixtures (Tim's comparative bar
-charts and tree diagrams sheets, `src/fixtures.ts`) in both views to SVG and to
-vector PDF through Chromium. `npx vitest run packages/resource-core` checks two sides, no layout
-issues, no answers in pupil pages, identical placement across views, JSON round trips, overflow
-reports and file names.
+charts and tree diagrams sheets, `src/fixtures.ts`) in both views to SVG and to vector PDF with the
+service's PDF writer. `npx vitest run packages/resource-core` checks two sides, no layout issues,
+no answers in pupil pages, identical placement across views, JSON round trips, overflow reports
+and file names.
 
-Known gaps for later steps: the PDF route needs Chromium (step 2 decides the service route);
-the Charts y-axis title is horizontal, which makes dual charts wide in a 131 mm column; Triangle,
-number line and graph diagrams are not wired in yet.
+Known gaps for later steps: the Charts y-axis title is horizontal, which makes dual charts wide in
+a 131 mm column; Triangle, number line and graph diagrams are not wired in yet; there is no
+browser editor (step 3) and no A4 booklet (step 4).

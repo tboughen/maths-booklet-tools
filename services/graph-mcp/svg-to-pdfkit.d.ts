@@ -1,0 +1,11 @@
+declare module "svg-to-pdfkit" {
+  interface Options {
+    width?: number;
+    height?: number;
+    preserveAspectRatio?: string;
+    assumePt?: boolean;
+    fontCallback?: (family: string, bold: boolean, italic: boolean, options: object) => string;
+    warningCallback?: (warning: string) => void;
+  }
+  export default function SVGtoPDF(doc: PDFKit.PDFDocument, svg: string, x?: number, y?: number, options?: Options): void;
+}

@@ -44,8 +44,10 @@ for (const directory of [
   "packages/chart-core",
   "packages/probability-tree-core",
   "packages/triangle-core",
+  "packages/resource-core",
   "services/graph-mcp",
   "assets/graph-fonts",
+  "assets/resource-fonts",
 ])
   await collect(directory);
 const sorted = Object.fromEntries(
@@ -57,7 +59,7 @@ const buildId = createHash("sha256")
 await writeFile(
   "service-dist/manifest.json",
   JSON.stringify(
-    { rendererVersion: "graph-1", ratioRendererVersion: "ratio-1", valueGraphRendererVersion: "value-graph-1", cuboidRendererVersions: ["cuboids-1", "cuboids-2"], numberLineRendererVersion: "number-line-1", vennRendererVersions: ["venn-1", "venn-2"], barModelRendererVersion: "bar-model-1", barModelRendererVersions: ["bar-model-1", "bar-model-2", "bar-model-3"], algebraGridRendererVersion: "algebra-grid-1", triangleRendererVersions: ["triangle-1", "triangle-2"], buildId, files: sorted },
+    { rendererVersion: "graph-1", ratioRendererVersion: "ratio-1", valueGraphRendererVersion: "value-graph-1", cuboidRendererVersions: ["cuboids-1", "cuboids-2"], numberLineRendererVersion: "number-line-1", vennRendererVersions: ["venn-1", "venn-2"], barModelRendererVersion: "bar-model-1", barModelRendererVersions: ["bar-model-1", "bar-model-2", "bar-model-3"], algebraGridRendererVersion: "algebra-grid-1", triangleRendererVersions: ["triangle-1", "triangle-2"], worksheetRendererVersion: "worksheet-a3-1", buildId, files: sorted },
     null,
     2,
   ) + "\n",
