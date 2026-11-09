@@ -17,7 +17,7 @@ export interface HouseStyle {
   tint: string;
   /** Table header rows. */
   tableHead: string;
-  /** Card frames and table rules. */
+  /** Card frames and table rules: dark enough to survive black-and-white printing. */
   rule: string;
   /** Saved answers, answers view only. */
   answer: string;
@@ -30,9 +30,9 @@ export const styles: Record<StyleId, HouseStyle> = {
     ink: "#262720",
     muted: "#5d6470",
     navy: "#173c65",
-    tint: "#eaf1fa",
-    tableHead: "#f1f4f8",
-    rule: "#c9d2dd",
+    tint: "#dde7f3",
+    tableHead: "#e4e9ef",
+    rule: "#7f8a98",
     answer: "#b0125b",
   },
 };

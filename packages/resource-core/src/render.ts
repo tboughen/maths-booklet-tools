@@ -88,7 +88,7 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
     grid.push(`M0,${n(yy)}H${n(w)}`);
   }
   for (const x of xs.slice(1)) grid.push(`M${n(x)},0V${n(y)}`);
-  out.push(`<path d="${grid.join("")}" fill="none" stroke="${ctx.st.rule}" stroke-width="0.3"/>`);
+  out.push(`<path d="${grid.join("")}" fill="none" stroke="${ctx.st.rule}" stroke-width="0.35"/>`);
   return { h: y, svg: out.join("") };
 }
 
@@ -181,7 +181,7 @@ function leaf(item: Leaf, w: number, ctx: Ctx, extra: number): Frag {
     case "info": {
       const pad = 2.4;
       const f = para(item.text, w - pad * 2, ctx, { x: pad });
-      return { h: f.h + pad * 2, svg: `<rect width="${n(w)}" height="${n(f.h + pad * 2)}" rx="1.2" fill="${st.tint}"/>${at(f, 0, pad)}` };
+      return { h: f.h + pad * 2, svg: `<rect width="${n(w)}" height="${n(f.h + pad * 2)}" rx="1.2" fill="${st.tint}"/><rect width="0.9" height="${n(f.h + pad * 2)}" fill="${st.navy}"/>${at(f, 0, pad)}` };
     }
     case "claim": {
       const f = para(`“${item.text}”`, w - 5, ctx, { x: 4.2, base: "italic" });
@@ -268,9 +268,9 @@ function card(c: Card, number: number, w: number, ctx: Ctx, extra: number, stret
   const out: string[] = [];
   const titleY = pad + S.tile / 2 + S.cardTitle * 0.36;
   // A white framed card with a soft-blue number tile, as on the MathsDock home page.
-  out.push(`<rect x="0.15" y="0.15" width="${n(w - 0.3)}" height="${n(h - 0.3)}" rx="2" fill="white" stroke="${st.rule}" stroke-width="0.3"/>`);
-  out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.tint}"/>`);
-  out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, st.navy, "middle"));
+  out.push(`<rect x="0.15" y="0.15" width="${n(w - 0.3)}" height="${n(h - 0.3)}" rx="2" fill="white" stroke="${st.rule}" stroke-width="0.45"/>`);
+  out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
+  out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, "white", "middle"));
   out.push(textSvg(parseRuns(c.title, "bold"), pad + S.tile + 2.8, titleY, S.cardTitle, st.navy));
   if (plainWidth(c.title, S.cardTitle, "bold") > w - pad * 2 - S.tile - 3) issue(ctx, "The card title is wider than the card.");
   out.push(at(body, pad, top));
