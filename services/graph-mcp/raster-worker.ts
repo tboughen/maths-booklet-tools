@@ -1,7 +1,6 @@
 import { Resvg } from "@resvg/resvg-js";
 import { join } from "node:path";
 import { packArchive } from "./archive";
-import { worksheetPdf } from "./worksheet-pdf";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import {
   setDensityBytes,
@@ -31,7 +30,9 @@ process.once(
       }
       if (job.pdf) {
         if (!job.textFontRoot) throw Error("Worksheet fonts are missing.");
-        worksheetPdf(job.pdf.pages, job.pdf.title, { text: job.textFontRoot, diagrams: job.fontRoot }).then(
+        // Loaded only for PDF jobs: each job runs in a fresh process, and PDFKit is slow to load.
+        const { pages, title } = job.pdf, roots = { text: job.textFontRoot, diagrams: job.fontRoot };
+        import("./worksheet-pdf").then(({ worksheetPdf }) => worksheetPdf(pages, title, roots)).then(
           (pdf) => process.send?.({ pdf }, () => process.exit(0)),
           () => process.send?.({ code: "render_failed", error: "The PDF could not be made." }, () => process.exit(1)),
         );

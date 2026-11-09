@@ -1,14 +1,16 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import PDFDocument from "pdfkit";
-import SVGtoPDF from "svg-to-pdfkit";
 import { writeWorksheetPdf } from "../../packages/resource-core/src/pdf";
 
 /** Worksheet text fonts (assets/resource-fonts) and diagram fonts (assets/graph-fonts). */
 export type PdfFontRoots = { text: string; diagrams: string };
 
-/** Vector PDF of rendered worksheet pages, with the fonts read from disk. */
-export function worksheetPdf(pages: string[], title: string, roots: PdfFontRoots): Promise<Uint8Array> {
+/**
+ * Vector PDF of rendered worksheet pages, with the fonts read from disk. PDFKit loads only here:
+ * every raster job runs in a fresh worker process, and loading PDFKit there would slow every diagram.
+ */
+export async function worksheetPdf(pages: string[], title: string, roots: PdfFontRoots): Promise<Uint8Array> {
+  const [{ default: PDFDocument }, { default: SVGtoPDF }] = await Promise.all([import("pdfkit"), import("svg-to-pdfkit")]);
   const read = (root: string, file: string) => readFileSync(join(root, file));
   return writeWorksheetPdf(PDFDocument as never, SVGtoPDF as never, pages, title, {
     inter: read(roots.text, "Inter-Regular.ttf"),
