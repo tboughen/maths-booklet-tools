@@ -182,7 +182,8 @@ secrets rule below against every workflow.
   after images, PRs waiting for him and why, reverts, flaky tests, judge calibration, spend, and a
   sample of ten merged or rejected PRs for him to agree or disagree with. `scripts/loop/digest.mjs`
   writes it; run "Loop digest" from the Actions tab, optionally with this month's spend and a
-  calibration run ID. It posts nothing and runs only by hand until Tim chooses a schedule. Before
+  calibration run ID. It posts nothing. It runs every Monday at 07:00 UTC, after the weekly judge
+  calibration at 06:00, and estimates the month's spend itself when none is given. Before
   and after images are not in it yet.
 - **Judge calibration targets.** `scripts/loop/calibrate.mjs` reports whether a run meets the
   targets: at least 90% of known-bad changes failed, every blocking case (answer reveal, implicit
@@ -199,7 +200,12 @@ Each of these is a one-off decision; none is needed until the matching phase.
 1. Protect `main`: require PRs and the quick-checks job, block direct and force pushes (before phase 1).
 2. Turn on `allow_auto_merge` and `delete_branch_on_merge` in the repository settings (before phase 2).
 3. An `ANTHROPIC_API_KEY` repository secret with a spending limit, for the judges (before phase 1).
-4. The loop runner: a scheduled cloud session trigger, and a monthly spend cap in pounds (before phase 1).
+4. The loop runner: a scheduled cloud session trigger, and a monthly spend cap (before phase 1).
+   Decided 8 Nov 2026: one session a night and a $20 monthly cap on the judges' API spend, which
+   `scripts/loop/spend.mjs` estimates from the month's judge runs (the sessions themselves use
+   Tim's Claude plan). The same day Tim also chose to seed the backlog issues, run full release
+   qualification nightly when `main` has changed (`nightly-qualification.yml`, qualification only),
+   and schedule the weekly digest and judge calibration.
 5. Approve the judge rubrics and the calibration set as the definition of good enough (before phase 3).
 6. Each phase change, from the digest.
 7. Approve the auto-merge step itself: a workflow change (tier T8, so a thread PR, never a loop PR)
@@ -214,7 +220,7 @@ the guidance read first, one issue, one `loop/<issue>-<slug>` branch, one pull r
 
 Before any work it runs `scripts/loop/preflight.mjs` over facts it gathers with its GitHub tools.
 Preflight stops the session when the loop is switched off, no monthly spend cap is set, the cap is
-reached, three loop PRs were opened in the last 24 hours, or five are open (the caps are in
+reached, a loop PR was already opened in the last 24 hours, or five are open (the caps are in
 `scripts/loop/config.json`). Otherwise it picks the oldest `loop:candidate` issue that is not held,
 taken or above the tiers the loop authors (T0 to T3), declares only allowed paths, and overlaps no
 open pull request's files. That last check keeps faith with other people's work.

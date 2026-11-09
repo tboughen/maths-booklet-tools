@@ -1,7 +1,10 @@
 name: Judge calibration
-# Runs the judge panel over the seeded calibration set (review/calibration/). It spends API credit,
-# so it runs only by hand. See review/rubrics/README.md and scripts/loop/calibrate.mjs.
+# Runs the judge panel over the seeded calibration set (review/calibration/). It spends API credit
+# (about $1.50 a run), so it runs by hand and once a week, Monday 06:00 UTC, before the digest
+# (Tim, 8 Nov 2026). See review/rubrics/README.md and scripts/loop/calibrate.mjs.
 on:
+  schedule:
+    - cron: '0 6 * * 1'
   workflow_dispatch:
     inputs:
       model:

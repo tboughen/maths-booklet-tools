@@ -1,8 +1,11 @@
 name: Loop digest
 # The loop digest for Tim (scripts/loop/digest.mjs, improvement list L50): merged loop PRs, PRs
 # waiting for him, rejected or reverted ones, judge calibration and spend. It writes the digest to
-# this run's summary and posts nothing. It runs only by hand; a weekly schedule is Tim's decision.
+# this run's summary and posts nothing. It runs by hand and every Monday at 07:00 UTC, after the
+# weekly judge calibration (Tim, 8 Nov 2026).
 on:
+  schedule:
+    - cron: '0 7 * * 1'
   workflow_dispatch:
     inputs:
       spend:
@@ -30,16 +33,28 @@ jobs:
           node-version-file: .nvmrc
       - name: Read the recent pull requests
         run: gh pr list --repo "$GITHUB_REPOSITORY" --state all --limit 200 --json number,title,headRefName,state,createdAt,mergedAt,closedAt,labels,files,url > "$RUNNER_TEMP/prs.json"
-      - name: Fetch the calibration results
-        if: inputs.calibration_run != ''
+      - name: Estimate this month's judge spend
+        id: spend
+        if: inputs.spend == ''
         continue-on-error: true
-        run: gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name judge-calibration --dir "$RUNNER_TEMP/calibration"
+        run: |
+          month=$(date -u +%Y-%m)
+          { gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-panel.yml --limit 1000 --created ">=$month-01" --json workflowName,createdAt,conclusion
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-calibration.yml --limit 100 --created ">=$month-01" --json workflowName,createdAt,conclusion; } | jq -s 'add' > "$RUNNER_TEMP/runs.json"
+          echo "usd=$(node scripts/loop/spend.mjs "--runs=$RUNNER_TEMP/runs.json")" >> "$GITHUB_OUTPUT"
+      # The given run, or else the latest successful calibration in the last eight days.
+      - name: Fetch the calibration results
+        continue-on-error: true
+        run: |
+          run="$RUN"
+          if [ -z "$run" ]; then run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-calibration.yml --status success --limit 1 --created ">=$(date -u -d '8 days ago' +%Y-%m-%d)" --json databaseId --jq '.[0].databaseId // empty'); fi
+          if [ -n "$run" ]; then gh run download "$run" --repo "$GITHUB_REPOSITORY" --name judge-calibration --dir "$RUNNER_TEMP/calibration"; fi
         env:
           RUN: ${{ inputs.calibration_run }}
       - name: Write the digest
         run: node scripts/loop/digest.mjs "--prs=$RUNNER_TEMP/prs.json" "--calibration=$RUNNER_TEMP/calibration/calibration.json" "--spend=$SPEND" "--enabled=$ENABLED" | tee digest.md
         env:
-          SPEND: ${{ inputs.spend }}
+          SPEND: ${{ inputs.spend || steps.spend.outputs.usd }}
           ENABLED: ${{ vars.MATHSDOCK_LOOP_ENABLED }}
       - uses: actions/upload-artifact@v6
         with:
