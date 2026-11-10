@@ -8,6 +8,9 @@ import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import { fileName, renderResource, validate, type Item, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
+import { FAMILIES } from "../../packages/diagram-core/src/registry";
+
+const familyLabel = (kind: keyof typeof FAMILIES) => { const l = FAMILIES[kind].label; return l[0].toUpperCase() + l.slice(1); };
 import { downloadEditable, downloadPdf, editableName } from "./export";
 import { moveCard, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
@@ -274,7 +277,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
       case "space":
         return <NumberField label={`${label} ${item.kind === "drawing" ? "drawing" : "working"} space (mm)`} value={item.heightMm} min={8} max={200} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />;
       case "diagram":
-        return <p className="ws-note">{item.diagram.tool === "charts" ? "Chart" : "Tree diagram"}: change it in its own tool, then send the worksheet again.</p>;
+        return <p className="ws-note">{familyLabel(item.diagram.tool)}: change it in its own tool, then send the worksheet again.</p>;
     }
   };
 

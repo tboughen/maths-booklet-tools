@@ -7,28 +7,10 @@ import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/ser
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
 
-const families: Record<string, string> = {
-  graph: "coordinate graph",
-  ratio_table: "ratio table",
-  value_graph: "table of values and graph",
-  cuboid: "cuboid",
-  number_line: "number line",
-  venn: "Venn diagram",
-  algebra_grid: "expanding and factorising grid",
-  bar_model: "bar model",
-  chart: "bar or line chart",
-  probability_tree: "probability tree",
-  triangle: "triangle diagram",
-};
-const sentence = (text: string) => text[0].toUpperCase() + text.slice(1);
 export const TOOL_TITLES: Readonly<Record<string, string>> = {
-  ...Object.fromEntries(
-    Object.entries(families).flatMap(([name, label]) => [
-      [`${name}_capabilities`, `${sentence(label)} options`],
-      [`create_${name}`, `Create a ${label}`],
-      [`revise_${name}`, `Edit a ${label}`],
-    ]),
-  ),
+  diagram_capabilities: "Diagram options",
+  create_diagram: "Create a diagram",
+  revise_diagram: "Edit a diagram",
   check_diagram_placement: "Check a diagram's print size",
   download_diagram_bundle: "Download diagram files",
   get_diagram_svg: "Get a diagram's SVG",

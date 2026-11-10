@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -31,7 +32,7 @@ async function start() {
   });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "chart-qualification", version: "1" });
+  const client = withFamilyNames(new Client({ name: "chart-qualification", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -60,9 +61,9 @@ async function call(
 it("advertises chart tools with homogeneous schemas", async () => {
   const c = await start(),
     tools = (await c.listTools()).tools;
-  for (const name of ["chart_capabilities", "create_chart", "revise_chart"])
+  for (const name of ["diagram_capabilities", "create_diagram", "revise_diagram"])
     expect(tools.map((t) => t.name)).toContain(name);
-  const revise = tools.find((t) => t.name === "revise_chart")!;
+  const revise = tools.find((t) => t.name === "revise_diagram")!;
   expect(JSON.stringify(revise.inputSchema)).not.toContain('"prefixItems"');
   const caps = await c.callTool({ name: "chart_capabilities", arguments: {} });
   const text = (caps.content as { text: string }[])[0].text;

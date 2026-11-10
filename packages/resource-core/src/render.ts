@@ -1,6 +1,5 @@
-import { forView as chartForView, renderSvg as chartSvg } from "../../chart-core/src/index";
-import { forView as treeForView, renderSvg as treeSvg } from "../../probability-tree-core/src/index";
-import type { Card, Cell, Diagram, Item, Leaf, Resource } from "./schema";
+import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
+import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
@@ -93,20 +92,18 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
 }
 
 function diagram(d: Diagram, w: number, ctx: Ctx): Frag {
-  const draw = (view: "pupil" | "answer") =>
-    d.tool === "charts" ? chartSvg(chartForView(d.envelope, view)) : treeSvg(treeForView(d.envelope, view));
-  const size = (s: string) => {
-    const tag = s.match(/^<svg[^>]*>/)?.[0] ?? "";
-    return { width: Number(tag.match(/width="([\d.]+)mm"/)?.[1]), height: Number(tag.match(/height="([\d.]+)mm"/)?.[1]) };
-  };
-  let svg = draw(ctx.view === "answers" ? "answer" : "pupil");
+  // The larger of the pupil and answer sizes is reserved so both views share one layout.
+  let drawn: ReturnType<typeof drawDiagram>;
+  try {
+    drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
+  } catch (error) {
+    issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
+    return { h: 0, svg: "" };
+  }
+  let svg = drawn.svg;
   const open = svg.match(/^<svg[^>]*>/)?.[0] ?? "";
-  // Reserve the larger of the pupil and answer sizes so both views share one layout.
-  const a = size(draw("pupil")),
-    b = size(draw("answer"));
-  const width = Math.max(a.width, b.width);
-  const height = Math.max(a.height, b.height);
-  const own = size(svg).width;
+  const { widthMm: width, heightMm: height } = drawn;
+  const own = svgSizeMm(svg);
   if (!(width > 0 && height > 0)) {
     issue(ctx, "A diagram did not report its physical size.");
     return { h: 0, svg: "" };
@@ -119,7 +116,8 @@ function diagram(d: Diagram, w: number, ctx: Ctx): Frag {
     .replace(/ id="/g, ` id="${k}`)
     .replace(/url\(#/g, `url(#${k}`)
     .replace(/href="#/g, `href="#${k}`)
-    .replace(open, open.replace(/width="([\d.]+)mm"/, 'width="$1"').replace(/height="([\d.]+)mm"/, `height="$1" x="${n((w - own) / 2)}"`));
+    // Worksheet user units are millimetres, whatever unit the family's own SVG states.
+    .replace(open, open.replace(/\swidth="[^"]*"/, ` width="${n(own.width)}"`).replace(/\sheight="[^"]*"/, ` height="${n(own.height)}" x="${n((w - own.width) / 2)}"`));
   return { h: height, svg };
 }
 

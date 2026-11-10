@@ -1,4 +1,5 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Resvg } from "@resvg/resvg-js";
 import { unzipSync } from "fflate";
@@ -32,18 +33,14 @@ for (let attempt = 0; attempt < 30; attempt++) {
   await new Promise((resolve) => setTimeout(resolve, 250));
 }
 if (!healthy) throw Error("The service health check failed.");
-const client = new Client({ name: "maths-graph-release-smoke", version: "1" });
+const client = withFamilyNames(new Client({ name: "maths-graph-release-smoke", version: "1" }));
 try {
   await client.connect(
     new StreamableHTTPClientTransport(new URL("/mcp", base), {fetch:request}),
   );
   const tools = { tools: await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined)) };
-  const expected = ["graph_capabilities", "create_graph", "revise_graph", "ratio_table_capabilities", "create_ratio_table", "revise_ratio_table", "value_graph_capabilities", "create_value_graph", "revise_value_graph", "cuboid_capabilities", "create_cuboid", "revise_cuboid", "number_line_capabilities", "create_number_line", "revise_number_line", "venn_capabilities", "create_venn", "revise_venn", "check_diagram_placement", "download_diagram_bundle"];
-  expected.splice(expected.indexOf("check_diagram_placement"),0,"algebra_grid_capabilities","create_algebra_grid","revise_algebra_grid");
-  expected.splice(expected.indexOf("check_diagram_placement"),0,"chart_capabilities","create_chart","revise_chart");
-  expected.splice(expected.indexOf("check_diagram_placement"),0,"triangle_capabilities","create_triangle","revise_triangle");
-  expected.push("get_diagram_svg","bar_model_capabilities","create_bar_model","revise_bar_model","probability_tree_capabilities","create_probability_tree","revise_probability_tree","worksheet_capabilities","create_worksheet");
-  if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the reviewed named catalogue and optional output tools.");
+  const expected = ["diagram_capabilities", "create_diagram", "revise_diagram", "check_diagram_placement", "download_diagram_bundle", "get_diagram_svg", "worksheet_capabilities", "create_worksheet"];
+  if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the generic diagram tools, the output tools and the worksheet tools.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
     if (!value || typeof value !== "object") return;

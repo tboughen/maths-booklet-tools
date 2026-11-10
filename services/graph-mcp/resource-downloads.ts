@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { packToken, signedByAny, unpackToken } from "./link-token";
 import { z } from "zod";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import {
@@ -36,9 +37,7 @@ export class ResourceDownloads {
   }
   link(source: DiagramSource, format: DownloadFormat, now = Date.now()) {
     const expires = Math.floor(now / 1000) + 7 * 86400;
-    const token = Buffer.from(
-      JSON.stringify({ v: 1, key: this.active, expires, format, source }),
-    ).toString("base64url");
+    const token = packToken({ v: 1, key: this.active, expires, format, source });
     const url = new URL("/resource/download", this.base);
     url.searchParams.set("token", token);
     url.searchParams.set(
@@ -61,10 +60,12 @@ export class ResourceDownloads {
       !/^[-_A-Za-z0-9]{43}$/.test(signature)
     )
       throw new GraphError("invalid_download", "Invalid resource download.");
+    if (!signedByAny(token, signature, this.keys, (t, k) => this.signature(t, k)))
+      throw new GraphError("invalid_download", "The download signature is invalid.");
     let parsed: z.infer<typeof tokenSchema>;
     try {
       parsed = tokenSchema.parse(
-        JSON.parse(Buffer.from(token, "base64url").toString("utf8")),
+        unpackToken(token),
       );
     } catch {
       throw new GraphError("invalid_download", "Invalid resource token.");

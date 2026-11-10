@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { BlockList, isIP } from "node:net";
 import type { IncomingMessage } from "node:http";
 import { GraphError } from "../../packages/graph-core/src/interchange";
@@ -16,6 +17,8 @@ export interface TrafficLimitOptions {
   /** Reports store failures. Never receives request content or addresses. */
   onStoreError?: (message: string) => void;
   now?: () => number;
+  /** Most one address may use of the daily allowance. Default a quarter. */
+  clientShare?: number;
 }
 
 const utcDay = (now: number) => new Date(now).toISOString().slice(0, 10);
@@ -26,6 +29,10 @@ export class TrafficLimits {
   private clients = new Map<string, number>();
   private day: string;
   private bytes = 0;
+  /** Today's bytes per address, so one client cannot use up everyone's allowance. Per process. */
+  private clientBytes = new Map<string, number>();
+  private readonly current = new AsyncLocalStorage<string>();
+  private readonly clientShare: number;
   private dirty = false;
   private loaded: Promise<void>;
   private timer?: ReturnType<typeof setTimeout>;
@@ -39,6 +46,7 @@ export class TrafficLimits {
     this.store = options.store;
     this.flushMs = options.flushMs ?? 120_000;
     this.onStoreError = options.onStoreError ?? (() => {});
+    this.clientShare = options.clientShare ?? 0.25;
     this.day = utcDay((options.now ?? Date.now)());
     this.loaded = this.load(this.day);
   }
@@ -72,12 +80,15 @@ export class TrafficLimits {
       );
     this.calls++;
     this.clients.set(client, count + 1);
+    // Later output in this request counts against this address.
+    this.current.enterWith(client);
   }
   output(size: number, now = Date.now()): void {
     const day = utcDay(now);
     if (day !== this.day) {
       this.day = day;
       this.bytes = 0;
+      this.clientBytes.clear();
       this.dirty = false;
       this.loaded = Promise.resolve();
     }
@@ -86,7 +97,15 @@ export class TrafficLimits {
         "rate_limited",
         "Today's download allowance has been reached.",
       );
+    const client = this.current.getStore();
+    const used = client === undefined ? 0 : (this.clientBytes.get(client) ?? 0);
+    if (client !== undefined && used + size > this.maximumDailyBytes * this.clientShare)
+      throw new GraphError(
+        "rate_limited",
+        "This connection has used its share of today's download allowance.",
+      );
     this.bytes += size;
+    if (client !== undefined) this.clientBytes.set(client, used + size);
     if (this.store) {
       this.dirty = true;
       this.timer ??= setTimeout(() => {

@@ -17,10 +17,10 @@ documentation does not establish deployment or client import.
 
 ## Creation and capabilities
 
-`bar_model_capabilities {}` describes states, rational/structure/print/request bounds,
+`diagram_capabilities {kind:"bar-model"}` describes states, rational/structure/print/request bounds,
 example names, geometry, deletion policy, versions and complete revision schema.
 
-`create_bar_model` accepts `{spec?:...,envelope?:...}`. Spec and envelope are exclusive.
+`create_diagram` accepts `{kind:"bar-model",spec?:...,envelope?:...}`. Spec and envelope are exclusive.
 Omit both for an unworked BM01 scaffold. `spec.example` selects BM01–BM09,H07,H18 or
 source-sharing; it cannot be mixed with custom bars/spans. `worked:true` requires
 an explicit example. Custom definitions default to empty spans; no missing answer
@@ -50,7 +50,7 @@ does not alter source or silently rescale output.
 
 ## Atomic revision
 
-`revise_bar_model {envelope,baseHash,operations}` requires the exact last returned
+`revise_diagram {kind:"bar-model",envelope,baseHash,operations}` requires the exact last returned
 envelope and its contentHash, with≤30 operations and32KiB input. Empty operations
 refresh artifacts/links without changing source. Invalid/stale requests have no
 partial result or server state mutation. Keep the newly returned envelope/hash.

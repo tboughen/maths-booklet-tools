@@ -36,7 +36,7 @@ function example(
     });
   return validate(e);
 }
-const bank = "https://mathsdock.co.uk/?tool=question-bank&";
+const bank = "https://mathsdock.co.uk/question-bank?";
 export const examples: Example[] = [
   {
     id: "2017",

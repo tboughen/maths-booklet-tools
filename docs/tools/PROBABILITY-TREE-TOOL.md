@@ -41,7 +41,7 @@ condition paths, and three coins.
 
 ## MCP
 
-`probability_tree_capabilities`, `create_probability_tree`, `revise_probability_tree`. Create from `spec.example`,
+`diagram_capabilities` (kind `probability-tree`), `create_diagram` (kind `probability-tree`), `revise_diagram` (kind `probability-tree`). Create from `spec.example`,
 `spec.stages` (equal trees), or `spec.branches` (flat list, for unequal trees), optionally with `bag`, `hide`,
 `settings` and `questions` (paths named by end branch ID or outcome names such as `"Red, Blue"`; `calculate: true`
 is the only way to compute an answer). `outputView: "answer"` draws hidden answers; the returned envelope and hash

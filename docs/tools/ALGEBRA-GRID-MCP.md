@@ -8,9 +8,8 @@ Uses the existing Maths Booklet Tools service/App. Website, service deployment,
 plugin instructions and actual conversation discovery are separate release stages.
 Follow [connector acceptance](../release/MCP-CONNECTOR-ACCEPTANCE.md) and retain exact files.
 
-New names: `algebra_grid_capabilities`, `create_algebra_grid`,
-`revise_algebra_grid`. Do not call them until actually discovered. Existing six
-families retain their signatures. Three generic output calls gain `algebra-grid`:
+Tools: `diagram_capabilities`, `create_diagram` and `revise_diagram` with `kind: "algebra-grid"`.
+Do not call them until actually discovered. Since wave 4 (10 Nov 2026) the connector has 8 tools; family tools are `diagram_capabilities`, `create_diagram` and `revise_diagram` with a `kind` (see [Diagram registry](DIAGRAM-REGISTRY.md)). The three generic output calls accept `algebra-grid`:
 `check_diagram_placement`, `download_diagram_bundle`, `get_diagram_svg`.
 
 Creation accepts one of `spec` or the exact saved `envelope`, never both.

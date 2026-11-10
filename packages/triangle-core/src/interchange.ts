@@ -24,12 +24,22 @@ const patch = m.labelSchema.omit({ calculation: true, answer: true, answerVisibl
 const labelEdit = z.object({ ref, label: patch }).strict();
 export const contextSchema = z.object({
   target: ref, triangle: id, method: z.enum(maths.methods),
-  raw: z.record(z.string(), z.string()), unit: z.enum(["cm", "mm", "m"]),
+  raw: z.record(z.string(), z.string()),
+  /** The length unit of the givens. */
+  lengthUnit: z.enum(["cm", "mm", "m"]),
+  /** The unit the answer would carry: degrees for an angle, a square unit for an area. */
+  answerUnit: z.enum(["cm", "mm", "m", "cm²", "mm²", "m²", "°"]),
   sources: z.array(z.string()), missing: z.array(z.string()),
 }).strict();
-export function contexts(e: m.Envelope) {
+export type WireContext = z.infer<typeof contextSchema>;
+/** Calculation contexts as the connector reports them, with the answer's own unit. */
+export function contexts(e: m.Envelope): WireContext[] {
   return m.allLabels(e).filter(l => l.kind !== "vertex").flatMap(l =>
-    owningTriangles(e, l.ref).flatMap(t => calculationContexts(e, l.ref, t.id)));
+    owningTriangles(e, l.ref).flatMap(t => calculationContexts(e, l.ref, t.id).map(({ unit, ...c }) => {
+      // From the label's own kind: "c:" refs are captions, "r:" refs are areas.
+      const answerUnit = l.kind === "angle" ? "°" as const : l.kind === "area" ? `${unit}²` as const : unit;
+      return { ...c, lengthUnit: unit, answerUnit };
+    })));
 }
 const inputs = z.record(z.string().max(24), z.string().max(80)).refine(v => Object.keys(v).length <= 16, "Use at most 16 named inputs.");
 export const operationSchema = z.discriminatedUnion("op", [
@@ -187,7 +197,7 @@ export function create(input: unknown): m.Envelope {
   const s = v.spec;
   if (s?.shape && s.example) throw Error("Choose shape or example, not both.");
   const example = s?.example ? examples.find(v => v.key === s.example) : undefined;
-  if (s?.example && !example) throw Error("Choose a supported example from triangle_capabilities.");
+  if (s?.example && !example) throw Error("Choose a supported example from diagram_capabilities (kind triangle).");
   let e = example ? example.build() : g.create(s?.shape);
   if (s?.widthCm !== undefined) e.document.widthCm = s.widthCm;
   if (s?.notToScale !== undefined) e.document.notToScale = s.notToScale;

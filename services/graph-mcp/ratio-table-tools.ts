@@ -1,105 +1,22 @@
-import { z } from "zod";
 import { ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
-import { printGuidanceSchema, PRINT_INSTRUCTIONS } from "./placement";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRINT_INSTRUCTIONS } from "./placement";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
-  createRatioTable,
-  reviseRatioTable,
-  ratioSpecSchema,
-  ratioRevisionSchema,
-  ratioEnvelopeSchema,
   ratioMetrics,
   renderRatioSvg,
   describeRatio,
   ratioWarnings,
   ratioHash,
   ratioEditorLink,
-  RATIO_RENDERER_VERSION,
-  RATIO_THREE_COLUMN_RENDERER_VERSION,
-  RATIO_STYLE_PROFILE,
-  RATIO_MAX_REQUEST_BYTES,
   RatioError,
-  NUMBER_LIMITS,
 } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
-import { GraphError } from "../../packages/graph-core/src/interchange";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
 import type { DownloadFormat } from "./downloads";
 import { RatioDownloads } from "./ratio-downloads";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 
-const link = z
-  .object({ url: z.string().url(), expiresAt: z.string() })
-  .strict();
-export const ratioOutputSchema = z
-  .object({
-    envelope: ratioEnvelopeSchema,
-    contentHash: z.string().regex(/^[a-f0-9]{64}$/),
-    rendererVersion: z.enum([
-      RATIO_RENDERER_VERSION,
-      RATIO_THREE_COLUMN_RENDERER_VERSION,
-    ]),
-    description: z.string(),
-    warnings: z.array(z.string()),
-    downloads: z
-      .object({
-        svg: link.optional(),
-        png: link.optional(),
-        json: link.optional(),
-      })
-      .strict(),
-    editorUrl: z.string().url().nullable(),
-    physicalSizeCm: z
-      .object({ width: z.number(), height: z.number() })
-      .strict(),
-    printRaster: z
-      .object({ width: z.number().int(), height: z.number().int() })
-      .strict(),
-    printDpi: z.literal(600),
-    printVerified: z.literal(true),
-    printGuidance: printGuidanceSchema.optional(),
-  })
-  .strict();
-const ratioCapabilitiesSchema = z
-  .object({
-    rendererVersion: z
-      .literal(RATIO_RENDERER_VERSION)
-      .describe(
-        "Legacy default renderer, not the only supported renderer. See rendererVersions; each returned envelope identifies its actual renderer.",
-      ),
-    styleProfile: z.literal(RATIO_STYLE_PROFILE),
-    columns: z
-      .literal(2)
-      .describe(
-        "Legacy default column count, not a limit. See supportedColumns for all supported counts.",
-      ),
-    supportedColumns: z.array(
-      z.union([z.literal(1), z.literal(2), z.literal(3)]),
-    ),
-    rendererVersions: z.array(
-      z.enum([RATIO_RENDERER_VERSION, RATIO_THREE_COLUMN_RENDERER_VERSION]),
-    ),
-    rows: z.object({ minimum: z.literal(1), maximum: z.literal(6) }),
-    cellKinds: z.array(z.enum(["number", "empty", "answer-line"])),
-    sizes: z.array(z.enum(["compact", "standard", "large"])),
-    modes: z.array(z.enum(["simple", "annotated"])),
-    printDpi: z.literal(600),
-    maximumRequestBytes: z.literal(RATIO_MAX_REQUEST_BYTES),
-    maximumRevisionOperations: z.literal(20),
-    numberLimits: z
-      .object({
-        inputCharacters: z.number(),
-        decimalPlaces: z.number(),
-        numerator: z.number(),
-        denominator: z.number(),
-        absoluteValue: z.number(),
-      })
-      .strict(),
-    revisionOperations: z.array(z.string()),
-  })
-  .strict();
 export function ratioTools(
   raster: RasterQueue,
   downloads: RatioDownloads,
@@ -224,124 +141,5 @@ export function ratioTools(
       content: [...content, { type: "text" as const, text: PRINT_INSTRUCTIONS }],
     };
   }
-  function register(server: McpServer, connectionSignal: AbortSignal) {
-    const annotations = {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    };
-    const failure = (error: unknown) => ({
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            code:
-              error instanceof RatioError || error instanceof GraphError
-                ? error.code
-                : "render_failed",
-            message:
-              error instanceof RatioError || error instanceof GraphError
-                ? error.message
-                : "The ratio table could not be rendered. Try again or simplify it.",
-          }),
-        },
-      ],
-    });
-    server.registerTool(
-      "ratio_table_capabilities",
-      {
-        description:
-          "Read supported ratio-table cells, rows, sizes, limits and operations before creating a table. Lesson-style one-, two- or three-column diagrams. columns: 2 and rendererVersion: ratio-1 are legacy defaults, not limits; supportedColumns and rendererVersions list full support. Returned envelopes normalize to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Adding/removing rows or columns can change the returned version; always reuse the returned envelope and contentHash. Two columns use paired outer scaling arrows; three columns show the operation beside each column.",
-        inputSchema: z.object({}).strict(),
-        outputSchema: ratioCapabilitiesSchema,
-        annotations,
-      },
-      async () => ({
-        structuredContent: {
-          rendererVersion: RATIO_RENDERER_VERSION,
-          styleProfile: RATIO_STYLE_PROFILE,
-          columns: 2 as const,
-          supportedColumns: [1, 2, 3] as Array<1 | 2 | 3>,
-          rendererVersions: [
-            RATIO_RENDERER_VERSION,
-            RATIO_THREE_COLUMN_RENDERER_VERSION,
-          ],
-          rows: { minimum: 1 as const, maximum: 6 as const },
-          cellKinds: ["number", "empty", "answer-line"] as Array<
-            "number" | "empty" | "answer-line"
-          >,
-          sizes: ["compact", "standard", "large"] as Array<
-            "compact" | "standard" | "large"
-          >,
-          modes: ["simple", "annotated"] as Array<"simple" | "annotated">,
-          printDpi: 600 as const,
-          maximumRequestBytes: RATIO_MAX_REQUEST_BYTES,
-          maximumRevisionOperations: 20 as const,
-          numberLimits: NUMBER_LIMITS,
-          revisionOperations: [
-            "add_column",
-            "remove_column",
-            "set_cell",
-            "add_row",
-            "remove_row",
-            "set_transition",
-            "remove_transition",
-            "set_headings",
-            "set_size",
-            "set_annotation_visibility",
-            "fill_next_row",
-          ],
-        },
-        content: [
-          {
-            type: "text",
-            text: "Use number cells with string values (e.g. 2/3), empty cells or answer-line cells. Default headings x → and y ↑. columns: 2 and rendererVersion: ratio-1 are legacy defaults; supportedColumns [1,2,3] and rendererVersions [ratio-1,ratio-2] describe full support. Returned envelopes use schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2, including after revisions. Preserve pupil blanks; fill_next_row solves only when explicitly requested. Long values/headings must fit at the fixed lesson font size. SVG, verified 600 ppi PNG and editable JSON are available. Word exports are images.",
-          },
-        ],
-      }),
-    );
-    server.registerTool(
-      "create_ratio_table",
-      {
-        description:
-          "Create a lesson-style ratio table with 1–6 rows and 1–3 columns. Omit rows for a blank two-column table with two empty rows. Use schemaVersion 1 for two columns with at least two rows; use schemaVersion 2 for one row, one column or three columns. Each row needs one explicit cell state per column: number with string value, empty, or answer-line. IDs are generated row-1, row-2, etc. Use explicit IDs for scaling transitions between adjacent rows. One operation applies to every column. Preserve unanswered cells even if their answer is calculable. Set mode annotated to show curved arrows and factor labels; simple hides annotations. Returns preview, PNG/SVG/JSON, contentHash and editable website link.",
-        inputSchema: ratioSpecSchema,
-        outputSchema: ratioOutputSchema,
-        annotations,
-      },
-      async (args, extra) => {
-        try {
-          return await result(
-            createRatioTable(args),
-            AbortSignal.any([connectionSignal, extra.signal]),
-          );
-        } catch (error) {
-          return failure(error);
-        }
-      },
-    );
-    server.registerTool(
-      "revise_ratio_table",
-      {
-        description:
-          'Revise the exact returned ratio-table envelope using its contentHash as baseHash. Operations are atomic. Each operation is an object with op and these fields: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor}}; remove_transition {from}; set_headings {headings}; set_size {size}; set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. Do not put transition fields at the operation top level. Numeric values/factors are strings; column indexes are zero-based; after is a row ID or null. Heading direction is right/up/none and italic is boolean. add_column appends the heading and empty cells. Keep blank/answer-line cells unless the user explicitly asks to fill them. fill_next_row requires a chosen transition and all source values; overwriting existing values requires overwrite true. Empty operations refresh expired links. Row/column changes normalize the result to schemaVersion 1/ratio-1 for exactly two columns and at least two rows, otherwise schemaVersion 2/ratio-2. Preserve unchanged values/settings, reuse the returned envelope/hash and show the returned image and links.',
-        inputSchema: ratioRevisionSchema,
-        outputSchema: ratioOutputSchema,
-        annotations,
-      },
-      async (args, extra) => {
-        try {
-          return await result(
-            await reviseRatioTable(args),
-            AbortSignal.any([connectionSignal, extra.signal]),
-          );
-        } catch (error) {
-          return failure(error);
-        }
-      },
-    );
-  }
-  return { register, artifacts };
+  return { result, artifacts };
 }

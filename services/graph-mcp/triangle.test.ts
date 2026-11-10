@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { graphService } from "./server";
 import type { Server } from "node:http";
@@ -26,7 +27,7 @@ async function start() {
   const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "triangle-test-only-synthetic-key-1234567890" }, activeKey: "test" });
   servers.push(server);
   await new Promise<void>(r => server.listen(port, "127.0.0.1", r));
-  const c = new Client({ name: "triangle-acceptance", version: "1" }); clients.push(c);
+  const c = withFamilyNames(new Client({ name: "triangle-acceptance", version: "1" })); clients.push(c);
   await c.connect(new StreamableHTTPClientTransport(new URL(base + "/mcp")));
   return c;
 }
@@ -51,10 +52,10 @@ function homogeneous(v: unknown): void {
   expect("prefixItems" in obj || "additionalItems" in obj).toBe(false);
   Object.values(obj).forEach(homogeneous);
 }
-it("advertises all 38 tools with compatible input AND output schemas and complete Triangle metadata", async () => {
+it("advertises the generic tools with compatible input AND output schemas and complete Triangle metadata", async () => {
   const c = await start(), tools = (await c.listTools()).tools;
-  expect(tools).toHaveLength(38);
-  for (const name of ["triangle_capabilities","create_triangle","revise_triangle"]) expect(tools.some(t => t.name === name)).toBe(true);
+  for (const name of ["diagram_capabilities","create_diagram","revise_diagram"]) expect(tools.some(t => t.name === name)).toBe(true);
+  for (const name of ["create_diagram","revise_diagram"]) expect(JSON.stringify(tools.find(t => t.name === name)!.inputSchema)).toContain('"triangle"');
   for (const t of tools) { homogeneous(t.inputSchema); homogeneous(t.outputSchema); }
   expect(() => homogeneous({ type:"array",items:[{type:"string"}] })).toThrow();
   for (const name of ["check_diagram_placement","get_diagram_svg","download_diagram_bundle"]) expect(JSON.stringify(tools.find(t => t.name === name)!.inputSchema)).toContain('"triangle"');

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -22,7 +23,7 @@ async function start(buildId?: string) {
   const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "test-only-secret-".repeat(4) }, activeKey: "test", buildId });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "metadata-check", version: "1" });
+  const client = withFamilyNames(new Client({ name: "metadata-check", version: "1" }));
   clients.push(client);
   await client.connect(new StreamableHTTPClientTransport(new URL(base + "/mcp")));
   return client;

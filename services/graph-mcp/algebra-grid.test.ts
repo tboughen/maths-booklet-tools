@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -39,7 +40,7 @@ async function start() {
   });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "algebra-qualification", version: "1" });
+  const client = withFamilyNames(new Client({ name: "algebra-qualification", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -66,12 +67,7 @@ async function call(
 it("advertises the three new tools and homogeneous schemas", async () => {
   const c = await start(),
     tools = (await c.listTools()).tools;
-  expect(tools).toHaveLength(38);
-  for (const name of [
-    "algebra_grid_capabilities",
-    "create_algebra_grid",
-    "revise_algebra_grid",
-  ])
+  for (const name of ["diagram_capabilities", "create_diagram", "revise_diagram"])
     expect(tools.some((t) => t.name === name)).toBe(true);
   const cap = await c.callTool({
     name: "algebra_grid_capabilities",
@@ -81,7 +77,7 @@ it("advertises the three new tools and homogeneous schemas", async () => {
   expect(JSON.stringify(cap.content)).toContain("calculate_answer");
   expect(
     JSON.stringify(
-      tools.find((t) => t.name === "create_algebra_grid")!.inputSchema,
+      tools.find((t) => t.name === "create_diagram")!.inputSchema,
     ),
   ).not.toContain("prefixItems");
   expect(

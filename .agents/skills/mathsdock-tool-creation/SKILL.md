@@ -38,6 +38,7 @@ qualified repository checkout; a plugin does not bundle the release scripts.
 - Preserve invalid input for correction and block misleading exports. Keep local edits undoable, and preserve valid work through navigation, import cancellation and recovery.
 - Validate actual SVG/PNG content, crops, dimensions and density. Check real Word insertion when changing that path, or record the outstanding check.
 - Keep browser editing independent of the optional service. Share schemas, mathematics and rendering between delivery routes, and preserve compatible older files and links.
+- A new diagram family joins the shared registry (docs/tools/DIAGRAM-REGISTRY.md); it then reaches the generic connector tools and worksheets with no new tool names.
 - If adding MCP access, document complete payloads and version/default distinctions; check actual discovery, create/revise, downloads and reopening in the editor. Website, service and client acceptance are distinct stages.
 - For MCP print output, follow docs/tools/MCP-DIAGRAM-OUTPUTS.md: keep print facts outside the definition/hash, qualify actual vector consumption, and keep placement advice and bundles optional, bounded and stateless. The consuming AI owns booklet assembly and saving.
 - For original SVG delivery when a client cannot fetch signed downloads, follow [direct SVG retrieval](../../../docs/tools/DIRECT-SVG-DELIVERY.md). Preserve exact artifact bytes and verify checksums through saved SVG into vector PDF. A restricted local SDK simulation does not establish actual ChatGPT acceptance.
@@ -65,7 +66,7 @@ Tim authorised implementing the follow-up plan. Preserve connector/output whites
 
 ## Bar modelling
 
-For bar-model resources or development read [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/tools/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
+For bar-model resources or development read [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/tools/BAR-MODEL-BRIEF.md). Call diagram_capabilities/create_diagram/revise_diagram with kind bar-model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
 
 
 ## Horizontal fractions and handwriting follow-up

@@ -10,16 +10,15 @@ service deployment or client acceptance. Check the actual discovered tools.
 
 | Resource | Capabilities | Create | Revise |
 | --- | --- | --- | --- |
-| Graph | graph_capabilities | create_graph | revise_graph |
-| Ratio tables | ratio_table_capabilities | create_ratio_table | revise_ratio_table |
-| Plotting quadratics | value_graph_capabilities | create_value_graph | revise_value_graph |
-| Cuboids | cuboid_capabilities | create_cuboid | revise_cuboid |
-| Number lines | number_line_capabilities | create_number_line | revise_number_line |
-| Venn | venn_capabilities | create_venn | revise_venn |
+| Graph | `diagram_capabilities` (kind `graph`) | `create_diagram` (kind `graph`) | `revise_diagram` (kind `graph`) |
+| Ratio tables | `diagram_capabilities` (kind `ratio-table`) | `create_diagram` (kind `ratio-table`) | `revise_diagram` (kind `ratio-table`) |
+| Plotting quadratics | `diagram_capabilities` (kind `value-graph`) | `create_diagram` (kind `value-graph`) | `revise_diagram` (kind `value-graph`) |
+| Cuboids | `diagram_capabilities` (kind `cuboids`) | `create_diagram` (kind `cuboids`) | `revise_diagram` (kind `cuboids`) |
+| Number lines | `diagram_capabilities` (kind `number-line`) | `create_diagram` (kind `number-line`) | `revise_diagram` (kind `number-line`) |
+| Venn | `diagram_capabilities` (kind `venn`) | `create_diagram` (kind `venn`) | `revise_diagram` (kind `venn`) |
 
 The catalogue also includes `check_diagram_placement` and
-`download_diagram_bundle`, plus optional `get_diagram_svg` (21 calls in this
-source). See [original SVG delivery](DIRECT-SVG-DELIVERY.md) for verified saving
+`download_diagram_bundle`, plus optional `get_diagram_svg`. Since wave 4 (10 Nov 2026) the connector has 8 tools; family tools are `diagram_capabilities`, `create_diagram` and `revise_diagram` with a `kind` (see [Diagram registry](DIAGRAM-REGISTRY.md)). See [original SVG delivery](DIRECT-SVG-DELIVERY.md) for verified saving
 when external downloads are blocked. Their six source kinds are `graph`, `ratio-table`,
 `value-graph`, `cuboids`, `number-line` and `venn`. Do not reconstruct signed URLs.
 

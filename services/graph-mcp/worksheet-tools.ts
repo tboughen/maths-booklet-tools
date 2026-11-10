@@ -3,6 +3,7 @@ import { deflateSync, inflateSync } from "fflate";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
+import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
 import { fileName, renderResource, resourceSchema, SIZE, validate, type Resource, type View } from "../../packages/resource-core/src/index";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
@@ -106,7 +107,7 @@ const LAYOUT = [
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
   "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,columns:[3 columns, each {heading,cards:[{title,items}]}]}]}}. " +
-  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick options), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, diagram {diagram:{tool:'charts'|'probability-tree',envelope}} using the exact envelope returned by create_chart or create_probability_tree, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
+  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick options), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers PDF; never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
@@ -200,7 +201,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               layout: LAYOUT,
               limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
               items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "part"],
-              diagrams: { charts: "envelope from create_chart", "probability-tree": "envelope from create_probability_tree" },
+              diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
               cellStates: ["supplied", "blank", "hidden"],
               markup: "**bold** and *italic* only; no HTML",
               outputs: ["pupil PDF", "answers PDF", "editable JSON", "side previews"],

@@ -149,6 +149,15 @@ describe("rate-limit key behind a proxy (M59)", () => {
     expect(() => limits.request(a, 1000)).toThrow("Too many");
     expect(() => limits.request(b, 1000)).not.toThrow();
   });
+  it("lets one address use at most a quarter of the daily allowance", async () => {
+    const limits = new TrafficLimits(100, { now: () => 1000 });
+    const call = (client: string, size: number) => new Promise<void>((resolve, reject) =>
+      setImmediate(() => { try { limits.request(client, 1000); limits.output(size, 1000); resolve(); } catch (e) { reject(e); } }));
+    await call("203.0.113.9", 20);
+    await expect(call("203.0.113.9", 10)).rejects.toThrow("its share");
+    // Another address still has its own share, within the shared total.
+    await expect(call("198.51.100.4", 25)).resolves.toBeUndefined();
+  });
   it("normalises IPv6 and mapped IPv4 forms", () => {
     expect(clientAddress(req("10.0.0.5", "::ffff:203.0.113.9"), true)).toBe("203.0.113.9");
     expect(clientAddress(req("10.0.0.5", "[2001:db8::1]:443"), true)).toBe("2001:db8::1");

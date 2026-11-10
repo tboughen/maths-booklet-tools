@@ -1,6 +1,7 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -8,6 +9,7 @@ import { resolve } from "node:path";
 import { graphService } from "./server";
 import {
   createGraph,
+  GraphError,
   graphHash,
 } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
@@ -40,7 +42,7 @@ async function start() {
   });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "graph-qualification", version: "1" });
+  const client = withFamilyNames(new Client({ name: "graph-qualification", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -48,7 +50,21 @@ async function start() {
   return { base, client, logs };
 }
 describe("actual MCP transport and print downloads", () => {
+  it("fits a maximum-object graph in compressed download links", async () => {
+    const { client } = await start();
+    const reply = await client.callTool({ name: "create_graph", arguments: { schemaVersion: 1, objects: Array.from({ length: 50 }, (_, i) => ({ kind: "line", id: "long-name-" + i, equation: { kind: "slope", slope: i / 3, intercept: i / 7 }, equationVisible: true })) } });
+    expect(reply.isError).not.toBe(true);
+    const data = reply.structuredContent as { downloads: Record<string, { url: string }> };
+    expect(Object.keys(data.downloads).sort()).toEqual(["json", "png", "svg"]);
+    for (const d of Object.values(data.downloads)) expect(d.url.length).toBeLessThan(7500);
+    const json = await fetch(data.downloads.json.url);
+    expect(json.status, await json.clone().text()).toBe(200);
+    expect(((await json.json()) as { document: { objects: unknown[] } }).document.objects).toHaveLength(50);
+  }, 30000);
   it("returns intact embedded artifacts when signed/editor links are too large", async () => {
+    // Compressed links now fit every valid graph, so force the long-link path to check the fallback.
+    const spy = vi.spyOn(Downloads.prototype, "link").mockImplementation(() => { throw new GraphError("size_limit", "Test: link too long."); });
+    onTestFinished(() => spy.mockRestore());
     const { client } = await start();
     const reply = await client.callTool({
       name: "create_graph",
@@ -100,33 +116,9 @@ describe("actual MCP transport and print downloads", () => {
   it("discovers tools, creates, downloads and revises through the official client", async () => {
     const { client, logs } = await start();
     expect((await client.listTools()).tools.map((t) => t.name)).toEqual([
-      "graph_capabilities",
-      "create_graph",
-      "revise_graph",
-      "ratio_table_capabilities",
-      "create_ratio_table",
-      "revise_ratio_table",
-      "value_graph_capabilities",
-      "create_value_graph",
-      "revise_value_graph",
-      "cuboid_capabilities",
-      "create_cuboid",
-      "revise_cuboid",
-      "number_line_capabilities",
-      "create_number_line",
-      "revise_number_line",
-      "venn_capabilities",
-      "create_venn",
-      "revise_venn",
-      "algebra_grid_capabilities",
-      "create_algebra_grid",
-      "revise_algebra_grid",
-        "bar_model_capabilities", "create_bar_model", "revise_bar_model",
-      "chart_capabilities", "create_chart", "revise_chart",
-      "probability_tree_capabilities", "create_probability_tree", "revise_probability_tree",
-      "triangle_capabilities",
-      "create_triangle",
-      "revise_triangle",
+      "diagram_capabilities",
+      "create_diagram",
+      "revise_diagram",
       "check_diagram_placement",
       "download_diagram_bundle",
       "get_diagram_svg",
@@ -303,7 +295,8 @@ it("kills a slow native renderer and releases its queue", async () => {
   await expect(queue.render("<svg/>", 10, 10)).rejects.toThrow("timed out");
 });
 it("enforces request and served-byte budgets", () => {
-  const limits = new TrafficLimits(100);
+  // The whole allowance for one address here; quota.test.ts covers the per-address share.
+  const limits = new TrafficLimits(100, { clientShare: 1 });
   for (let i = 0; i < 40; i++) limits.request("client", 1000);
   expect(() => limits.request("client", 1000)).toThrow("Too many");
   limits.output(100, 1000);

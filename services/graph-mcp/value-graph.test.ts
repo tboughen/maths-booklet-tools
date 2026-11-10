@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -41,10 +42,10 @@ async function start() {
   await new Promise<void>((resolve) =>
     server.listen(port, "127.0.0.1", resolve),
   );
-  const client = new Client({
+  const client = withFamilyNames(new Client({
     name: "value-graph-qualification",
     version: "1",
-  });
+  }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -63,7 +64,7 @@ describe("table-of-values MCP on the real local protocol", () => {
   it("discovers homogeneous schemas and creates a scaffold with real print downloads and an editable link", async () => {
     const { client } = await start(),
       tools = (await client.listTools()).tools.filter((t) =>
-        t.name.includes("value_graph"),
+        ["diagram_capabilities", "create_diagram", "revise_diagram"].includes(t.name),
       );
     expect(tools).toHaveLength(3);
     function inspect(v: unknown) {
