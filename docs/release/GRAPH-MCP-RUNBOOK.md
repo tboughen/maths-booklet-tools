@@ -68,6 +68,12 @@ Docker context. The site build contains fonts but no service or signing keys.
 service-dist/manifest.json records SHA-256 source/font/runtime-lock fingerprints.
 /healthz returns the manifest buildId and renderer version for release checks.
 
+A core package the service imports, directly or through another package, must be
+named in three places: a `COPY` line in Dockerfile.graph-mcp, the build ID
+directories in services/graph-mcp/build.mjs and the `include` list of
+tsconfig.service.json. `scripts/ci/service-packages.test.mjs` (in
+`npm run test:publisher`) names any that are missing.
+
 Build/run a Linux container:
 
 ```
