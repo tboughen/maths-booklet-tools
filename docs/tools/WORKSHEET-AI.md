@@ -1,6 +1,6 @@
 # Worksheet AI maker
 
-The Worksheets page (`/tools/worksheet`) can make a two-sided A3 worksheet from a learning
+The Worksheets page (`/worksheets`, its own section of the site; the old `/tools/worksheet` address opens it) can make a two-sided A3 worksheet from a learning
 objective with the teacher's own AI key, then apply change requests. Code: `src/worksheet/ai/`.
 
 ## How it works
@@ -32,10 +32,16 @@ objective with the teacher's own AI key, then apply change requests. Code: `src/
   device" (`localStorage`). They are never written into worksheet files, links or exports, and they
   go only to the chosen provider. The site CSP allows `connect-src` to `api.anthropic.com` and
   `api.openai.com` for this.
-- Schemes of work are school information and never enter this repository. A teacher can import a
-  scheme file (MathsDock scheme JSON, or CSV `code,objective,unit`), kept on their device. Serving
-  the department scheme from the gated bank (`SCHOOL_SCHEME_URL`) is a follow-up: the bank Worker
-  serves only immutable `sha256` PDF and PNG keys today.
+- Schemes of work are school information and never enter this repository. The department scheme
+  is `schemes/school.json` in the private bank repository (`public/bank/assets/schemes/`), and it is
+  the default objective list. `public/bank/schemes.json` names it; a release (`prepareSchemes` in
+  `scripts/cloudflare/release.ts`) uploads it to R2 as an immutable `bank/assets/sha256/<hash>.json`
+  object and rewrites the index to that key, and the site Worker serves it only to signed-in staff,
+  like the question files. Packaging refuses an index that names an object outside the inventory.
+  To update the scheme, commit the new file in the bank repository, update the submodule link
+  here, and release. A teacher can also import another scheme file (MathsDock scheme JSON, or CSV
+  `code,objective,unit`), kept on their device. Without the bank (quick pull-request builds) the
+  index names a file that is not there, and the page offers typed objectives.
 
 ## Tests
 

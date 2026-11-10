@@ -5,7 +5,7 @@ import { classify } from './classify.mjs';
 import { validateInventory } from './inventory.mjs';
 
 export const siteWorker = 'scripts/cloudflare/site-worker.mjs';
-export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'bankCatalogueSplit.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
+export const policyFiles = ['scripts/cloudflare/release.ts', 'bankAssets.ts', 'bankSchemes.ts', 'bankCatalogueSplit.ts', 'workedSolution.ts', 'scripts/bank/solution-files.ts', 'vite.config.ts'];
 export const transformationId = root => digestObject(policyFiles.map(path => [path, sha256(readFileSync(resolve(root, path)))]));
 export const verifierId = root => digestObject(['network.mjs', 'inventory.mjs', 'upload-core.mjs', 'common.mjs', 'cors-policy.mjs'].map(name => [name, sha256(readFileSync(resolve(root, 'scripts/cloudflare', name)))]));
 export function packageRelease(root, { base, directory = resolve(root, 'cloudflare-release/package') } = {}) {
@@ -15,6 +15,7 @@ export function packageRelease(root, { base, directory = resolve(root, 'cloudfla
   if (inventory.sourceCommit !== source.commit) throw new Error('Built inventory has a different source commit');
   if (sha256(readFileSync(resolve(root, 'dist-cloudflare/bank/catalogue.json'))) !== inventory.catalogueSha256) throw new Error('Built catalogue differs from its inventory');
   if (existsSync(resolve(root, 'dist-cloudflare/bank/assets'))) throw new Error('Question objects must remain outside the website package');
+  verifySchemeIndex(resolve(root, 'dist-cloudflare'), inventory);
   mkdirSync(directory, { recursive: true });
   cpSync(resolve(root, 'dist-cloudflare'), resolve(directory, 'site'), { recursive: true, dereference: false });
   mkdirSync(resolve(directory, 'config'), { recursive: true });
@@ -63,7 +64,20 @@ export function verifyPackage(directory, { allowExpiredForRecovery = false, allo
   if (sha256(readFileSync(resolve(directory, 'site/bank/catalogue.json'))) !== inventory.catalogueSha256) throw new Error('Packaged catalogue does not match inventory');
   // A recovery package published before the split (8 Nov 2026) has no index; anything newer must.
   verifySplitCatalogue(resolve(directory, 'site'), { allowUnsplit: allowExpiredForRecovery });
+  verifySchemeIndex(resolve(directory, 'site'), inventory);
   return release;
+}
+// Every scheme the packaged index names must be an immutable JSON object in the inventory, so the
+// page never points at a file the release did not upload. Older packages have no index.
+export function verifySchemeIndex(site, inventory) {
+  const file = resolve(site, 'bank/schemes.json');
+  if (!existsSync(file)) return;
+  const index = json(file), keys = new Set(inventory.assets.map(a => a.key));
+  if (index.schemaVersion !== 1) throw new Error('Packaged scheme index is not version 1');
+  for (const [id, key] of Object.entries(index)) {
+    if (id === 'schemaVersion') continue;
+    if (!/^bank\/assets\/sha256\/[a-f0-9]{64}\.json$/.test(key) || !keys.has(key)) throw new Error(`Packaged scheme ${id} is not in the inventory`);
+  }
 }
 // The split catalogue (bankCatalogueSplit.ts) must describe the packaged catalogue: the same
 // version, the same questions in order, and an existing detail file for every paper that holds

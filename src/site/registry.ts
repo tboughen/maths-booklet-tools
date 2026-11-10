@@ -12,7 +12,6 @@ import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
 import probabilityTreePreview from "../assets/tool-previews/probability-trees.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
-import worksheetPreview from "../assets/tool-previews/worksheets.png";
 
 /** Add booklet editors here; the overview, navigation and page host share this list.
  * Each editor is lazy-loaded so it ships as its own bundle and downloads on first visit. */
@@ -28,12 +27,12 @@ export const bookletTools = [
   { id: "number-line", name: "Number lines", description: "Make exam-style number lines, intervals and inequality scaffolds.", icon: MoveHorizontal, component: lazyPage(() => import("../number-line/NumberLinePage")), preview: { src: numberLinePreview, alt: "Number line with a filled endpoint at minus three, open endpoint at one and a blank response line." } },
   { id: "charts", name: "Bar and line charts", description: "Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes.", icon: ChartColumn, component: lazyPage(() => import("../charts/ChartsPage")), preview: { src: chartsPreview, alt: "Dual bar chart of transport to school for boys and girls, with a key and one bar left for pupils to draw." } },
   { id: "probability-tree", name: "Probability trees", description: "Draw exam-style probability tree diagrams, including unequal trees and given-that questions.", icon: GitFork, component: lazyPage(() => import("../probability-tree/ProbabilityTreePage")), preview: { src: probabilityTreePreview, alt: "Two-stage probability tree for two bags of red and green balls, with three probabilities left for pupils." } },
-  { id: "worksheet", name: "Worksheets", description: "Edit MathsDock A3 worksheets made in chat and download the pupil and answers PDFs.", icon: FileText, component: lazyPage(() => import("../worksheet/WorksheetPage")), preview: { src: worksheetPreview, alt: "Side 1 of a two-sided A3 tree diagrams worksheet in three columns of numbered question cards." } },
 ] as const;
 
 /** Site pages outside the booklet tools, loaded the same way. */
 export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
+export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
 export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
 // Each tool needs a path; this fails to compile if the two lists drift apart.
 type RegistryTool = typeof bookletTools[number]["id"];
@@ -44,6 +43,7 @@ export const siteSections = [
   { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: BookOpen, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
   { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: FileSpreadsheet, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
+  { id: "worksheets", name: "Worksheets", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
   { id: "booklet-tools", name: "Booklet tools", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Explore booklet tools" },
 ] as const;
 export type SectionId = PageId | "paper-builder";
@@ -59,6 +59,7 @@ export function pageName(id: PageId): string {
   if (id === "booklet-tools") return "Booklet tools";
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
+  if (id === "worksheets") return "Worksheets";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
 }
@@ -66,5 +67,6 @@ export function pageName(id: PageId): string {
 export function preloadPage(id: PageId) {
   if (id === "question-bank") return QuestionBank.preload();
   if (id === "assessment-follow-up") return AssessmentPage.preload();
+  if (id === "worksheets") return WorksheetPage.preload();
   return bookletTools.find((tool) => tool.id === id)?.component.preload();
 }

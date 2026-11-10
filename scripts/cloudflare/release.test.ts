@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { digest, prepareRelease } from "./release";
+import { verifySchemeIndex } from "./package.mjs";
 const roots: string[] = [];
 afterEach(() => {for (const root of roots.splice(0)) rmSync(root, {recursive: true, force: true});});
 function fixture(path = "bank/assets/one.pdf") {
@@ -34,6 +35,28 @@ describe("Cloudflare release construction", () => {
     writeFileSync(join(root, "bank/assets/one.pdf"), "%PDF-changed");
     const second = prepareRelease(root, "commit");
     expect(JSON.parse(second.catalogueJson).questions[0].questionPdf).not.toBe(JSON.parse(first.catalogueJson).questions[0].questionPdf);
+  });
+  it("publishes the department scheme as an immutable JSON object and points the index at it", () => {
+    const root = fixture();
+    mkdirSync(join(root, "bank/assets/schemes"), {recursive: true});
+    writeFileSync(join(root, "bank/schemes.json"), JSON.stringify({schemaVersion: 1, school: "bank/assets/schemes/school.json"}));
+    writeFileSync(join(root, "bank/assets/schemes/school.json"), '{"kind":"scheme-of-work"}');
+    const release = prepareRelease(root, "commit");
+    const key = `bank/assets/sha256/${digest('{"kind":"scheme-of-work"}')}.json`;
+    expect(JSON.parse(release.schemesJson)).toEqual({schemaVersion: 1, school: key});
+    expect(release.manifest.assets.find(a => a.key === key)).toMatchObject({contentType: "application/json", sources: ["bank/assets/schemes/school.json"]});
+    const site = mkdtempSync(join(tmpdir(), "mathsdock-site-")); roots.push(site);
+    mkdirSync(join(site, "bank"));
+    writeFileSync(join(site, "bank/schemes.json"), release.schemesJson);
+    expect(() => verifySchemeIndex(site, release.manifest)).not.toThrow();
+    expect(() => verifySchemeIndex(site, {...release.manifest, assets: release.manifest.assets.filter(a => a.key !== key)})).toThrow(/not in the inventory/);
+  });
+  it("leaves out a scheme the bank checkout does not have, and refuses a bad index", () => {
+    const root = fixture();
+    writeFileSync(join(root, "bank/schemes.json"), JSON.stringify({schemaVersion: 1, school: "bank/assets/schemes/school.json"}));
+    expect(JSON.parse(prepareRelease(root, "commit").schemesJson)).toEqual({schemaVersion: 1});
+    writeFileSync(join(root, "bank/schemes.json"), JSON.stringify({schemaVersion: 1, school: "bank/assets/../catalogue.json"}));
+    expect(() => prepareRelease(root, "commit")).toThrow(/scheme index/);
   });
   it("refuses traversal, missing files and malformed catalogue paths before uploading", () => {
     expect(() => prepareRelease(fixture("bank/assets/../secret.pdf"), "commit")).toThrow();

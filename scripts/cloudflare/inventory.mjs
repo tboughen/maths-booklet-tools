@@ -8,7 +8,7 @@ export function validateInventory(manifest) {
   if (manifest.schemaVersion !== 1 || manifest.bucket !== 'maths-booklet-assets' || manifest.assetOrigin !== 'same-origin' || !Array.isArray(manifest.assets) || !manifest.assets.length) throw new Error('Invalid MathsDock asset inventory');
   const seen = new Set();
   for (const asset of manifest.assets) {
-    const extension = asset.contentType === 'application/pdf' ? 'pdf' : asset.contentType === 'image/png' ? 'png' : null;
+    const extension = { 'application/pdf': 'pdf', 'image/png': 'png', 'application/json': 'json' }[asset.contentType] ?? null;
     if (!extension || !/^[a-f0-9]{64}$/.test(asset.sha256) || !/^[a-f0-9]{32}$/.test(asset.md5) || asset.key !== `bank/assets/sha256/${asset.sha256}.${extension}` || !Number.isSafeInteger(asset.bytes) || asset.bytes <= 0 || seen.has(asset.key) || !Array.isArray(asset.sources) || !asset.sources.length) throw new Error('Malformed, duplicated or non-immutable asset inventory entry');
     seen.add(asset.key);
   }

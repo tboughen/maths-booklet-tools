@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync, realpathSync, statSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync, readdirSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { catalogueAssetPaths, type CatalogueAssets } from "../../bankAssets.ts";
+import { parseSchemeIndex, schemeIds, SCHEMES_PATH } from "../../bankSchemes.ts";
 
 // Question files are served by the website's own Worker at /bank/assets/*, behind
 // Cloudflare Access. There is no separate public asset origin.
@@ -29,7 +30,7 @@ export function assetFile(publicRoot: string, path: string): string {
 }
 
 export function sourceFingerprint(root: string): string {
-  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "bankCatalogueSplit.ts", "workedSolution.ts", "index.html", "scripts/cloudflare/release.ts", "scripts/bank/solution-files.ts"];
+  const files = ["package.json", "package-lock.json", "vite.config.ts", "bankAssets.ts", "bankSchemes.ts", "bankCatalogueSplit.ts", "workedSolution.ts", "index.html", "scripts/cloudflare/release.ts", "scripts/bank/solution-files.ts"];
   const walk = (directory: string) => {
     for (const item of readdirSync(resolve(root, directory), {withFileTypes: true})) {
       const path = `${directory}/${item.name}`;
@@ -40,6 +41,30 @@ export function sourceFingerprint(root: string): string {
   const hash = createHash("sha256");
   for (const path of files.sort()) hash.update(path + "\0" + digest(readFileSync(resolve(root, path))) + "\n");
   return hash.digest("hex");
+}
+
+/**
+ * The scheme index with each scheme that is present rewritten to its immutable object, and those
+ * objects. A scheme missing from the bank checkout is left out, so the page offers typed objectives.
+ */
+export function prepareSchemes(publicRoot: string): { schemesJson: string; assets: ReleaseAsset[] } {
+  const indexFile = resolve(publicRoot, SCHEMES_PATH);
+  const index = existsSync(indexFile) ? parseSchemeIndex(JSON.parse(readFileSync(indexFile, "utf8"))) : { schemaVersion: 1 as const };
+  const root = realpathSync(publicRoot);
+  const out: Record<string, unknown> = { schemaVersion: 1 };
+  const assets: ReleaseAsset[] = [];
+  for (const id of schemeIds) {
+    const path = index[id];
+    if (!path || !existsSync(resolve(root, path))) continue;
+    const file = realpathSync(resolve(root, path));
+    if (!file.startsWith(root + sep) || !statSync(file).isFile()) throw new Error("Scheme escapes the public directory");
+    const data = readFileSync(file);
+    JSON.parse(data.toString("utf8")); // a scheme must be JSON before it is published
+    const sha256 = digest(data), key = `bank/assets/sha256/${sha256}.json`;
+    out[id] = key;
+    if (!assets.some(a => a.key === key)) assets.push({ key, sha256, md5: digest(data, "md5"), bytes: data.length, contentType: "application/json", sources: [path] });
+  }
+  return { schemesJson: JSON.stringify(out), assets };
 }
 
 export function prepareRelease(publicRoot: string, sourceCommit: string, fingerprint = "") {
@@ -68,10 +93,12 @@ export function prepareRelease(publicRoot: string, sourceCommit: string, fingerp
     }
   }
   const catalogueJson = JSON.stringify(catalogue);
+  const { schemesJson, assets: schemes } = prepareSchemes(publicRoot);
+  for (const asset of schemes) if (!objects.has(asset.key)) objects.set(asset.key, asset);
   const manifest: ReleaseManifest = {
     schemaVersion: 1, assetOrigin, bucket: bucketName, sourceCommit, sourceFingerprint: fingerprint,
     sourceCatalogueSha256: digest(source), catalogueSha256: digest(catalogueJson),
     assets: [...objects.values()].sort((a, b) => a.key.localeCompare(b.key)),
   };
-  return { catalogueJson, manifest };
+  return { catalogueJson, schemesJson, manifest };
 }

@@ -11,7 +11,7 @@ mkdirSync(out, { recursive: true });
 
 async function boot(page: Page, r?: Resource) {
   if (r) await page.addInitScript(([k, v]) => localStorage.setItem(k, v), [key, JSON.stringify(r)]);
-  await page.goto("/tools/worksheet");
+  await page.goto("/worksheets");
   await expect(page.getByTestId("worksheet-pages").locator(".ws-art > svg")).toHaveCount(2);
 }
 const saved = (page: Page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "null"), key) as Promise<Resource>;
@@ -106,7 +106,10 @@ function claudeStream(input: unknown) {
 
 test("makes a worksheet from a scheme objective with the teacher's own Claude key, then undoes it", async ({ page }) => {
   const scheme = { schemaVersion: 1, kind: "scheme-of-work", name: "Department scheme", units: [{ code: "SP2", title: "Presentation of data", years: [8], objectives: [{ code: "SP2.06", level: "C", text: "Construct and interpret comparative bar charts" }] }] };
-  await page.route("**/bank/assets/schemes/school.json", (route) => route.fulfill({ json: scheme }));
+  // A release names the scheme by its immutable object; the page follows the index.
+  const object = `bank/assets/sha256/${"a".repeat(64)}.json`;
+  await page.route("**/bank/schemes.json", (route) => route.fulfill({ json: { schemaVersion: 1, school: object } }));
+  await page.route(`**/${object}`, (route) => route.fulfill({ json: scheme }));
   const sent: { headers: Record<string, string>; body: { messages: { content: string }[]; model: string } }[] = [];
   await page.route("https://api.anthropic.com/**", async (route) => {
     const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "POST, GET, OPTIONS" };

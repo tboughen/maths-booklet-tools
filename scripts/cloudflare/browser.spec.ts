@@ -107,8 +107,11 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
 
 test("published navigation, tool startup and a synthetic HPP class export remain available", async ({page}, info) => {
   await page.goto('/');
-  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Booklet tools']);
+  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Worksheets', 'Booklet tools']);
   await expect(page.locator('.site-brand img')).toBeVisible();
+  // The department scheme is published as an immutable bank object, never as a static file.
+  const schemes = await (await page.request.get('/bank/schemes.json')).json();
+  expect(schemes.school).toMatch(/^bank\/assets\/sha256\/[a-f0-9]{64}\.json$/);
   for (const [route, heading] of [['value-table-graph', 'Plotting quadratics'], ['cuboids', 'Cuboids']]) {
     await page.goto(`/?tool=${route}`);
     await expect(page.getByRole('heading', {name: heading, exact: true})).toBeVisible();
