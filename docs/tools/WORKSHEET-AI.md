@@ -38,9 +38,14 @@ objective with the teacher's own AI key, then apply change requests. Code: `src/
 - Each reply's tokens are priced from `src/worksheet/ai/prices.ts` (standard tier, short context,
   US dollars per million tokens; Anthropic cache writes at 1.25 times input; thinking billed as
   output). The teacher notes show the run's tokens and cost, and "Spent in this tab" adds up every
-  reply, including failed and stopped runs, in `sessionStorage` with a Reset button. Models not in
+  completed reply, including replies in runs that later fail the checks or are stopped, in
+  `sessionStorage` with a "Reset spend estimate" button. A reply stopped part-way, or cut off by a
+  network error, is billed by the provider but not counted, because providers report usage only
+  when a reply finishes. Models not in
   the table show tokens only and are counted as unpriced.
-- `PRICES_CHECKED` is shown in the panel. A weekly scheduled task (Mondays) checks the table against
+- `PRICES_CHECKED` is shown in the panel. A weekly Claude scheduled task
+  ("Check AI worksheet maker prices", Mondays 06:41 UK, set up in the MathsDock project, not a
+  GitHub workflow) checks the table against
   the three providers' pricing pages (URLs at the top of `prices.ts`) and opens one pull request
   only when a price changed, a likely model is missing, or the date is over four weeks old, so quiet
   weeks cost no CI. Announced changes go in as dated rates (`from`), so an introductory price ends

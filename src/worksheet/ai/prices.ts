@@ -2,8 +2,8 @@ import type { Provider, Usage } from "./types";
 
 /**
  * Published API prices, in US dollars per million tokens, standard tier. The providers offer no
- * prices API and a web page cannot read their pricing pages, so the table lives here and is
- * checked weekly against:
+ * prices API and a web page cannot read their pricing pages, so the table lives here. A weekly
+ * Claude scheduled task (see docs/tools/WORKSHEET-AI.md) compares it with:
  *   Anthropic  https://platform.claude.com/docs/en/about-claude/pricing
  *   OpenAI     https://developers.openai.com/api/docs/pricing
  *   Google     https://ai.google.dev/gemini-api/docs/pricing
