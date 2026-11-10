@@ -5,9 +5,9 @@
 The existing /mcp endpoint exposes the original graph trio plus:
 
 ```
-`diagram_capabilities` (kind `ratio-table`)
-`create_diagram` (kind `ratio-table`)
-`revise_diagram` (kind `ratio-table`)
+diagram_capabilities {kind:"ratio-table"}
+create_diagram {kind:"ratio-table", spec?, envelope?}
+revise_diagram {kind:"ratio-table", envelope, baseHash, operations}
 ```
 
 Browser and server use packages/ratio-table-core for the same schema, exact
@@ -53,7 +53,7 @@ Creation example: pupil scaffold
 Numeric values and factors are strings. The blank answer remains an answer line
 despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
 use explicit IDs when supplying transitions. Headings, size, mode and annotation
-visibility have human-editor defaults. `create_diagram` (kind `ratio-table`) {}` (no rows) returns the
+visibility have human-editor defaults. `create_diagram {kind:"ratio-table"}` (no rows) returns the
 blank starter: two columns with two empty rows. Use schemaVersion 1 and exactly two cells
 per row for legacy diagrams. Use schemaVersion 2 for one row, one column or three columns; every row must match the number of headings. Capabilities
 retain columns: 2 as the default and add supportedColumns: [1, 2, 3] and both renderer

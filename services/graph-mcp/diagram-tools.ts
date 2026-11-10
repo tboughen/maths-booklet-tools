@@ -49,8 +49,10 @@ export const diagramOutput = z
   .object({
     kind: diagramKindSchema,
     envelope: object,
-    contentHash: z.string(),
+    contentHash: z.string().regex(/^[0-9a-f]{64}$/),
     rendererVersion: z.string(),
+    printDpi: z.literal(600),
+    printVerified: z.boolean(),
     summary: z.string(),
     altText: z.string(),
     warnings: z.array(z.string()),

@@ -141,4 +141,12 @@ describe("Triangle interchange", () => {
     expect(Number(core.getLabel(saved,ref).answer)).toBeCloseTo(expected,3);
     expect(core.getLabel(saved,ref).answerVisible).toBe(false);
   });
+  it("reports each context's answer unit from the label kind", async () => {
+    const e = await edit(ti.create({ spec: { shape: "scalene" } }), [{ op: "set_area", triangleId: "T1", label: { state: "answer-line" } }]);
+    const units = new Map(ti.contexts(e).map(c => [c.target.split(":")[0], c.answerUnit]));
+    expect(units.get("a")).toBe("°");
+    expect(units.get("r")).toBe(`${ti.contexts(e)[0].lengthUnit}²`);
+    expect(units.get("e")).toBe(ti.contexts(e)[0].lengthUnit);
+    expect([...units.keys()]).not.toContain("c");
+  });
 });

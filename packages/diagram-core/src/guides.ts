@@ -50,6 +50,9 @@ const ratioGuide: FamilyGuide = {
   capabilities: {
     rendererVersions: [ratio.RATIO_RENDERER_VERSION, ratio.RATIO_THREE_COLUMN_RENDERER_VERSION],
     styleProfile: ratio.RATIO_STYLE_PROFILE,
+    /** Legacy defaults, not limits: a bare create gives two columns with ratio-1. */
+    columns: 2,
+    rendererVersion: ratio.RATIO_RENDERER_VERSION,
     supportedColumns: [1, 2, 3],
     rows: { minimum: 1, maximum: 6 },
     cellKinds: ["number", "empty", "answer-line"],

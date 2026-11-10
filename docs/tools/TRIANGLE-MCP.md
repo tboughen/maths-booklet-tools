@@ -5,9 +5,8 @@ service deployment, plugin guidance, actual chat discovery and saved-file use ar
 separate stages. Follow `docs/release/MCP-CONNECTOR-ACCEPTANCE.md`, including the historical
 ratio schema-import defect and the later unexplained SVG catalogue delay.
 
-Three added names: `diagram_capabilities` (kind `triangle`), `create_diagram` (kind `triangle`), `revise_diagram` (kind `triangle`).
-Only invoke them when actually discovered. Existing 33 names remain; the complete
-catalogue has 36. The generic placement, bundle and original-SVG tools gain kind
+Tools: `diagram_capabilities`, `create_diagram` and `revise_diagram` with `kind: "triangle"`.
+Only invoke them when actually discovered. Since wave 4 (10 Nov 2026) the connector has 8 tools; family tools are `diagram_capabilities`, `create_diagram` and `revise_diagram` with a `kind` (see [Diagram registry](DIAGRAM-REGISTRY.md)). The generic placement, bundle and original-SVG tools gain kind
 `triangle`. These instructions alone do not deploy a service or import any tools.
 
 ## Create and reopen

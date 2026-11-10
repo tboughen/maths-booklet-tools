@@ -16,13 +16,13 @@ afterEach(async () => {
   await Promise.all(clients.splice(0).map((c) => c.close()));
   await Promise.all(servers.splice(0).map((s) => new Promise<void>((r) => s.close(() => r()))));
 });
-async function start() {
+async function start(extra: { dailyBytes?: number } = {}) {
   const reserve = createServer();
   await new Promise<void>((r) => reserve.listen(0, "127.0.0.1", r));
   const port = (reserve.address() as { port: number }).port;
   await new Promise<void>((r) => reserve.close(() => r()));
   const base = `http://127.0.0.1:${port}`;
-  const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "diagram-tools-test-only-key-0123456789" }, activeKey: "test" });
+  const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "diagram-tools-test-only-key-0123456789" }, activeKey: "test", ...extra });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
   const client = new Client({ name: "generic-diagram-tools", version: "1" });
@@ -105,6 +105,10 @@ describe("generic connector tools", () => {
     expect(r.isError, JSON.stringify(r.content).slice(0, 400)).not.toBe(true);
     const data = r.structuredContent as { kind: string; summary: string; altText: string; contentHash: string; envelope: unknown; downloads: Record<string, { url: string }> };
     expect(data.kind).toBe(kind);
+    // The generic output still carries the family's own checked envelope and a SHA-256 hash.
+    expect(() => FAMILIES[kind].validate(data.envelope, "pupil")).not.toThrow();
+    expect(data.contentHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(data).toMatchObject({ printDpi: 600, printVerified: true });
     expect(data.summary).toMatch(new RegExp(`^Created an? ${FAMILIES[kind].label}, [\\d.]+ × [\\d.]+ cm at 100%\\.`));
     expect(data.altText.length).toBeGreaterThan(3);
     const content = r.content as Array<{ type: string; text?: string; uri?: string; mimeType?: string }>;
@@ -141,6 +145,16 @@ describe("generic connector tools", () => {
       const r = await client.callTool({ name, arguments: {} }).catch((e: Error) => ({ isError: true, content: [{ type: "text", text: e.message }] }));
       expect(r.isError, name).toBe(true);
     }
+  });
+  it("counts a connector call's output against the caller's share of the daily allowance", async () => {
+    // A quarter of 400 KB is less than two graph previews, so one address runs out first.
+    const client = await start({ dailyBytes: 400 * 1024 });
+    const errors: string[] = [];
+    for (let i = 0; i < 12 && !errors.length; i++) {
+      const r = await client.callTool({ name: "create_diagram", arguments: { kind: "graph", spec: { objects: [] } } });
+      if (r.isError) errors.push(JSON.stringify(r.content));
+    }
+    expect(errors[0]).toContain("its share of today");
   });
   it("reports degrees, not centimetres, as the answer unit for an angle", async () => {
     const client = await start();

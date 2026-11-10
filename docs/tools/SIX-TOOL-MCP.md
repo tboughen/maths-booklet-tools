@@ -18,8 +18,7 @@ service deployment or client acceptance. Check the actual discovered tools.
 | Venn | `diagram_capabilities` (kind `venn`) | `create_diagram` (kind `venn`) | `revise_diagram` (kind `venn`) |
 
 The catalogue also includes `check_diagram_placement` and
-`download_diagram_bundle`, plus optional `get_diagram_svg` (21 calls in this
-source). See [original SVG delivery](DIRECT-SVG-DELIVERY.md) for verified saving
+`download_diagram_bundle`, plus optional `get_diagram_svg`. Since wave 4 (10 Nov 2026) the connector has 8 tools; family tools are `diagram_capabilities`, `create_diagram` and `revise_diagram` with a `kind` (see [Diagram registry](DIAGRAM-REGISTRY.md)). See [original SVG delivery](DIRECT-SVG-DELIVERY.md) for verified saving
 when external downloads are blocked. Their six source kinds are `graph`, `ratio-table`,
 `value-graph`, `cuboids`, `number-line` and `venn`. Do not reconstruct signed URLs.
 

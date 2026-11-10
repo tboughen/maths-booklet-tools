@@ -9,6 +9,8 @@ import {
   upgradeLegacyLink,
 } from "./routes";
 
+import { examples as vennExamples } from "../../packages/venn-core/src/examples";
+
 const at = (href: string) => new URL(href, "https://mathsdock.co.uk");
 
 describe("page addresses", () => {
@@ -32,6 +34,12 @@ describe("page addresses", () => {
       expect(readPage(at(path))).toBe("not-found");
   });
 
+  it("gives Venn source links the address their old ?tool= form upgrades to", () => {
+    for (const url of vennExamples.map((e) => e.url).filter((u): u is string => !!u)) {
+      expect(url).toMatch(/^https:\/\/mathsdock\.co\.uk\/question-bank\?code=[^&]+&question=/);
+      expect(upgradeLegacyLink(url.replace("/question-bank?", "/?tool=question-bank&"))).toBe(url);
+    }
+  });
   it("upgrades old ?tool= links, keeping their state", () => {
     expect(upgradeLegacyLink("https://mathsdock.co.uk/?tool=venn#venn=abc")).toBe(
       "https://mathsdock.co.uk/tools/venn#venn=abc",

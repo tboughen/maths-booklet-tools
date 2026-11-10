@@ -39,6 +39,11 @@ export function parseSubmission(input: unknown): Submission {
     const lines = r.error.issues.slice(0, 8).map((i) => `${i.path.join(".") || "input"}: ${i.message}`);
     throw new SubmissionError(lines.join("\n"));
   }
+  const revealing = revealingSettings(r.data.resource);
+  if (revealing.length)
+    throw new SubmissionError(
+      `${revealing.slice(0, 4).join("; ")}: pupil diagrams must not show worked answers. Remove these settings and keep the answers blank or hidden.`,
+    );
   // Diagrams written as specs are built into envelopes now, so the page only ever holds envelopes.
   try {
     return { ...r.data, resource: resolveDiagrams(r.data.resource) };
@@ -47,6 +52,28 @@ export function parseSubmission(input: unknown): Submission {
   }
 }
 export class SubmissionError extends Error {}
+
+/** Spec settings that would print a worked answer on the pupil copy. Saved envelopes are left alone. */
+const REVEALING = /^(worked[A-Za-z]*|calculate|answerVisible)$/;
+function revealingSettings(resource: Resource): string[] {
+  const found: string[] = [];
+  const scan = (value: unknown, path: string) => {
+    if (Array.isArray(value)) value.forEach((v, i) => scan(v, `${path}.${i}`));
+    else if (value && typeof value === "object")
+      for (const [k, v] of Object.entries(value)) {
+        if (REVEALING.test(k) && v !== false && v !== undefined && v !== null) found.push(`${path}.${k}`);
+        else scan(v, `${path}.${k}`);
+      }
+  };
+  resource.document.sides.forEach((side, s) => side.columns.forEach((column, c) => column.cards.forEach((card, k) => {
+    const visit = (item: { type: string; items?: unknown[]; diagram?: { tool: string; spec?: unknown } }, path: string) => {
+      if (item.type === "diagram" && item.diagram?.spec !== undefined) scan(item.diagram.spec, `${path}.diagram.spec`);
+      if (item.type === "part") (item.items ?? []).forEach((child, i) => visit(child as never, `${path}.items.${i}`));
+    };
+    card.items.forEach((item, i) => visit(item as never, `sides.${s}.columns.${c}.cards.${k}.items.${i}`));
+  })));
+  return found;
+}
 
 /** JSON Schema for the one tool the model calls. Built once; identical bytes on every request keep the prompt cache warm. */
 export const toolSchema: Record<string, unknown> = (() => {
@@ -71,7 +98,7 @@ One two-sided A3 landscape worksheet in the MathsDock house style. The page rend
 - Body text is 11 pt and never shrinks. A column that is too full is reported to you with the millimetres needed: then move a card to another column, trim wording, or reduce working space. Never cut a question the plan needs just to make it fit; say so in flags instead.
 - Leave real room for working: "space" items with kind "working" for calculations and "drawing" for sketches and charts, sized for the work pupils actually do (typically 20 to 60 mm).
 - Use "info" items for shared information and key facts (a pale card), "claim" for a statement a pupil made that others check, "choice" for circle-one or tick-one, "answerLine" for a final answer with prefix and unit, "table" for data tables, "part" for lettered parts a, b, c.
-- Diagrams: "diagram" items are MathsDock diagrams, written as {"tool": kind, "spec": {...}} and built by the page. Each request lists the diagram families suited to it with their spec schemas; use only those, following the schema exactly. To keep an existing diagram unchanged, keep its {"tool", "envelope"} exactly as it is. Prefer a pre-drawn diagram with blanks over describing a diagram in words. A blank set of axes for pupils to draw on is a "space" item of kind "drawing".
+- Diagrams: "diagram" items are MathsDock diagrams, written as {"tool": kind, "spec": {...}} and built by the page. Each request lists the diagram families suited to it with their spec schemas; use only those, following the schema exactly. To keep an existing diagram unchanged, keep its {"tool", "envelope"} exactly as it is. Prefer a pre-drawn diagram with blanks over describing a diagram in words. A blank set of axes for pupils to draw on is a "space" item of kind "drawing". Pupil diagrams never use worked, calculate or answerVisible settings: leave answers blank or hidden so they print only in the answers copy.
 - Plain Unicode text only, with **bold** and *italic* as the only marks. Write maths with Unicode (×, ÷, −, ², √, ½, ≤). No HTML, no LaTeX.
 
 # Answers and blanks

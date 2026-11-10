@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { fileName, renderResource, styles, validate, type Resource, type StyleId } from "./index";
 import { wrap } from "./text";
@@ -72,5 +73,21 @@ describe("resource worksheet renderer", () => {
   it("names files by the guide's convention", () => {
     expect(fileName(treeDiagrams)).toBe("SP7.01_List outcomes of combined events using a tree diagram_A3.pdf");
     expect(fileName(comparativeBarCharts, "answers")).toBe("SP2_Construct and interpret comparative bar charts_Answers_A3.pdf");
+  });
+});
+
+describe("saved worksheets from before the diagram registry", () => {
+  // SHA-256 prefixes of each printed page as rendered on main before wave 4 (commit 2fc5ff7).
+  const before: Record<string, [string, string]> = {
+    "comparativeBarCharts:pupil": ["73e47ecb06f61fd1", "aac8bb59a69b3fc5"],
+    "comparativeBarCharts:answers": ["1ad2aee26c9010ad", "dcef0db837c0796d"],
+    "treeDiagrams:pupil": ["982c991b21c41848", "2bb88445db745629"],
+    "treeDiagrams:answers": ["73475fba4301c843", "0a271aeb8671efd9"],
+  };
+  it.each(Object.keys(before))("%s still opens and prints byte-identically", (key) => {
+    const [name, view] = key.split(":") as ["comparativeBarCharts" | "treeDiagrams", "pupil" | "answers"];
+    const saved = JSON.parse(JSON.stringify({ comparativeBarCharts, treeDiagrams }[name]));
+    const pages = renderResource(validate(saved), { view }).pages.map((p) => createHash("sha256").update(p).digest("hex").slice(0, 16));
+    expect(pages).toEqual(before[key]);
   });
 });

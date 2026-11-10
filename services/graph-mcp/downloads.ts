@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { packToken, unpackToken } from "./link-token";
+import { packToken, signedByAny, unpackToken } from "./link-token";
 import { z } from "zod";
 import {
   decodeEnvelope,
@@ -77,6 +77,8 @@ export class Downloads {
       !/^[A-Za-z0-9_-]{43}$/.test(signature)
     )
       throw new GraphError("invalid_download", "The download link is invalid.");
+    if (!signedByAny(token, signature, this.keys, (t, k) => this.signature(t, k)))
+      throw new GraphError("invalid_download", "The download signature is invalid.");
     let parsed: ReturnType<typeof tokenSchema.parse>;
     try {
       parsed = tokenSchema.parse(

@@ -29,6 +29,11 @@ Errors are JSON `{code, message}`. Invalid input uses `invalid_input` and names 
 (`spec.categories: ...`) with a pointer to `diagram_capabilities {kind:"..."}`.
 
 Download links carry deflated, base64url tokens (prefix `z`); older `ey...` tokens still open.
+The signature is checked before a token is unpacked.
+
+Limits are unchanged except one addition (Tim, 10 Nov 2026): one address may use at most a quarter
+of the 200 MB daily download allowance, so a single script cannot lock everyone out until
+midnight UTC. The per-address count is kept in memory; the shared total stays in Cloudflare KV.
 
 The old per-family tools (`create_bar_model`, `revise_venn`, `triangle_capabilities` and so on)
 are gone. Tests and scripts that still use the old names go through
@@ -43,7 +48,9 @@ must draw, and each diagram prints at its own physical size.
 
 The AI worksheet maker sends only the spec schemas of the families a request needs
 (`src/worksheet/ai/families.ts`: keyword cues on the objective plus any family already on the
-sheet), in the user turn. The cached system prompt and tool schema stay byte-identical.
+sheet), in the user turn, so the cached system prompt and tool schema stay byte-identical between
+requests. The page refuses spec settings that would print a worked answer on the pupil copy
+(`worked…`, `calculate`, `answerVisible`), and asks the model to leave answers blank or hidden.
 
 ## Adding a family
 

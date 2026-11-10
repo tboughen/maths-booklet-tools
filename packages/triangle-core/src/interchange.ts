@@ -36,8 +36,8 @@ export type WireContext = z.infer<typeof contextSchema>;
 export function contexts(e: m.Envelope): WireContext[] {
   return m.allLabels(e).filter(l => l.kind !== "vertex").flatMap(l =>
     owningTriangles(e, l.ref).flatMap(t => calculationContexts(e, l.ref, t.id).map(({ unit, ...c }) => {
-      const kind = l.ref.split(":")[0];
-      const answerUnit = kind === "a" ? "°" as const : kind === "c" || kind === "r" ? `${unit}²` as const : unit;
+      // From the label's own kind: "c:" refs are captions, "r:" refs are areas.
+      const answerUnit = l.kind === "angle" ? "°" as const : l.kind === "area" ? `${unit}²` as const : unit;
       return { ...c, lengthUnit: unit, answerUnit };
     })));
 }

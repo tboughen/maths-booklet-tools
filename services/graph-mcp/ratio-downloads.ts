@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { packToken, unpackToken } from "./link-token";
+import { packToken, signedByAny, unpackToken } from "./link-token";
 import { z } from "zod";
 import {
   validateRatioEnvelope,
@@ -81,6 +81,8 @@ export class RatioDownloads {
         "invalid_download",
         "The ratio-table download link is invalid.",
       );
+    if (!signedByAny(token, signature, this.keys, (t, k) => this.signature(t, k)))
+      throw new RatioError("invalid_download", "The download signature is invalid.");
     let parsed: z.infer<typeof tokenSchema>;
     try {
       parsed = tokenSchema.parse(

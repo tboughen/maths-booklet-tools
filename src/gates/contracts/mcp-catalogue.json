@@ -308,10 +308,18 @@
           "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "rendererVersion": {
           "type": "string"
+        },
+        "printDpi": {
+          "type": "number",
+          "const": 600
+        },
+        "printVerified": {
+          "type": "boolean"
         },
         "summary": {
           "type": "string"
@@ -415,6 +423,8 @@
         "envelope",
         "contentHash",
         "rendererVersion",
+        "printDpi",
+        "printVerified",
         "summary",
         "altText",
         "warnings",
@@ -2678,10 +2688,18 @@
           "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "contentHash": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "rendererVersion": {
           "type": "string"
+        },
+        "printDpi": {
+          "type": "number",
+          "const": 600
+        },
+        "printVerified": {
+          "type": "boolean"
         },
         "summary": {
           "type": "string"
@@ -2785,6 +2803,8 @@
         "envelope",
         "contentHash",
         "rendererVersion",
+        "printDpi",
+        "printVerified",
         "summary",
         "altText",
         "warnings",

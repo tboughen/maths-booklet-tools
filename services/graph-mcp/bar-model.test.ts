@@ -63,8 +63,11 @@ it("advertises complete bar schemas with homogeneous arrays and preserves named 
   const names = tools.map((t) => t.name);
   const instructions = client.getInstructions();
   expect(instructions).toContain("bar models");
-  expect(instructions).toContain("never fill, calculate or reveal answers");
-  expect(instructions).toContain("rather than redrawing silently");
+  expect(instructions).toContain("one shared unit width");
+  expect(instructions).toContain("Do not fill pupil answers");
+  expect(instructions).toContain("Do not silently redraw");
+  expect(instructions).toContain("schemaVersion 3");
+  expect(instructions).toContain("equationVisible false");
   expect(names.filter((n) => n.endsWith("_diagram") || n === "diagram_capabilities").sort()).toEqual([
     "create_diagram",
     "diagram_capabilities",

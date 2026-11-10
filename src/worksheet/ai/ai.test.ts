@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { treeDiagrams } from "../../../packages/resource-core/src/fixtures";
 import type { Resource } from "../../../packages/resource-core/src/index";
-import { changeRequest, firstRequest, systemPrompt, toolSchema, TOOL_NAME } from "./brief";
+import { changeRequest, firstRequest, parseSubmission, SubmissionError, systemPrompt, toolSchema, TOOL_NAME } from "./brief";
 import { checkSubmission } from "./check";
 import { makeWithClaude } from "./anthropic";
 import { makeWithGemini } from "./gemini";
@@ -52,6 +52,27 @@ describe("diagram families for a request", () => {
     expect(notes).not.toContain('kind="triangle"');
     expect(familyNotes([])).toMatch(/none suggested/);
     expect(firstRequest({ code: "N1.01", objective: "Draw a Venn diagram of sets", group: "", context: "" })).toContain('<family kind="venn"');
+  });
+});
+
+describe("diagrams the AI writes", () => {
+  const withChart = (spec: Record<string, unknown>) => {
+    const r = fits() as unknown as { document: { sides: { columns: { cards: { items: unknown[] }[] }[] }[] } };
+    r.document.sides[0].columns[0].cards[0].items = [{ type: "text", text: "Use the chart." }, { type: "diagram", diagram: { tool: "charts", spec } }];
+    return { plan: "Plan.", flags: "", resource: r };
+  };
+  const chart = { kind: "bar", categories: ["A", "B", "C"], series: [{ name: "Pupils", values: ["3", "5", null] }] };
+  it("builds a spec into an envelope and keeps the pupil blank", () => {
+    const item = parseSubmission(withChart(chart)).resource.document.sides[0].columns[0].cards[0].items[1] as { diagram: { spec?: unknown; envelope: unknown } };
+    expect(item.diagram.spec).toBeUndefined();
+    // The missing value stays an empty pupil box.
+    expect(JSON.stringify(item.diagram.envelope)).toContain('{"value":"","show":"show"}');
+  });
+  it("refuses worked or answer-revealing settings on a pupil diagram", () => {
+    const worked = { example: "dual-transport", worked: true };
+    expect(() => parseSubmission(withChart(worked))).toThrow(SubmissionError);
+    expect(() => parseSubmission(withChart(worked))).toThrow(/diagram\.spec\.worked: pupil diagrams must not show worked answers/);
+    expect(() => parseSubmission(withChart({ ...worked, worked: false }))).not.toThrow();
   });
 });
 

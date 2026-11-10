@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { packToken, unpackToken } from "./link-token";
+import { packToken, signedByAny, unpackToken } from "./link-token";
 import { z } from "zod";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { diagramSource, diagramSourceSchema, type DiagramSource } from "./diagram-source";
@@ -27,6 +27,8 @@ export class BundleDownloads {
     const token = url.searchParams.get("token") ?? "", signature = url.searchParams.get("signature") ?? "";
     if (token.length > MAX_URL || !/^[-_A-Za-z0-9]+$/.test(token) || !/^[-_A-Za-z0-9]{43}$/.test(signature))
       throw new GraphError("invalid_download", "Invalid bundle download.");
+    if (!signedByAny(token, signature, this.keys, (t, k) => this.signature(t, k)))
+      throw new GraphError("invalid_download", "The download signature is invalid.");
     let parsed: z.infer<typeof tokenSchema>;
     try { parsed = tokenSchema.parse(unpackToken(token)); }
     catch { throw new GraphError("invalid_download", "Invalid bundle token."); }

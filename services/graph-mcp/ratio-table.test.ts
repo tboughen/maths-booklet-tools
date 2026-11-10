@@ -94,6 +94,7 @@ describe("ratio tools on the shared real MCP service", () => {
       arguments: {},
     });
     expect(caps.structuredContent).toMatchObject({
+      columns: 2,
       supportedColumns: [1, 2, 3],
       rendererVersions: ["ratio-1", "ratio-2"],
     });
