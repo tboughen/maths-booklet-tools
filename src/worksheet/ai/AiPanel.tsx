@@ -5,11 +5,15 @@ import { changeRequest, firstRequest, type Brief } from "./brief";
 import { claudeModels } from "./models";
 import { listModels, makeWorksheet } from "./run";
 import { loadImportedScheme, loadSchoolScheme, parseScheme, saveImportedScheme, type Scheme } from "./scheme";
-import { efforts, estimateCost, forgetKeys, loadKey, loadSettings, providers, saveKey, saveSettings, type AiSettings } from "./settings";
-import type { RunResult, Stage } from "./types";
+import { billingPages, estimateCost, PRICES_CHECKED } from "./prices";
+import { addSpend, efforts, forgetKeys, loadKey, loadSettings, loadSpend, noSpend, providers, saveKey, saveSettings, saveSpend, type AiSettings, type Spend } from "./settings";
+import type { Provider, RunResult, Stage } from "./types";
 
 const MAX_SCHEME_FILE = 2_000_000;
 const OWN = "own";
+const keyPlaceholder: Record<Provider, string> = { anthropic: "sk-ant-…", openai: "sk-…", gemini: "AIza…" };
+const billingName: Record<Provider, string> = { anthropic: "Claude Console billing page", openai: "OpenAI billing page", gemini: "Google AI Studio usage page" };
+const checkedDate = new Date(`${PRICES_CHECKED}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 function stageText(s: Stage | null): string {
   if (!s) return "";
@@ -41,7 +45,8 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
   const [change, setChange] = useState("");
   const [stage, setStage] = useState<Stage | null>(null);
   const [error, setError] = useState("");
-  const [last, setLast] = useState<RunResult | null>(null);
+  const [last, setLast] = useState<{ provider: Provider; result: RunResult } | null>(null);
+  const [spend, setSpend] = useState<Spend>(loadSpend);
   const abort = useRef<AbortController | null>(null);
   const schemeFile = useRef<HTMLInputElement>(null);
   const running = stage !== null;
@@ -85,7 +90,7 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
     try {
       const ids = await listModels(settings.provider, key.trim());
       setModels(ids);
-      if (settings.provider === "openai" && !model && ids[0]) update({ models: { ...settings.models, openai: ids[0] } });
+      if (settings.provider !== "anthropic" && !model && ids[0]) update({ models: { ...settings.models, [settings.provider]: ids[0] } });
       setKeyMessage(`Key works. ${ids.length} models available.`);
     } catch (e) {
       setKeyMessage(e instanceof Error ? e.message.replace(/^.*?(401|invalid x-api-key|Incorrect API key).*$/i, `${provider.label} did not accept this key.`) : String(e));
@@ -99,9 +104,16 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
     abort.current = controller;
     setStage({ kind: "thinking" });
     onBusyChange(true);
+    const p = settings.provider;
+    const onUsage = (u: RunResult["usage"], m: string) =>
+      setSpend((s) => {
+        const next = addSpend(s, estimateCost(p, m, u));
+        saveSpend(next);
+        return next;
+      });
     try {
-      const result = await makeWorksheet(settings.provider, { apiKey: key.trim(), model, effort: settings.effort, request, signal: controller.signal, onStage: setStage });
-      setLast(result);
+      const result = await makeWorksheet(p, { apiKey: key.trim(), model, effort: settings.effort, request, signal: controller.signal, onStage: setStage, onUsage });
+      setLast({ provider: p, result });
       onApply(result.resource, success(result));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -114,7 +126,7 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
 
   const ready = key.trim().length > 0 && model.length > 0;
   const canMake = ready && brief.objective.trim().length > 0 && !running && !disabled;
-  const cost = last ? estimateCost(last.model, last.usage) : null;
+  const cost = last ? estimateCost(last.provider, last.result.model, last.result.usage) : null;
 
   return (
     <section className="panel-card ws-ai" aria-label="Make with AI">
@@ -135,7 +147,7 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
         </label>
         <label className="ws-field">
           <span>Your API key</span>
-          <input type="password" autoComplete="off" spellCheck={false} value={key} disabled={running} onChange={(e) => commitKey(e.target.value)} placeholder={settings.provider === "anthropic" ? "sk-ant-…" : "sk-…"} />
+          <input type="password" autoComplete="off" spellCheck={false} value={key} disabled={running} onChange={(e) => commitKey(e.target.value)} placeholder={keyPlaceholder[settings.provider]} />
         </label>
         <p className="ws-hint">{provider.keyHelp} The key goes only from this browser to {provider.label.replace(/ \(.*/, "")}; MathsDock never sees or stores it.</p>
         {key.trim() && !provider.keyPattern.test(key.trim()) && <p className="ws-hint problem">This does not look like a {provider.label} key.</p>}
@@ -323,6 +335,31 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
         {stageText(stage)}
       </p>
       {error && <p className="ws-hint problem">{error}</p>}
+      <p className="ws-hint ws-ai-spend">
+        {spend.replies
+          ? `Spent in this tab: about $${spend.dollars.toFixed(2)} over ${spend.replies} AI ${spend.replies === 1 ? "reply" : "replies"}${spend.unpriced ? `, plus ${spend.unpriced} from models with no listed price` : ""}. `
+          : "The cost of each AI reply is estimated here. "}
+        Prices checked {checkedDate}. No key can read your balance: see the{" "}
+        <a href={billingPages[settings.provider]} target="_blank" rel="noreferrer">
+          {billingName[settings.provider]}
+        </a>
+        .
+        {spend.replies > 0 && (
+          <>
+            {" "}
+            <button
+              className="ws-link-button"
+              disabled={running}
+              onClick={() => {
+                saveSpend(noSpend());
+                setSpend(noSpend());
+              }}
+            >
+              Reset
+            </button>
+          </>
+        )}
+      </p>
 
       <h3>Ask for a change</h3>
       <label className="ws-field">
@@ -345,17 +382,17 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
       {last && (
         <details className="ws-ai-notes">
           <summary>Teacher notes from the AI</summary>
-          {last.submission.flags.trim() && (
+          {last.result.submission.flags.trim() && (
             <>
               <h4>Check these</h4>
-              <p className="ws-pre">{last.submission.flags}</p>
+              <p className="ws-pre">{last.result.submission.flags}</p>
             </>
           )}
           <h4>Plan</h4>
-          <p className="ws-pre">{last.submission.plan}</p>
+          <p className="ws-pre">{last.result.submission.plan}</p>
           <p className="ws-hint">
-            {last.model}: {last.usage.input + last.usage.cacheRead + last.usage.cacheWrite} input and {last.usage.output} output tokens
-            {last.attempts > 1 ? `, ${last.attempts} tries to fit the page` : ""}
+            {last.result.model}: {last.result.usage.input + last.result.usage.cacheRead + last.result.usage.cacheWrite} input and {last.result.usage.output} output tokens
+            {last.result.attempts > 1 ? `, ${last.result.attempts} tries to fit the page` : ""}
             {cost !== null ? `, about $${cost.toFixed(2)}` : ""}. Check every question and answer before printing.
           </p>
         </details>

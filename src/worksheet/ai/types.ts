@@ -1,7 +1,7 @@
 import type { Resource } from "../../../packages/resource-core/src/index";
 import type { Submission } from "./brief";
 
-export type Provider = "anthropic" | "openai";
+export type Provider = "anthropic" | "openai" | "gemini";
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 export type Stage =
@@ -17,6 +17,12 @@ export interface Usage {
   cacheWrite: number;
 }
 export const noUsage = (): Usage => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0 });
+export function addUsage(total: Usage, step: Usage): void {
+  total.input += step.input;
+  total.output += step.output;
+  total.cacheRead += step.cacheRead;
+  total.cacheWrite += step.cacheWrite;
+}
 
 export interface RunOptions {
   apiKey: string;
@@ -26,6 +32,8 @@ export interface RunOptions {
   request: string;
   signal?: AbortSignal;
   onStage?: (stage: Stage) => void;
+  /** Each reply's tokens as it arrives, so spend is counted even when a run fails or is stopped. */
+  onUsage?: (usage: Usage, model: string) => void;
 }
 
 export interface RunResult {

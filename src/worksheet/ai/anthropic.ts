@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { systemPrompt, toolDescription, toolSchema, TOOL_NAME } from "./brief";
 import { checkSubmission } from "./check";
-import { MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
+import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
 
 
 // Server-side fallback: if a model declines, the API re-runs the request on its fallback model.
@@ -68,10 +68,9 @@ export async function makeWithClaude(o: RunOptions): Promise<RunResult> {
       throw friendly(e);
     }
     model = message.model;
-    usage.input += message.usage.input_tokens;
-    usage.output += message.usage.output_tokens;
-    usage.cacheRead += message.usage.cache_read_input_tokens ?? 0;
-    usage.cacheWrite += message.usage.cache_creation_input_tokens ?? 0;
+    const step = { input: message.usage.input_tokens, output: message.usage.output_tokens, cacheRead: message.usage.cache_read_input_tokens ?? 0, cacheWrite: message.usage.cache_creation_input_tokens ?? 0 };
+    addUsage(usage, step);
+    o.onUsage?.(step, model);
 
     if (message.stop_reason === "refusal") throw new MakerError("The model declined this request. Rephrase the objective or notes and try again.");
     if (message.stop_reason === "max_tokens") throw new MakerError("The model ran out of room before finishing the worksheet. Try a lower thinking level or a shorter request.");

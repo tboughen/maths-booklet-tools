@@ -134,10 +134,41 @@ test("makes a worksheet from a scheme objective with the teacher's own Claude ke
   await ai.getByText("Teacher notes from the AI").click();
   await expect(ai).toContainText("Assumed no calculator.");
   await expect(ai).toContainText("about $0.");
+  await expect(ai).toContainText("Spent in this tab: about $0.");
   // The key stays in this tab only, and never in the worksheet.
   const stored = await page.evaluate(() => ({ local: JSON.stringify(localStorage), session: JSON.stringify(sessionStorage) }));
   expect(stored.local).not.toContain("sk-ant-api03");
   expect(stored.session).toContain("sk-ant-api03");
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.title).toBe(treeDiagrams.document.title);
+});
+
+test("makes a worksheet with a Gemini key and keeps a running cost for this tab", async ({ page }) => {
+  const sent: { url: string; headers: Record<string, string> }[] = [];
+  await page.route("https://generativelanguage.googleapis.com/**", async (route) => {
+    const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "POST, GET, OPTIONS" };
+    if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    sent.push({ url: route.request().url(), headers: route.request().headers() });
+    const args = { plan: "Read, then complete, then build.", flags: "", resource: comparativeBarCharts };
+    const chunk = { candidates: [{ content: { role: "model", parts: [{ functionCall: { id: "c1", name: "submit_worksheet", args }, thoughtSignature: "s1" }] }, finishReason: "STOP" }], modelVersion: "gemini-3.8-flash", usageMetadata: { promptTokenCount: 20000, cachedContentTokenCount: 0, candidatesTokenCount: 30000, thoughtsTokenCount: 10000 } };
+    await route.fulfill({ headers: { ...cors, "content-type": "text/event-stream" }, body: `data: ${JSON.stringify(chunk)}\n\n` });
+  });
+  await boot(page, treeDiagrams);
+  const ai = page.getByRole("region", { name: "Make with AI" });
+  await ai.getByLabel("AI provider").selectOption("gemini");
+  await ai.getByLabel("Your API key").fill("AIzaSyTest0000000000000000000000000000");
+  await ai.getByLabel("Model").fill("gemini-3.8-flash");
+  await expect(ai.getByRole("link", { name: "Google AI Studio usage page" })).toBeVisible();
+  await ai.getByLabel("Learning objective").fill("Construct and interpret comparative bar charts");
+  await ai.getByRole("button", { name: "Make worksheet" }).click();
+  await expect(page.locator(".ws-message")).toContainText("New worksheet made by gemini-3.8-flash");
+  expect(sent).toHaveLength(1);
+  expect(sent[0].url).toContain("gemini-3.8-flash:streamGenerateContent");
+  expect(sent[0].headers["x-goog-api-key"]).toBe("AIzaSyTest0000000000000000000000000000");
+  // 20k input at $0.75 and 40k output (with thinking) at $3.75 per million tokens.
+  await expect(ai).toContainText("Spent in this tab: about $0.17 over 1 AI reply");
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Make with AI" })).toContainText("about $0.17 over 1 AI reply");
+  await page.getByRole("region", { name: "Make with AI" }).getByRole("button", { name: "Reset" }).click();
+  await expect(page.getByRole("region", { name: "Make with AI" })).not.toContainText("Spent in this tab");
 });

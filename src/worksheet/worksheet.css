@@ -47,6 +47,8 @@
 .ws-ai-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ws-check { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; }
 .ws-hint { margin: 0; font-size: 0.8rem; color: var(--muted, #5d6470); }
+.ws-link-button { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.ws-link-button:disabled { cursor: default; opacity: 0.6; }
 .ws-hint:empty { display: none; }
 .ws-hint.problem { color: #a4161a; }
 .ws-ai-notes > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
