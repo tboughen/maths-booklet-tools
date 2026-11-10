@@ -57,7 +57,9 @@ export const siteAssetUrl = (origin, key) => new URL(key, origin.endsWith('/') ?
 export async function publicAsset(manifest, asset, origin, { full = false, metrics, fetcher = fetch } = {}) {
   const response = await retryVerification(remaining => {
     metrics?.count(full ? 'publicGet' : 'publicHead');
-    return fetcher(siteAssetUrl(origin, asset.key), { method: full ? 'GET' : 'HEAD', headers: accessHeaders(), redirect: 'manual', signal: AbortSignal.timeout(Math.min(full ? 60000 : 15000, remaining())) });
+    // Ask for the stored bytes as they are: the edge compresses text types such as the scheme
+    // JSON for clients that accept it, which drops Content-Length and weakens the ETag.
+    return fetcher(siteAssetUrl(origin, asset.key), { method: full ? 'GET' : 'HEAD', headers: { ...accessHeaders(), 'Accept-Encoding': 'identity' }, redirect: 'manual', signal: AbortSignal.timeout(Math.min(full ? 60000 : 15000, remaining())) });
   }, { timeoutMs: 60000, intervalMs: 1000 });
   // A content/header mismatch is deliberately outside transport retries.
   assertPublicHeaders(response, asset);
