@@ -1,7 +1,7 @@
 {
-  "comment": "Gzip byte budgets for the website build (improvement list S47, L27, A93). Measured 8 Nov 2026: first-load JS 70.2 kB, first-load CSS 28.1 kB, largest chunk 349.6 kB (pdf.js and pdf-lib, loaded only by the bank and exports), all JS 744.2 kB. Each budget has a little headroom; lower a budget when a change makes the site smaller. Raised totalJs 9 Nov 2026 for the Worksheets page (wave 3): PDFKit browser build 214.6 kB, Anthropic SDK 86.2 kB and OpenAI SDK 90.2 kB, all lazy-loaded only when a teacher downloads a worksheet PDF or uses Make with AI; first-load JS is unchanged. Measured all JS 1199.1 kB.",
+  "comment": "Gzip byte budgets for the website build (improvement list S47, L27, A93). Measured 8 Nov 2026: first-load JS 70.2 kB, first-load CSS 28.1 kB, largest chunk 349.6 kB (pdf.js and pdf-lib, loaded only by the bank and exports), all JS 744.2 kB. Each budget has a little headroom; lower a budget when a change makes the site smaller. Raised totalJs 9 Nov 2026 for the Worksheets page (wave 3): PDFKit browser build 214.6 kB, Anthropic SDK 86.2 kB and OpenAI SDK 90.2 kB, all lazy-loaded only when a teacher downloads a worksheet PDF or uses Make with AI; first-load JS is unchanged. Measured all JS 1199.1 kB. Raised totalJs 10 Nov 2026 for the Gemini provider in Make with AI: Google GenAI SDK browser build 76.6 kB, lazy-loaded only when a teacher chooses Gemini; first-load JS is unchanged. Measured all JS 1277.2 kB.",
   "firstLoadJs": 76000,
   "firstLoadCss": 31000,
   "largestChunk": 365000,
-  "totalJs": 1250000
+  "totalJs": 1330000
 }

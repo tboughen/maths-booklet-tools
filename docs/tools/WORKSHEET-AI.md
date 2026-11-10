@@ -24,14 +24,34 @@ objective with the teacher's own AI key, then apply change requests. Code: `src/
   Sonnet 5.5, the server-side refusal fallback. No forced `tool_choice` (current models reject it).
 - ChatGPT: `openai` Responses API in the browser, `reasoning.effort`, `store: false` with encrypted
   reasoning carried between fix attempts. The model list comes from the key's own `models.list`.
-- A ChatGPT or claude.ai subscription does not include API use; each teacher needs an API key.
+- Gemini: `@google/genai` in the browser, `thinkingConfig.thinkingLevel` (very high and maximum map
+  to `HIGH`), the tool required with `functionCallingConfig.mode: ANY`. Nothing is stored at Google;
+  the model's own parts, with their thought signatures, are resent on fix attempts. The model list
+  comes from the key's own `models.list`, filtered to text models.
+- A ChatGPT, Gemini app or claude.ai subscription does not include API use; each teacher needs an
+  API key.
+
+## Cost and prices
+
+- No provider lets an ordinary key read the account balance or spend, so the panel links to the
+  provider's billing or usage page for that.
+- Each reply's tokens are priced from `src/worksheet/ai/prices.ts` (standard tier, short context,
+  US dollars per million tokens; Anthropic cache writes at 1.25 times input; thinking billed as
+  output). The teacher notes show the run's tokens and cost, and "Spent in this tab" adds up every
+  reply, including failed and stopped runs, in `sessionStorage` with a Reset button. Models not in
+  the table show tokens only and are counted as unpriced.
+- `PRICES_CHECKED` is shown in the panel. A weekly scheduled task (Mondays) checks the table against
+  the three providers' pricing pages (URLs at the top of `prices.ts`) and opens one pull request
+  only when a price changed, a likely model is missing, or the date is over four weeks old, so quiet
+  weeks cost no CI. Announced changes go in as dated rates (`from`), so an introductory price ends
+  on its own date without an edit. A merged price change reaches the live site at the next release.
 
 ## Keys and privacy
 
 - Keys are kept in `sessionStorage` (this tab) unless the teacher ticks "Remember my key on this
   device" (`localStorage`). They are never written into worksheet files, links or exports, and they
-  go only to the chosen provider. The site CSP allows `connect-src` to `api.anthropic.com` and
-  `api.openai.com` for this.
+  go only to the chosen provider. The site CSP allows `connect-src` to `api.anthropic.com`,
+  `api.openai.com` and `generativelanguage.googleapis.com` for this.
 - Schemes of work are school information and never enter this repository. The department scheme
   is `schemes/school.json` in the private bank repository (`public/bank/assets/schemes/`), and it is
   the default objective list. `public/bank/schemes.json` names it; a release (`prepareSchemes` in
@@ -45,6 +65,7 @@ objective with the teacher's own AI key, then apply change requests. Code: `src/
 
 ## Tests
 
-`src/worksheet/ai/ai.test.ts` drives both SDKs against recorded-shape streams (no key needed),
-including the layout-fix loop. `e2e/worksheet.spec.ts` makes a worksheet in the browser from a
-scheme objective against a mocked Claude stream.
+`src/worksheet/ai/ai.test.ts` drives all three SDKs against recorded-shape streams (no key needed),
+including the layout-fix loop, and checks the price table and cost sums. `e2e/worksheet.spec.ts`
+makes a worksheet in the browser from a scheme objective against a mocked Claude stream, and one
+with a mocked Gemini stream that checks the running cost.

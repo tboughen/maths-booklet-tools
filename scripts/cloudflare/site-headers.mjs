@@ -18,7 +18,7 @@ export const contentSecurityPolicy = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   // The worksheet AI maker calls the teacher's chosen AI provider directly with their own key.
-  "connect-src 'self' data: blob: https://api.anthropic.com https://api.openai.com",
+  "connect-src 'self' data: blob: https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com",
   "frame-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

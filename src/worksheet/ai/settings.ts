@@ -1,5 +1,5 @@
 import { claudeModels } from "./models";
-import type { Effort, Provider, Usage } from "./types";
+import type { Effort, Provider } from "./types";
 
 /**
  * AI settings live on this device only. API keys are kept for this browser tab by default
@@ -16,7 +16,7 @@ export interface AiSettings {
 const SETTINGS = "maths-booklet-tools:worksheet-ai:v1";
 const KEY = (p: Provider) => `maths-booklet-tools:worksheet-ai-key:${p}`;
 
-export const defaultSettings = (): AiSettings => ({ provider: "anthropic", models: { anthropic: claudeModels[0].id, openai: "" }, effort: "medium", remember: false });
+export const defaultSettings = (): AiSettings => ({ provider: "anthropic", models: { anthropic: claudeModels[0].id, openai: "", gemini: "" }, effort: "medium", remember: false });
 
 export const efforts: { id: Effort; label: string }[] = [
   { id: "low", label: "Low (quickest)" },
@@ -29,6 +29,7 @@ export const efforts: { id: Effort; label: string }[] = [
 export const providers: { id: Provider; label: string; keyHelp: string; keyPattern: RegExp }[] = [
   { id: "anthropic", label: "Claude (Anthropic)", keyHelp: "Create a key at console.anthropic.com under API keys. A claude.ai plan does not include API use.", keyPattern: /^sk-ant-[\w-]{20,}$/ },
   { id: "openai", label: "ChatGPT (OpenAI)", keyHelp: "Create a key at platform.openai.com under API keys, with pay-as-you-go credit. A ChatGPT subscription does not include API use.", keyPattern: /^sk-[\w-]{20,}$/ },
+  { id: "gemini", label: "Gemini (Google)", keyHelp: "Create a key at aistudio.google.com under Get API key, on a project with billing turned on. A Gemini app subscription does not include API use.", keyPattern: /^AIza[\w-]{30,}$/ },
 ];
 
 function read(store: () => Storage, key: string): string | null {
@@ -53,8 +54,12 @@ export function loadSettings(): AiSettings {
     const raw = JSON.parse(read(() => localStorage, SETTINGS) ?? "null");
     if (!raw || typeof raw !== "object") return base;
     return {
-      provider: raw.provider === "openai" ? "openai" : "anthropic",
-      models: { anthropic: typeof raw.models?.anthropic === "string" && raw.models.anthropic ? raw.models.anthropic : base.models.anthropic, openai: typeof raw.models?.openai === "string" ? raw.models.openai : "" },
+      provider: raw.provider === "openai" || raw.provider === "gemini" ? raw.provider : "anthropic",
+      models: {
+        anthropic: typeof raw.models?.anthropic === "string" && raw.models.anthropic ? raw.models.anthropic : base.models.anthropic,
+        openai: typeof raw.models?.openai === "string" ? raw.models.openai : "",
+        gemini: typeof raw.models?.gemini === "string" ? raw.models.gemini : "",
+      },
       effort: efforts.some((e) => e.id === raw.effort) ? raw.effort : base.effort,
       remember: raw.remember === true,
     };
@@ -71,16 +76,29 @@ export function saveKey(p: Provider, key: string, remember: boolean) {
   write(() => localStorage, KEY(p), remember ? k : null);
 }
 export function forgetKeys() {
-  for (const p of ["anthropic", "openai"] as const) {
+  for (const p of providers.map((x) => x.id)) {
     write(() => sessionStorage, KEY(p), null);
     write(() => localStorage, KEY(p), null);
   }
 }
 
-/** Approximate cost in US dollars, for Claude models with a known price; null when unknown. */
-export function estimateCost(model: string, u: Usage): number | null {
-  const m = claudeModels.find((c) => model.startsWith(c.id));
-  if (!m) return null;
-  const [inP, outP, readP] = m.price;
-  return (u.input * inP + u.cacheWrite * inP * 1.25 + u.cacheRead * readP + u.output * outP) / 1e6;
+/** Running estimate of AI spend in this browser tab, counted per reply so failed and stopped runs count too. */
+export interface Spend {
+  replies: number;
+  dollars: number;
+  /** Replies from models without a listed price: their tokens are not in `dollars`. */
+  unpriced: number;
 }
+const SPEND = "maths-booklet-tools:worksheet-ai-spend:v1";
+export const noSpend = (): Spend => ({ replies: 0, dollars: 0, unpriced: 0 });
+export function loadSpend(): Spend {
+  try {
+    const raw = JSON.parse(read(() => sessionStorage, SPEND) ?? "null");
+    if (raw && [raw.replies, raw.dollars, raw.unpriced].every((n) => typeof n === "number" && Number.isFinite(n) && n >= 0)) return { replies: raw.replies, dollars: raw.dollars, unpriced: raw.unpriced };
+  } catch {
+    /* fall through */
+  }
+  return noSpend();
+}
+export const saveSpend = (s: Spend) => write(() => sessionStorage, SPEND, JSON.stringify(s));
+export const addSpend = (s: Spend, cost: number | null): Spend => (cost === null ? { ...s, replies: s.replies + 1, unpriced: s.unpriced + 1 } : { ...s, replies: s.replies + 1, dollars: s.dollars + cost });

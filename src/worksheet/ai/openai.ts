@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { systemPrompt, toolDescription, toolSchema, TOOL_NAME } from "./brief";
 import { checkSubmission } from "./check";
-import { MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
+import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
 
 export function openaiClient(apiKey: string) {
   // The teacher's own key goes straight from this browser to OpenAI; MathsDock never sees it.
@@ -62,9 +62,9 @@ export async function makeWithOpenAI(o: RunOptions): Promise<RunResult> {
     }
     model = response.model;
     const cached = response.usage?.input_tokens_details?.cached_tokens ?? 0;
-    usage.input += (response.usage?.input_tokens ?? 0) - cached;
-    usage.cacheRead += cached;
-    usage.output += response.usage?.output_tokens ?? 0;
+    const step = { input: (response.usage?.input_tokens ?? 0) - cached, output: response.usage?.output_tokens ?? 0, cacheRead: cached, cacheWrite: 0 };
+    addUsage(usage, step);
+    o.onUsage?.(step, model);
 
     if (response.status === "incomplete")
       throw new MakerError(
