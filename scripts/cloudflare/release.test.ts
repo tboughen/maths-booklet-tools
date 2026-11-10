@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { digest, prepareRelease } from "./release";
+import { assetFile, digest, prepareRelease } from "./release";
 import { verifySchemeIndex } from "./package.mjs";
 const roots: string[] = [];
 afterEach(() => {for (const root of roots.splice(0)) rmSync(root, {recursive: true, force: true});});
@@ -49,6 +49,9 @@ describe("Cloudflare release construction", () => {
     mkdirSync(join(site, "bank"));
     writeFileSync(join(site, "bank/schemes.json"), release.schemesJson);
     expect(() => verifySchemeIndex(site, release.manifest)).not.toThrow();
+    // The upload reads each inventory object from its first source.
+    for (const asset of release.manifest.assets) expect(assetFile(root, asset.sources[0])).toMatch(/\.(pdf|png|json)$/);
+    expect(() => assetFile(root, "bank/assets/schemes/../../catalogue.json")).toThrow();
     expect(() => verifySchemeIndex(site, {...release.manifest, assets: release.manifest.assets.filter(a => a.key !== key)})).toThrow(/not in the inventory/);
   });
   it("leaves out a scheme the bank checkout does not have, and refuses a bad index", () => {

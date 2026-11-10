@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync, readdirSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { catalogueAssetPaths, type CatalogueAssets } from "../../bankAssets.ts";
-import { parseSchemeIndex, schemeIds, SCHEMES_PATH } from "../../bankSchemes.ts";
+import { parseSchemeIndex, schemeIds, schemeSourcePath, SCHEMES_PATH } from "../../bankSchemes.ts";
 
 // Question files are served by the website's own Worker at /bank/assets/*, behind
 // Cloudflare Access. There is no separate public asset origin.
@@ -21,8 +21,9 @@ export interface ReleaseManifest {
 export const digest = (data: Uint8Array | string, algorithm = "sha256") => createHash(algorithm).update(data).digest("hex");
 
 export function assetFile(publicRoot: string, path: string): string {
-  // Reuse the publication validator before resolving filesystem paths.
-  catalogueAssetPaths({ questions: [{ questionPdf: path, printPdf: path, schemePdf: path, questionViews: [], schemeViews: [] }] });
+  // Reuse the publication validators before resolving filesystem paths. Uploads read every
+  // inventory source through here, schemes of work included.
+  if (!schemeSourcePath(path)) catalogueAssetPaths({ questions: [{ questionPdf: path, printPdf: path, schemePdf: path, questionViews: [], schemeViews: [] }] });
   const root = realpathSync(publicRoot);
   const file = realpathSync(resolve(root, path));
   if (!file.startsWith(root + sep) || !statSync(file).isFile()) throw new Error("Asset escapes the public directory");
