@@ -22,7 +22,7 @@ test('cache rules still apply alongside the security headers', () => {
 });
 
 test('the policy keeps pdf.js and exports working without allowing eval or other origins', () => {
-  // The only other origins: the two AI providers the worksheet maker calls with the teacher's own key, for fetch only.
+  // The only other origins: the three AI providers (Anthropic, OpenAI, Google Gemini) the worksheet maker calls with the teacher's own key, for fetch only.
   const providers = "connect-src 'self' data: blob: https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com";
   assert.ok(contentSecurityPolicy.includes(providers));
   assert.match(contentSecurityPolicy, /script-src 'self' 'wasm-unsafe-eval'(;|$)/);

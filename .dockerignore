@@ -25,3 +25,6 @@
 !assets/graph-fonts
 !assets/graph-fonts/**
 !Dockerfile.graph-mcp
+!src
+!src/testing
+!src/testing/random.ts

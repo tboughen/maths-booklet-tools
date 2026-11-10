@@ -209,6 +209,7 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
             ))}
           </select>
         </label>
+        {settings.provider === "gemini" && (settings.effort === "xhigh" || settings.effort === "max") && <p className="ws-hint">Gemini has three thinking levels, so Very high and Maximum both use its High level.</p>}
       </details>
 
       <h3>Objective</h3>
@@ -349,6 +350,7 @@ export function AiPanel({ current, disabled, onBusyChange, onApply }: AiPanelPro
             {" "}
             <button
               className="ws-link-button"
+              aria-label="Reset spend estimate"
               disabled={running}
               onClick={() => {
                 saveSpend(noSpend());

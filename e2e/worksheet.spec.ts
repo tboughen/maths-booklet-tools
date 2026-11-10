@@ -169,6 +169,6 @@ test("makes a worksheet with a Gemini key and keeps a running cost for this tab"
   await expect(ai).toContainText("Spent in this tab: about $0.17 over 1 AI reply");
   await page.reload();
   await expect(page.getByRole("region", { name: "Make with AI" })).toContainText("about $0.17 over 1 AI reply");
-  await page.getByRole("region", { name: "Make with AI" }).getByRole("button", { name: "Reset" }).click();
+  await page.getByRole("region", { name: "Make with AI" }).getByRole("button", { name: "Reset spend estimate" }).click();
   await expect(page.getByRole("region", { name: "Make with AI" })).not.toContainText("Spent in this tab");
 });
