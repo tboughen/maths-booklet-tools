@@ -1,0 +1,18 @@
+{
+  "name": "mathsdock",
+  "owner": { "name": "Tim Boughen" },
+  "metadata": {
+    "description": "MathsDock maths teaching tools for Claude Code: the MathsDock connector plus its diagram and worksheet skill."
+  },
+  "plugins": [
+    {
+      "name": "mathsdock",
+      "source": "./plugins/mathsdock-claude",
+      "description": "Create and revise editable MathsDock teaching diagrams and A3 worksheets through the MathsDock MCP connector, with real print files and editor links.",
+      "version": "0.2.0",
+      "author": { "name": "Tim Boughen" },
+      "category": "education",
+      "keywords": ["maths", "teaching", "diagrams", "worksheets", "mcp"]
+    }
+  ]
+}

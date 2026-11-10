@@ -1,9 +1,17 @@
 {
   "name": "mathsdock",
-  "version": "0.1.0",
-  "description": "Create and revise editable MathsDock teaching diagrams (graphs, ratio tables, number lines, Venn diagrams, bar models, charts, probability trees and more) through the MathsDock MCP service, with real print files and editor links.",
-  "author": { "name": "Tim Boughen" },
+  "version": "0.2.0",
+  "description": "Create and revise editable MathsDock teaching diagrams (graphs, ratio tables, number lines, Venn diagrams, bar models, charts, probability trees, triangles and more) and A3 worksheets through the MathsDock MCP connector, with real print files and editor links.",
+  "author": {
+    "name": "Tim Boughen"
+  },
   "homepage": "https://github.com/tboughen/maths-booklet-tools/blob/main/docs/release/CLAUDE-CONNECTION.md",
   "repository": "https://github.com/tboughen/maths-booklet-tools",
-  "keywords": ["maths", "teaching", "diagrams", "mcp"]
+  "keywords": [
+    "maths",
+    "teaching",
+    "diagrams",
+    "worksheets",
+    "mcp"
+  ]
 }

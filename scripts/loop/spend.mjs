@@ -1,7 +1,9 @@
-// This month's loop API spend, estimated from the judge runs (improvement list L52). The judges are
-// the loop's only API cost; loop sessions themselves use Tim's Claude plan. Each completed "Judge
-// panel" run and each "Judge calibration" run is costed at the figures in config.json, measured on
-// 1 November 2026 (about 15 cents per judged PR update).
+// This month's API spend on the judges' key, estimated from workflow runs (improvement list L52).
+// The judges and the on-demand prompt evals are the only API costs; loop sessions themselves use
+// Tim's Claude plan. Each completed "Judge panel", "Judge calibration" and "Prompt evals" run is
+// costed at the figures in config.json: judges measured on 1 November 2026 (about 15 cents per
+// judged PR update), prompt evals on 10 November 2026 ($2.64 for 16 cases on Sonnet 5.5, rounded
+// up to $3, which is also the runner's default cost ceiling).
 //
 //   node scripts/loop/spend.mjs --runs=runs.json [--now=ISO]
 //
@@ -13,7 +15,7 @@ import { CONFIG } from './preflight.mjs';
 
 export function monthSpend(runs, now = new Date().toISOString(), rates = CONFIG.spendEstimateUSD) {
   const month = now.slice(0, 7);
-  const cost = { 'Judge panel': rates.judgePanelRun, 'Judge calibration': rates.judgeCalibrationRun };
+  const cost = { 'Judge panel': rates.judgePanelRun, 'Judge calibration': rates.judgeCalibrationRun, 'Prompt evals': rates.promptEvalRun };
   let total = 0;
   for (const r of runs) {
     const name = r.workflowName ?? r.name, created = r.createdAt ?? r.created_at ?? '';

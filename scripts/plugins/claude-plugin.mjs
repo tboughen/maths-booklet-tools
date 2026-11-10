@@ -3,11 +3,15 @@
 // canonical `.agents/skills/mathsdock-diagrams` skill. Installed plugins are copied away from this
 // repository, so the copy's relative documentation links point at the public repository instead.
 //
-//   node scripts/plugins/claude-plugin.mjs           writes the copy
-//   node scripts/plugins/claude-plugin.mjs --check   fails when the committed copy is out of date
+//   node scripts/plugins/claude-plugin.mjs              writes the copy
+//   node scripts/plugins/claude-plugin.mjs --check      fails when the committed copy is out of date
+//   node scripts/plugins/claude-plugin.mjs --zip=DIR    also writes DIR/<skill>.zip for upload in
+//                                                       claude.ai (Settings > Capabilities > Skills)
 //
-// Publishing (a marketplace entry, or telling teachers to install it) needs Tim's go-ahead.
+// The repository's .claude-plugin/marketplace.json lists the plugin, so Claude Code can install it
+// from GitHub (docs/release/CLAUDE-CONNECTION.md). Listing it anywhere else needs Tim's go-ahead.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { zipSync, strToU8 } from 'fflate';
 import { dirname, join, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -39,6 +43,13 @@ export function pluginFiles(read = path => readFileSync(join(root, path), 'utf8'
   return files;
 }
 
+// claude.ai takes a ZIP holding one folder named after the skill, with SKILL.md inside. The fixed
+// date keeps the archive identical for identical text.
+export function skillZip(name, text) {
+  const mtime = new Date('2026-01-01T00:00:00Z');
+  return zipSync({ [name]: [{ 'SKILL.md': [strToU8(text), { mtime }] }, { mtime }] }, { level: 9 });
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const check = process.argv.includes('--check');
   let stale = 0;
@@ -53,4 +64,13 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.log(`wrote ${path}`);
   }
   if (stale) process.exit(1);
+  const zipDir = process.argv.find(a => a.startsWith('--zip='))?.slice(6);
+  if (zipDir) {
+    mkdirSync(zipDir, { recursive: true });
+    for (const [path, text] of Object.entries(pluginFiles())) {
+      const name = posix.basename(posix.dirname(path));
+      writeFileSync(join(zipDir, `${name}.zip`), skillZip(name, text));
+      console.log(`wrote ${join(zipDir, `${name}.zip`)}`);
+    }
+  }
 }

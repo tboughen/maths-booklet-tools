@@ -83,6 +83,14 @@ jobs:
             if [ "$live" = "$EXPECTED" ]; then
               echo "### MCP deploy live" >> "$GITHUB_STEP_SUMMARY"
               echo "Commit \`$GITHUB_SHA\`, buildId \`$EXPECTED\`." >> "$GITHUB_STEP_SUMMARY"
+              # ChatGPT keeps the tool list it imported, so new or changed tools stay invisible
+              # there until someone refreshes them by hand (wave 4 lane C3).
+              {
+                echo ""
+                echo "**Next, if tools or their descriptions changed:** in ChatGPT open the MathsDock app,"
+                echo "choose Manage app, then Refresh tools, and try one chat. Claude picks up the new list"
+                echo "in a new chat. See docs/release/CLAUDE-CONNECTION.md."
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             if [ "$(date +%s)" -ge "$deadline" ]; then
