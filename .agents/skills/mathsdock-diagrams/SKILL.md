@@ -88,7 +88,9 @@ expected: fix that field and try once more rather than guessing a different payl
   share one unit width; labels never change widths. Never shrink fonts, resize bars
   horizontally or upgrade automatically to make text fit. A bare request without a
   version stays v1 and an explicit v2 spec stays v2; saved v1 and v2 files keep their
-  version until the teacher asks for `upgrade_document`. An explicit upgrade runs once,
+  version until the teacher asks for `upgrade_document`. For a v2 lesson layout, request
+  `spec: {schemaVersion: 2, starter: "part-whole"}` (or `comparison`, `equal-sections`,
+  `inline-ratio`). An explicit upgrade runs once,
   first in the batch, checks the original hash and rolls the whole batch back on failure;
   one Undo restores the original version. See [Bar model v3](../../../docs/tools/BAR-MODEL-V3.md) and
   [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md).
@@ -107,10 +109,12 @@ expected: fix that field and try once more rather than guessing a different payl
   answer lines as requested. Never extend the axis or delete points to make an edit valid.
   A truncated ray needs the explicit intentional-error settings.
 - **Venn.** Membership masks are stable: 0 outside, A = 1, B = 2, C = 4. Renaming a set
-  never changes membership. Never merge region values. The answer view keeps the same
+  never changes membership. Never merge region values. Only active regions exist in a
+  layout; keep reverse nesting as drawn. The answer view keeps the same
   pupil envelope and hash; it is a different rendering, not a different document.
 - **Algebra grids.** Integer terms in x, explicit signs, true blanks and hidden answers.
-  `calculate_answer` (only on request) keeps the pupil scaffold.
+  `calculate_answer` (only on request) keeps the pupil scaffold. Product cells are 12 to
+  18 mm, whatever the paper size.
   See [Algebra grid MCP](../../../docs/tools/ALGEBRA-GRID-MCP.md).
 - **Charts.** See the [charts guide](../../../docs/tools/CHARTS-TOOL.md).
 - **Triangles.** Keep explicit labels, topology and saved answers. Use the returned
@@ -140,16 +144,21 @@ calling the worksheet finished.
   rewriting it.
 - The inline preview is not the print image. Place diagrams at the returned
   `physicalSizeCm`, keeping the aspect ratio; preview zoom never changes print size.
+- If `printGuidance` is returned, its text, grid, answer-line and row measurements describe
+  the diagram at native size; they are not part of its definition or hash.
 - `check_diagram_placement` (kind, envelope, `widthMm` and/or `heightMm`) reports what a
   resize does to print size. `download_diagram_bundle` (kind, envelope) gives one ZIP with
   JSON, SVG, print PNG and a README. Retrieve the archive before saying it worked. Call it
-  again with the saved source to refresh an expired link.
+  again with the saved source to refresh an expired link; expired downloads for a single
+  diagram can also be refreshed by revising the same returned document without changes.
+  Legacy Graph fonts need the reported portable conversion before bundling. The website
+  opens the extracted `source.json`, not the ZIP.
 - Service SVG is vector artwork with outlined lettering. `printVerified` checks the PNG,
   not a downstream document or printer.
 - If an SVG URL cannot be fetched, `get_diagram_svg` (kind and the unchanged envelope)
   returns the same SVG in checked chunks. Start without `offsetBytes`, then continue with
-  `nextOffsetBytes` and `expectedSvgSha256` from the first result, keeping source and
-  `outputView` unchanged. Check that offsets are contiguous, each `chunkSha256` matches,
+  `nextOffsetBytes` and `expectedSvgSha256` from the first result, keeping `kind`, source
+  and `outputView` unchanged; `maxChunkBytes` is 1024 to 49152. Check that offsets are contiguous, each `chunkSha256` matches,
   and `rendererVersion`, `sourceContentHash`, `physicalSizeCm`, `totalBytes` and
   `svgSha256` stay the same; reject missing, repeated or changed chunks. Use a smaller
   `maxChunkBytes` if a response would exceed 256 KiB, and never retry without limit. The
@@ -157,6 +166,8 @@ calling the worksheet finished.
   newline), check the byte count and hash, and parse it as SVG before using it.
   `complete` means delivered, not saved. See
   [direct SVG delivery](../../../docs/tools/DIRECT-SVG-DELIVERY.md).
+- Word exports are images: further mathematical edits mean reopening the editable file in
+  MathsDock.
 - Do not say a file was saved, downloaded, pasted into Word or printed unless that actually
   happened. A returned link is not a saved file. Editable files and links can contain
   hidden answers, so treat them as teacher copies.
