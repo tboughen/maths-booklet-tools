@@ -47,7 +47,7 @@ import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-c
 
 /** What every client reads first; family detail lives in diagram_capabilities. */
 export const SERVER_INSTRUCTIONS =
-  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees and triangles. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. For horizontal fractions and 12 mm above/3 mm below handwriting space, request bar-model spec.schemaVersion 3. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
+  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees, frequency trees and triangles. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. For horizontal fractions and 12 mm above/3 mm below handwriting space, request bar-model spec.schemaVersion 3. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
 export interface ServiceOptions {
   buildId?: string;
   publicUrl: string;
@@ -169,7 +169,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal, source.outputView);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal, source.outputView);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
-      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "triangle": return resources.artifacts(source, format, signal);
+      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "frequency-tree": case "triangle": return resources.artifacts(source, format, signal);
     }
   });
   const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
@@ -178,7 +178,7 @@ export function graphService(options: ServiceOptions) {
     "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
-    "bar-model": resource, charts: resource, "probability-tree": resource, triangle: resource,
+    "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, triangle: resource,
   } satisfies Record<DiagramKind, ResultBuilder>);
   async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
@@ -346,7 +346,7 @@ export function graphService(options: ServiceOptions) {
       limits.request(clientAddress(req, options.trustForwardedFor ?? false));
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
-        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "triangle") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "frequency-tree" && source.kind !== "triangle") throw new GraphError("invalid_download", "Use the original download route for this resource.");
         const abort = new AbortController();
         res.once("close", () => {if (!res.writableFinished) abort.abort();});
         const file = await resources.artifacts(source, format, abort.signal);

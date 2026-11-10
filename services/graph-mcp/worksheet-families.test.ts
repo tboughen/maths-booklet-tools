@@ -20,6 +20,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   "bar-model": undefined,
   charts: { example: undefined, kind: "bar", categories: ["A", "B", "C"], series: [{ name: "Pupils", values: ["3", "5", null] }] },
   "probability-tree": undefined,
+  "frequency-tree": { total: "60", groups: [{ name: "boys", count: "32", children: [{ name: "school lunch", count: "24" }, { name: "packed lunch", count: "8", countHidden: true }] }, { name: "girls", count: "28", countHidden: true }] },
   triangle: { widthCm: 8 },
 };
 const clean = (spec: Record<string, unknown> | undefined) => spec && Object.fromEntries(Object.entries(spec).filter(([, v]) => v !== undefined));

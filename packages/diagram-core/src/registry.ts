@@ -28,6 +28,8 @@ import * as chart from "../../chart-core/src/index";
 import * as chartIo from "../../chart-core/src/interchange";
 import * as tree from "../../probability-tree-core/src/index";
 import * as treeIo from "../../probability-tree-core/src/interchange";
+import * as ftree from "../../frequency-tree-core/src/index";
+import * as ftreeIo from "../../frequency-tree-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
 
@@ -42,6 +44,7 @@ export const DIAGRAM_KINDS = [
   "bar-model",
   "charts",
   "probability-tree",
+  "frequency-tree",
   "triangle",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
@@ -269,6 +272,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => treeIo.revise(input),
     hash: tree.hash,
     svg: (e, view) => tree.renderSvg(tree.forView(e, view)),
+  }),
+  "frequency-tree": family<ftree.Envelope>({
+    kind: "frequency-tree",
+    label: "frequency tree",
+    summary: "Exam frequency tree: a total split into groups (2-3 branches, up to 2 levels) with counts in ovals, blank or hidden for pupils.",
+    route: "/tools/frequency-tree",
+    answerView: true,
+    envelopeSchema: ftree.envelopeSchema,
+    createSchema: ftreeIo.createSchema,
+    revisionSchema: ftreeIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = ftree.validate(raw);
+      check(ftree.exportIssue(ftree.forView(e, view)));
+      return e;
+    },
+    create: (input) => ftreeIo.create(input),
+    revise: (input) => ftreeIo.revise(input),
+    hash: ftree.hash,
+    svg: (e, view) => ftree.renderSvg(ftree.forView(e, view)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
