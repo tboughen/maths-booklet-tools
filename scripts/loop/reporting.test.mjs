@@ -36,7 +36,7 @@ test('the digest groups merged loop work and shows what waits for Tim', () => {
   ];
   const text = digest({ prs, calibration: { score: { caught: 7, bad: 7, falseFails: 0, good: 2 }, targets: { met: true, misses: [] } }, spendUSD: 4.2, enabled: false, now: '2026-11-14T00:00:00Z' });
   assert.match(text, /switched off/);
-  assert.match(text, /4\.2 USD of 20 USD/);
+  assert.match(text, /4\.2 USD of 60 USD/);
   assert.match(text, /2 merged, 1 waiting for you, 1 closed without merging, 0 reverted/);
   assert.match(text, /\*\*venn\*\*[\s\S]*#1[\s\S]*\*\*charts\*\*[\s\S]*#2/);
   assert.match(text, /### Waiting for you\n\n\| PR[\s\S]*\[#3\][^\n]*\| T3 \|/);

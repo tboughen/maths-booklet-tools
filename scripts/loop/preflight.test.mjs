@@ -25,7 +25,7 @@ test('stops when the loop is off, no cap is set, the cap is reached or the night
   assert.match(preflight(state({ pullRequests: recent }), config).reasons.join(), /3 loop PRs opened in the last 24 hours/);
   const open = [1, 2, 3, 4, 5].map(n => ({ number: 100 + n, headRefName: `loop/${n}-x`, state: 'open', createdAt: '2026-11-01T00:00:00Z', files: [] }));
   assert.match(preflight(state({ pullRequests: open }), config).reasons.join(), /5 loop PRs are open/);
-  assert.deepEqual([CONFIG.monthlySpendCapUSD, CONFIG.maxSessionsPerNight], [20, 1], 'the caps Tim set on 8 November 2026');
+  assert.deepEqual([CONFIG.monthlySpendCapUSD, CONFIG.maxSessionsPerNight], [60, 1], 'the caps Tim set (one session a night, 8 November 2026; $60 a month, 10 November 2026)');
 });
 
 test('skips issues that are held, already taken, too risky, undeclared, deny-listed or overlapping open work', () => {
