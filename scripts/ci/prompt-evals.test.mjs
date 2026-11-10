@@ -87,10 +87,13 @@ test('a local target evaluates a copy of the plugin pointed at that service, nev
     assert.ok(readFileSync(join(plugin, 'skills/mathsdock-diagrams/SKILL.md'), 'utf8').startsWith('---\nname: mathsdock-diagrams'));
     assert.ok(readFileSync('plugins/mathsdock-claude/.mcp.json', 'utf8').includes('onrender.com'), 'the committed plugin is unchanged');
   } finally { rmSync(dir, { recursive: true, force: true }); }
-  assert.equal(exitCode(0), 0);
-  assert.equal(exitCode(2), 0, 'stopped at the ceiling, summary written');
-  assert.equal(exitCode(1), 1);
-  assert.equal(exitCode(null), 1, 'killed by a signal');
+  const all = { partial: false, cases: [{ aggregates: { score: 1 } }, { aggregates: { score: 1 } }] };
+  assert.equal(exitCode(0, all), 0);
+  assert.equal(exitCode(0, { ...all, cases: [{ aggregates: { score: 1 } }, { aggregates: { score: 0.9 } }] }), 1, 'a failed check fails the run');
+  assert.equal(exitCode(2, { ...all, partial: true }), 1, 'stopped at the ceiling: not every case ran');
+  assert.equal(exitCode(1, all), 1);
+  assert.equal(exitCode(null, all), 1, 'killed by a signal');
+  assert.equal(exitCode(0, undefined), 1, 'no result');
 });
 
 test('the workflow runs only on main and never spends more per run than the loop cap counts', () => {
@@ -98,4 +101,27 @@ test('the workflow runs only on main and never spends more per run than the loop
   assert.match(yml, /test "\$REF" = refs\/heads\/main/);
   const choices = yml.match(/max_cost_usd:[\s\S]*?options: \[([^\]]*)\]/)[1].split(',').map(v => Number(v.replace(/'/g, '')));
   assert.ok(choices.length && choices.every(v => v > 0 && v <= CONFIG.spendEstimateUSD.promptEvalRun), String(choices));
+});
+
+test('cases with a pupil answer also check that no tool call writes it into the diagram', () => {
+  const files = caseFiles();
+  for (const c of CASES.filter(c => c.leak)) {
+    const re = new RegExp(c.leak.value);
+    assert.ok(Object.keys(files).some(p => p.includes(`/${c.name}/graders/no-answer-value-create-diagram.md`)), c.name);
+    // The numbers the teacher gave go into the diagram as values; they must not trip the check.
+    for (const n of c.prompt.match(/\d+/g)) assert.doesNotMatch(`{"value":"${n}","text":"${n}"}`, re, `${c.name}: ${n}`);
+  }
+  assert.match('{"cells":[{"value":"8"}]}', new RegExp(CASES.find(c => c.name === 'ratio-table-blank').leak.value));
+  assert.doesNotMatch('{"cells":[{"value":"12"},{"value":"3"},{"value":"2"}],"barHeightMm":20}', new RegExp(CASES.find(c => c.name === 'ratio-table-blank').leak.value));
+  const bar = new RegExp(CASES.find(c => c.name === 'bar-model-missing-part').leak.value);
+  assert.doesNotMatch('{"id":"b","weight":"28","labels":{"inside":{"text":"","state":"blank"}}}', bar, 'a part width is not a label');
+  assert.match('{"labels":{"inside":{"text": "28","state":"value"}}}', bar);
+});
+
+test('the histogram check needs the reply to say histograms are not supported', () => {
+  const g = caseFiles()['plugins/mathsdock-claude/evals/histogram-unsupported/graders/says-unsupported.md'];
+  const re = new RegExp(g.match(/^pattern: '(.*)'$/m)[1].replace(/''/g, "'"), 'i');
+  assert.match("I didn't use the MathsDock tools because they don't support histograms.", re);
+  assert.match('Histograms are not supported by the connector.', re);
+  assert.doesNotMatch("Here is your histogram. Don't forget to label the axes.", re);
 });

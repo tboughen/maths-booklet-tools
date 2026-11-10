@@ -39,7 +39,7 @@ export function evalArgs(pluginDir, opts, outDir) {
     '--mocks', 'off', '--allow-tools', 'mcp__plugin_mathsdock_mathsdock__*',
     '--trust-plugin', '--no-publish',
     '--model', opts.model, '--runs', String(opts.runs), '--max-cost-usd', String(opts['max-cost-usd']),
-    '--threshold', '0', // the summary reports failures; the run itself succeeds unless it breaks
+    '--threshold', '0', // every case still runs; exitCode() fails the run if any case failed
     '--concurrency', '4',
     '--json', join(outDir, 'result.json'), '--output-dir', outDir, '--report', join(outDir, 'report.html')];
   if (opts.case) args.push('--case', opts.case);
@@ -55,8 +55,12 @@ export function localPlugin(dir, target) {
   return pluginDir;
 }
 
-/** The runner's exit code: the CLI's exit 2 (cost ceiling reached) still produced a summary. */
-export const exitCode = status => (status === 2 ? 0 : status ?? 1);
+/** The runner's exit code: 0 only when the CLI finished the whole run and every case passed. */
+export function exitCode(status, result) {
+  if (status !== 0 && status !== 2) return status ?? 1; // the CLI broke; exit 2 is the cost ceiling
+  if (!result || result.partial) return 1; // stopped early, so not every case ran
+  return result.cases.every(c => Number(c.aggregates?.score) === 1) ? 0 : 1;
+}
 
 /** A Markdown summary of a `claude plugin eval --json` result. */
 export function summary(result, opts) {
@@ -93,6 +97,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   writeFileSync(join(outDir, 'summary.md'), text);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text);
   console.log(text);
-  // Exit 2 from the CLI means the cost ceiling stopped the run; the summary already says so.
-  process.exit(exitCode(run.status));
+  process.exit(exitCode(run.status, result));
 }

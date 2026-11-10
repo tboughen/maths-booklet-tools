@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock teaching diagrams (coordinate graphs, ratio tables, quadratic value graphs, cuboids, number lines, Venn diagrams, algebra grids, bar models, statistical charts (not histograms or time series), probability trees and triangles) and finished A3 worksheets through the connected MathsDock MCP tools, keeping pupil blanks and hidden answers and returning real print files and editor links. Use for teaching resources, not for developing the tools.
+description: Create or revise editable MathsDock teaching diagrams (coordinate graphs, ratio tables, quadratic value graphs, cuboids, number lines, Venn diagrams, algebra grids, bar models, statistical charts (not histograms or time series), probability trees and triangles) and worksheets through the connected MathsDock MCP tools, keeping pupil blanks and hidden answers and returning real print files and editor links. Use for teaching resources, not for developing the tools.
 ---
 
 <!-- Generated from .agents/skills/mathsdock-diagrams/SKILL.md by scripts/plugins/claude-plugin.mjs. Edit the source, then rerun it. -->
@@ -90,10 +90,15 @@ expected: fix that field and try once more rather than guessing a different payl
   share one unit width; labels never change widths. Never shrink fonts, resize bars
   horizontally or upgrade automatically to make text fit. A bare request without a
   version stays v1 and an explicit v2 spec stays v2; saved v1 and v2 files keep their
-  version until the teacher asks for `upgrade_document`. See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
+  version until the teacher asks for `upgrade_document`. An explicit upgrade runs once,
+  first in the batch, checks the original hash and rolls the whole batch back on failure;
+  one Undo restores the original version. See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
   [Bar-model MCP](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-MCP.md).
 - **Ratio tables.** One scaling transition applies across every column. Keep that shared
-  factor and its copies.
+  factor and its copies. A legacy default is not a limit: follow the capabilities for
+  supported column counts and renderer versions, and reuse the returned envelope's
+  version. A factor change uses a nested transition, for example
+  `{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}`.
 - **Value graphs.** Keep blank, answer-line and zero cells distinct, hidden labels and any
   deliberate plotting errors. Calculating cells and worked plots are explicit actions.
 - **Cuboids.** Dimension edits respect cube locking; enabling it needs an explicit
@@ -102,10 +107,12 @@ expected: fix that field and try once more rather than guessing a different payl
   necessarily the exported image width.
 - **Number lines.** Keep filled or hollow endpoints, rays, joins, hidden solutions and tick
   answer lines as requested. Never extend the axis or delete points to make an edit valid.
+  A truncated ray needs the explicit intentional-error settings.
 - **Venn.** Membership masks are stable: 0 outside, A = 1, B = 2, C = 4. Renaming a set
   never changes membership. Never merge region values. The answer view keeps the same
   pupil envelope and hash; it is a different rendering, not a different document.
 - **Algebra grids.** Integer terms in x, explicit signs, true blanks and hidden answers.
+  `calculate_answer` (only on request) keeps the pupil scaffold.
   See [Algebra grid MCP](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/ALGEBRA-GRID-MCP.md).
 - **Charts.** See the [charts guide](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/CHARTS-TOOL.md).
 - **Triangles.** Keep explicit labels, topology and saved answers. Use the returned
@@ -114,27 +121,31 @@ expected: fix that field and try once more rather than guessing a different payl
 
 ## Worksheets
 
-Worksheets follow the Maths Resource Design Guide's three stages. PLAN agrees the
-objectives, question sequence, scaffold fading and working space with the teacher.
-FINALISE checks every question's mathematics and wording and gets the teacher's
-agreement. Only then is PRODUCE: read `worksheet_capabilities` once and call
-`create_worksheet` with the whole finalised document. Do not jump from an informal
-request straight to PRODUCE; agree the plan first. After PRODUCE, report every layout
-issue the tool returns and look at the returned pages before calling the worksheet
-finished. Build it in one call rather than many small attempts, because each call costs
-the teacher time and tokens.
+Worksheets follow the [Maths Resource Design Guide](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md):
+PLAN gives a progression, FINALISE gives the full checked questions, and PRODUCE makes the
+resource from the latest finalised set. Each command does one stage. When the teacher asks
+for the resource itself or says PRODUCE, produce it without adding another approval step;
+if the questions it needs have not been written or cannot be found, say what is missing
+rather than inventing them. The teacher's brief sets the format; two-page A3 is the guide's
+usual default, not a rule. To produce, read `worksheet_capabilities` once and call
+`create_worksheet` with the whole document, in one call rather than many small attempts,
+because each call costs the teacher time and tokens. Check the mathematics before the
+call, then report every layout issue it returns and look at the returned pages before
+calling the worksheet finished.
 
 ## Files and links
 
 - Show the returned preview and the real links it returned: SVG, 600 ppi print PNG,
   editable JSON and the MathsDock editor link. Use only URLs a tool returned. Never build,
-  shorten or edit a signed download link.
+  shorten or edit a signed download link, and never invent a download tool. Editor links
+  should point at `mathsdock.co.uk`; report a different returned target rather than
+  rewriting it.
 - The inline preview is not the print image. Place diagrams at the returned
   `physicalSizeCm`, keeping the aspect ratio; preview zoom never changes print size.
 - `check_diagram_placement` (kind, envelope, `widthMm` and/or `heightMm`) reports what a
   resize does to print size. `download_diagram_bundle` (kind, envelope) gives one ZIP with
-  JSON, SVG, print PNG and a README. Call it again with the saved source to refresh an
-  expired link.
+  JSON, SVG, print PNG and a README. Retrieve the archive before saying it worked. Call it
+  again with the saved source to refresh an expired link.
 - Service SVG is vector artwork with outlined lettering. `printVerified` checks the PNG,
   not a downstream document or printer.
 - If an SVG URL cannot be fetched, `get_diagram_svg` (kind and the unchanged envelope)

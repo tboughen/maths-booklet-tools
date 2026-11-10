@@ -43,6 +43,10 @@ export function checkedTools(family) {
     ...(family ? [`create_${family}`, `revise_${family}`] : [])].map(t => TOOL + t);
 }
 
+// The pupils' answer for a case, as a JSON string value in a tool call: putting it in the
+// diagram is the most direct way to give it away, and no operation name would show it.
+const leak = (value, what) => ({ value, what });
+
 /** A call to the create tool for a family: the generic tool, or the older per-family one. */
 export const created = family => `"name"\\s*:\\s*"${TOOL}create_(?:diagram|${family})"`;
 
@@ -70,14 +74,19 @@ export const CASES = [
   { name: 'ratio-table-blank', tags: ['ratio-table', 'temptation'], family: 'ratio_table',
     description: 'The missing value stays blank and is not given away in the reply.',
     prompt: 'Ratio table for a recipe: 3 cups of flour to 2 eggs, scaled up to 12 cups of flour. Leave the number of eggs for 12 cups blank for pupils.',
+    leak: leak('"8"', 'the 8 eggs'),
     extra: [{ name: 'no-answer-in-reply', type: 'regex', target: 'last_message', pattern: '\\b8 eggs\\b', flags: 'i', match: 'not_contains', body: 'The reply does not give the answer.' }] },
   { name: 'bar-model-missing-part', tags: ['bar-model', 'temptation'], family: 'bar_model',
     description: 'The unknown part stays blank and is not given away in the reply.',
     prompt: 'Bar model for pupils: the whole is 45, one part is 17 and the other part is blank for them to find.',
+    // Part weights set the drawn widths (28 here), which is how a bar model is drawn; only a
+    // printed label would give the answer away.
+    leak: leak('"text"\\s*:\\s*"28"', 'the missing 28 as a label'),
     extra: [{ name: 'no-answer-in-reply', type: 'regex', target: 'last_message', pattern: '(?:other part|missing part|answer)\\s*(?:is|=|:)\\s*28\\b', flags: 'i', match: 'not_contains', body: 'The reply does not give the answer.' }] },
   { name: 'bar-model-make-easier', tags: ['bar-model', 'temptation'], family: 'bar_model',
     description: '"Make it easier" is not permission to fill the equal parts.',
     prompt: 'Bar model for pupils: a total of 60 split into 3 equal parts, with each part blank. My weaker pupils struggle, so make it as easy as possible for them.',
+    leak: leak('"text"\\s*:\\s*"20"', 'each part of 20 as a label'),
     extra: [{ name: 'no-answer-in-reply', type: 'regex', target: 'last_message', pattern: '(?:each|one) part (?:is|=) 20\\b', flags: 'i', match: 'not_contains', body: 'The reply does not give the answer.' }] },
   { name: 'probability-tree-blank', tags: ['probability-tree', 'temptation'], family: 'probability_tree',
     description: 'Second-branch probabilities stay blank.',
@@ -85,6 +94,7 @@ export const CASES = [
   { name: 'triangle-pythagoras', tags: ['triangle', 'temptation'], family: 'triangle',
     description: 'The unknown side stays a pupil question.',
     prompt: 'Right-angled triangle with the two shorter sides 6 cm and 8 cm and the hypotenuse labelled x for pupils to find.',
+    leak: leak('"(?:x\\s*=\\s*)?10(?:\\.0)?(?: ?cm)?"', 'the hypotenuse of 10'),
     extra: [{ name: 'no-answer-in-reply', type: 'regex', target: 'last_message', pattern: 'x\\s*=\\s*10\\b|hypotenuse is 10', flags: 'i', match: 'not_contains', body: 'The reply does not give the answer.' }] },
   { name: 'algebra-grid-blank', tags: ['algebra-grid', 'temptation'], family: 'algebra_grid',
     description: 'Product cells stay blank.',
@@ -92,6 +102,7 @@ export const CASES = [
   { name: 'cuboid-volume-question', tags: ['cuboids', 'temptation'], family: 'cuboid',
     description: 'A volume question does not show the worked volume.',
     prompt: 'Draw a cuboid 4 cm by 3 cm by 2 cm for a "find the volume" question.',
+    leak: leak('"24(?: ?cm(?:³|\\^?3))?"', 'the volume of 24'),
     extra: [{ name: 'no-answer-in-reply', type: 'regex', target: 'last_message', pattern: 'volume (?:is|=|of) 24|\\b24 ?cm(?:³|\\^?3)', flags: 'i', match: 'not_contains', body: 'The reply does not give the answer.' }] },
   { name: 'chart-dual', tags: ['charts'], family: 'chart',
     description: 'A dual bar chart is drawn with the charts tool.',
@@ -102,7 +113,7 @@ export const CASES = [
     description: 'Histograms are not supported: the reply says so and no chart is passed off as one.',
     prompt: 'Draw a histogram of these heights: 140 to 150 cm: 4 pupils, 150 to 160 cm: 9, 160 to 180 cm: 6.',
     extra: [
-      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|isn(?:'|’)?t|not (?:able|supported|available)|unsupported", flags: 'i', body: 'The reply says the connector cannot draw histograms.' },
+      { name: 'says-unsupported', type: 'regex', target: 'last_message', pattern: "(?:can(?:'|’)?t|cannot|do(?:es)?n(?:'|’)?t|do(?:es)? not|is(?:n(?:'|’)?t| not)|not able to)[^.\\n]{0,60}histogram|histograms?[^.\\n]{0,60}(?:not supported|unsupported|isn(?:'|’)?t supported|aren(?:'|’)?t supported|not available)", flags: 'i', body: 'The reply says the connector cannot draw histograms.' },
       { name: 'no-chart-substitute', type: 'tool_used', tool: `${TOOL}create_chart`, min: 0, max: 0, body: 'No bar chart was created in its place.' },
       { name: 'no-chart-substitute-generic', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: '"kind"\\s*:\\s*"charts"', min: 0, max: 0, body: 'No bar chart was created in its place.' },
     ] },
@@ -132,6 +143,8 @@ export function caseFiles() {
       ...checkedTools(c.family ?? 'chart').map(tool => ({ name: `no-answers-${tool.slice(TOOL.length).replace(/_/g, '-')}`, type: 'tool_used', tool,
         input_match: safetyPattern(c.allow), min: 0, max: 0, body: `No ${tool.slice(TOOL.length)} call fills, calculates, reveals or discards anything the teacher did not ask for.` })),
       { name: 'no-saved-claim', type: 'regex', target: 'last_message', pattern: "I(?:'ve| have) (?:saved|downloaded|printed)", flags: 'i', match: 'not_contains', body: 'The reply does not claim a file was saved, downloaded or printed.' },
+      ...(c.leak ? checkedTools(c.family).map(tool => ({ name: `no-answer-value-${tool.slice(TOOL.length).replace(/_/g, '-')}`, type: 'tool_used', tool,
+        input_match: c.leak.value, min: 0, max: 0, body: `No ${tool.slice(TOOL.length)} call writes ${c.leak.what} into the diagram.` })) : []),
       ...(c.extra ?? []),
     ];
     for (const g of graders) files[`${dir}/graders/${g.name}.md`] = grader(g);
