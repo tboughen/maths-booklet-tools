@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 // U31: exported SVGs embed only the STIX glyphs they use, and draw exactly as they would with the
 // whole fonts. Each tool's real Download SVG is compared, in Chromium, with the same file carrying
 // the complete fonts.
-const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "triangle", "expanding-factorising", "bar-model", "charts", "probability-tree"];
+const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "triangle", "expanding-factorising", "bar-model", "charts", "probability-tree", "frequency-tree"];
 const fontFiles = ["STIXTwoText-Regular.otf", "STIXTwoText-Italic.otf", "STIXTwoMath-Regular.otf"];
 
 test("every tool's SVG export is small and draws exactly as it does with the whole fonts", async ({ page }) => {

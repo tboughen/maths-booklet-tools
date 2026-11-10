@@ -23,6 +23,8 @@ import * as chart from "../../packages/chart-core/src/index";
 import { examples as chartExamples } from "../../packages/chart-core/src/examples";
 import * as tree from "../../packages/probability-tree-core/src/index";
 import { examples as treeExamples } from "../../packages/probability-tree-core/src/examples";
+import * as frequencyTree from "../../packages/frequency-tree-core/src/index";
+import { examples as frequencyTreeExamples } from "../../packages/frequency-tree-core/src/examples";
 
 export type Tool = {
   name: string;
@@ -44,6 +46,7 @@ export const tools: Tool[] = [
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, parseFile: cuboid.parseFile, link: { encode: cuboid.encode, decode: cuboid.decode } },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, parseFile: numberLine.parseFile, link: { encode: numberLine.encode, decode: numberLine.decode } },
   { name: "probability trees", envelopes: () => treeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: tree.validate, parseFile: tree.parseFile },
+  { name: "frequency trees", envelopes: () => frequencyTreeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: frequencyTree.validate, parseFile: frequencyTree.parseFile, link: { encode: frequencyTree.linkHash, decode: frequencyTree.decodeLinkHash } },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, parseFile: venn.parseFile },
   { name: "plotting quadratics", envelopes: () => quadraticSources.flatMap(x => [valueGraph.preset(x.name), workedQuadraticExample(x.name)]), validate: (raw: unknown) => valueGraph.parseFile(JSON.stringify(raw)), parseFile: valueGraph.parseFile, link: { encode: valueGraph.encode, decode: valueGraph.decode } },
