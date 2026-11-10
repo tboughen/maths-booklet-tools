@@ -199,6 +199,20 @@ test('a promotion checks served bank files only after the new Worker is live', a
   await verifyServed(manifest, result.servedObjects, scope.origin, { metrics, fetcher });
   assert.equal(publicHeads, 32);
 });
+test('served bank files are checked uncompressed, so a JSON scheme keeps its length and ETag', async () => {
+  const asset = { key: `bank/assets/sha256/${'d'.repeat(64)}.json`, sha256: 'd'.repeat(64), md5: 'e'.repeat(32), bytes: 120, contentType: 'application/json' };
+  const seen = [];
+  const fetcher = async (_url, init) => {
+    seen.push(new Headers(init.headers).get('accept-encoding'));
+    // What the edge sends when it compresses: no length and a weak ETag.
+    return init.headers['Accept-Encoding'] === 'identity'
+      ? new Response(null, { headers: { 'content-length': '120', 'content-type': 'application/json', etag: `"${asset.md5}"`, 'cache-control': 'private, max-age=31536000, immutable' } })
+      : new Response(null, { headers: { 'content-type': 'application/json', etag: `W/"${asset.md5}"`, 'cache-control': 'private, max-age=31536000, immutable' } });
+  };
+  const metrics = { count() {}, stage: async (_name, action) => action() };
+  await verifyServed({ assets: [asset] }, [asset], scope.origin, { metrics, fetcher });
+  assert.deepEqual(seen, ['identity']);
+});
 test('live file checks keep confirmed files between retries and log each retry', async () => {
   const body = name => Buffer.from(`file ${name}`);
   const names = ['a.js', 'b.js', 'c.js'];
