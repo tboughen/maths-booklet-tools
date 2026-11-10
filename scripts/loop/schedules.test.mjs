@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { monthSpend } from './spend.mjs';
 
-test('the month\'s judge spend is estimated from this month\'s judge runs only', () => {
+test('the month\'s API spend is estimated from this month\'s judge and prompt-eval runs only', () => {
   const runs = [
     { workflowName: 'Judge panel', createdAt: '2026-11-02T10:00:00Z', conclusion: 'success' },
     { workflowName: 'Judge panel', createdAt: '2026-11-03T10:00:00Z', conclusion: 'failure' },
@@ -13,6 +13,8 @@ test('the month\'s judge spend is estimated from this month\'s judge runs only',
     { workflowName: 'Quick checks', createdAt: '2026-11-09T06:00:00Z', conclusion: 'success' },
   ];
   assert.equal(monthSpend(runs, '2026-11-20T00:00:00Z'), 1.8);
+  // A hand-started prompt-eval run counts against the same cap.
+  assert.equal(monthSpend([...runs, { workflowName: 'Prompt evals', createdAt: '2026-11-11T09:00:00Z', conclusion: 'success' }], '2026-11-20T00:00:00Z'), 4.8);
   assert.equal(monthSpend([], '2026-11-20T00:00:00Z'), 0);
 });
 

@@ -1,0 +1,93 @@
+name: Prompt evals
+# Runs the teacher-prompt evals for the MathsDock Claude plugin (scripts/evals/, wave 4 lane C2)
+# with `claude plugin eval`. It spends API credit (about $3 a run on Sonnet 5.5, counted against
+# the loop's monthly cap in scripts/loop/config.json; Tim approved this on 10 Nov 2026). The key is
+# PROMPT_EVALS_API_KEY, held only in the "prompt-evals" GitHub environment, which Tim restricts
+# to main, so a dispatch from any other branch never receives it. It runs only when
+# someone starts it, typically before an MCP deploy. It never runs on a schedule or a pull request,
+# and only on main, so the key never reaches unreviewed code. The ceiling is at most $3, the figure
+# spend.mjs counts per run. To evaluate a branch, run node scripts/evals/run.mjs from a Claude Code
+# session instead (Tim's plan, no API key).
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "local: this commit's service, built and started here. live: the deployed connector."
+        type: choice
+        options: [local, live]
+        default: local
+      model:
+        description: Claude model for the assistant under test
+        default: claude-sonnet-5-5
+      cases:
+        description: Case name glob (blank for all)
+        default: ''
+      max_cost_usd:
+        description: Hard spending ceiling for this run, in dollars
+        type: choice
+        options: ['1', '3']
+        default: '3'
+permissions:
+  contents: read
+concurrency:
+  group: prompt-evals
+  cancel-in-progress: false
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: prompt-evals
+    steps:
+      - name: Require main
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/main
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        id: node
+        with:
+          node-version-file: .nvmrc
+      - name: Restore installed dependencies
+        id: modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ steps.node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
+      - name: Install Claude Code
+        run: npm install --global --no-audit --no-fund @anthropic-ai/claude-code@2.1.322
+      - name: Build and start this commit's service
+        if: inputs.target == 'local'
+        run: |
+          npm run build:service
+          # A throwaway signing key: links from this run only work while the job runs.
+          DOWNLOAD_SIGNING_KEY=$(openssl rand -hex 32) GRAPH_PUBLIC_URL=http://127.0.0.1:8787 \
+            nohup node service-dist/cli.js > service.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS -m 5 http://127.0.0.1:8787/healthz > /dev/null && exit 0; sleep 1; done
+          cat service.log
+          echo "::error::The local service did not start."
+          exit 1
+      - name: Run the evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.PROMPT_EVALS_API_KEY }}
+          TARGET: ${{ inputs.target == 'local' && 'http://127.0.0.1:8787' || 'live' }}
+          MODEL: ${{ inputs.model }}
+          CASES: ${{ inputs.cases }}
+          MAX_COST: ${{ inputs.max_cost_usd }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::PROMPT_EVALS_API_KEY is not set in the prompt-evals environment (docs/release/CLAUDE-CONNECTION.md)."
+            exit 1
+          fi
+          set -- "--target=$TARGET" "--model=$MODEL" "--max-cost-usd=$MAX_COST" --out=eval-results
+          if [ -n "$CASES" ]; then set -- "$@" "--case=$CASES"; fi
+          node scripts/evals/run.mjs "$@"
+      - uses: actions/upload-artifact@v6
+        if: always() && hashFiles('eval-results/result.json') != ''
+        with:
+          name: prompt-evals
+          path: eval-results
+          retention-days: 30

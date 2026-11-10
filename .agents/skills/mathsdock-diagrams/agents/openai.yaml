@@ -1,6 +1,6 @@
 interface:
   display_name: "MathsDock diagrams"
-  short_description: "Create and revise six editable MathsDock booklet tools"
-  default_prompt: "Use $mathsdock-diagrams to create an editable teaching diagram with the Maths Booklet Tools connector."
+  short_description: "Create and revise editable MathsDock diagrams and worksheets"
+  default_prompt: "Use $mathsdock-diagrams to create an editable teaching diagram with the MathsDock connector."
 policy:
   allow_implicit_invocation: true

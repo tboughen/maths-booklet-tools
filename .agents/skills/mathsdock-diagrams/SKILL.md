@@ -1,162 +1,174 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock coordinate graphs, ratio tables, quadratic graphs, cuboids, number lines, Venn diagrams, bar models and Triangle diagrams through the connected Maths Booklet Tools MCP tools, preserving pupil blanks and saved answers and returning real print files and editor links. Use for teaching resources, not tool development.
+description: Create or revise editable MathsDock teaching diagrams (coordinate graphs, ratio tables, quadratic value graphs, cuboids, number lines, Venn diagrams, algebra grids, bar models, statistical charts (not histograms or time series), probability trees and triangles) and worksheets through the connected MathsDock MCP tools, keeping pupil blanks and hidden answers and returning real print files and editor links. Use for teaching resources, not for developing the tools.
 ---
 
 # MathsDock diagrams
 
-Use the existing connected Maths Booklet Tools MCP tools to produce editable teaching diagrams. Inspect the tools available in this conversation; do not infer availability from a previous conversation or create another connection.
+Use the MathsDock connector in this conversation to make editable teaching diagrams for
+school maths resources. Only call tools that this conversation actually discovered. A newer
+skill, a previous chat or the source code does not prove a tool exists here; if a tool or
+feature is missing, say exactly what is missing and that a connector refresh or a fresh
+chat may be needed.
 
-## Choose and inspect the tool
+## Pick the family, then read its capabilities
 
-When bar calls are actually discovered, request the improved lesson layout with
-`spec:{schemaVersion:2,starter:"part-whole"}` (or comparison/equal-sections/inline-ratio).
-Bare MCP requests keep the original v1 example. Read [Bar model v2](../../../docs/tools/BAR-MODEL-V2.md)
-for complete slots, annotations and operations. Preserve supplied versions and
-hashes; v1 needs explicit first `upgrade_document` before new features. Saved text
-can be retained under blank, line, question and hidden displays. Never calculate
-or reveal answers without the explicit action, mask dividers or silently reanchor.
+Current connector builds have three diagram tools that work for every family:
 
-- For coordinate graphs, read `graph_capabilities`, then use `create_graph` or `revise_graph`.
-- For lesson-style ratio tables, read `ratio_table_capabilities`, then use `create_ratio_table` or `revise_ratio_table`.
-- For quadratic graphs and tables of values, read `value_graph_capabilities`, then use `create_value_graph` or `revise_value_graph`.
-- For one or more cuboids, cubes, cube grids or separated layers, read `cuboid_capabilities`, then use `create_cuboid` or `revise_cuboid`.
-- For number-line axes, points, intervals and rays, read `number_line_capabilities`, then use `create_number_line` or `revise_number_line`.
-- For set diagrams and region shading, read `venn_capabilities`, then use `create_venn` or `revise_venn`.
-- For expanding/factorising grids, read `algebra_grid_capabilities`, then use `create_algebra_grid` or `revise_algebra_grid`. Follow the [algebra contract](../../../docs/tools/ALGEBRA-GRID-MCP.md). Only call these names once actually discovered.
-- For bar charts, dual (comparative) and composite bar charts and vertical line charts, read `chart_capabilities`, then use `create_chart` or `revise_chart`. Follow the [charts guide](../../../docs/tools/CHARTS-TOOL.md). They do not draw time series, frequency polygons or histograms. Only call these names once actually discovered.
+1. `diagram_capabilities` with no `kind` lists the families. With `kind`, it returns that
+   family's limits, guidance and the JSON Schemas for its `spec` and revision `operations`.
+   Read it before the first create or revise of a family in a conversation.
+2. `create_diagram` with `kind` and either a concise `spec` or an existing `envelope`, never both.
+3. `revise_diagram` with `kind`, the latest returned `envelope`, its `contentHash` as
+   `baseHash`, and atomic `operations`.
 
-Algebra grids retain integer terms in x, explicit signs, true blanks and hidden
-answers. Product cells are12..18mm independent of paper choice. Supply spec or
-exact envelope,never both. Revisions use returned IDs and baseHash. Calculate,
-fill and worked-copy actions require explicit user intent; calculate_answer
-retains the pupil scaffold. Editable files/links may contain hidden answers.
+| Teacher asks for | `kind` |
+| --- | --- |
+| Coordinate grid with points, segments, straight lines | `graph` |
+| Ratio or proportion table | `ratio-table` |
+| Quadratic graph with a table of values | `value-graph` |
+| Cuboids, cubes, cube grids, layers | `cuboids` |
+| Number line, inequality, intervals | `number-line` |
+| Venn diagram, set shading | `venn` |
+| Expanding or factorising grid | `algebra-grid` |
+| Bar model (part-whole, comparison, equal parts) | `bar-model` |
+| Bar, dual, composite or vertical line chart | `charts` |
+| Probability tree | `probability-tree` |
+| Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 
-Only call tools actually discovered in this conversation. A newer skill does not establish that the service or client exposes newer integrations. Use capabilities and the discovered schemas for complete payloads. Cuboids, Number lines and Venn accept either a concise `spec` or an existing `envelope`; never supply both. Older Graph/Ratio/value-graph calls keep their existing payloads.
+Older builds have per-family tools instead (`graph_capabilities`, `create_graph`,
+`revise_graph`, `venn_capabilities` and so on). Use whichever set this conversation
+discovered, in the same way: read the family's capabilities, then create or revise.
+Everything below applies to both.
 
-Treat current capabilities and input schemas as authoritative for support limits and payload shapes. A legacy default is not necessarily a limit: ratio `columns: 2` and `rendererVersion: ratio-1` coexist with supported column counts and renderer versions. Structural changes can normalize the returned version; reuse the returned envelope rather than imposing the original version.
+What the connector cannot draw: curves on the coordinate `graph` (use `value-graph` for
+quadratics), time series, frequency polygons and histograms. Say so plainly. Never present
+a substitute image, Markdown table or hand-drawn SVG as the tool's output; offer a labelled
+alternative only if the teacher wants one.
 
-If the connector is absent or a required feature is missing, explain the specific gap. Do not present a substitute image or Markdown table as the requested tool's output. Offer an appropriate fallback only with clear labelling. A connector refresh may require a fresh conversation before new definitions are available.
+## Teaching rules that always apply
 
-## Preserve the resource
-
-Preserve explicitly entered numbers, headings, blank cells and answer lines. Empty, answer-line and zero are different states. Do not solve a scaffold because its answer is inferable. Changing or hiding an arrow or factor changes the annotation; fill answers only when the user requests it.
-
-One ratio scaling transition applies across every column. Preserve that shared factor and its displayed copies. Keep teacher-entered mathematical disagreements if the tool permits them, and explain returned warnings without silently correcting the exercise or adding warnings to the pupil diagram.
-
-Graph scale and physical grid size are separate choices. Preserve specified coordinates, axis scales and equation-label visibility; do not add equation labels or solutions the user did not ask to show. Let the tool validate geometry and print layout.
-
-Cuboid dimension edits respect cube locking; enabling it requires an explicit referenceAxis. Unit changes convert the existing physical object. Worked volume/area, counts and area values are explicit teaching choices, independent of blank labels and custom captions. Keep the returned crop dimensions; layout width is not necessarily the exported image width. Service pixel/cube limits may reject a demanding combination without changing its mathematics.
-
-Number-line filled/hollow endpoints, rays, point joins, hidden solutions and tick answer lines must remain as requested. Do not silently extend the axis or delete points to make an edit valid. A truncated ray requires explicit intentional-error settings.
-
-Venn membership uses stable masks: 0 outside; A=1, B=2, C=4. Labels may change without changing membership or set-expression IDs. Only active regions exist in a layout. Do not supply discardIncompatible:true unless the user requested discarding the affected saved contents; a loss warning is not permission. Preserve reverse nesting and never merge values. outputView defaults pupil; request answer only explicitly. Answer artwork retains the same canonical pupil envelope/hash. Editable JSON and links may contain hidden answers. If a separately editable worked copy is requested, create that copy explicitly rather than replacing the pupil source.
+- **Never fill, calculate or reveal answers unless the teacher explicitly asks.** A blank
+  that the teacher could work out is still a blank. "Make it easier" or "make it look
+  finished" is not a request to fill answers; ask, or suggest a scaffold.
+- Blank, answer line, zero and hidden answer are four different states. Keep each exactly
+  as requested.
+- Operations that calculate, fill, collect or reveal answers, make worked copies, upgrade
+  a document's version, or discard saved content (for example `calculate_answer`,
+  `fill_products`, `fill_next_row`, `calculate_cells`, `calculate_and_store`,
+  `reveal_saved_answers`, `worked_copy`, `upgrade_document`, `discardIncompatible`) need the
+  teacher's explicit request for that action. A loss warning is not permission to discard.
+- `outputView: "answer"` (Venn, charts, probability trees) only when the teacher asks for
+  the answer version. The pupil source and its hash stay the same.
+- Coordinate graphs: leave `equationVisible` false unless the teacher asks to print or label
+  the equation. "Plot y = 2x + 1" does not ask for a label. On revisions keep label
+  visibility, axes and unchanged objects.
+- A worked or answer copy is a separate document made only on request (for example the
+  `worked_copy` operation). Never replace or overwrite the pupil source to make one.
+- Keep teacher-entered numbers, labels, headings and deliberate mistakes. Explain warnings;
+  do not silently correct the exercise or add warnings to the pupil diagram.
+- Keep pupil names, school details and credentials out of every request.
 
 ## Revise the exact returned document
 
-Use the returned envelope and its `contentHash` as the next revision's `baseHash`. Use stable row/object IDs and atomic operations. Numeric ratio values and factors are strings; columns are zero-based. Follow the current schema for every operation. For example, a ratio factor change uses a nested transition:
+Always continue from the envelope the last call returned and use its `contentHash` as the
+next `baseHash`. Use the stable row, part, object and region IDs it contains. Numeric ratio
+values and factors are strings; columns are zero-based. If a hash is rejected as stale,
+reconcile against the latest returned document; never guess a hash. Use `overwrite` only
+when the teacher asks to replace existing values. Errors name the field and what was
+expected: fix that field and try once more rather than guessing a different payload.
 
-```json
-{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}
-```
+## Family notes
 
-Preserve all unrelated settings and content. Use overwrite only when the user requests replacement of existing target values. After a revision, continue with its returned envelope and hash. If a stale hash is rejected, reconcile against the latest returned document; do not guess a replacement hash.
+- **Bar models.** Request `spec.schemaVersion: 3` for new models: horizontal a/b fractions
+  in Maths captions and handwriting space of 12 mm above and 3 mm below each answer line.
+  Answer lines inside bars need actual uniform bars of at least 20 mm; the stored
+  `barHeightMm` (8 to 24) is only a minimum. Plain text captions are only for dates and
+  literal slashes; ambiguous or nested fractions fail rather than fall back. All bars
+  share one unit width; labels never change widths. Never shrink fonts, resize bars
+  horizontally or upgrade automatically to make text fit. A bare request without a
+  version stays v1 and an explicit v2 spec stays v2; saved v1 and v2 files keep their
+  version until the teacher asks for `upgrade_document`. For a v2 lesson layout, request
+  `spec: {schemaVersion: 2, starter: "part-whole"}` (or `comparison`, `equal-sections`,
+  `inline-ratio`). An explicit upgrade runs once,
+  first in the batch, checks the original hash and rolls the whole batch back on failure;
+  one Undo restores the original version. See [Bar model v3](../../../docs/tools/BAR-MODEL-V3.md) and
+  [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md).
+- **Ratio tables.** One scaling transition applies across every column. Keep that shared
+  factor and its copies. A legacy default is not a limit: follow the capabilities for
+  supported column counts and renderer versions, and reuse the returned envelope's
+  version. A factor change uses a nested transition, for example
+  `{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}`.
+- **Value graphs.** Keep blank, answer-line and zero cells distinct, hidden labels and any
+  deliberate plotting errors. Calculating cells and worked plots are explicit actions.
+- **Cuboids.** Dimension edits respect cube locking; enabling it needs an explicit
+  `referenceAxis`. Unit changes convert the existing object. Worked volume and area are
+  teaching choices the teacher makes. Keep the returned crop size; layout width is not
+  necessarily the exported image width.
+- **Number lines.** Keep filled or hollow endpoints, rays, joins, hidden solutions and tick
+  answer lines as requested. Never extend the axis or delete points to make an edit valid.
+  A truncated ray needs the explicit intentional-error settings.
+- **Venn.** Membership masks are stable: 0 outside, A = 1, B = 2, C = 4. Renaming a set
+  never changes membership. Never merge region values. Only active regions exist in a
+  layout; keep reverse nesting as drawn. The answer view keeps the same
+  pupil envelope and hash; it is a different rendering, not a different document.
+- **Algebra grids.** Integer terms in x, explicit signs, true blanks and hidden answers.
+  `calculate_answer` (only on request) keeps the pupil scaffold. Product cells are 12 to
+  18 mm, whatever the paper size.
+  See [Algebra grid MCP](../../../docs/tools/ALGEBRA-GRID-MCP.md).
+- **Charts.** See the [charts guide](../../../docs/tools/CHARTS-TOOL.md).
+- **Triangles.** Keep explicit labels, topology and saved answers. Use the returned
+  `calculationContexts` for target mappings. Never measure drawn proportions. See
+  [Triangle MCP](../../../docs/tools/TRIANGLE-MCP.md).
 
-## Print output for another AI project
+## Worksheets
 
-The consuming AI owns booklet assembly, final placement and saving. Use the
-returned physicalSizeCm for native placement and preserve aspect ratio. The
-downloaded 600 ppi PNG is the print image; the inline preview is not. Service SVG
-is vector artwork with outlined lettering. printVerified checks the PNG, not a
-downstream document or physical printer. Keep the JSON for revisions.
+Worksheets follow the [Maths Resource Design Guide](../../../docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md):
+PLAN gives a progression, FINALISE gives the full checked questions, and PRODUCE makes the
+resource from the latest finalised set. Each command does one stage. When the teacher asks
+for the resource itself or says PRODUCE, produce it without adding another approval step;
+if the questions it needs have not been written or cannot be found, say what is missing
+rather than inventing them. The teacher's brief sets the format; two-page A3 is the guide's
+usual default, not a rule. To produce, read `worksheet_capabilities` once and call
+`create_worksheet` with the whole document, in one call rather than many small attempts,
+because each call costs the teacher time and tokens. Check the mathematics before the
+call, then report every layout issue it returns and look at the returned pages before
+calling the worksheet finished.
 
-Inspect actual discovery before using optional output tools. If printGuidance
-is returned, its visible text, grid, answer-line and row measurements describe
-the current resource at native size and do not enter its definition/hash.
-When considering a resize, check_diagram_placement accepts kind, the returned
-envelope, and widthMm and/or heightMm. No baseHash is needed. It reports a
-proportional fit and print consequences without inspecting or editing a booklet.
-Warnings do not impose a universal minimum or require repeated confirmations.
+## Files and links
 
-If available and useful, download_diagram_bundle accepts kind and the saved
-envelope and provides JSON/SVG/print PNG/print facts/README as one ZIP. Retrieve
-the actual archive before claiming success; a returned link is not a saved file.
-Repeat the call with saved source to refresh expiry. The server retains no
-artifact library. Optional failure leaves the individual downloads usable; never
-invent a tool call or signed URL. Legacy Graph fonts require the explicitly
-reported portable conversion before bundling. Saving to another project is the
-consumer's action. The website opens extracted source.json, not the ZIP itself.
-
-For quadratic resources, inspect value_graph_capabilities and use the discovered
-create_value_graph/revise_value_graph tools. Preserve blank/answer-line/zero
-states, hidden labels and deliberate plotting errors. Calculating answers and
-plotting worked variants remain explicit actions.
-
-## Recover an original SVG when downloads are blocked
-
-Try the exact returned SVG URL through the environment's supported download
-workflow, including its required URL-opening step where available. Record the
-actual tool error or HTTP response. A local URL-view restriction or DNS failure
-does not demonstrate a MathsDock HTTP failure. Do not invent container.download.
-
-If `get_diagram_svg` is actually discovered, call it with kind and the unchanged
-returned envelope; no URL or baseHash. Venn defaults pupil; request answer only
-explicitly and repeat that outputView for every chunk. First omit offsetBytes;
-maxChunkBytes is 1024..49152 (default49152). Continue using nextOffsetBytes and
-expectedSvgSha256 copied from the first result's svgSha256. Keep source and view
-unchanged. Read one representation of the result: structuredContent or decoded
-JSON text. Save decoded svgChunk as exact UTF-8 without BOM, added newline,
-normalization or literal JSON escapes.
-
-Before appending, verify contiguous offsetBytes, chunkBytes and chunkSha256.
-Require stable kind,rendererVersion,sourceContentHash,physicalSizeCm,outputView,
-totalBytes and svgSha256. Reject missing,duplicate,truncated or changed chunks.
-The last chunk has complete:true and nextOffsetBytes:null; verify complete byte
-count/hash and parse as SVG before saving/embedding. sourceContentHash is the
-revision hash; svgSha256 is the rendered-file checksum. They differ in meaning.
-Use bounded continuation and respect quotas; a smaller chunk may be needed if
-the serialized response exceeds256KiB. Never loop/retry indefinitely.
-
-Place the verified saved SVG at physicalSizeCm, preserving aspect ratio. Inspect
-the resulting vector PDF before claiming success. complete means delivery, not
-that a file was saved or a worksheet finished. If exact saving fails, explain
-the client limitation. Do not silently redraw. A600ppi PNG is an explicitly
-disclosed alternative only when suitable for the request; the preview is not it.
-If the tool is absent, explain the discovery gap and refresh/fresh-chat step.
-Instructions alone do not make it available. Actual ChatGPT acceptance requires
-the full saved-SVG-to-vector-PDF test in that client.
-
-## Return usable artifacts
-
-Show the returned preview and concise links to the actual SVG, verified print PNG, editable JSON and website editor where supplied. Use only tool-returned URLs or embedded resources; never construct signed download links. Editor links should target `mathsdock.co.uk`; report a different returned target rather than rewriting a signed or encoded URL by guesswork.
-
-Keep physical dimensions distinct from preview zoom. Word exports are images; further mathematical edits require reopening the editable document in MathsDock. Expired downloads can be refreshed through the supported revision operation with the same returned document, without changing content.
-
-Do not claim that Word paste, client refresh, saving, or a website/service deployment was tested merely because the tool returned files. Keep all pupil information and credentials out of diagrams and service requests.
-
-## Bar modelling
-
-For bar-model resources or development read [Bar-model MCP](../../../docs/tools/BAR-MODEL-MCP.md) and [the implementation brief](../../../docs/tools/BAR-MODEL-BRIEF.md). Call bar_model_capabilities/create_bar_model/revise_bar_model only when actually discovered. Preserve shared unit widths, anchored spans, original variables and hidden answers; do not infer answers or reconstruct artwork from previews. New guidance alone does not establish service or intended-client availability.
-
-
-## Horizontal fractions and handwriting follow-up
-
-Read [v3 notation and handwriting rules](../../../docs/tools/BAR-MODEL-V3.md). This section supersedes prior
-bar-model fresh-default, caption and compact-height descriptions only. New empty
-browser models use schema3/bar-model-3/lesson-v3. Bare MCP stays v1; explicit
-spec2 stays frozen v2. Request spec.schemaVersion:3 explicitly for Maths captions
-with horizontal a/b fractions and every answer line's12mm clear above/3mm below
-the0.25mm underline. Inside lines require actual uniform bars>=20mm; the stored
-barHeightMm is a minimum8..24. Widths/ratios/offsets never change to fit text.
-Caption format Maths is default; Plain text is explicit for dates/literal slashes.
-Ambiguous or nested fractions fail, retaining drafts and blocking exports. Never
-evaluate, simplify or reveal answers. Saved v1/v2 rendering is preserved. Explicit
-upgrade_document targetSchemaVersion:3 is once first, checks the original hash,
-and rolls back the whole batch on failure; no target retains v1-to-v2 meaning.
-One Undo restores the original version. Website readers for all three versions
-must precede production v3 issuance; service/package/client and human acceptance
-remain separate. SDK proof is not actual intended-client adoption.
-
-## Triangle MCP integration
-
-Read [the Triangle MCP contract](../../../docs/tools/TRIANGLE-MCP.md) for triangle_capabilities, create_triangle and revise_triangle, plus kind triangle in placement, bundles and original SVG delivery. Only call actually discovered tools; source implementation or newer skill text does not establish deployment/client import. Preserve pupil labels, blanks, v1/v2 files and hidden answers. Use returned calculationContexts for named target/owner/input mappings; calculate or reveal answers only explicitly. Never measure drawn proportions. Keep actual host discovery, execution and exact file saving separate from SDK qualification.
+- Show the returned preview and the real links it returned: SVG, 600 ppi print PNG,
+  editable JSON and the MathsDock editor link. Use only URLs a tool returned. Never build,
+  shorten or edit a signed download link, and never invent a download tool. Editor links
+  should point at `mathsdock.co.uk`; report a different returned target rather than
+  rewriting it.
+- The inline preview is not the print image. Place diagrams at the returned
+  `physicalSizeCm`, keeping the aspect ratio; preview zoom never changes print size.
+- If `printGuidance` is returned, its text, grid, answer-line and row measurements describe
+  the diagram at native size; they are not part of its definition or hash.
+- `check_diagram_placement` (kind, envelope, `widthMm` and/or `heightMm`) reports what a
+  resize does to print size. `download_diagram_bundle` (kind, envelope) gives one ZIP with
+  JSON, SVG, print PNG and a README. Retrieve the archive before saying it worked. Call it
+  again with the saved source to refresh an expired link; expired downloads for a single
+  diagram can also be refreshed by revising the same returned document without changes.
+  Legacy Graph fonts need the reported portable conversion before bundling. The website
+  opens the extracted `source.json`, not the ZIP.
+- Service SVG is vector artwork with outlined lettering. `printVerified` checks the PNG,
+  not a downstream document or printer.
+- If an SVG URL cannot be fetched, `get_diagram_svg` (kind and the unchanged envelope)
+  returns the same SVG in checked chunks. Start without `offsetBytes`, then continue with
+  `nextOffsetBytes` and `expectedSvgSha256` from the first result, keeping `kind`, source
+  and `outputView` unchanged; `maxChunkBytes` is 1024 to 49152. Check that offsets are contiguous, each `chunkSha256` matches,
+  and `rendererVersion`, `sourceContentHash`, `physicalSizeCm`, `totalBytes` and
+  `svgSha256` stay the same; reject missing, repeated or changed chunks. Use a smaller
+  `maxChunkBytes` if a response would exceed 256 KiB, and never retry without limit. The
+  last chunk has `complete: true`. Save the decoded text exactly (UTF-8, no BOM, no added
+  newline), check the byte count and hash, and parse it as SVG before using it.
+  `complete` means delivered, not saved. See
+  [direct SVG delivery](../../../docs/tools/DIRECT-SVG-DELIVERY.md).
+- Word exports are images: further mathematical edits mean reopening the editable file in
+  MathsDock.
+- Do not say a file was saved, downloaded, pasted into Word or printed unless that actually
+  happened. A returned link is not a saved file. Editable files and links can contain
+  hidden answers, so treat them as teacher copies.
+- If a call times out, retry once, then tell the teacher.

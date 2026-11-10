@@ -4,6 +4,7 @@
     { "pattern": "^scripts/(?:cloudflare|ci|loop|bank)/", "why": "release, CI, loop and bank tooling" },
     { "pattern": "^\\.github/", "why": "workflows and repository automation" },
     { "pattern": "^\\.claude/", "why": "Claude Code settings and hooks, including this guard" },
+    { "pattern": "^scripts/evals/|^plugins/mathsdock-claude/evals/", "why": "teacher-prompt evals, which spend API credit and check the teaching rules" },
     { "pattern": "^package(?:-lock)?\\.json$", "why": "dependencies and scripts" },
     { "pattern": "^wrangler[^/]*$", "why": "Cloudflare Worker configuration" },
     { "pattern": "^vite\\.config\\.ts$", "why": "build and test configuration" },

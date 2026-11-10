@@ -19,10 +19,12 @@
   "neverDispatch": [
     "graph-checks.yml",
     "cloudflare.yml",
-    "deploy-mcp.yml"
+    "deploy-mcp.yml",
+    "prompt-evals.yml"
   ],
   "spendEstimateUSD": {
     "judgePanelRun": 0.15,
-    "judgeCalibrationRun": 1.5
+    "judgeCalibrationRun": 1.5,
+    "promptEvalRun": 3
   }
 }
