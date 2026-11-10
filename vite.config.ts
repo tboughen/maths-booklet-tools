@@ -1,12 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { readFileSync, readdirSync, mkdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { catalogueAssetPaths } from "./bankAssets";
+import { parseSchemeIndex, schemeIds, SCHEMES_PATH } from "./bankSchemes";
 import { INDEX_PATH, PAPER_FOLDER, splitCatalogue } from "./bankCatalogueSplit";
-import { prepareRelease, sourceFingerprint } from "./scripts/cloudflare/release";
+import { prepareRelease, prepareSchemes, sourceFingerprint } from "./scripts/cloudflare/release";
 import { verifyReusableCatalogue } from "./scripts/cloudflare/package.mjs";
 import { verifyCatalogueSolutionFiles } from "./scripts/bank/solution-files";
 import { robotsTxt, siteHeaders } from "./scripts/cloudflare/site-headers.mjs";
@@ -74,6 +75,8 @@ export default defineConfig(({ command, mode }) => ({
         }
         const release = cached ? { ...cached, manifest: { ...cached.manifest, sourceFingerprint: sourceFingerprint(".") } } : prepareRelease("public", commit, sourceFingerprint("."));
         this.emitFile({type: "asset", fileName: "bank/catalogue.json", source: release.catalogueJson});
+        // Hashing the scheme files is cheap, so a reused inventory gets the same index as a cold build.
+        this.emitFile({type: "asset", fileName: SCHEMES_PATH, source: prepareSchemes("public").schemesJson});
         const split = splitJson(release.catalogueJson);
         this.emitFile({type: "asset", fileName: INDEX_PATH, source: split.index});
         for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});
@@ -89,6 +92,9 @@ export default defineConfig(({ command, mode }) => ({
         for (const file of split.files) this.emitFile({type: "asset", fileName: file.path, source: file.json});
         // Quick pull-request checks skip copying the multi-gigabyte bank; release builds never set this.
         if (process.env.MATHSDOCK_SKIP_BANK_ASSETS !== "1") for (const asset of catalogueAssetPaths(catalogue)) add(asset);
+        add(SCHEMES_PATH);
+        const schemes = parseSchemeIndex(JSON.parse(readFileSync(`public/${SCHEMES_PATH}`, "utf8")));
+        if (process.env.MATHSDOCK_SKIP_BANK_ASSETS !== "1") for (const id of schemeIds) if (schemes[id] && existsSync(`public/${schemes[id]}`)) add(schemes[id]);
       }
       tree("bank/pdfjs");
     },

@@ -2,16 +2,16 @@
 //
 // Static assets are served directly by Workers Static Assets. Only
 // /bank/assets/* reaches this script (see run_worker_first in wrangler.jsonc).
-// Question-bank PDFs and PNGs are read from the private R2 bucket through the
+// Question-bank PDFs and PNGs, and schemes of work (JSON), are read from the private R2 bucket through the
 // BANK binding, so they sit behind the same Cloudflare Access rule as the rest
 // of /bank instead of on a public R2 custom domain.
 //
 // Cloudflare Access is the gate. This script checks the Access token again so a
 // missing or mistyped Access path rule fails closed instead of exposing the bank.
 
-export const bankKey = /^bank\/assets\/sha256\/[a-f0-9]{64}\.(pdf|png)$/;
+export const bankKey = /^bank\/assets\/sha256\/[a-f0-9]{64}\.(pdf|png|json)$/;
 export const gatedCache = 'private, max-age=31536000, immutable';
-const contentTypes = { pdf: 'application/pdf', png: 'image/png' };
+const contentTypes = { pdf: 'application/pdf', png: 'image/png', json: 'application/json' };
 const certCacheMs = 10 * 60 * 1000;
 let certCache = { url: '', expires: 0, keys: new Map() };
 

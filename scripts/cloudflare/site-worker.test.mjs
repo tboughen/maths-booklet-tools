@@ -106,6 +106,20 @@ test('only immutable bank keys are readable', async () => {
   assert.equal(post.status, 405);
 });
 
+test('serves a scheme of work as JSON only to signed-in staff', async () => {
+  const schemeKey = `bank/assets/sha256/${'d'.repeat(64)}.json`, body = '{"schemaVersion":1}';
+  const BANK = { async get(k) { return k === schemeKey ? { size: body.length, httpEtag: '"e"', range: { offset: 0, length: body.length }, body: new Blob([body]).stream() } : null; } };
+  const ok = await serveBankAsset(request(schemeKey, { 'Cf-Access-Jwt-Assertion': await token() }), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('content-type'), 'application/json');
+  assert.equal(ok.headers.get('cache-control'), gatedCache);
+  assert.equal(await ok.text(), body);
+  const anonymous = await serveBankAsset(request(schemeKey), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(anonymous.status, 403);
+  const named = await serveBankAsset(request('bank/assets/schemes/school.json', { 'Cf-Access-Jwt-Assertion': await token() }), { ...env0, BANK }, { fetcher: certs });
+  assert.equal(named.status, 404);
+});
+
 test('non-bank paths fall through to static assets', async () => {
   const response = await worker.fetch(request('index.html'), { ASSETS: { fetch: async () => new Response('static') } });
   assert.equal(await response.text(), 'static');

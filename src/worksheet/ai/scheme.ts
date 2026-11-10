@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { parseSchemeIndex, SCHEMES_PATH } from "../../../bankSchemes";
+import { siteBase } from "../../site/routes";
 
 /**
  * A scheme of work: units, each with numbered objectives. The department's own scheme is school
@@ -24,20 +26,28 @@ export const schemeSchema = z.object({
 export type Scheme = z.infer<typeof schemeSchema>;
 export type SchemeObjective = z.infer<typeof objective>;
 
-/** Served by the site Worker from the private bank, only to signed-in staff. */
-export const SCHOOL_SCHEME_URL = "/bank/assets/schemes/school.json";
 const IMPORTED = "maths-booklet-tools:worksheet-scheme:v1";
 
+/** Reads JSON, or null for anything else (the site answers unknown paths with its HTML page). */
+async function getJson(url: string, signal?: AbortSignal): Promise<unknown> {
+  const r = await fetch(url, { signal, headers: { Accept: "application/json" } });
+  if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) {
+    // Release the unread body: an unread body keeps the request open, and the page never settles.
+    await r.body?.cancel();
+    return null;
+  }
+  return r.json();
+}
+
+/**
+ * The department's scheme: the site's scheme index names its file in the private bank, which the
+ * site Worker serves only to signed-in staff. Null when there is none, so teachers type objectives.
+ */
 export async function loadSchoolScheme(signal?: AbortSignal): Promise<Scheme | null> {
   try {
-    const r = await fetch(SCHOOL_SCHEME_URL, { signal, headers: { Accept: "application/json" } });
-    if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) {
-      // Release the unread body (the site answers unknown paths with its HTML page); an unread
-      // body keeps the request open, and the page never settles.
-      await r.body?.cancel();
-      return null;
-    }
-    const parsed = schemeSchema.safeParse(await r.json());
+    const index = parseSchemeIndex(await getJson(siteBase() + SCHEMES_PATH, signal));
+    if (!index.school) return null;
+    const parsed = schemeSchema.safeParse(await getJson(siteBase() + index.school, signal));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;

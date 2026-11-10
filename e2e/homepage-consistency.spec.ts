@@ -1,6 +1,6 @@
 import { test, expect } from "./release-fixtures";
 
-const names = ["Question bank", "Paper builder", "Assessment follow-up", "Booklet tools"];
+const names = ["Question bank", "Paper builder", "Assessment follow-up", "Worksheets", "Booklet tools"];
 const tagline = "Turn question-level assessment results into personalised practice for each pupil.";
 const nav = (page: import("@playwright/test").Page) => page.getByRole("navigation", { name: "Main sections" });
 

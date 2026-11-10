@@ -5,7 +5,7 @@ import { changeRequest, firstRequest, systemPrompt, toolSchema, TOOL_NAME } from
 import { checkSubmission } from "./check";
 import { makeWithClaude } from "./anthropic";
 import { makeWithOpenAI } from "./openai";
-import { parseScheme } from "./scheme";
+import { loadSchoolScheme, parseScheme } from "./scheme";
 import { estimateCost } from "./settings";
 
 const fits = (): Resource => structuredClone(treeDiagrams);
@@ -54,6 +54,29 @@ describe("schemes of work", () => {
     expect(parseScheme(json, "s.json").units[0].objectives[0].code).toBe("NP1.01");
     expect(() => parseScheme('{"a":1}', "x.json")).toThrow(/not a MathsDock scheme file/);
     expect(() => parseScheme("\n\n", "x.csv")).toThrow(/No objectives found/);
+  });
+});
+
+describe("the department scheme", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const scheme = { schemaVersion: 1, kind: "scheme-of-work", name: "Department", units: [{ code: "SP7", title: "Risk", objectives: [{ code: "SP7.01", text: "List outcomes" }] }] };
+  const object = `bank/assets/sha256/${"e".repeat(64)}.json`;
+  it("follows the scheme index to the gated object", async () => {
+    const urls: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      urls.push(url);
+      return Response.json(url.endsWith("bank/schemes.json") ? { schemaVersion: 1, school: object } : scheme);
+    }));
+    expect((await loadSchoolScheme())?.units[0].objectives[0].code).toBe("SP7.01");
+    expect(urls).toEqual(["/bank/schemes.json", `/${object}`]);
+  });
+  it("offers typed objectives when there is no scheme, or the site answers with its page", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ schemaVersion: 1 })));
+    expect(await loadSchoolScheme()).toBeNull();
+    const cancel = vi.fn();
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, headers: new Headers({ "content-type": "text/html" }), body: { cancel } })));
+    expect(await loadSchoolScheme()).toBeNull();
+    expect(cancel).toHaveBeenCalled();
   });
 });
 

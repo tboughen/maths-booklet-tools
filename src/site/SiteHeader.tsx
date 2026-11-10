@@ -8,7 +8,7 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
   const button = useRef<HTMLButtonElement>(null);
   const tools = useRef<HTMLElement>(null);
   const [more, setMore] = useState({ start: false, end: false });
-  const booklet = page !== "question-bank" && page !== "home" && page !== "assessment-follow-up" && page !== "not-found";
+  const booklet = page !== "question-bank" && page !== "home" && page !== "assessment-follow-up" && page !== "worksheets" && page !== "not-found";
   useEffect(() => {
     if (!open) return;
     function dismiss(event: PointerEvent) {

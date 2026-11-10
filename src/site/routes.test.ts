@@ -18,7 +18,7 @@ describe("page addresses", () => {
     expect(pageHref("booklet-tools")).toBe("/tools");
     expect(pageHref("venn")).toBe("/tools/venn");
     expect(pageHref("question-bank")).toBe("/question-bank");
-    for (const id of [...toolIds, "home", "booklet-tools", "question-bank", "assessment-follow-up"] as const)
+    for (const id of [...toolIds, "home", "booklet-tools", "question-bank", "assessment-follow-up", "worksheets"] as const)
       expect(readPage(at(pageHref(id)))).toBe(id);
     expect(readPage(at("/tools/venn/"))).toBe("venn");
     expect(readPage(at("/index.html"))).toBe("home");
@@ -48,6 +48,15 @@ describe("page addresses", () => {
     expect(pathLink("https://mathsdock.co.uk/tools/graph?tool=graph#graph=1")).toBe(
       "https://mathsdock.co.uk/tools/graph#graph=1",
     );
+  });
+
+  it("opens Worksheets at its own address, including from its old booklet tools address", () => {
+    expect(pageHref("worksheets")).toBe("/worksheets");
+    expect(readPage(at("/tools/worksheet"))).toBe("worksheets");
+    expect(upgradeLegacyLink("https://mathsdock.co.uk/tools/worksheet#x")).toBe("https://mathsdock.co.uk/worksheets#x");
+    expect(upgradeLegacyLink("https://mathsdock.co.uk/tools/worksheet/")).toBe("https://mathsdock.co.uk/worksheets");
+    expect(upgradeLegacyLink("https://mathsdock.co.uk/?tool=worksheet")).toBe("https://mathsdock.co.uk/worksheets");
+    expect(bookletTools.some((tool) => (tool.id as string) === "worksheet")).toBe(false);
   });
 
   it("recognises editor links in either form", () => {

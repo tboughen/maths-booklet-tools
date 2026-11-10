@@ -18,7 +18,6 @@ export const toolIds = [
   "number-line",
   "charts",
   "probability-tree",
-  "worksheet",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */
@@ -27,7 +26,8 @@ export type LinkPageId =
   | "home"
   | "booklet-tools"
   | "question-bank"
-  | "assessment-follow-up";
+  | "assessment-follow-up"
+  | "worksheets";
 /** Every page the site can show, including the not-found page. */
 export type PageId = LinkPageId | "not-found";
 
@@ -38,7 +38,12 @@ const sitePaths: Partial<Record<LinkPageId, string>> = {
   "booklet-tools": "tools",
   "question-bank": "question-bank",
   "assessment-follow-up": "assessment-follow-up",
+  worksheets: "worksheets",
 };
+
+/** Pages that moved; their old addresses open the new page. Worksheets sat with the booklet
+ * tools until 10 Nov 2026. */
+const movedPaths: Record<string, LinkPageId> = { "tools/worksheet": "worksheets" };
 
 /** The site's root path; always ends with `/`. */
 export function siteBase(): string {
@@ -62,7 +67,8 @@ export function readPage(where: LocationLike = location): PageId {
   const rest = path.slice(base.length, -1);
   if (rest === "" || rest === "index.html") return "home";
   if (rest === "tools") return "booklet-tools";
-  if (rest === "question-bank" || rest === "assessment-follow-up") return rest;
+  if (rest === "question-bank" || rest === "assessment-follow-up" || rest === "worksheets") return rest;
+  if (movedPaths[rest]) return movedPaths[rest];
   const tool = /^tools\/([a-z-]+)$/.exec(rest)?.[1];
   return tool && isTool(tool) ? tool : "not-found";
 }
@@ -75,7 +81,13 @@ export function readPage(where: LocationLike = location): PageId {
 export function upgradeLegacyLink(href: string): string | null {
   const url = new URL(href);
   const tool = url.searchParams.get("tool");
-  if (tool === null) return null;
+  if (tool === null) {
+    const base = siteBase();
+    const rest = url.pathname.replace(/\/+$/, "").slice(base.length);
+    if (!url.pathname.startsWith(base) || !movedPaths[rest]) return null;
+    url.pathname = pageHref(movedPaths[rest]);
+    return url.href;
+  }
   url.searchParams.delete("tool");
   const known =
     tool === "" || tool === "home"
@@ -85,7 +97,7 @@ export function upgradeLegacyLink(href: string): string | null {
           tool === "assessment-follow-up" ||
           isTool(tool)
         ? tool
-        : null;
+        : movedPaths[`tools/${tool}`] ?? null;
   url.pathname = known
     ? pageHref(known)
     : `${siteBase()}tools/${encodeURIComponent(tool)}`;
