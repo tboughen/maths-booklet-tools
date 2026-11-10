@@ -48,8 +48,11 @@ test('the deploy workflows run only when dispatched by hand, and publishing uses
 test('the judges\' API key is used only by the judge workflows and the prompt evals', () => {
   for (const [f, text] of Object.entries(workflows))
     if (!JUDGES.includes(f)) assert.doesNotMatch(text, /ANTHROPIC_API_KEY/, f);
-  // The prompt evals spend on demand only, never on a schedule or a pull request.
+  // The prompt evals spend on demand only, never on a schedule or a pull request, and their key
+  // lives only in the main-only "prompt-evals" environment, not in the repository secrets.
   assert.deepEqual(triggers(workflows['prompt-evals.yml']), ['workflow_dispatch']);
+  assert.match(workflows['prompt-evals.yml'], /\n {4}environment: prompt-evals\n/);
+  assert.deepEqual(workflows['prompt-evals.yml'].match(/secrets\.\w+/g), ['secrets.PROMPT_EVALS_API_KEY']);
   assert.match(workflows['prompt-evals.yml'], /--max-cost-usd=/);
 });
 

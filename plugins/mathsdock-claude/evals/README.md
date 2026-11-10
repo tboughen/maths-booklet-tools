@@ -34,7 +34,8 @@ They spend credit, so they only run when someone starts them, usually before an 
   `node scripts/evals/run.mjs` for the live connector, or build and start the service
   (`npm run build:service`, then `DOWNLOAD_SIGNING_KEY=<32+ characters> node service-dist/cli.js`)
   and run `node scripts/evals/run.mjs --target=http://127.0.0.1:8787` to test a branch.
-- From GitHub: run the **Prompt evals** workflow on main. It uses the judges' API key,
+- From GitHub: run the **Prompt evals** workflow on main. It uses `PROMPT_EVALS_API_KEY`
+  from the main-only `prompt-evals` environment (setup in `docs/release/CLAUDE-CONNECTION.md`),
   defaults to main's service built in the job, and stops at a $1 or $3 ceiling. Each run
   counts as $3 against the loop's monthly cap (`scripts/loop/config.json`). Branches are
   evaluated from a Claude Code session instead.

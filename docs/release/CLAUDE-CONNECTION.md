@@ -60,6 +60,24 @@ someone starts them, before an MCP deploy: `node scripts/evals/run.mjs` from a C
 Code session (Claude plan), or the **Prompt evals** workflow on main (judges' API key,
 about $2.60 a run, $3 ceiling). See the [evals README](../../plugins/mathsdock-claude/evals/README.md).
 
+### One-time setup for the Prompt evals workflow (Tim)
+
+The workflow's key lives in a GitHub environment that only main can use, so a run from any
+other branch gets no key.
+
+1. In the [Anthropic Console](https://platform.claude.com/), open the "MathsDock loop"
+   workspace, then **API keys**, and create a key named `prompt-evals`. Copy it. Keeping it in
+   the same workspace means the workspace's monthly spend limit covers it too.
+2. On GitHub open **tboughen/maths-booklet-tools → Settings → Environments → New
+   environment**, name it `prompt-evals` exactly, and choose **Configure environment**.
+3. Under **Deployment branches and tags**, choose **Selected branches and tags**, then **Add
+   deployment branch or tag rule**, type `main`, and save.
+4. Under **Environment secrets**, choose **Add environment secret**, name it
+   `PROMPT_EVALS_API_KEY`, paste the key and save. Do not add it under the repository's
+   own secrets.
+5. To run the evals, open **Actions → Prompt evals → Run workflow**, keep the branch as
+   `main`, and press **Run workflow**. The run summary lists any failed checks.
+
 ## After an MCP deploy
 
 ChatGPT keeps the tool list it imported. When tools or their descriptions change, open

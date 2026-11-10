@@ -1,7 +1,9 @@
 name: Prompt evals
 # Runs the teacher-prompt evals for the MathsDock Claude plugin (scripts/evals/, wave 4 lane C2)
-# with `claude plugin eval`. It spends API credit from the judges' key (about $3 a run on Sonnet
-# 5.5, counted against the loop's monthly cap in scripts/loop/config.json), so it runs only when
+# with `claude plugin eval`. It spends API credit (about $3 a run on Sonnet 5.5, counted against
+# the loop's monthly cap in scripts/loop/config.json; Tim approved this on 10 Nov 2026). The key is
+# PROMPT_EVALS_API_KEY, held only in the "prompt-evals" GitHub environment, which Tim restricts
+# to main, so a dispatch from any other branch never receives it. It runs only when
 # someone starts it, typically before an MCP deploy. It never runs on a schedule or a pull request,
 # and only on main, so the key never reaches unreviewed code. The ceiling is at most $3, the figure
 # spend.mjs counts per run. To evaluate a branch, run node scripts/evals/run.mjs from a Claude Code
@@ -34,6 +36,7 @@ jobs:
   evals:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment: prompt-evals
     steps:
       - name: Require main
         env:
@@ -69,12 +72,16 @@ jobs:
           exit 1
       - name: Run the evals
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.PROMPT_EVALS_API_KEY }}
           TARGET: ${{ inputs.target == 'local' && 'http://127.0.0.1:8787' || 'live' }}
           MODEL: ${{ inputs.model }}
           CASES: ${{ inputs.cases }}
           MAX_COST: ${{ inputs.max_cost_usd }}
         run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::PROMPT_EVALS_API_KEY is not set in the prompt-evals environment (docs/release/CLAUDE-CONNECTION.md)."
+            exit 1
+          fi
           set -- "--target=$TARGET" "--model=$MODEL" "--max-cost-usd=$MAX_COST" --out=eval-results
           if [ -n "$CASES" ]; then set -- "$@" "--case=$CASES"; fi
           node scripts/evals/run.mjs "$@"
