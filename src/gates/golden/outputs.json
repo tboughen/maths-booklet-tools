@@ -534,6 +534,76 @@
    "png600": "2362x1443",
    "pixels": "dddcccdda6560ff2"
   },
+  "frequency trees: ftree-coffee": {
+   "json": "7c9891da5255f961",
+   "svg": "69a9849f64162414",
+   "mm": "132x95",
+   "png600": "3118x2244",
+   "pixels": "885f190e9a7af140"
+  },
+  "frequency trees: ftree-coffee (worked)": {
+   "json": "abb264ed16b63b57",
+   "svg": "a5074458e78b0b24",
+   "mm": "132x95",
+   "png600": "3118x2244",
+   "pixels": "f5ea837b9e7aee9a"
+  },
+  "frequency trees: ftree-handedness": {
+   "json": "8a7431a9ffb83225",
+   "svg": "66faeb28270d00f6",
+   "mm": "155.5x76",
+   "png600": "3673x1795",
+   "pixels": "0e69ac61f3b05006"
+  },
+  "frequency trees: ftree-handedness (worked)": {
+   "json": "7b3763f39e6f3ab5",
+   "svg": "a0bcb19a9883f4c0",
+   "mm": "155.5x76",
+   "png600": "3673x1795",
+   "pixels": "78d5f872b67a0c04"
+  },
+  "frequency trees: ftree-lunches": {
+   "json": "2587c0b89a5b6856",
+   "svg": "26f17348da94f770",
+   "mm": "132x76",
+   "png600": "3118x1795",
+   "pixels": "700975a67fba5210"
+  },
+  "frequency trees: ftree-lunches (worked)": {
+   "json": "d24c7fe61551ea70",
+   "svg": "49fe4e63b3dc9e41",
+   "mm": "132x76",
+   "png600": "3118x1795",
+   "pixels": "f652e3f45d9ede45"
+  },
+  "frequency trees: ftree-text-or-email": {
+   "json": "8771cde9c8ca7345",
+   "svg": "609c996d5434bcec",
+   "mm": "143.2x76",
+   "png600": "3383x1795",
+   "pixels": "83dd3cb57ce0f0f9"
+  },
+  "frequency trees: ftree-text-or-email (worked)": {
+   "json": "303ca85def781e08",
+   "svg": "9da0f19adf3a43e2",
+   "mm": "143.2x76",
+   "png600": "3383x1795",
+   "pixels": "cefd305caef5998d"
+  },
+  "frequency trees: ftree-three-years": {
+   "json": "377c823183d51726",
+   "svg": "fd1083a1a71065ec",
+   "mm": "124x126",
+   "png600": "2929x2976",
+   "pixels": "a22f91b0c8bda5cd"
+  },
+  "frequency trees: ftree-three-years (worked)": {
+   "json": "9198c442bce83467",
+   "svg": "4204171527201911",
+   "mm": "124x126",
+   "png600": "2929x2976",
+   "pixels": "b5d6434cb3e86c22"
+  },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
    "json": "169b037986e5a308",
    "svg": "d7e524fc018e6637",

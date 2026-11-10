@@ -1,0 +1,91 @@
+{
+  "tool": "frequency-tree",
+  "schemaVersion": 1,
+  "rendererVersion": "frequency-tree-1",
+  "document": {
+    "total": {
+      "text": "60",
+      "show": "show"
+    },
+    "nodes": [
+      {
+        "id": "n1",
+        "parent": null,
+        "category": {
+          "text": "boys",
+          "show": "show"
+        },
+        "count": {
+          "text": "32",
+          "show": "show"
+        }
+      },
+      {
+        "id": "n2",
+        "parent": "n1",
+        "category": {
+          "text": "school lunch",
+          "show": "show"
+        },
+        "count": {
+          "text": "24",
+          "show": "show"
+        }
+      },
+      {
+        "id": "n3",
+        "parent": "n1",
+        "category": {
+          "text": "packed lunch",
+          "show": "show"
+        },
+        "count": {
+          "text": "8",
+          "show": "show"
+        }
+      },
+      {
+        "id": "n4",
+        "parent": null,
+        "category": {
+          "text": "girls",
+          "show": "show"
+        },
+        "count": {
+          "text": "28",
+          "show": "show"
+        }
+      },
+      {
+        "id": "n5",
+        "parent": "n4",
+        "category": {
+          "text": "school lunch",
+          "show": "show"
+        },
+        "count": {
+          "text": "14",
+          "show": "show"
+        }
+      },
+      {
+        "id": "n6",
+        "parent": "n4",
+        "category": {
+          "text": "packed lunch",
+          "show": "show"
+        },
+        "count": {
+          "text": "14",
+          "show": "show"
+        }
+      }
+    ],
+    "linkLabels": true,
+    "labelPlace": "branch",
+    "nodeShape": "oval",
+    "questions": [],
+    "branchMm": 34,
+    "gapMm": 18
+  }
+}

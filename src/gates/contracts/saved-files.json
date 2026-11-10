@@ -4093,6 +4093,231 @@
     ],
     "additionalProperties": false
   },
+  "frequency-tree": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tool": {
+        "type": "string",
+        "const": "frequency-tree"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "frequency-tree-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 12
+              },
+              "show": {
+                "type": "string",
+                "enum": [
+                  "show",
+                  "hidden"
+                ]
+              }
+            },
+            "required": [
+              "text",
+              "show"
+            ],
+            "additionalProperties": false
+          },
+          "nodes": {
+            "minItems": 2,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^n[0-9]{1,2}$"
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^n[0-9]{1,2}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "category": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 30
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "count": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "parent",
+                "category",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "linkLabels": {
+            "type": "boolean"
+          },
+          "labelPlace": {
+            "type": "string",
+            "enum": [
+              "branch",
+              "node"
+            ]
+          },
+          "nodeShape": {
+            "type": "string",
+            "enum": [
+              "oval",
+              "box"
+            ]
+          },
+          "questions": {
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^q[0-9]$"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "answer": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 24
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "numerator": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^n[0-9]{1,2}$"
+                  }
+                },
+                "denominator": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^n[0-9]{1,2}$"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "answer",
+                "numerator",
+                "denominator"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "branchMm": {
+            "type": "integer",
+            "minimum": 24,
+            "maximum": 60
+          },
+          "gapMm": {
+            "type": "integer",
+            "minimum": 14,
+            "maximum": 30
+          }
+        },
+        "required": [
+          "total",
+          "nodes",
+          "linkLabels",
+          "labelPlace",
+          "nodeShape",
+          "questions",
+          "branchMm",
+          "gapMm"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "tool",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "probability-tree": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

@@ -50,6 +50,8 @@ import { examples as charts } from "../../packages/chart-core/src/examples";
 import { renderSvg as chartSvg } from "../../packages/chart-core/src";
 import { examples as trees } from "../../packages/probability-tree-core/src/examples";
 import { renderSvg as treeSvg } from "../../packages/probability-tree-core/src";
+import { examples as frequencyTrees } from "../../packages/frequency-tree-core/src/examples";
+import { renderSvg as frequencyTreeSvg } from "../../packages/frequency-tree-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -248,5 +250,14 @@ export const treeGallery = trees.map((example) => ({
   sourceHref: example.sourceId ? source(example.sourceId) : undefined,
   make: example.make,
   render: treeSvg,
+  worked: example.worked,
+}));
+export const frequencyTreeGallery = frequencyTrees.map((example) => ({
+  id: `ftree-${example.id}`,
+  title: example.title,
+  description: example.note,
+  sourceHref: example.sourceId ? source(example.sourceId) : undefined,
+  make: example.make,
+  render: frequencyTreeSvg,
   worked: example.worked,
 }));

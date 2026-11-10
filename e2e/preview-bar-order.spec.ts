@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // U1: every tool's preview bar reads zoom, View at 100%, export size, then one tool-specific slot.
-const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree"];
+const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree"];
 const shared = new Set(["preview-zoom", "preview-detail", "editor-inspector-link"]);
 
 for (const tool of tools) {

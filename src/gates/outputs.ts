@@ -16,6 +16,7 @@ export const galleries: Record<string, Entry[]> = {
   "bar model": gallery.barGallery as unknown as Entry[],
   charts: gallery.chartGallery as Entry[],
   "probability trees": gallery.treeGallery as Entry[],
+  "frequency trees": gallery.frequencyTreeGallery as Entry[],
 };
 
 export function renders(entries: Entry[]) {

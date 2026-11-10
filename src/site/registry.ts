@@ -5,11 +5,12 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { GitFork, BookOpen, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
+import { GitFork, Network, BookOpen, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
 import probabilityTreePreview from "../assets/tool-previews/probability-trees.svg";
+import frequencyTreePreview from "../assets/tool-previews/frequency-trees.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
 
@@ -27,6 +28,7 @@ export const bookletTools = [
   { id: "number-line", name: "Number lines", description: "Make exam-style number lines, intervals and inequality scaffolds.", icon: MoveHorizontal, component: lazyPage(() => import("../number-line/NumberLinePage")), preview: { src: numberLinePreview, alt: "Number line with a filled endpoint at minus three, open endpoint at one and a blank response line." } },
   { id: "charts", name: "Bar and line charts", description: "Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes.", icon: ChartColumn, component: lazyPage(() => import("../charts/ChartsPage")), preview: { src: chartsPreview, alt: "Dual bar chart of transport to school for boys and girls, with a key and one bar left for pupils to draw." } },
   { id: "probability-tree", name: "Probability trees", description: "Draw exam-style probability tree diagrams, including unequal trees and given-that questions.", icon: GitFork, component: lazyPage(() => import("../probability-tree/ProbabilityTreePage")), preview: { src: probabilityTreePreview, alt: "Two-stage probability tree for two bags of red and green balls, with three probabilities left for pupils." } },
+  { id: "frequency-tree", name: "Frequency trees", description: "Draw exam-style frequency trees with a total, groups and counts left for pupils.", icon: Network, component: lazyPage(() => import("../frequency-tree/FrequencyTreePage")), preview: { src: frequencyTreePreview, alt: "Frequency tree of 80 people split into men and women and whether they like coffee, with the women's counts left for pupils." } },
 ] as const;
 
 /** Site pages outside the booklet tools, loaded the same way. */

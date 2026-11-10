@@ -30,3 +30,16 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - probability trees: tree-given-that (worked): added
 - probability trees: tree-three-coins: added
 - probability trees: tree-three-coins (worked): added
+
+## 2026-11-10: Add the frequency trees tool's gallery examples (wave 4 lane B, approved by Tim 10 Nov 2026)
+
+- frequency trees: ftree-coffee: added
+- frequency trees: ftree-coffee (worked): added
+- frequency trees: ftree-lunches: added
+- frequency trees: ftree-lunches (worked): added
+- frequency trees: ftree-handedness: added
+- frequency trees: ftree-handedness (worked): added
+- frequency trees: ftree-text-or-email: added
+- frequency trees: ftree-text-or-email (worked): added
+- frequency trees: ftree-three-years: added
+- frequency trees: ftree-three-years (worked): added
