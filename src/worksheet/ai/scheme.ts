@@ -31,7 +31,12 @@ const IMPORTED = "maths-booklet-tools:worksheet-scheme:v1";
 export async function loadSchoolScheme(signal?: AbortSignal): Promise<Scheme | null> {
   try {
     const r = await fetch(SCHOOL_SCHEME_URL, { signal, headers: { Accept: "application/json" } });
-    if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) return null;
+    if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) {
+      // Release the unread body (the site answers unknown paths with its HTML page); an unread
+      // body keeps the request open, and the page never settles.
+      await r.body?.cancel();
+      return null;
+    }
     const parsed = schemeSchema.safeParse(await r.json());
     return parsed.success ? parsed.data : null;
   } catch {
