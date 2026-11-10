@@ -1,7 +1,5 @@
 import { ApiError, FinishReason, FunctionCallingConfigMode, GoogleGenAI, ThinkingLevel, type Content, type FunctionCall, type GenerateContentResponse, type Part } from "@google/genai";
-import { systemPrompt, toolDescription, toolSchema, TOOL_NAME } from "./brief";
-import { checkSubmission } from "./check";
-import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type Effort, type RunOptions, type RunResult } from "./types";
+import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type Effort, type Job, type JobResult, type RunOptions } from "./types";
 
 export function geminiClient(apiKey: string) {
   // The teacher's own key goes straight from this browser to Google; MathsDock never sees it.
@@ -39,7 +37,7 @@ function friendly(e: unknown, signal?: AbortSignal): Error {
   return e instanceof Error ? e : new Error(String(e));
 }
 
-export async function makeWithGemini(o: RunOptions): Promise<RunResult> {
+export async function makeWithGemini<T>(job: Job<T>, o: RunOptions): Promise<JobResult<T>> {
   const client = geminiClient(o.apiKey);
   const usage = noUsage();
   // Nothing is stored at Google between turns; the conversation is resent with the model's own
@@ -56,10 +54,10 @@ export async function makeWithGemini(o: RunOptions): Promise<RunResult> {
         model: o.model,
         contents,
         config: {
-          systemInstruction: systemPrompt,
-          tools: [{ functionDeclarations: [{ name: TOOL_NAME, description: toolDescription, parametersJsonSchema: toolSchema }] }],
+          systemInstruction: job.system,
+          tools: [{ functionDeclarations: [{ name: job.toolName, description: job.toolDescription, parametersJsonSchema: job.toolSchema }] }],
           // Gemini can be required to call the tool, so no reminder turn is needed.
-          toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.ANY, allowedFunctionNames: [TOOL_NAME] } },
+          toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.ANY, allowedFunctionNames: [job.toolName] } },
           thinkingConfig: { thinkingLevel: thinking[o.effort] },
           maxOutputTokens: 64000,
           abortSignal: o.signal,
@@ -85,18 +83,18 @@ export async function makeWithGemini(o: RunOptions): Promise<RunResult> {
 
     const finish = last.candidates?.[0]?.finishReason;
     if (last.promptFeedback?.blockReason || (finish && declined.has(finish))) throw new MakerError("The model declined this request. Rephrase the objective or notes and try again.");
-    if (finish === FinishReason.MAX_TOKENS) throw new MakerError("The model ran out of room before finishing the worksheet. Try a lower thinking level or a shorter request.");
+    if (finish === FinishReason.MAX_TOKENS) throw new MakerError(`The model ran out of room before finishing the ${job.noun}. Try a lower thinking level or a shorter request.`);
 
     contents.push({ role: "model", parts });
     const calls = parts.map((p) => p.functionCall).filter((c): c is FunctionCall => !!c);
-    const call = calls.find((c) => c.name === TOOL_NAME);
+    const call = calls.find((c) => c.name === job.toolName);
     if (!call) {
-      contents.push({ role: "user", parts: [{ text: `Submit the complete worksheet now by calling ${TOOL_NAME}.` }] });
+      contents.push({ role: "user", parts: [{ text: `Submit the complete ${job.noun} now by calling ${job.toolName}.` }] });
       continue;
     }
     o.onStage?.({ kind: "checking", attempt });
-    const checked = checkSubmission(call.args);
-    if (checked.ok) return { submission: checked.submission, resource: checked.resource, usage, attempts: attempt, model };
+    const checked = job.check(call.args);
+    if (checked.ok) return { value: checked.value, usage, attempts: attempt, model };
     if (attempt < MAX_ATTEMPTS) o.onStage?.({ kind: "fixing", attempt, problems: checked.feedback });
     // Every call gets its response, all in one user turn.
     contents.push({
@@ -104,5 +102,5 @@ export async function makeWithGemini(o: RunOptions): Promise<RunResult> {
       parts: calls.map((c) => ({ functionResponse: { id: c.id, name: c.name, response: { error: c === call ? checked.feedback : "Ignored: submit once." } } })),
     });
   }
-  throw new MakerError(`The worksheet still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
+  throw new MakerError(`The ${job.noun} still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
 }

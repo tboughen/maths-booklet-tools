@@ -25,22 +25,28 @@ export interface Rendered {
   issues: Issue[];
 }
 
-type Frag = { h: number; svg: string };
-interface Ctx {
+/** A laid-out piece of a page: its height in millimetres and its SVG at the origin. */
+export type Frag = { h: number; svg: string };
+/** Layout state shared by the worksheet and booklet renderers. `where` locates each issue. */
+export interface Ctx<W extends object = { side: number; column: number; question: number }> {
   st: HouseStyle;
   view: View;
   diagrams: number;
-  issues: Issue[];
-  where: { side: number; column: number; question: number };
+  issues: (W & { message: string })[];
+  where: W;
+  /** Tables keep their natural width (cells at least 14 mm) instead of filling the card: booklets. */
+  compactTables?: boolean;
 }
 
 const S = SIZE;
 const lineBox = (size: number) => size * S.lineHeight;
 const baseline = (size: number) => (lineBox(size) - size) / 2 + size * 0.82;
-const at = (f: Frag, x: number, y: number) => (f.svg ? `<g transform="translate(${n(x)},${n(y)})">${f.svg}</g>` : "");
-const issue = (ctx: Ctx, message: string) => ctx.issues.push({ ...ctx.where, message });
+export const at = (f: Frag, x: number, y: number) => (f.svg ? `<g transform="translate(${n(x)},${n(y)})">${f.svg}</g>` : "");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyCtx = Ctx<any>;
+const issue = (ctx: AnyCtx, message: string) => ctx.issues.push({ ...ctx.where, message });
 
-function para(source: string, width: number, ctx: Ctx, opts: { size?: number; fill?: string; base?: FontStyle; x?: number } = {}): Frag {
+function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number; fill?: string; base?: FontStyle; x?: number } = {}): Frag {
   const size = opts.size ?? S.body;
   const lines = wrap(source, size, width, opts.base);
   const lh = lineBox(size);
@@ -48,7 +54,7 @@ function para(source: string, width: number, ctx: Ctx, opts: { size?: number; fi
   return { h: lines.length * lh, svg };
 }
 
-function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Frag {
+function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   const cellText = (c: Cell) => (c.state === "supplied" || (c.state === "hidden" && ctx.view === "answers") ? c.text : "");
   const natural = item.columns.map((head, j) =>
@@ -56,7 +62,10 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
   );
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) issue(ctx, `A table needs ${n(total - w)} mm more width than the column has.`);
-  const widths = natural.map((v) => (v * w) / total);
+  const roomy = natural.map((v) => Math.max(v, 14));
+  const compact = ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  const widths = compact ? roomy : natural.map((v) => (v * w) / total);
+  w = compact ? roomy.reduce((a, b) => a + b, 0) : w;
   const xs = widths.map((_, j) => widths.slice(0, j).reduce((a, b) => a + b, 0));
   const out: string[] = [];
   let y = 0;
@@ -65,8 +74,9 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
     cells.forEach((c, j) => {
       if (!c.text) return;
       const line: Line = parseRuns(c.text, c.bold ? "bold" : "regular");
-      const cx = j === 0 ? xs[j] + 2 : xs[j] + widths[j] / 2;
-      out.push(textSvg(line, cx, y + h / 2 + size * 0.34, size, c.fill ?? ctx.st.ink, j === 0 ? "start" : "middle"));
+      const left = j === 0 && !compact;
+      const cx = left ? xs[j] + 2 : xs[j] + widths[j] / 2;
+      out.push(textSvg(line, cx, y + h / 2 + size * 0.34, size, c.fill ?? ctx.st.ink, left ? "start" : "middle"));
     });
     y += h;
   };
@@ -91,7 +101,7 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: Ctx): Fra
   return { h: y, svg: out.join("") };
 }
 
-function diagram(d: Diagram, w: number, ctx: Ctx): Frag {
+function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
   try {
@@ -121,7 +131,7 @@ function diagram(d: Diagram, w: number, ctx: Ctx): Frag {
   return { h: height, svg };
 }
 
-function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: Ctx): Frag {
+function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   const base = S.answerRow - 2.6;
   const slot = (w - (lines.length - 1) * 6) / lines.length;
@@ -141,7 +151,7 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
   return { h: S.answerRow, svg: out.join("") };
 }
 
-function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: Ctx): Frag {
+function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   const show = ctx.view === "answers" ? item.answer : null;
   const out: string[] = [];
@@ -158,6 +168,7 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: Ctx): F
     if (x - 9 > w) issue(ctx, "Circle-one options are wider than the card.");
     return { h: 8.5, svg: out.join("") };
   }
+  if (item.mode === "letters") return letters(item, w, ctx, show);
   let y = 0;
   item.options.forEach((o, i) => {
     const f = para(o, w - S.tickBox - 2.6, ctx, { x: S.tickBox + 2.6 });
@@ -171,7 +182,39 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: Ctx): F
   return { h: y - 1.2, svg: out.join("") };
 }
 
-function leaf(item: Leaf, w: number, ctx: Ctx, extra: number): Frag {
+/** Lettered options (A, B, C…) for hinge questions: one row when they fit, otherwise two columns or one. */
+function letters(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx, show: number | null): Frag {
+  const size = S.body,
+    r = 2.5,
+    gap = 1.8;
+  const out: string[] = [];
+  const widths = item.options.map((o) => 2 * r + gap + plainWidth(o, size));
+  const perRow = widths.reduce((a, b) => a + b, 0) + (item.options.length - 1) * 6 <= w ? item.options.length : Math.max(...widths) * 2 + 6 <= w ? 2 : 1;
+  const slot = perRow === item.options.length ? 0 : (w - (perRow - 1) * 6) / perRow;
+  let x = 0,
+    y = 0,
+    rowH = 0;
+  item.options.forEach((o, i) => {
+    if (i && i % perRow === 0) {
+      x = 0;
+      y += rowH + 1.6;
+      rowH = 0;
+    }
+    const f = para(o, (slot || widths[i]) - 2 * r - gap + 0.5, ctx, { x: 2 * r + gap });
+    const cy = baseline(size) - size * 0.34;
+    const letter = String.fromCharCode(65 + i);
+    const mark = show === i;
+    out.push(`<g transform="translate(${n(x)},${n(y)})">`);
+    out.push(`<circle cx="${r}" cy="${n(cy)}" r="${r}" fill="${mark ? ctx.st.answer : "white"}" stroke="${mark ? ctx.st.answer : ctx.st.navy}" stroke-width="0.35"/>`);
+    out.push(textSvg([{ text: letter, style: "bold" }], r, cy + size * 0.34, S.body * 0.9, mark ? "white" : ctx.st.navy, "middle"));
+    out.push(f.svg, "</g>");
+    rowH = Math.max(rowH, f.h);
+    x += (slot || widths[i]) + 6;
+  });
+  return { h: y + rowH, svg: out.join("") };
+}
+
+function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
   const st = ctx.st;
   switch (item.type) {
     case "text":
@@ -205,10 +248,34 @@ function leaf(item: Leaf, w: number, ctx: Ctx, extra: number): Frag {
       return { h: item.heightMm + extra, svg: "" };
     case "diagram":
       return diagram(item.diagram, w, ctx);
+    case "steps": {
+      // A hanging indent keeps each step's text clear of its label.
+      const labels = item.steps.map((s, i) => (s.label.trim() || `Step ${i + 1}`) + ":");
+      const indent = Math.min(Math.max(...labels.map((l) => plainWidth(l, S.body, "bold"))) + 2, w * 0.35);
+      let y = 0;
+      const out: string[] = [];
+      item.steps.forEach((s, i) => {
+        const f = para(s.text, w - indent, ctx, { x: indent });
+        out.push(at(f, 0, y), textSvg([{ text: labels[i], style: "bold" }], 0, y + baseline(S.body), S.body, st.navy));
+        y += f.h + (i < item.steps.length - 1 ? 1.2 : 0);
+      });
+      return { h: y, svg: out.join("") };
+    }
+    case "checklist": {
+      let y = 0;
+      const out: string[] = [];
+      item.items.forEach((t, i) => {
+        const f = para(t, w - S.tickBox - 2.6, ctx, { x: S.tickBox + 2.6 });
+        const by = (lineBox(S.body) - S.tickBox) / 2;
+        out.push(`<rect x="0" y="${n(y + by)}" width="${S.tickBox}" height="${S.tickBox}" rx="0.6" fill="none" stroke="${st.navy}" stroke-width="0.35"/>`, at(f, 0, y));
+        y += f.h + (i < item.items.length - 1 ? 0.8 : 0);
+      });
+      return { h: y, svg: out.join("") };
+    }
   }
 }
 
-function items(list: Item[], w: number, ctx: Ctx, extra: number): Frag {
+function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
   const frags: Frag[] = [];
   let part = 0;
   for (let i = 0; i < list.length; i++) {
@@ -254,10 +321,11 @@ function items(list: Item[], w: number, ctx: Ctx, extra: number): Frag {
   return { h: y, svg };
 }
 
-const countSpaces = (list: Item[]): number =>
+export const countSpaces = (list: Item[]): number =>
   list.reduce((c, it) => c + (it.type === "space" ? 1 : it.type === "part" ? countSpaces(it.items) : 0), 0);
 
-function card(c: Card, number: number, w: number, ctx: Ctx, extra: number, stretch: number): Frag {
+/** One framed question card. A null number leaves out the number tile (worked examples, notes). */
+export function card(c: Card, number: number | null, w: number, ctx: AnyCtx, extra: number, stretch: number): Frag {
   const st = ctx.st,
     pad = S.cardPad;
   const body = items(c.items, w - pad * 2, ctx, extra);
@@ -267,10 +335,13 @@ function card(c: Card, number: number, w: number, ctx: Ctx, extra: number, stret
   const titleY = pad + S.tile / 2 + S.cardTitle * 0.36;
   // A white framed card with a soft-blue number tile, as on the MathsDock home page.
   out.push(`<rect x="0.15" y="0.15" width="${n(w - 0.3)}" height="${n(h - 0.3)}" rx="2" fill="white" stroke="${st.rule}" stroke-width="0.45"/>`);
-  out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
-  out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, "white", "middle"));
-  out.push(textSvg(parseRuns(c.title, "bold"), pad + S.tile + 2.8, titleY, S.cardTitle, st.navy));
-  if (plainWidth(c.title, S.cardTitle, "bold") > w - pad * 2 - S.tile - 3) issue(ctx, "The card title is wider than the card.");
+  const titleX = number === null ? pad : pad + S.tile + 2.8;
+  if (number !== null) {
+    out.push(`<rect x="${pad}" y="${pad}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
+    out.push(textSvg([{ text: String(number), style: "bold" }], pad + S.tile / 2, titleY, S.cardTitle, "white", "middle"));
+  }
+  out.push(textSvg(parseRuns(c.title, "bold"), titleX, titleY, S.cardTitle, st.navy));
+  if (plainWidth(c.title, S.cardTitle, "bold") > w - titleX - pad) issue(ctx, "The card title is wider than the card.");
   out.push(at(body, pad, top));
   return { h, svg: out.join("") };
 }
@@ -278,7 +349,7 @@ function card(c: Card, number: number, w: number, ctx: Ctx, extra: number, stret
 export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
-  const ctx: Ctx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { side: 0, column: 0, question: 0 } };
+  const ctx: Ctx<{ side: number; column: number; question?: number }> = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { side: 0, column: 0, question: 0 } };
   const P = S.page,
     m = S.margin;
   const colW = (P.width - m * 2 - S.gutter * 2) / 3;
@@ -316,7 +387,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       out.push(textSvg(parseRuns(col.heading, "bold"), x + S.tile + 2.8, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, st.navy));
       const numbers = col.cards.map(() => ++number);
       // Measure, then give spare height to working and drawing spaces (or let the last card reach the foot).
-      const quiet: Ctx = { ...ctx, issues: [], diagrams: 0 };
+      const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
       const natural = col.cards.map((cd, i) => card(cd, numbers[i], colW, quiet, 0, 0).h);
       const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, col.cards.length - 1) * S.cardGap;
       const spare = avail - used;

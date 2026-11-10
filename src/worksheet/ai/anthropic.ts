@@ -1,7 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { systemPrompt, toolDescription, toolSchema, TOOL_NAME } from "./brief";
-import { checkSubmission } from "./check";
-import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
+import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type Job, type JobResult, type RunOptions } from "./types";
 
 
 // Server-side fallback: if a model declines, the API re-runs the request on its fallback model.
@@ -30,15 +28,14 @@ function friendly(e: unknown): Error {
   return e instanceof Error ? e : new Error(String(e));
 }
 
-const tool: Anthropic.Beta.BetaTool = {
-  name: TOOL_NAME,
-  description: toolDescription,
-  input_schema: toolSchema as Anthropic.Beta.BetaTool.InputSchema,
-  // Stream the large worksheet input as it is written; the page validates it before use.
-  eager_input_streaming: true,
-};
-
-export async function makeWithClaude(o: RunOptions): Promise<RunResult> {
+export async function makeWithClaude<T>(job: Job<T>, o: RunOptions): Promise<JobResult<T>> {
+  const tool: Anthropic.Beta.BetaTool = {
+    name: job.toolName,
+    description: job.toolDescription,
+    input_schema: job.toolSchema as Anthropic.Beta.BetaTool.InputSchema,
+    // Stream the large input as it is written; the page validates it before use.
+    eager_input_streaming: true,
+  };
   const client = claudeClient(o.apiKey);
   const usage = noUsage();
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: o.request }];
@@ -55,7 +52,9 @@ export async function makeWithClaude(o: RunOptions): Promise<RunResult> {
           output_config: { effort: o.effort },
           // Caches the guide and tools: later attempts and requests read them at a tenth of the price.
           cache_control: { type: "ephemeral" },
-          system: systemPrompt,
+          // The system prompt is its own cache entry, so parallel requests (a booklet's lessons)
+          // share it even though their user turns differ.
+          system: [{ type: "text", text: job.system, cache_control: { type: "ephemeral" } }],
           tools: [tool],
           messages,
           ...(FALLBACK_MODELS.has(o.model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
@@ -73,17 +72,17 @@ export async function makeWithClaude(o: RunOptions): Promise<RunResult> {
     o.onUsage?.(step, model);
 
     if (message.stop_reason === "refusal") throw new MakerError("The model declined this request. Rephrase the objective or notes and try again.");
-    if (message.stop_reason === "max_tokens") throw new MakerError("The model ran out of room before finishing the worksheet. Try a lower thinking level or a shorter request.");
-    const call = message.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === TOOL_NAME);
+    if (message.stop_reason === "max_tokens") throw new MakerError(`The model ran out of room before finishing the ${job.noun}. Try a lower thinking level or a shorter request.`);
+    const call = message.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === job.toolName);
     messages.push({ role: "assistant", content: message.content });
     if (!call) {
       // Forced tool choice is not available on current models, so steer with a reminder.
-      messages.push({ role: "user", content: `Submit the complete worksheet now by calling ${TOOL_NAME}.` });
+      messages.push({ role: "user", content: `Submit the complete ${job.noun} now by calling ${job.toolName}.` });
       continue;
     }
     o.onStage?.({ kind: "checking", attempt });
-    const checked = checkSubmission(call.input);
-    if (checked.ok) return { submission: checked.submission, resource: checked.resource, usage, attempts: attempt, model };
+    const checked = job.check(call.input);
+    if (checked.ok) return { value: checked.value, usage, attempts: attempt, model };
     if (attempt < MAX_ATTEMPTS) o.onStage?.({ kind: "fixing", attempt, problems: checked.feedback });
     // Every tool_use gets its result, all in one user message.
     const results: Anthropic.Beta.BetaToolResultBlockParam[] = message.content
@@ -91,5 +90,5 @@ export async function makeWithClaude(o: RunOptions): Promise<RunResult> {
       .map((b) => ({ type: "tool_result", tool_use_id: b.id, is_error: true, content: b.id === call.id ? checked.feedback : "Ignored: submit once." }));
     messages.push({ role: "user", content: results });
   }
-  throw new MakerError(`The worksheet still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
+  throw new MakerError(`The ${job.noun} still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
 }

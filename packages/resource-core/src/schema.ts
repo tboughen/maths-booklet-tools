@@ -9,7 +9,7 @@ import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from ".
  * Answer states stay distinct: a table cell is supplied (printed), blank (an empty box for the
  * pupil) or hidden (an empty box whose saved answer prints only in the answers view).
  */
-const text = (max: number) =>
+export const text = (max: number) =>
   z
     .string()
     .max(max)
@@ -84,8 +84,11 @@ const leafItems = [
   z
     .object({
       type: z.literal("choice"),
-      /** circle: options on one row, pupil circles one. tick: one box per option, stacked. */
-      mode: z.enum(["circle", "tick"]),
+      /**
+       * circle: options on one row, pupil circles one. tick: one box per option, stacked.
+       * letters: lettered options A, B, C… for mini-whiteboard hinge questions.
+       */
+      mode: z.enum(["circle", "tick", "letters"]),
       options: z.array(text(120)).min(2).max(5),
       /** Index of the saved answer: marked only in the answers view. */
       answer: z.number().int().min(0).max(4).nullable().default(null),
@@ -101,6 +104,23 @@ const leafItems = [
     })
     .strict(),
   z.object({ type: z.literal("diagram"), diagram: diagramSchema }).strict(),
+  z
+    .object({
+      type: z.literal("steps"),
+      /** A worked method, one step a line: "Step 1: Mark two perfect points." An empty label prints "Step n". */
+      steps: z
+        .array(z.object({ label: text(24).default(""), text: text(300) }).strict())
+        .min(1)
+        .max(8),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("checklist"),
+      /** Self-check boxes the pupil ticks as they work ("Mark two perfect points"). Nothing is saved as an answer. */
+      items: z.array(text(120)).min(1).max(6),
+    })
+    .strict(),
 ] as const;
 
 export const leafSchema = z.discriminatedUnion("type", leafItems);
@@ -174,8 +194,8 @@ export function validate(input: unknown): Resource {
   return resolveDiagrams(r.data);
 }
 
-/** Builds every diagram given as a spec into its envelope, so a saved worksheet holds envelopes only. */
-export function resolveDiagrams(resource: Resource): Resource {
+/** A card with every diagram given as a spec built into its envelope. */
+export function resolveCard(card: Card): Card {
   const fix = <T extends { type: string }>(item: T): T => {
     if (item.type === "diagram") {
       const d = (item as unknown as { diagram: Diagram }).diagram;
@@ -187,13 +207,18 @@ export function resolveDiagrams(resource: Resource): Resource {
     }
     return item;
   };
+  return { ...card, items: card.items.map(fix) };
+}
+
+/** Builds every diagram given as a spec into its envelope, so a saved worksheet holds envelopes only. */
+export function resolveDiagrams(resource: Resource): Resource {
   return {
     ...resource,
     document: {
       ...resource.document,
       sides: resource.document.sides.map((side) => ({
         ...side,
-        columns: side.columns.map((column) => ({ ...column, cards: column.cards.map((card) => ({ ...card, items: card.items.map(fix) })) })),
+        columns: side.columns.map((column) => ({ ...column, cards: column.cards.map(resolveCard) })),
       })),
     },
   };
