@@ -295,7 +295,8 @@ it("kills a slow native renderer and releases its queue", async () => {
   await expect(queue.render("<svg/>", 10, 10)).rejects.toThrow("timed out");
 });
 it("enforces request and served-byte budgets", () => {
-  const limits = new TrafficLimits(100);
+  // The whole allowance for one address here; quota.test.ts covers the per-address share.
+  const limits = new TrafficLimits(100, { clientShare: 1 });
   for (let i = 0; i < 40; i++) limits.request("client", 1000);
   expect(() => limits.request("client", 1000)).toThrow("Too many");
   limits.output(100, 1000);
