@@ -15,6 +15,10 @@ export interface SchemeIndex {
 const sourcePath = /^bank\/assets\/schemes\/[a-z0-9-]+\.json$/;
 const releasedPath = /^bank\/assets\/sha256\/[a-f0-9]{64}\.json$/;
 
+/** A scheme file in the bank checkout, as the source index names it. */
+export const schemeSourcePath = (path: unknown): path is string =>
+  typeof path === "string" && sourcePath.test(path);
+
 /** A scheme file path as the source index names it, or as a release rewrites it. */
 export const schemePath = (path: unknown): path is string =>
   typeof path === "string" && (sourcePath.test(path) || releasedPath.test(path));
