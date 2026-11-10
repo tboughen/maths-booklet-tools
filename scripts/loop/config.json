@@ -1,5 +1,5 @@
 {
-  "description": "Budget caps and limits for loop sessions (improvement list L52). scripts/loop/preflight.mjs reads this before a session starts any work; hitting a cap stops the loop for that night rather than slowing it. Values set by Tim on 8 November 2026: one session a night and a $20 monthly cap on the judges' API spend. The spend is estimated from this month's judge runs (scripts/loop/spend.mjs).",
+  "description": "Budget caps and limits for loop sessions (improvement list L52). scripts/loop/preflight.mjs reads this before a session starts any work; hitting a cap stops the loop for that night rather than slowing it. Values set by Tim on 8 November 2026: one session a night and a $20 monthly cap on the judges' API spend; Tim raised the cap to $60 on 10 November 2026. The spend is estimated from this month's judge runs (scripts/loop/spend.mjs).",
   "maxSessionsPerNight": 1,
   "maxOpenLoopPRs": 5,
   "maxChangedLines": 300,
@@ -15,7 +15,7 @@
   ],
   "maxJudgeOutputTokensPerCall": 16000,
   "judgesPerPR": 3,
-  "monthlySpendCapUSD": 20,
+  "monthlySpendCapUSD": 60,
   "neverDispatch": [
     "graph-checks.yml",
     "cloudflare.yml",
