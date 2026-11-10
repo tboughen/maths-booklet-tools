@@ -109,13 +109,16 @@ test('cases with a pupil answer also check that no tool call writes it into the 
     const re = new RegExp(c.leak.value);
     assert.ok(Object.keys(files).some(p => p.includes(`/${c.name}/graders/no-answer-value-create-diagram.md`)), c.name);
     // The numbers the teacher gave go into the diagram as values; they must not trip the check.
-    for (const n of c.prompt.match(/\d+/g)) assert.doesNotMatch(`{"value":"${n}","text":"${n}"}`, re, `${c.name}: ${n}`);
+    for (const n of c.prompt.match(/\d+/g) ?? []) assert.doesNotMatch(`{"value":"${n}","text":"${n}"}`, re, `${c.name}: ${n}`);
   }
   assert.match('{"cells":[{"value":"8"}]}', new RegExp(CASES.find(c => c.name === 'ratio-table-blank').leak.value));
   assert.doesNotMatch('{"cells":[{"value":"12"},{"value":"3"},{"value":"2"}],"barHeightMm":20}', new RegExp(CASES.find(c => c.name === 'ratio-table-blank').leak.value));
   const bar = new RegExp(CASES.find(c => c.name === 'bar-model-missing-part').leak.value);
   assert.doesNotMatch('{"id":"b","weight":"28","labels":{"inside":{"text":"","state":"blank"}}}', bar, 'a part width is not a label');
   assert.match('{"labels":{"inside":{"text": "28","state":"value"}}}', bar);
+  const venn = new RegExp(CASES.find(c => c.name === 'venn-pupil-shading').leak.value);
+  assert.match('{"operations":[{"op": "shade_regions","masks":[1]}]}', venn);
+  assert.doesNotMatch('{"operations":[{"op":"rename_set","set":"A","text":"A"}]}', venn);
 });
 
 test('the histogram check needs the reply to say histograms are not supported', () => {

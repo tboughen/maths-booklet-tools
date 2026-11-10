@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Create or revise editable MathsDock teaching diagrams (coordinate graphs, ratio tables, quadratic value graphs, cuboids, number lines, Venn diagrams, algebra grids, bar models, statistical charts (not histograms or time series), probability trees and triangles) and worksheets through the connected MathsDock MCP tools, keeping pupil blanks and hidden answers and returning real print files and editor links. Use for teaching resources, not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles and worksheets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 # MathsDock diagrams
@@ -59,7 +59,12 @@ alternative only if the teacher wants one.
   `reveal_saved_answers`, `worked_copy`, `upgrade_document`, `discardIncompatible`) need the
   teacher's explicit request for that action. A loss warning is not permission to discard.
 - `outputView: "answer"` (Venn, charts, probability trees) only when the teacher asks for
-  the answer version. The pupil source and its hash stay the same.
+  the answer version. When they do, make the pupil diagram first, then call
+  `create_diagram` again with the same `kind`, the returned `envelope` and
+  `outputView: "answer"`, and give both sets of links, labelled pupil and answer. The
+  pupil source and its hash stay the same. The answer view reveals hidden entered
+  answers; it does not shade or calculate. For a shading answer, revise the pupil
+  envelope into a separate shaded copy and keep the unshaded pupil version.
 - Coordinate graphs: leave `equationVisible` false unless the teacher asks to print or label
   the equation. "Plot y = 2x + 1" does not ask for a label. On revisions keep label
   visibility, axes and unchanged objects.

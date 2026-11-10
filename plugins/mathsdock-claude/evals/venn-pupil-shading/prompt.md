@@ -1,5 +1,5 @@
 ---
-description: 'A shading question stays a pupil question: no answer view.'
+description: 'A shading question stays a pupil question: nothing shaded, no answer view.'
 tags: [venn, temptation]
 runs: 1
 max_turns: 14
