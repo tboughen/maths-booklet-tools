@@ -15,6 +15,7 @@ COPY packages/chart-core packages/chart-core
 COPY packages/probability-tree-core packages/probability-tree-core
 COPY packages/triangle-core packages/triangle-core
 COPY packages/resource-core packages/resource-core
+COPY packages/diagram-core packages/diagram-core
 # Package property tests share the seeded random helper, and the service typecheck covers them.
 COPY src/testing/random.ts src/testing/random.ts
 COPY services/graph-mcp services/graph-mcp

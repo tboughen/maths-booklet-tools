@@ -45,6 +45,7 @@ for (const directory of [
   "packages/probability-tree-core",
   "packages/triangle-core",
   "packages/resource-core",
+  "packages/diagram-core",
   "services/graph-mcp",
   "assets/graph-fonts",
   "assets/resource-fonts",

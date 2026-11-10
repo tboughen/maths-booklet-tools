@@ -9,6 +9,7 @@ import { makeWithOpenAI } from "./openai";
 import { estimateCost, priceFor, prices, PRICES_CHECKED } from "./prices";
 import { loadSchoolScheme, parseScheme } from "./scheme";
 import { addSpend, noSpend } from "./settings";
+import { familiesFor, familyNotes } from "./families";
 
 const fits = (): Resource => structuredClone(treeDiagrams);
 function overflowing(): Resource {
@@ -38,6 +39,19 @@ describe("worksheet AI brief", () => {
     const layout = checkSubmission(submit(overflowing()));
     expect(layout.ok).toBe(false);
     expect(!layout.ok && layout.feedback).toMatch(/side 1, column 1: .*needs [\d.]+ mm more height/);
+  });
+});
+
+describe("diagram families for a request", () => {
+  it("sends only the families an objective needs, plus any already on the sheet", () => {
+    expect(familiesFor("Solve problems using Pythagoras' theorem")).toEqual(["triangle"]);
+    expect(familiesFor("Simplify fractions")).toEqual([]);
+    expect(familiesFor("Simplify fractions", fits())).toContain("probability-tree");
+    const notes = familyNotes(["venn"]);
+    expect(notes).toContain('<family kind="venn"');
+    expect(notes).not.toContain('kind="triangle"');
+    expect(familyNotes([])).toMatch(/none suggested/);
+    expect(firstRequest({ code: "N1.01", objective: "Draw a Venn diagram of sets", group: "", context: "" })).toContain('<family kind="venn"');
   });
 });
 

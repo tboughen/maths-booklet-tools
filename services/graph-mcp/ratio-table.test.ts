@@ -1,11 +1,13 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
 import { createHmac } from "node:crypto";
 import { graphService } from "./server";
+import { packToken, unpackToken } from "./link-token";
 import { RatioDownloads } from "./ratio-downloads";
 import { Downloads } from "./downloads";
 import { createGraph } from "../../packages/graph-core/src/interchange";
@@ -47,7 +49,7 @@ async function start(options = {}) {
   await new Promise<void>((resolve) =>
     server.listen(port, "127.0.0.1", resolve),
   );
-  const client = new Client({ name: "ratio-qualification", version: "1" });
+  const client = withFamilyNames(new Client({ name: "ratio-qualification", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -144,10 +146,7 @@ describe("ratio tools on the shared real MCP service", () => {
   it("advertises homogeneous array schemas for ChatGPT imports", async () => {
     const { client } = await start();
     const tools = (await client.listTools()).tools;
-    const ratioTools = tools.filter((tool) =>
-      tool.name.includes("ratio_table"),
-    );
-    expect(ratioTools).toHaveLength(3);
+    const caps = (await client.callTool({ name: "ratio_table_capabilities", arguments: {} })).structuredContent as { specSchema: { properties: Record<string, unknown> }; operationsSchema: unknown };
     function inspect(schema: unknown, path: string) {
       if (!schema || typeof schema !== "object") return;
       if (Array.isArray(schema)) {
@@ -169,10 +168,9 @@ describe("ratio tools on the shared real MCP service", () => {
       inspect(tool.inputSchema, `${tool.name}.inputSchema`);
       inspect(tool.outputSchema, `${tool.name}.outputSchema`);
     }
-    const create = ratioTools.find(
-      (tool) => tool.name === "create_ratio_table",
-    )!;
-    const properties = create.inputSchema.properties as Record<string, unknown>;
+    inspect(caps.specSchema, "ratio specSchema");
+    inspect(caps.operationsSchema, "ratio operationsSchema");
+    const properties = caps.specSchema.properties;
     expect(properties.headings).toMatchObject({ minItems: 1, maxItems: 3 });
     expect(properties.rows).toMatchObject({
       items: { properties: { cells: { minItems: 1, maxItems: 3 } } },
@@ -232,33 +230,9 @@ describe("ratio tools on the shared real MCP service", () => {
     const { base, client } = await start();
     const tools = (await client.listTools()).tools;
     expect(tools.map((t) => t.name)).toEqual([
-      "graph_capabilities",
-      "create_graph",
-      "revise_graph",
-      "ratio_table_capabilities",
-      "create_ratio_table",
-      "revise_ratio_table",
-      "value_graph_capabilities",
-      "create_value_graph",
-      "revise_value_graph",
-      "cuboid_capabilities",
-      "create_cuboid",
-      "revise_cuboid",
-      "number_line_capabilities",
-      "create_number_line",
-      "revise_number_line",
-      "venn_capabilities",
-      "create_venn",
-      "revise_venn",
-      "algebra_grid_capabilities",
-      "create_algebra_grid",
-      "revise_algebra_grid",
-        "bar_model_capabilities", "create_bar_model", "revise_bar_model",
-      "chart_capabilities", "create_chart", "revise_chart",
-      "probability_tree_capabilities", "create_probability_tree", "revise_probability_tree",
-      "triangle_capabilities",
-      "create_triangle",
-      "revise_triangle",
+      "diagram_capabilities",
+      "create_diagram",
+      "revise_diagram",
       "check_diagram_placement",
       "download_diagram_bundle",
       "get_diagram_svg",
@@ -270,7 +244,7 @@ describe("ratio tools on the shared real MCP service", () => {
       arguments: {},
     });
     expect(caps.structuredContent).toMatchObject({
-      columns: 2,
+      supportedColumns: [1, 2, 3],
       rows: { minimum: 1, maximum: 6 },
       printDpi: 600,
     });
@@ -381,13 +355,9 @@ describe("ratio tools on the shared real MCP service", () => {
     const url = new URL(ratios.link(createRatioTable(spec), "png").url);
     url.searchParams.set("signature", "a".repeat(43));
     expect(() => ratios.verify(url)).toThrow(/signature/);
-    const token = JSON.parse(
-      Buffer.from(ratioUrl.searchParams.get("token")!, "base64url").toString(
-        "utf8",
-      ),
-    );
-    token.graph = token.ratio;
-    const malformed = Buffer.from(JSON.stringify(token)).toString("base64url");
+    const token = unpackToken(ratioUrl.searchParams.get("token")!) as Record<string, unknown>;
+    token.graph = token.envelope;
+    const malformed = packToken(token);
     ratioUrl.searchParams.set("token", malformed);
     ratioUrl.searchParams.set(
       "signature",

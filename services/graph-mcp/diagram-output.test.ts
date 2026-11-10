@@ -1,6 +1,7 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -11,7 +12,7 @@ import { checkPlacement } from "./placement";
 import { diagramPrintInfo, diagramSource } from "./diagram-source";
 import { BundleDownloads } from "./bundle-downloads";
 import { ARCHIVE_NAMES, packArchive } from "./archive";
-import { createGraph, graphHash, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
+import { createGraph, GraphError, graphHash, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { createRatioTable, validateRatioEnvelope, ratioHash } from "../../packages/ratio-table-core/src/interchange";
 import { defaultEnvelope, decode, contentHash as valueHash } from "../../packages/value-graph-core/src/interchange";
 import { renderRatioSvg, ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
@@ -36,7 +37,7 @@ async function start() {
   const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: key }, activeKey: "test" });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "diagram-output-acceptance", version: "1" }); clients.push(client);
+  const client = withFamilyNames(new Client({ name: "diagram-output-acceptance", version: "1" })); clients.push(client);
   await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`)));
   return { base, client };
 }
@@ -207,6 +208,9 @@ describe("real MCP output workflows", () => {
   }, 30000);
   it("uses bounded inline ZIP for a long source and reports legacy font conversion explicitly", async () => {
     const {client} = await start();
+    // Compressed links fit every valid graph, so force the long-link path to check the inline ZIP.
+    const spy = vi.spyOn(BundleDownloads.prototype, "link").mockImplementation(() => { throw new GraphError("size_limit", "Test: link too long."); });
+    onTestFinished(() => spy.mockRestore());
     const e = createGraph({schemaVersion: 1, objects: Array.from({length: 50}, (_, i) => ({kind: "line", id: "long-name-" + i, equation: {kind: "slope", slope: i / 3, intercept: i / 7}, equationVisible: true}))});
     const reply = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "graph", envelope: e}});
     expect(reply.isError).not.toBe(true); expect((reply.structuredContent as Record<string, unknown>).inline).toBe(true);

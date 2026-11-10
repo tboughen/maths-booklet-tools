@@ -4,6 +4,7 @@ import { createServer } from "node:net";
 import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "../services/graph-mcp/family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import * as c from "../packages/bar-model-core/src/v3";
 import {
@@ -44,7 +45,7 @@ test("v3 bar MCP resource survives secondary-label and caption browser edits and
     progress.push({ stage, elapsedMs: Date.now() - started });
     await writeFile(info.outputPath("progress.json"), JSON.stringify(progress));
   }
-  const client = new Client({ name: "bar-v3-browser-roundtrip", version: "1" });
+  const client = withFamilyNames(new Client({ name: "bar-v3-browser-roundtrip", version: "1" }));
   try {
     await expect
       .poll(

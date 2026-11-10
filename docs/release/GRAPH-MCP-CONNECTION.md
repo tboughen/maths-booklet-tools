@@ -19,7 +19,7 @@ Open ChatGPT Plugins, use the plus button and Add custom MCP server. Name it
 "Maths Booklet Tools" and describe it as creating printable coordinate graphs.
 Enter the actual service URL ending /mcp. Select the no-authentication option
 for this bounded public renderer, review the warning, and Create as a plugin.
-Check that graph_capabilities, create_graph and revise_graph were discovered.
+Check that `diagram_capabilities` (kind `graph`), `create_diagram` (kind `graph`) and `revise_diagram` (kind `graph`) were discovered.
 Install it and select it with @ in a new chat. Account/workspace rules apply.
 If those controls are unavailable, resolve account/admin access before launch.
 Local development can use a separately authorised Secure MCP Tunnel; do not
@@ -32,7 +32,7 @@ claim that a local HTTP address is publicly available to ChatGPT.
    three downloads and an editable website link. Download the print PNG.
    Neither line should have a printed equation unless explicitly requested.
 2. "Make the vertical line dashed and hide the first line's equation."
-   Expect revise_graph with the returned envelope/hash, preserving other
+   Expect `revise_diagram` (kind `graph`) with the returned envelope/hash, preserving other
    objects and scales. Compare revised PNG and JSON.
 3. "Use 0.5 units per square on x and 2 on y; enlarge the grid."
    Expect set_axes with supported square counts and unchanged mathematical

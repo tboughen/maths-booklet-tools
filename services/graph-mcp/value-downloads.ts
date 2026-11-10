@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { packToken, unpackToken } from "./link-token";
 import {
-  encode,
+  validate,
   decode,
   type ValueEnvelope,
 } from "../../packages/value-graph-core/src/interchange";
@@ -13,7 +14,9 @@ const tokenSchema = z
     key: z.string().max(32),
     format: z.enum(["svg", "png", "json"]),
     expires: z.number().int(),
-    values: z.string().max(16000),
+    /** Old links carry the encoded file; new, compressed links carry the envelope itself. */
+    values: z.string().max(16000).optional(),
+    envelope: z.unknown().optional(),
   })
   .strict();
 export class ValueDownloads {
@@ -36,15 +39,13 @@ export class ValueDownloads {
   }
   link(envelope: ValueEnvelope, format: DownloadFormat, now = Date.now()) {
     const expires = Math.floor(now / 1000) + 7 * 86400,
-      token = Buffer.from(
-        JSON.stringify({
+      token = packToken({
           kind: "value-graph",
           key: this.active,
           format,
           expires,
-          values: encode(envelope),
+          envelope,
         }),
-      ).toString("base64url"),
       url = new URL("/value-graph/download", this.base);
     url.searchParams.set("token", token);
     url.searchParams.set(
@@ -73,7 +74,7 @@ export class ValueDownloads {
     let value: z.infer<typeof tokenSchema>;
     try {
       value = tokenSchema.parse(
-        JSON.parse(Buffer.from(token, "base64url").toString("utf8")),
+        unpackToken(token),
       );
     } catch {
       throw new GraphError("invalid_download", "Invalid value-graph token.");
@@ -94,6 +95,6 @@ export class ValueDownloads {
         "expired_download",
         "This download expired. Revise the saved envelope with no operations to refresh it.",
       );
-    return { envelope: decode(value.values), format: value.format };
+    return { envelope: value.envelope !== undefined ? validate(value.envelope) : decode(value.values ?? ""), format: value.format };
   }
 }

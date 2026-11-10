@@ -4,6 +4,7 @@ import { createServer } from 'node:net';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { withFamilyNames } from "../services/graph-mcp/family-tool-names";
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { hash } from '../packages/algebra-grid-core/src/interchange';
 import type { Envelope } from '../packages/algebra-grid-core/src';
@@ -24,7 +25,7 @@ test('complete MCP to editor saved-file to MCP revision preserves pupil source',
     env: { ...process.env, PORT: String(port), BIND_HOST: '127.0.0.1', GRAPH_PUBLIC_URL: origin,
       GRAPH_EDITOR_URL: 'https://mathsdock.co.uk/', DOWNLOAD_SIGNING_KEY: 'synthetic-roundtrip-only-not-a-production-key' },
   });
-  const client = new Client({ name: 'qualified-editor-roundtrip', version: '1' });
+  const client = withFamilyNames(new Client({ name: 'qualified-editor-roundtrip', version: '1' }));
   try {
     await expect.poll(async () => { try { return (await fetch(origin + '/healthz')).ok; } catch { return false; } }, { timeout: 10000 }).toBe(true);
     await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp')));

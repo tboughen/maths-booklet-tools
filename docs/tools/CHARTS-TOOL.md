@@ -3,7 +3,7 @@
 `/tools/charts` makes the bar-family statistical charts in GCSE Foundation papers: bar
 charts, dual (comparative) bar charts, composite (stacked) bar charts and vertical line
 charts. Browser editing and export need no service; the optional MCP connector adds
-`chart_capabilities`, `create_chart` and `revise_chart` (see below).
+`diagram_capabilities` (kind `charts`), `create_diagram` (kind `charts`) and `revise_diagram` (kind `charts`) (see below).
 
 ## Why one tool
 
@@ -46,11 +46,11 @@ frequency polygons and histograms. Each would be a separate, reviewed extension 
 `packages/chart-core/src/interchange.ts` adapts the same schema, layout and renderer for
 `services/graph-mcp` (`chart-config.ts`). It follows the capabilities/create/revise pattern:
 
-- `create_chart` takes an exact `envelope` or a `spec` (an `example` with optional `worked`,
+- `create_diagram` (kind `charts`) takes an exact `envelope` or a `spec` (an `example` with optional `worked`,
   or `kind`, `categories`, `series` with one numeric string or `null` per category and
   optional `hidden` indices, `axis`, `presentation`). Omitting both gives the unworked default
   dual bar chart.
-- `revise_chart` takes the returned envelope, its `contentHash` as `baseHash` and up to 30
+- `revise_diagram` (kind `charts`) takes the returned envelope, its `contentHash` as `baseHash` and up to 30
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled.

@@ -1,5 +1,6 @@
 /** Public-protocol consumer qualification. No direct core artwork is used. */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
@@ -37,7 +38,7 @@ if (!base) {
   server = graphService({publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: {test: "synthetic-consumer-test-only-not-a-production-key"}, activeKey: "test"});
   await new Promise<void>((r) => server!.listen(port, "127.0.0.1", r));
 }
-const client = new Client({name: "external-diagram-consumer-test", version: "1"});
+const client = withFamilyNames(new Client({name: "external-diagram-consumer-test", version: "1"}));
 // Keep production quotas enabled: pace actual HTTP requests, including MCP discovery.
 const pacing = consumptionPacer();
 const consumptionStarted = Date.now();
@@ -99,7 +100,7 @@ try {
   const tools = await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined));
   await writeFile(resolve(output, "tool-catalogue.json"), JSON.stringify({ tools }, null, 2));
   const instructions = client.getInstructions();
-  assert(instructions?.includes("bar models") && instructions.includes("one shared unit width"));
+  assert(instructions?.includes("bar models") && instructions.includes("diagram_capabilities"));
   await writeFile(resolve(output, "server-instructions.json"), JSON.stringify({ instructions }, null, 2));
   if (full) for (const name of ["graph_capabilities", "ratio_table_capabilities", "value_graph_capabilities"])
     await client.callTool({name, arguments: {}});
@@ -222,7 +223,7 @@ try {
     const r=await request((reply.structuredContent as {download:{url:string}}).download.url);assert(r.ok);const bytes=new Uint8Array(await r.arrayBuffer());const members=unzipSync(bytes);assert.deepEqual(JSON.parse(Buffer.from(members["source.json"]).toString()),data.envelope);await writeFile(resolve(output,`${kind}-bundle.zip`),bytes);
     if (full) { const advice=await client.callTool({name:"check_diagram_placement",arguments:{kind,envelope:data.envelope,widthMm:data.physicalSizeCm.width*10}});assert.notEqual(advice.isError,true,JSON.stringify(advice.content));assert.equal((advice.structuredContent as {uniformScale:number}).uniformScale,1); }
   }
-  for(const name of ["bar_model_capabilities","create_bar_model","revise_bar_model","triangle_capabilities","create_triangle","revise_triangle"]) assert(tools.some(t=>t.name===name));
+  for(const name of ["diagram_capabilities","create_diagram","revise_diagram"]) assert(tools.some(t=>t.name===name));
   if (full) {
   for (const [name, kind, data, view] of [
     ["graph", "graph", graph], ["ratio", "ratio-table", ratio],

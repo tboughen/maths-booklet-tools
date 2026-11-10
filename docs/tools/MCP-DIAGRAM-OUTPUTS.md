@@ -90,7 +90,7 @@ Unzip normally, then open source.json in the existing editor. No ZIP importer,
 extra cryptographic hashes, history format or automatic project saving is added.
 Archive files contain no signed URLs or credentials. Standard ZIP CRC checks
 are not a revision gate. Legacy Graph fonts require the existing explicit
-portable conversion via `revise_graph` with no operations before bundling.
+portable conversion via `revise_diagram` (kind `graph`) with no operations before bundling.
 The bundle never silently upgrades the saved source.
 
 ## Consumer workflow and preservation

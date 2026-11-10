@@ -147,7 +147,7 @@ light-grey shading. Physical facts remain outside the definition/hash. SVG, veri
 600ppi PNG, versioned JSON and bounded editor links preserve complete artwork.
 Hidden-answer warnings accompany editable interchange; pupil artwork is default.
 
-The existing service adds bar_model_capabilities/create_bar_model/revise_bar_model.
+The existing service adds `diagram_capabilities` (kind `bar-model`)/`create_diagram` (kind `bar-model`)/`revise_diagram` (kind `bar-model`).
 See [the complete contract](BAR-MODEL-MCP.md) and
 [emitted schemas](BAR-MODEL-EMITTED-SCHEMAS.json). Shared direct-SVG,placement and
 bundle support accepts bar-model. Old families retain signatures/defaults/files.

@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { envelopeSchema as chartEnvelope } from "../../chart-core/src/index";
-import { envelopeSchema as treeEnvelope } from "../../probability-tree-core/src/index";
+import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from "../../diagram-core/src/registry";
 
 /**
  * A two-sided A3 worksheet, as Tim's finalised question sets describe it: each side has three
@@ -23,10 +22,38 @@ export const cellSchema = z
   })
   .strict();
 
-export const diagramSchema = z.discriminatedUnion("tool", [
-  z.object({ tool: z.literal("charts"), envelope: chartEnvelope }).strict(),
-  z.object({ tool: z.literal("probability-tree"), envelope: treeEnvelope }).strict(),
-]);
+/**
+ * A diagram from any registered family (packages/diagram-core). Supply the family's envelope (a
+ * saved source.json or an envelope the connector returned) or a spec, which is built into an
+ * envelope with that family's own create rules. Saved worksheets always hold the envelope.
+ */
+const diagramInput = z
+  .object({
+    tool: diagramKindSchema.describe("Diagram family, as diagram_capabilities lists them."),
+    envelope: z.record(z.string(), z.unknown()).optional().describe("The family's complete envelope, unchanged."),
+    spec: z.record(z.string(), z.unknown()).optional().describe("Or the family's create spec; it is built into an envelope. Give spec or envelope, not both."),
+  })
+  .strict();
+/** The family's envelope for a diagram item, built from its spec when it has no envelope yet. */
+export function diagramEnvelope(d: { tool: DiagramKind; envelope?: unknown; spec?: unknown }): unknown {
+  const f = FAMILIES[d.tool];
+  const envelope = d.envelope !== undefined ? f.validate(d.envelope, "pupil") : f.create({ spec: d.spec });
+  // The answers copy must print too.
+  if (f.answerView) f.validate(envelope, "answer");
+  return envelope;
+}
+// A refinement, not a transform, so the schema still converts to JSON Schema for tool inputs.
+export const diagramSchema = diagramInput.superRefine((d, ctx) => {
+  if ((d.envelope === undefined) === (d.spec === undefined)) {
+    ctx.addIssue({ code: "custom", message: "Give the diagram's envelope or its spec, not both." });
+    return;
+  }
+  try {
+    diagramEnvelope(d);
+  } catch (error) {
+    ctx.addIssue({ code: "custom", message: `${FAMILIES[d.tool].label}: ${describeIssues(error) ?? (error instanceof Error ? error.message : "invalid diagram")}` });
+  }
+});
 
 const answerLine = z
   .object({
@@ -144,5 +171,30 @@ export function validate(input: unknown): Resource {
     const issue = r.error.issues[0];
     throw Error(`${issue.path.join(".") || "document"}: ${issue.message}`);
   }
-  return r.data;
+  return resolveDiagrams(r.data);
+}
+
+/** Builds every diagram given as a spec into its envelope, so a saved worksheet holds envelopes only. */
+export function resolveDiagrams(resource: Resource): Resource {
+  const fix = <T extends { type: string }>(item: T): T => {
+    if (item.type === "diagram") {
+      const d = (item as unknown as { diagram: Diagram }).diagram;
+      if (d.envelope === undefined) return { ...item, diagram: { tool: d.tool, envelope: diagramEnvelope(d) } };
+    }
+    if (item.type === "part") {
+      const p = item as unknown as { items: { type: string }[] };
+      return { ...item, items: p.items.map(fix) };
+    }
+    return item;
+  };
+  return {
+    ...resource,
+    document: {
+      ...resource.document,
+      sides: resource.document.sides.map((side) => ({
+        ...side,
+        columns: side.columns.map((column) => ({ ...column, cards: column.cards.map((card) => ({ ...card, items: card.items.map(fix) })) })),
+      })),
+    },
+  };
 }

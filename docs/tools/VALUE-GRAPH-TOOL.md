@@ -112,11 +112,11 @@ Existing graph/ratio formats and routes are unchanged.
 
 ## Optional MCP contract (implemented locally; release is a separate stage)
 
-- value_graph_capabilities: no input; describes limits, print style and operations.
-- create_value_graph: {envelope?: full ValueEnvelope}. Omitting envelope gives the
+- `diagram_capabilities` (kind `value-graph`): no input; describes limits, print style and operations.
+- `create_diagram` (kind `value-graph`): {envelope?: full ValueEnvelope}. Omitting envelope gives the
 scaffold with five blank cells and no plotted work. Supply the complete returned
 envelope shape when customizing; there is no hidden default-answer calculation.
-- revise_value_graph: {envelope,baseHash,operations}. Use the actual returned hash.
+- `revise_diagram` (kind `value-graph`): {envelope,baseHash,operations}. Use the actual returned hash.
 
 All numeric content is a string: integers, decimals up to six places or fractions.
 IDs are stable strings; no positional tuple arrays or undocumented indexes.
@@ -150,9 +150,9 @@ set_print {settings:{tableWidthMm?,tableRowHeightMm?,gapMm?}}
 Example sequence in client notation:
 
 ```
-const created = await client.callTool({name:'create_value_graph',arguments:{}});
+const created = await client.callTool({name:'`create_diagram` (kind `value-graph`)',arguments:{}});
 const first = created.structuredContent;
-const revised = await client.callTool({name:'revise_value_graph',arguments:{
+const revised = await client.callTool({name:'`revise_diagram` (kind `value-graph`)',arguments:{
   envelope:first.envelope,baseHash:first.contentHash,operations:[
     {op:'calculate_cells',columnIds:['c2','c3','c5','c6','c7'],overwrite:false},
     {op:'plot_series',id:'points',source:'table',

@@ -1,5 +1,6 @@
 /** Collect actual local/live MCP artifacts. This is SDK evidence, not host import acceptance. */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -30,7 +31,7 @@ const request: typeof fetch = async(input,init)=>{
   await pacing.beforeRequest();
   return fetch(input,init);
 };
-const c = new Client({name:"triangle-output-verification",version:"1"});
+const c = withFamilyNames(new Client({name:"triangle-output-verification",version:"1"}));
 type Data = {envelope:Envelope;contentHash:string;editorUrl:string|null;downloads:Partial<Record<string,{url:string}>>;physicalSizeCm:{width:number;height:number};printRaster:{width:number;height:number}};
 const cases: Array<Record<string,unknown>> = [];
 async function call(name:string,args:Record<string,unknown>) {

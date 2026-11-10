@@ -4,6 +4,7 @@ import { createServer } from "node:net";
 import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "../services/graph-mcp/family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import * as c from "../packages/bar-model-core/src";
 import { receiveSvg } from "../services/graph-mcp/svg-consumer";
@@ -39,7 +40,7 @@ test("bar MCP resource survives actual browser edit/save and subsequent MCP revi
     progress.push({ stage, elapsedMs: Date.now() - started });
     await writeFile(info.outputPath("progress.json"), JSON.stringify(progress));
   }
-  const client = new Client({ name: "bar-browser-roundtrip", version: "1" });
+  const client = withFamilyNames(new Client({ name: "bar-browser-roundtrip", version: "1" }));
   try {
     await expect
       .poll(

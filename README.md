@@ -67,8 +67,8 @@ and shareable editor links. Imports preserve the current draft until opened
 and can be undone. Existing human graphs keep their original font; portable
 graphs use bundled STIX fonts consistently.
 
-The optional stateless MCP service exposes `graph_capabilities`, `create_graph`
-and `revise_graph` for direct graph creation without computer use. Human drawing
+The optional stateless MCP service exposes `diagram_capabilities` (kind `graph`), `create_diagram` (kind `graph`)
+and `revise_diagram` (kind `graph`) for direct graph creation without computer use. Human drawing
 and exports work independently of that service.
 See [operations and release](docs/release/GRAPH-MCP-RUNBOOK.md) and
 [ChatGPT connection and acceptance](docs/release/GRAPH-MCP-CONNECTION.md), and

@@ -6,21 +6,16 @@ import { randomUUID } from "node:crypto";
 import { MathsDockMcpServer, serverVersion } from "./tool-metadata";
 import servicePackage from "./package.json" with { type: "json" };
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { z } from "zod";
 import {
-  createGraph,
   createEnvelope,
   documentFromEnvelope,
   describeGraph,
   editorLink,
   graphHash,
-  graphSpecSchema,
   GraphError,
   graphWarnings,
   MAX_REQUEST_BYTES,
   RENDERER_VERSION,
-  reviseGraph,
-  revisionSchema,
 } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
@@ -33,19 +28,25 @@ import { Downloads } from "./downloads";
 import type { DownloadFormat } from "./downloads";
 import { RasterQueue } from "./raster";
 import { TrafficLimits, clientAddress, type QuotaStore } from "./limits";
-import { graphOutputSchema, capabilitiesOutputSchema } from "./output-schema";
 import { RatioDownloads } from "./ratio-downloads";
 import { ratioTools } from "./ratio-table-tools";
 import { ValueDownloads } from "./value-downloads";
 import { valueGraphTools } from "./value-graph-tools";
 import { WorksheetDownloads, worksheetTools } from "./worksheet-tools";
 import { ResourceDownloads } from "./resource-downloads";
-import { resourceTools } from "./resource-tools";
+import { resourceTools, type NewSource } from "./resource-tools";
+import { diagramTools, type ResultBuilder } from "./diagram-tools";
+import type { DiagramKind } from "../../packages/diagram-core/src/registry";
+import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
 import { BundleDownloads } from "./bundle-downloads";
 import { diagramOutputTools } from "./diagram-output-tools";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
 
+/** What every client reads first; family detail lives in diagram_capabilities. */
+export const SERVER_INSTRUCTIONS =
+  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees and triangles. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states; never fill, calculate or reveal answers, or show worked solutions, unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests rather than redrawing silently. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
 export interface ServiceOptions {
   buildId?: string;
   publicUrl: string;
@@ -167,6 +168,14 @@ export function graphService(options: ServiceOptions) {
       case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "triangle": return resources.artifacts(source, format, signal);
     }
   });
+  const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
+  const diagrams = diagramTools({
+    graph: (s, signal) => result(s.envelope as GraphEnvelope, signal),
+    "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal),
+    "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
+    cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
+    "bar-model": resource, charts: resource, "probability-tree": resource, triangle: resource,
+  } satisfies Record<DiagramKind, ResultBuilder>);
   async function result(raw: GraphEnvelope, signal?: AbortSignal) {
     // Imported human graphs acquire the explicit portable profile on the server.
     const converted = raw.styleProfile !== "portable-v1";
@@ -269,112 +278,10 @@ export function graphService(options: ServiceOptions) {
     const server = new MathsDockMcpServer(
       { name: "Maths Booklet Tools", version: serverVersion(servicePackage.version, options.buildId) },
       {
-        instructions:
-          "Create and revise MathsDock booklet resources: coordinate graphs, ratio tables, quadratic/value graphs, cuboids, number lines, Venn diagrams, expanding/factorising algebra grids, bar models, probability trees, Triangle diagrams and statistical charts (bar, dual, composite and vertical line charts; not time series, frequency polygons or histograms). For a finalised two-sided A3 worksheet (the PRODUCE step), call create_worksheet with the whole document and report any layout issues it returns. For horizontal working fractions and 12mm-above/3mm-below handwriting space request spec.schemaVersion:3 explicitly, or upgrade_document{targetSchemaVersion:3} first on an older file. Explicit spec2 and bare legacy requests retain their original versions; upgrade_document without a target still means v1 to v2. V3 Maths captions stack simple a/b fractions; Plain text is explicit for dates/literal slashes, and ambiguity never silently falls back. Bar models retain one shared unit width and stable anchored spans; labels do not determine widths or calculate answers, and referenced deletions require explicit span removal or discard intent. Triangle preserves explicit labels, topology and saved answers; calculate only on request, never measure drawn proportions. Inspect the corresponding capabilities and use returned envelopes and contentHash for revisions. Do not use computer use to generate diagrams. Graph objects are points, segments and straight lines only. For new graphs, leave equationVisible false unless the user explicitly asks to print, show or label the equation on the diagram. Asking to plot an equation does not request its label. On revisions retain label visibility unless the user asks to change it. Always retain axis settings and unchanged objects. Preserve empty cells, answer lines, hidden answers and zero distinctly. Do not fill pupil answers or show worked calculations unless explicitly requested. Venn uses stable A/B/C masks; lossy layout changes require explicit discard intent, and answer exports retain the pupil source. Show the returned preview and real download/editor links. Do not claim files were retrieved or saved until that succeeds. Explain warnings and unsupported requests. If external SVG retrieval is blocked, the optional get_diagram_svg returns the same original SVG through bounded MCP chunks. Follow its byte-count, checksum and exact UTF-8 saving instructions with unchanged source/view before embedding. A local URL gate or DNS failure is not a MathsDock HTTP error. Do not silently redraw or claim that delivered chunks are a saved file or verified PDF.",
+        instructions: SERVER_INSTRUCTIONS,
       },
     );
-    const annotations = {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    };
-    server.registerTool(
-      "graph_capabilities",
-      {
-        description:
-          "Read supported graph objects, axes, limits and rendering version before choosing settings.",
-        inputSchema: z.object({}).strict(),
-        outputSchema: capabilitiesOutputSchema,
-        annotations,
-      },
-      async () => ({
-        structuredContent: {
-          rendererVersion: RENDERER_VERSION,
-          objects: ["point", "segment", "line"],
-          unitsPerSquare: [0.5, 1, 2],
-          squares: { x: [2, 18], y: [2, 26] },
-          maximumObjects: 50,
-          maximumRequestBytes: MAX_REQUEST_BYTES,
-          printDpi: 600,
-          defaultAxes: {
-            x: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
-            y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
-          },
-          revisionOperations: [
-            "add_object",
-            "replace_object",
-            "remove_object",
-            "set_axes",
-            "set_label",
-          ],
-        },
-        content: [
-          {
-            type: "text",
-            text: "One centimetre grid squares; points, segments and straight lines; SVG, PNG and editable JSON. No curves.",
-          },
-        ],
-      }),
-    );
-    const failure = (error: unknown) => ({
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({
-            code: error instanceof GraphError ? error.code : "render_failed",
-            message:
-              error instanceof GraphError
-                ? error.message
-                : "The graph could not be rendered. Try again or simplify the graph.",
-          }),
-        },
-      ],
-    });
-    server.registerTool(
-      "create_graph",
-      {
-        description:
-          "Create a coordinate graph using points, segments or straight lines. schemaVersion may be omitted (only 1 exists). Supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly requests a printed equation label; plotting y = 2x + 1 alone should return an unlabelled line. Returns image preview, editable document and download/editor links. Not for curves or arbitrary code.",
-        inputSchema: graphSpecSchema,
-        outputSchema: graphOutputSchema,
-        annotations,
-      },
-      async (args, extra) => {
-        try {
-          return await result(
-            createGraph(args),
-            AbortSignal.any([extra.signal, connectionSignal]),
-          );
-        } catch (error) {
-          return failure(error);
-        }
-      },
-    );
-    server.registerTool(
-      "revise_graph",
-      {
-        description:
-          "Revise the exact returned envelope using its contentHash as baseHash. Apply operations atomically. replace_object retains ID; set_label shows, hides or moves a line equation; set_axes sets both axes. An empty operations array refreshes download links. Also accepts human editable JSON; legacy font changes to portable with a warning.",
-        inputSchema: revisionSchema,
-        outputSchema: graphOutputSchema,
-        annotations,
-      },
-      async (args, extra) => {
-        try {
-          return await result(
-            await reviseGraph(args),
-            AbortSignal.any([extra.signal, connectionSignal]),
-          );
-        } catch (error) {
-          return failure(error);
-        }
-      },
-    );
-    ratios.register(server, connectionSignal);
-    values.register(server, connectionSignal);
-    resources.register(server, connectionSignal);
+    diagrams.register(server, connectionSignal);
     diagramOutputs.register(server, connectionSignal);
     worksheets.register(server, connectionSignal);
     return server;

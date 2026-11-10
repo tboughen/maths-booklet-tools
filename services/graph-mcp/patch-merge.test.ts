@@ -3,6 +3,7 @@
 // runs, so a patch schema that fills defaults resets saved values even if apply() merges carefully.
 import { afterEach, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -22,7 +23,7 @@ async function start() {
   const server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "patch-merge-synthetic-test-key-only-not-production" }, activeKey: "test" });
   servers.push(server);
   await new Promise<void>(r => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "patch-merge", version: "1" });
+  const client = withFamilyNames(new Client({ name: "patch-merge", version: "1" }));
   clients.push(client);
   await client.connect(new StreamableHTTPClientTransport(new URL(base + "/mcp")));
   return client;

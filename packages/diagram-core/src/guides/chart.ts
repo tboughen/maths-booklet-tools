@@ -1,5 +1,5 @@
-import * as chart from "../../packages/chart-core/src/index";
-import * as chi from "../../packages/chart-core/src/interchange";
+import * as chart from "../../../chart-core/src/index";
+import * as chi from "../../../chart-core/src/interchange";
 export const chartConfig = {
   kind: "charts" as const,
   name: "chart",

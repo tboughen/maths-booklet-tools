@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { packToken, unpackToken } from "./link-token";
 import { z } from "zod";
 import {
-  encodeRatio,
+  validateRatioEnvelope,
   decodeRatio,
   RatioError,
   RATIO_MAX_LINK_LENGTH,
@@ -16,7 +17,9 @@ const tokenSchema = z
     key: z.string().max(32),
     format: z.enum(["svg", "png", "json"]),
     expires: z.number().int(),
-    ratio: z.string().max(RATIO_MAX_LINK_LENGTH),
+    /** Old links carry the encoded file; new, compressed links carry the envelope itself. */
+    ratio: z.string().max(RATIO_MAX_LINK_LENGTH).optional(),
+    envelope: z.unknown().optional(),
   })
   .strict();
 export class RatioDownloads {
@@ -42,16 +45,14 @@ export class RatioDownloads {
   }
   link(envelope: RatioEnvelope, format: DownloadFormat, now = Date.now()) {
     const expires = Math.floor(now / 1000) + 7 * 24 * 60 * 60;
-    const token = Buffer.from(
-      JSON.stringify({
+    const token = packToken({
         v: 1,
         kind: "ratio-table",
         key: this.activeKey,
         format,
         expires,
-        ratio: encodeRatio(envelope),
-      }),
-    ).toString("base64url");
+        envelope,
+      });
     const url = new URL("/ratio-table/download", this.base);
     url.searchParams.set("token", token);
     url.searchParams.set(
@@ -83,7 +84,7 @@ export class RatioDownloads {
     let parsed: z.infer<typeof tokenSchema>;
     try {
       parsed = tokenSchema.parse(
-        JSON.parse(Buffer.from(token, "base64url").toString("utf8")),
+        unpackToken(token),
       );
     } catch {
       throw new RatioError(
@@ -110,6 +111,6 @@ export class RatioDownloads {
         "expired_download",
         "This download expired. Revise the saved table with no operations to refresh it.",
       );
-    return { envelope: decodeRatio(parsed.ratio), format: parsed.format };
+    return { envelope: parsed.envelope !== undefined ? validateRatioEnvelope(parsed.envelope) : decodeRatio(parsed.ratio ?? ""), format: parsed.format };
   }
 }

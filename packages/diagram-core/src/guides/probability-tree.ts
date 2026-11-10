@@ -1,5 +1,5 @@
-import * as tree from "../../packages/probability-tree-core/src/index";
-import * as ti from "../../packages/probability-tree-core/src/interchange";
+import * as tree from "../../../probability-tree-core/src/index";
+import * as ti from "../../../probability-tree-core/src/interchange";
 export const treeConfig = {
   kind: "probability-tree" as const,
   name: "probability_tree",

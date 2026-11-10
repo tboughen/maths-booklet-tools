@@ -1,6 +1,7 @@
 import { z } from "zod";
 import guide from "../../../docs/content/MATHS-RESOURCE-DESIGN-GUIDE.md?raw";
-import { resourceSchema, type Resource } from "../../../packages/resource-core/src/index";
+import { resolveDiagrams, resourceSchema, type Resource } from "../../../packages/resource-core/src/index";
+import { familiesFor, familyNotes } from "./families";
 import { treeDiagrams } from "../../../packages/resource-core/src/fixtures";
 
 /** What the teacher asks for. Only the objective is required. */
@@ -38,7 +39,12 @@ export function parseSubmission(input: unknown): Submission {
     const lines = r.error.issues.slice(0, 8).map((i) => `${i.path.join(".") || "input"}: ${i.message}`);
     throw new SubmissionError(lines.join("\n"));
   }
-  return r.data;
+  // Diagrams written as specs are built into envelopes now, so the page only ever holds envelopes.
+  try {
+    return { ...r.data, resource: resolveDiagrams(r.data.resource) };
+  } catch (e) {
+    throw new SubmissionError(e instanceof Error ? e.message : String(e));
+  }
 }
 export class SubmissionError extends Error {}
 
@@ -65,7 +71,7 @@ One two-sided A3 landscape worksheet in the MathsDock house style. The page rend
 - Body text is 11 pt and never shrinks. A column that is too full is reported to you with the millimetres needed: then move a card to another column, trim wording, or reduce working space. Never cut a question the plan needs just to make it fit; say so in flags instead.
 - Leave real room for working: "space" items with kind "working" for calculations and "drawing" for sketches and charts, sized for the work pupils actually do (typically 20 to 60 mm).
 - Use "info" items for shared information and key facts (a pale card), "claim" for a statement a pupil made that others check, "choice" for circle-one or tick-one, "answerLine" for a final answer with prefix and unit, "table" for data tables, "part" for lettered parts a, b, c.
-- Diagrams: "diagram" items carry a charts envelope (bar, comparative/dual, composite and vertical line charts) or a probability-tree envelope, following the schema exactly. Prefer a pre-drawn chart or tree with blanks over describing a diagram in words. A blank set of axes for pupils to draw on is a "space" item of kind "drawing".
+- Diagrams: "diagram" items are MathsDock diagrams, written as {"tool": kind, "spec": {...}} and built by the page. Each request lists the diagram families suited to it with their spec schemas; use only those, following the schema exactly. To keep an existing diagram unchanged, keep its {"tool", "envelope"} exactly as it is. Prefer a pre-drawn diagram with blanks over describing a diagram in words. A blank set of axes for pupils to draw on is a "space" item of kind "drawing".
 - Plain Unicode text only, with **bold** and *italic* as the only marks. Write maths with Unicode (×, ÷, −, ², √, ½, ≤). No HTML, no LaTeX.
 
 # Answers and blanks
@@ -105,6 +111,7 @@ export function firstRequest(b: Brief): string {
     `Year or tier: ${b.group.trim() || "(not given)"}`,
   ];
   if (b.context.trim()) lines.push(`Teacher's notes: ${b.context.trim()}`);
+  lines.push("", familyNotes(familiesFor(`${b.objective} ${b.context}`)));
   return lines.join("\n");
 }
 
@@ -117,5 +124,7 @@ export function changeRequest(current: Resource, request: string): string {
     `</current_worksheet>`,
     ``,
     `Teacher's request: ${request.trim()}`,
+    ``,
+    familyNotes(familiesFor(`${current.document.objective} ${request}`, current)),
   ].join("\n");
 }

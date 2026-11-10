@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -18,7 +19,7 @@ async function start(options: { dailyBytes?: number; renderTimeoutMs?: number; w
   const port = (reserve.address() as { port: number }).port; await new Promise<void>(r => reserve.close(() => r()));
   const base = `http://127.0.0.1:${port}`, server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "synthetic-svg-delivery-not-a-production-key" }, activeKey: "test", ...options });
   servers.push(server); await new Promise<void>(r => server.listen(port, "127.0.0.1", r));
-  const requests: string[] = [], client = new Client({ name: "restricted-original-svg-consumer", version: "1" }); clients.push(client);
+  const requests: string[] = [], client = withFamilyNames(new Client({ name: "restricted-original-svg-consumer", version: "1" })); clients.push(client);
   await client.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`), { fetch: async (url, init) => {
     const target = new URL(url instanceof Request ? url.url : String(url));
     if (target.pathname !== "/mcp") throw Error("Simulated restricted consumer cannot fetch artifact URLs.");
@@ -123,7 +124,7 @@ describe("real MCP SVG delivery with artifact downloads disabled in the consumer
     const wrong = await client.callTool({ name: "get_diagram_svg", arguments: { kind: "venn", envelope: a.envelope, outputView: "answer", expectedSvgSha256: pupil.svgSha256 } });
     expect(wrong.isError).toBe(true); expect(JSON.stringify(wrong.content)).toContain("svg_hash_mismatch");
   }, 30000);
-  it("reconstructs a maximum-object graph exactly when its ordinary links are too long", async () => {
+  it("reconstructs a maximum-object graph exactly through bounded chunks", async () => {
     const { client } = await start();
     const created = await client.callTool({ name: "create_graph", arguments: {
       schemaVersion: 1, objects: Array.from({ length: 50 }, (_, i) => ({
@@ -131,10 +132,10 @@ describe("real MCP SVG delivery with artifact downloads disabled in the consumer
       })),
     } });
     expect(created.isError).not.toBe(true);
-    const data = created.structuredContent as { envelope: SvgDeliveryInput["envelope"]; contentHash: string; downloads: Record<string, unknown> };
-    expect(data.downloads).toEqual({});
-    const original = (created.content as Array<{ type: string; resource?: { mimeType: string; text?: string } }>).find(c => c.resource?.mimeType === "image/svg+xml")?.resource?.text;
-    expect(original).toBeTypeOf("string");
+    const data = created.structuredContent as { envelope: SvgDeliveryInput["envelope"]; contentHash: string; downloads: Record<string, { url: string }> };
+    // Compressed links fit even the largest graph; the chunked route must return the same bytes.
+    const original = await (await fetch(data.downloads.svg.url)).text();
+    expect(original).toMatch(/^<svg/);
     const result = await receiveSvg(i => call(client, i), { kind: "graph", envelope: data.envelope }, { expectedSourceContentHash: data.contentHash });
     expect(result.body).toEqual(Buffer.from(original!, "utf8"));
     expect(result.chunks).toBeGreaterThan(1);

@@ -5,7 +5,7 @@ service deployment, plugin guidance, actual chat discovery and saved-file use ar
 separate stages. Follow `docs/release/MCP-CONNECTOR-ACCEPTANCE.md`, including the historical
 ratio schema-import defect and the later unexplained SVG catalogue delay.
 
-Three added names: `triangle_capabilities`, `create_triangle`, `revise_triangle`.
+Three added names: `diagram_capabilities` (kind `triangle`), `create_diagram` (kind `triangle`), `revise_diagram` (kind `triangle`).
 Only invoke them when actually discovered. Existing 33 names remain; the complete
 catalogue has 36. The generic placement, bundle and original-SVG tools gain kind
 `triangle`. These instructions alone do not deploy a service or import any tools.

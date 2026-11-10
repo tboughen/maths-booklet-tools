@@ -1,10 +1,8 @@
 import { z } from "zod";
-import { GraphError, validateEnvelope, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
+import { GraphError, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { getExportMetrics, graphPrintFacts } from "../../packages/graph-core/src/svg";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
-import { validateRatioEnvelope } from "../../packages/ratio-table-core/src/interchange";
 import { ratioMetrics, ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
-import { validate as validateValue } from "../../packages/value-graph-core/src/model";
 import { metrics, valuePrintFacts } from "../../packages/value-graph-core/src/svg";
 import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
 import * as cuboid from "../../packages/cuboid-core/src/index";
@@ -14,7 +12,7 @@ import * as venn from "../../packages/venn-core/src/index";
 import * as bar from "../../packages/bar-model-core/src/versioned";
 import * as algebra from "../../packages/algebra-grid-core/src/index";
 import { printFacts as algebraPrintFacts } from "../../packages/algebra-grid-core/src/interchange";
-import { assertPrintable, printFacts as vennPrintFacts } from "../../packages/venn-core/src/interchange";
+import { printFacts as vennPrintFacts } from "../../packages/venn-core/src/interchange";
 import * as chart from "../../packages/chart-core/src/index";
 import { printFacts as chartPrintFacts } from "../../packages/chart-core/src/interchange";
 import * as tree from "../../packages/probability-tree-core/src/index";
@@ -22,8 +20,9 @@ import { printFacts as treePrintFacts } from "../../packages/probability-tree-co
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
+import { FAMILIES, describeIssues, diagramKindSchema } from "../../packages/diagram-core/src/registry";
 
-export const diagramKind = z.enum(["graph", "ratio-table", "value-graph", "cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "triangle"]);
+export const diagramKind = diagramKindSchema;
 export type DiagramKind = z.infer<typeof diagramKind>;
 // The outer discovery schema is homogeneous; each core validates the exact envelope.
 export const diagramSourceSchema = z.object({
@@ -49,27 +48,12 @@ export type DiagramSource =
 export function diagramSource(raw: unknown): DiagramSource {
   try {
     const s = diagramSourceSchema.parse(raw);
-    if (s.outputView !== undefined && s.kind !== "venn" && s.kind !== "charts" && s.kind !== "probability-tree") throw Error("outputView applies only to Venn diagrams, charts and probability trees.");
-    switch (s.kind) {
-      case "bar-model": { const envelope=bar.validate(s.envelope);const issue=bar.exportIssue(envelope);if(issue)throw Error(issue);return {kind:s.kind,envelope}; }
-      case "charts": { const envelope=chart.validate(s.envelope);const issue=chart.exportIssue(chart.forView(envelope, s.outputView ?? "pupil"));if(issue)throw Error(issue);return {kind:s.kind,envelope,...(s.outputView === undefined ? {} : { outputView: s.outputView })}; }
-      case "triangle": { const envelope = triangle.validate(s.envelope);ti.assertPrintable(envelope);return {kind:s.kind,envelope}; }
-      case "algebra-grid": { const envelope=algebra.validate(s.envelope);const issue=algebra.exportIssue(envelope);if(issue)throw Error(issue);return {kind:s.kind,envelope}; }
-      case "probability-tree": { const envelope = tree.validate(s.envelope); const issue = tree.exportIssue(tree.forView(envelope, s.outputView ?? "pupil")); if (issue) throw Error(issue); return { kind: s.kind, envelope, ...(s.outputView === undefined ? {} : { outputView: s.outputView }) }; }
-      case "graph": return { kind: s.kind, envelope: validateEnvelope(s.envelope, true) };
-      case "ratio-table": {
-        const envelope = validateRatioEnvelope(s.envelope);
-        // Layout validation is also required before publishing physical facts.
-        ratioMetrics(envelope.document);
-        return { kind: s.kind, envelope };
-      }
-      case "value-graph": return { kind: s.kind, envelope: validateValue(s.envelope) };
-      case "cuboids": { const envelope = cuboid.validate(s.envelope); cuboid.renderSvg(envelope); return { kind: s.kind, envelope }; }
-      case "number-line": return { kind: s.kind, envelope: numberLine.validate(s.envelope) };
-      case "venn": { const envelope = venn.validate(s.envelope); assertPrintable(venn.forView(envelope, s.outputView ?? "pupil")); return { kind: s.kind, envelope, ...(s.outputView === undefined ? {} : { outputView: s.outputView }) }; }
-    }
+    const family = FAMILIES[s.kind];
+    if (s.outputView !== undefined && !family.answerView) throw Error("outputView applies only to Venn diagrams, charts and probability trees.");
+    const envelope = family.validate(s.envelope, s.outputView ?? "pupil");
+    return { kind: s.kind, envelope, ...(s.outputView === undefined ? {} : { outputView: s.outputView }) } as DiagramSource;
   } catch (error) {
-    throw new GraphError("invalid_diagram", `Use a supported ${String((raw as {kind?: unknown})?.kind ?? "diagram")} envelope: ${error instanceof Error ? error.message : "invalid source"}`);
+    throw new GraphError("invalid_diagram", `Use a supported ${String((raw as {kind?: unknown})?.kind ?? "diagram")} envelope: ${describeIssues(error) ?? (error instanceof Error ? error.message : "invalid source")}`);
   }
 }
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {

@@ -1,5 +1,5 @@
-import * as algebra from "../../packages/algebra-grid-core/src/index";
-import * as ai from "../../packages/algebra-grid-core/src/interchange";
+import * as algebra from "../../../algebra-grid-core/src/index";
+import * as ai from "../../../algebra-grid-core/src/interchange";
 export const algebraConfig = {
   kind: "algebra-grid" as const,
   name: "algebra_grid",

@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { packToken, unpackToken } from "./link-token";
 import { z } from "zod";
 import {
   decodeEnvelope,
-  encodeEnvelope,
   GraphError,
   MAX_LINK_LENGTH,
   validateEnvelope,
@@ -14,7 +14,9 @@ const tokenSchema = z
     key: z.string().max(32),
     format: z.enum(["svg", "png", "json"]),
     expires: z.number().int(),
-    graph: z.string().max(MAX_LINK_LENGTH),
+    /** Old links carry the encoded file; new, compressed links carry the envelope itself. */
+    graph: z.string().max(MAX_LINK_LENGTH).optional(),
+    envelope: z.unknown().optional(),
   })
   .strict();
 export type DownloadFormat = z.infer<typeof tokenSchema>["format"];
@@ -43,15 +45,13 @@ export class Downloads {
     now = Date.now(),
   ): { url: string; expiresAt: string } {
     const expires = Math.floor(now / 1000) + 7 * 24 * 60 * 60;
-    const token = Buffer.from(
-      JSON.stringify({
+    const token = packToken({
         v: 1,
         key: this.activeKey,
         format,
         expires,
-        graph: encodeEnvelope(envelope),
-      }),
-    ).toString("base64url");
+        envelope,
+      });
     const url = new URL("/download", this.base);
     url.searchParams.set("token", token);
     url.searchParams.set(
@@ -80,7 +80,7 @@ export class Downloads {
     let parsed: ReturnType<typeof tokenSchema.parse>;
     try {
       parsed = tokenSchema.parse(
-        JSON.parse(Buffer.from(token, "base64url").toString("utf8")),
+        unpackToken(token),
       );
     } catch {
       throw new GraphError("invalid_download", "The download link is invalid.");
@@ -105,7 +105,7 @@ export class Downloads {
         "This download link has expired. Re-render the saved graph to refresh it.",
       );
     return {
-      envelope: validateEnvelope(decodeEnvelope(parsed.graph), true),
+      envelope: validateEnvelope(parsed.envelope !== undefined ? parsed.envelope : decodeEnvelope(parsed.graph ?? ""), true),
       format: parsed.format,
     };
   }

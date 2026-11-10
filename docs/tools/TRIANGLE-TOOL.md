@@ -5,8 +5,8 @@ labelled a, b and c opposite A, B and C (improvement list U77). Angles stay
 blank and no lengths are given. Saved diagrams, links, files and recovery are
 unchanged; a diagram that needs recovery still opens unlabelled.
 
-The MCP connector tools (`triangle_capabilities`, `create_triangle`,
-`revise_triangle`) are described in [Triangle MCP](TRIANGLE-MCP.md). They share
+The MCP connector tools (`diagram_capabilities` (kind `triangle`), `create_diagram` (kind `triangle`),
+`revise_diagram` (kind `triangle`)) are described in [Triangle MCP](TRIANGLE-MCP.md). They share
 this editor's core, links and calculation contexts.
 
 ## Wedge and area refinement, 17 October 2026 (local review)

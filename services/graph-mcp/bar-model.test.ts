@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
@@ -32,7 +33,7 @@ async function start() {
   });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "bar-qualification", version: "1" });
+  const client = withFamilyNames(new Client({ name: "bar-qualification", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(base + "/mcp")),
@@ -62,29 +63,12 @@ it("advertises complete bar schemas with homogeneous arrays and preserves named 
   const names = tools.map((t) => t.name);
   const instructions = client.getInstructions();
   expect(instructions).toContain("bar models");
-  expect(instructions).toContain("one shared unit width");
-  expect(instructions).toContain("Do not fill pupil answers");
-  expect(instructions).toContain("Do not silently redraw");
-  for (const family of [
-    "graph",
-    "ratio_table",
-    "value_graph",
-    "cuboid",
-    "number_line",
-    "venn",
-    "algebra_grid",
-    "bar_model",
-  ])
-    for (const name of [
-      `${family}_capabilities`,
-      `create_${family}`,
-      `revise_${family}`,
-    ])
-      expect(names).toContain(name);
-  expect(names.filter((n) => n.includes("bar_model")).sort()).toEqual([
-    "bar_model_capabilities",
-    "create_bar_model",
-    "revise_bar_model",
+  expect(instructions).toContain("never fill, calculate or reveal answers");
+  expect(instructions).toContain("rather than redrawing silently");
+  expect(names.filter((n) => n.endsWith("_diagram") || n === "diagram_capabilities").sort()).toEqual([
+    "create_diagram",
+    "diagram_capabilities",
+    "revise_diagram",
   ]);
   function check(v: unknown) {
     if (!v || typeof v !== "object") return;
@@ -107,6 +91,10 @@ it("advertises complete bar schemas with homogeneous arrays and preserves named 
     arguments: {},
   });
   expect(JSON.stringify(cap.content)).toContain("discardSpans");
+  expect(JSON.stringify(cap.content)).toContain("one shared unit width");
+  const data = cap.structuredContent as { specSchema: unknown; operationsSchema: unknown };
+  check(data.specSchema);
+  check(data.operationsSchema);
 });
 it("creates, downloads and revises exact saved resources with native print facts", async () => {
   const client = await start(),

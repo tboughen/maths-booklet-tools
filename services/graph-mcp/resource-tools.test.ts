@@ -1,16 +1,19 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
 import { unzipSync } from "fflate";
 import { graphService } from "./server";
 import { ResourceDownloads } from "./resource-downloads";
+import { packToken, unpackToken } from "./link-token";
 import { diagramSource } from "./diagram-source";
 import { createVenn } from "../../packages/venn-core/src/interchange";
 import { createCuboid } from "../../packages/cuboid-core/src/interchange";
 import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
+import { GraphError } from "../../packages/graph-core/src/interchange";
 import { RasterQueue } from "./raster";
 const key = "synthetic-six-tools-test-only-not-a-production-key";
 const servers: Server[] = [],
@@ -35,7 +38,7 @@ async function start() {
     });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
-  const client = new Client({ name: "six-tool-acceptance", version: "1" });
+  const client = withFamilyNames(new Client({ name: "six-tool-acceptance", version: "1" }));
   clients.push(client);
   await client.connect(
     new StreamableHTTPClientTransport(new URL(`${base}/mcp`)),
@@ -127,19 +130,20 @@ const cases = [
   },
 ];
 describe("three new families through actual MCP/HTTP", () => {
-  it("discovers twenty-one tools with typed operations, bounded homogeneous arrays and no tuple items", async () => {
+  it("discovers typed operations, bounded homogeneous arrays and no tuple items for each family", async () => {
     const { client } = await start(),
       tools = (await client.listTools()).tools;
-    expect(tools).toHaveLength(38);
+    const revise = tools.find((t) => t.name === "revise_diagram")!;
+    expect(revise.inputSchema.properties).toHaveProperty("operations");
     for (const c of cases) {
-      const tool = tools.find((t) => t.name === `revise_${c.name}`)!;
-      expect(tool.inputSchema.properties).toHaveProperty("operations");
-      expect(JSON.stringify(tool.inputSchema)).not.toContain('"prefixItems"');
       const cap = await client.callTool({
         name: `${c.name}_capabilities`,
         arguments: {},
       });
       expect(cap.isError).not.toBe(true);
+      const data = cap.structuredContent as { operationsSchema: unknown };
+      expect(JSON.stringify(data.operationsSchema)).toContain('"op"');
+      expect(JSON.stringify(data.operationsSchema)).not.toContain('"prefixItems"');
     }
   });
   it.each(cases)(
@@ -276,14 +280,9 @@ describe("three new families through actual MCP/HTTP", () => {
       JSON.parse(Buffer.from(zip["print-info.json"]).toString()).outputView,
     ).toBe("answer");
     const url = new URL(answer.downloads.svg.url);
-    const token = JSON.parse(
-      Buffer.from(url.searchParams.get("token")!, "base64url").toString(),
-    );
+    const token = unpackToken(url.searchParams.get("token")!) as { source: { outputView: string } };
     token.source.outputView = "pupil";
-    url.searchParams.set(
-      "token",
-      Buffer.from(JSON.stringify(token)).toString("base64url"),
-    );
+    url.searchParams.set("token", packToken(token));
     expect((await fetch(url)).status).toBe(400);
   }, 30000);
   it("signs family, source, format, view, expiry and keys; retains previous keys", () => {
@@ -309,6 +308,9 @@ describe("three new families through actual MCP/HTTP", () => {
   });
   it("uses bounded inline files for a large complete UTF-8 Venn resource", async () => {
     const { client } = await start();
+    // Compressed links now fit this source, so force the long-link path to check the inline files.
+    const spy = vi.spyOn(ResourceDownloads.prototype, "link").mockImplementation(() => { throw new GraphError("size_limit", "Test: link too long."); });
+    onTestFinished(() => spy.mockRestore());
     const e = createVenn({ spec: { sets: 3, widthCm: 16, fontPt: 9 } });
     // Hidden text is retained without compromising print layout, and is large enough for signed URLs to fall back.
     e.document.definitions = Array.from({ length: 4 }, () => "定".repeat(100));
