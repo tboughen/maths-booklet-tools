@@ -47,6 +47,17 @@ export function evalArgs(pluginDir, opts, outDir) {
   return args;
 }
 
+/** Copies the plugin to `dir` with its connector pointed at a local service origin. */
+export function localPlugin(dir, target) {
+  const pluginDir = join(dir, 'mathsdock-claude');
+  cpSync(join(root, PLUGIN_DIR), pluginDir, { recursive: true, filter: p => !p.includes('/evals/results') });
+  writeFileSync(join(pluginDir, '.mcp.json'), JSON.stringify({ mcpServers: { mathsdock: { type: 'http', url: `${target}/mcp` } } }, null, 2) + '\n');
+  return pluginDir;
+}
+
+/** The runner's exit code: the CLI's exit 2 (cost ceiling reached) still produced a summary. */
+export const exitCode = status => (status === 2 ? 0 : status ?? 1);
+
 /** A Markdown summary of a `claude plugin eval --json` result. */
 export function summary(result, opts) {
   // A case passes only when every check in every run passed (the CLI's own count uses --threshold).
@@ -69,9 +80,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   let pluginDir = join(root, PLUGIN_DIR), temp = null;
   if (opts.target !== 'live') {
     temp = mkdtempSync(join(tmpdir(), 'mathsdock-evals-'));
-    pluginDir = join(temp, 'mathsdock-claude');
-    cpSync(join(root, PLUGIN_DIR), pluginDir, { recursive: true, filter: p => !p.includes('/evals/results') });
-    writeFileSync(join(pluginDir, '.mcp.json'), JSON.stringify({ mcpServers: { mathsdock: { type: 'http', url: `${opts.target}/mcp` } } }, null, 2) + '\n');
+    pluginDir = localPlugin(temp, opts.target);
   }
   const run = spawnSync(process.env.CLAUDE_BIN || 'claude', evalArgs(pluginDir, opts, outDir), { stdio: 'inherit' });
   if (temp) rmSync(temp, { recursive: true, force: true });
@@ -85,5 +94,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text);
   console.log(text);
   // Exit 2 from the CLI means the cost ceiling stopped the run; the summary already says so.
-  process.exit(run.status === 2 ? 0 : run.status ?? 1);
+  process.exit(exitCode(run.status));
 }

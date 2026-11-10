@@ -15,7 +15,7 @@ chat may be needed.
 
 ## Pick the family, then read its capabilities
 
-The connector has three diagram tools that work for every family:
+Current connector builds have three diagram tools that work for every family:
 
 1. `diagram_capabilities` with no `kind` lists the families. With `kind`, it returns that
    family's limits, guidance and the JSON Schemas for its `spec` and revision `operations`.
@@ -38,8 +38,10 @@ The connector has three diagram tools that work for every family:
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 
-If this connection still shows older per-family tools instead (`graph_capabilities`,
-`create_graph`, `revise_graph` and so on), use them the same way; everything below still applies.
+Older builds have per-family tools instead (`graph_capabilities`, `create_graph`,
+`revise_graph`, `venn_capabilities` and so on). Use whichever set this conversation
+discovered, in the same way: read the family's capabilities, then create or revise.
+Everything below applies to both.
 
 What the connector cannot draw: curves on the coordinate `graph` (use `value-graph` for
 quadratics), time series, frequency polygons and histograms. Say so plainly. Never present
@@ -63,6 +65,8 @@ alternative only if the teacher wants one.
 - Coordinate graphs: leave `equationVisible` false unless the teacher asks to print or label
   the equation. "Plot y = 2x + 1" does not ask for a label. On revisions keep label
   visibility, axes and unchanged objects.
+- A worked or answer copy is a separate document made only on request (for example the
+  `worked_copy` operation). Never replace or overwrite the pupil source to make one.
 - Keep teacher-entered numbers, labels, headings and deliberate mistakes. Explain warnings;
   do not silently correct the exercise or add warnings to the pupil diagram.
 - Keep pupil names, school details and credentials out of every request.
@@ -80,20 +84,27 @@ expected: fix that field and try once more rather than guessing a different payl
 
 - **Bar models.** Request `spec.schemaVersion: 3` for new models: horizontal a/b fractions
   in Maths captions and handwriting space of 12 mm above and 3 mm below each answer line.
-  Plain text captions are only for dates and literal slashes. All bars share one unit
-  width; labels never change widths. Saved v1 and v2 files keep their version until the
-  teacher asks to upgrade. See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
+  Answer lines inside bars need actual uniform bars of at least 20 mm; the stored
+  `barHeightMm` (8 to 24) is only a minimum. Plain text captions are only for dates and
+  literal slashes; ambiguous or nested fractions fail rather than fall back. All bars
+  share one unit width; labels never change widths. Never shrink fonts, resize bars
+  horizontally or upgrade automatically to make text fit. A bare request without a
+  version stays v1 and an explicit v2 spec stays v2; saved v1 and v2 files keep their
+  version until the teacher asks for `upgrade_document`. See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
   [Bar-model MCP](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-MCP.md).
 - **Ratio tables.** One scaling transition applies across every column. Keep that shared
   factor and its copies.
 - **Value graphs.** Keep blank, answer-line and zero cells distinct, hidden labels and any
   deliberate plotting errors. Calculating cells and worked plots are explicit actions.
 - **Cuboids.** Dimension edits respect cube locking; enabling it needs an explicit
-  `referenceAxis`. Worked volume and area are teaching choices the teacher makes.
+  `referenceAxis`. Unit changes convert the existing object. Worked volume and area are
+  teaching choices the teacher makes. Keep the returned crop size; layout width is not
+  necessarily the exported image width.
 - **Number lines.** Keep filled or hollow endpoints, rays, joins, hidden solutions and tick
   answer lines as requested. Never extend the axis or delete points to make an edit valid.
 - **Venn.** Membership masks are stable: 0 outside, A = 1, B = 2, C = 4. Renaming a set
-  never changes membership. Never merge region values.
+  never changes membership. Never merge region values. The answer view keeps the same
+  pupil envelope and hash; it is a different rendering, not a different document.
 - **Algebra grids.** Integer terms in x, explicit signs, true blanks and hidden answers.
   See [Algebra grid MCP](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/ALGEBRA-GRID-MCP.md).
 - **Charts.** See the [charts guide](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/CHARTS-TOOL.md).
@@ -103,10 +114,15 @@ expected: fix that field and try once more rather than guessing a different payl
 
 ## Worksheets
 
-For a finished two-sided A3 worksheet (the PRODUCE step of the Maths Resource Design Guide),
-read `worksheet_capabilities` once, then call `create_worksheet` with the whole document.
-Report any layout issues it returns. Keep requests lean: build the worksheet in one call
-rather than many small attempts, because each call costs the teacher time and tokens.
+Worksheets follow the Maths Resource Design Guide's three stages. PLAN agrees the
+objectives, question sequence, scaffold fading and working space with the teacher.
+FINALISE checks every question's mathematics and wording and gets the teacher's
+agreement. Only then is PRODUCE: read `worksheet_capabilities` once and call
+`create_worksheet` with the whole finalised document. Do not jump from an informal
+request straight to PRODUCE; agree the plan first. After PRODUCE, report every layout
+issue the tool returns and look at the returned pages before calling the worksheet
+finished. Build it in one call rather than many small attempts, because each call costs
+the teacher time and tokens.
 
 ## Files and links
 
@@ -119,11 +135,20 @@ rather than many small attempts, because each call costs the teacher time and to
   resize does to print size. `download_diagram_bundle` (kind, envelope) gives one ZIP with
   JSON, SVG, print PNG and a README. Call it again with the saved source to refresh an
   expired link.
-- If an SVG URL cannot be fetched, `get_diagram_svg` returns the same SVG in checked
-  chunks: start without `offsetBytes`, continue with `nextOffsetBytes`, verify each
-  `chunkSha256` and the final `svgSha256`, and save the decoded text exactly. See
+- Service SVG is vector artwork with outlined lettering. `printVerified` checks the PNG,
+  not a downstream document or printer.
+- If an SVG URL cannot be fetched, `get_diagram_svg` (kind and the unchanged envelope)
+  returns the same SVG in checked chunks. Start without `offsetBytes`, then continue with
+  `nextOffsetBytes` and `expectedSvgSha256` from the first result, keeping source and
+  `outputView` unchanged. Check that offsets are contiguous, each `chunkSha256` matches,
+  and `rendererVersion`, `sourceContentHash`, `physicalSizeCm`, `totalBytes` and
+  `svgSha256` stay the same; reject missing, repeated or changed chunks. Use a smaller
+  `maxChunkBytes` if a response would exceed 256 KiB, and never retry without limit. The
+  last chunk has `complete: true`. Save the decoded text exactly (UTF-8, no BOM, no added
+  newline), check the byte count and hash, and parse it as SVG before using it.
+  `complete` means delivered, not saved. See
   [direct SVG delivery](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/DIRECT-SVG-DELIVERY.md).
 - Do not say a file was saved, downloaded, pasted into Word or printed unless that actually
   happened. A returned link is not a saved file. Editable files and links can contain
   hidden answers, so treat them as teacher copies.
-- The connector is always on; if a call times out, retry once and then tell the teacher.
+- If a call times out, retry once, then tell the teacher.

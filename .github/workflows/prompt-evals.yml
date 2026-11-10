@@ -2,8 +2,10 @@ name: Prompt evals
 # Runs the teacher-prompt evals for the MathsDock Claude plugin (scripts/evals/, wave 4 lane C2)
 # with `claude plugin eval`. It spends API credit from the judges' key (about $3 a run on Sonnet
 # 5.5, counted against the loop's monthly cap in scripts/loop/config.json), so it runs only when
-# someone starts it, typically before an MCP deploy. It never runs on a schedule or a pull request.
-# The same evals can run from a Claude Code session on Tim's plan instead: node scripts/evals/run.mjs
+# someone starts it, typically before an MCP deploy. It never runs on a schedule or a pull request,
+# and only on main, so the key never reaches unreviewed code. The ceiling is at most $3, the figure
+# spend.mjs counts per run. To evaluate a branch, run node scripts/evals/run.mjs from a Claude Code
+# session instead (Tim's plan, no API key).
 on:
   workflow_dispatch:
     inputs:
@@ -19,7 +21,9 @@ on:
         description: Case name glob (blank for all)
         default: ''
       max_cost_usd:
-        description: Hard spending ceiling for this run, in dollars (at most 20)
+        description: Hard spending ceiling for this run, in dollars
+        type: choice
+        options: ['1', '3']
         default: '3'
 permissions:
   contents: read
@@ -31,6 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Require main
+        env:
+          REF: ${{ github.ref }}
+        run: test "$REF" = refs/heads/main
       - uses: actions/checkout@v7
         with:
           persist-credentials: false

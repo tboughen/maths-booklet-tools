@@ -3,9 +3,12 @@
 // never spends without a ceiling.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS } from '../evals/cases.mjs';
-import { options, evalArgs, summary } from '../evals/run.mjs';
+import { options, evalArgs, summary, localPlugin, exitCode } from '../evals/run.mjs';
+import { CONFIG } from '../loop/preflight.mjs';
 
 test('the committed case folders are current; rerun node scripts/evals/cases.mjs if not', () => {
   for (const [path, text] of Object.entries(caseFiles())) assert.equal(readFileSync(path, 'utf8'), text, path);
@@ -74,4 +77,25 @@ test('the summary counts a case as passed only when every check passed', () => {
   assert.match(text, /1 of 2 cases passed/);
   assert.match(text, /\$1\.23/);
   assert.match(text, /\| b \| 0\.50 \| y \|/);
+});
+
+test('a local target evaluates a copy of the plugin pointed at that service, never the live one', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'evals-test-'));
+  try {
+    const plugin = localPlugin(dir, 'http://127.0.0.1:8787');
+    assert.deepEqual(JSON.parse(readFileSync(join(plugin, '.mcp.json'), 'utf8')), { mcpServers: { mathsdock: { type: 'http', url: 'http://127.0.0.1:8787/mcp' } } });
+    assert.ok(readFileSync(join(plugin, 'skills/mathsdock-diagrams/SKILL.md'), 'utf8').startsWith('---\nname: mathsdock-diagrams'));
+    assert.ok(readFileSync('plugins/mathsdock-claude/.mcp.json', 'utf8').includes('onrender.com'), 'the committed plugin is unchanged');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+  assert.equal(exitCode(0), 0);
+  assert.equal(exitCode(2), 0, 'stopped at the ceiling, summary written');
+  assert.equal(exitCode(1), 1);
+  assert.equal(exitCode(null), 1, 'killed by a signal');
+});
+
+test('the workflow runs only on main and never spends more per run than the loop cap counts', () => {
+  const yml = readFileSync('.github/workflows/prompt-evals.yml', 'utf8');
+  assert.match(yml, /test "\$REF" = refs\/heads\/main/);
+  const choices = yml.match(/max_cost_usd:[\s\S]*?options: \[([^\]]*)\]/)[1].split(',').map(v => Number(v.replace(/'/g, '')));
+  assert.ok(choices.length && choices.every(v => v > 0 && v <= CONFIG.spendEstimateUSD.promptEvalRun), String(choices));
 });

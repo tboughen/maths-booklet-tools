@@ -34,10 +34,11 @@ They spend credit, so they only run when someone starts them, usually before an 
   `node scripts/evals/run.mjs` for the live connector, or build and start the service
   (`npm run build:service`, then `DOWNLOAD_SIGNING_KEY=<32+ characters> node service-dist/cli.js`)
   and run `node scripts/evals/run.mjs --target=http://127.0.0.1:8787` to test a branch.
-- From GitHub: run the **Prompt evals** workflow. It uses the judges' API key, defaults to
-  this commit's service built in the job, and stops at a $3 ceiling. Each run counts
-  against the loop's monthly cap (`scripts/loop/config.json`).
+- From GitHub: run the **Prompt evals** workflow on main. It uses the judges' API key,
+  defaults to main's service built in the job, and stops at a $1 or $3 ceiling. Each run
+  counts as $3 against the loop's monthly cap (`scripts/loop/config.json`). Branches are
+  evaluated from a Claude Code session instead.
 
 Options: `--model=` (default `claude-sonnet-5-5`), `--runs=` (1 to 5), `--case=<glob>`,
-`--tag=temptation`, `--max-cost-usd=` (default 3, at most 20). The summary lists failed
+`--tag=temptation`, `--max-cost-usd=` (default 3, at most 20 when run by hand on a plan). The summary lists failed
 checks per case; `result.json` and `report.html` hold the details.

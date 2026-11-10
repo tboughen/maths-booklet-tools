@@ -7,8 +7,8 @@ It follows the same evidence rules as [MCP connector acceptance](MCP-CONNECTOR-A
 A step counts as working only when it has been tried on that surface. This is
 improvement-list items M45 to M48, M50, M72 and M73.
 
-Since 10 November 2026 the service runs on an always-on Render instance, so there is
-no cold start to wait for.
+Since 10 November 2026 the service runs on Render's always-on Starter instance (Tim's
+change), so there is no cold start to wait for.
 
 ## claude.ai and Claude Desktop
 
@@ -57,8 +57,8 @@ needs Tim's go-ahead.
 connector together, including requests that tempt the assistant to fill in or reveal
 answers. They run with `claude plugin eval` against the real connector and only when
 someone starts them, before an MCP deploy: `node scripts/evals/run.mjs` from a Claude
-Code session (Claude plan), or the **Prompt evals** workflow (judges' API key, about $3 a
-run, $3 ceiling). See the [evals README](../../plugins/mathsdock-claude/evals/README.md).
+Code session (Claude plan), or the **Prompt evals** workflow on main (judges' API key,
+about $2.60 a run, $3 ceiling). See the [evals README](../../plugins/mathsdock-claude/evals/README.md).
 
 ## After an MCP deploy
 
