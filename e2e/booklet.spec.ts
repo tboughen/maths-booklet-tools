@@ -54,8 +54,8 @@ test("shows the example booklet with a contents page, edits a lesson title and u
 });
 
 test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) => {
-  // Two whole-booklet PDFs and a lesson PDF are written in the browser; slower on CI runners.
-  test.setTimeout(120_000);
+  // A whole-booklet PDF and a lesson PDF are written in the browser.
+  test.setTimeout(60_000);
   await boot(page, a7Booklet);
   const [pupil] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Pupil PDF" }).click()]);
   expect(pupil.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Booklet_A4.pdf");
@@ -69,7 +69,9 @@ test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) 
   expect(bytes.toString("latin1")).not.toContain("/Subtype /Image");
 
   await page.locator("details.bk-lesson").nth(1).locator(":scope > summary").click();
-  const [lesson] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Lesson PDF" }).first().click()]);
+  // The pinned Chromium exposes buttons inside a closed lesson to role queries, so name the lesson.
+  const lessonPdf = page.getByRole("group", { name: "Lesson 2" }).getByRole("button", { name: "Lesson PDF" });
+  const [lesson] = await Promise.all([page.waitForEvent("download"), lessonPdf.click()]);
   expect(lesson.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Lesson 2_A4.pdf");
   await lesson.saveAs(resolve(out, "lesson.pdf"));
   expect((await PDFDocument.load(readFileSync(resolve(out, "lesson.pdf")))).getPageCount()).toBe(7);
