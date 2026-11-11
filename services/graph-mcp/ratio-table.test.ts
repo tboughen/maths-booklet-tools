@@ -336,6 +336,35 @@ describe("ratio tools on the shared real MCP service", () => {
     });
     expect(data.description).not.toContain("2/3");
   }, 15000);
+  it("serves the pupil and answers copies of hidden answers through create_diagram and signed links", async () => {
+    const { client } = await start();
+    const spec = { columns: ["x →", "y ↓"], table: [["2", "6"], ["1", "[37]"]], steps: ["[÷ 2]"] };
+    const copies: Record<string, { description: string; svg: string; name: string | null }> = {};
+    for (const view of ["pupil", "answer"] as const) {
+      const reply = await client.callTool({
+        name: "create_diagram",
+        arguments: { kind: "ratio-table", spec, ...(view === "answer" ? { outputView: view } : {}) },
+      });
+      expect(reply.isError).not.toBe(true);
+      const data = reply.structuredContent as Output & { outputView: string; summary: string };
+      expect(data.outputView).toBe(view);
+      // The envelope stays the pupil source in both.
+      expect(data.envelope.document.rows[1].cells[1]).toEqual({ kind: "hidden", value: "37" });
+      const response = await fetch(data.downloads.svg.url);
+      expect(response.status).toBe(200);
+      copies[view] = {
+        description: data.summary,
+        svg: (await response.text()).toLowerCase(),
+        name: response.headers.get("content-disposition"),
+      };
+    }
+    expect(copies.pupil.description).not.toContain("37");
+    expect(copies.answer.description).toContain("37");
+    expect(copies.pupil.svg).not.toContain("#b0125b");
+    expect(copies.answer.svg).toContain("#b0125b");
+    expect(copies.pupil.name).toContain('filename="maths-ratio-table.svg"');
+    expect(copies.answer.name).toContain('filename="maths-ratio-table-answers.svg"');
+  }, 15000);
   it("refuses tampering, expiry, cross-kind reuse and signed foreign token fields", () => {
     const ratios = new RatioDownloads(
         "https://example.com",
