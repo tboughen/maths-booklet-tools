@@ -3,6 +3,7 @@ import {
   coordinateToSvg,
   getBounds,
   gridDivisions,
+  isSketch,
   visibleStraightPoints,
 } from "./diagram";
 import {
@@ -34,6 +35,8 @@ import {
 import type {
   Coordinate,
   DiagramDocumentV1,
+  LabelSide,
+  PointLabel,
   GraphObject,
   GraphView,
   StraightObject,
@@ -357,6 +360,7 @@ function autoLabelPosition(
 }
 
 function gridMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
+  if (isSketch(document)) return "";
   const horizontalSquares =
     document.axes.x.negativeSquares + document.axes.x.positiveSquares;
   const verticalSquares =
@@ -434,7 +438,12 @@ function axisTitlesMarkup(document: DiagramDocumentV1, layout: SvgLayout): strin
     : "";
 }
 
-function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
+/**
+ * The axes in two layers: the axis lines, drawn under every plotted line, and the numbers, names
+ * and titles, drawn over plotted lines so a line never runs through a number (its white box
+ * breaks the line, as exam papers print them). Points and names are drawn over both.
+ */
+function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; labels: string } {
   const origin = coordinateToSvg(axisOrigin(document), layout);
   const xLabels: string[] = [];
   const yLabels: string[] = [];
@@ -463,7 +472,7 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     : `
       <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${AXIS_Y_NAME}</text>`;
   const originLabel = originMarkup(document, originX, xNumberBaseline);
-  return `
+  const lines = `
     <defs>
       <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="25" markerHeight="25" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224"/>
@@ -472,11 +481,83 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="graph-axes" stroke="#1f2224" stroke-width="${n(AXIS_STROKE_WIDTH)}" fill="none">
       <line x1="${n(layout.plotLeft)}" y1="${n(origin.y)}" x2="${n(layout.plotRight + AXIS_ARROW_EXTENSION)}" y2="${n(origin.y)}" marker-end="url(#axis-arrow)"/>
       <line x1="${n(origin.x)}" y1="${n(layout.plotBottom)}" x2="${n(origin.x)}" y2="${n(layout.plotTop - AXIS_ARROW_EXTENSION)}" marker-end="url(#axis-arrow)"/>
-    </g>
+    </g>`;
+  const labels = `
     <g class="axis-labels" fill="#242628" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">
       ${xLabels.join("")}${yLabels.join("")}${originLabel ? `
       ${originLabel}` : ""}${xName}${yName}${axisTitlesMarkup(document, layout)}
     </g>`;
+  return { lines, labels };
+}
+
+/**
+ * A white outline drawn under a text so grid lines and plotted lines stop just short of the
+ * letters, without the box that would cut whole grid lines.
+ */
+function halo(...texts: string[]): string {
+  const outlines = texts.map((text) =>
+    text.replace(
+      "<text ",
+      `<text aria-hidden="true" fill="#ffffff" stroke="#ffffff" stroke-width="${n(TEXT_HALO_WIDTH)}" stroke-linejoin="round" `,
+    ),
+  );
+  return outlines.join("") + texts.join("");
+}
+
+const TEXT_HALO_WIDTH = AXIS_LABEL_FONT_SIZE * 0.14;
+const POINT_LABEL_GAP = UNITS_PER_CM * 0.12;
+
+/**
+ * The automatic side for a line's label: left of the y-axis or below the x-axis, in the corner
+ * the line leaves free (a rising line runs through the top right and bottom left).
+ */
+function defaultLabelSide(document: DiagramDocumentV1, at: Coordinate, line: StraightObject): LabelSide {
+  const origin = axisOrigin(document);
+  const onY = Math.abs(at.x - origin.x) < 1e-9;
+  const onX = Math.abs(at.y - origin.y) < 1e-9;
+  const dx = line.end.x - line.start.x,
+    dy = line.end.y - line.start.y;
+  const vertical = Math.abs(dx) < 1e-12,
+    horizontal = Math.abs(dy) < 1e-12;
+  const rising = !vertical && !horizontal && dy / dx > 0;
+  if (onX && onY) return vertical ? "below-right" : horizontal ? "above-right" : rising ? "below-right" : "above-right";
+  if (onY) return vertical || horizontal ? "left" : rising ? "above-left" : "below-left";
+  if (onX) return vertical ? "below-right" : horizontal ? "below" : rising ? "below-right" : "below-left";
+  return vertical ? "right" : horizontal ? "above" : rising ? "above-left" : "above-right";
+}
+
+/** Anchor and baseline of a line's label, in SVG units, for the given font size and gap. */
+export function pointLabelPlacement(
+  document: DiagramDocumentV1,
+  line: StraightObject,
+  label: PointLabel,
+  layout: SvgLayout,
+  fontSize = AXIS_LABEL_FONT_SIZE,
+  gap = POINT_LABEL_GAP,
+): { x: number; baseline: number; anchor: "start" | "middle" | "end" } {
+  const p = coordinateToSvg(label.at, layout);
+  const side = label.side ?? defaultLabelSide(document, label.at, line);
+  const left = side.endsWith("left"),
+    right = side.endsWith("right");
+  const above = side.startsWith("above"),
+    below = side.startsWith("below");
+  return {
+    x: left ? p.x - gap : right ? p.x + gap : p.x,
+    baseline: above ? p.y - gap : below ? p.y + gap + fontSize * 0.68 : p.y + fontSize * 0.34,
+    anchor: left ? "end" : right ? "start" : "middle",
+  };
+}
+
+function pointLabelsMarkup(document: DiagramDocumentV1, layout: SvgLayout, objects: StraightObject[]): string {
+  const marks = objects.flatMap((object) =>
+    (object.labels ?? [])
+      .filter((label) => label.at.x >= layout.bounds.xMin - 1e-9 && label.at.x <= layout.bounds.xMax + 1e-9 && label.at.y >= layout.bounds.yMin - 1e-9 && label.at.y <= layout.bounds.yMax + 1e-9)
+      .map((label) => {
+        const place = pointLabelPlacement(document, object, label, layout);
+        return halo(`<text x="${n(place.x)}" y="${n(place.baseline)}" text-anchor="${place.anchor}">${escapeXml(label.text)}</text>`);
+      }),
+  );
+  return marks.join("");
 }
 
 type Named = GraphObject & { name: string };
@@ -574,13 +655,13 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       ? `<text x="${n(left + box.letterWidth)}" y="${n(baseline + AXIS_LABEL_FONT_SIZE * 0.22)}" font-size="${n(NAME_SUBSCRIPT_FONT_SIZE)}">${mathsDigits(parts.subscript, style)}</text>`
       : "";
     const answer = object.answerOnly ? ` object-name-answer" fill="${GRAPH_ANSWER_COLOUR}` : "";
-    return `<g class="object-name object-name-${object.kind}${answer}" data-object-id="${escapeXml(object.id)}"><rect x="${n(centre.x - box.width / 2)}" y="${n(centre.y - box.height / 2)}" width="${n(box.width)}" height="${n(box.height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(left)}" y="${n(baseline)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${letter}</text>${subscript}</g>`;
+    return `<g class="object-name object-name-${object.kind}${answer}" data-object-id="${escapeXml(object.id)}">${halo(`<text x="${n(left)}" y="${n(baseline)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${letter}</text>`, ...(subscript ? [subscript] : []))}</g>`;
   });
   return `
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
-function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
+function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; marks: string } {
   const straight: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
@@ -627,25 +708,46 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       );
     }
   }
-  return `
-    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>
+  const straightObjects = (answerOnly: boolean) =>
+    document.objects.filter((o): o is StraightObject => o.kind === "straight" && !!o.answerOnly === answerOnly);
+  const pupilLabels = pointLabelsMarkup(document, layout, straightObjects(false));
+  const answerPointLabels = pointLabelsMarkup(document, layout, straightObjects(true));
+  const lines = `
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>${
+      answerStraight.length
+        ? `
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerStraight.join("")}</g>`
+        : ""
+    }`;
+  const marks = `
     <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">${points.join("")}</g>
-    <g fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>${answerMarkup(document, answerStraight, answerPoints, answerLabels)}${namesMarkup(document, layout)}`;
+    <g fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>${
+      pupilLabels
+        ? `
+    <g class="point-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pupilLabels}</g>`
+        : ""
+    }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
+  return { lines, marks };
 }
 
-/** Hidden answers, drawn only on the answers copy, in the answer colour. */
-function answerMarkup(document: DiagramDocumentV1, straight: string[], points: string[], labels: string[]): string {
-  if (!straight.length && !points.length && !labels.length) return "";
+/** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
+function answerMarkup(document: DiagramDocumentV1, points: string[], labels: string[], pointLabels: string): string {
+  if (!points.length && !labels.length && !pointLabels) return "";
   return `
-    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">
-      <g clip-path="url(#plot-clip)">${straight.join("")}</g>${points.join("")}
-      <g fill="${GRAPH_ANSWER_COLOUR}" stroke="none" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">${points.join("")}
+      <g fill="${GRAPH_ANSWER_COLOUR}" stroke="none" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>${
+        pointLabels
+          ? `
+      <g class="point-labels point-labels-answer" fill="${GRAPH_ANSWER_COLOUR}" stroke="none" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pointLabels}</g>`
+          : ""
+      }
     </g>`;
 }
 
 function gridDescription(document: DiagramDocumentV1): string {
   if (document.grid === "5mm") return "A 5 mm fine grid with heavier 1 cm lines";
   if (document.grid === "2mm") return "A 2 mm fine grid with heavier 1 cm lines";
+  if (document.grid === "none") return "Sketch axes with no grid or numbers";
   return "A one centimetre square grid";
 }
 
@@ -653,6 +755,8 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   document = documentForView(document, view);
   const metrics = getExportMetrics(document);
   const { layout } = metrics;
+  const axes = axesMarkup(document, layout);
+  const objects = objectsMarkup(document, layout);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${n(metrics.widthCm)}cm" height="${n(metrics.heightCm)}cm" viewBox="0 0 ${n(metrics.width)} ${n(metrics.height)}" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">Coordinate graph</title>
@@ -660,7 +764,9 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
   ${gridMarkup(document, layout)}
-  ${axesMarkup(document, layout)}
-  ${objectsMarkup(document, layout)}
+  ${axes.lines}
+  ${objects.lines}
+  ${axes.labels}
+  ${objects.marks}
 </svg>`;
 }

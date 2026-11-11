@@ -4,7 +4,7 @@
 // (checked byte for byte by src/gates/goldens.test.ts).
 import { describe, expect, it } from "vitest";
 import { TIME_GAP, axisTicks, formatTime } from "./axes";
-import { getBounds, snapCoordinate } from "./diagram";
+import { coordinateToSvg, getBounds, snapCoordinate } from "./diagram";
 import {
   canonicalEnvelope,
   createGraph,
@@ -18,7 +18,7 @@ import {
 } from "./interchange";
 import { isDiagramDocument } from "./legacy-validation";
 import { renderedTextSizesPt } from "./print-guidance";
-import { graphPrintFacts, renderDiagramSvg } from "./svg";
+import { getExportMetrics, graphPrintFacts, pointLabelPlacement, renderDiagramSvg } from "./svg";
 
 const travel = {
   axes: {
@@ -177,5 +177,111 @@ describe("crowded axis numbers", () => {
     expect(graphWarnings(spaced)).toEqual([]);
     const wide = createGraph({ axes: { x: { negativeSquares: 9, positiveSquares: 9, unitsPerSquare: 2 }, y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 } }, objects: [] });
     expect(graphWarnings(wide)).toEqual([]);
+  });
+});
+
+describe("sketch axes", () => {
+  const sketch = {
+    grid: "none",
+    originLabel: "O",
+    axes: {
+      x: { negativeSquares: 3, positiveSquares: 4, unitsPerSquare: 1 },
+      y: { negativeSquares: 3, positiveSquares: 4, unitsPerSquare: 1 },
+    },
+    objects: [
+      {
+        kind: "line",
+        id: "l",
+        equation: { kind: "slope", slope: -1.5, intercept: 3 },
+        answerOnly: true,
+        labels: [{ at: { x: 0, y: 3 }, text: "3" }, { at: { x: 2, y: 0 }, text: "2" }, { at: { x: 4, y: -3 }, text: "(4, -3)", side: "left" }],
+      },
+    ],
+  };
+
+  it("draw only the axes, x, y and O, with the sketch and its labels on the answers copy alone", () => {
+    const e = createGraph(sketch);
+    const d = documentFromEnvelope(e);
+    expect(axisTicks(d, "x")).toEqual([]);
+    expect(axisTicks(d, "y")).toEqual([]);
+    const pupil = renderDiagramSvg(d);
+    const answer = renderDiagramSvg(d, "answer");
+    expect(pupil).not.toContain("grid-lines");
+    expect(pupil).not.toContain("axis-number\"");
+    expect(texts(pupil).filter((t) => /[0-9]/.test(t))).toEqual([]);
+    expect(texts(pupil)).toContain("𝑂");
+    expect(pupil).not.toContain("point-labels");
+    expect(pupil).not.toContain("#b0125b");
+    expect(pupil).toContain("Sketch axes with no grid or numbers");
+    expect(answer).toContain('class="point-labels point-labels-answer" fill="#b0125b"');
+    // Each label prints once in ink, over a white outline that keeps the line clear of it.
+    expect(texts(answer).filter((t) => t === "3")).toHaveLength(2);
+    expect(texts(answer)).toContain("(4, −3)");
+    expect(graphPrintFacts(d).referenceFeatures.gridPitchMm).toEqual([]);
+    expect(describeGraph(e)).toContain("Sketch axes");
+    expect(describeGraph(e)).toContain('labelled "3" at (0, 3)');
+    expect(isDiagramDocument(d)).toBe(true);
+    expect(parseGraphFile(JSON.stringify(e))).toEqual(e);
+  });
+
+  it("place a label in the corner the line leaves free", () => {
+    const d = doc(sketch);
+    const line = d.objects[0] as import("./types").StraightObject;
+    const layout = getExportMetrics(d).layout;
+    const at = (x: number, y: number) => coordinateToSvg({ x, y }, layout);
+    // A falling line crosses the y-axis going up to the left, so its label sits below-left.
+    const y = pointLabelPlacement(d, line, line.labels![0], layout);
+    expect(y.anchor).toBe("end");
+    expect(y.baseline).toBeGreaterThan(at(0, 3).y);
+    // On the x-axis it sits below, to the left of a falling line.
+    const x = pointLabelPlacement(d, line, line.labels![1], layout);
+    expect(x.anchor).toBe("end");
+    expect(x.baseline).toBeGreaterThan(at(2, 0).y);
+    const rising = { ...line, start: { x: -1, y: -1 }, end: { x: 1, y: 1 } };
+    expect(pointLabelPlacement(d, rising, { at: { x: 0, y: 3 }, text: "3" }, layout).baseline).toBeLessThan(at(0, 3).y);
+  });
+
+  it("refuses labels that are too long, padded or off the axes", () => {
+    const line = (labels: unknown) => ({ ...sketch, objects: [{ ...sketch.objects[0], labels }] });
+    expect(() => createGraph(line([{ at: { x: 0, y: 3 }, text: "x".repeat(17) }]))).toThrow();
+    expect(() => createGraph(line([{ at: { x: 0, y: 3 }, text: " 3" }]))).toThrow();
+    expect(() => createGraph(line([{ at: { x: 9, y: 3 }, text: "3" }]))).toThrow(/outside the axes/);
+    expect(() => createGraph(line([{ at: { x: 0, y: 3 }, text: "3", side: "middle" }]))).toThrow();
+    expect(() => createGraph(line(Array(5).fill({ at: { x: 0, y: 3 }, text: "3" })))).toThrow();
+  });
+
+  it("keep labels through links, hashes and revisions", async () => {
+    const e = createGraph(sketch);
+    const link = editorLink(e, "https://mathsdock.co.uk/");
+    expect(decodeEnvelope(new URL(link).hash.slice("#graph=".length))).toEqual(JSON.parse(canonicalEnvelope(e)));
+    const revised = await reviseGraph({
+      envelope: e,
+      baseHash: await graphHash(e),
+      operations: [
+        { op: "replace_object", id: "l", object: { kind: "line", equation: { kind: "slope", slope: 1, intercept: 2 }, labels: [{ at: { x: 0, y: 2 }, text: "2" }] } },
+        { op: "set_grid", grid: "1cm" },
+      ],
+    });
+    const r = documentFromEnvelope(revised);
+    expect(r.grid).toBeUndefined();
+    expect(r.objects[0]).toMatchObject({ labels: [{ at: { x: 0, y: 2 }, text: "2" }] });
+    expect(r.objects[0].answerOnly).toBeUndefined();
+  });
+});
+
+describe("axis numbers over lines", () => {
+  it("draws axis numbers after plotted lines and before points and names", () => {
+    const svg = renderDiagramSvg(doc({ objects: [{ kind: "line", equation: { kind: "slope", slope: 3, intercept: -1 }, name: "L" }, { kind: "point", position: { x: 2, y: 1 }, name: "A" }] }));
+    const line = svg.indexOf("<line x1", svg.indexOf('clip-path="url(#plot-clip)">'));
+    const numbers = svg.indexOf('class="axis-labels"');
+    const cross = svg.indexOf('fill="none"><path d="M');
+    expect(line).toBeGreaterThan(0);
+    expect(numbers).toBeGreaterThan(line);
+    expect(cross).toBeGreaterThan(numbers);
+    expect(svg.indexOf("object-names")).toBeGreaterThan(numbers);
+    // Names have a white outline, not a white box that would cut grid lines.
+    const name = svg.match(/<g class="object-name object-name-straight"[^>]*>(.*?)<\/g>/)![1];
+    expect(name).not.toContain("<rect");
+    expect(name).toContain('stroke="#ffffff"');
   });
 });

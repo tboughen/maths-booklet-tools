@@ -125,7 +125,12 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .grid-lines--fine { stroke: #a9abaa; stroke-width: 1.27; }
 .axis-labels .axis-title { fill: #242628; font-size: 25.4px; font-style: normal; }
 .object-names .object-name { cursor: grab; fill: #202224; }
-.object-names .object-name rect { fill: #fff; }
+.object-names .object-name rect.object-name-hit { fill: transparent; }
+.point-labels text { fill: #202224; }
+.point-labels .point-label--answer text { fill: #b0125b; }
+/* A white outline under names and labels, so lines stop just short of the letters. */
+.graph-canvas .object-names .object-name .text-halo text,
+.graph-canvas .point-labels text.text-halo { fill: #fff; stroke: #fff; stroke-width: 3.6px; stroke-linejoin: round; }
 .object-names .object-name--answer { fill: #b0125b; }
 .object-names .object-name.selected text { fill: var(--blue); }
 .graph-axes { stroke: #25282a; stroke-width: 4.233; fill: none; }
@@ -164,6 +169,8 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .segmented button { min-height: var(--control-md); padding: 0 16px; border: 0; border-radius: 6px; background: transparent; font-size: var(--button-label); font-weight: 600; }
 .segmented--three { grid-template-columns: repeat(3, 1fr); }
 .segmented--three button { padding: 0 8px; }
+.segmented--four { grid-template-columns: repeat(4, 1fr); }
+.segmented--four button { padding: 0 6px; }
 .segmented button.active { background: #fff; color: var(--blue); box-shadow: 0 1px 4px rgba(30,30,30,.1); }
 .line-style-field { display: grid; gap: 6px; margin-top: 12px; }
 .line-style-field > span { color: var(--muted); font-size: var(--supporting-text); font-weight: 700; }

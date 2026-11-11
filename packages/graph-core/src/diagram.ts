@@ -55,6 +55,11 @@ export function axisOrigin(document: DiagramDocumentV1): Coordinate {
 }
 
 /** Fine squares per 1 cm square. */
+/** True for sketch axes: no grid lines and no axis numbers. */
+export function isSketch(document: Pick<DiagramDocumentV1, "grid">): boolean {
+  return document.grid === "none";
+}
+
 export function gridDivisions(document: Pick<DiagramDocumentV1, "grid">): 1 | 2 | 5 {
   return document.grid === "5mm" ? 2 : document.grid === "2mm" ? 5 : 1;
 }

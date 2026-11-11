@@ -72,7 +72,8 @@ alternative only if the teacher wants one.
   visibility, axes and unchanged objects. Edexcel-style graphs are in the capabilities:
   object names (bold **L**, **L**₁ for lines; italic *A* for points) only when the question
   names the object, an italic *O* at the origin, axis titles with units, any scale per
-  square, times of day (12 00) and 5 mm or 2 mm fine grids.
+  square, times of day (12 00) and 5 mm or 2 mm fine grids. For "sketch the graph" questions
+  use `grid: "none"` (sketch axes, no numbers) and put intercept values in the line's `labels`.
 - A worked or answer copy is a separate document made only on request (for example the
   `worked_copy` operation). Never replace or overwrite the pupil source to make one.
 - Keep teacher-entered numbers, labels, headings and deliberate mistakes. Explain warnings;

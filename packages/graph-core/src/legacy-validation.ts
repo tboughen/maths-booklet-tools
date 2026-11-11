@@ -1,4 +1,4 @@
-import { OBJECT_NAME_PATTERN } from "./axes";
+import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
 
@@ -10,6 +10,19 @@ function isCoordinate(value: unknown): value is Coordinate {
     Number.isFinite(candidate.x) &&
     typeof candidate.y === "number" &&
     Number.isFinite(candidate.y)
+  );
+}
+
+function isPointLabel(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    Object.keys(candidate).every((key) => key === "at" || key === "text" || key === "side") &&
+    isCoordinate(candidate.at) &&
+    typeof candidate.text === "string" &&
+    candidate.text.length > 0 &&
+    candidate.text.length <= MAX_LABEL_TEXT_LENGTH &&
+    (candidate.side === undefined || (LABEL_SIDES as readonly unknown[]).includes(candidate.side))
   );
 }
 
@@ -35,7 +48,9 @@ function isGraphObject(value: unknown): value is GraphObject {
     isCoordinate(candidate.end) &&
     typeof candidate.equationVisible === "boolean" &&
     (candidate.equationLabelPosition === undefined ||
-      isCoordinate(candidate.equationLabelPosition))
+      isCoordinate(candidate.equationLabelPosition)) &&
+    (candidate.labels === undefined ||
+      (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel)))
   );
 }
 
@@ -50,7 +65,8 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     (candidate.grid !== undefined &&
       candidate.grid !== "1cm" &&
       candidate.grid !== "5mm" &&
-      candidate.grid !== "2mm") ||
+      candidate.grid !== "2mm" &&
+      candidate.grid !== "none") ||
     (candidate.originLabel !== undefined &&
       candidate.originLabel !== "0" &&
       candidate.originLabel !== "O") ||

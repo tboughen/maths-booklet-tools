@@ -5,8 +5,9 @@ export type UnitsPerSquare = number;
  * prints them as exam papers do: 09 00, 12 30. */
 export type AxisNumberFormat = "number" | "time";
 /** Grid squares: 1 cm (the default), or a fine grid of 5 mm or 2 mm squares inside heavier
- * 1 cm lines. Every axis scale still counts 1 cm squares. */
-export type GridSize = "1cm" | "5mm" | "2mm";
+ * 1 cm lines. Every axis scale still counts 1 cm squares. "none" draws sketch axes: no grid and
+ * no axis numbers, only the axes, x, y and the origin. */
+export type GridSize = "1cm" | "5mm" | "2mm" | "none";
 export type StraightStrokeStyle = "solid" | "dashed";
 
 export interface Coordinate {
@@ -52,6 +53,26 @@ export interface PointObject extends BaseObject, NamedObject {
   position: Coordinate;
 }
 
+/** Where a short label sits beside the point it labels. */
+export type LabelSide =
+  | "left"
+  | "right"
+  | "above"
+  | "below"
+  | "above-left"
+  | "above-right"
+  | "below-left"
+  | "below-right";
+
+/** A short text printed beside a point on a line, such as "3", "−2" or "(0, 3)" where a sketch
+ * crosses an axis. It belongs to its line, so an answer-only line hides its labels too. */
+export interface PointLabel {
+  at: Coordinate;
+  text: string;
+  /** Omitted: left of the y-axis, below the x-axis, otherwise above and to the right. */
+  side?: LabelSide;
+}
+
 export interface StraightObject extends BaseObject, NamedObject {
   kind: "straight";
   display: "segment" | "line";
@@ -61,6 +82,7 @@ export interface StraightObject extends BaseObject, NamedObject {
   end: Coordinate;
   equationVisible: boolean;
   equationLabelPosition?: Coordinate;
+  labels?: PointLabel[];
 }
 
 export type GraphObject = PointObject | StraightObject;

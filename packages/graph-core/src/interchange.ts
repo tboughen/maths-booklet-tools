@@ -8,7 +8,16 @@ import {
   pointInBounds,
   visibleStraightPoints,
 } from "./diagram";
-import { OBJECT_NAME_PATTERN, formatAxisValue, normaliseObjectName, readableName, xNumbersCrowded } from "./axes";
+import {
+  LABEL_SIDES,
+  MAX_LABEL_TEXT_LENGTH,
+  OBJECT_NAME_PATTERN,
+  formatAxisValue,
+  normaliseLabelText,
+  normaliseObjectName,
+  readableName,
+  xNumbersCrowded,
+} from "./axes";
 import {
   parseNumericInput,
   pointsForEquation,
@@ -104,8 +113,34 @@ export const axisSchema = z
   })
   .strict();
 const gridSchema = z
-  .enum(["1cm", "5mm", "2mm"])
-  .describe("1cm squares (default), or a fine grid of 5mm or 2mm squares inside heavier 1 cm lines. Scales still count 1 cm squares.");
+  .enum(["1cm", "5mm", "2mm", "none"])
+  .describe("1cm squares (default), or a fine grid of 5mm or 2mm squares inside heavier 1 cm lines. Scales still count 1 cm squares. none draws sketch axes, as exam sketch questions print them: no grid and no axis numbers, only the axes with arrowheads, x, y and the origin (use originLabel O). Mark values on a sketch with a line's labels.");
+const labelTextSchema = z
+  .string()
+  .min(1)
+  .max(MAX_LABEL_TEXT_LENGTH)
+  .refine((t) => t.trim() === t, "Label text cannot start or end with a space.")
+  .refine((t) => ![...t].some((c) => c.charCodeAt(0) < 32), "Label text must be one line.");
+const labelSideSchema = z.enum(LABEL_SIDES);
+const labelInput = z
+  .object({
+    at: inputCoordinate.describe("The point the label marks, usually where the line crosses an axis."),
+    text: z
+      .string()
+      .max(MAX_LABEL_TEXT_LENGTH)
+      .transform(normaliseLabelText)
+      .pipe(labelTextSchema)
+      .describe('Short text such as "3", "-2" (printed −2) or "(0, 3)".'),
+    side: labelSideSchema
+      .optional()
+      .describe("Where the text sits beside the point. Default: left of the y-axis, below the x-axis, otherwise above-right."),
+  })
+  .strict();
+const labelsInput = z
+  .array(labelInput)
+  .max(4)
+  .optional()
+  .describe("Up to 4 short labels beside points on this line, such as its axis intercepts on a sketch. They print upright at 12 pt and follow the line's answerOnly.");
 const originLabelSchema = z
   .enum(["0", "O"])
   .describe("O prints an italic O at the origin, as Edexcel papers do. Default 0.");
@@ -149,6 +184,7 @@ const straightInput = {
     .optional()
     .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
   answerOnly: answerOnlyInput,
+  labels: labelsInput,
 };
 export const objectInputSchema = z.union([
   z
@@ -217,6 +253,11 @@ const objectSchema = z.union([
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
       answerOnly: z.literal(true).optional(),
+      labels: z
+        .array(z.object({ at: coordinate, text: labelTextSchema, side: labelSideSchema.optional() }).strict())
+        .min(1)
+        .max(4)
+        .optional(),
     })
     .strict(),
 ]);
@@ -337,6 +378,13 @@ function makeObject(
   };
   if (input.kind === "point")
     return { id, kind: "point", position: input.position, ...named };
+  // A label off the axes would never print, so a new one must mark a point on them.
+  for (const label of input.labels ?? [])
+    if (!pointInBounds(label.at, getBounds(document)))
+      throw new GraphError(
+        "invalid_label",
+        `${id}: the label "${label.text}" marks (${label.at.x}, ${label.at.y}), which is outside the axes.`,
+      );
   const [start, end] =
     input.kind === "line" && input.equation
       ? pointsForEquation(input.equation, getBounds(document))
@@ -353,6 +401,9 @@ function makeObject(
       ? { equationLabelPosition: input.equationLabelPosition }
       : {}),
     ...named,
+    ...(input.labels?.length
+      ? { labels: input.labels.map((l) => ({ at: l.at, text: l.text, ...(l.side ? { side: l.side } : {}) })) }
+      : {}),
   };
 }
 export function createGraph(value: unknown): GraphEnvelope {
@@ -455,6 +506,15 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
               }
             : {}),
           ...canonicalName(o),
+          ...(o.labels
+            ? {
+                labels: o.labels.map((l) => ({
+                  at: { x: l.at.x, y: l.at.y },
+                  text: l.text,
+                  ...(l.side ? { side: l.side } : {}),
+                })),
+              }
+            : {}),
         },
   );
   document.axes = {
@@ -586,7 +646,7 @@ export function describeGraph(envelope: GraphEnvelope): string {
     .map((o) =>
       o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
-        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}`,
+        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}${o.labels ? `, labelled ${o.labels.map((l) => `"${l.text}" at (${l.at.x}, ${l.at.y})`).join(" and ")}` : ""}`,
     )
     .join("; ");
   const range = (axis: "x" | "y", min: number, max: number) => {
@@ -597,7 +657,11 @@ export function describeGraph(envelope: GraphEnvelope): string {
       : `${axis} ${min} to ${max}`;
   };
   const extras = [
-    d.grid && d.grid !== "1cm" ? ` ${d.grid} fine grid.` : "",
+    d.grid === "none"
+      ? " Sketch axes: no grid or axis numbers."
+      : d.grid && d.grid !== "1cm"
+        ? ` ${d.grid} fine grid.`
+        : "",
     d.originLabel === "O" ? " Origin labelled O." : "",
   ].join("");
   return `Coordinate graph: ${range("x", b.xMin, b.xMax)}, ${range("y", b.yMin, b.yMax)}; scales ${d.axes.x.unitsPerSquare} and ${d.axes.y.unitsPerSquare} units per 1 cm square.${extras} ${objects || "Empty grid."}`;
