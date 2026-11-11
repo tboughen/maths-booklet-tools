@@ -5,6 +5,7 @@ import {
   validateRatioEnvelope,
 } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import type { RatioView } from "../../packages/ratio-table-core/src/svg";
 import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import {
@@ -17,10 +18,14 @@ import {
   blobToDataUrl,
 } from "../export/clipboard";
 
-export async function ratioPrintPng(envelope: RatioEnvelope): Promise<Blob> {
+/** Whether the table has an answers copy: hidden cells or hidden operations. */
+export const hasRatioAnswers = (envelope: RatioEnvelope) =>
+  envelope.document.rows.some((r) => r.cells.some((c) => c.kind === "hidden")) ||
+  envelope.document.transitions.some((t) => t.hidden);
+export async function ratioPrintPng(envelope: RatioEnvelope, view: RatioView = "pupil"): Promise<Blob> {
   const valid = validateRatioEnvelope(envelope),
     metrics = ratioMetrics(valid.document);
-  const svg = await embedPortableFonts(renderRatioSvg(valid.document));
+  const svg = await embedPortableFonts(renderRatioSvg(valid.document, view));
   const png = await svgToPng(svg, metrics.widthCm, metrics.heightCm);
   const size = printRasterSize(metrics.widthCm, metrics.heightCm);
   verifyPrintBytes(
@@ -33,15 +38,16 @@ export async function ratioPrintPng(envelope: RatioEnvelope): Promise<Blob> {
 export async function downloadRatioImage(
   envelope: RatioEnvelope,
   format: "svg" | "png",
+  view: RatioView = "pupil",
 ): Promise<void> {
   const valid = validateRatioEnvelope(envelope);
   const blob =
     format === "png"
-      ? await ratioPrintPng(valid)
-      : new Blob([await embedPortableFonts(renderRatioSvg(valid.document))], {
+      ? await ratioPrintPng(valid, view)
+      : new Blob([await embedPortableFonts(renderRatioSvg(valid.document, view))], {
           type: "image/svg+xml;charset=utf-8",
         });
-  downloadBlob(blob, `maths-ratio-table.${format}`);
+  downloadBlob(blob, `maths-ratio-table${view === "answer" ? "-answers" : ""}.${format}`);
 }
 export async function copyRatioForWord(envelope: RatioEnvelope): Promise<void> {
   const valid = validateRatioEnvelope(envelope),

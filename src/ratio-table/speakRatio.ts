@@ -17,6 +17,7 @@ function speakCell(cell: RatioCell): string {
     case "number": return speakNumber(cell.value);
     case "empty": return "blank";
     case "answer-line": return "answer line";
+    case "hidden": return `hidden answer ${speakNumber(cell.value)}${cell.line ? " on an answer line" : ""}`;
     default: return never(cell);
   }
 }
@@ -25,6 +26,7 @@ function speakHeading(heading: RatioDocument["headings"][number]): string {
   switch (heading.direction) {
     case "right": return `${heading.text} (arrow right)`;
     case "up": return `${heading.text} (arrow up)`;
+    case "down": return `${heading.text} (arrow down)`;
     case "none": return heading.text;
     default: return never(heading.direction);
   }
@@ -35,7 +37,7 @@ export function speakRatio(envelope: RatioEnvelope): string {
   const rows = d.rows.map((row, i) => `Row ${i + 1}: ${row.cells.map(speakCell).join(", ")}`).join(". ");
   const rowNumber = (id: string) => d.rows.findIndex((row) => row.id === id) + 1;
   const operations = d.mode === "annotated" && d.showOperations
-    ? d.transitions.map((t) => ` Row ${rowNumber(t.from)} to row ${rowNumber(t.to)}: ${t.operation === "multiply" ? "multiply" : "divide"} by ${speakNumber(t.factor)}.`).join("")
+    ? d.transitions.map((t) => ` Row ${rowNumber(t.from)} to row ${rowNumber(t.to)}: ${t.operation === "multiply" ? "multiply" : "divide"} by ${speakNumber(t.factor)}${t.hidden ? ", hidden in the pupil copy" : ""}.`).join("")
     : "";
   const notes = d.mode === "simple"
     ? "Scaling annotations hidden."

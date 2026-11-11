@@ -166,7 +166,7 @@ export function graphService(options: ServiceOptions) {
   const diagramOutputs = diagramOutputTools(raster, bundles, limits, (source, format, signal) => {
     switch (source.kind) {
       case "graph": return artifacts(source.envelope, format, signal);
-      case "ratio-table": return ratios.artifacts(source.envelope, format, signal);
+      case "ratio-table": return ratios.artifacts(source.envelope, format, signal, source.outputView);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
       case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "triangle": return resources.artifacts(source, format, signal);
     }
@@ -174,7 +174,7 @@ export function graphService(options: ServiceOptions) {
   const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
   const diagrams = diagramTools({
     graph: (s, signal) => result(s.envelope as GraphEnvelope, signal),
-    "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal),
+    "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
     "bar-model": resource, charts: resource, "probability-tree": resource, triangle: resource,
@@ -387,10 +387,10 @@ export function graphService(options: ServiceOptions) {
         res.end(file.body); return;
       }
       if (req.method === "GET" && url.pathname === "/ratio-table/download") {
-        const { envelope, format } = ratioDownloads.verify(url);
+        const { envelope, format, view } = ratioDownloads.verify(url);
         const abort = new AbortController();
         res.once("close", () => { if (!res.writableFinished) abort.abort(); });
-        const file = await ratios.artifacts(envelope, format, abort.signal);
+        const file = await ratios.artifacts(envelope, format, abort.signal, view);
         limits.output(file.body.length); bytes = file.body.length;
         res.writeHead(200, {
           "Content-Type": file.type,

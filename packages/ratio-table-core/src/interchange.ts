@@ -18,7 +18,7 @@ import {
   RATIO_MAX_LINK_LENGTH,
   RATIO_MAX_REQUEST_BYTES,
 } from "./schema";
-import type { RatioDocument, RatioEnvelope } from "./schema";
+import type { RatioDocument, RatioEnvelope, RatioTransition } from "./schema";
 import {
   RatioError,
   parseNumber,
@@ -84,9 +84,84 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
     );
   return ratioEnvelope(envelope.document);
 }
+type RatioSpec = z.infer<typeof ratioSpecSchema>;
+type SpecRow = NonNullable<RatioSpec["rows"]>[number];
+const compactError = (message: string) =>
+  new RatioError("invalid_ratio_table", message);
+/** A compact heading: "x →", "y ↑", "y ↓" or plain text; a single letter prints italic. */
+export function compactHeading(value: string): RatioDocument["headings"][number] {
+  const v = value.trim(),
+    end = v.slice(-1),
+    direction = end === "→" ? "right" : end === "↑" ? "up" : end === "↓" ? "down" : "none";
+  const text = (direction === "none" ? v : v.slice(0, -1)).trim();
+  return readSchema(headingsSchema.element, {
+    text,
+    italic: /^[A-Za-z]$/.test(text),
+    direction,
+  });
+}
+/** A compact cell: "3", "-1/2", "" (empty), "_" (answer line), "[3]" or "[3]_" (hidden answer). */
+export function compactCell(value: string): SpecRow["cells"][number] {
+  const v = value.trim();
+  if (v === "") return { kind: "empty" };
+  if (v === "_") return { kind: "answer-line" };
+  const hidden = v.match(/^\[(.+)\](_?)$/);
+  if (hidden)
+    return hidden[2]
+      ? { kind: "hidden", value: hidden[1].trim(), line: true }
+      : { kind: "hidden", value: hidden[1].trim() };
+  if (/[[\]_]/.test(v))
+    throw compactError(`Cell "${v}": write a number, "" for empty, "_" for an answer line or [n] for a hidden answer.`);
+  return { kind: "number", value: v };
+}
+/** A compact step between two rows: "× 2", "÷ 2" (or x, *, /); "[÷ 2]" hides it in the pupil copy. */
+export function compactStep(value: string, from: string, to: string): RatioTransition | null {
+  let v = value.trim();
+  if (v === "") return null;
+  const hidden = /^\[.*\]$/.test(v);
+  if (hidden) v = v.slice(1, -1).trim();
+  const m = v.match(/^([×x*÷/])\s*(.+)$/);
+  if (!m)
+    throw compactError(`Step "${value}": write "× 2" or "÷ 2", or "" for no step.`);
+  return {
+    from,
+    to,
+    operation: "×x*".includes(m[1]) ? "multiply" : "divide",
+    factor: m[2].trim(),
+    ...(hidden ? { hidden: true } : {}),
+  };
+}
+/** Expands the compact columns/table/steps form into the full spec fields. */
+export function expandCompactSpec(spec: RatioSpec): RatioSpec {
+  const { columns, table, steps, ...rest } = spec;
+  if (columns && rest.headings)
+    throw compactError("Give columns or headings, not both.");
+  if (table && rest.rows) throw compactError("Give table or rows, not both.");
+  if (steps && rest.transitions)
+    throw compactError("Give steps or transitions, not both.");
+  if (steps && !table) throw compactError("steps go with table.");
+  const out: RatioSpec = { ...rest };
+  if (columns) out.headings = columns.map(compactHeading);
+  if (table) {
+    out.rows = table.map((cells, i) => ({
+      id: `row-${i + 1}`,
+      cells: cells.map(compactCell),
+    }));
+    if (steps) {
+      if (steps.length > table.length - 1)
+        throw compactError("Give at most one step for each gap between rows.");
+      out.transitions = steps.flatMap((step, i) => {
+        const t = compactStep(step, `row-${i + 1}`, `row-${i + 2}`);
+        return t ? [t] : [];
+      });
+      if (out.transitions.length && out.mode === undefined) out.mode = "annotated";
+    }
+  }
+  return out;
+}
 export function createRatioTable(input: unknown): RatioEnvelope {
   bounded(input, RATIO_MAX_REQUEST_BYTES, "The ratio request");
-  const given = readSchema(ratioSpecSchema, input);
+  const given = expandCompactSpec(readSchema(ratioSpecSchema, input));
   // Omitting rows gives the blank starter: two columns, two empty rows.
   const rows = given.rows ?? [
     { cells: [{ kind: "empty" as const }, { kind: "empty" as const }] },
@@ -317,7 +392,7 @@ export function applyRatioOperations(
             "incomplete_row",
             "Enter all source values before filling the next row.",
           );
-        if (!op.overwrite && target.cells.some((c) => c.kind === "number"))
+        if (!op.overwrite && target.cells.some(known))
           throw new RatioError(
             "overwrite_required",
             "The next row contains values. Confirm before replacing them.",
@@ -373,6 +448,11 @@ export async function reviseRatioTable(input: unknown): Promise<RatioEnvelope> {
     );
   return applyRatioOperations(envelope, revision.operations);
 }
+/** Printed or hidden: a value the table states, in one copy or the other. */
+const known = (
+  cell: RatioDocument["rows"][number]["cells"][number],
+): cell is { kind: "number" | "hidden"; value: string } =>
+  cell.kind === "number" || cell.kind === "hidden";
 export function ratioWarnings(envelope: RatioEnvelope): string[] {
   const document = envelope.document,
     warnings: string[] = [];
@@ -381,7 +461,7 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
       target = document.rows.find((r) => r.id === step.to)!;
     source.cells.forEach((cell, column) => {
       const other = target.cells[column];
-      if (cell.kind !== "number" || other.kind !== "number") return;
+      if (!known(cell) || !known(other)) return;
       const a = parseNumber(cell.value),
         b = parseNumber(other.value),
         factor = parseNumber(step.factor);
@@ -397,11 +477,11 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
   }
   if (document.headings.length !== 2) {
     const complete = document.rows
-      .filter((row) => row.cells.every((cell) => cell.kind === "number"))
+      .filter((row) => row.cells.every(known))
       .map((row) => ({
         id: row.id,
         values: row.cells.map((cell) =>
-          parseNumber(cell.kind === "number" ? cell.value : "0"),
+          parseNumber(known(cell) ? cell.value : "0"),
         ),
       }));
     const reference = complete.find((row) =>
@@ -436,7 +516,7 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
     return warnings;
   }
   const pairs = document.rows.flatMap((row) =>
-    row.cells.every((c) => c.kind === "number")
+    row.cells.every(known)
       ? [
           {
             id: row.id,
@@ -474,10 +554,10 @@ export function describeRatio(envelope: RatioEnvelope): string {
   const rows = d.rows
     .map(
       (row) =>
-        `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
+        `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? `hidden answer ${c.value}${c.line ? " on an answer line" : ""}` : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
     )
     .join("; ");
-  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.`}`;
+  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
   return btoa(

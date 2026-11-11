@@ -129,7 +129,8 @@ export function RatioCanvas({
             data-testid="ratio-preview"
             role="img"
             aria-label={speakRatio(envelope)}
-            dangerouslySetInnerHTML={{ __html: renderRatioSvg(document) }}
+            // The editor shows the answers copy: hidden answers appear in the answer colour.
+            dangerouslySetInnerHTML={{ __html: renderRatioSvg(document, "answer") }}
           />
           {guides && (
             <svg
@@ -233,7 +234,7 @@ export function RatioCanvas({
                       )}
                     >
                       <NumberInput
-                        value={cell.kind === "number" ? cell.value : ""}
+                        value={cell.kind === "number" || cell.kind === "hidden" ? cell.value : ""}
                         label={`Row ${index + 1} ${document.headings[column].text} value`}
                         inputKey={`inline-cell-${row.id}-${column}`}
                         allowEmpty
@@ -260,11 +261,15 @@ export function RatioCanvas({
                               op: "set_cell",
                               rowId: row.id,
                               column: column as 0 | 1 | 2,
+                              // A hidden answer stays hidden when its value is retyped.
                               cell: value
-                                ? { kind: "number", value }
+                                ? cell.kind === "hidden"
+                                  ? { ...cell, value }
+                                  : { kind: "number", value }
                                 : {
                                     kind:
-                                      cell.kind === "answer-line"
+                                      cell.kind === "answer-line" ||
+                                      (cell.kind === "hidden" && cell.line)
                                         ? "answer-line"
                                         : "empty",
                                   },

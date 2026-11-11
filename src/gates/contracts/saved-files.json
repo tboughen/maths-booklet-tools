@@ -4644,6 +4644,7 @@
                   "enum": [
                     "right",
                     "up",
+                    "down",
                     "none"
                   ]
                 }
@@ -4719,6 +4720,28 @@
                           "kind"
                         ],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "hidden"
+                          },
+                          "value": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "line": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "value"
+                        ],
+                        "additionalProperties": false
                       }
                     ]
                   }
@@ -4760,6 +4783,9 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 32
+                },
+                "hidden": {
+                  "type": "boolean"
                 }
               },
               "required": [

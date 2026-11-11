@@ -107,6 +107,9 @@ expected: fix that field and try once more rather than guessing a different payl
   supported column counts and renderer versions, and reuse the returned envelope's
   version. A factor change uses a nested transition, for example
   `{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}`.
+  A `hidden` cell (`{kind:"hidden",value}`) and a transition with `hidden: true` print only in
+  the answers copy (`outputView: "answer"`); headings point right, up or down (`y ↓` for
+  negative gradients).
 - **Value graphs.** Keep blank, answer-line and zero cells distinct, hidden labels and any
   deliberate plotting errors. Calculating cells and worked plots are explicit actions.
 - **Cuboids.** Dimension edits respect cube locking; enabling it needs an explicit
@@ -149,6 +152,14 @@ one-sentence key idea, a check in on its prerequisites, worked example and "Our 
 practice that fades, lettered diagnostic questions and a spot-the-mistake card, as its
 description sets out. A whole unit goes in one call: send diagrams as specs, not envelopes, and
 do not split the unit. Share the whole-booklet links and the per-lesson PDF links it returns.
+
+Use a `ratio-table` diagram, not a plain `table` item, for ratio, scaling, rate and
+x → / y ↑ gradient tables, so the curved scaling arrows show the method. Write it in the
+compact form, which keeps a booklet with many tables small:
+`{"tool":"ratio-table","spec":{"columns":["x →","y ↑"],"table":[["2","4"],["1","[2]"]],"steps":["÷ 2"]}}`.
+A cell is `"4"` (printed), `""` (blank), `"_"` (answer line), `"[2]"` (hidden answer, answers
+copy only) or `"[2]_"`; a step is `"× 3"` or `"÷ 2"`, and `"[÷ 2]"` leaves pupils an answer
+line beside the arrow. Keep plain tables for tables of values and other non-ratio tables.
 
 ## Files and links
 

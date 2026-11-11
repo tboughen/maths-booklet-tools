@@ -11,7 +11,9 @@ export function headingText(heading: Heading): string {
       ? " →"
       : heading.direction === "up"
         ? " ↑"
-        : "")
+        : heading.direction === "down"
+          ? " ↓"
+          : "")
   );
 }
 
@@ -20,7 +22,9 @@ export function headingFromText(heading: Heading, value: string): Heading {
     ? "right"
     : value.endsWith("↑")
       ? "up"
-      : "none";
+      : value.endsWith("↓")
+        ? "down"
+        : "none";
   return {
     ...heading,
     text: (direction === "none" ? value : value.slice(0, -1)).trim(),
