@@ -203,7 +203,11 @@ Each of these is a one-off decision; none is needed until the matching phase.
 4. The loop runner: a scheduled cloud session trigger, and a monthly spend cap (before phase 1).
    Decided 8 Nov 2026: one session a night and a $20 monthly cap on the judges' API spend, which
    `scripts/loop/spend.mjs` estimates from the month's judge runs (the sessions themselves use
-   Tim's Claude plan). Tim raised the cap to $60 a month on 10 Nov 2026. The same day Tim also chose to seed the backlog issues, run full release
+   Tim's Claude plan). Tim raised the cap to $60 a month on 10 Nov 2026, and to $100 on 11 Nov
+   2026 after the judges used the $60 (feature pull requests re-judged in full on every push cost
+   up to $2.50 a run). From 11 Nov 2026, at Tim's request: pull requests that are not loop PRs
+   get one full review when ready, then follow-up reviews of only the files changed since; every
+   run records its real cost for `spend.mjs`; and the Judge panel stops judging at the cap. The same day Tim also chose to seed the backlog issues, run full release
    qualification nightly when `main` has changed (`nightly-qualification.yml`, qualification only),
    and schedule the weekly digest and judge calibration.
 5. Approve the judge rubrics and the calibration set as the definition of good enough (before phase 3).
