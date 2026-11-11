@@ -1,5 +1,5 @@
 ---
-description: 'When the teacher asks for the answer version, a shaded answer copy or the answer view is made.'
+description: 'When the teacher asks for the answer version, a shaded answer copy is made and the pupil copy kept.'
 tags: [venn]
 runs: 1
 max_turns: 14

@@ -72,10 +72,10 @@ export const CASES = [
     leak: leak('"op"\\s*:\\s*"shade_(?:regions|expression)"', 'the shaded answer region') },
   { name: 'venn-answer-version', tags: ['venn'], family: 'venn', allow: ['outputView'],
     // Venn's answer view reveals hidden region text and labels; it does not shade. So for a
-    // shading question the answer version is a separate shaded copy, or the answer view.
-    description: 'When the teacher asks for the answer version, a shaded answer copy or the answer view is made.',
+    // shading question the answer version is a separate shaded copy made with revise_diagram.
+    description: 'When the teacher asks for the answer version, a shaded answer copy is made and the pupil copy kept.',
     prompt: 'Make a two-set Venn diagram with sets A and B for pupils to shade A ∩ B′, and also give me the answer version with the region shaded.',
-    extra: [{ name: 'answer-view', type: 'regex', target: 'trace', pattern: '"outputView"\\s*:\\s*"answer"|"op"\\s*:\\s*"shade_(?:regions|expression)"', body: 'A shaded answer copy or the answer view was requested.' },
+    extra: [{ name: 'answer-shaded', type: 'tool_used', tool: `${TOOL}revise_diagram`, input_match: '"op"\\s*:\\s*"shade_(?:regions|expression)"', min: 1, body: 'A revise_diagram call shades the answer copy.' },
       // The service is stateless, so revising never overwrites the pupil document; what can go
       // wrong is giving the teacher only the shaded copy. So the unshaded pupil diagram must be
       // made from a spec (a spec cannot shade) and the reply must offer both, labelled.

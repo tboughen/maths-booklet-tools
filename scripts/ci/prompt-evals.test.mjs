@@ -123,7 +123,7 @@ test('cases with a pupil answer also check that no tool call writes it into the 
   // pinned by its layouts test "answer view only reveals entered content") never shades, so a
   // shaded copy counts, but only alongside an unshaded pupil diagram offered in the reply.
   const files = caseFiles(), dir = 'plugins/mathsdock-claude/evals/venn-answer-version/graders/';
-  assert.match(files[dir + 'answer-view.md'], /shade_\(\?:regions\|expression\)/);
+  assert.match(files[dir + 'answer-shaded.md'], /type: 'tool_used'[\s\S]*revise_diagram[\s\S]*shade_\(\?:regions\|expression\)[\s\S]*min: 1/);
   assert.match(files[dir + 'pupil-made-unshaded.md'], /min: 1/);
   const both = new RegExp(VENN_BOTH, 'i');
   assert.match('**Pupil version (blank)**\n- SVG\n\n**Answer copy (A ∩ B′ shaded)**', both);
