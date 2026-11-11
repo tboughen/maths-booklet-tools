@@ -79,6 +79,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
     if(activePage.current)window.dispatchEvent(new Event("maths-tools:route"));
     setReviewOpen(false);if(next.bankView==="topics")setDisplay(false);setRoute(next);setSearch(next.code);setMode({id:"",role:"question",view:0});setZoom(1);setNotice("");
   },[]);
+  // A link that named a view the question does not have opens view 1; say so rather than hide it.
+  useEffect(()=>{if(route.viewError)setNotice(route.viewError);},[route.viewError]);
   useEffect(()=>{
     const controller=new AbortController();setLoadError("");const initialSearch=location.search;
     fetchCatalogueIndex(controller.signal).then(data=>{const c=withPerformance(data);setDetails({});setDetailError("");setCatalogue(c);const old=draftRef.current;dispatchDraft({type:"reconcile",catalogue:c});go(readRoute(activePage.current?location.search:initialSearch,c),true);if(old.version&&old.version!==c.version)setNotice("The question bank was updated. Your paper has been reconciled with the current catalogue; review it before exporting.");}).catch(error=>{if(!controller.signal.aborted)setLoadError(error instanceof Error?error.message:"Could not load the catalogue.");});

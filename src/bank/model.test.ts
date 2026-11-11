@@ -19,6 +19,25 @@ describe("Sparx link and question selection contract", () => {
     expect(routeQuery({...route, question: "second", view: 1})).toBe("?code=U862&question=second&view=2");
     expect(routeQuery(emptyRoute)).toBe("");
   });
+  it("reads views counted from 1 and reports a view that does not exist instead of clamping it", () => {
+    const withViews = {...catalogue, questions: [{...first, questionViewCount: 3}, second]} as BankCatalogue;
+    const at = (view: string, bank: BankCatalogue = withViews) => readRoute(`?code=U837&question=first&view=${view}`, bank);
+    // Existing links keep opening the same view.
+    expect(readRoute("?code=U837&question=first", withViews)).toEqual({...emptyRoute, code: "U837", question: "first"});
+    expect(at("1")).toEqual({...emptyRoute, code: "U837", question: "first", view: 0});
+    expect(at("3")).toEqual({...emptyRoute, code: "U837", question: "first", view: 2});
+    expect(at("3").viewError).toBeUndefined();
+    expect(at("3", catalogue).view).toBe(2);
+    expect(at("100", catalogue)).toEqual({...emptyRoute, code: "U837", question: "first", view: 99});
+    // Invalid views open view 1 and say why.
+    expect(at("4")).toEqual({...emptyRoute, code: "U837", question: "first", view: 0, viewError: "The link asked for view 4, but this question has 3 views. Showing view 1."});
+    for (const bad of ["0", "-1", "abc", "2.5", "1e1"])
+      expect(at(bad).viewError, bad).toBe(`The link asked for view ${bad}, but views are numbered from 1. Showing view 1.`);
+    expect(at("101", catalogue).viewError).toBe("The link asked for view 101, but a question has at most 100 views. Showing view 1.");
+    expect(at("0").view).toBe(0);
+    // The address written back is the corrected one.
+    expect(routeQuery(at("4"))).toBe("?code=U837&question=first");
+  });
   it("counts a whole question once while retaining the matching part marks", () => {
     expect(filterQuestions(catalogue, {...emptyRoute, code: "U837"})).toEqual([first]);
     expect(matchingParts(first, "U837")).toEqual({labels: ["9a", "9c"], marks: 3});
