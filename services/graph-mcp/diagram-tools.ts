@@ -7,7 +7,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
-import { DIAGRAM_KINDS, FAMILIES, altText, describeIssues, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
+import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, describeIssues, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import { FAMILY_LIST, familyCapabilities } from "../../packages/diagram-core/src/guides";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { RatioError } from "../../packages/ratio-table-core/src/interchange";
@@ -131,7 +131,7 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
       async (input, extra) => {
         try {
           const f = FAMILIES[input.kind];
-          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, ratio-table, charts and probability-tree.");
+          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", `outputView applies only to ${ANSWER_VIEW_KINDS}.`);
           const envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], AbortSignal.any([extra.signal, connection]));
@@ -152,7 +152,7 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
       async (input, extra) => {
         try {
           const f = FAMILIES[input.kind];
-          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, ratio-table, charts and probability-tree.");
+          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", `outputView applies only to ${ANSWER_VIEW_KINDS}.`);
           const envelope = await f.revise({ envelope: input.envelope, baseHash: input.baseHash, operations: input.operations });
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, "Revised", builders[input.kind], AbortSignal.any([extra.signal, connection]));

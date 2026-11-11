@@ -17,6 +17,8 @@ const tokenSchema = z
     /** Old links carry the encoded file; new, compressed links carry the envelope itself. */
     graph: z.string().max(MAX_LINK_LENGTH).optional(),
     envelope: z.unknown().optional(),
+    /** Answers copy; omitted for the pupil copy and for editable JSON. */
+    view: z.literal("answer").optional(),
   })
   .strict();
 export type DownloadFormat = z.infer<typeof tokenSchema>["format"];
@@ -43,6 +45,7 @@ export class Downloads {
     envelope: GraphEnvelope,
     format: DownloadFormat,
     now = Date.now(),
+    view: "pupil" | "answer" = "pupil",
   ): { url: string; expiresAt: string } {
     const expires = Math.floor(now / 1000) + 7 * 24 * 60 * 60;
     const token = packToken({
@@ -51,6 +54,7 @@ export class Downloads {
         format,
         expires,
         envelope,
+        ...(view === "answer" && format !== "json" ? { view } : {}),
       });
     const url = new URL("/download", this.base);
     url.searchParams.set("token", token);
@@ -68,7 +72,7 @@ export class Downloads {
   verify(
     url: URL,
     now = Date.now(),
-  ): { envelope: GraphEnvelope; format: DownloadFormat } {
+  ): { envelope: GraphEnvelope; format: DownloadFormat; view: "pupil" | "answer" } {
     const token = url.searchParams.get("token") ?? "",
       signature = url.searchParams.get("signature") ?? "";
     if (
@@ -109,6 +113,7 @@ export class Downloads {
     return {
       envelope: validateEnvelope(parsed.envelope !== undefined ? parsed.envelope : decodeEnvelope(parsed.graph ?? ""), true),
       format: parsed.format,
+      view: parsed.view ?? "pupil",
     };
   }
 }

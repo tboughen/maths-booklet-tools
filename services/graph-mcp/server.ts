@@ -130,10 +130,11 @@ export function graphService(options: ServiceOptions) {
     envelope: GraphEnvelope,
     format: DownloadFormat,
     signal?: AbortSignal,
+    view: "pupil" | "answer" = "pupil",
   ) => {
     const document = documentFromEnvelope(envelope),
       metrics = getExportMetrics(document),
-      svg = renderDiagramSvg(document);
+      svg = renderDiagramSvg(document, view);
     if (format === "json")
       return {
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
@@ -165,7 +166,7 @@ export function graphService(options: ServiceOptions) {
   const bundles = new BundleDownloads(base.href, options.keys, options.activeKey);
   const diagramOutputs = diagramOutputTools(raster, bundles, limits, (source, format, signal) => {
     switch (source.kind) {
-      case "graph": return artifacts(source.envelope, format, signal);
+      case "graph": return artifacts(source.envelope, format, signal, source.outputView);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal, source.outputView);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
       case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "triangle": return resources.artifacts(source, format, signal);
@@ -173,13 +174,13 @@ export function graphService(options: ServiceOptions) {
   });
   const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
   const diagrams = diagramTools({
-    graph: (s, signal) => result(s.envelope as GraphEnvelope, signal),
+    graph: (s, signal) => result(s.envelope as GraphEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
     "bar-model": resource, charts: resource, "probability-tree": resource, triangle: resource,
   } satisfies Record<DiagramKind, ResultBuilder>);
-  async function result(raw: GraphEnvelope, signal?: AbortSignal) {
+  async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
     const converted = raw.styleProfile !== "portable-v1";
     const envelope = converted
@@ -191,14 +192,14 @@ export function graphService(options: ServiceOptions) {
     const document = documentFromEnvelope(envelope),
       metrics = getExportMetrics(document);
     // Generate and independently verify the print artifact before advertising it.
-    const printFile = await artifacts(envelope, "png", signal);
+    const printFile = await artifacts(envelope, "png", signal, view);
     const width = Math.min(
       1200,
       Math.floor(Math.sqrt((2_000_000 * metrics.width) / metrics.height)),
     );
     const height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderDiagramSvg(document),
+      renderDiagramSvg(document, view),
       width,
       height,
       false,
@@ -218,19 +219,19 @@ export function graphService(options: ServiceOptions) {
     > = {};
     for (const format of ["svg", "png", "json"] as const) {
       try {
-        links[format] = downloads.link(envelope, format);
+        links[format] = downloads.link(envelope, format, Date.now(), view);
       } catch (error) {
         if (!(error instanceof GraphError) || error.code !== "size_limit")
           throw error;
         const file =
           format === "png"
             ? printFile
-            : await artifacts(envelope, format, signal);
+            : await artifacts(envelope, format, signal, view);
         limits.output(file.body.length);
         content.push({
           type: "resource",
           resource: {
-            uri: `graph://${hash}/maths-graph.${format}`,
+            uri: `graph://${hash}/maths-graph${view === "answer" && format !== "json" ? "-answers" : ""}.${format}`,
             mimeType: file.type,
             ...(format === "png"
               ? { blob: file.body.toString("base64") }
@@ -261,7 +262,8 @@ export function graphService(options: ServiceOptions) {
     );
     return {
       structuredContent: {
-        printGuidance: graphPrintFacts(document),
+        printGuidance: graphPrintFacts(document, view),
+        ...(view === "answer" ? { outputView: view } : {}),
         envelope,
         contentHash: hash,
         rendererVersion: RENDERER_VERSION,
@@ -400,17 +402,17 @@ export function graphService(options: ServiceOptions) {
         res.end(file.body); return;
       }
       if (req.method === "GET" && url.pathname === "/download") {
-        const { envelope, format } = downloads.verify(url);
+        const { envelope, format, view } = downloads.verify(url);
         const abort = new AbortController();
         res.once("close", () => {
           if (!res.writableFinished) abort.abort();
         });
-        const file = await artifacts(envelope, format, abort.signal);
+        const file = await artifacts(envelope, format, abort.signal, view);
         limits.output(file.body.length);
         bytes = file.body.length;
         res.writeHead(200, {
           "Content-Type": file.type,
-          "Content-Disposition": `attachment; filename="maths-graph.${format}"`,
+          "Content-Disposition": `attachment; filename="maths-graph${view === "answer" ? "-answers" : ""}.${format}"`,
           "Content-Security-Policy":
             "default-src 'none'; style-src 'unsafe-inline'; sandbox",
         });

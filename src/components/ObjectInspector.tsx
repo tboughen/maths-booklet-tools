@@ -3,6 +3,84 @@ import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
 import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
+import {
+  OBJECT_NAME_PATTERN,
+  normaliseObjectName,
+} from "../../packages/graph-core/src/axes";
+
+/** The exam-style name printed beside the object, and whether it is a hidden answer. */
+function NameAndAnswer({
+  object,
+  onUpdate,
+  drafts,
+  disabled,
+}: {
+  object: GraphObject;
+  onUpdate: (object: GraphObject) => void;
+  drafts: GraphDrafts;
+  disabled?: boolean;
+}) {
+  const kind = object.kind === "point" ? "point" : "line";
+  return (
+    <div className="object-name-fields">
+      <GraphDraftField
+        id={object.id + "-name"}
+        label={`Name printed beside the ${kind}`}
+        displayLabel="Name"
+        inputMode="text"
+        hint={kind === "point" ? "For example A, B or P′" : "For example L, L1 or L2"}
+        value={object.name ?? ""}
+        drafts={drafts}
+        disabled={disabled}
+        onApplyText={(text) => {
+          const name = normaliseObjectName(text);
+          if (!name) {
+            const next = { ...object };
+            delete next.name;
+            delete next.namePosition;
+            onUpdate(next);
+            return;
+          }
+          if (!OBJECT_NAME_PATTERN.test(name))
+            throw Error("Use a capital letter, with an optional ′ and number: A, B′, L1.");
+          onUpdate({ ...object, name });
+        }}
+      />
+      {object.name && object.namePosition && (
+        <button
+          disabled={disabled || drafts.pending}
+          className="text-action"
+          onClick={() => {
+            const next = { ...object };
+            delete next.namePosition;
+            onUpdate(next);
+          }}
+        >
+          <RotateCcw size={14} />
+          Reset name position
+        </button>
+      )}
+      <button
+        disabled={disabled || drafts.pending}
+        className={`visibility-button${object.answerOnly ? " active" : ""}`}
+        aria-pressed={!!object.answerOnly}
+        onClick={() => {
+          const next = { ...object };
+          if (object.answerOnly) delete next.answerOnly;
+          else next.answerOnly = true;
+          onUpdate(next);
+        }}
+      >
+        {object.answerOnly ? <EyeOff size={16} /> : <Eye size={16} />}
+        <span>
+          {object.answerOnly
+            ? "Answer only: hidden on the pupil copy"
+            : "On the pupil copy"}
+        </span>
+      </button>
+    </div>
+  );
+}
 
 interface ObjectInspectorProps {
   object?: GraphObject;
@@ -85,6 +163,12 @@ export function ObjectInspector({
           disabled={disabled}
           value={object.position}
           onChange={(position) => onUpdate({ ...object, position })}
+        />
+        <NameAndAnswer
+          object={object}
+          onUpdate={onUpdate}
+          drafts={drafts}
+          disabled={disabled}
         />
         <button
           disabled={disabled || drafts.pending}
@@ -192,6 +276,12 @@ export function ObjectInspector({
           Reset label position
         </button>
       )}
+      <NameAndAnswer
+        object={object}
+        onUpdate={onUpdate}
+        drafts={drafts}
+        disabled={disabled}
+      />
       {object.display === "line" && (
         <button
           disabled={disabled || drafts.pending}

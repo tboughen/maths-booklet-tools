@@ -133,12 +133,24 @@ describe("generic connector tools", () => {
     expect(error.code).toBe("invalid_input");
     expect(error.message).toMatch(/^spec\.categories: /);
     expect(error.message).toContain('diagram_capabilities {kind:"charts"}');
-    const view = await client.callTool({ name: "create_diagram", arguments: { kind: "graph", spec: { objects: [] }, outputView: "answer" } });
+    const view = await client.callTool({ name: "create_diagram", arguments: { kind: "triangle", spec: {}, outputView: "answer" } });
     expect(view.isError).toBe(true);
     expect(JSON.stringify(view.content)).toContain("outputView applies only to");
     const stale = await client.callTool({ name: "revise_diagram", arguments: { kind: "venn", envelope: FAMILIES.venn.create({}), baseHash: "0".repeat(64), operations: [] } });
     expect(stale.isError).toBe(true);
   });
+  it("draws a graph's answer-only line only on the answers copy and its downloads", async () => {
+    const client = await start();
+    const spec = { objects: [{ kind: "line", id: "drawn", equation: { kind: "slope", slope: 2, intercept: -1 }, answerOnly: true }] };
+    type Out = { envelope: unknown; outputView?: string; downloads: Record<string, { url: string }> };
+    const pupil = (await client.callTool({ name: "create_diagram", arguments: { kind: "graph", spec } })).structuredContent as Out;
+    const answer = (await client.callTool({ name: "create_diagram", arguments: { kind: "graph", envelope: pupil.envelope, outputView: "answer" } })).structuredContent as Out;
+    expect(answer.envelope).toEqual(pupil.envelope);
+    expect(answer.outputView).toBe("answer");
+    const svg = async (o: Out) => (await fetch(o.downloads.svg.url)).text();
+    expect(await svg(pupil)).not.toContain("#b0125b");
+    expect(await svg(answer)).toContain("#b0125b");
+  }, 30000);
   it("has no per-family tools any more", async () => {
     const client = await start();
     for (const name of ["create_bar_model", "revise_venn", "triangle_capabilities", "create_graph"]) {
