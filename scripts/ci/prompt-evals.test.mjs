@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS, VENN_BOTH } from '../evals/cases.mjs';
+import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS, VENN_BOTH, VENN_SHADED, VENN_UNSHADED_SPEC } from '../evals/cases.mjs';
 import { options, evalArgs, summary, localPlugin, exitCode } from '../evals/run.mjs';
 import { CONFIG } from '../loop/preflight.mjs';
 
@@ -119,6 +119,14 @@ test('cases with a pupil answer also check that no tool call writes it into the 
   const venn = new RegExp(CASES.find(c => c.name === 'venn-pupil-shading').leak.value);
   assert.match('{"operations":[{"op": "shade_regions","masks":[1]}]}', venn);
   assert.doesNotMatch('{"operations":[{"op":"rename_set","set":"A","text":"A"}]}', venn);
+  assert.equal(venn.source, VENN_SHADED);
+  assert.match('{"kind":"venn","spec":{"regions":[{"mask":1,"region":{"shade":"grey"}}]}}', venn, 'a shaded region in a spec');
+  assert.doesNotMatch('{"kind":"venn","spec":{"regions":[{"mask":1,"region":{"shade":"none"}}]}}', venn);
+  const unshaded = new RegExp(VENN_UNSHADED_SPEC);
+  assert.match('{"kind":"venn","spec":{"sets":2,"arrangement":"overlap"}}', unshaded);
+  assert.match('{"spec":{"sets":2,"regions":[{"mask":3,"region":{"shade":"none"}}]},"kind":"venn"}', unshaded);
+  assert.doesNotMatch('{"kind":"venn","spec":{"regions":[{"mask":1,"region":{"shade":"hatch"}}]}}', unshaded);
+  assert.doesNotMatch('{"kind":"venn","envelope":{"document":{}}}', unshaded);
   // The answer-version case: Venn's answer view (forView in packages/venn-core/src/index.ts,
   // pinned by its layouts test "answer view only reveals entered content") never shades, so a
   // shaded copy counts, but only alongside an unshaded pupil diagram offered in the reply.

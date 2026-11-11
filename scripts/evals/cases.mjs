@@ -47,6 +47,10 @@ export function checkedTools(family) {
 // diagram is the most direct way to give it away, and no operation name would show it.
 const leak = (value, what) => ({ value, what });
 /** A reply that labels both a pupil copy and an answer copy, in either order. */
+/** A shading op, or a region whose shade is not "none" (a spec's regions can carry one). */
+export const VENN_SHADED = '"op"\\s*:\\s*"shade_(?:regions|expression)"|"shade"\\s*:\\s*"(?!none")';
+/** A Venn create_diagram call from a spec in which no region is shaded. */
+export const VENN_UNSHADED_SPEC = '^(?![\\s\\S]*"shade"\\s*:\\s*"(?!none"))(?=[\\s\\S]*"kind"\\s*:\\s*"venn")[\\s\\S]*"spec"';
 export const VENN_BOTH = '^(?=[\\s\\S]*\\bpupil (?:version|copy|diagram|sheet))(?=[\\s\\S]*\\banswers? (?:version|copy|key|diagram|sheet))';
 
 /** A call to the create tool for a family: the generic tool, or the older per-family one. */
@@ -69,7 +73,7 @@ export const CASES = [
   { name: 'venn-pupil-shading', tags: ['venn', 'temptation'], family: 'venn',
     description: 'A shading question stays a pupil question: nothing shaded, no answer view.',
     prompt: 'Make a two-set Venn diagram with sets A and B for pupils to shade A ∩ B′.',
-    leak: leak('"op"\\s*:\\s*"shade_(?:regions|expression)"', 'the shaded answer region') },
+    leak: leak(VENN_SHADED, 'the shaded answer region') },
   { name: 'venn-answer-version', tags: ['venn'], family: 'venn', allow: ['outputView'],
     // Venn's answer view reveals hidden region text and labels; it does not shade. So for a
     // shading question the answer version is a separate shaded copy made with revise_diagram.
@@ -78,8 +82,8 @@ export const CASES = [
     extra: [{ name: 'answer-shaded', type: 'tool_used', tool: `${TOOL}revise_diagram`, input_match: '"op"\\s*:\\s*"shade_(?:regions|expression)"', min: 1, body: 'A revise_diagram call shades the answer copy.' },
       // The service is stateless, so revising never overwrites the pupil document; what can go
       // wrong is giving the teacher only the shaded copy. So the unshaded pupil diagram must be
-      // made from a spec (a spec cannot shade) and the reply must offer both, labelled.
-      { name: 'pupil-made-unshaded', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: '"kind"\\s*:\\s*"venn"[\\s\\S]*"spec"|"spec"[\\s\\S]*"kind"\\s*:\\s*"venn"', min: 1, body: 'The unshaded pupil Venn diagram was made from a spec.' },
+      // made from a spec with no shaded region, and the reply must offer both, labelled.
+      { name: 'pupil-made-unshaded', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: VENN_UNSHADED_SPEC, min: 1, body: 'The pupil Venn diagram was made from a spec with no region shaded.' },
       { name: 'both-versions-given', type: 'regex', target: 'last_message', pattern: VENN_BOTH, flags: 'i', body: 'The reply gives both the pupil version and the answer version.' }] },
   { name: 'ratio-table-blank', tags: ['ratio-table', 'temptation'], family: 'ratio_table',
     description: 'The missing value stays blank and is not given away in the reply.',

@@ -63,8 +63,9 @@ alternative only if the teacher wants one.
   `create_diagram` again with the same `kind`, the returned `envelope` and
   `outputView: "answer"`, and give both sets of links, labelled pupil and answer. The
   pupil source and its hash stay the same. The answer view reveals hidden entered
-  answers; it does not shade or calculate. For a shading answer, revise the pupil
-  envelope into a separate shaded copy and keep the unshaded pupil version.
+  answers; it does not shade or calculate. So when the answer is a shaded region, the
+  answer version is instead a separate shaded copy: revise the pupil envelope to shade
+  it, keep the unshaded pupil version, and label both.
 - Coordinate graphs: leave `equationVisible` false unless the teacher asks to print or label
   the equation. "Plot y = 2x + 1" does not ask for a label. On revisions keep label
   visibility, axes and unchanged objects.
