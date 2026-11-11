@@ -116,6 +116,30 @@ const leafItems = [
     .strict(),
   z
     .object({
+      type: z.literal("paper"),
+      /**
+       * Blank grid for pupils to draw on. squared: 5 mm squares. dotted: 5 mm dot grid.
+       * graph: exam graph paper, 2 mm squares with a bold line every 10 mm.
+       */
+      style: z.enum(["squared", "dotted", "graph"]),
+      widthMm: z.number().min(20).max(400),
+      heightMm: z.number().min(10).max(250),
+      /**
+       * Blank axes with no numbers, so pupils choose their own scale: the origin sits this many
+       * millimetres from the grid's left and bottom edges (snapped to the grid). Omit for no axes.
+       */
+      axes: z
+        .object({
+          originMm: z.object({ x: z.number().min(0).max(400), y: z.number().min(0).max(250) }).strict(),
+          xLabel: text(8).default("x"),
+          yLabel: text(8).default("y"),
+        })
+        .strict()
+        .optional(),
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("checklist"),
       /** Self-check boxes the pupil ticks as they work ("Mark two perfect points"). Nothing is saved as an answer. */
       items: z.array(text(120)).min(1).max(6),
@@ -124,11 +148,22 @@ const leafItems = [
 ] as const;
 
 export const leafSchema = z.discriminatedUnion("type", leafItems);
+/**
+ * A worked solution kept with the question: never printed (pupil or answers copy). It lets a
+ * reviewer or teacher check the saved answers. Several lines are allowed.
+ */
+export const workingSchema = z
+  .string()
+  .max(3000)
+  .refine((s) => ![...s].some((c) => (c.charCodeAt(0) < 32 && c !== "\n") || c === "<" || c === ">"), "Use ordinary text without markup.")
+  .describe("Hidden worked solution: stored with the question, never printed.");
+
 export const partSchema = z
   .object({
     type: z.literal("part"),
     text: text(400),
     items: z.array(leafSchema).max(8).default([]),
+    working: workingSchema.optional(),
   })
   .strict();
 export const itemSchema = z.discriminatedUnion("type", [...leafItems, partSchema]);
@@ -137,6 +172,9 @@ export const cardSchema = z
   .object({
     title: text(60),
     items: z.array(itemSchema).min(1).max(16),
+    /** Starts a new labelled stage band (the next letter) above this card: stages on wider layouts. */
+    stage: text(40).optional(),
+    working: workingSchema.optional(),
   })
   .strict();
 
@@ -147,13 +185,33 @@ export const columnSchema = z
   })
   .strict();
 
+/**
+ * Column layouts for a side, as widths in thirds of the page: three columns; two wide columns;
+ * one wide and one narrow (either way round); or one full-width column of cards.
+ */
+export const LAYOUTS = {
+  three: [1, 1, 1],
+  two: [1.5, 1.5],
+  "wide-narrow": [2, 1],
+  "narrow-wide": [1, 2],
+  one: [3],
+} as const;
+export type Layout = keyof typeof LAYOUTS;
+
 export const sideSchema = z
   .object({
     /** One line under the title on this side, e.g. "Use a ruler when drawing charts." */
     instruction: text(160).default(""),
-    columns: z.array(columnSchema).length(3),
+    layout: z.enum(Object.keys(LAYOUTS) as [Layout, ...Layout[]]).default("three"),
+    /** One mark per answer: prints "Score ____ / n" in the header. Leave null for no score box. */
+    score: z.number().int().min(1).max(200).nullable().default(null),
+    columns: z.array(columnSchema).min(1).max(3),
   })
-  .strict();
+  .strict()
+  .superRefine((side, ctx) => {
+    const want = LAYOUTS[side.layout].length;
+    if (side.columns.length !== want) ctx.addIssue({ code: "custom", path: ["columns"], message: `The ${side.layout} layout has ${want} column${want === 1 ? "" : "s"}; this side has ${side.columns.length}.` });
+  });
 
 export const resourceSchema = z
   .object({
@@ -177,7 +235,7 @@ export const resourceSchema = z
         sides: z.array(sideSchema).length(2),
       })
       .strict()
-      .describe("The worksheet: header fields and exactly two sides, each with three strand columns of question cards."),
+      .describe("The worksheet: header fields and exactly two sides, each with strand columns of question cards (three by default)."),
   })
   .strict();
 

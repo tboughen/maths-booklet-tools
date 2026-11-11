@@ -6,7 +6,7 @@ import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
-import { fileName, renderResource, validate, type Item, type Resource } from "../../packages/resource-core/src/index";
+import { fileName, renderResource, stageLetters, validate, type Item, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { Field, LeafEditor, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
@@ -131,6 +131,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
 
   const d = r.document;
   let number = 0;
+  const letters = stageLetters(r);
   const checks: { ok: boolean; text: string }[] = [
     { ok: issues.length === 0, text: issues.length ? `${issues.length} layout problem${issues.length > 1 ? "s" : ""}: ${issues.map((i) => i.message).join(" ")}` : "Fits exactly two A3 sides; no card is split or cut off." },
     { ok: true, text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit." },
@@ -284,7 +285,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                   <Field label="Instruction line" value={side.instruction} max={160} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].instruction = v))} />
                   {side.columns.map((col, c) => (
                     <div key={c} className="ws-column">
-                      <Field label={`Column ${String.fromCharCode(65 + s * 3 + c)} heading`} value={col.heading} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].heading = v))} />
+                      <Field label={`Column ${letters.columns[s][c]} heading`} value={col.heading} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].heading = v))} />
                       {col.cards.map((card, k) => {
                         const q = ++number;
                         const setItem = (path: number[], next: Item | Leaf) =>
@@ -293,7 +294,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                             if (path.length === 1) items[path[0]] = next as Item;
                             else (items[path[0]] as Extract<Item, { type: "part" }>).items[path[1]] = next as Leaf;
                           });
-                        const linear = s * 3 + c;
+                        const linear = d.sides.slice(0, s).reduce((t, x) => t + x.columns.length, 0) + c;
                         return (
                           <details key={k} className="ws-card">
                             <summary>
@@ -309,7 +310,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                               <button className="icon-button" aria-label={`Move question ${q} to the previous column`} disabled={blocked || linear === 0} onClick={() => move(s, c, k, "previous")}>
                                 <ArrowLeft size={16} aria-hidden="true" />
                               </button>
-                              <button className="icon-button" aria-label={`Move question ${q} to the next column`} disabled={blocked || linear === 5} onClick={() => move(s, c, k, "next")}>
+                              <button className="icon-button" aria-label={`Move question ${q} to the next column`} disabled={blocked || linear === d.sides.reduce((t, x) => t + x.columns.length, 0) - 1} onClick={() => move(s, c, k, "next")}>
                                 <ArrowRight size={16} aria-hidden="true" />
                               </button>
                             </div>

@@ -31,6 +31,7 @@ await build({
       `export { worksheetDocx } from "./services/graph-mcp/worksheet-docx";`,
       `export { docxFileName } from "./packages/resource-core/src/docx";`,
       `export { wordSample } from "./packages/resource-core/src/word-sample";`,
+      `export { layoutSample } from "./packages/resource-core/src/layout-sample";`,
       `export { worksheetPdf } from "./services/graph-mcp/worksheet-pdf";`,
     ].join("\n"),
     resolveDir: root,
@@ -52,6 +53,7 @@ const sheets = inputs.length
       ["comparative-bar-charts", r.comparativeBarCharts],
       ["tree-diagrams", r.treeDiagrams],
       ["word-rendering-test", r.wordSample],
+      ["layout-test", r.layoutSample],
     ];
 
 // LibreOffice preview, optionally without any installed Inter (to prove the embedded fonts work).

@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { card as measureCard, overflowMessage, planColumn, renderResource, type Ctx, type Issue, type View } from "./render";
+import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { FRAC_FOOT, FRAC_LINE, fracStyle, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -232,6 +232,16 @@ function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): string {
   }
   const room = w + 2 * (S.cardPad - 0.6);
   if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: `A diagram is ${drawn.widthMm} mm wide; the card has ${room} mm. Diagrams are never shrunk to fit.` });
+  return drawing(drawn, w, indent, ctx);
+}
+/** Grid paper: the same SVG as the page, as a picture at its printed size. */
+function paper(item: Extract<Leaf, { type: "paper" }>, w: number, indent: number, ctx: WordCtx): string {
+  const { widthMm, heightMm } = item;
+  const alt = `Blank ${item.style === "graph" ? "graph paper" : `${item.style} paper`}${item.axes ? " with blank axes" : ""}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" font-family="Inter" role="img" aria-label="${alt}">${paperSvg(item, ctx.st)}</svg>`;
+  return drawing({ svg, widthMm, heightMm }, w, indent, ctx);
+}
+function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
   const id = ctx.pictures.length + 1;
   const png = `rIdImg${id}p`,
     vector = `rIdImg${id}s`;
@@ -444,6 +454,8 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
       return gap(item.heightMm + extra, indent);
     case "diagram":
       return picture(item.diagram, w, indent, ctx);
+    case "paper":
+      return paper(item, w, indent, ctx);
     case "steps": {
       const labels = item.steps.map((s, i) => (s.label.trim() || `Step ${i + 1}`) + ":");
       const hang = Math.min(Math.max(...labels.map((l) => plainWidth(l, S.body, "bold"))) + 2, w * 0.35);
@@ -565,15 +577,59 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
 
 // ---------------------------------------------------------------- page
 
-function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number): { xml: string; next: number } {
+/** A stage tile and heading: a one-row table exactly one tile high. */
+function stageTable(letter: string, heading: string, w: number, st: HouseStyle): string {
+  return table(
+    [S.tile, 2.8, w - S.tile - 2.8],
+    [
+      row(
+        [
+          cell(para(run(letter, { bold: true, color: "#ffffff", sizeMm: S.columnHeading }), { align: "center", line: lineBox(S.columnHeading) }), {
+            width: S.tile,
+            shade: st.navy,
+            vAlign: "center",
+          }),
+          cell(gap(END_MM), { width: 2.8 }),
+          cell(para(runs(heading, { bold: true, color: st.navy, sizeMm: S.columnHeading }), { line: lineBox(S.columnHeading) }), {
+            width: w - S.tile - 2.8,
+            vAlign: "center",
+          }),
+        ],
+        { mm: S.tile, exact: true },
+      ),
+    ],
+  );
+}
+
+/** "Score ____ / 18" then "Side 1 of 2", placed as in the PDF by tab stops. */
+function scoreLine(score: number, sideNumber: number, rightW: number, st: HouseStyle): string {
+  const box = scoreBox(score, sideNumber);
+  const end = rightW - box.lineEnd;
+  const o = { sizeMm: S.objective };
+  const start = end - box.lineMm - 1.2 - plainWidth(box.label, S.objective);
+  return para(
+    run(box.label, o) + tab(o) + tab(o) + run(`\u00a0${box.total}`, o) + tab(o) + run(`Side ${sideNumber} of 2`, { ...o, color: st.muted }),
+    {
+      line: 4.8,
+      tabs: [
+        { pos: end - box.lineMm, align: "left" },
+        { pos: end, align: "left", leader: "underscore" },
+        { pos: rightW, align: "right" },
+      ],
+      left: start,
+    },
+  );
+}
+
+function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, letters: ReturnType<typeof stageLetters>): { xml: string; next: number } {
   const doc = resource.document;
   const sideData = doc.sides[s];
   const st = ctx.st;
   const P = S.page,
     m = S.margin;
   const width = P.width - 2 * m;
-  const colW = (width - S.gutter * 2) / 3;
-  const rightW = 90;
+  const boxes = columnBoxes(sideData);
+  const rightW = HEADER_RIGHT;
   // Header: title, objective and instruction left; group, name line and side right; a hairline below.
   const left = [
     para(runs(doc.title, { bold: true, color: st.navy, sizeMm: S.title }), { line: 8.47 }),
@@ -587,7 +643,9 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
       left: rightW - 76,
       tabs: [{ pos: rightW, align: "right", leader: "underscore" }],
     }),
-    para(run(`Side ${s + 1} of 2`, { color: st.muted, sizeMm: S.objective }), { line: 4.8, align: "right" }),
+    sideData.score === null
+      ? para(run(`Side ${s + 1} of 2`, { color: st.muted, sizeMm: S.objective }), { line: 4.8, align: "right" })
+      : scoreLine(sideData.score, s + 1, rightW, st),
   ].join("");
   const hairline = { bottom: { color: st.rule, width: 0.3 } };
   const header = table(
@@ -596,7 +654,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
   );
 
   // Stage headings (A to F across both sides), then one tall cell per strand column.
-  const grid = [colW, S.gutter, colW, S.gutter, colW];
+  const grid = boxes.flatMap((b, c) => (c ? [S.gutter, b.w] : [b.w]));
   const spacer = (h?: number) => cell(gap(h ?? END_MM), { width: S.gutter });
   const bands: string[] = [];
   const columns: string[] = [];
@@ -607,44 +665,26 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
       bands.push(spacer());
       columns.push(spacer());
     }
-    const letter = String.fromCharCode(65 + s * 3 + c);
-    bands.push(
-      cell(
-        table(
-          [S.tile, 2.8, colW - S.tile - 2.8],
-          [
-            row(
-              [
-                cell(para(run(letter, { bold: true, color: "#ffffff", sizeMm: S.columnHeading }), { align: "center", line: lineBox(S.columnHeading) }), {
-                  width: S.tile,
-                  shade: st.navy,
-                  vAlign: "center",
-                }),
-                cell(gap(END_MM), { width: 2.8 }),
-                cell(para(runs(col.heading, { bold: true, color: st.navy, sizeMm: S.columnHeading }), { line: lineBox(S.columnHeading) }), {
-                  width: colW - S.tile - 2.8,
-                  vAlign: "center",
-                }),
-              ],
-              { mm: S.tile, exact: true },
-            ),
-          ],
-        ),
-        { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } },
-      ),
-    );
+    const colW = boxes[c].w;
+    bands.push(cell(stageTable(letters.columns[s][c], col.heading, colW, st), { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } }));
     const numbers = col.cards.map(() => ++number);
     ctx.where = { side: s + 1, column: c + 1, question: 0 };
     const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
     if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
     const quiet = { ...ctx, issues: [], diagrams: 0 };
-    const cards = col.cards.map((cd, i) => {
+    // Cards with exact gaps between them; a card that starts a stage has its band in the gap.
+    const half = (S.columnHeadingBand - S.tile) / 2;
+    const parts: string[] = [];
+    col.cards.forEach((cd, i) => {
       ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
       const stretch = i === col.cards.length - 1 ? stretchLast : 0;
       const h = measureCard(cd, numbers[i], colW, quiet, extra, stretch).h;
-      return wordCard(cd, numbers[i], colW, ctx, extra, h);
+      const letter = letters.cards[s][c][i];
+      if (i) parts.push(gap(S.cardGap + (letter ? half : 0)));
+      if (letter) parts.push(stageTable(letter, cd.stage ?? "", colW, st), gap(STAGE_BAND - S.tile - half));
+      parts.push(wordCard(cd, numbers[i], colW, ctx, extra, h));
     });
-    columns.push(cell(cards.length ? stack(cards, S.cardGap) : gap(END_MM), { width: colW }));
+    columns.push(cell(parts.length ? parts.join("") : gap(END_MM), { width: colW }));
   });
   const body = table(grid, [row(bands, { mm: S.columnHeadingBand + 2.5, exact: true }), row(columns, { mm: avail })]);
   return { xml: header + gap(1.3) + body, next: number };
@@ -706,10 +746,11 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
   // The SVG layout's own checks come first: Word output never hides a problem the pages have.
   const issues = [...renderResource(resource, { view }).issues];
   const ctx: WordCtx = { st, view, diagrams: 0, issues: [], where: { side: 0, column: 0 }, media: [], rels: [], pictures: [], maths: resource.document.notation === "maths" };
+  const letters = stageLetters(resource);
   let number = 0;
   const sides: string[] = [];
   for (let s = 0; s < 2; s++) {
-    const r = side(resource, s, ctx, number);
+    const r = side(resource, s, ctx, number, letters);
     number = r.next;
     sides.push(r.xml);
   }

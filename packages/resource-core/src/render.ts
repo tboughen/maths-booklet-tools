@@ -1,5 +1,5 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
-import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
+import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
@@ -269,6 +269,10 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       return { h: item.heightMm + extra, svg: "" };
     case "diagram":
       return diagram(item.diagram, w, ctx);
+    case "paper": {
+      if (item.widthMm > w + 0.01) issue(ctx, `The grid paper is ${n(item.widthMm)} mm wide; the card has ${n(w)} mm. Grids are never shrunk to fit.`);
+      return { h: item.heightMm, svg: `<g transform="translate(${n((w - item.widthMm) / 2)},0)">${paperSvg(item, st)}</g>` };
+    }
     case "steps": {
       // A hanging indent keeps each step's text clear of its label.
       const labels = item.steps.map((s, i) => (s.label.trim() || `Step ${i + 1}`) + ":");
@@ -377,11 +381,116 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
 export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx): { spare: number; extra: number; stretchLast: number } {
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
-  const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap;
+  const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
   const spare = avail - used;
   const spaces = cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
   return { spare, extra, stretchLast: spare > 0 && !spaces ? spare : 0 };
+}
+
+/** A stage band inside a column: the heading band and the gap to the first card below it. */
+export const STAGE_BAND = S.columnHeadingBand + 2.5;
+/** Cards that start a new stage band. The first card of a column sits under the column heading. */
+const stagedCards = (cards: Card[]) => cards.filter((cd, i) => i > 0 && cd.stage).length;
+
+/** Stage letters A to Z, then AA, AB and so on. */
+const stageLetter = (k: number): string => (k < 26 ? String.fromCharCode(65 + k) : stageLetter(Math.floor(k / 26) - 1) + String.fromCharCode(65 + (k % 26)));
+
+/**
+ * The stage letters, in reading order across both sides: each column heading takes the next
+ * letter, and so does each card that starts a stage band. With three plain columns a side this is
+ * A to C on side 1 and D to F on side 2, as before.
+ */
+export function stageLetters(resource: Resource): { columns: string[][]; cards: (string | null)[][][] } {
+  let k = 0;
+  const columns: string[][] = [];
+  const cards: (string | null)[][][] = [];
+  for (const side of resource.document.sides) {
+    columns.push([]);
+    cards.push([]);
+    for (const col of side.columns) {
+      columns[columns.length - 1].push(stageLetter(k++));
+      cards[cards.length - 1].push(col.cards.map((cd, i) => (i > 0 && cd.stage ? stageLetter(k++) : null)));
+    }
+  }
+  return { columns, cards };
+}
+
+/**
+ * Where each column of a side sits: widths are thirds of the page (LAYOUTS), so a wide column
+ * covers two thirds and the gutter between them. Three columns give the original grid exactly.
+ */
+export function columnBoxes(side: Pick<Side, "layout">): { x: number; w: number }[] {
+  const third = (S.page.width - S.margin * 2 - S.gutter * 2) / 3;
+  let t = 0;
+  return LAYOUTS[side.layout].map((k) => {
+    const box = { x: S.margin + t * (third + S.gutter), w: k * third + (k - 1) * S.gutter };
+    t += k;
+    return box;
+  });
+}
+
+/** The score box text pieces, measured once for the SVG and Word headers. */
+export function scoreBox(score: number, sideNumber: number): { label: string; total: string; lineMm: number; lineEnd: number } {
+  const sideW = plainWidth(`Side ${sideNumber} of 2`, S.objective);
+  const total = `/ ${score}`;
+  // Measured from the right edge of the page content: the side label, a gap, then the total.
+  return { label: "Score", total, lineMm: 16, lineEnd: sideW + 8 + plainWidth(total, S.objective) + 1 };
+}
+/** Room to the left of the header's right-hand block, which holds the group, name and score. */
+export const HEADER_RIGHT = 90;
+
+/** A stage tile and heading, as at the top of each column. `y` is the top of the band. */
+function stageSvg(letter: string, heading: string, x: number, y: number, st: HouseStyle): string {
+  const tileY = y + (S.columnHeadingBand - S.tile) / 2;
+  return (
+    `<rect x="${n(x)}" y="${n(tileY)}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>` +
+    textSvg([{ text: letter, style: "bold" }], x + S.tile / 2, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, "white", "middle") +
+    textSvg(parseRuns(heading, "bold"), x + S.tile + 2.8, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, st.navy)
+  );
+}
+
+/**
+ * Blank grid paper, drawn at its printed size from the bottom-left corner: squared (5 mm),
+ * dotted (5 mm) or graph paper (2 mm, bold every 10 mm). Optional blank axes carry only arrows,
+ * the letters x and y, and O: pupils choose and write their own scale.
+ */
+export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle): string {
+  const { widthMm: W, heightMm: H } = item;
+  const pitch = item.style === "graph" ? 2 : 5;
+  const out: string[] = [];
+  const xs: number[] = [],
+    ys: number[] = [];
+  for (let k = 0; k * pitch <= W + 1e-6; k++) xs.push(k * pitch);
+  for (let k = 0; k * pitch <= H + 1e-6; k++) ys.push(H - k * pitch);
+  if (item.style === "dotted") {
+    out.push(`<g fill="${st.rule}">${xs.flatMap((x) => ys.map((y) => `<circle cx="${n(x)}" cy="${n(y)}" r="0.3"/>`)).join("")}</g>`);
+  } else {
+    const thin = item.style === "graph" ? { c: "#b4bcc6", w: 0.1 } : { c: "#a3acb8", w: 0.18 };
+    const bold = (k: number) => item.style === "graph" && k % 5 === 0;
+    const path = (pick: (k: number) => boolean) =>
+      xs.flatMap((x, k) => (pick(k) ? [`M${n(x)} 0V${n(H)}`] : [])).join("") + ys.flatMap((y, k) => (pick(k) ? [`M0 ${n(y)}H${n(W)}`] : [])).join("");
+    out.push(`<path d="${path((k) => !bold(k))}" fill="none" stroke="${thin.c}" stroke-width="${thin.w}"/>`);
+    if (item.style === "graph") out.push(`<path d="${path(bold)}" fill="none" stroke="${st.rule}" stroke-width="0.25"/>`);
+  }
+  out.push(`<rect x="0" y="0" width="${n(W)}" height="${n(H)}" fill="none" stroke="${st.rule}" stroke-width="0.3"/>`);
+  if (item.axes) {
+    const snap = (v: number, max: number) => Math.min(Math.max(Math.round(v / pitch) * pitch, 0), Math.floor(max / pitch) * pitch);
+    const ox = snap(item.axes.originMm.x, W),
+      oy = H - snap(item.axes.originMm.y, H);
+    const a = 1.6;
+    out.push(
+      `<path d="M0 ${n(oy)}H${n(W - 0.4)}M${n(ox)} ${n(H)}V0.4" fill="none" stroke="${st.ink}" stroke-width="0.35"/>`,
+      `<path d="M${n(W)} ${n(oy)}l${-a * 1.6} ${-a * 0.6}v${a * 1.2}z M${n(ox)} 0l${-a * 0.6} ${a * 1.6}h${a * 1.2}z" fill="${st.ink}"/>`,
+    );
+    const size = S.body;
+    const xBelow = H - oy >= 5;
+    out.push(textSvg([{ text: item.axes.xLabel, style: "italic" }], W - 1.2, xBelow ? oy + 4.2 : oy - 1.6, size, st.ink, "end"));
+    const yRight = W - ox >= 6;
+    out.push(textSvg([{ text: item.axes.yLabel, style: "italic" }], yRight ? ox + 2 : ox - 2, 4.6, size, st.ink, yRight ? "start" : "end"));
+    if (ox >= 4 && H - oy >= 5) out.push(textSvg([{ text: "O", style: "italic" }], ox - 1, oy + 4.2, size, st.ink, "end"));
+  }
+  return out.join("");
 }
 
 export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
@@ -397,11 +506,11 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
   };
   const P = S.page,
     m = S.margin;
-  const colW = (P.width - m * 2 - S.gutter * 2) / 3;
   const colTop = m + S.headerHeight;
   const cardsTop = colTop + S.columnHeadingBand + 2.5;
   const avail = P.height - m - cardsTop;
   let number = 0;
+  const letters = stageLetters(resource);
   const pages = doc.sides.map((side, s) => {
     const out: string[] = [];
     // Header: title, objective and instruction left; group, name line and side right; a hairline below.
@@ -420,16 +529,23 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       out.push(`<line x1="${n(right - 66)}" y1="${n(m + 11.6)}" x2="${n(right)}" y2="${n(m + 11.6)}" stroke="${st.ink}" stroke-width="0.3"/>`);
     }
     out.push(textSvg(parseRuns(`Side ${s + 1} of 2`), right, m + 16.4, S.objective, st.muted, "end"));
+    if (side.score !== null) {
+      const box = scoreBox(side.score, s + 1);
+      const end = right - box.lineEnd;
+      out.push(textSvg(parseRuns(box.total), end + 1 + plainWidth(box.total, S.objective), m + 16.4, S.objective, st.ink, "end"));
+      out.push(`<line x1="${n(end - box.lineMm)}" y1="${n(m + 16.9)}" x2="${n(end)}" y2="${n(m + 16.9)}" stroke="${st.ink}" stroke-width="0.3"/>`);
+      out.push(textSvg(parseRuns(box.label), end - box.lineMm - 1.2, m + 16.4, S.objective, st.ink, "end"));
+    }
+    if (plainWidth(side.instruction, S.objective) > P.width - m * 2 - HEADER_RIGHT - 2)
+      ctx.issues.push({ side: s + 1, column: 0, message: `The instruction on side ${s + 1} is longer than one line of the header. Shorten it.` });
     out.push(`<line x1="${m}" y1="${n(colTop - 1.3)}" x2="${n(right)}" y2="${n(colTop - 1.3)}" stroke="${st.rule}" stroke-width="0.3"/>`);
 
+    const boxes = columnBoxes(side);
     side.columns.forEach((col, c) => {
-      const x = m + c * (colW + S.gutter);
+      const { x, w: colW } = boxes[c];
       ctx.where = { side: s + 1, column: c + 1, question: 0 };
       // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
-      const tileY = colTop + (S.columnHeadingBand - S.tile) / 2;
-      out.push(`<rect x="${n(x)}" y="${n(tileY)}" width="${S.tile}" height="${S.tile}" rx="1.3" fill="${st.navy}"/>`);
-      out.push(textSvg([{ text: String.fromCharCode(65 + s * 3 + c), style: "bold" }], x + S.tile / 2, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, "white", "middle"));
-      out.push(textSvg(parseRuns(col.heading, "bold"), x + S.tile + 2.8, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, st.navy));
+      out.push(stageSvg(letters.columns[s][c], col.heading, x, colTop, st));
       const numbers = col.cards.map(() => ++number);
       const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
       if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
@@ -437,6 +553,12 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       col.cards.forEach((cd, i) => {
         ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
         const stretch = i === col.cards.length - 1 ? stretchLast : 0;
+        const letter = letters.cards[s][c][i];
+        if (i === 0 && cd.stage) issue(ctx, "The first card in a column sits under the column heading, so its stage is not printed. Put the stage in the column heading.");
+        if (letter) {
+          out.push(stageSvg(letter, cd.stage ?? "", x, y, st));
+          y += STAGE_BAND;
+        }
         const f = card(cd, numbers[i], colW, ctx, extra, stretch);
         out.push(at(f, x, y));
         y += f.h + S.cardGap;

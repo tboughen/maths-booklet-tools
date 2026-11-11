@@ -15,8 +15,8 @@ node scripts/resource/word.mjs sheet.json --out output/word --preview
 ```
 
 This writes `sheet.docx` and `sheet_answers.docx` (and, with `--preview`, LibreOffice PDFs and page
-images plus the PDF writer's own PDF for comparison). With no file it writes the golden sheets and
-the rendering-test sheet. `--no-system-inter` hides any installed Inter from LibreOffice, which
+images plus the PDF writer's own PDF for comparison). With no file it writes the golden sheets, the
+rendering-test sheet and the layout-test sheet. `--no-system-inter` hides any installed Inter from LibreOffice, which
 proves the embedded fonts are used. The preview needs LibreOffice Writer **and LibreOffice Math**
 (`apt-get install libreoffice-math`); without Math, LibreOffice silently drops every equation.
 
@@ -43,6 +43,14 @@ Saved answers print only in the answers copy, in the answers colour, exactly as 
 hidden table cells, answer-line answers (written on the line), the chosen option of a choice, and
 hidden diagram values. Blank, hidden and zero stay distinct. The Word writer reports the same
 layout issues as the PDF (and any of its own); it still writes the file, so the problem can be seen.
+
+Layouts, stage bands, the score box and grid paper follow the SVG layout exactly. Each side's
+body table has one grid column per strand column (and a gutter between), so a wide column is one
+wide cell. A stage band is a one-tile-high table between two cards, with exact gaps that add up
+to the 9.5 mm the layout gives it. The score box is "Score", a tab, an underscore leader to the
+end of the line, then the total, at the PDF's positions. Grid paper is the same SVG as the page,
+placed as a picture at its printed size (with a 300 ppi PNG fallback), so its squares are true
+millimetres. Stored working is never written to the file.
 
 ### Differences from the PDF, by design
 
@@ -109,7 +117,16 @@ round denominators at the foot of the cell. Such a row now keeps 1 mm (`FRAC_FOO
 the PDF and in Word.
 
 Known differences in Word: diagonal hatching in bar charts prints as flat grey (Word's SVG
-drawing does not support pattern fills); the bars and key still match each other.
+drawing does not support pattern fills); the bars and key still match each other. In the answers
+copy, the pink behind a chosen letter fills the whole line height in a row with fractions.
+
+### Layout test (11 November 2026)
+
+`packages/resource-core/src/layout-sample.ts` has a three-column side with a score box and graph
+paper with blank axes, and a wide-narrow side with a stage band, squared paper with axes and dotted
+paper, plus hidden working. Pupil and answers files are each two pages in LibreOffice, with the
+embedded fonts and no layout issues, and columns, bands, the score box and the grids sit where the
+PDF puts them. The tests also fit the `two`, `narrow-wide` and `one` layouts.
 
 ## The real-Word check (option 4)
 

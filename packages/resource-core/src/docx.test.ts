@@ -4,6 +4,7 @@ import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { obfuscateFont, writeWorksheetDocx, WORD_FOOT_MM, type DocxOptions } from "./docx";
 import { renderResource, styles, validate, type Resource } from "./index";
 import { wordSample } from "./word-sample";
+import { layoutSample } from "./layout-sample";
 
 // Stand-ins: the real fonts and picture maker live in the service (services/graph-mcp/worksheet-docx.ts).
 const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
@@ -26,6 +27,7 @@ describe("Word output for worksheets", () => {
     ["comparative bar charts", comparativeBarCharts],
     ["tree diagrams", treeDiagrams],
     ["the Word rendering test", wordSample],
+    ["the layout test", layoutSample],
   ];
 
   for (const [name, doc] of sheets) {
