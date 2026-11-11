@@ -1,10 +1,10 @@
 import { test, expect } from "./release-fixtures";
 
-const names = ["Question bank", "Paper builder", "Assessment follow-up", "Worksheets", "Booklet tools"];
+const names = ["Question bank", "Paper builder", "Assessment follow-up", "Worksheets", "Booklets", "Booklet tools"];
 const tagline = "Turn question-level assessment results into personalised practice for each pupil.";
 const nav = (page: import("@playwright/test").Page) => page.getByRole("navigation", { name: "Main sections" });
 
-test("home and navigation share four destinations and plain, equally sized cards", async ({ page }) => {
+test("home and navigation share the same destinations and plain, equally sized cards", async ({ page }) => {
   await page.goto("/");
   await expect(nav(page).getByRole("link")).toHaveText(names);
   await expect(page.locator(".overview-card h2")).toHaveText(names);
@@ -47,7 +47,7 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(nav(page).getByRole("link", { name: "Paper builder", exact: true })).toHaveAttribute("aria-current", "page");
 });
 
-test("four destinations fit desktop and mobile; menus support keyboard navigation", async ({ page }, info) => {
+test("every destination fits desktop and mobile; menus support keyboard navigation", async ({ page }, info) => {
   test.setTimeout(90000);
   for (const width of [1440, 1280, 1201, 1100, 1024, 768, 621, 620, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });

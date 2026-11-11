@@ -107,7 +107,7 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
 
 test("published navigation, tool startup and a synthetic HPP class export remain available", async ({page}, info) => {
   await page.goto('/');
-  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Worksheets', 'Booklet tools']);
+  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Worksheets', 'Booklets', 'Booklet tools']);
   await expect(page.locator('.site-brand img')).toBeVisible();
   // The department scheme is published as an immutable bank object, never as a static file.
   // Fetched from the page, so the live run's Access route applies (page.request bypasses routes).

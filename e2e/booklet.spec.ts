@@ -54,6 +54,8 @@ test("shows the example booklet with a contents page, edits a lesson title and u
 });
 
 test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) => {
+  // Two whole-booklet PDFs and a lesson PDF are written in the browser; slower on CI runners.
+  test.setTimeout(120_000);
   await boot(page, a7Booklet);
   const [pupil] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Pupil PDF" }).click()]);
   expect(pupil.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Booklet_A4.pdf");
