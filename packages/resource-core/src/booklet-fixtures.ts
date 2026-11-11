@@ -31,11 +31,17 @@ const checklist = (...items: string[]): Item => ({ type: "checklist", items });
 const choose = (options: string[], answerIndex: number | null): Item => ({ type: "choice", mode: "letters", options, answer: answerIndex });
 type C = [string, "supplied" | "blank" | "hidden"];
 const g = (text: string): C => [text, "supplied"];
-const b = (): C => ["", "blank"];
 const h = (text: string): C => [text, "hidden"];
 const table = (columns: string[], ...rows: C[][]): Item => ({ type: "table", columns, rows: rows.map((r) => r.map(([text, state]) => ({ text, state }))) });
-/** The x → / y ↑ movement table from the design guide. */
-const moves = (...rows: C[][]) => table(["*x* →", "*y* ↑"], ...rows);
+/**
+ * The x → / y ↑ movement table from the design guide, drawn by the ratio-table tool in its compact
+ * form so the curved scaling arrows show the method. Cells: "2" printed, "" blank, "[2]" a hidden
+ * answer (answers copy only). Steps: "÷ 2" printed beside the arrows, "[÷ 2]" hidden.
+ */
+const moves = (rows: string[][], steps: string[] = []): Item => ({
+  type: "diagram",
+  diagram: { tool: "ratio-table", spec: { columns: ["x →", "y ↑"], table: rows, ...(steps.length ? { steps } : {}) } },
+});
 const card = (title: string, ...items: Item[]): Card => ({ title, items: items as Card["items"] });
 
 /** The model lesson, as source (diagrams as specs). The AI maker shows it as its example. */
@@ -55,8 +61,8 @@ export const exampleLessonSource = {
       columns: 2,
       cards: [
         card("Coordinates", part("In the coordinate (2, 5), what is the *x* value?", answer("*x* =", "2")), part("In the coordinate (2, 5), what is the *y* value?", answer("*y* =", "5"))),
-        card("Complete the ratio table", moves([g("4"), g("8")], [g("1"), h("2")])),
-        card("Complete the ratio table", moves([g("4"), g("2")], [g("1"), h("½")])),
+        card("Complete the ratio table", moves([["4", "8"], ["1", "[2]"]], ["[÷ 4]"])),
+        card("Complete the ratio table", moves([["4", "2"], ["1", "[1/2]"]], ["[÷ 4]"])),
         card("Fill in the blanks", t("The ____________ tells us how far ______ a line goes for every 1 unit it goes ______."), t("____________ points are where a line passes exactly through a grid intersection.")),
       ],
     },
@@ -76,15 +82,15 @@ export const exampleLessonSource = {
             "Read the movements: *x* → 2 and *y* ↑ 4.",
             "Use a ratio table to find the movement up for 1 unit right.",
           ),
-          moves([g("2"), g("4")], [g("1"), g("2")]),
+          moves([["2", "4"], ["1", "2"]], ["÷ 2"]),
           t("**Gradient = 2**"),
         ),
         card(
           "Our turn",
           t("Find the gradient of the line."),
-          graph([1, 5], [1, 6], [line([1, 1], [2, 4])]),
+          graph([1, 5], [1, 6], [line([0, 0], [2, 6])]),
           steps("Perfect points.", "Triangle.", "Read the movements.", "Ratio table."),
-          moves([h("1"), h("3")], [g("1"), h("3")]),
+          moves([["[2]", "[6]"], ["1", "[3]"]], ["[÷ 2]"]),
           answer("Gradient =", "3"),
         ),
       ],
@@ -95,10 +101,10 @@ export const exampleLessonSource = {
       instruction: "Mark two perfect points, draw the triangle, then use the table.",
       columns: 2,
       cards: [
-        card("Find the gradient", gradientGrid([0, 0], [3, 3]), checklist("Mark two perfect points", "Draw the triangle", "Complete the table"), moves([b(), b()], [g("1"), h("1")]), answer("Gradient =", "1")),
-        card("Find the gradient", gradientGrid([0, 2], [1, 5]), moves([b(), b()], [g("1"), h("3")]), answer("Gradient =", "3")),
-        card("Find the gradient", gradientGrid([0, 1], [4, 3]), moves([b(), b()], [g("1"), h("½")]), answer("Gradient =", "½")),
-        card("Find the gradient", gradientGrid([1, 0], [3, 5]), moves([b(), b()], [g("1"), h("2½")]), answer("Gradient =", "2½")),
+        card("Find the gradient", gradientGrid([0, 0], [3, 3]), checklist("Mark two perfect points", "Draw the triangle", "Complete the table"), moves([["", ""], ["1", "[1]"]]), answer("Gradient =", "1")),
+        card("Find the gradient", gradientGrid([0, 2], [1, 5]), moves([["", ""], ["1", "[3]"]]), answer("Gradient =", "3")),
+        card("Find the gradient", gradientGrid([0, 1], [4, 3]), moves([["", ""], ["1", "[1/2]"]]), answer("Gradient =", "½")),
+        card("Find the gradient", gradientGrid([1, 0], [3, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2½")),
       ],
     },
     {
@@ -119,8 +125,8 @@ export const exampleLessonSource = {
       instruction: "",
       columns: 2,
       cards: [
-        card("Find the gradient", gradientGrid([0, 1], [1, 3]), moves([h("1"), h("2")], [g("1"), h("2")]), answer("Gradient =", "2")),
-        card("Find the gradient", gradientGrid([0, 0], [2, 5]), moves([b(), b()], [g("1"), h("2½")]), answer("Gradient =", "2½")),
+        card("Find the gradient", gradientGrid([0, 1], [1, 3]), moves([["[1]", "[2]"], ["1", "[2]"]]), answer("Gradient =", "2")),
+        card("Find the gradient", gradientGrid([0, 0], [2, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2½")),
         card("Find the gradient", gradientGrid([0, 2], [3, 3]), space(12), answer("Gradient =", "⅓")),
         card("Find the gradient", gradientGrid([1, 1], [3, 6]), space(12), answer("Gradient =", "2½")),
         card("No grid", t("A line passes through (1, 2) and (3, 8). Find its gradient."), space(22), answer("Gradient =", "3")),

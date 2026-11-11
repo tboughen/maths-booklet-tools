@@ -103,9 +103,9 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   "ratio-table": family<ratio.RatioEnvelope>({
     kind: "ratio-table",
     label: "ratio table",
-    summary: "Lesson-style ratio table, 1 to 3 columns and up to 6 rows, with blanks and scaling arrows.",
+    summary: "Lesson-style ratio table, 1 to 3 columns and up to 6 rows, with blanks, hidden answers and curved scaling arrows.",
     route: "/tools/ratio-table",
-    answerView: false,
+    answerView: true,
     envelopeSchema: ratio.ratioEnvelopeSchema,
     createSchema: z.object({ spec: ratio.ratioSpecSchema.optional(), envelope: ratio.ratioEnvelopeSchema.optional() }).strict(),
     revisionSchema: ratio.ratioRevisionSchema,
@@ -117,7 +117,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: flatCreate(ratio.createRatioTable, ratio.validateRatioEnvelope) as (i: object) => ratio.RatioEnvelope,
     revise: (input) => ratio.reviseRatioTable(input),
     hash: ratio.ratioHash,
-    svg: (e) => ratio.renderRatioSvg(e.document),
+    svg: (e, view) => ratio.renderRatioSvg(e.document, view),
   }),
   "value-graph": family<value.ValueEnvelope>({
     kind: "value-graph",

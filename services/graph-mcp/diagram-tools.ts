@@ -78,7 +78,7 @@ export function diagramFailure(error: unknown, kindName?: string) {
 function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Checked", size: { width: number; height: number }, alt: string, warnings: string[]) {
   const f = FAMILIES[source.kind];
   const what =
-    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope) : source.kind === "number-line" ? line.describe(source.envelope) : alt;
+    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : alt;
   const viewNote = f.answerView ? ` Artwork view: ${("outputView" in source && source.outputView) || "pupil"}.` : "";
   const notes = warnings.length ? ` ${warnings.length} note${warnings.length === 1 ? "" : "s"}: ${warnings.join(" ")}` : "";
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;
@@ -131,7 +131,7 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
       async (input, extra) => {
         try {
           const f = FAMILIES[input.kind];
-          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, charts and probability-tree.");
+          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, ratio-table, charts and probability-tree.");
           const envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], AbortSignal.any([extra.signal, connection]));
@@ -152,7 +152,7 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
       async (input, extra) => {
         try {
           const f = FAMILIES[input.kind];
-          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, charts and probability-tree.");
+          if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", "outputView applies only to venn, ratio-table, charts and probability-tree.");
           const envelope = await f.revise({ envelope: input.envelope, baseHash: input.baseHash, operations: input.operations });
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, "Revised", builders[input.kind], AbortSignal.any([extra.signal, connection]));

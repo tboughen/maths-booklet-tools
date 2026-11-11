@@ -1087,3 +1087,59 @@ test("editing guides are on by default, editor only, and turning them off is rem
   await page.reload();
   await expect(page.getByLabel("Editing guides", { exact: true })).toBeChecked();
 });
+
+test("a hidden answer stays out of the pupil export, prints in the answers export, and headings can point down", async ({
+  page,
+}) => {
+  await seed(page);
+  await page.goto("/tools/ratio-table");
+  // A blank cannot become a hidden answer: there is no value to hide, and none is invented.
+  const cell = page.getByLabel("Row 2 y value", { exact: true });
+  await cell.click();
+  const type = page.getByLabel("Row 2 y cell type", { exact: true });
+  await expect(type.locator('option[value="hidden"]')).toHaveAttribute("disabled", "");
+  // Type the answer, then hide it.
+  await cell.fill("2/3");
+  await cell.press("Enter");
+  await cell.click();
+  await type.selectOption("hidden");
+  await expect
+    .poll(async () => (await stored(page)).document.rows[1].cells[1])
+    .toEqual({ kind: "hidden", value: "2/3" });
+  // The preview is the pupil copy until the teacher asks to see hidden answers.
+  const preview = page.getByTestId("ratio-preview");
+  await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(0);
+  await expect(preview).not.toHaveAttribute("aria-label", /2 over 3/);
+  await page
+    .getByLabel("Teacher preview: show hidden answers", { exact: true })
+    .check();
+  await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(1);
+  for (const [name, file, shown] of [
+    ["Download SVG", "maths-ratio-table.svg", false],
+    ["Download answers SVG", "maths-ratio-table-answers.svg", true],
+  ] as const) {
+    await page.getByRole("button", { name: "File", exact: true }).click();
+    const download = page.waitForEvent("download");
+    await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
+    const result = await download;
+    expect(result.suggestedFilename()).toBe(file);
+    const svg = (await readFile((await result.path())!)).toString();
+    expect(svg.includes("ratio-hidden-answer")).toBe(shown);
+  }
+  await page
+    .getByRole("button", { name: "Edit headings", exact: true })
+    .click();
+  await page
+    .getByLabel("Column 2 heading arrow", { exact: true })
+    .selectOption("down");
+  await expect
+    .poll(async () => (await stored(page)).document.headings[1].direction)
+    .toBe("down");
+  await expect(
+    page.getByLabel("Edit column 2 heading", { exact: true }),
+  ).toHaveValue("y ↓");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect
+    .poll(async () => (await stored(page)).document.headings[1].direction)
+    .toBe("up");
+});

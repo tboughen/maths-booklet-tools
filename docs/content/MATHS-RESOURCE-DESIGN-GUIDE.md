@@ -218,6 +218,8 @@ Use Tim’s established ratio-table conventions where relevant:
 mathematical italic x and y, distinct from the multiplication sign ×;
 headings x → and y ↑; clear entries and a genuinely blank answer space.
 Do not reintroduce decorative downward arrows. \[1\]
+A *y* ↓ heading is not decorative: use it only for a negative gradient, where the line goes
+down as it goes right (agreed by Tim, 11 Nov 2026).
 
 | *x* → | *y* ↑            |
 |-------|------------------|

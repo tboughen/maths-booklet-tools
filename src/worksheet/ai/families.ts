@@ -9,7 +9,7 @@ import type { Resource } from "../../../packages/resource-core/src/index";
  */
 const CUES: Record<DiagramKind, RegExp> = {
   graph: /coordinat|straight[- ]line|linear graph|gradient|y ?= ?m?x|plot(ting)? (the )?points|axes/,
-  "ratio-table": /ratio|proportion|scal(e|ing)|recipe|best buy|unitary|conversion/,
+  "ratio-table": /ratio|proportion|scal(e|ing)|recipe|best buy|unitary|conversion|gradient|\brates?\b/,
   "value-graph": /quadratic|table of values|parabola|curve|plot(ting)? (a |the )?graph/,
   cuboids: /cuboid|\bcubes?\b|volume|surface area|prism|3d|isometric/,
   "number-line": /number line|inequalit|interval|negative number|integers?|ordering|order(ing)? (decimals|numbers)|round(ing)?/,

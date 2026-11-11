@@ -34,6 +34,37 @@ required. Filling requires all source values and a valid operation. Row deletion
 removes only its connected steps; insertion removes a step across the new row.
 Every change and confirmed example/file/link replacement is undoable.
 
+### Hidden answers, down arrows and the compact form (11 Nov 2026)
+
+Booklets and worksheets need ratio tables in place of plain tables, so the table has
+the same answer states as the plain table item:
+
+- **Hidden answer** (`{kind:"hidden", value}`) is a saved answer. The pupil copy leaves the
+  cell blank; with `line: true` it shows an answer line instead. The answers copy prints the
+  value in the answer colour (#b0125b). The tool never fills or calculates it, and
+  Fill next row asks before replacing one.
+- **Hidden operation** (`hidden: true` on a transition) draws the curved arrows in both copies;
+  the pupil copy has an answer line where the operation label goes and the answers copy prints
+  the label on it. The label slot is never shorter than a cell's answer line.
+- **Down arrow** headings (`direction: "down"`, typed as `y ↓`) for negative gradients.
+
+Both copies have exactly the same size, so a worksheet or booklet reserves one layout for
+both. The editor shows hidden answers in the answer colour; Download answers SVG and PNG
+appear in the downloads menu when the table has any. Saved files without the new states
+render byte for byte as before.
+
+The **compact form** builds the same envelope from a much shorter request (about a third of
+the full spec), for booklets with many tables:
+
+```json
+{"columns": ["x →", "y ↓"], "table": [["2", "6"], ["1", "[3]"]], "steps": ["[÷ 2]"]}
+```
+
+A heading ending in →, ↑ or ↓ gets that arrow and a single letter prints italic. A cell is
+`"3"`, `"-1/2"`, `""` (empty), `"_"` (answer line), `"[3]"` (hidden) or `"[3]_"` (hidden on an
+answer line). A step is `""`, `"× 2"` or `"÷ 2"` (`x`, `*` and `/` also work), in brackets to
+hide it; any step turns the arrows on. Rows are numbered `row-1`, `row-2` for revisions.
+
 ## Direct editing and controls
 
 A new table, and Reset, open on a small scaffold: 3 → 12 given and 5 → an answer

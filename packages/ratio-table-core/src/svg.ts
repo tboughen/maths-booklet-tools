@@ -6,12 +6,22 @@ import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidan
 const FONT = (12 / 72) * 2.54 * 100;
 const ROW_HEIGHT = 100;
 const ANSWER_LINE_WIDTH = 60;
+/** Saved answers print in the answers copy only, in the house answer colour. */
+export const RATIO_ANSWER_COLOUR = "#b0125b";
+const INK = "#202020";
+export type RatioView = "pupil" | "answer";
+const hasLine = (c: RatioCell) =>
+  c.kind === "answer-line" || (c.kind === "hidden" && c.line === true);
 export function ratioPrintFacts(document: RatioDocument) {
   const m = ratioMetrics(document), mmPerUnit = m.widthCm * 10 / m.width;
+  const lines = [
+    ...(document.rows.some((r) => r.cells.some(hasLine)) ? [ANSWER_LINE_WIDTH] : []),
+    ...(annotatedLabels(document) && document.transitions.some((t) => t.hidden)
+      ? [Math.min(...document.transitions.filter((t) => t.hidden).map(labelSlot))] : []),
+  ];
   return guidance({
-    textSizesPt: renderedTextSizesPt(renderRatioSvg(document), mmPerUnit * 72 / 25.4),
-    answerLineLengthsMm: document.rows.some((r) => r.cells.some((c) => c.kind === "answer-line"))
-      ? [ANSWER_LINE_WIDTH * mmPerUnit] : [],
+    textSizesPt: renderedTextSizesPt(renderRatioSvg(document, "answer"), mmPerUnit * 72 / 25.4),
+    answerLineLengthsMm: lines.length ? [Math.min(...lines) * mmPerUnit] : [],
     tableRowHeightsMm: [ROW_HEIGHT * mmPerUnit],
   });
 }
@@ -30,6 +40,17 @@ export function numberWidth(value: string, size = FONT): number {
     ? Math.max(textWidth(top, size * 0.8), textWidth(bottom, size * 0.8)) + 10
     : textWidth(top, size);
 }
+const annotatedLabels = (document: RatioDocument) =>
+  document.mode === "annotated" && document.transitions.length > 0 && document.showOperations;
+/** The width an operation label takes beside its arrow. A hidden label reserves a full answer line. */
+function labelSlot(step: RatioDocument["transitions"][number]) {
+  const size = FONT * 0.8,
+    total =
+      textWidth(step.operation === "multiply" ? "×" : "÷", size) +
+      6 +
+      numberWidth(step.factor, size);
+  return step.hidden ? Math.max(total, ANSWER_LINE_WIDTH) : total;
+}
 export function ratioMetrics(document: RatioDocument) {
   const scale = { compact: 0.8, standard: 1, large: 1.2 }[document.size];
   const annotated =
@@ -38,8 +59,11 @@ export function ratioMetrics(document: RatioDocument) {
   if (annotated && (document.showArrows || document.showOperations)) {
     const operationWidth = document.showOperations
       ? Math.max(
-          ...document.transitions.map(
-            (t) => 32 + numberWidth(t.factor, FONT * 0.8),
+          ...document.transitions.map((t) =>
+            Math.max(
+              32 + numberWidth(t.factor, FONT * 0.8),
+              t.hidden ? labelSlot(t) + 6 : 0,
+            ),
           ),
         )
       : 0;
@@ -61,7 +85,10 @@ export function ratioMetrics(document: RatioDocument) {
   }
   for (const row of document.rows)
     for (const cell of row.cells)
-      if (cell.kind === "number" && numberWidth(cell.value) > 126)
+      if (
+        (cell.kind === "number" || cell.kind === "hidden") &&
+        numberWidth(cell.value) > 126
+      )
         throw new RatioError(
           "layout_overflow",
           `A value in ${row.id} is too wide for the table. Use a shorter value or fraction.`,
@@ -98,32 +125,48 @@ function text(
   baseline: number,
   size = FONT,
   italic = false,
+  fill = INK,
 ) {
-  return `<text fill="#202020" x="${x}" y="${baseline}" font-size="${size}" text-anchor="middle"${italic ? ' font-style="italic"' : ""}>${escape(value)}</text>`;
+  return `<text fill="${fill}" x="${x}" y="${baseline}" font-size="${size}" text-anchor="middle"${italic ? ' font-style="italic"' : ""}>${escape(value)}</text>`;
 }
-function number(value: string, x: number, y: number, size = FONT) {
+function number(value: string, x: number, y: number, size = FONT, fill = INK) {
   const [top, bottom] = printed(value).split("/");
-  if (!bottom) return text(top, x, y + size * 0.31, size);
+  if (!bottom) return text(top, x, y + size * 0.31, size, false, fill);
   const small = size * 0.8,
     bar = Math.max(textWidth(top, small), textWidth(bottom, small)) + 8;
   return (
-    text(top, x, y - size * 0.15, small) +
-    `<path d="M${x - bar / 2} ${y}H${x + bar / 2}" stroke-width="2"/>` +
-    text(bottom, x, y + size * 0.78, small)
+    text(top, x, y - size * 0.15, small, false, fill) +
+    `<path d="M${x - bar / 2} ${y}H${x + bar / 2}" stroke-width="2"${fill === INK ? "" : ` stroke="${fill}"`}/>` +
+    text(bottom, x, y + size * 0.78, small, false, fill)
   );
 }
-function cellMarkup(cell: RatioCell, x: number, y: number) {
+const answerLine = (x: number, y: number, width = ANSWER_LINE_WIDTH) =>
+  `<path class="ratio-answer-line" d="M${x - width / 2} ${y + 16}H${x + width / 2}" stroke-width="2"/>`;
+function cellMarkup(cell: RatioCell, x: number, y: number, view: RatioView) {
   if (cell.kind === "number") return number(cell.value, x, y);
-  if (cell.kind === "answer-line")
-    return `<path class="ratio-answer-line" d="M${x - ANSWER_LINE_WIDTH / 2} ${y + 16}H${x + ANSWER_LINE_WIDTH / 2}" stroke-width="2"/>`;
+  if (cell.kind === "answer-line") return answerLine(x, y);
+  if (cell.kind === "hidden") {
+    // The pupil copy keeps the cell blank (or its answer line); the answers copy adds the value.
+    // A fraction sits in the cell without the line, so the line never crosses its denominator.
+    const line = cell.line && (view === "pupil" || !cell.value.includes("/")) ? answerLine(x, y) : "";
+    return view === "answer"
+      ? `${line}<g class="ratio-hidden-answer">${number(cell.value, x, y, FONT, RATIO_ANSWER_COLOUR)}</g>`
+      : line;
+  }
   return "";
 }
-function arrow(x: number, y: number, direction: "up" | "right") {
-  return direction === "right"
-    ? `<path d="M${x - 12} ${y}H${x + 12}" stroke-width="2"/><path d="M${x + 12} ${y}l-8 -5v10Z" fill="#202020" stroke="none"/>`
-    : `<path d="M${x} ${y + 12}V${y - 12}" stroke-width="2"/><path d="M${x} ${y - 12}l-5 8h10Z" fill="#202020" stroke="none"/>`;
+function arrow(x: number, y: number, direction: "up" | "down" | "right") {
+  if (direction === "right")
+    return `<path d="M${x - 12} ${y}H${x + 12}" stroke-width="2"/><path d="M${x + 12} ${y}l-8 -5v10Z" fill="${INK}" stroke="none"/>`;
+  return direction === "up"
+    ? `<path d="M${x} ${y + 12}V${y - 12}" stroke-width="2"/><path d="M${x} ${y - 12}l-5 8h10Z" fill="${INK}" stroke="none"/>`
+    : `<path d="M${x} ${y - 12}V${y + 12}" stroke-width="2"/><path d="M${x} ${y + 12}l-5 -8h10Z" fill="${INK}" stroke="none"/>`;
 }
-export function renderRatioSvg(document: RatioDocument): string {
+/**
+ * The table's artwork. The pupil copy (the default) leaves hidden answers blank; the answers copy
+ * prints them in the answer colour. Both copies have exactly the same size and layout.
+ */
+export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil"): string {
   const m = ratioMetrics(document),
     left = m.tableLeft,
     top = m.tableTop;
@@ -150,7 +193,7 @@ export function renderRatioSvg(document: RatioDocument): string {
   });
   document.rows.forEach((row, i) =>
     row.cells.forEach((cell, column) => {
-      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + 75 + column * m.columnWidth, top + 150 + i * 100)}</g>`;
+      body += `<g class="ratio-cell" data-row="${row.id}" data-column="${column}" data-kind="${cell.kind}">${cellMarkup(cell, left + 75 + column * m.columnWidth, top + 150 + i * 100, view)}</g>`;
     }),
   );
   if (document.mode === "annotated")
@@ -180,10 +223,17 @@ export function renderRatioSvg(document: RatioDocument): string {
               step.operation === "multiply" ? "×" : "÷",
               size,
             ),
-            total = opWidth + 6 + factorWidth;
+            total = opWidth + 6 + factorWidth,
+            slot = labelSlot(step);
           const centre =
-            edge + side * ((document.showArrows ? 52 : 10) + total / 2);
-          body += `<g class="ratio-operation">${text(step.operation === "multiply" ? "×" : "÷", centre - total / 2 + opWidth / 2, y + 50 + size * 0.31, size)}${number(step.factor, centre + total / 2 - factorWidth / 2, y + 50, size)}</g>`;
+            edge + side * ((document.showArrows ? 52 : 10) + slot / 2);
+          const fill = step.hidden ? RATIO_ANSWER_COLOUR : INK,
+            label = `${text(step.operation === "multiply" ? "×" : "÷", centre - total / 2 + opWidth / 2, y + 50 + size * 0.31, size, false, fill)}${number(step.factor, centre + total / 2 - factorWidth / 2, y + 50, size, fill)}`;
+          if (!step.hidden) body += `<g class="ratio-operation">${label}</g>`;
+          else
+            // Pupil copy: an answer line for the operation. Answers copy: the label on that line
+            // (a fractional factor without the line, which would cross its denominator).
+            body += `<g class="ratio-operation" data-hidden="true">${view === "pupil" || !step.factor.includes("/") ? answerLine(centre, y + 50, slot) : ""}${view === "answer" ? label : ""}</g>`;
         }
       }
     }

@@ -35,7 +35,7 @@ export const diagramSourceSchema = z.object({
 }).strict();
 export type DiagramSource =
   | { kind: "graph"; envelope: GraphEnvelope }
-  | { kind: "ratio-table"; envelope: RatioEnvelope }
+  | { kind: "ratio-table"; envelope: RatioEnvelope; outputView?: "pupil" | "answer" }
   | { kind: "value-graph"; envelope: ValueEnvelope }
   | { kind: "cuboids"; envelope: cuboid.Envelope }
   | { kind: "number-line"; envelope: numberLine.Envelope }
@@ -49,7 +49,7 @@ export function diagramSource(raw: unknown): DiagramSource {
   try {
     const s = diagramSourceSchema.parse(raw);
     const family = FAMILIES[s.kind];
-    if (s.outputView !== undefined && !family.answerView) throw Error("outputView applies only to Venn diagrams, charts and probability trees.");
+    if (s.outputView !== undefined && !family.answerView) throw Error("outputView applies only to Venn diagrams, ratio tables, charts and probability trees.");
     const envelope = family.validate(s.envelope, s.outputView ?? "pupil");
     return { kind: s.kind, envelope, ...(s.outputView === undefined ? {} : { outputView: s.outputView }) } as DiagramSource;
   } catch (error) {

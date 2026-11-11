@@ -34,7 +34,7 @@ import type {
   RatioEnvelope,
 } from "../../packages/ratio-table-core/src/interchange";
 import { downloadBlob } from "../export/clipboard";
-import { copyRatioForWord, downloadRatioImage } from "./export";
+import { copyRatioForWord, downloadRatioImage, hasRatioAnswers } from "./export";
 import {
   loadRatioRecovery,
   saveRatio,
@@ -99,6 +99,8 @@ export default function RatioTablePage({
   const [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [guides, setGuides] = useState(readGuidesPreference);
+  // The preview is the pupil copy unless the teacher asks to see hidden answers. Never saved.
+  const [showAnswers, setShowAnswers] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null),
     [inputVersion, setInputVersion] = useState(0);
   const [selection, setSelection] = useState<RatioSelection>(null);
@@ -623,6 +625,23 @@ export default function RatioTablePage({
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
+                ...(hasRatioAnswers(envelope)
+                  ? [
+                      {
+                        label: "Download answers SVG",
+                        action: () => downloadRatioImage(envelope, "svg", "answer"),
+                        disabled: exportDisabled,
+                        success: "Answers SVG download started.",
+                        description: "Hidden answers printed in the answer colour.",
+                      },
+                      {
+                        label: "Download answers PNG (600 ppi)",
+                        action: () => downloadRatioImage(envelope, "png", "answer"),
+                        disabled: exportDisabled,
+                        success: "Answers PNG download started.",
+                      },
+                    ]
+                  : []),
                 {
                   label: "Save editable file",
                   action: () =>
@@ -678,6 +697,16 @@ export default function RatioTablePage({
                 />
                 Editing guides
               </label>
+              {hasRatioAnswers(envelope) && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showAnswers}
+                    onChange={(e) => setShowAnswers(e.target.checked)}
+                  />
+                  Teacher preview: show hidden answers
+                </label>
+              )}
             </div>
             <p className="ratio-edit-hint">
               {tool === "arrow"
@@ -690,6 +719,7 @@ export default function RatioTablePage({
               envelope={envelope}
               zoom={zoom}
               guides={guides}
+              view={showAnswers && hasRatioAnswers(envelope) ? "answer" : "pupil"}
               inputVersion={inputVersion}
               disabled={!!recovery}
               structureDisabled={structureDisabled}

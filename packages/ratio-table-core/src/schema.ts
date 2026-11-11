@@ -19,6 +19,15 @@ export const cellSchema = z.discriminatedUnion("kind", [
     .strict(),
   z.object({ kind: z.literal("empty") }).strict(),
   z.object({ kind: z.literal("answer-line") }).strict(),
+  // A saved answer: blank (or an answer line, with line: true) in the pupil copy, printed in the
+  // answers copy only. Never filled or calculated by the tool.
+  z
+    .object({
+      kind: z.literal("hidden"),
+      value: z.string().min(1).max(32),
+      line: z.boolean().optional(),
+    })
+    .strict(),
 ]);
 export type RatioCell = z.infer<typeof cellSchema>;
 // Homogeneous array items keep nested schemas importable by ChatGPT.
@@ -31,7 +40,7 @@ export const headingSchema = z
       .max(12)
       .regex(/^[A-Za-z0-9 _-]+$/),
     italic: z.boolean(),
-    direction: z.enum(["right", "up", "none"]),
+    direction: z.enum(["right", "up", "down", "none"]),
   })
   .strict();
 export const headingsSchema = z.array(headingSchema).min(1).max(3);
@@ -42,6 +51,8 @@ export const transitionSchema = z
     to: id,
     operation: z.enum(["multiply", "divide"]),
     factor: z.string().min(1).max(32),
+    /** The operation label prints only in the answers copy; the pupil copy shows an answer line. */
+    hidden: z.boolean().optional(),
   })
   .strict();
 export const documentSchema = z
@@ -88,6 +99,18 @@ export const ratioSpecSchema = z
     mode: z.enum(["simple", "annotated"]).optional(),
     showArrows: z.boolean().optional(),
     showOperations: z.boolean().optional(),
+    /**
+     * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
+     * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↓");
+     * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2",
+     * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
+     * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
+     * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy. Any step turns on
+     * the curved arrows unless mode says otherwise.
+     */
+    columns: z.array(z.string().min(1).max(16)).min(1).max(3).optional(),
+    table: z.array(z.array(z.string().max(40)).min(1).max(3)).min(1).max(6).optional(),
+    steps: z.array(z.string().max(40)).max(5).optional(),
   })
   .strict();
 export function readSchema<T>(schema: z.ZodType<T>, input: unknown): T {
@@ -115,7 +138,11 @@ export function normalizeDocument(input: unknown): RatioDocument {
     throw new RatioError("invalid_ratio_table", "Row IDs must be unique.");
   for (const row of document.rows)
     for (const cell of row.cells)
-      if (cell.kind === "number") cell.value = canonicalNumber(cell.value);
+      if (cell.kind === "number" || cell.kind === "hidden") {
+        cell.value = canonicalNumber(cell.value);
+        // One saved form per state: line: false is the default, so it is left out.
+        if (cell.kind === "hidden" && !cell.line) delete cell.line;
+      }
   const fromIds = new Set<string>();
   for (const step of document.transitions) {
     const index = ids.indexOf(step.from);
@@ -126,6 +153,7 @@ export function normalizeDocument(input: unknown): RatioDocument {
       );
     fromIds.add(step.from);
     step.factor = canonicalNumber(step.factor);
+    if (!step.hidden) delete step.hidden;
     if (step.operation === "divide" && step.factor === "0")
       throw new RatioError("invalid_operation", "Cannot divide by zero.");
   }

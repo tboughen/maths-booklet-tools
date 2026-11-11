@@ -20,6 +20,8 @@ const tokenSchema = z
     /** Old links carry the encoded file; new, compressed links carry the envelope itself. */
     ratio: z.string().max(RATIO_MAX_LINK_LENGTH).optional(),
     envelope: z.unknown().optional(),
+    /** The answers copy; absent for the pupil copy (and every older link). */
+    view: z.literal("answer").optional(),
   })
   .strict();
 export class RatioDownloads {
@@ -43,7 +45,7 @@ export class RatioDownloads {
   private signature(token: string, key: string) {
     return createHmac("sha256", key).update(token).digest("base64url");
   }
-  link(envelope: RatioEnvelope, format: DownloadFormat, now = Date.now()) {
+  link(envelope: RatioEnvelope, format: DownloadFormat, now = Date.now(), view: "pupil" | "answer" = "pupil") {
     const expires = Math.floor(now / 1000) + 7 * 24 * 60 * 60;
     const token = packToken({
         v: 1,
@@ -52,6 +54,7 @@ export class RatioDownloads {
         format,
         expires,
         envelope,
+        ...(view === "answer" && format !== "json" ? { view } : {}),
       });
     const url = new URL("/ratio-table/download", this.base);
     url.searchParams.set("token", token);
@@ -69,7 +72,7 @@ export class RatioDownloads {
   verify(
     url: URL,
     now = Date.now(),
-  ): { envelope: RatioEnvelope; format: DownloadFormat } {
+  ): { envelope: RatioEnvelope; format: DownloadFormat; view: "pupil" | "answer" } {
     const token = url.searchParams.get("token") ?? "",
       signature = url.searchParams.get("signature") ?? "";
     if (
@@ -113,6 +116,6 @@ export class RatioDownloads {
         "expired_download",
         "This download expired. Revise the saved table with no operations to refresh it.",
       );
-    return { envelope: parsed.envelope !== undefined ? validateRatioEnvelope(parsed.envelope) : decodeRatio(parsed.ratio ?? ""), format: parsed.format };
+    return { envelope: parsed.envelope !== undefined ? validateRatioEnvelope(parsed.envelope) : decodeRatio(parsed.ratio ?? ""), format: parsed.format, view: parsed.view ?? "pupil" };
   }
 }

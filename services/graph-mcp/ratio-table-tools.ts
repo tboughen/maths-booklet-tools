@@ -27,6 +27,7 @@ export function ratioTools(
     envelope: RatioEnvelope,
     format: DownloadFormat,
     signal?: AbortSignal,
+    view: "pupil" | "answer" = "pupil",
   ) {
     if (format === "json")
       return {
@@ -34,7 +35,7 @@ export function ratioTools(
         type: "application/json",
       };
     const metrics = ratioMetrics(envelope.document),
-      svg = renderRatioSvg(envelope.document);
+      svg = renderRatioSvg(envelope.document, view);
     const size =
       format === "svg"
         ? {
@@ -57,19 +58,20 @@ export function ratioTools(
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };
   }
-  async function result(envelope: RatioEnvelope, signal: AbortSignal) {
+  /** Files and preview for one copy: pupil (default) or answer, which prints hidden answers. */
+  async function result(envelope: RatioEnvelope, signal: AbortSignal, view: "pupil" | "answer" = "pupil") {
     const metrics = ratioMetrics(envelope.document),
       hash = await ratioHash(envelope),
-      description = describeRatio(envelope),
+      description = describeRatio(envelope, view),
       warnings = ratioWarnings(envelope);
-    const printFile = await artifacts(envelope, "png", signal);
+    const printFile = await artifacts(envelope, "png", signal, view);
     const width = Math.min(
         1200,
         Math.floor(Math.sqrt((2_000_000 * metrics.width) / metrics.height)),
       ),
       height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderRatioSvg(envelope.document),
+      renderRatioSvg(envelope.document, view),
       width,
       height,
       false,
@@ -90,14 +92,14 @@ export function ratioTools(
     > = {};
     for (const format of ["svg", "png", "json"] as const) {
       try {
-        links[format] = downloads.link(envelope, format);
+        links[format] = downloads.link(envelope, format, Date.now(), view);
       } catch (error) {
         if (!(error instanceof RatioError) || error.code !== "size_limit")
           throw error;
         const file =
           format === "png"
             ? printFile
-            : await artifacts(envelope, format, signal);
+            : await artifacts(envelope, format, signal, view);
         limits.output(file.body.length);
         content.push({
           type: "resource",
@@ -126,6 +128,7 @@ export function ratioTools(
     return {
       structuredContent: {
         printGuidance: ratioPrintFacts(envelope.document),
+        outputView: view,
         envelope,
         contentHash: hash,
         rendererVersion: envelope.rendererVersion,

@@ -8,6 +8,26 @@ import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
 import { headingText, headingFromText } from "./headingText";
 
+type RatioCellValue = RatioDocument["rows"][number]["cells"][number];
+type CellType = "number" | "empty" | "answer-line" | "hidden" | "hidden-line";
+const hasValue = (cell: RatioCellValue) =>
+  cell.kind === "number" || cell.kind === "hidden";
+const cellType = (cell: RatioCellValue): CellType =>
+  cell.kind === "hidden" ? (cell.line ? "hidden-line" : "hidden") : cell.kind;
+/**
+ * A new cell type keeps the cell's value where the new type has one. Nothing is calculated, and a
+ * hidden answer is made only from a value the teacher typed, never from a blank.
+ */
+function changeCellType(cell: RatioCellValue, type: CellType): RatioCellValue {
+  const value = cell.kind === "number" || cell.kind === "hidden" ? cell.value : null;
+  if (type === "number") return { kind: "number", value: value ?? "0" };
+  if (type === "hidden" || type === "hidden-line") {
+    if (value === null) return cell;
+    return type === "hidden" ? { kind: "hidden", value } : { kind: "hidden", value, line: true };
+  }
+  return { kind: type };
+}
+
 export function RatioInspector({
   document,
   selection,
@@ -50,9 +70,30 @@ export function RatioInspector({
           onFocus={() => onSelect(selection)}
           onCommit={(text) => change(headingFromText(heading, text))}
         />
+        <label className="ratio-label">
+          Heading arrow
+          <select
+            aria-label={`Column ${column + 1} heading arrow`}
+            disabled={pendingInputs}
+            value={heading.direction}
+            onChange={(event) =>
+              change(
+                {
+                  direction: event.target
+                    .value as RatioDocument["headings"][number]["direction"],
+                },
+                true,
+              )
+            }
+          >
+            <option value="none">None</option>
+            <option value="right">Right →</option>
+            <option value="up">Up ↑</option>
+            <option value="down">Down ↓</option>
+          </select>
+        </label>
         <p className="panel-note">
-          Delete → or ↑ to remove the heading arrow. Type either character at
-          the end to add it.
+          You can also type →, ↑ or ↓ at the end of the heading.
         </p>
         <label className="check-row">
           <input
@@ -86,6 +127,7 @@ export function RatioInspector({
           to: document.rows[fromIndex + 1].id,
           operation: step?.operation ?? ("multiply" as const),
           factor: step?.factor ?? "2",
+          hidden: step?.hidden ?? false,
         }
       : null;
   function setStep(
@@ -143,7 +185,7 @@ export function RatioInspector({
               Cell type
               <select
                 aria-label={`Row ${rowIndex + 1} ${document.headings[selection.column].text} cell type`}
-                value={row.cells[selection.column].kind}
+                value={cellType(row.cells[selection.column])}
                 disabled={pendingInputs}
                 onChange={(event) =>
                   onAction([
@@ -151,14 +193,10 @@ export function RatioInspector({
                       op: "set_cell",
                       rowId: row.id,
                       column: selection.column as 0 | 1 | 2,
-                      cell:
-                        event.target.value === "number"
-                          ? { kind: "number", value: "0" }
-                          : {
-                              kind: event.target.value as
-                                | "empty"
-                                | "answer-line",
-                            },
+                      cell: changeCellType(
+                        row.cells[selection.column],
+                        event.target.value as CellType,
+                      ),
                     },
                   ])
                 }
@@ -166,8 +204,27 @@ export function RatioInspector({
                 <option value="number">Value</option>
                 <option value="empty">Empty</option>
                 <option value="answer-line">Answer line</option>
+                <option value="hidden" disabled={!hasValue(row.cells[selection.column])}>
+                  Hidden answer (blank for pupils)
+                </option>
+                <option value="hidden-line" disabled={!hasValue(row.cells[selection.column])}>
+                  Hidden answer on an answer line
+                </option>
               </select>
             </label>
+            {row.cells[selection.column].kind === "hidden" ? (
+              <p className="panel-note">
+                Pupils see a blank. The value prints in the answers copy only,
+                in the answer colour.
+              </p>
+            ) : (
+              !hasValue(row.cells[selection.column]) && (
+                <p className="panel-note">
+                  To hide an answer, type it in the cell first, then choose
+                  Hidden answer.
+                </p>
+              )
+            )}
           </>
         )}
         {selection?.kind === "heading" && headingControls(selection.column)}
@@ -244,6 +301,17 @@ export function RatioInspector({
                 />
               </div>
             </div>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={transition.hidden}
+                disabled={pendingInputs || !step}
+                onChange={(event) =>
+                  setStep({ hidden: event.target.checked }, true)
+                }
+              />
+              Hide the operation in the pupil copy
+            </label>
             {!step && (
               <button
                 className="panel-button"

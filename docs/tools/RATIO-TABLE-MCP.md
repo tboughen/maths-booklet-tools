@@ -77,6 +77,12 @@ SVG/PNG/JSON downloads and editable website link. A warning never changes values
 If a download/editor URL would exceed 8192 characters, use the returned bounded
 embedded file resource or saved JSON. Never guess or fabricate download links.
 
+`outputView: "answer"` (create_diagram and revise_diagram) returns the answers copy: the
+preview, SVG and PNG print hidden cells and hidden operations in the answer colour. The
+envelope, contentHash and JSON stay the pupil source; answer download links carry the view.
+Hidden answers, down-arrow headings and the compact `columns`/`table`/`steps` spec are
+described in [RATIO-TABLE-TOOL.md](RATIO-TABLE-TOOL.md#hidden-answers-down-arrows-and-the-compact-form-11-nov-2026).
+
 ## Revisions
 
 Send the exact returned envelope and its contentHash as baseHash with operations.
