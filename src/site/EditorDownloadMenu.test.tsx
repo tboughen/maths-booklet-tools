@@ -73,6 +73,23 @@ describe("Saved to file check (U42)", () => {
     expect(screen.getByTestId("saved-note")).toBeInTheDocument();
   });
 
+  it("shows no check when a save is cancelled", async () => {
+    const { onMessage } = setup([
+      {
+        label: "Save editable file",
+        action: () =>
+          Promise.reject(new DOMException("Cancelled", "AbortError")),
+      },
+    ]);
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: "Save editable file" }),
+      );
+    });
+    expect(screen.queryByTestId("saved-note")).toBeNull();
+    expect(onMessage).not.toHaveBeenCalledWith("Saved to file.");
+  });
+
   it("shows no check when the save fails or for other menu items", async () => {
     const { onMessage } = setup([
       {

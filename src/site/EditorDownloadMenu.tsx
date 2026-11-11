@@ -157,9 +157,11 @@ export function EditorDownloadMenu({
               zIndex: 1000,
               padding: "4px 10px",
               borderRadius: 6,
-              background: "#14532d",
-              color: "#fff",
-              font: "600 14px/1.4 Inter, system-ui, sans-serif",
+              background: "var(--green)",
+              color: "var(--paper)",
+              fontWeight: 600,
+              fontSize: "var(--button-label)",
+              lineHeight: 1.4,
               pointerEvents: "none",
             }}
           >
