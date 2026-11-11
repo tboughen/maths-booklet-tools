@@ -206,8 +206,9 @@ Each of these is a one-off decision; none is needed until the matching phase.
    Tim's Claude plan). Tim raised the cap to $60 a month on 10 Nov 2026, and to $100 on 11 Nov
    2026 after the judges used the $60 (feature pull requests re-judged in full on every push cost
    up to $2.50 a run). From 11 Nov 2026, at Tim's request: pull requests that are not loop PRs
-   get one full review when ready, then follow-up reviews of only the files changed since; every
-   run records its real cost for `spend.mjs`; and the Judge panel stops judging at the cap. The same day Tim also chose to seed the backlog issues, run full release
+   get one full review when ready, then follow-up reviews of only the files changed since (the
+   earlier review's findings on the other files stay listed as open); every run records its real
+   cost for `spend.mjs`; and the Judge panel stops judging at the cap. The same day Tim also chose to seed the backlog issues, run full release
    qualification nightly when `main` has changed (`nightly-qualification.yml`, qualification only),
    and schedule the weekly digest and judge calibration.
 5. Approve the judge rubrics and the calibration set as the definition of good enough (before phase 3).

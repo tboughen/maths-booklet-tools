@@ -9,9 +9,12 @@ name: Judge panel
 # Spend (11 November 2026): loop/ pull requests are judged in full on every push, because
 # auto-merge reads the panel's latest verdict. Any other pull request is judged in full when it
 # opens ready or is marked ready for review; after that, a push sends only the files whose
-# changes differ from the last judged commit, and nothing when none do (a merge from main). Each
+# changes differ from the last judged commit, and nothing when none do (a merge from main); the
+# earlier review's findings on files not sent again are carried into the summary. Each
 # run records its cost as a judge-cost-<dollars> artifact, and no judge runs once this month's
-# spend reaches the cap in scripts/loop/config.json.
+# spend reaches the cap in scripts/loop/config.json. A run skipped at the cap uploads no
+# judge-panel artifact, so Loop auto-merge reads "the judge panel did not run" and sends a loop PR
+# to Tim.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -83,6 +86,10 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
+      # Failing open: a spend check that cannot run must not stop the judges, but it says so.
+      - name: Say the spend check failed
+        if: steps.budget.outcome == 'failure'
+        run: echo "Judge panel note, this month's spend could not be checked, so the judges ran without the cap check." >> "$GITHUB_STEP_SUMMARY"
       # A follow-up review for a pull request that is not a loop PR: compare the pull request's own
       # changes at the last commit the judges reviewed with its changes now (both from the compare
       # API, base...head), so only files that changed since then are sent.
@@ -91,16 +98,20 @@ jobs:
         id: last
         continue-on-error: true
         run: |
-          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-panel.yml --branch "$HEAD_REF" --status success --limit 20 --json databaseId,headSha --jq '.[] | "\(.databaseId):\(.headSha)"'); do
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-panel.yml --event pull_request --branch "$HEAD_REF" --status success --limit 20 --json databaseId,headSha --jq '.[] | "\(.databaseId):\(.headSha)"'); do
             id=${run%%:*}; sha=${run#*:}
             [ "$sha" = "$HEAD_SHA" ] && continue
-            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts" --jq '.artifacts[].name' | grep -qx judge-reviewed; then
-              gh api -H "Accept: application/vnd.github.diff" "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$sha" > "$RUNNER_TEMP/previous.diff"
-              gh api -H "Accept: application/vnd.github.diff" "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$HEAD_SHA" > "$RUNNER_TEMP/current.diff"
-              echo "args=--previous=$RUNNER_TEMP/previous.diff --current=$RUNNER_TEMP/current.diff" >> "$GITHUB_OUTPUT"
-              echo "Follow-up review against $sha" >> "$GITHUB_STEP_SUMMARY"
-              break
-            fi
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts" --jq '.artifacts[].name' | grep -qx judge-reviewed || continue
+            # Only a commit this pull request's head still contains (a reused branch name, or a
+            # force-push, gets a full review), and only with that review's verdict to carry forward.
+            status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$sha...$HEAD_SHA" --jq .status)
+            if [ "$status" != "ahead" ]; then echo "The last judged commit $sha is not in this head ($status): full review." >> "$GITHUB_STEP_SUMMARY"; break; fi
+            gh run download "$id" --repo "$GITHUB_REPOSITORY" --name judge-panel --dir "$RUNNER_TEMP/earlier" || break
+            gh api -H "Accept: application/vnd.github.diff" "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$sha" > "$RUNNER_TEMP/previous.diff"
+            gh api -H "Accept: application/vnd.github.diff" "repos/$GITHUB_REPOSITORY/compare/$BASE_SHA...$HEAD_SHA" > "$RUNNER_TEMP/current.diff"
+            echo "args=--previous=$RUNNER_TEMP/previous.diff --current=$RUNNER_TEMP/current.diff --earlier=$RUNNER_TEMP/earlier/review-shadow.json" >> "$GITHUB_OUTPUT"
+            echo "Follow-up review against $sha (run $id)" >> "$GITHUB_STEP_SUMMARY"
+            break
           done
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,16 +133,22 @@ jobs:
           name: judge-panel
           path: review-shadow.json
           retention-days: 90
-      # The artifact's name carries the run's cost, so spend.mjs reads it from a listing.
+      # The artifact's name carries the run's cost, so spend.mjs reads it from a listing. A run
+      # skipped at the cap records 0, so it is not charged at the estimate.
+      - name: Write the cost record
+        if: always() && (steps.judge.outputs.cost != '' || steps.budget.outputs.over == 'true')
+        run: echo "$COST" > judge-cost.txt
+        env:
+          COST: ${{ steps.judge.outputs.cost || '0.0000' }}
       - name: Record the cost
-        if: always() && steps.judge.outputs.cost != ''
+        if: always() && hashFiles('judge-cost.txt') != ''
         uses: actions/upload-artifact@v6
         with:
-          name: judge-cost-${{ steps.judge.outputs.cost }}
-          path: review-shadow.json
+          name: judge-cost-${{ steps.judge.outputs.cost || '0.0000' }}
+          path: judge-cost.txt
           retention-days: 90
-      # Marks a run whose judges gave a verdict (or found nothing changed): the next follow-up
-      # review compares against this run's commit.
+      # Marks a run where all three judges gave a verdict (or nothing changed since one): the next
+      # follow-up review compares against this run's commit and carries its open findings forward.
       - name: Mark the commit as reviewed
         if: always() && steps.judge.outputs.reviewed == 'true'
         uses: actions/upload-artifact@v6

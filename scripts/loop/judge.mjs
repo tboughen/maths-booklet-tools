@@ -72,6 +72,21 @@ export function changedSince(previous, current) {
   };
 }
 
+/**
+ * Findings from the earlier review that this follow-up does not look at again: those on files
+ * whose changes are the same as then (or on no file in the pull request), with the earlier
+ * review's own carried findings. Findings on re-sent or reverted files are dropped.
+ */
+export function carriedFindings(earlier, followUp) {
+  if (!earlier || !followUp) return [];
+  const resent = new Set([...followUp.changed, ...followUp.reverted]);
+  const earlierFindings = (earlier.results ?? []).flatMap(r => (r.verdict?.findings ?? []).map(f => ({ judge: r.judge, ...f })));
+  return [...earlierFindings, ...(earlier.carried ?? [])].filter(f => !resent.has(f.file));
+}
+
+/** A run the next follow-up may compare against: every judge gave a verdict. */
+export const fullyReviewed = results => results.length > 0 && results.every(r => r.verdict);
+
 /** The parts of a diff for the given files only. */
 export function onlyFiles(diff, files) {
   const keep = new Set(files);
@@ -183,15 +198,20 @@ export async function runPanel({ diff, tier, title, body, followUp, readFile = r
   return [first, ...await Promise.all(JUDGES.slice(1).map(one))];
 }
 
-export function summary({ tier, results, overall, costUSD = panelCost(results), followUp }) {
-  const scope = followUp ? ` Follow-up review: ${followUp.changed.length} changed file(s) sent, ${followUp.unchanged.length} unchanged since the last review.` : '';
-  const lines = [`### Judge panel: ${overall} (shadow mode, decides nothing)`, '', `Risk tier ${tier || 'unknown'}. Model ${MODEL}, effort ${EFFORT}. Cost $${costUSD.toFixed(2)}.${scope}`, '',
+const findingLine = f => `- **${f.severity}** (${f.judge}, ${f.rubric}) \`${f.file}\`: ${f.issue.replace(/\s+/g, ' ')}`;
+
+export function summary({ tier, results, overall, costUSD = panelCost(results), followUp, carried = [], earlier }) {
+  const scope = followUp ? ` Follow-up review: ${followUp.changed.length} changed file(s) sent, ${followUp.unchanged.length} unchanged since the last review${earlier?.overall ? ` (which was ${earlier.overall})` : ''}.` : '';
+  const open = carried.length ? `, with ${carried.length} finding(s) still open from the earlier review` : '';
+  const lines = [`### Judge panel: ${overall}${open} (shadow mode, decides nothing)`, '', `Risk tier ${tier || 'unknown'}. Model ${MODEL}, effort ${EFFORT}. Cost $${costUSD.toFixed(2)}.${scope}`, '',
     '| Judge | Verdict | Confidence | Summary |', '| --- | --- | --- | --- |'];
   for (const r of results) lines.push(r.verdict
     ? `| ${r.judge}${r.model && r.model !== MODEL ? ` (answered by ${r.model})` : ''} | ${r.verdict.verdict} | ${r.verdict.confidence} | ${r.verdict.summary.replace(/\s+/g, ' ').replace(/\|/g, '\\|')} |`
     : `| ${r.judge} | did not run | | ${r.error.replace(/\|/g, '\\|')} |`);
   const findings = results.flatMap(r => (r.verdict?.findings ?? []).map(f => ({ judge: r.judge, ...f })));
-  if (findings.length) lines.push('', '<details><summary>Findings</summary>', '', ...findings.map(f => `- **${f.severity}** (${f.judge}, ${f.rubric}) \`${f.file}\`: ${f.issue.replace(/\s+/g, ' ')}`), '', '</details>');
+  const item = findingLine;
+  if (findings.length) lines.push('', '<details><summary>Findings</summary>', '', ...findings.map(item), '', '</details>');
+  if (carried.length) lines.push('', '<details open><summary>Still open from the earlier review (files not sent again)</summary>', '', ...carried.map(item), '', '</details>');
   return lines.join('\n') + '\n';
 }
 
@@ -201,12 +221,13 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
   const out = arg('out') || 'review-shadow.json';
   // The workflow names a small artifact after this cost, so spend.mjs reads it from a listing.
-  // `reviewed` marks a run the next follow-up review may compare against.
+  // `reviewed` marks a run the next follow-up review may compare against: all three judges answered.
   const cost = (usd, reviewed = true) => { if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `cost=${usd.toFixed(4)}\nreviewed=${reviewed}\n`); };
   const report = text => { console.log(text); if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, text); };
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
       report('### Judge panel: did not run\n\nANTHROPIC_API_KEY is not available to this run (for example a pull request from a fork).\n');
+      cost(0, false);
       process.exit(0);
     }
     let title = '', body = '';
@@ -216,12 +237,17 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     }
     let diff = read(arg('diff') ?? 'pr.diff');
     const tier = classifyRisk(pathsOf(diff)).tier;
-    let followUp;
+    let followUp, earlier, carried = [];
     if (arg('previous') && arg('current')) {
       followUp = changedSince(read(arg('previous')), read(arg('current')));
+      earlier = arg('earlier') ? JSON.parse(read(arg('earlier'))) : undefined;
+      carried = carriedFindings(earlier, followUp);
       if (!followUp.changed.length) {
-        report(`### Judge panel: no change to review\n\nNo file's changes differ from the last review${followUp.reverted.length ? ` (the pull request no longer changes ${followUp.reverted.join(', ')})` : ''}, so the judges did not run and that review stands. Cost $0.00.\n`);
-        writeFileSync(out, JSON.stringify({ tier, overall: 'unchanged', model: MODEL, effort: EFFORT, costUSD: 0, followUp, results: [] }, null, 2) + '\n');
+        // The earlier verdict stands, so it is repeated (never a new verdict value).
+        const overall = earlier?.overall ?? 'concerns';
+        report(`### Judge panel: no change to review\n\nNo file's changes differ from the last review${followUp.reverted.length ? ` (the pull request no longer changes ${followUp.reverted.join(', ')})` : ''}, so the judges did not run and that review stands: ${overall}${carried.length ? `, with ${carried.length} finding(s) open` : ''}. Cost $0.00.\n`);
+        if (carried.length) report(['', 'Still open from the earlier review:', '', ...carried.map(findingLine), ''].join('\n'));
+        writeFileSync(out, JSON.stringify({ tier, overall, model: MODEL, effort: EFFORT, costUSD: 0, followUp, carried, results: [] }, null, 2) + '\n');
         cost(0);
         process.exit(0);
       }
@@ -230,10 +256,11 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const results = await runPanel({ diff, tier, title, body, followUp });
     const overall = panel(results);
     const costUSD = panelCost(results);
-    report(summary({ tier, results, overall, costUSD, followUp }));
+    report(summary({ tier, results, overall, costUSD, followUp, carried, earlier }));
     console.log(`::notice title=Judge panel ${overall} (shadow mode)::${results.map(r => `${r.judge}: ${r.verdict?.verdict ?? 'did not run'}`).join(', ')}; cost $${costUSD.toFixed(2)}`);
-    writeFileSync(out, JSON.stringify({ tier, overall, model: MODEL, effort: EFFORT, costUSD, followUp, results }, null, 2) + '\n');
-    cost(costUSD, overall !== 'abstain');
+    writeFileSync(out, JSON.stringify({ tier, overall, model: MODEL, effort: EFFORT, costUSD, followUp, carried, results }, null, 2) + '\n');
+    // Only a run where all three judges gave a verdict is a baseline for later follow-ups.
+    cost(costUSD, fullyReviewed(results));
   } catch (error) {
     report(`### Judge panel: did not run\n\n${String(error).replace(/\n/g, ' ')}\n`);
     console.log(`::warning title=Judge panel did not run::${String(error).replace(/\n/g, ' ')}`);

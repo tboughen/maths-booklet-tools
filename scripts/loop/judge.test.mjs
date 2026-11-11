@@ -138,8 +138,39 @@ test('the summary reports the run\'s cost and a follow-up\'s scope', () => {
 test('the judge workflow judges loop PRs in full, follows up other PRs, records cost and stops at the cap', () => {
   const yml = readFileSync('.github/workflows/judge-panel.yml', 'utf8');
   assert.match(yml, /github\.event\.action == 'synchronize' && !startsWith\(github\.head_ref, 'loop\/'\)/);
-  assert.match(yml, /name: judge-cost-\$\{\{ steps\.judge\.outputs\.cost \}\}/);
+  // A run skipped at the cap records a cost of 0, not the estimate.
+  assert.match(yml, /name: judge-cost-\$\{\{ steps\.judge\.outputs\.cost \|\| '0\.0000' \}\}/);
+  assert.match(yml, /steps\.judge\.outputs\.cost != '' \|\| steps\.budget\.outputs\.over == 'true'/);
   assert.match(yml, /grep -qx judge-reviewed/);
+  // Only a commit the head still contains is a baseline, and its verdict comes with it.
+  assert.match(yml, /--event pull_request --branch "\$HEAD_REF"/);
+  assert.match(yml, /compare\/\$sha\.\.\.\$HEAD_SHA" --jq \.status\)\n\s+if \[ "\$status" != "ahead" \]; then[^\n]*break; fi/);
+  assert.match(yml, /--earlier=\$RUNNER_TEMP\/earlier\/review-shadow\.json/);
+  // A spend check that fails says so.
+  assert.match(yml, /if: steps\.budget\.outcome == 'failure'/);
   assert.match(yml, /steps\.budget\.outputs\.over != 'true'/);
   assert.match(yml, /compare\/\$BASE_SHA\.\.\.\$sha/);
+});
+
+test('a follow-up carries the earlier review\'s findings on files it does not send again', async () => {
+  const { carriedFindings, fullyReviewed } = await import('./judge.mjs');
+  const finding = (file, issue) => ({ severity: 'major', rubric: 'r', file, issue });
+  const earlier = {
+    overall: 'concerns',
+    results: [{ judge: 'product', verdict: { verdict: 'concerns', confidence: 'high', summary: 's', findings: [finding('src/a.ts', 'A'), finding('src/b.ts', 'B'), finding('src/gone.ts', 'G')] } }],
+    carried: [{ judge: 'teacher', ...finding('src/c.ts', 'C') }],
+  };
+  const followUp = { changed: ['src/a.ts'], unchanged: ['src/b.ts', 'src/c.ts'], reverted: ['src/gone.ts'] };
+  // a.ts is judged again and gone.ts is no longer changed; b.ts and the older carried c.ts stay open.
+  assert.deepEqual(carriedFindings(earlier, followUp).map(f => `${f.judge}:${f.issue}`), ['product:B', 'teacher:C']);
+  assert.deepEqual(carriedFindings(undefined, followUp), []);
+  const v = { judge: 'teacher', verdict: { verdict: 'pass', confidence: 'high', summary: 's', findings: [] }, usage: {} };
+  const text = summary({ tier: 'T2', results: [v], overall: 'pass', followUp, carried: carriedFindings(earlier, followUp), earlier });
+  assert.match(text, /^### Judge panel: pass, with 2 finding\(s\) still open from the earlier review/);
+  assert.match(text, /unchanged since the last review \(which was concerns\)/);
+  assert.match(text, /Still open from the earlier review[\s\S]*`src\/b\.ts`: B[\s\S]*`src\/c\.ts`: C/);
+  // Only a run where every judge answered is a baseline for later follow-ups.
+  assert.equal(fullyReviewed([v, { ...v, judge: 'product' }, { ...v, judge: 'adversarial' }]), true);
+  assert.equal(fullyReviewed([v, { judge: 'product', error: '400' }, { ...v, judge: 'adversarial' }]), false);
+  assert.equal(fullyReviewed([]), false);
 });
