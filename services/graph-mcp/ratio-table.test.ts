@@ -239,6 +239,7 @@ describe("ratio tools on the shared real MCP service", () => {
       "get_diagram_svg",
       "worksheet_capabilities",
       "create_worksheet",
+      "create_booklet",
     ]);
     const caps = await client.callTool({
       name: "ratio_table_capabilities",

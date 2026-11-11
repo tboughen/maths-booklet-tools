@@ -86,3 +86,18 @@ describe("PDF fonts", () => {
     expect(out).toContain(`<text font-family="Inter">y = 2</text>`);
   });
 });
+
+describe("one lesson on its own", () => {
+  it("prints a lesson from a one-lesson booklet exactly as the full booklet does", async () => {
+    const { lessonPagesOf, singleLessonBooklet, renderBooklet: render } = await import("./index");
+    for (const view of ["pupil", "answers"] as const) {
+      const full = lessonPagesOf(a7Booklet, 1, { view });
+      const one = singleLessonBooklet(a7Booklet, 1);
+      const r = render(one.booklet, { view, numbering: one.numbering });
+      // Only the diagram id counters differ (they are unique per file, not per booklet).
+      const ids = (pages: string[]) => pages.map((p) => p.replace(/\bd\d+-/g, "d-"));
+      expect(ids(r.pages.slice(1))).toEqual(ids(full.pages));
+      expect(full.pages[0]).toContain("Page 5");
+    }
+  });
+});

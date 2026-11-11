@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles and worksheets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 <!-- Generated from .agents/skills/mathsdock-diagrams/SKILL.md by scripts/plugins/claude-plugin.mjs. Edit the source, then rerun it. -->
@@ -142,6 +142,13 @@ usual default, not a rule. To produce, read `worksheet_capabilities` once and ca
 because each call costs the teacher time and tokens. Check the mathematics before the
 call, then report every layout issue it returns and look at the returned pages before
 calling the worksheet finished.
+
+For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the
+whole booklet; `worksheet_capabilities` lists its layout and section kinds. Give every lesson a
+one-sentence key idea, a check in on its prerequisites, worked example and "Our turn" pairs,
+practice that fades, lettered diagnostic questions and a spot-the-mistake card, as its
+description sets out. Share the whole-booklet files and the per-lesson PDF links it returns;
+when the whole booklet is too large for a link it comes back as included files.
 
 ## Files and links
 

@@ -8,6 +8,8 @@ import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import {
   bookletFileName,
+  lessonFileName,
+  lessonPagesOf,
   issuePlace,
   renderBooklet,
   SECTION_KINDS,
@@ -80,7 +82,7 @@ function ListField({ label, value, max, maxItems, onCommit, disabled }: { label:
   );
 }
 
-const pdfName = (b: Booklet, view: "pupil" | "answers", lesson?: number) => (lesson === undefined ? bookletFileName(b, view) : bookletFileName(b, view).replace(/_Booklet/, `_Lesson ${lesson + 1}`));
+const pdfName = (b: Booklet, view: "pupil" | "answers", lesson?: number) => (lesson === undefined ? bookletFileName(b, view) : lessonFileName(b, lesson, view));
 
 export default function BookletPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
@@ -182,14 +184,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     }
   }
   async function downloadPdf(view: "pupil" | "answers", lesson?: number) {
-    const r = renderBooklet(b, { view });
+    const r = lesson === undefined ? renderBooklet(b, { view }) : lessonPagesOf(b, lesson, { view });
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
-    let pages = r.pages;
-    if (lesson !== undefined) {
-      const start = r.lessonPages[lesson] - 1;
-      const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.pages.length;
-      pages = r.pages.slice(start, end);
-    }
+    const pages = r.pages;
     downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
   }
   const editableName = () => bookletFileName(b).replace(/_A4\.pdf$/, ".json");

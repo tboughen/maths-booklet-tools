@@ -225,6 +225,1231 @@
     }
   },
   {
+    "name": "create_booklet",
+    "title": "Make an A4 booklet",
+    "description": "PRODUCE an A4 portrait unit booklet (one lesson per objective) in the MathsDock house style from FINALISED lessons. Supply booklet:{tool:'resource',schemaVersion:1,document:{kind:'booklet-a4',title,code,group?,coverNote?,nameLine?,intro:{remember[],learn[],next[],keywords:[{word,meaning}]}|null,lessons:[1-12 lessons, each {title,code,objective,keyIdea,teacherNotes?,sections:[{kind,title?,instruction?,columns:1|2,cards:[{title,items}]}]}]}}. Section kinds: check-in, worked, practice, diagnostic, mistake, challenge, discover, notes; an empty title uses the kind's heading (Check in, Worked example, Your turn, Diagnostic questions, Spot the mistake, Challenge, Discover, Notes). Recommended lesson shape: a one-sentence key idea naming the new words; check in (4-5 retrieval questions on this lesson's prerequisites); worked example with columns:2 as pairs, left the worked example with steps and saved answers, right 'Our turn' with the same steps left blank; Your turn (several near-identical questions with the same pre-drawn diagram or empty table); diagnostic multiple choice with choice mode letters (A-D, each wrong option one misconception); practice that fades; spot the mistake (a named pupil's wrong working); a challenge. Cards use the same items as create_worksheet (text, info, claim, bullets, table, choice, steps, checklist, answerLine, space, diagram, part); worked and notes cards are not numbered, other cards are numbered within their section. Half-width cards (columns:2) are 90.5 mm wide, so a diagram there must fit about 84 mm. Saved answers print only in the answers PDF; never invent answers the teacher did not give. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDFs and editable JSON (links, or included files when too large for a link), a pupil and answers PDF link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "booklet": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "type": "string",
+              "const": "resource",
+              "description": "The MathsDock tool this file belongs to. Keep the value a previous call returned."
+            },
+            "schemaVersion": {
+              "type": "number",
+              "const": 1,
+              "description": "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request."
+            },
+            "document": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "booklet-a4"
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "code": {
+                  "default": "",
+                  "type": "string",
+                  "maxLength": 16
+                },
+                "group": {
+                  "default": "",
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "coverNote": {
+                  "default": "",
+                  "type": "string",
+                  "maxLength": 240
+                },
+                "nameLine": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "intro": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "remember": {
+                          "default": [],
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 120
+                          }
+                        },
+                        "learn": {
+                          "default": [],
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 120
+                          }
+                        },
+                        "next": {
+                          "default": [],
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 120
+                          }
+                        },
+                        "keywords": {
+                          "default": [],
+                          "maxItems": 16,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "word": {
+                                "type": "string",
+                                "maxLength": 40
+                              },
+                              "meaning": {
+                                "type": "string",
+                                "maxLength": 160
+                              }
+                            },
+                            "required": [
+                              "word",
+                              "meaning"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "lessons": {
+                  "minItems": 1,
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "code": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 16
+                      },
+                      "objective": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "keyIdea": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "sections": {
+                        "minItems": 1,
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "check-in",
+                                "worked",
+                                "practice",
+                                "diagnostic",
+                                "mistake",
+                                "challenge",
+                                "discover",
+                                "notes"
+                              ]
+                            },
+                            "title": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "instruction": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "columns": {
+                              "default": 1,
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "const": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 2
+                                }
+                              ]
+                            },
+                            "cards": {
+                              "minItems": 1,
+                              "maxItems": 16,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "title": {
+                                    "type": "string",
+                                    "maxLength": 60
+                                  },
+                                  "items": {
+                                    "minItems": 1,
+                                    "maxItems": 16,
+                                    "type": "array",
+                                    "items": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "text"
+                                            },
+                                            "text": {
+                                              "type": "string",
+                                              "maxLength": 600
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "info"
+                                            },
+                                            "text": {
+                                              "type": "string",
+                                              "maxLength": 400
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "claim"
+                                            },
+                                            "text": {
+                                              "type": "string",
+                                              "maxLength": 300
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "bullets"
+                                            },
+                                            "items": {
+                                              "minItems": 1,
+                                              "maxItems": 8,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string",
+                                                "maxLength": 200
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "items"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "table"
+                                            },
+                                            "columns": {
+                                              "minItems": 2,
+                                              "maxItems": 6,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string",
+                                                "maxLength": 40
+                                              }
+                                            },
+                                            "rows": {
+                                              "minItems": 1,
+                                              "maxItems": 12,
+                                              "type": "array",
+                                              "items": {
+                                                "minItems": 2,
+                                                "maxItems": 6,
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "text": {
+                                                      "type": "string",
+                                                      "maxLength": 40
+                                                    },
+                                                    "state": {
+                                                      "type": "string",
+                                                      "enum": [
+                                                        "supplied",
+                                                        "blank",
+                                                        "hidden"
+                                                      ]
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "text",
+                                                    "state"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "columns",
+                                            "rows"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "choice"
+                                            },
+                                            "mode": {
+                                              "type": "string",
+                                              "enum": [
+                                                "circle",
+                                                "tick",
+                                                "letters"
+                                              ]
+                                            },
+                                            "options": {
+                                              "minItems": 2,
+                                              "maxItems": 5,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string",
+                                                "maxLength": 120
+                                              }
+                                            },
+                                            "answer": {
+                                              "default": null,
+                                              "anyOf": [
+                                                {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 4
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "mode",
+                                            "options"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "answerLine"
+                                            },
+                                            "prefix": {
+                                              "default": "",
+                                              "type": "string",
+                                              "maxLength": 40
+                                            },
+                                            "suffix": {
+                                              "default": "",
+                                              "type": "string",
+                                              "maxLength": 20
+                                            },
+                                            "answer": {
+                                              "default": "",
+                                              "type": "string",
+                                              "maxLength": 60
+                                            },
+                                            "inline": {
+                                              "default": false,
+                                              "type": "boolean"
+                                            }
+                                          },
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "space"
+                                            },
+                                            "kind": {
+                                              "type": "string",
+                                              "enum": [
+                                                "working",
+                                                "drawing"
+                                              ]
+                                            },
+                                            "heightMm": {
+                                              "type": "number",
+                                              "minimum": 8,
+                                              "maximum": 200
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "kind",
+                                            "heightMm"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "diagram"
+                                            },
+                                            "diagram": {
+                                              "type": "object",
+                                              "properties": {
+                                                "tool": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "graph",
+                                                    "ratio-table",
+                                                    "value-graph",
+                                                    "cuboids",
+                                                    "number-line",
+                                                    "venn",
+                                                    "algebra-grid",
+                                                    "bar-model",
+                                                    "charts",
+                                                    "probability-tree",
+                                                    "triangle"
+                                                  ],
+                                                  "description": "Diagram family, as diagram_capabilities lists them."
+                                                },
+                                                "envelope": {
+                                                  "description": "The family's complete envelope, unchanged.",
+                                                  "type": "object",
+                                                  "propertyNames": {
+                                                    "type": "string"
+                                                  },
+                                                  "additionalProperties": {}
+                                                },
+                                                "spec": {
+                                                  "description": "Or the family's create spec; it is built into an envelope. Give spec or envelope, not both.",
+                                                  "type": "object",
+                                                  "propertyNames": {
+                                                    "type": "string"
+                                                  },
+                                                  "additionalProperties": {}
+                                                }
+                                              },
+                                              "required": [
+                                                "tool"
+                                              ],
+                                              "additionalProperties": false
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "diagram"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "steps"
+                                            },
+                                            "steps": {
+                                              "minItems": 1,
+                                              "maxItems": 8,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "label": {
+                                                    "default": "",
+                                                    "type": "string",
+                                                    "maxLength": 24
+                                                  },
+                                                  "text": {
+                                                    "type": "string",
+                                                    "maxLength": 300
+                                                  }
+                                                },
+                                                "required": [
+                                                  "text"
+                                                ],
+                                                "additionalProperties": false
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "steps"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "checklist"
+                                            },
+                                            "items": {
+                                              "minItems": 1,
+                                              "maxItems": 6,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string",
+                                                "maxLength": 120
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "items"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "part"
+                                            },
+                                            "text": {
+                                              "type": "string",
+                                              "maxLength": 400
+                                            },
+                                            "items": {
+                                              "default": [],
+                                              "maxItems": 8,
+                                              "type": "array",
+                                              "items": {
+                                                "oneOf": [
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "text"
+                                                      },
+                                                      "text": {
+                                                        "type": "string",
+                                                        "maxLength": 600
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "text"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "info"
+                                                      },
+                                                      "text": {
+                                                        "type": "string",
+                                                        "maxLength": 400
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "text"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "claim"
+                                                      },
+                                                      "text": {
+                                                        "type": "string",
+                                                        "maxLength": 300
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "text"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "bullets"
+                                                      },
+                                                      "items": {
+                                                        "minItems": 1,
+                                                        "maxItems": 8,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string",
+                                                          "maxLength": 200
+                                                        }
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "items"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "table"
+                                                      },
+                                                      "columns": {
+                                                        "minItems": 2,
+                                                        "maxItems": 6,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string",
+                                                          "maxLength": 40
+                                                        }
+                                                      },
+                                                      "rows": {
+                                                        "minItems": 1,
+                                                        "maxItems": 12,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "minItems": 2,
+                                                          "maxItems": 6,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                              "text": {
+                                                                "type": "string",
+                                                                "maxLength": 40
+                                                              },
+                                                              "state": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                  "supplied",
+                                                                  "blank",
+                                                                  "hidden"
+                                                                ]
+                                                              }
+                                                            },
+                                                            "required": [
+                                                              "text",
+                                                              "state"
+                                                            ],
+                                                            "additionalProperties": false
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "columns",
+                                                      "rows"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "choice"
+                                                      },
+                                                      "mode": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "circle",
+                                                          "tick",
+                                                          "letters"
+                                                        ]
+                                                      },
+                                                      "options": {
+                                                        "minItems": 2,
+                                                        "maxItems": 5,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string",
+                                                          "maxLength": 120
+                                                        }
+                                                      },
+                                                      "answer": {
+                                                        "default": null,
+                                                        "anyOf": [
+                                                          {
+                                                            "type": "integer",
+                                                            "minimum": 0,
+                                                            "maximum": 4
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "mode",
+                                                      "options"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "answerLine"
+                                                      },
+                                                      "prefix": {
+                                                        "default": "",
+                                                        "type": "string",
+                                                        "maxLength": 40
+                                                      },
+                                                      "suffix": {
+                                                        "default": "",
+                                                        "type": "string",
+                                                        "maxLength": 20
+                                                      },
+                                                      "answer": {
+                                                        "default": "",
+                                                        "type": "string",
+                                                        "maxLength": 60
+                                                      },
+                                                      "inline": {
+                                                        "default": false,
+                                                        "type": "boolean"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "space"
+                                                      },
+                                                      "kind": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "working",
+                                                          "drawing"
+                                                        ]
+                                                      },
+                                                      "heightMm": {
+                                                        "type": "number",
+                                                        "minimum": 8,
+                                                        "maximum": 200
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "kind",
+                                                      "heightMm"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "diagram"
+                                                      },
+                                                      "diagram": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "tool": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                              "graph",
+                                                              "ratio-table",
+                                                              "value-graph",
+                                                              "cuboids",
+                                                              "number-line",
+                                                              "venn",
+                                                              "algebra-grid",
+                                                              "bar-model",
+                                                              "charts",
+                                                              "probability-tree",
+                                                              "triangle"
+                                                            ],
+                                                            "description": "Diagram family, as diagram_capabilities lists them."
+                                                          },
+                                                          "envelope": {
+                                                            "description": "The family's complete envelope, unchanged.",
+                                                            "type": "object",
+                                                            "propertyNames": {
+                                                              "type": "string"
+                                                            },
+                                                            "additionalProperties": {}
+                                                          },
+                                                          "spec": {
+                                                            "description": "Or the family's create spec; it is built into an envelope. Give spec or envelope, not both.",
+                                                            "type": "object",
+                                                            "propertyNames": {
+                                                              "type": "string"
+                                                            },
+                                                            "additionalProperties": {}
+                                                          }
+                                                        },
+                                                        "required": [
+                                                          "tool"
+                                                        ],
+                                                        "additionalProperties": false
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "diagram"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "steps"
+                                                      },
+                                                      "steps": {
+                                                        "minItems": 1,
+                                                        "maxItems": 8,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "label": {
+                                                              "default": "",
+                                                              "type": "string",
+                                                              "maxLength": 24
+                                                            },
+                                                            "text": {
+                                                              "type": "string",
+                                                              "maxLength": 300
+                                                            }
+                                                          },
+                                                          "required": [
+                                                            "text"
+                                                          ],
+                                                          "additionalProperties": false
+                                                        }
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "steps"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "type": {
+                                                        "type": "string",
+                                                        "const": "checklist"
+                                                      },
+                                                      "items": {
+                                                        "minItems": 1,
+                                                        "maxItems": 6,
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string",
+                                                          "maxLength": 120
+                                                        }
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "type",
+                                                      "items"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "title",
+                                  "items"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "cards"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "teacherNotes": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 6000
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "sections"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "title",
+                "lessons"
+              ],
+              "additionalProperties": false,
+              "description": "The booklet: cover fields, an optional unit introduction and the lessons in order."
+            }
+          },
+          "required": [
+            "tool",
+            "schemaVersion",
+            "document"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "booklet"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "booklet": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {},
+          "description": "The validated booklet, in the create_booklet input shape. Edit it and call create_booklet again to change the booklet."
+        },
+        "contentHash": {
+          "type": "string"
+        },
+        "rendererVersion": {
+          "type": "string",
+          "const": "booklet-a4-1"
+        },
+        "printReady": {
+          "type": "boolean"
+        },
+        "pages": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lesson": {
+                "type": "number"
+              },
+              "section": {
+                "type": "number"
+              },
+              "question": {
+                "type": "number"
+              },
+              "page": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "lesson",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "files": {
+          "type": "object",
+          "properties": {
+            "pupilPdf": {
+              "type": "string"
+            },
+            "answersPdf": {
+              "type": "string"
+            },
+            "json": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "pupilPdf",
+            "answersPdf",
+            "json"
+          ],
+          "additionalProperties": false
+        },
+        "downloads": {
+          "type": "object",
+          "properties": {
+            "pupilPdf": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "expiresAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "expiresAt"
+              ],
+              "additionalProperties": false
+            },
+            "answersPdf": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "expiresAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "expiresAt"
+              ],
+              "additionalProperties": false
+            },
+            "json": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "expiresAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "expiresAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lesson": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string"
+              },
+              "firstPage": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "pupilPdf": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url",
+                  "expiresAt"
+                ],
+                "additionalProperties": false
+              },
+              "answersPdf": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url",
+                  "expiresAt"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "lesson",
+              "title",
+              "firstPage"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "physicalSizeMm": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "number",
+              "const": 210
+            },
+            "height": {
+              "type": "number",
+              "const": 297
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "booklet",
+        "contentHash",
+        "rendererVersion",
+        "printReady",
+        "pages",
+        "issues",
+        "files",
+        "downloads",
+        "lessons",
+        "physicalSizeMm"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
     "name": "create_diagram",
     "title": "Create a diagram",
     "description": "Create one MathsDock diagram of the given kind from a spec (or re-check a saved envelope). Returns a preview, a plain-text summary and alt text, SVG, verified 600 ppi PNG and editable JSON links, the envelope and contentHash for revisions, the printed size and an editor link where it fits. Pupil blanks, answer lines and hidden answers stay as given; never fill or reveal answers unless asked. Numeric values are strings.",
@@ -3073,8 +4298,8 @@
   },
   {
     "name": "worksheet_capabilities",
-    "title": "Worksheet options",
-    "description": "Read the A3 worksheet layout, item types and limits before PRODUCE. Use with create_worksheet.",
+    "title": "Worksheet and booklet options",
+    "description": "Read the A3 worksheet and A4 booklet layouts, item types and limits before PRODUCE. Use with create_worksheet or create_booklet.",
     "inputSchema": {
       "type": "object",
       "properties": {},

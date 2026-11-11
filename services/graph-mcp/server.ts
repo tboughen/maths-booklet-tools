@@ -350,10 +350,10 @@ export function graphService(options: ServiceOptions) {
         res.end(file.body); return;
       }
       if (req.method === "GET" && url.pathname === "/worksheet/download") {
-        const { resource, format, view } = worksheetDownloads.verify(url);
+        const { resource, format, view, numbering } = worksheetDownloads.verify(url);
         const abort = new AbortController();
         res.once("close", () => { if (!res.writableFinished) abort.abort(); });
-        const file = await worksheets.artifacts(resource, format, view, abort.signal);
+        const file = await worksheets.artifacts(resource, format, view, abort.signal, numbering);
         limits.output(file.body.length); bytes = file.body.length;
         const ascii = file.name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
         res.writeHead(200, { "Content-Type": file.type,

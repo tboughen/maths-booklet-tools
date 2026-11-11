@@ -8,6 +8,8 @@ import { PDFDocument } from "pdf-lib";
 import { graphService } from "./server";
 import { WorksheetDownloads } from "./worksheet-tools";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
+import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
+import { lessonPagesOf, renderBooklet } from "../../packages/resource-core/src/index";
 
 const key = "synthetic-worksheet-test-only-not-a-production-key";
 const servers: Server[] = [],
@@ -108,5 +110,77 @@ describe("worksheet tools", () => {
     forged.searchParams.set("signature", "A".repeat(43));
     expect(() => d.verify(forged, 1_000_000)).toThrow(/signature/);
     expect(() => d.verify(link, 1_000_000 + 8 * 86_400_000)).toThrow(/expired/);
+  });
+});
+
+type BookletReply = {
+  printReady: boolean;
+  pages: number;
+  issues: { lesson: number; message: string }[];
+  files: Record<string, string>;
+  downloads: Record<string, { url: string }>;
+  lessons: { lesson: number; title: string; firstPage: number; pupilPdf?: { url: string }; answersPdf?: { url: string } }[];
+};
+
+describe("booklet tool", () => {
+  it("produces previews, whole-booklet files and a PDF link for every lesson", async () => {
+    const { client } = await start();
+    expect((await client.listTools()).tools.map((t) => t.name)).toContain("create_booklet");
+    const r = await client.callTool({ name: "create_booklet", arguments: { booklet: a7Booklet } });
+    expect(r.isError, JSON.stringify(r.content).slice(0, 400)).not.toBe(true);
+    const reply = r.structuredContent as unknown as BookletReply;
+    const full = renderBooklet(a7Booklet);
+    expect(reply).toMatchObject({ printReady: true, pages: full.pages.length, issues: [] });
+    expect(reply.files.pupilPdf).toBe("A7_Algebraic proficiency visualising_Booklet_A4.pdf");
+    const content = r.content as { type: string; resource?: { mimeType: string; blob?: string; text?: string } }[];
+    // Cover plus the first page of each lesson (two lessons in the example).
+    expect(content.filter((c) => c.type === "image")).toHaveLength(3);
+
+    // The whole booklet is either a link or an included file, for each of the three outputs.
+    const included = content.filter((c) => c.type === "resource").map((c) => c.resource!);
+    expect(Object.keys(reply.downloads).length + included.length).toBe(3);
+    const wholePupil = reply.downloads.pupilPdf
+      ? new Uint8Array(await (await fetch(reply.downloads.pupilPdf.url)).arrayBuffer())
+      : Buffer.from(included.find((f) => f.mimeType === "application/pdf")!.blob!, "base64");
+    const pdf = await PDFDocument.load(wholePupil);
+    expect(pdf.getPageCount()).toBe(full.pages.length);
+    expect(pdf.getPage(0).getWidth()).toBeCloseTo((210 * 72) / 25.4, 1);
+    expect(pdf.getPage(0).getHeight()).toBeCloseTo((297 * 72) / 25.4, 1);
+
+    expect(reply.lessons.map((l) => l.firstPage)).toEqual(full.lessonPages);
+    for (const [i, lesson] of reply.lessons.entries()) {
+      for (const view of ["pupil", "answers"] as const) {
+        const res = await fetch(lesson[`${view}Pdf`]!.url);
+        expect(res.status).toBe(200);
+        expect(res.headers.get("content-disposition")).toContain(encodeURIComponent(`_Lesson ${i + 1}`));
+        const one = await PDFDocument.load(new Uint8Array(await res.arrayBuffer()));
+        expect(one.getPageCount()).toBe(lessonPagesOf(a7Booklet, i, { view }).pages.length);
+      }
+    }
+  }, 60_000);
+
+  it("makes no files and names the place when a lesson does not fit", async () => {
+    const { client } = await start();
+    const doc = structuredClone(a7Booklet);
+    doc.document.lessons[1].sections[0].cards[0].items.push({ type: "space", kind: "working", heightMm: 200 }, { type: "space", kind: "working", heightMm: 200 });
+    const r = await client.callTool({ name: "create_booklet", arguments: { booklet: doc } });
+    expect(r.isError).not.toBe(true);
+    const reply = r.structuredContent as unknown as BookletReply;
+    expect(reply.printReady).toBe(false);
+    expect(reply.issues[0]).toMatchObject({ lesson: 2 });
+    expect(reply.downloads).toEqual({});
+    expect(reply.lessons.every((l) => !l.pupilPdf)).toBe(true);
+    expect(JSON.stringify(r.content)).toContain("NOT print-ready");
+  });
+
+  it("refuses an invalid booklet and a lesson link that was not made by the service", async () => {
+    const { client } = await start();
+    const doc = structuredClone(a7Booklet) as unknown as { document: { lessons: unknown[] } };
+    doc.document.lessons = [];
+    expect((await client.callTool({ name: "create_booklet", arguments: { booklet: doc } })).isError).toBe(true);
+    const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test");
+    // Numbering is only valid on a one-lesson PDF.
+    const forged = new URL(d.link(a7Booklet, "pdf", "pupil", 1_000_000, { lessonOffset: 1, pageOffset: 3 }).url);
+    expect(() => d.verify(forged, 1_000_000)).toThrow(/token/);
   });
 });

@@ -15,6 +15,7 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 | `revise_diagram {kind, envelope, baseHash, operations, outputView?}` | Applies operations to the returned envelope; a stale `baseHash` is refused. |
 | `check_diagram_placement`, `download_diagram_bundle`, `get_diagram_svg` | Print outputs (unchanged; see MCP-DIAGRAM-OUTPUTS.md). |
 | `create_worksheet`, `worksheet_capabilities` | Two-sided A3 worksheets; any family can be placed in one. |
+| `create_booklet` | A4 unit booklets (see [BOOKLET-MAKER.md](BOOKLET-MAKER.md)); same items and families as worksheets. Added 11 Nov 2026, the ninth tool. |
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
 `algebra-grid`, `bar-model`, `charts`, `probability-tree` and `triangle`. `outputView` applies

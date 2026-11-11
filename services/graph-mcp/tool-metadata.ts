@@ -14,8 +14,9 @@ export const TOOL_TITLES: Readonly<Record<string, string>> = {
   check_diagram_placement: "Check a diagram's print size",
   download_diagram_bundle: "Download diagram files",
   get_diagram_svg: "Get a diagram's SVG",
-  worksheet_capabilities: "Worksheet options",
+  worksheet_capabilities: "Worksheet and booklet options",
   create_worksheet: "Make an A3 worksheet",
+  create_booklet: "Make an A4 booklet",
 };
 export function toolTitle(name: string): string {
   const title = TOOL_TITLES[name];
