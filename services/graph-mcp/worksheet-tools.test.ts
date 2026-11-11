@@ -7,9 +7,17 @@ import type { Server } from "node:http";
 import { PDFDocument } from "pdf-lib";
 import { graphService } from "./server";
 import { WorksheetDownloads } from "./worksheet-tools";
+import { memoryDocumentStore } from "./document-store";
+import { inflateSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
-import { lessonPagesOf, renderBooklet } from "../../packages/resource-core/src/index";
+import { lessonPagesOf, renderBooklet, validateBooklet } from "../../packages/resource-core/src/index";
+const renderable = (b: unknown) => validateBooklet(b);
+/** Incompressible teacher notes, so a test booklet is as large as a real unit once deflated. */
+const noise = (seed: number) => {
+  let x = seed + 1;
+  return Array.from({ length: 900 }, () => ((x = (x * 1103515245 + 12345) % 2147483648), "abcdefghijklmnopqrstuvwxyz"[x % 26])).join("");
+};
 
 const key = "synthetic-worksheet-test-only-not-a-production-key";
 const servers: Server[] = [],
@@ -101,15 +109,15 @@ describe("worksheet tools", () => {
     expect(r.isError).toBe(true);
   });
 
-  it("signs download links and rejects tampering", () => {
+  it("signs download links and rejects tampering", async () => {
     const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test");
     const link = new URL(d.link(treeDiagrams, "pdf", "answers", 1_000_000).url);
     expect(link.href.length).toBeLessThan(7500);
-    expect(d.verify(link, 1_000_000)).toMatchObject({ format: "pdf", view: "answers" });
+    await expect(d.verify(link, 1_000_000)).resolves.toMatchObject({ format: "pdf", view: "answers" });
     const forged = new URL(link);
     forged.searchParams.set("signature", "A".repeat(43));
-    expect(() => d.verify(forged, 1_000_000)).toThrow(/signature/);
-    expect(() => d.verify(link, 1_000_000 + 8 * 86_400_000)).toThrow(/expired/);
+    await expect(d.verify(forged, 1_000_000)).rejects.toThrow(/signature/);
+    await expect(d.verify(link, 1_000_000 + 8 * 86_400_000)).rejects.toThrow(/expired/);
   });
 });
 
@@ -181,6 +189,52 @@ describe("booklet tool", () => {
     const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test");
     // Numbering is only valid on a one-lesson PDF.
     const forged = new URL(d.link(a7Booklet, "pdf", "pupil", 1_000_000, { lessonOffset: 1, pageOffset: 3 }).url);
-    expect(() => d.verify(forged, 1_000_000)).toThrow(/token/);
+    await expect(d.verify(forged, 1_000_000)).rejects.toThrow(/token/);
+  });
+
+  it("takes a whole 11-lesson unit in one call and links its whole-booklet files from the store", async () => {
+    const { client, base } = await start();
+    const doc = structuredClone(a7Booklet);
+    const [l1, l2] = doc.document.lessons;
+    doc.document.lessons = Array.from({ length: 11 }, (_, i) => ({ ...structuredClone(i % 2 ? l2 : l1), code: `A7.${String(i + 1).padStart(2, "0")}`, teacherNotes: noise(i) }));
+    const size = JSON.stringify({ booklet: doc }).length;
+    expect(size).toBeGreaterThan(64 * 1024);
+    const r = await client.callTool({ name: "create_booklet", arguments: { booklet: doc } }, undefined, { timeout: 120_000 });
+    expect(r.isError, JSON.stringify(r.content).slice(0, 400)).not.toBe(true);
+    const reply = r.structuredContent as unknown as BookletReply;
+    expect(reply.printReady).toBe(true);
+    // No files are pushed into the reply; every output is a link.
+    expect((r.content as { type: string }[]).some((c) => c.type === "resource")).toBe(false);
+    expect(Object.keys(reply.downloads).sort()).toEqual(["answersPdf", "json", "pupilPdf"]);
+    // Too big to carry, so the link names the stored copy.
+    expect(reply.downloads.pupilPdf.url.length).toBeLessThan(600);
+    const pdf = await PDFDocument.load(new Uint8Array(await (await fetch(reply.downloads.pupilPdf.url)).arrayBuffer()));
+    expect(pdf.getPageCount()).toBe(reply.pages);
+    expect(await (await fetch(reply.downloads.json.url)).json()).toEqual(renderable(doc));
+    expect(reply.lessons).toHaveLength(11);
+    expect(reply.lessons.every((l) => l.pupilPdf && l.answersPdf)).toBe(true);
+
+    // Other tools keep the 64 KiB limit.
+    const big = structuredClone(treeDiagrams) as unknown as { document: { title: string } };
+    big.document.title = "x".repeat(70 * 1024);
+    const res = await fetch(`${base}/mcp`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "create_worksheet", arguments: { resource: big } } }),
+    });
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain("64 KiB");
+  }, 180_000);
+
+  it("refuses a stored-document link that was tampered with or has gone", async () => {
+    const store = memoryDocumentStore();
+    const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", store);
+    const link = new URL((await d.storedLink(a7Booklet, "pdf", "pupil", 1_000_000)).url);
+    await expect(d.verify(link, 1_000_000)).resolves.toMatchObject({ format: "pdf", view: "pupil" });
+    const ref = JSON.parse(new TextDecoder().decode(inflateSync(Buffer.from(link.searchParams.get("token")!, "base64url")))).ref;
+    await store.put(ref, JSON.stringify({ ...a7Booklet, document: { ...a7Booklet.document, title: "Changed" } }), 60);
+    await expect(d.verify(link, 1_000_000)).rejects.toThrow(/token/);
+    const empty = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", memoryDocumentStore());
+    await expect(empty.verify(link, 1_000_000)).rejects.toThrow(/no longer available/);
   });
 });

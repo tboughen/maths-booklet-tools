@@ -33,6 +33,7 @@ import { ratioTools } from "./ratio-table-tools";
 import { ValueDownloads } from "./value-downloads";
 import { valueGraphTools } from "./value-graph-tools";
 import { WorksheetDownloads, worksheetTools } from "./worksheet-tools";
+import type { DocumentStore } from "./document-store";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools, type NewSource } from "./resource-tools";
 import { diagramTools, type ResultBuilder } from "./diagram-tools";
@@ -61,6 +62,8 @@ export interface ServiceOptions {
   dailyBytes?: number;
   /** Keeps the daily served-byte total across sleeps and restarts. */
   quotaStore?: QuotaStore;
+  /** Keeps documents too large for a link (whole booklets). Defaults to memory. */
+  documentStore?: DocumentStore;
   /** Rate-limit on the host edge's X-Forwarded-For address instead of the socket. */
   trustForwardedFor?: boolean;
   onQuotaStoreError?: (message: string) => void;
@@ -121,7 +124,7 @@ export function graphService(options: ServiceOptions) {
   const values = valueGraphTools(raster, valueDownloads, limits, options.editorUrl);
   const resourceDownloads = new ResourceDownloads(base.href, options.keys, options.activeKey);
   const resources = resourceTools(raster, resourceDownloads, limits, options.editorUrl);
-  const worksheetDownloads = new WorksheetDownloads(base.href, options.keys, options.activeKey);
+  const worksheetDownloads = new WorksheetDownloads(base.href, options.keys, options.activeKey, options.documentStore);
   const worksheets = worksheetTools(raster, worksheetDownloads, limits);
   const artifacts = async (
     envelope: GraphEnvelope,
@@ -350,7 +353,7 @@ export function graphService(options: ServiceOptions) {
         res.end(file.body); return;
       }
       if (req.method === "GET" && url.pathname === "/worksheet/download") {
-        const { resource, format, view, numbering } = worksheetDownloads.verify(url);
+        const { resource, format, view, numbering } = await worksheetDownloads.verify(url);
         const abort = new AbortController();
         res.once("close", () => { if (!res.writableFinished) abort.abort(); });
         const file = await worksheets.artifacts(resource, format, view, abort.signal, numbering);
@@ -475,6 +478,10 @@ export function graphService(options: ServiceOptions) {
   /** Saves the daily served-byte total; call before the process exits. */
   return Object.assign(service, { flushQuota: () => limits.flush() });
 }
+/** One MCP message is at most 64 KiB, except a create_booklet call, which carries a whole unit
+ * booklet and may be up to 512 KiB. Diagram families keep their own smaller limits inside. */
+export const MAX_MCP_BODY_BYTES = 512 * 1024;
+const LARGE_BODY_TOOLS = new Set(["create_booklet"]);
 async function readBody(req: IncomingMessage): Promise<unknown> {
   if (!req.headers["content-type"]?.startsWith("application/json"))
     throw new GraphError("invalid_request", "Use application/json.");
@@ -482,13 +489,20 @@ async function readBody(req: IncomingMessage): Promise<unknown> {
   const parts: Buffer[] = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > MAX_REQUEST_BYTES)
-      throw new GraphError("size_limit", "The request exceeds 64 KiB.");
+    if (size > MAX_MCP_BODY_BYTES)
+      throw new GraphError("size_limit", "The request exceeds 512 KiB.");
     parts.push(Buffer.from(chunk));
   }
+  let body: unknown;
   try {
-    return JSON.parse(Buffer.concat(parts).toString("utf8"));
+    body = JSON.parse(Buffer.concat(parts).toString("utf8"));
   } catch {
     throw new GraphError("invalid_request", "The JSON request cannot be read.");
   }
+  if (size > MAX_REQUEST_BYTES) {
+    const m = body as { method?: unknown; params?: { name?: unknown } } | null;
+    const large = m && typeof m === "object" && m.method === "tools/call" && typeof m.params?.name === "string" && LARGE_BODY_TOOLS.has(m.params.name);
+    if (!large) throw new GraphError("size_limit", "The request exceeds 64 KiB.");
+  }
+  return body;
 }

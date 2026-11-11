@@ -141,7 +141,7 @@ header must use that same origin. The human site never fetches the service.
 
 ## Limits and privacy
 
-MCP body: 64 KiB; 50 graph objects; 100 revision operations. Human JSON file:
+MCP body: 64 KiB (512 KiB for `create_booklet`, whose whole-booklet files are kept in the quota KV namespace for eight days); 50 graph objects; 100 revision operations. Human JSON file:
 
 1 MiB. URLs: 8192 characters. Print PNG: 32 million pixels at 600 ppi;
 preview: 2 million pixels; artifact: 10 MiB. Raster work is one native child

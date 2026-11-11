@@ -100,14 +100,21 @@ stream, and refuses a worksheet file.
 
 ## Connector tool
 
+One call takes a whole unit: an MCP request may be up to 512 KiB for `create_booklet` (64 KiB for
+every other tool, unchanged). Tim's first real A7 run (11 Nov 2026) hit the old 64 KiB limit at
+about 88 KB for 11 lessons.
+
 `create_booklet {booklet}` on the MCP connector makes the same booklet in chat (Claude or ChatGPT).
 `worksheet_capabilities` lists its layout, limits and section kinds. The reply has previews of the
 cover and the first page of up to three lessons, the layout issues (lesson, section, question and
 page), and, only when the booklet fits:
 
-- whole-booklet pupil PDF, answers PDF and editable JSON as signed seven-day links, or as files
-  included in the reply when the booklet is too large for a link (links carry the document, up to
-  7,500 characters, so most full units are included files);
+- whole-booklet pupil PDF, answers PDF and editable JSON as signed seven-day links. A small
+  booklet travels inside its link; a whole unit is too big for that, so the service keeps it for
+  eight days in Cloudflare Workers KV (the namespace the daily byte counter uses, keys
+  `graph-mcp-document:<sha256>`) and the link names its hash, which is checked again on download.
+  Without KV (local runs) it is kept in memory and its links stop at a restart. Files are never
+  pushed into the reply, so a unit costs no extra chat tokens;
 - a pupil and an answers PDF link for every lesson. Each carries a one-lesson booklet plus
   numbering offsets, so the lesson prints exactly as it does in the full booklet, with the same
   lesson and page numbers. A lesson too large for a link is named in the reply.

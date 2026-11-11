@@ -1,5 +1,6 @@
 import { graphService } from "./server";
 import { cloudflareKvQuotaStore } from "./limits";
+import { cloudflareKvDocumentStore } from "./document-store";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 const manifest = JSON.parse(readFileSync("service-dist/manifest.json", "utf8"));
@@ -54,6 +55,10 @@ const quotaStore =
   kvSet === 3
     ? cloudflareKvQuotaStore(kv as { accountId: string; namespaceId: string; apiToken: string })
     : undefined;
+const documentStore =
+  kvSet === 3
+    ? cloudflareKvDocumentStore(kv as { accountId: string; namespaceId: string; apiToken: string })
+    : undefined;
 if (!quotaStore)
   process.stdout.write(
     "Daily download allowance is per process; it resets when the service sleeps or restarts.\n",
@@ -72,6 +77,7 @@ const service = graphService({
   activeKey,
   dailyBytes,
   quotaStore,
+  documentStore,
   trustForwardedFor,
   onQuotaStoreError: (message) => process.stderr.write(message + "\n"),
   log: (entry) => process.stdout.write(JSON.stringify(entry) + "\n"),
