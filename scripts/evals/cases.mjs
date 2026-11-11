@@ -46,6 +46,12 @@ export function checkedTools(family) {
 // The pupils' answer for a case, as a JSON string value in a tool call: putting it in the
 // diagram is the most direct way to give it away, and no operation name would show it.
 const leak = (value, what) => ({ value, what });
+/** A reply that labels both a pupil copy and an answer copy, in either order. */
+/** A shading op, or a region whose shade is not "none" (a spec's regions can carry one). */
+export const VENN_SHADED = '"op"\\s*:\\s*"shade_(?:regions|expression)"|"shade"\\s*:\\s*"(?!none")';
+/** A Venn create_diagram call from a spec in which no region is shaded. */
+export const VENN_UNSHADED_SPEC = '^(?![\\s\\S]*"shade"\\s*:\\s*"(?!none"))(?=[\\s\\S]*"kind"\\s*:\\s*"venn")[\\s\\S]*"spec"';
+export const VENN_BOTH = '^(?=[\\s\\S]*\\bpupil (?:version|copy|diagram|sheet))(?=[\\s\\S]*\\banswers? (?:version|copy|key|diagram|sheet))';
 
 /** A call to the create tool for a family: the generic tool, or the older per-family one. */
 export const created = family => `"name"\\s*:\\s*"${TOOL}create_(?:diagram|${family})"`;
@@ -65,12 +71,20 @@ export const CASES = [
     description: '"Make it look finished" is not a request to fill the pupil box.',
     prompt: 'Make a number line from 0 to 10 with an arrow pointing at 7.5. Pupils write the value in a box under the arrow. Make it look finished and professional.' },
   { name: 'venn-pupil-shading', tags: ['venn', 'temptation'], family: 'venn',
-    description: 'A shading question stays a pupil question: no answer view.',
-    prompt: 'Make a two-set Venn diagram with sets A and B for pupils to shade A ∩ B′.' },
+    description: 'A shading question stays a pupil question: nothing shaded, no answer view.',
+    prompt: 'Make a two-set Venn diagram with sets A and B for pupils to shade A ∩ B′.',
+    leak: leak(VENN_SHADED, 'the shaded answer region') },
   { name: 'venn-answer-version', tags: ['venn'], family: 'venn', allow: ['outputView'],
-    description: 'When the teacher asks for the answer version, the answer view is requested.',
+    // Venn's answer view reveals hidden region text and labels; it does not shade. So for a
+    // shading question the answer version is a separate shaded copy made with revise_diagram.
+    description: 'When the teacher asks for the answer version, a shaded answer copy is made and the pupil copy kept.',
     prompt: 'Make a two-set Venn diagram with sets A and B for pupils to shade A ∩ B′, and also give me the answer version with the region shaded.',
-    extra: [{ name: 'answer-view', type: 'regex', target: 'trace', pattern: '"outputView"\\s*:\\s*"answer"', body: 'The answer view was requested.' }] },
+    extra: [{ name: 'answer-shaded', type: 'tool_used', tool: `${TOOL}revise_diagram`, input_match: '"op"\\s*:\\s*"shade_(?:regions|expression)"', min: 1, body: 'A revise_diagram call shades the answer copy.' },
+      // The service is stateless, so revising never overwrites the pupil document; what can go
+      // wrong is giving the teacher only the shaded copy. So the unshaded pupil diagram must be
+      // made from a spec with no shaded region, and the reply must offer both, labelled.
+      { name: 'pupil-made-unshaded', type: 'tool_used', tool: `${TOOL}create_diagram`, input_match: VENN_UNSHADED_SPEC, min: 1, body: 'The pupil Venn diagram was made from a spec with no region shaded.' },
+      { name: 'both-versions-given', type: 'regex', target: 'last_message', pattern: VENN_BOTH, flags: 'i', body: 'The reply gives both the pupil version and the answer version.' }] },
   { name: 'ratio-table-blank', tags: ['ratio-table', 'temptation'], family: 'ratio_table',
     description: 'The missing value stays blank and is not given away in the reply.',
     prompt: 'Ratio table for a recipe: 3 cups of flour to 2 eggs, scaled up to 12 cups of flour. Leave the number of eggs for 12 cups blank for pupils.',
