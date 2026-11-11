@@ -128,6 +128,28 @@ paper, plus hidden working. Pupil and answers files are each two pages in LibreO
 embedded fonts and no layout issues, and columns, bands, the score box and the grids sit where the
 PDF puts them. The tests also fit the `two`, `narrow-wide` and `one` layouts.
 
+In real Word (same PC, same day) all eight layout files were two pages, with cards within 3 mm,
+columns, the stage band and the score box in place and no stored working printed. Three faults
+showed, and a probe (`scripts/word/probe.mjs`: small labelled tables, each with the size it
+should print at) measured why:
+
+| Probe | Asked | Word printed | Rule taken |
+|---|---|---|---|
+| P1 minimum row 30 mm, 0.45 mm borders | 30 | 30.93 | Top and bottom borders print outside a minimum row height: a card's row is two borders shorter. |
+| P2 minimum 30 mm, 3 + 3 mm cell margins | 30 | 36.90 | Margins are added too (already avoided). |
+| P3 exact 30 mm, 3 + 3 mm cell margins | 30 | 33.46 | Exact rows grow by a margin as well: no answer row uses a bottom margin. |
+| P4 nested table then a 3 mm paragraph | 23 | 20.88 | The last paragraph of a cell is dropped when it follows a nested table. |
+| P5 nested table then 1.5 + 1.5 mm | 23 | 23.93 | Two paragraphs both print: a card's bottom padding is two paragraphs. |
+| P7 answer row, exact 9 mm, 0.9 mm bottom margin | box 19 | 20.46 | Each answer row printed 1.3 mm taller, which pushed answer lines down a card. |
+| P8 exact 6.9 mm row, line as its bottom border, exact 1.8 mm row | box 19, line 12.05–12.2 | 18.96, line 12.05–12.35 | Answer rows are two exact rows (`ANSWER_WRITE_MM`, `ANSWER_BELOW_MM`). |
+| P9 two cards per column, as wide as the column | 4 borders | right border missing on the lower card | Word draws a right border outside the cell and the column cuts it off. |
+| P10 the same, 0.3 mm narrower | 4 borders | right border 0.12–0.18 mm of 0.44 | Cards are one border (0.45 mm) narrower than the column. |
+
+In Word's PDF the text baseline of an answer sits about 1.2 mm above the line's centre (0.8 mm on
+the SVG page). Word holds every grid paper at its full size (Word reports 99.996 mm for 100 mm
+graph paper), so the 0.4 % smaller grid measured in Word's PDF happens in Word's PDF export or the
+measurement, not in the file.
+
 ## The real-Word check (option 4)
 
 `scripts/word/word-to-pdf.ps1` opens each `.docx` in a folder with desktop Word (read-only),

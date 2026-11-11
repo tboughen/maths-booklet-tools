@@ -67,6 +67,15 @@ export const WORD_FOOT_MM = 3;
 export const WORD_INLINE_FRACTION = 8 / 11;
 /** The paragraph Word requires after a nested table: 1 pt high. */
 const END_MM = 0.36;
+/**
+ * An answer row is two exact rows in Word: the writing row, whose bottom border is the answer
+ * line, and the space below the line. Word draws a 0.3 mm bottom border with its centre about
+ * 0.2 mm below the row's edge and makes the pair about 0.08 mm taller than asked, so these put the
+ * line 7.2 mm down a 9 mm row, as on the SVG page (layout probe P8, real Word, 11 November 2026).
+ * A single row with a bottom cell margin printed each row about 1.3 mm taller (probe P7).
+ */
+const ANSWER_WRITE_MM = S.answerRow - 2.6 + 0.8 - 0.2;
+const ANSWER_BELOW_MM = S.answerRow - ANSWER_WRITE_MM - 0.08;
 
 const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
 const emu = (mm: number) => Math.round(mm * 36000);
@@ -167,6 +176,11 @@ function para(content: string, o: ParaStyle = {}): string {
 }
 /** An empty paragraph exactly `mm` high: gaps between items, and the end of a cell. */
 const gap = (mm: number, left = 0) => para("", { line: Math.max(mm, 0.36), markMm: 0.36, left });
+/**
+ * Space at the end of a cell. Word does not print the last paragraph of a cell when it follows a
+ * nested table (layout probe P4, real Word, 11 November 2026), so the space is two paragraphs.
+ */
+const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 
 // ---------------------------------------------------------------- tables
 
@@ -287,7 +301,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
     const text = (s: string, o: RunStyle = {}) => para(runs(s, o), { line: lineBox(size) });
     if (pre) {
       grid.push(pre);
-      cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom", margin: { bottom: 0.9 } }));
+      cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
     }
     grid.push(mid);
     const shown = ctx.view === "answers" && l.answer;
@@ -296,19 +310,20 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
         width: mid,
         vAlign: "bottom",
         borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
-        margin: { left: 2, bottom: 0.9 },
+        margin: { left: 2 },
       }),
     );
     if (post) {
       grid.push(post);
-      cells.push(cell(text(l.suffix), { width: post, vAlign: "bottom", margin: { left: 1.8, bottom: 0.9 } }));
+      cells.push(cell(text(l.suffix), { width: post, vAlign: "bottom", margin: { left: 1.8 } }));
     }
   });
   return { grid, cells };
 }
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, indent: number, ctx: WordCtx): Block {
   const { grid, cells } = answerCells(lines, w, ctx);
-  return table(grid, [row(cells, { mm: S.answerRow, exact: true })], indent);
+  const below = grid.map((g) => cell(gap(END_MM), { width: g }));
+  return table(grid, [row(cells, { mm: ANSWER_WRITE_MM, exact: true }), row(below, { mm: ANSWER_BELOW_MM, exact: true })], indent);
 }
 
 function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: number, ctx: WordCtx): Block {
@@ -556,20 +571,24 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
   // The card's top and bottom padding are exact empty paragraphs, not cell margins: Word adds a
   // cell's top and bottom margins to a minimum row height (real-Word check, 11 November 2026),
   // which made every card about 5.5 mm taller than the layout.
-  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + gap(pad - rule.width);
+  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + endGap(pad - rule.width);
+  // Word prints a card's top and bottom borders outside its minimum height (probe P1), and its
+  // right border outside the cell, where the column cell cuts it off (probes P9 and P10). So the
+  // card is one border narrower and two borders shorter, and its outside matches the SVG card.
+  const cw = w - rule.width;
   return table(
-    [w],
+    [cw],
     [
       row(
         [
           cell(body, {
-            width: w,
+            width: cw,
             borders: { top: rule, left: rule, bottom: rule, right: rule },
-            // Borders sit inside the cell in Word, so the padding paragraphs give their width back.
-            margin: { top: 0, left: pad, bottom: 0, right: pad - WORD_WRAP_SLACK_MM },
+            // The padding paragraphs give the top and bottom borders' width back.
+            margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
           }),
         ],
-        { mm: height },
+        { mm: height - 2 * rule.width },
       ),
     ],
   );
