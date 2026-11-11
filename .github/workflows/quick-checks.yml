@@ -131,9 +131,10 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # Uses apt only if the runner image lacks one of Chromium's libraries.
       - name: Install Chromium and its system libraries
         if: steps.plan.outputs.build == 'true'
-        run: npx playwright install --with-deps chromium
+        run: scripts/ci/install-chromium.sh
       - name: Run browser gates (page smoke, accessibility)
         if: steps.plan.outputs.build == 'true'
         run: npx playwright test --project=gates
