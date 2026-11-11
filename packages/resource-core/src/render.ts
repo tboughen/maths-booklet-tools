@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -26,7 +26,7 @@ export interface Rendered {
 }
 
 /** A laid-out piece of a page: its height in millimetres and its SVG at the origin. */
-export type Frag = { h: number; svg: string };
+export type Frag = { h: number; svg: string; first?: number };
 /** Layout state shared by the worksheet and booklet renderers. `where` locates each issue. */
 export interface Ctx<W extends object = { side: number; column: number; question: number }> {
   st: HouseStyle;
@@ -36,6 +36,8 @@ export interface Ctx<W extends object = { side: number; column: number; question
   where: W;
   /** Tables keep their natural width (cells at least 14 mm) instead of filling the card: booklets. */
   compactTables?: boolean;
+  /** Maths notation in flowing text: {3/4} prints as a stacked fraction (worksheet `notation: "maths"`). */
+  maths?: boolean;
 }
 
 const S = SIZE;
@@ -46,12 +48,28 @@ export const at = (f: Frag, x: number, y: number) => (f.svg ? `<g transform="tra
 type AnyCtx = Ctx<any>;
 const issue = (ctx: AnyCtx, message: string) => ctx.issues.push({ ...ctx.where, message });
 
+/**
+ * A paragraph holding a stacked fraction sets every line at the fraction line height, so Word can
+ * give it exact line spacing too: its layout is then as fixed as ordinary text.
+ */
+export const fractionLine = (size: number) => size * FRAC_LINE;
+/** Baseline within a fraction line: the ordinary gap below it, and the extra height above. */
+export const fractionBaseline = (size: number) => fractionLine(size) - (lineBox(size) - baseline(size)) - size * 0.55;
+
 function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number; fill?: string; base?: FontStyle; x?: number } = {}): Frag {
   const size = opts.size ?? S.body;
-  const lines = wrap(source, size, width, opts.base);
+  const lines = wrap(source, size, width, opts.base, ctx.maths);
   const lh = lineBox(size);
-  const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * lh + baseline(size), size, opts.fill ?? ctx.st.ink)).join("");
-  return { h: lines.length * lh, svg };
+  if (!lines.some(hasFraction)) {
+    const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * lh + baseline(size), size, opts.fill ?? ctx.st.ink)).join("");
+    return { h: lines.length * lh, svg };
+  }
+  if (lines.some((l) => l.some((r) => !r.frac && /[{}]/.test(r.text)))) issue(ctx, "A brace is not part of a fraction. Write a stacked fraction as {3/4}.");
+  const fh = fractionLine(size),
+    fb = fractionBaseline(size);
+  const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * fh + fb, size, opts.fill ?? ctx.st.ink)).join("");
+  // Labels, bullets and tick boxes beside this text line up with its first baseline.
+  return { h: lines.length * fh, svg, first: fb };
 }
 
 function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): Frag {
@@ -144,6 +162,9 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
     const x1 = x0 + pre,
       x2 = x0 + slot - post;
     if (x2 - x1 < 18) issue(ctx, "An answer line is shorter than 18 mm.");
+    // The saved answer is written on the line in the answers copy; it must not run past it.
+    if (l.answer && plainWidth(l.answer, size) + 2 > x2 - x1 + 0.01)
+      issue(ctx, `A saved answer is ${n(plainWidth(l.answer, size) + 2 - (x2 - x1))} mm wider than its answer line, so it would run past the line in the answers copy. Shorten it or give it a longer line.`);
     out.push(`<line x1="${n(x1)}" y1="${n(base + 0.8)}" x2="${n(x2)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`);
     if (l.suffix) out.push(textSvg(parseRuns(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
     if (ctx.view === "answers" && l.answer) out.push(textSvg(parseRuns(l.answer), x1 + 2, base - 0.6, size, ctx.st.answer));
@@ -172,7 +193,7 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx)
   let y = 0;
   item.options.forEach((o, i) => {
     const f = para(o, w - S.tickBox - 2.6, ctx, { x: S.tickBox + 2.6 });
-    const by = (lineBox(size) - S.tickBox) / 2;
+    const by = (lineBox(size) - S.tickBox) / 2 + (f.first ?? baseline(size)) - baseline(size);
     out.push(`<g transform="translate(0,${n(y)})"><rect x="0" y="${n(by)}" width="${S.tickBox}" height="${S.tickBox}" fill="none" stroke="${ctx.st.ink}" stroke-width="0.3"/>${f.svg}`);
     if (show === i)
       out.push(`<path d="M0.8,${n(by + 2.1)}L1.8,${n(by + 3.2)}L3.4,${n(by + 0.8)}" fill="none" stroke="${ctx.st.answer}" stroke-width="0.5"/>`);
@@ -201,14 +222,14 @@ function letters(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx
       rowH = 0;
     }
     const f = para(o, (slot || widths[i]) - 2 * r - gap + 0.5, ctx, { x: 2 * r + gap });
-    const cy = baseline(size) - size * 0.34;
+    const cy = (f.first ?? baseline(size)) - size * 0.34;
     const letter = String.fromCharCode(65 + i);
     const mark = show === i;
     out.push(`<g transform="translate(${n(x)},${n(y)})">`);
     out.push(`<circle cx="${r}" cy="${n(cy)}" r="${r}" fill="${mark ? ctx.st.answer : "white"}" stroke="${mark ? ctx.st.answer : ctx.st.navy}" stroke-width="0.35"/>`);
     out.push(textSvg([{ text: letter, style: "bold" }], r, cy + size * 0.34, S.body * 0.9, mark ? "white" : ctx.st.navy, "middle"));
     out.push(f.svg, "</g>");
-    rowH = Math.max(rowH, f.h);
+    rowH = Math.max(rowH, f.h + (f.first === undefined ? 0 : FRAC_FOOT));
     x += (slot || widths[i]) + 6;
   });
   return { h: y + rowH, svg: out.join("") };
@@ -233,7 +254,7 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       const out: string[] = [];
       for (const b of item.items) {
         const f = para(b, w - 5, ctx, { x: 5 });
-        out.push(at(f, 0, y), textSvg([{ text: "•", style: "regular" }], 1.2, y + baseline(S.body), S.body, st.ink));
+        out.push(at(f, 0, y), textSvg([{ text: "•", style: "regular" }], 1.2, y + (f.first ?? baseline(S.body)), S.body, st.ink));
         y += f.h;
       }
       return { h: y, svg: out.join("") };
@@ -256,7 +277,7 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       const out: string[] = [];
       item.steps.forEach((s, i) => {
         const f = para(s.text, w - indent, ctx, { x: indent });
-        out.push(at(f, 0, y), textSvg([{ text: labels[i], style: "bold" }], 0, y + baseline(S.body), S.body, st.navy));
+        out.push(at(f, 0, y), textSvg([{ text: labels[i], style: "bold" }], 0, y + (f.first ?? baseline(S.body)), S.body, st.navy));
         y += f.h + (i < item.steps.length - 1 ? 1.2 : 0);
       });
       return { h: y, svg: out.join("") };
@@ -266,7 +287,7 @@ function leaf(item: Leaf, w: number, ctx: AnyCtx, extra: number): Frag {
       const out: string[] = [];
       item.items.forEach((t, i) => {
         const f = para(t, w - S.tickBox - 2.6, ctx, { x: S.tickBox + 2.6 });
-        const by = (lineBox(S.body) - S.tickBox) / 2;
+        const by = (lineBox(S.body) - S.tickBox) / 2 + (f.first ?? baseline(S.body)) - baseline(S.body);
         out.push(`<rect x="0" y="${n(y + by)}" width="${S.tickBox}" height="${S.tickBox}" rx="0.6" fill="none" stroke="${st.navy}" stroke-width="0.35"/>`, at(f, 0, y));
         y += f.h + (i < item.items.length - 1 ? 0.8 : 0);
       });
@@ -288,9 +309,9 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       const label = `${String.fromCharCode(97 + part++)})`;
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
       const textW = w - S.partIndent;
-      const wrapped = wrap(it.text, S.body, textW);
+      const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
-      if (only && !only.prefix && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const head = para(it.text, textW, ctx, { x: S.partIndent });
@@ -306,7 +327,7 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       }
       const head = para(it.text, textW, ctx, { x: S.partIndent });
       const sub = it.items.length ? items(it.items, w - S.partIndent, ctx, extra) : { h: 0, svg: "" };
-      const svg = textSvg([{ text: label, style: "regular" }], 0, baseline(S.body), S.body, ctx.st.ink) + head.svg + at(sub, S.partIndent, head.h + S.itemGap);
+      const svg = textSvg([{ text: label, style: "regular" }], 0, head.first ?? baseline(S.body), S.body, ctx.st.ink) + head.svg + at(sub, S.partIndent, head.h + S.itemGap);
       frags.push({ h: head.h + (sub.h ? S.itemGap + sub.h : 0), svg });
     } else frags.push(leaf(it, w, ctx, extra));
   }
@@ -346,10 +367,34 @@ export function card(c: Card, number: number | null, w: number, ctx: AnyCtx, ext
   return { h, svg: out.join("") };
 }
 
+export const overflowMessage = (s: number, c: number, spare: number) =>
+  `Column ${c + 1} on side ${s + 1} needs ${n(-spare)} mm more height. Move a question or reduce working space; text is never shrunk.`;
+
+/**
+ * Measures a column of cards, then shares its spare height between the working and drawing
+ * spaces (or, with none, lets the last card reach the foot). Shared by the SVG and Word writers.
+ */
+export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx): { spare: number; extra: number; stretchLast: number } {
+  const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
+  const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
+  const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap;
+  const spare = avail - used;
+  const spaces = cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
+  const extra = spare > 0 && spaces ? spare / spaces : 0;
+  return { spare, extra, stretchLast: spare > 0 && !spaces ? spare : 0 };
+}
+
 export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
-  const ctx: Ctx<{ side: number; column: number; question?: number }> = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { side: 0, column: 0, question: 0 } };
+  const ctx: Ctx<{ side: number; column: number; question?: number }> = {
+    st,
+    view: options.view ?? "pupil",
+    diagrams: 0,
+    issues: [],
+    where: { side: 0, column: 0, question: 0 },
+    maths: doc.notation === "maths",
+  };
   const P = S.page,
     m = S.margin;
   const colW = (P.width - m * 2 - S.gutter * 2) / 3;
@@ -386,18 +431,12 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       out.push(textSvg([{ text: String.fromCharCode(65 + s * 3 + c), style: "bold" }], x + S.tile / 2, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, "white", "middle"));
       out.push(textSvg(parseRuns(col.heading, "bold"), x + S.tile + 2.8, tileY + S.tile / 2 + S.columnHeading * 0.36, S.columnHeading, st.navy));
       const numbers = col.cards.map(() => ++number);
-      // Measure, then give spare height to working and drawing spaces (or let the last card reach the foot).
-      const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
-      const natural = col.cards.map((cd, i) => card(cd, numbers[i], colW, quiet, 0, 0).h);
-      const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, col.cards.length - 1) * S.cardGap;
-      const spare = avail - used;
-      if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: `Column ${c + 1} on side ${s + 1} needs ${n(-spare)} mm more height. Move a question or reduce working space; text is never shrunk.` });
-      const spaces = col.cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
-      const extra = spare > 0 && spaces ? spare / spaces : 0;
+      const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
+      if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
       let y = cardsTop;
       col.cards.forEach((cd, i) => {
         ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
-        const stretch = spare > 0 && !spaces && i === col.cards.length - 1 ? spare : 0;
+        const stretch = i === col.cards.length - 1 ? stretchLast : 0;
         const f = card(cd, numbers[i], colW, ctx, extra, stretch);
         out.push(at(f, x, y));
         y += f.h + S.cardGap;

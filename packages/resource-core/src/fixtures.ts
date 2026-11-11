@@ -457,7 +457,8 @@ export const treeDiagrams: Resource = validate({
                 items: [
                   t("A coin is tossed three times."),
                   part("Draw a tree diagram to show all the possible sequences of heads (H) and tails (T).", space(56, "drawing")),
-                  part("List every possible outcome.", outcomes("HHH", "HHT", "HTH", "HTT", "THH", "THT", "TTH", "TTT")),
+                  // Eight outcomes need two full answer lines: one short line would not hold the saved answer.
+                  part("List every possible outcome.", outcomes("HHH", "HHT", "HTH", "HTT"), outcomes("THH", "THT", "TTH", "TTT")),
                 ],
               },
             ],
