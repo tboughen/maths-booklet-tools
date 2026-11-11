@@ -20,9 +20,11 @@ Gather these facts with your GitHub tools and write them to `loop-state.json` ou
 in the shape described at the top of `scripts/loop/preflight.mjs`:
 
 - whether the repository variable `MATHSDOCK_LOOP_ENABLED` is exactly `true`;
-- this month's judge spend in US dollars: list this month's runs of the "Judge panel" and
-  "Judge calibration" workflows, write them to `runs.json` and run
-  `node scripts/loop/spend.mjs --runs=<path>/runs.json`;
+- this month's judge spend in US dollars: list this month's runs of the "Judge panel",
+  "Judge calibration" and "Prompt evals" workflows (with each run's id) and write them to
+  `runs.json`; list this month's repository artifacts whose name starts with `judge-cost-` (each
+  with its workflow run id) and write them to `costs.json`; then run
+  `node scripts/loop/spend.mjs --runs=<path>/runs.json --costs=<path>/costs.json`;
 - every open issue labelled `loop:candidate` or `loop:paused`, with its body and labels;
 - every pull request opened in the last 7 days and every open pull request, with its head branch,
   state, creation time and changed files.

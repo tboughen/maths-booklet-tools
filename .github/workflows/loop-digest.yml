@@ -39,9 +39,11 @@ jobs:
         continue-on-error: true
         run: |
           month=$(date -u +%Y-%m)
-          { gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-panel.yml --limit 1000 --created ">=$month-01" --json workflowName,createdAt,conclusion
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-calibration.yml --limit 100 --created ">=$month-01" --json workflowName,createdAt,conclusion; } | jq -s 'add' > "$RUNNER_TEMP/runs.json"
-          echo "usd=$(node scripts/loop/spend.mjs "--runs=$RUNNER_TEMP/runs.json")" >> "$GITHUB_OUTPUT"
+          { gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-panel.yml --limit 1000 --created ">=$month-01" --json databaseId,workflowName,createdAt,conclusion
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow judge-calibration.yml --limit 100 --created ">=$month-01" --json databaseId,workflowName,createdAt,conclusion
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow prompt-evals.yml --limit 100 --created ">=$month-01" --json databaseId,workflowName,createdAt,conclusion; } | jq -s 'add' > "$RUNNER_TEMP/runs.json"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq "[.artifacts[] | select((.name | startswith(\"judge-cost-\")) and (.created_at | startswith(\"$month\"))) | {name, run: .workflow_run.id}]" | jq -s 'add // []' > "$RUNNER_TEMP/costs.json"
+          echo "usd=$(node scripts/loop/spend.mjs "--runs=$RUNNER_TEMP/runs.json" "--costs=$RUNNER_TEMP/costs.json")" >> "$GITHUB_OUTPUT"
       # The given run, or else the latest successful calibration in the last eight days.
       - name: Fetch the calibration results
         continue-on-error: true

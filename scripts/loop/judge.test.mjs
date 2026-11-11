@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { MAX_DIFF_CHARS, Verdict, guidance, panel, request, splitDiff, summary } from './judge.mjs';
 
 const fakeRead = path => `contents of ${path}`;
@@ -99,4 +100,83 @@ test('the panel runs the first judge alone, then the rest, and records failures 
   assert.match(results[2].error, /network down/);
   assert.equal(panel(results), 'concerns');
   assert.match(summary({ tier: 'T3', results, overall: 'concerns' }), /teacher \(answered by claude-opus-4-8\)/);
+});
+
+test('a run is costed from the usage the API returned, at the listed price', async () => {
+  const { callCost, panelCost } = await import('./judge.mjs');
+  // 120,018 uncached input, 33,390 cached input and 4,107 output tokens: a real November run.
+  const usage = { input_tokens: 120018, output_tokens: 4107, cache_read_input_tokens: 33390, cache_creation_input_tokens: 0 };
+  assert.equal(Math.round(callCost(usage) * 1e6), 120018 * 4 + 4107 * 20 + 33390 * 0.2);
+  // The guidance cache is written at the 1-hour rate.
+  assert.equal(callCost({ input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 1e6, cache_creation: { ephemeral_1h_input_tokens: 1e6, ephemeral_5m_input_tokens: 0 } }), 8);
+  // Judges that did not run cost nothing.
+  assert.equal(panelCost([{ judge: 'teacher', error: 'x' }, { judge: 'product', usage: { input_tokens: 1e6, output_tokens: 0 } }]), 4);
+});
+
+test('a follow-up review sends only the files whose changes differ since the last review', async () => {
+  const { changedSince, onlyFiles } = await import('./judge.mjs');
+  const part = (file, body, at = 1) => `diff --git a/${file} b/${file}\nindex ${at}aaaaaa..bbbbbbb 100644\n--- a/${file}\n+++ b/${file}\n@@ -${at},2 +${at},3 @@ ctx\n${body}\n`;
+  const before = part('src/a.ts', '+a') + part('src/b.ts', '+b') + part('src/gone.ts', '+g');
+  // b.ts moved down the file (a merge from main shifts line numbers and index lines): unchanged.
+  const after = part('src/a.ts', '+a2') + part('src/b.ts', '+b', 40) + part('src/new.ts', '+n');
+  assert.deepEqual(changedSince(before, after), { changed: ['src/a.ts', 'src/new.ts'], unchanged: ['src/b.ts'], reverted: ['src/gone.ts'] });
+  assert.deepEqual(changedSince(after, after).changed, []);
+  const sent = onlyFiles(after, ['src/a.ts', 'src/new.ts']);
+  assert.match(sent, /src\/a\.ts/); assert.match(sent, /src\/new\.ts/); assert.doesNotMatch(sent, /src\/b\.ts/);
+  // The judges are told what they are not shown.
+  const { params } = request({ judge: 'adversarial', rubric: '', guidanceText: '', diff: sent, followUp: { changed: ['src/a.ts', 'src/new.ts'], unchanged: ['src/b.ts'], reverted: ['src/gone.ts'] } });
+  assert.match(params.messages[0].content, /follow-up review[\s\S]*1 other changed file\(s\) are the same as at that review and are not shown: src\/b\.ts[\s\S]*no longer changes: src\/gone\.ts/);
+  assert.doesNotMatch(request({ judge: 'adversarial', rubric: '', guidanceText: '', diff: sent }).params.messages[0].content, /follow-up/);
+});
+
+test('the summary reports the run\'s cost and a follow-up\'s scope', () => {
+  const v = { judge: 'teacher', verdict: { verdict: 'pass', confidence: 'high', summary: 's', findings: [] }, usage: { input_tokens: 250000, output_tokens: 0 } };
+  const text = summary({ tier: 'T2', results: [v], overall: 'pass', followUp: { changed: ['a'], unchanged: ['b', 'c'], reverted: [] } });
+  assert.match(text, /Cost \$1\.00\. Follow-up review: 1 changed file\(s\) sent, 2 unchanged since the last review\./);
+});
+
+test('the judge workflow judges loop PRs in full, follows up other PRs, records cost and stops at the cap', () => {
+  const yml = readFileSync('.github/workflows/judge-panel.yml', 'utf8');
+  assert.match(yml, /github\.event\.action == 'synchronize' && !startsWith\(github\.head_ref, 'loop\/'\)/);
+  // A run skipped at the cap records a cost of 0, not the estimate.
+  assert.match(yml, /name: judge-cost-\$\{\{ steps\.judge\.outputs\.cost \|\| '0\.0000' \}\}/);
+  assert.match(yml, /steps\.judge\.outputs\.cost != '' \|\| steps\.budget\.outputs\.over == 'true'/);
+  assert.match(yml, /grep -qx judge-reviewed/);
+  // Only a commit the head still contains is a baseline, and its verdict comes with it.
+  assert.match(yml, /--event pull_request --branch "\$HEAD_REF"/);
+  assert.match(yml, /compare\/\$sha\.\.\.\$HEAD_SHA" --jq \.status\)\n\s+if \[ "\$status" != "ahead" \]; then[^\n]*break; fi/);
+  assert.match(yml, /--earlier=\$RUNNER_TEMP\/earlier\/review-shadow\.json/);
+  // A spend check that fails says so.
+  assert.match(yml, /if: steps\.budget\.outcome == 'failure'/);
+  assert.match(yml, /steps\.budget\.outputs\.over != 'true'/);
+  assert.match(yml, /compare\/\$BASE_SHA\.\.\.\$sha/);
+});
+
+test('a follow-up carries the earlier review\'s findings on files it does not send again', async () => {
+  const { carriedFindings, fullyReviewed } = await import('./judge.mjs');
+  const finding = (file, issue) => ({ severity: 'major', rubric: 'r', file, issue });
+  const earlier = {
+    overall: 'concerns',
+    results: [{ judge: 'product', verdict: { verdict: 'concerns', confidence: 'high', summary: 's', findings: [finding('src/a.ts', 'A'), finding('src/b.ts', 'B'), finding('src/gone.ts', 'G')] } }],
+    carried: [{ judge: 'teacher', ...finding('src/c.ts', 'C') }],
+  };
+  const followUp = { changed: ['src/a.ts'], unchanged: ['src/b.ts', 'src/c.ts'], reverted: ['src/gone.ts'] };
+  // a.ts is judged again and gone.ts is no longer changed; b.ts and the older carried c.ts stay open.
+  assert.deepEqual(carriedFindings(earlier, followUp).map(f => `${f.judge}:${f.issue}`), ['product:B', 'teacher:C']);
+  assert.deepEqual(carriedFindings(undefined, followUp), []);
+  const v = { judge: 'teacher', verdict: { verdict: 'pass', confidence: 'high', summary: 's', findings: [] }, usage: {} };
+  const text = summary({ tier: 'T2', results: [v], overall: 'pass', followUp, carried: carriedFindings(earlier, followUp), earlier });
+  assert.match(text, /^### Judge panel: pass, with 2 finding\(s\) still open from the earlier review/);
+  assert.match(text, /unchanged since the last review \(which was concerns\)/);
+  assert.match(text, /Still open from the earlier review[\s\S]*`src\/b\.ts`: B[\s\S]*`src\/c\.ts`: C/);
+  // What is still open counts in the verdict: a carried blocker keeps it at fail.
+  const { withCarried } = await import('./judge.mjs');
+  assert.equal(withCarried('pass', [finding('b', 'x')]), 'concerns');
+  assert.equal(withCarried('concerns', [{ ...finding('b', 'x'), severity: 'blocker' }]), 'fail');
+  assert.equal(withCarried('pass', [{ ...finding('b', 'x'), severity: 'minor' }]), 'pass');
+  assert.equal(withCarried('abstain', [{ ...finding('b', 'x'), severity: 'blocker' }]), 'abstain');
+  // Only a run where every judge answered is a baseline for later follow-ups.
+  assert.equal(fullyReviewed([v, { ...v, judge: 'product' }, { ...v, judge: 'adversarial' }]), true);
+  assert.equal(fullyReviewed([v, { judge: 'product', error: '400' }, { ...v, judge: 'adversarial' }]), false);
+  assert.equal(fullyReviewed([]), false);
 });

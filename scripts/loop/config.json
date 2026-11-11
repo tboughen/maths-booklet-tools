@@ -1,5 +1,5 @@
 {
-  "description": "Budget caps and limits for loop sessions (improvement list L52). scripts/loop/preflight.mjs reads this before a session starts any work; hitting a cap stops the loop for that night rather than slowing it. Values set by Tim on 8 November 2026: one session a night and a $20 monthly cap on the judges' API spend; Tim raised the cap to $60 on 10 November 2026. The spend is estimated from this month's judge runs (scripts/loop/spend.mjs).",
+  "description": "Budget caps and limits for loop sessions (improvement list L52). scripts/loop/preflight.mjs reads this before a session starts any work; hitting a cap stops the loop for that night rather than slowing it. Values set by Tim on 8 November 2026: one session a night and a $20 monthly cap on the judges' API spend; Tim raised the cap to $60 on 10 November 2026 and to $100 on 11 November 2026 (the Console workspace limit). The spend is the judges' recorded cost per run plus estimates for older runs (scripts/loop/spend.mjs); the Judge panel workflow also stops judging once it is reached.",
   "maxSessionsPerNight": 1,
   "maxOpenLoopPRs": 5,
   "maxChangedLines": 300,
@@ -15,7 +15,7 @@
   ],
   "maxJudgeOutputTokensPerCall": 16000,
   "judgesPerPR": 3,
-  "monthlySpendCapUSD": 60,
+  "monthlySpendCapUSD": 100,
   "neverDispatch": [
     "graph-checks.yml",
     "cloudflare.yml",
@@ -23,8 +23,14 @@
     "prompt-evals.yml"
   ],
   "spendEstimateUSD": {
-    "judgePanelRun": 0.15,
+    "judgePanelRun": 0.5,
     "judgeCalibrationRun": 1.5,
     "promptEvalRun": 3
+  },
+  "judgeSpendBaseline": {
+    "month": "2026-11",
+    "before": "2026-11-11T18:00:00Z",
+    "usd": 57.82,
+    "note": "Judge panel runs in November 2026 before cost artifacts existed, priced from the usage in their review-shadow.json artifacts (124 judged runs)."
   }
 }
