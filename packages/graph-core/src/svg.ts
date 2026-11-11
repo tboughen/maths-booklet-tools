@@ -184,6 +184,23 @@ function xTitleGeometry(document: DiagramDocumentV1) {
   return { lines, baseline: numbers + AXIS_LABEL_FONT_SIZE * 1.55 };
 }
 
+/**
+ * Where the axis titles and x numbers go, in print units (100 per cm) measured from the plot,
+ * so the editor preview can draw them exactly where the print copy does.
+ */
+export function axisTextPlacement(document: DiagramDocumentV1) {
+  const y = yAxisTextGeometry(document);
+  const x = xTitleGeometry(document);
+  return {
+    xNumberDrop: xNumberDrop(document),
+    lineHeight: TITLE_LINE_HEIGHT,
+    xTitle: x ? { lines: x.lines, baselineBelowPlot: x.baseline } : null,
+    yTitle: y.title.length ? { lines: y.title, leftFromPlotLeft: y.titleLeft } : null,
+  };
+}
+
+export { NAME_SUBSCRIPT_FONT_POINTS };
+
 function exportLeftPadding(document: DiagramDocumentV1): number {
   const { originFromPlotLeft, yNumberFromPlotLeft, title, titleLeft } =
     yAxisTextGeometry(document);
@@ -300,16 +317,22 @@ function axisTickLabelMarkup(
   baseline: number,
   textAnchor: "start" | "middle" | "end" = "middle",
   origin = false,
+  tight = false,
 ): string {
-  const width = axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE);
-  const height = axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
+  // On a fine grid the white box hugs the digits, so neighbouring fine lines stay whole.
+  const width = tight
+    ? axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE) - AXIS_LABEL_FONT_SIZE * 0.22
+    : axisLabelBoxWidth(label, AXIS_LABEL_FONT_SIZE);
+  const height = tight
+    ? AXIS_LABEL_FONT_SIZE * 0.82
+    : axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE);
   const rectX =
     textAnchor === "middle"
       ? x - width / 2
       : textAnchor === "end"
         ? x - width
         : x;
-  const rectY = baseline - AXIS_LABEL_FONT_SIZE * 0.82;
+  const rectY = baseline - AXIS_LABEL_FONT_SIZE * (tight ? 0.74 : 0.82);
   const className = origin ? "axis-number axis-number-origin" : "axis-number";
   const originTransform = origin
     ? ` transform="translate(${n(x)} ${n(baseline)}) skewX(-12) translate(${n(-x)} ${n(-baseline)})"`
@@ -367,17 +390,18 @@ function gridMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     const y = layout.plotTop + index * step;
     minor.push(`<line x1="${n(layout.plotLeft)}" y1="${n(y)}" x2="${n(layout.plotRight)}" y2="${n(y)}"/>`);
   }
-  return `<g class="grid-lines grid-lines-fine" stroke="#bfc1c0" stroke-width="${n(MINOR_GRID_STROKE_WIDTH)}" fill="none">${minor.join("")}</g>
+  return `<g class="grid-lines grid-lines-fine" stroke="#a9abaa" stroke-width="${n(MINOR_GRID_STROKE_WIDTH)}" fill="none">${minor.join("")}</g>
   ${major}`;
 }
 
 function originMarkup(document: DiagramDocumentV1, x: number, baseline: number): string {
   if (!sharedOriginLabel(document)) return "";
   if (document.originLabel !== "O")
-    return axisTickLabelMarkup("0", x, baseline, "end", true);
+    return axisTickLabelMarkup("0", x, baseline, "end", true, gridDivisions(document) > 1);
   const label = mathsLetter("O", "italic");
-  const width = axisLabelBoxWidth("O", AXIS_LABEL_FONT_SIZE);
-  return `<g class="axis-number axis-number-origin"><rect x="${n(x - width)}" y="${n(baseline - AXIS_LABEL_FONT_SIZE * 0.82)}" width="${n(width)}" height="${n(axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE))}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="end">${label}</text></g>`;
+  const tight = gridDivisions(document) > 1;
+  const width = axisLabelBoxWidth("O", AXIS_LABEL_FONT_SIZE) - (tight ? AXIS_LABEL_FONT_SIZE * 0.22 : 0);
+  return `<g class="axis-number axis-number-origin"><rect x="${n(x - width)}" y="${n(baseline - AXIS_LABEL_FONT_SIZE * (tight ? 0.74 : 0.82))}" width="${n(width)}" height="${n(tight ? AXIS_LABEL_FONT_SIZE * 0.82 : axisLabelBoxHeight(AXIS_LABEL_FONT_SIZE))}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="end">${label}</text></g>`;
 }
 
 function axisTitlesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
@@ -416,16 +440,17 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const yLabels: string[] = [];
   const xNumberBaseline = origin.y + xNumberDrop(document);
   const yNumberX = origin.x - UNITS_PER_CM * Y_AXIS_LABEL_GAP_CENTIMETRES;
+  const tight = gridDivisions(document) > 1;
 
   for (const tick of axisTicks(document, "x")) {
     const x = layout.plotLeft + tick.index * layout.square;
-    xLabels.push(axisTickLabelMarkup(tick.label, x, xNumberBaseline));
+    xLabels.push(axisTickLabelMarkup(tick.label, x, xNumberBaseline, "middle", false, tight));
   }
   // Top to bottom, as the y numbers have always been written.
   for (const tick of axisTicks(document, "y").reverse()) {
     const y =
       layout.plotBottom - tick.index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34;
-    yLabels.push(axisTickLabelMarkup(tick.label, yNumberX, y, "end"));
+    yLabels.push(axisTickLabelMarkup(tick.label, yNumberX, y, "end", false, tight));
   }
 
   const originX = origin.x - AXIS_LABEL_FONT_SIZE * 0.38;
