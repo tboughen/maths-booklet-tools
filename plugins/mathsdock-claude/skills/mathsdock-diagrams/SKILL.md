@@ -147,8 +147,8 @@ For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet
 whole booklet; `worksheet_capabilities` lists its layout and section kinds. Give every lesson a
 one-sentence key idea, a check in on its prerequisites, worked example and "Our turn" pairs,
 practice that fades, lettered diagnostic questions and a spot-the-mistake card, as its
-description sets out. Share the whole-booklet files and the per-lesson PDF links it returns;
-when the whole booklet is too large for a link it comes back as included files.
+description sets out. A whole unit goes in one call: send diagrams as specs, not envelopes, and
+do not split the unit. Share the whole-booklet links and the per-lesson PDF links it returns.
 
 ## Files and links
 

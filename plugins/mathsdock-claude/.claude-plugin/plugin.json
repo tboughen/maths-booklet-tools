@@ -1,6 +1,6 @@
 {
   "name": "mathsdock",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Create and revise editable MathsDock teaching diagrams (graphs, ratio tables, number lines, Venn diagrams, bar models, charts, probability trees, triangles and more) and A3 worksheets through the MathsDock MCP connector, with real print files and editor links.",
   "author": {
     "name": "Tim Boughen"

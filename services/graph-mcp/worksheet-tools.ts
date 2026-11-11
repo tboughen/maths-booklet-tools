@@ -26,6 +26,7 @@ import {
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
+import { memoryDocumentStore, type DocumentStore } from "./document-store";
 
 export type WorksheetFormat = "pdf" | "json";
 /** A worksheet or a booklet: both travel through the same signed download links. */
@@ -45,7 +46,9 @@ const tokenSchema = z
     expires: z.number().int(),
     format: z.enum(["pdf", "json"]),
     view: z.enum(["pupil", "answers"]),
-    resource: z.unknown(),
+    // The document itself, or `ref`: the sha256 of a document kept in the document store.
+    resource: z.unknown().optional(),
+    ref: z.string().regex(/^[0-9a-f]{64}$/).optional(),
     // A one-lesson booklet printed as that lesson of the full booklet (cover left out).
     numbering: z.object({ lessonOffset: z.number().int().min(0).max(11), pageOffset: z.number().int().min(0).max(500) }).strict().optional(),
   })
@@ -60,15 +63,28 @@ export class WorksheetDownloads {
     private base: string,
     private keys: Record<string, string>,
     private active: string,
+    private store: DocumentStore = memoryDocumentStore(),
   ) {
     if (!Object.hasOwn(keys, active)) throw Error("Use a valid active worksheet signing key.");
+  }
+  get durableStore() {
+    return this.store.durable;
   }
   private sign(token: string, key: string) {
     return createHmac("sha256", key).update("worksheet:" + token).digest("base64url");
   }
+  /** A link for a document too large to carry: it is saved in the store and the link names its hash. */
+  async storedLink(resource: PrintDocument, format: WorksheetFormat, view: View, now = Date.now()) {
+    const ref = worksheetHash(resource).slice(7);
+    await this.store.put(ref, JSON.stringify(resource), 8 * 86400);
+    return this.signed({ format, view, ref }, now);
+  }
   link(resource: PrintDocument, format: WorksheetFormat, view: View, now = Date.now(), numbering?: Numbering) {
+    return this.signed({ format, view, resource, ...(numbering ? { numbering } : {}) }, now);
+  }
+  private signed(body: { format: WorksheetFormat; view: View; resource?: PrintDocument; ref?: string; numbering?: Numbering }, now: number) {
     const expires = Math.floor(now / 1000) + 7 * 86400;
-    const json = JSON.stringify({ v: 1, key: this.active, expires, format, view, resource, ...(numbering ? { numbering } : {}) });
+    const json = JSON.stringify({ v: 1, key: this.active, expires, ...body });
     const token = Buffer.from(deflateSync(new TextEncoder().encode(json), { level: 9 })).toString("base64url");
     const url = new URL("/worksheet/download", this.base);
     url.searchParams.set("token", token);
@@ -76,7 +92,7 @@ export class WorksheetDownloads {
     if (url.href.length > MAX_LINK) throw new GraphError("size_limit", "The worksheet link exceeds its limit; use the included file.");
     return { url: url.href, expiresAt: new Date(expires * 1000).toISOString() };
   }
-  verify(url: URL, now = Date.now()) {
+  async verify(url: URL, now = Date.now()) {
     const token = url.searchParams.get("token") ?? "",
       signature = url.searchParams.get("signature") ?? "";
     if (token.length > MAX_LINK || !/^[-_A-Za-z0-9]+$/.test(token) || !/^[-_A-Za-z0-9]{43}$/.test(signature))
@@ -92,12 +108,26 @@ export class WorksheetDownloads {
     }
     if (!Object.hasOwn(this.keys, parsed.key)) throw new GraphError("invalid_download", "Invalid worksheet key.");
     if (parsed.expires * 1000 < now) throw new GraphError("expired_download", "The worksheet link has expired. Create the worksheet again.");
+    if ((parsed.resource === undefined) === (parsed.ref === undefined)) throw new GraphError("invalid_download", "Invalid worksheet token.");
+    let source = parsed.resource;
+    if (parsed.ref) {
+      const text = await this.store.get(parsed.ref);
+      if (text === null)
+        throw new GraphError("expired_download", "This file is no longer available (it expired or the service restarted). Create the booklet again.");
+      try {
+        source = JSON.parse(text);
+      } catch {
+        throw new GraphError("invalid_download", "Invalid worksheet token.");
+      }
+    }
     let resource: PrintDocument;
     try {
-      resource = validateDocument(parsed.resource);
+      resource = validateDocument(source);
     } catch {
       throw new GraphError("invalid_download", "Invalid worksheet token.");
     }
+    // A stored document must still be exactly the one the link was signed for.
+    if (parsed.ref && worksheetHash(resource).slice(7) !== parsed.ref) throw new GraphError("invalid_download", "Invalid worksheet token.");
     if (parsed.numbering && (!("lessons" in resource.document) || resource.document.lessons.length !== 1 || parsed.format !== "pdf"))
       throw new GraphError("invalid_download", "Invalid worksheet token.");
     return { resource, format: parsed.format, view: parsed.view, numbering: parsed.numbering };
@@ -170,7 +200,7 @@ const BOOKLET_DESCRIPTION =
   "Recommended lesson shape: a one-sentence key idea naming the new words; check in (4-5 retrieval questions on this lesson's prerequisites); worked example with columns:2 as pairs, left the worked example with steps and saved answers, right 'Our turn' with the same steps left blank; Your turn (several near-identical questions with the same pre-drawn diagram or empty table); diagnostic multiple choice with choice mode letters (A-D, each wrong option one misconception); practice that fades; spot the mistake (a named pupil's wrong working); a challenge. " +
   "Cards use the same items as create_worksheet (text, info, claim, bullets, table, choice, steps, checklist, answerLine, space, diagram, part); worked and notes cards are not numbered, other cards are numbered within their section. Half-width cards (columns:2) are 90.5 mm wide, so a diagram there must fit about 84 mm. " +
   "Saved answers print only in the answers PDF; never invent answers the teacher did not give. " +
-  "Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDFs and editable JSON (links, or included files when too large for a link), a pupil and answers PDF link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
+  "A whole unit (up to 12 lessons) goes in one call; requests may be up to 512 KiB, so send diagrams as specs rather than full envelopes. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDF and editable JSON links (kept for 7 days), a pupil and answers PDF link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
 
 const LAYOUT = [
   "A3 landscape (420 x 297 mm), exactly two sides, three titled strand columns per side.",
@@ -235,6 +265,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const files = { pupilPdf: base, answersPdf: bookletFileName(booklet, "answers"), json: base.replace(/_A4\.pdf$/, ".json") };
     const links: z.infer<typeof bookletOutput>["downloads"] = {};
     const lessons: z.infer<typeof bookletOutput>["lessons"] = doc.lessons.map((l, i) => ({ lesson: i + 1, title: l.title, firstPage: pupil.lessonPages[i] }));
+    let storeFailed = false;
     if (printReady) {
       const wanted = [
         ["pupilPdf", "pdf", "pupil"],
@@ -246,16 +277,12 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           links[slot] = downloads.link(booklet, format, view);
         } catch (error) {
           if (!(error instanceof GraphError) || error.code !== "size_limit") throw error;
-          const file = await artifacts(booklet, format, view, signal);
-          limits.output(file.body.length);
-          content.push({
-            type: "resource",
-            resource: {
-              uri: `booklet://${hash.slice(7, 23)}/${encodeURIComponent(file.name)}`,
-              mimeType: file.type,
-              ...(format === "pdf" ? { blob: file.body.toString("base64") } : { text: file.body.toString("utf8") }),
-            },
-          });
+          // Too big to carry in a link (a whole unit usually is): keep it for a week and link to it.
+          try {
+            links[slot] = await downloads.storedLink(booklet, format, view);
+          } catch {
+            storeFailed = true;
+          }
         }
       }
       // Each lesson on its own: small links that work even when the whole booklet is too big for one.
@@ -269,6 +296,10 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           }
         }
       });
+      if (storeFailed)
+        content.push({ type: "text", text: "The whole-booklet files could not be saved just now, so only the lesson links below are available. Try create_booklet again in a minute for the whole-booklet files." });
+      else if (!downloads.durableStore && Object.keys(links).length)
+        content.push({ type: "text", text: "Note: this service is not keeping files across restarts, so the whole-booklet links stop working if it restarts; download them soon." });
       const unlinked = lessons.filter((l) => !l.pupilPdf).map((l) => l.lesson);
       if (unlinked.length)
         content.push({ type: "text", text: `Lesson ${unlinked.join(", ")} ${unlinked.length > 1 ? "are" : "is"} too large for a single-lesson link; print ${unlinked.length > 1 ? "them" : "it"} from the whole-booklet PDF (lesson pages are listed in lessons[].firstPage).` });
