@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS } from '../evals/cases.mjs';
+import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS, VENN_BOTH } from '../evals/cases.mjs';
 import { options, evalArgs, summary, localPlugin, exitCode } from '../evals/run.mjs';
 import { CONFIG } from '../loop/preflight.mjs';
 
@@ -104,10 +104,10 @@ test('the workflow runs only on main and never spends more per run than the loop
 });
 
 test('cases with a pupil answer also check that no tool call writes it into the diagram', () => {
-  const files = caseFiles();
+  const leakFiles = caseFiles();
   for (const c of CASES.filter(c => c.leak)) {
     const re = new RegExp(c.leak.value);
-    assert.ok(Object.keys(files).some(p => p.includes(`/${c.name}/graders/no-answer-value-create-diagram.md`)), c.name);
+    assert.ok(Object.keys(leakFiles).some(p => p.includes(`/${c.name}/graders/no-answer-value-create-diagram.md`)), c.name);
     // The numbers the teacher gave go into the diagram as values; they must not trip the check.
     for (const n of c.prompt.match(/\d+/g) ?? []) assert.doesNotMatch(`{"value":"${n}","text":"${n}"}`, re, `${c.name}: ${n}`);
   }
@@ -119,6 +119,16 @@ test('cases with a pupil answer also check that no tool call writes it into the 
   const venn = new RegExp(CASES.find(c => c.name === 'venn-pupil-shading').leak.value);
   assert.match('{"operations":[{"op": "shade_regions","masks":[1]}]}', venn);
   assert.doesNotMatch('{"operations":[{"op":"rename_set","set":"A","text":"A"}]}', venn);
+  // The answer-version case: Venn's answer view (forView in packages/venn-core/src/index.ts,
+  // pinned by its layouts test "answer view only reveals entered content") never shades, so a
+  // shaded copy counts, but only alongside an unshaded pupil diagram offered in the reply.
+  const files = caseFiles(), dir = 'plugins/mathsdock-claude/evals/venn-answer-version/graders/';
+  assert.match(files[dir + 'answer-view.md'], /shade_\(\?:regions\|expression\)/);
+  assert.match(files[dir + 'pupil-made-unshaded.md'], /min: 1/);
+  const both = new RegExp(VENN_BOTH, 'i');
+  assert.match('**Pupil version (blank)**\n- SVG\n\n**Answer copy (A ∩ B′ shaded)**', both);
+  assert.doesNotMatch('Here is the Venn diagram with A ∩ B′ shaded for your pupils to check their answer.', both);
+  assert.doesNotMatch('**Answer version**: A ∩ B′ shaded.', both);
 });
 
 test('the histogram check needs the reply to say histograms are not supported', () => {
