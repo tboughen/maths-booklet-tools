@@ -202,27 +202,6 @@ export function emptyReason(catalogue: BankCatalogue<BankListQuestion>, route: B
   return topic?.bankCount === 0 ? "no-bank-match" : "not-in-pilot";
 }
 
-/**
- * Stops the catalogue check for one question. Teachers keep the short message; the console also
- * names the question and the field that failed, so the bad entry can be found and fixed (A95).
- */
-function failQuestion(message: string, id: unknown, field: string): never {
-  console.error(`Catalogue check failed: question ${String(id || "(no id)")}, field ${field}. ${message}`);
-  throw new Error(message);
-}
-
-/** The first missing detail field of a full question, or null when every detail is present. */
-function missingDetail(q: BankQuestion): string | null {
-  if (!q.questionViews?.length) return "questionViews";
-  if (!q.schemeViews?.length) return "schemeViews";
-  if (!q.questionPdf) return "questionPdf";
-  if (!q.printPdf) return "printPdf";
-  if (!q.schemePdf) return "schemePdf";
-  return null;
-}
-
-const QUESTION_FAILED = "A question failed its catalogue check. Please report the affected question.";
-
 export function verifyCatalogue(data: unknown): BankCatalogue {
   return checkCatalogue(data, true) as BankCatalogue;
 }
@@ -233,9 +212,9 @@ export function verifyCatalogueIndex(data: unknown): BankCatalogue<BankListQuest
   const papers = d.papers;
   if (!papers || typeof papers !== "object") throw new Error("This catalogue could not be read. Reload the page or use a saved PDF.");
   for (const q of d.questions) {
-    if (!paperDetailPath(papers[q.paperId])) failQuestion(QUESTION_FAILED, q.id, "paperId");
-    if (!Number.isInteger(q.questionViewCount) || (q.questionViewCount ?? 0) < 1) failQuestion(QUESTION_FAILED, q.id, "questionViewCount");
-    if (typeof q.hasWorkedSolution !== "boolean") failQuestion(QUESTION_FAILED, q.id, "hasWorkedSolution");
+    if (!paperDetailPath(papers[q.paperId]) || !Number.isInteger(q.questionViewCount) || (q.questionViewCount ?? 0) < 1 || typeof q.hasWorkedSolution !== "boolean") {
+      throw new Error("A question failed its catalogue check. Please report the affected question.");
+    }
   }
   return d as BankCatalogue<BankListQuestion> & {papers: Record<string, string>};
 }
@@ -243,10 +222,11 @@ export function verifyCatalogueIndex(data: unknown): BankCatalogue<BankListQuest
 /** Checks one question once its detail has been merged in from its paper file. */
 export function verifyQuestionDetail(q: BankQuestion): BankQuestion {
   if (q.workedSolution !== undefined) validateWorkedSolution(q.workedSolution, q.revision);
-  const missing = missingDetail(q);
-  if (missing) failQuestion(QUESTION_FAILED, q.id, missing);
-  if (q.questionViewCount !== undefined && q.questionViewCount !== q.questionViews.length) failQuestion(QUESTION_FAILED, q.id, "questionViewCount");
-  if (q.hasWorkedSolution !== undefined && q.hasWorkedSolution !== (q.workedSolution !== undefined)) failQuestion(QUESTION_FAILED, q.id, "hasWorkedSolution");
+  if (!q.questionViews?.length || !q.schemeViews?.length || !q.questionPdf || !q.printPdf || !q.schemePdf
+    || (q.questionViewCount !== undefined && q.questionViewCount !== q.questionViews.length)
+    || (q.hasWorkedSolution !== undefined && q.hasWorkedSolution !== (q.workedSolution !== undefined))) {
+    throw new Error("A question failed its catalogue check. Please report the affected question.");
+  }
   return q;
 }
 
@@ -262,20 +242,18 @@ function checkCatalogue(data: unknown, detail: boolean): BankCatalogue<BankListQ
     const full = q as BankQuestion;
     if (detail && full.workedSolution !== undefined) validateWorkedSolution(full.workedSolution, q.revision);
     if (q.review !== "reviewed" && !(d.publication?.status === "draft" && q.review === "draft")) {
-      failQuestion("This question has not passed review and cannot be included in a released catalogue.", q.id, "review");
+      throw new Error("This question has not passed review and cannot be included in a released catalogue.");
     }
-    if (ids.has(q.id)) failQuestion(QUESTION_FAILED, q.id, "id (duplicate)");
-    const missing = detail ? missingDetail(full) : null;
-    if (missing) failQuestion(QUESTION_FAILED, q.id, missing);
-    const unknownCode = q.codes.find(c => !codes.has(c));
-    if (unknownCode !== undefined) failQuestion(QUESTION_FAILED, q.id, `codes (${unknownCode} is not a topic)`);
-    if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) failQuestion("Question writing-space policy is invalid.", q.id, "writingSpacePolicy");
-    if (q.parts.reduce((sum, p) => sum + p.marks, 0) !== q.marks) failQuestion("Question marks do not match the catalogue.", q.id, "marks");
+    if (ids.has(q.id) || (detail && (!full.questionViews.length || !full.schemeViews.length || !full.questionPdf || !full.printPdf || !full.schemePdf)) || q.codes.some(c => !codes.has(c))) {
+      throw new Error("A question failed its catalogue check. Please report the affected question.");
+    }
+    if (q.writingSpacePolicy !== undefined && !["source", "generated", "none"].includes(q.writingSpacePolicy)) throw new Error("Question writing-space policy is invalid.");
+    if (q.parts.reduce((sum, p) => sum + p.marks, 0) !== q.marks) throw new Error("Question marks do not match the catalogue.");
     if (q.equivalentId) {
       const other = byId.get(q.equivalentId);
       const sameSeries = other && (q.paperId && other.paperId ? q.paperId.replace(/_[123][FH]$/, "") === other.paperId.replace(/_[123][FH]$/, "") : q.set === other.set);
       if (!other || !sameSeries || other.equivalentId !== q.id || other.tier === q.tier || other.calculator !== q.calculator || other.marks !== q.marks) {
-        failQuestion("A crossover question failed its catalogue check.", q.id, "equivalentId");
+        throw new Error("A crossover question failed its catalogue check.");
       }
     }
     ids.add(q.id);

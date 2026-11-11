@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import { emptyReason, emptyRoute, exportSelection, filterQuestions, matchingParts, readRoute, routeQuery, verifyCatalogue, verifyCatalogueIndex, verifyQuestionDetail, type BankCatalogue, type BankQuestion } from "./model";
+import { describe, expect, it } from "vitest";
+import { emptyReason, emptyRoute, exportSelection, filterQuestions, matchingParts, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
 const first = {id: "first", order: 1, codes: ["U837", "U879"], tier: "H", calculator: true, collection: "Past papers", marks: 5, parts: [{label: "9a", marks: 2, codes: ["U837"]}, {label: "9b", marks: 2, codes: ["U879"]}, {label: "9c", marks: 1, codes: ["U837"]}]} as BankQuestion;
 const second = {id: "second", order: 2, codes: ["U862"], tier: "F", calculator: false, collection: "Mock Set 6", marks: 3, parts: [{label: "11", marks: 3, codes: ["U862"]}]} as BankQuestion;
@@ -71,68 +71,6 @@ describe("Sparx link and question selection contract", () => {
       expect(() => verifyCatalogue({...catalogue, questions: [f, bad] as BankQuestion[]})).toThrow("crossover");
     }
     expect(() => verifyCatalogue({...catalogue, questions: [f]})).toThrow("crossover");
-  });
-  it("names the failing question and field in the console but keeps the teacher message (A95)", () => {
-    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    try {
-      const ready = {...first, review: "reviewed", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"} as BankQuestion;
-      const broken = {...ready, id: "1MA1_JUN_2017_1F_Q9", schemePdf: ""} as BankQuestion;
-      expect(() => verifyCatalogue({...catalogue, questions: [broken]})).toThrow("A question failed its catalogue check. Please report the affected question.");
-      expect(errors).toHaveBeenCalledOnce();
-      expect(String(errors.mock.calls[0][0])).toContain("question 1MA1_JUN_2017_1F_Q9, field schemePdf");
-      errors.mockClear();
-      expect(() => verifyCatalogue({...catalogue, questions: [ready, {...ready}]})).toThrow("failed its catalogue check");
-      expect(String(errors.mock.calls[0][0])).toContain(`question ${ready.id}, field id (duplicate)`);
-      errors.mockClear();
-      expect(() => verifyCatalogue({...catalogue, questions: [{...ready, codes: ["Z999"]}]})).toThrow("failed its catalogue check");
-      expect(String(errors.mock.calls[0][0])).toContain("field codes (Z999 is not a topic)");
-    } finally {
-      errors.mockRestore();
-    }
-  });
-  it("logs the failing field for each rule while every message and pass/fail result stays the same (A95)", () => {
-    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const logged = () => String(errors.mock.calls.at(-1)?.[0] ?? "");
-    try {
-      const ready = {...first, review: "reviewed", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"} as BankQuestion;
-      // A full question with no view list at all gets the teacher message, not a TypeError.
-      const noViews = {...ready} as Partial<BankQuestion>;
-      delete noViews.questionViews;
-      expect(() => verifyCatalogue({...catalogue, questions: [noViews as BankQuestion]})).toThrow("A question failed its catalogue check.");
-      expect(logged()).toContain("question first, field questionViews");
-      const cases: [Partial<BankQuestion>, string, string][] = [
-        [{review: "draft"}, "has not passed review", "field review"],
-        [{writingSpacePolicy: "lots" as BankQuestion["writingSpacePolicy"]}, "writing-space policy is invalid", "field writingSpacePolicy"],
-        [{marks: 6}, "marks do not match", "field marks"],
-        [{equivalentId: "missing"}, "crossover", "field equivalentId"],
-      ];
-      for (const [change, message, field] of cases) {
-        expect(() => verifyCatalogue({...catalogue, questions: [{...ready, ...change} as BankQuestion]})).toThrow(message);
-        expect(logged()).toContain(`question first, ${field}`);
-      }
-      // Loading a question's detail: each rule names its own field.
-      expect(verifyQuestionDetail({...ready, questionViewCount: 1, hasWorkedSolution: false} as BankQuestion)).toBeDefined();
-      for (const [change, field] of [[{printPdf: ""}, "printPdf"], [{questionViewCount: 2}, "questionViewCount"], [{hasWorkedSolution: true}, "hasWorkedSolution"]] as const) {
-        expect(() => verifyQuestionDetail({...ready, ...change} as BankQuestion)).toThrow("A question failed its catalogue check.");
-        expect(logged()).toContain(`question first, field ${field}`);
-      }
-      // The light index: paper link, view count and worked-solution flag.
-      const paper = {P1: "bank/catalogue-papers/P1.0123456789abcdef.json"};
-      const listed = {id: "first", order: 1, codes: ["U837"], tier: "H", calculator: true, collection: "Past papers", marks: 1, parts: [{label: "1", marks: 1, codes: ["U837"]}], review: "reviewed", paperId: "P1", questionViewCount: 1, hasWorkedSolution: false};
-      const index = (q: object, papers: Record<string, string> = paper) => ({...catalogue, questions: [q], papers});
-      expect(verifyCatalogueIndex(index(listed)).questions).toHaveLength(1);
-      const broken: [object, Record<string, string>, string][] = [
-        [listed, {}, "paperId"],
-        [{...listed, questionViewCount: 0}, paper, "questionViewCount"],
-        [{...listed, hasWorkedSolution: "no"}, paper, "hasWorkedSolution"],
-      ];
-      for (const [q, papers, field] of broken) {
-        expect(() => verifyCatalogueIndex(index(q, papers))).toThrow("A question failed its catalogue check.");
-        expect(logged()).toContain(`question first, field ${field}`);
-      }
-    } finally {
-      errors.mockRestore();
-    }
   });
   it("only opens draft assets in an explicitly labelled draft catalogue", () => {
     const q = {...first, review: "draft", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"};
