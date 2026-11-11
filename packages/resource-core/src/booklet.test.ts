@@ -76,3 +76,13 @@ describe("A4 booklet renderer", () => {
     expect(bookletFileName(a7Booklet, "answers")).toBe("A7_Algebraic proficiency visualising_Booklet_Answers_A4.pdf");
   });
 });
+
+describe("PDF fonts", () => {
+  it("sends italic maths letters such as graph axis names to the maths font", async () => {
+    const { mathFontForMathLetters } = await import("./pdf");
+    const svg = `<text x="1" font-family="'STIX Two Text', 'STIX Two Math', serif">𝑦</text><text font-family="Inter">y = 2</text>`;
+    const out = mathFontForMathLetters(svg);
+    expect(out).toContain(`<text x="1" font-family="'STIX Two Math'">𝑦</text>`);
+    expect(out).toContain(`<text font-family="Inter">y = 2</text>`);
+  });
+});
