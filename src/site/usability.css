@@ -513,3 +513,51 @@
   flex-direction: row;
   justify-content: flex-start;
 }
+
+/* Windows high contrast (forced colours). The browser replaces every background and text colour
+   with the theme's, so a pressed, selected or active control that differs only by its tint looks
+   the same as its neighbours. Paint those controls in the theme's own selected colours instead.
+   Outlines, borders and the SVG canvas already keep their marks, so editing guides, handles and the
+   dashed selection outlines need nothing more. Normal mode is untouched: these rules apply only in
+   forced colours. */
+@media (forced-colors: active) {
+  :is(
+    button,
+    [role="tab"],
+    [role="radio"],
+    [role="option"],
+    [role="menuitemradio"],
+    [role="switch"]
+  ):is(
+    [aria-pressed="true"],
+    [aria-selected="true"],
+    [aria-checked="true"],
+    .active,
+    .selected,
+    .tool-button--active
+  ) {
+    forced-color-adjust: none;
+    background-color: SelectedItem !important;
+    border-color: SelectedItemText !important;
+    color: SelectedItemText !important;
+  }
+  :is(
+      button,
+      [role="tab"],
+      [role="radio"],
+      [role="option"],
+      [role="menuitemradio"],
+      [role="switch"]
+    ):is(
+      [aria-pressed="true"],
+      [aria-selected="true"],
+      [aria-checked="true"],
+      .active,
+      .selected,
+      .tool-button--active
+    )
+    * {
+    color: inherit !important;
+    background-color: transparent !important;
+  }
+}
