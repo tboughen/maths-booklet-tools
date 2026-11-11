@@ -145,10 +145,16 @@ should print at) measured why:
 | P9 two cards per column, as wide as the column | 4 borders | right border missing on the lower card | Word draws a right border outside the cell and the column cuts it off. |
 | P10 the same, 0.3 mm narrower | 4 borders | right border 0.12–0.18 mm of 0.44 | Cards are one border (0.45 mm) narrower than the column. |
 
-In Word's PDF the text baseline of an answer sits about 1.2 mm above the line's centre (0.8 mm on
-the SVG page). Word holds every grid paper at its full size (Word reports 99.996 mm for 100 mm
-graph paper), so the 0.4 % smaller grid measured in Word's PDF happens in Word's PDF export or the
-measurement, not in the file.
+Re-check with these rules (same evening, all eight files, pupil and answers): two pages each;
+every card shows all four borders at full thickness; card edges are within 0.11 mm across and
+0.9 mm down of the PDF writer's; every answer line is within 0.6 mm of the PDF's, and the last
+line in a card keeps its space below (4.6 mm, was 0.5 mm).
+
+Known differences in Word: the text baseline of an answer sits about 1.2 mm above the line's
+centre (0.8 mm on the SVG page). Word's own PDF export prints pictures 0.43 % small (100 mm graph
+paper measures 99.57 mm between frame centres, against 99.99 mm in the PDF writer's, measured the
+same way), although the file holds them at full size (Word reports 283.45 pt). The outer frame of
+grid paper prints half as thick, because Word clips the half of the stroke outside the picture.
 
 ## The real-Word check (option 4)
 
