@@ -62,6 +62,12 @@ const nameInput = z
   .describe(
     "Exam-style name printed beside the object: a capital letter, optional prime and optional subscript number (A, B, P′, L, L1, L2). Lines print bold (L₁), points italic beside their cross (A).",
   );
+const answerOnlyInput = z
+  .boolean()
+  .optional()
+  .describe(
+    "true makes this a hidden answer: drawn in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy stays blank for the pupil to draw. Use for the line or shape a pupil is asked to draw.",
+  );
 const titleSchema = z
   .string()
   .max(MAX_AXIS_TITLE_LENGTH)
@@ -142,6 +148,7 @@ const straightInput = {
   namePosition: inputCoordinate
     .optional()
     .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+  answerOnly: answerOnlyInput,
 };
 export const objectInputSchema = z.union([
   z
@@ -153,6 +160,7 @@ export const objectInputSchema = z.union([
       namePosition: inputCoordinate
         .optional()
         .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+      answerOnly: answerOnlyInput,
     })
     .strict(),
   z
@@ -193,6 +201,7 @@ const objectSchema = z.union([
       position: coordinate,
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
     })
     .strict(),
   z
@@ -207,6 +216,7 @@ const objectSchema = z.union([
       equationLabelPosition: coordinate.optional(),
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
     })
     .strict(),
 ]);
@@ -323,6 +333,7 @@ function makeObject(
   const named = {
     ...(input.name ? { name: input.name } : {}),
     ...(input.namePosition ? { namePosition: input.namePosition } : {}),
+    ...(input.answerOnly ? { answerOnly: true as const } : {}),
   };
   if (input.kind === "point")
     return { id, kind: "point", position: input.position, ...named };
@@ -413,6 +424,7 @@ function canonicalName(o: GraphObject) {
   return {
     ...(o.name ? { name: o.name } : {}),
     ...(o.namePosition ? { namePosition: { x: o.namePosition.x, y: o.namePosition.y } } : {}),
+    ...(o.answerOnly ? { answerOnly: true as const } : {}),
   };
 }
 export function canonicalEnvelope(envelope: GraphEnvelope): string {
@@ -565,7 +577,8 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
 export function describeGraph(envelope: GraphEnvelope): string {
   const d = envelope.document,
     b = getBounds(d);
-  const named = (o: GraphObject) => (o.name ? ` named ${readableName(o.name)}` : "");
+  const named = (o: GraphObject) =>
+    `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
       o.kind === "point"

@@ -35,6 +35,7 @@ import type {
   Coordinate,
   DiagramDocumentV1,
   GraphObject,
+  GraphView,
   StraightObject,
   SvgLayout,
 } from "./types";
@@ -44,7 +45,22 @@ const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
 const EXPORT_CONTENT_MARGIN = 18;
 const POINT_MARK_HALF_SIZE = 14;
-export function graphPrintFacts(document: DiagramDocumentV1) {
+/** The answers copy's colour for hidden answers, shared with ratio tables. */
+export const GRAPH_ANSWER_COLOUR = "#b0125b";
+
+/** The objects one copy draws: the pupil copy leaves out answer-only objects. */
+export function documentForView(document: DiagramDocumentV1, view: GraphView = "pupil"): DiagramDocumentV1 {
+  if (view === "answer" || !document.objects.some((o) => o.answerOnly)) return document;
+  const objects = document.objects.filter((o) => !o.answerOnly);
+  return {
+    ...document,
+    objects,
+    selectedObjectId: objects.some((o) => o.id === document.selectedObjectId) ? document.selectedObjectId : null,
+  };
+}
+
+export function graphPrintFacts(document: DiagramDocumentV1, view: GraphView = "pupil") {
+  document = documentForView(document, view);
   const m = getExportMetrics(document);
   const labelled = document.objects.some((o) =>
     o.kind === "straight" && o.equationVisible && visibleStraightPoints(o, m.layout.bounds));
@@ -532,7 +548,8 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     const subscript = parts.subscript
       ? `<text x="${n(left + box.letterWidth)}" y="${n(baseline + AXIS_LABEL_FONT_SIZE * 0.22)}" font-size="${n(NAME_SUBSCRIPT_FONT_SIZE)}">${mathsDigits(parts.subscript, style)}</text>`
       : "";
-    return `<g class="object-name object-name-${object.kind}" data-object-id="${escapeXml(object.id)}"><rect x="${n(centre.x - box.width / 2)}" y="${n(centre.y - box.height / 2)}" width="${n(box.width)}" height="${n(box.height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(left)}" y="${n(baseline)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${letter}</text>${subscript}</g>`;
+    const answer = object.answerOnly ? ` object-name-answer" fill="${GRAPH_ANSWER_COLOUR}` : "";
+    return `<g class="object-name object-name-${object.kind}${answer}" data-object-id="${escapeXml(object.id)}"><rect x="${n(centre.x - box.width / 2)}" y="${n(centre.y - box.height / 2)}" width="${n(box.width)}" height="${n(box.height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(left)}" y="${n(baseline)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${letter}</text>${subscript}</g>`;
   });
   return `
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
@@ -542,7 +559,13 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const straight: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
+  const answerStraight: string[] = [];
+  const answerPoints: string[] = [];
+  const answerLabels: string[] = [];
   for (const object of document.objects) {
+    const [straightOut, pointsOut, labelsOut] = object.answerOnly
+      ? [answerStraight, answerPoints, answerLabels]
+      : [straight, points, labels];
     if (object.kind === "point") {
       const point = coordinateToSvg(object.position, layout);
       if (
@@ -553,7 +576,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       )
         continue;
       const size = POINT_MARK_HALF_SIZE;
-      points.push(
+      pointsOut.push(
         `<path d="M ${n(point.x - size)} ${n(point.y - size)} L ${n(point.x + size)} ${n(point.y + size)} M ${n(point.x - size)} ${n(point.y + size)} L ${n(point.x + size)} ${n(point.y - size)}"/>`,
       );
       continue;
@@ -566,7 +589,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
         object.strokeStyle === "dashed"
           ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`
           : "";
-      straight.push(
+      straightOut.push(
         `<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
       );
     }
@@ -574,7 +597,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
       const position = object.equationLabelPosition
         ? coordinateToSvg(object.equationLabelPosition, layout)
         : autoLabelPosition(object, layout);
-      labels.push(
+      labelsOut.push(
         `<text x="${n(position.x)}" y="${n(position.y)}">${escapeXml(equationForObject(object))}</text>`,
       );
     }
@@ -582,7 +605,17 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   return `
     <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>
     <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">${points.join("")}</g>
-    <g fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>${namesMarkup(document, layout)}`;
+    <g fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>${answerMarkup(document, answerStraight, answerPoints, answerLabels)}${namesMarkup(document, layout)}`;
+}
+
+/** Hidden answers, drawn only on the answers copy, in the answer colour. */
+function answerMarkup(document: DiagramDocumentV1, straight: string[], points: string[], labels: string[]): string {
+  if (!straight.length && !points.length && !labels.length) return "";
+  return `
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none">
+      <g clip-path="url(#plot-clip)">${straight.join("")}</g>${points.join("")}
+      <g fill="${GRAPH_ANSWER_COLOUR}" stroke="none" font-family="${svgFontFamily(document)}" font-size="${n(EQUATION_FONT_SIZE)}" font-style="italic">${labels.join("")}</g>
+    </g>`;
 }
 
 function gridDescription(document: DiagramDocumentV1): string {
@@ -591,7 +624,8 @@ function gridDescription(document: DiagramDocumentV1): string {
   return "A one centimetre square grid";
 }
 
-export function renderDiagramSvg(document: DiagramDocumentV1): string {
+export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = "pupil"): string {
+  document = documentForView(document, view);
   const metrics = getExportMetrics(document);
   const { layout } = metrics;
   return `<?xml version="1.0" encoding="UTF-8"?>

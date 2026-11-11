@@ -58,7 +58,8 @@ alternative only if the teacher wants one.
   `fill_products`, `fill_next_row`, `calculate_cells`, `calculate_and_store`,
   `reveal_saved_answers`, `worked_copy`, `upgrade_document`, `discardIncompatible`) need the
   teacher's explicit request for that action. A loss warning is not permission to discard.
-- `outputView: "answer"` (Venn, charts, probability trees) only when the teacher asks for
+- `outputView: "answer"` (Venn, charts, probability trees, coordinate graphs with `answerOnly`
+  objects) only when the teacher asks for
   the answer version. When they do, make the pupil diagram first, then call
   `create_diagram` again with the same `kind`, the returned `envelope` and
   `outputView: "answer"`, and give both sets of links, labelled pupil and answer. The

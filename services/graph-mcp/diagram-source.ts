@@ -20,7 +20,7 @@ import { printFacts as treePrintFacts } from "../../packages/probability-tree-co
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
-import { FAMILIES, describeIssues, diagramKindSchema } from "../../packages/diagram-core/src/registry";
+import { ANSWER_VIEW_KINDS, FAMILIES, describeIssues, diagramKindSchema } from "../../packages/diagram-core/src/registry";
 
 export const diagramKind = diagramKindSchema;
 export type DiagramKind = z.infer<typeof diagramKind>;
@@ -34,7 +34,7 @@ export const diagramSourceSchema = z.object({
   outputView: z.enum(["pupil", "answer"]).optional(),
 }).strict();
 export type DiagramSource =
-  | { kind: "graph"; envelope: GraphEnvelope }
+  | { kind: "graph"; envelope: GraphEnvelope; outputView?: "pupil" | "answer" }
   | { kind: "ratio-table"; envelope: RatioEnvelope; outputView?: "pupil" | "answer" }
   | { kind: "value-graph"; envelope: ValueEnvelope }
   | { kind: "cuboids"; envelope: cuboid.Envelope }
@@ -49,7 +49,7 @@ export function diagramSource(raw: unknown): DiagramSource {
   try {
     const s = diagramSourceSchema.parse(raw);
     const family = FAMILIES[s.kind];
-    if (s.outputView !== undefined && !family.answerView) throw Error("outputView applies only to Venn diagrams, ratio tables, charts and probability trees.");
+    if (s.outputView !== undefined && !family.answerView) throw Error(`outputView applies only to ${ANSWER_VIEW_KINDS}.`);
     const envelope = family.validate(s.envelope, s.outputView ?? "pupil");
     return { kind: s.kind, envelope, ...(s.outputView === undefined ? {} : { outputView: s.outputView }) } as DiagramSource;
   } catch (error) {
@@ -79,7 +79,7 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
   }
   if (source.kind === "graph") {
     const d = documentFromEnvelope(source.envelope), m = getExportMetrics(d);
-    return { physicalSizeCm: { width: m.widthCm, height: m.heightCm }, printGuidance: graphPrintFacts(d) };
+    return { physicalSizeCm: { width: m.widthCm, height: m.heightCm }, printGuidance: graphPrintFacts(d, source.outputView ?? "pupil") };
   }
   if (source.kind === "ratio-table") {
     const m = ratioMetrics(source.envelope.document);

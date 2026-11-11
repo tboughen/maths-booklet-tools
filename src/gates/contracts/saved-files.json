@@ -3674,6 +3674,10 @@
                         "y"
                       ],
                       "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
                     }
                   },
                   "required": [
@@ -3796,6 +3800,10 @@
                         "y"
                       ],
                       "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
                     }
                   },
                   "required": [

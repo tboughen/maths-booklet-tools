@@ -136,3 +136,34 @@ describe("Edexcel-style graphs", () => {
     expect(texts(svg)).toContain("0");
   });
 });
+
+describe("answer-only objects", () => {
+  const spec = {
+    objects: [
+      { kind: "point", id: "given", position: { x: 1, y: 2 }, name: "A" },
+      { kind: "line", id: "drawn", equation: { kind: "slope", slope: 2, intercept: -1 }, answerOnly: true, name: "L" },
+      { kind: "point", id: "plotted", position: { x: -2, y: 3 }, answerOnly: true },
+    ],
+  };
+  it("leave the pupil copy blank and draw the answers copy in the answer colour at the same size", async () => {
+    const e = createGraph(spec);
+    const d = documentFromEnvelope(e);
+    expect(d.objects.map((o) => o.answerOnly)).toEqual([undefined, true, true]);
+    const pupil = renderDiagramSvg(d);
+    const answer = renderDiagramSvg(d, "answer");
+    expect(pupil).not.toContain("#b0125b");
+    expect(pupil).not.toContain("𝐋");
+    expect(pupil).toContain("𝐴");
+    expect(answer).toContain('class="graph-answers" stroke="#b0125b"');
+    expect(answer).toContain("object-name-answer");
+    const size = (svg: string) => svg.match(/width="[\d.]+cm" height="[\d.]+cm"/)![0];
+    expect(size(answer)).toBe(size(pupil));
+    expect(describeGraph(e)).toContain("answer only");
+    // The flag survives links and revisions, and can be taken off again.
+    const link = editorLink(e, "https://mathsdock.co.uk/");
+    expect(decodeEnvelope(new URL(link).hash.slice("#graph=".length)).document.objects[1].answerOnly).toBe(true);
+    const revised = await reviseGraph({ envelope: e, baseHash: await graphHash(e), operations: [{ op: "replace_object", id: "plotted", object: { kind: "point", position: { x: -2, y: 3 } } }] });
+    expect(documentFromEnvelope(revised).objects[2]).toEqual({ id: "plotted", kind: "point", position: { x: -2, y: 3 } });
+    expect(isDiagramDocument(d)).toBe(true);
+  });
+});

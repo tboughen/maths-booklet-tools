@@ -90,7 +90,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     label: "coordinate graph",
     summary: "Coordinate grid with points, segments and straight lines (no curves).",
     route: "/tools/graph",
-    answerView: false,
+    answerView: true,
     envelopeSchema: graph.envelopeSchema,
     createSchema: z.object({ spec: graph.graphSpecSchema.optional(), envelope: graph.envelopeSchema.optional() }).strict(),
     revisionSchema: graph.revisionSchema,
@@ -98,7 +98,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: flatCreate(graph.createGraph, (raw) => graph.validateEnvelope(raw, true)) as (i: object) => graph.GraphEnvelope,
     revise: (input) => graph.reviseGraph(input),
     hash: graph.graphHash,
-    svg: (e) => renderDiagramSvg(graph.documentFromEnvelope(e)),
+    svg: (e, view) => renderDiagramSvg(graph.documentFromEnvelope(e), view),
   }),
   "ratio-table": family<ratio.RatioEnvelope>({
     kind: "ratio-table",
@@ -344,3 +344,6 @@ export function describeIssues(error: unknown, limit = 6): string | null {
   if (error.issues.length > limit) lines.push(`(${error.issues.length - limit} more)`);
   return lines.join("; ");
 }
+
+/** The families whose outputView "answer" draws a teacher copy, for error messages. */
+export const ANSWER_VIEW_KINDS = DIAGRAM_KINDS.filter((k) => FAMILIES[k].answerView).join(", ");

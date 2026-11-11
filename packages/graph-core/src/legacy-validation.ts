@@ -20,7 +20,8 @@ function isGraphObject(value: unknown): value is GraphObject {
   if (
     (candidate.name !== undefined &&
       (typeof candidate.name !== "string" || !OBJECT_NAME_PATTERN.test(candidate.name))) ||
-    (candidate.namePosition !== undefined && !isCoordinate(candidate.namePosition))
+    (candidate.namePosition !== undefined && !isCoordinate(candidate.namePosition)) ||
+    (candidate.answerOnly !== undefined && candidate.answerOnly !== true)
   )
     return false;
   if (candidate.kind === "point") return isCoordinate(candidate.position);

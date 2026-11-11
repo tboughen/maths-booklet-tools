@@ -664,7 +664,7 @@ export function GraphCanvas({
                 return (
                   <line
                     key={object.id}
-                    className={`graph-straight${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
+                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
                     x1={start.x}
                     y1={start.y}
                     x2={end.x}
@@ -687,7 +687,7 @@ export function GraphCanvas({
                 <Cross
                   key={object.id}
                   point={coordinateToSvg(object.position, layout)}
-                  className={`graph-point${object.id === visibleDocument.selectedObjectId ? " graph-point--selected" : ""}`}
+                  className={`graph-point${object.answerOnly ? " graph-point--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-point--selected" : ""}`}
                 />
               ))}
             {segmentPreview && (

@@ -32,7 +32,12 @@ export interface AxisConfig {
 
 interface BaseObject {
   id: string;
+  /** A hidden answer: drawn, in the answer colour, only on the answers copy. The pupil copy
+   * leaves the grid blank for the pupil to draw on. Omitted means drawn on both copies. */
+  answerOnly?: true;
 }
+
+export type GraphView = "pupil" | "answer";
 
 /** An exam-style name printed beside an object: a capital letter with an optional prime and
  * subscript number, such as A, B′, L or L1 (printed L₁). Lines print bold, points italic. */
