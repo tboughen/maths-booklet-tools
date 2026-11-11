@@ -76,7 +76,10 @@ export default function SiteApp() {
   const [visited, setVisited] = useState<PageId[]>([page]);
   const remembered = useRef<Partial<Record<SectionId, string>>>({});
   const host = useRef<HTMLDivElement>(null);
-  const firstPage = useRef(true);
+  // The page and section focus last moved to. Starting at the landing page means the first run,
+  // and StrictMode's second run of the same effect in development, leave focus alone, so the
+  // first Tab still reaches "Skip to content" (S95).
+  const focusedRoute = useRef(`${page}|${section}`);
   // Set when navigation lands on a page whose code is still downloading.
   const focusPending = useRef(false);
   const pageReady = useCallback(() => {
@@ -109,10 +112,9 @@ export default function SiteApp() {
   }, []);
   useEffect(() => {
     document.title = `${sectionName(section)} · Maths Dock`;
-    if (firstPage.current) {
-      firstPage.current = false;
-      return;
-    }
+    const route = `${page}|${section}`;
+    if (focusedRoute.current === route) return;
+    focusedRoute.current = route;
     if (
       host.current?.querySelector(".site-page:not([hidden]) [aria-modal=true]")
     )
