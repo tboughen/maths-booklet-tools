@@ -124,6 +124,7 @@ describe("actual MCP transport and print downloads", () => {
       "get_diagram_svg",
       "worksheet_capabilities",
       "create_worksheet",
+      "create_booklet",
     ]);
     const reply = await client.callTool({
       name: "create_graph",

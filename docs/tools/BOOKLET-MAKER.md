@@ -98,8 +98,23 @@ edits. `e2e/booklet.spec.ts` (`npx playwright test --project=booklet`) edits and
 downloads the booklet and one lesson as vector PDFs, plans and writes a unit against a mocked Claude
 stream, and refuses a worksheet file.
 
+## Connector tool
+
+`create_booklet {booklet}` on the MCP connector makes the same booklet in chat (Claude or ChatGPT).
+`worksheet_capabilities` lists its layout, limits and section kinds. The reply has previews of the
+cover and the first page of up to three lessons, the layout issues (lesson, section, question and
+page), and, only when the booklet fits:
+
+- whole-booklet pupil PDF, answers PDF and editable JSON as signed seven-day links, or as files
+  included in the reply when the booklet is too large for a link (links carry the document, up to
+  7,500 characters, so most full units are included files);
+- a pupil and an answers PDF link for every lesson. Each carries a one-lesson booklet plus
+  numbering offsets, so the lesson prints exactly as it does in the full booklet, with the same
+  lesson and page numbers. A lesson too large for a link is named in the reply.
+
+The output schema gives the returned booklet as a plain object rather than repeating its schema,
+which keeps the tool list about 12 KB smaller.
+
 ## Not yet done
 
-- A connector tool (`create_booklet`) so Claude and ChatGPT can produce booklets in chat. Download
-  links are size-limited, so a whole booklet needs stored files rather than a link.
 - A real run with a key to tune the prompt against Tim's A07 booklet.

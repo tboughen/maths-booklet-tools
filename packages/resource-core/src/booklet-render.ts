@@ -47,6 +47,9 @@ export interface BookletRenderOptions {
   view?: View;
   style?: StyleId;
   fontCss?: string;
+  /** For a lesson printed on its own from a one-lesson booklet: added to the printed lesson
+   * and page numbers so they match the full booklet. */
+  numbering?: { lessonOffset: number; pageOffset: number };
 }
 export interface RenderedBooklet {
   /** One SVG per A4 page, 210 × 297 mm, user units in millimetres, in reading order. */
@@ -314,7 +317,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
   const planned: PlannedPage[] = [];
   doc.lessons.forEach((lesson, li) => {
     const L = li + 1;
-    const head = lessonHead(lesson, L, st);
+    const head = lessonHead(lesson, L + (options.numbering?.lessonOffset ?? 0), st);
     let pg: PlannedPage = { lesson: L, continued: false, blocks: [{ block: { kind: "head", frag: head }, y: contentTop }], end: contentTop + head.h };
     planned.push(pg);
     const fresh = () => {
@@ -367,7 +370,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
     const lesson = doc.lessons[p.lesson - 1];
     const out: string[] = [];
     if (p.continued) {
-      const label = fitLine(`Lesson ${p.lesson} · ${lesson.title}`, A4.small, W);
+      const label = fitLine(`Lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)} · ${lesson.title}`, A4.small, W);
       out.push(textSvg(parseRuns(label), A4.marginX, contentTop + base(A4.small), A4.small, st.muted), hline(A4.marginX, A4.marginX + W, contentTop + 5.6, st));
     }
     const growth = p.blocks.reduce((k, b) => k + (b.block.kind === "row" ? b.block.row.spaces : 0), 0);
@@ -394,7 +397,8 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
       });
       shift += grown - block.row.h;
     }
-    pages.push(page(out.join("") + footer(doc, pageNo, st), `${doc.title}, lesson ${p.lesson}, page ${pageNo}${view === "answers" ? ", answers" : ""}`, options));
+    const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
+    pages.push(page(out.join("") + footer(doc, shownPage, st), `${doc.title}, lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
   });
 
   // Card-level issues carry the lesson, section and question they belong to.
@@ -423,4 +427,28 @@ export function bookletFileName(booklet: Booklet, view: View = "pupil"): string 
 /** Where an issue is, in teacher words. */
 export function issuePlace(i: BookletIssue): string {
   return [i.lesson ? `lesson ${i.lesson}` : i.page === 1 ? "cover" : i.lesson === 0 ? "unit introduction" : "", i.section && `section ${i.section}`, i.question && `question ${i.question}`, i.page && `page ${i.page}`].filter(Boolean).join(", ");
+}
+
+/** The printed pages of one lesson (0-based index), with the full booklet's page numbers. */
+export function lessonPagesOf(booklet: Booklet, lesson: number, options: BookletRenderOptions = {}): { pages: string[]; issues: BookletIssue[] } {
+  const r = renderBooklet(booklet, options);
+  const start = r.lessonPages[lesson] - 1;
+  const end = lesson + 1 < r.lessonPages.length ? r.lessonPages[lesson + 1] - 1 : r.pages.length;
+  return { pages: r.pages.slice(start, end), issues: r.issues };
+}
+
+/** A one-lesson booklet that prints that lesson exactly as the full booklet does, for small
+ * download links: no introduction, and numbering offsets so lesson and page numbers match. */
+export function singleLessonBooklet(booklet: Booklet, lesson: number): { booklet: Booklet; numbering: { lessonOffset: number; pageOffset: number } } {
+  const full = renderBooklet(booklet);
+  const doc = booklet.document;
+  return {
+    booklet: { ...booklet, document: { ...doc, intro: null, lessons: [doc.lessons[lesson]] } },
+    numbering: { lessonOffset: lesson, pageOffset: full.lessonPages[lesson] - 2 },
+  };
+}
+
+/** File name for one lesson printed on its own. */
+export function lessonFileName(booklet: Booklet, lesson: number, view: View = "pupil"): string {
+  return bookletFileName(booklet, view).replace(/_Booklet/, `_Lesson ${lesson + 1}`);
 }

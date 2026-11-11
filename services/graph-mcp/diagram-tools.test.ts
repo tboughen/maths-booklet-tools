@@ -66,11 +66,11 @@ describe("registry", () => {
 });
 
 describe("generic connector tools", () => {
-  it("advertises eight small tools, within the tools/list budget", async () => {
+  it("advertises nine small tools, within the tools/list budget", async () => {
     const client = await start();
     const tools = (await client.listTools()).tools;
     expect(tools.map((t) => t.name).sort()).toEqual(Object.keys(TOOL_TITLES).sort());
-    expect(tools).toHaveLength(8);
+    expect(tools).toHaveLength(9);
     for (const t of tools) {
       homogeneous(t.inputSchema, `${t.name}.input`);
       homogeneous(t.outputSchema, `${t.name}.output`);

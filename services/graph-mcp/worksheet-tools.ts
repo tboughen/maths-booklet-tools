@@ -4,12 +4,37 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
-import { fileName, renderResource, resourceSchema, SIZE, validate, type Resource, type View } from "../../packages/resource-core/src/index";
+import {
+  A4,
+  bookletFileName,
+  bookletSchema,
+  fileName,
+  isBooklet,
+  issuePlace,
+  lessonFileName,
+  renderBooklet,
+  renderResource,
+  resourceSchema,
+  singleLessonBooklet,
+  SIZE,
+  validate,
+  validateBooklet,
+  type Booklet,
+  type Resource,
+  type View,
+} from "../../packages/resource-core/src/index";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 
 export type WorksheetFormat = "pdf" | "json";
+/** A worksheet or a booklet: both travel through the same signed download links. */
+export type PrintDocument = Resource | Booklet;
+export interface Numbering {
+  lessonOffset: number;
+  pageOffset: number;
+}
+const validateDocument = (input: unknown): PrintDocument => (isBooklet(input) ? validateBooklet(input) : validate(input));
 const MAX_LINK = 7500;
 const PREVIEW_WIDTH = 1400;
 
@@ -21,6 +46,8 @@ const tokenSchema = z
     format: z.enum(["pdf", "json"]),
     view: z.enum(["pupil", "answers"]),
     resource: z.unknown(),
+    // A one-lesson booklet printed as that lesson of the full booklet (cover left out).
+    numbering: z.object({ lessonOffset: z.number().int().min(0).max(11), pageOffset: z.number().int().min(0).max(500) }).strict().optional(),
   })
   .strict();
 
@@ -39,9 +66,9 @@ export class WorksheetDownloads {
   private sign(token: string, key: string) {
     return createHmac("sha256", key).update("worksheet:" + token).digest("base64url");
   }
-  link(resource: Resource, format: WorksheetFormat, view: View, now = Date.now()) {
+  link(resource: PrintDocument, format: WorksheetFormat, view: View, now = Date.now(), numbering?: Numbering) {
     const expires = Math.floor(now / 1000) + 7 * 86400;
-    const json = JSON.stringify({ v: 1, key: this.active, expires, format, view, resource });
+    const json = JSON.stringify({ v: 1, key: this.active, expires, format, view, resource, ...(numbering ? { numbering } : {}) });
     const token = Buffer.from(deflateSync(new TextEncoder().encode(json), { level: 9 })).toString("base64url");
     const url = new URL("/worksheet/download", this.base);
     url.searchParams.set("token", token);
@@ -65,7 +92,15 @@ export class WorksheetDownloads {
     }
     if (!Object.hasOwn(this.keys, parsed.key)) throw new GraphError("invalid_download", "Invalid worksheet key.");
     if (parsed.expires * 1000 < now) throw new GraphError("expired_download", "The worksheet link has expired. Create the worksheet again.");
-    return { resource: validate(parsed.resource), format: parsed.format, view: parsed.view };
+    let resource: PrintDocument;
+    try {
+      resource = validateDocument(parsed.resource);
+    } catch {
+      throw new GraphError("invalid_download", "Invalid worksheet token.");
+    }
+    if (parsed.numbering && (!("lessons" in resource.document) || resource.document.lessons.length !== 1 || parsed.format !== "pdf"))
+      throw new GraphError("invalid_download", "Invalid worksheet token.");
+    return { resource, format: parsed.format, view: parsed.view, numbering: parsed.numbering };
   }
 }
 
@@ -78,7 +113,7 @@ const canonical = (v: unknown): string =>
           .map((k) => `${JSON.stringify(k)}:${canonical((v as Record<string, unknown>)[k])}`)
           .join(",")}}`
       : JSON.stringify(v);
-export const worksheetHash = (r: Resource) => "sha256:" + createHash("sha256").update(canonical(r)).digest("hex");
+export const worksheetHash = (r: PrintDocument) => "sha256:" + createHash("sha256").update(canonical(r)).digest("hex");
 
 const link = z.object({ url: z.string().url(), expiresAt: z.string() }).strict();
 const output = z
@@ -97,6 +132,46 @@ const output = z
   })
   .strict();
 
+const BOOKLET_PREVIEWS = 4;
+const BOOKLET_PREVIEW_WIDTH = 1000;
+const bookletOutput = z
+  .object({
+    // The validated booklet, same shape as the input; not repeated as a schema to keep tools/list small.
+    booklet: z.record(z.string(), z.unknown()).describe("The validated booklet, in the create_booklet input shape. Edit it and call create_booklet again to change the booklet."),
+    contentHash: z.string(),
+    rendererVersion: z.literal("booklet-a4-1"),
+    printReady: z.boolean(),
+    pages: z.number().int(),
+    issues: z.array(
+      z
+        .object({ lesson: z.number(), section: z.number().optional(), question: z.number().optional(), page: z.number().optional(), message: z.string() })
+        .strict(),
+    ),
+    files: z.object({ pupilPdf: z.string(), answersPdf: z.string(), json: z.string() }).strict(),
+    downloads: z.object({ pupilPdf: link.optional(), answersPdf: link.optional(), json: link.optional() }).strict(),
+    lessons: z.array(
+      z.object({ lesson: z.number().int(), title: z.string(), firstPage: z.number().int(), pupilPdf: link.optional(), answersPdf: link.optional() }).strict(),
+    ),
+    physicalSizeMm: z.object({ width: z.literal(210), height: z.literal(297) }).strict(),
+  })
+  .strict();
+
+const BOOKLET_LAYOUT = [
+  "A4 portrait (210 x 297 mm), 12 mm margins. Cover with contents (made from the real layout), optional unit introduction page, then each lesson starting on a new page.",
+  "Body text Inter 11 pt (nothing below 10 pt); cards never split; a section heading stays with its first row of cards and repeats with '(continued)' after a page break.",
+  "Text never shrinks to fit. A card taller than a page, or a diagram too wide for its card, is returned as an issue naming lesson, section, question and page.",
+  "Spare page height goes to working and drawing space (up to 40 mm extra each).",
+];
+
+const BOOKLET_DESCRIPTION =
+  "PRODUCE an A4 portrait unit booklet (one lesson per objective) in the MathsDock house style from FINALISED lessons. " +
+  "Supply booklet:{tool:'resource',schemaVersion:1,document:{kind:'booklet-a4',title,code,group?,coverNote?,nameLine?,intro:{remember[],learn[],next[],keywords:[{word,meaning}]}|null,lessons:[1-12 lessons, each {title,code,objective,keyIdea,teacherNotes?,sections:[{kind,title?,instruction?,columns:1|2,cards:[{title,items}]}]}]}}. " +
+  "Section kinds: check-in, worked, practice, diagnostic, mistake, challenge, discover, notes; an empty title uses the kind's heading (Check in, Worked example, Your turn, Diagnostic questions, Spot the mistake, Challenge, Discover, Notes). " +
+  "Recommended lesson shape: a one-sentence key idea naming the new words; check in (4-5 retrieval questions on this lesson's prerequisites); worked example with columns:2 as pairs, left the worked example with steps and saved answers, right 'Our turn' with the same steps left blank; Your turn (several near-identical questions with the same pre-drawn diagram or empty table); diagnostic multiple choice with choice mode letters (A-D, each wrong option one misconception); practice that fades; spot the mistake (a named pupil's wrong working); a challenge. " +
+  "Cards use the same items as create_worksheet (text, info, claim, bullets, table, choice, steps, checklist, answerLine, space, diagram, part); worked and notes cards are not numbered, other cards are numbered within their section. Half-width cards (columns:2) are 90.5 mm wide, so a diagram there must fit about 84 mm. " +
+  "Saved answers print only in the answers PDF; never invent answers the teacher did not give. " +
+  "Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDFs and editable JSON (links, or included files when too large for a link), a pupil and answers PDF link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
+
 const LAYOUT = [
   "A3 landscape (420 x 297 mm), exactly two sides, three titled strand columns per side.",
   "Body text Inter 11 pt (nothing below 10 pt); cards never split; diagrams keep their native size.",
@@ -112,12 +187,113 @@ const DESCRIPTION =
   "Returns side previews, pupil and answers vector PDFs, editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
 export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownloads, limits: TrafficLimits) {
-  async function artifacts(resource: Resource, format: WorksheetFormat, view: View, signal?: AbortSignal) {
+  async function artifacts(doc: PrintDocument, format: WorksheetFormat, view: View, signal?: AbortSignal, numbering?: Numbering) {
+    if (isBooklet(doc)) return bookletArtifacts(doc as Booklet, format, view, signal, numbering);
+    const resource = doc as Resource;
     if (format === "json")
       return { body: Buffer.from(JSON.stringify(resource, null, 2)), type: "application/json", name: fileName(resource, view).replace(/_A3\.pdf$/, ".json") };
     const r = renderResource(resource, { view });
     const pdf = await raster.worksheetPdf(r.pages, resource.document.title, signal);
     return { body: Buffer.from(pdf), type: "application/pdf", name: fileName(resource, view) };
+  }
+
+  async function bookletArtifacts(booklet: Booklet, format: WorksheetFormat, view: View, signal?: AbortSignal, numbering?: Numbering) {
+    if (format === "json")
+      return { body: Buffer.from(JSON.stringify(booklet, null, 2)), type: "application/json", name: bookletFileName(booklet).replace(/_A4\.pdf$/, ".json") };
+    const r = renderBooklet(booklet, { view, numbering });
+    if (r.issues.length) throw new GraphError("layout", `The booklet does not fit its pages yet: ${issuePlace(r.issues[0])}: ${r.issues[0].message}`);
+    // A one-lesson link prints only that lesson's pages, numbered as in the full booklet.
+    const pages = numbering ? r.pages.slice(1) : r.pages;
+    const pdf = await raster.worksheetPdf(pages, booklet.document.title, signal);
+    return { body: Buffer.from(pdf), type: "application/pdf", name: numbering ? lessonFileName(booklet, numbering.lessonOffset, view) : bookletFileName(booklet, view) };
+  }
+
+  async function bookletResult(booklet: Booklet, signal: AbortSignal) {
+    const pupil = renderBooklet(booklet, { view: "pupil" });
+    const hash = worksheetHash(booklet);
+    const doc = booklet.document;
+    const printReady = pupil.issues.length === 0;
+    const content: ContentBlock[] = [
+      {
+        type: "text",
+        text: printReady
+          ? `Booklet "${doc.title}" is ${pupil.pages.length} A4 pages with no layout issues.`
+          : `Booklet "${doc.title}" is NOT print-ready: ${pupil.issues.length} layout issue(s). ${pupil.issues.map((i) => `${issuePlace(i)}: ${i.message}`).join(" ")}`,
+      },
+    ];
+    // Previews: the cover and the first page of up to three lessons, to keep replies small.
+    const shown = [1, ...pupil.lessonPages.slice(0, BOOKLET_PREVIEWS - 1)];
+    const height = Math.round((BOOKLET_PREVIEW_WIDTH * A4.page.height) / A4.page.width);
+    for (const pageNo of shown) {
+      const svg = pupil.pages[pageNo - 1].replace(/width="210mm" height="297mm"/, `width="${BOOKLET_PREVIEW_WIDTH}" height="${height}"`);
+      const png = await raster.worksheetPng(svg, BOOKLET_PREVIEW_WIDTH, height, signal);
+      limits.output(png.byteLength);
+      content.push({ type: "text", text: `Preview of page ${pageNo} (pupil view, screen resolution; print from the PDF).` });
+      content.push({ type: "image", mimeType: "image/png", data: Buffer.from(png).toString("base64") });
+    }
+    const base = bookletFileName(booklet);
+    const files = { pupilPdf: base, answersPdf: bookletFileName(booklet, "answers"), json: base.replace(/_A4\.pdf$/, ".json") };
+    const links: z.infer<typeof bookletOutput>["downloads"] = {};
+    const lessons: z.infer<typeof bookletOutput>["lessons"] = doc.lessons.map((l, i) => ({ lesson: i + 1, title: l.title, firstPage: pupil.lessonPages[i] }));
+    if (printReady) {
+      const wanted = [
+        ["pupilPdf", "pdf", "pupil"],
+        ["answersPdf", "pdf", "answers"],
+        ["json", "json", "pupil"],
+      ] as const;
+      for (const [slot, format, view] of wanted) {
+        try {
+          links[slot] = downloads.link(booklet, format, view);
+        } catch (error) {
+          if (!(error instanceof GraphError) || error.code !== "size_limit") throw error;
+          const file = await artifacts(booklet, format, view, signal);
+          limits.output(file.body.length);
+          content.push({
+            type: "resource",
+            resource: {
+              uri: `booklet://${hash.slice(7, 23)}/${encodeURIComponent(file.name)}`,
+              mimeType: file.type,
+              ...(format === "pdf" ? { blob: file.body.toString("base64") } : { text: file.body.toString("utf8") }),
+            },
+          });
+        }
+      }
+      // Each lesson on its own: small links that work even when the whole booklet is too big for one.
+      doc.lessons.forEach((_, i) => {
+        const one = singleLessonBooklet(booklet, i);
+        for (const [slot, view] of [["pupilPdf", "pupil"], ["answersPdf", "answers"]] as const) {
+          try {
+            lessons[i][slot] = downloads.link(one.booklet, "pdf", view, Date.now(), one.numbering);
+          } catch (error) {
+            if (!(error instanceof GraphError) || error.code !== "size_limit") throw error;
+          }
+        }
+      });
+      const unlinked = lessons.filter((l) => !l.pupilPdf).map((l) => l.lesson);
+      if (unlinked.length)
+        content.push({ type: "text", text: `Lesson ${unlinked.join(", ")} ${unlinked.length > 1 ? "are" : "is"} too large for a single-lesson link; print ${unlinked.length > 1 ? "them" : "it"} from the whole-booklet PDF (lesson pages are listed in lessons[].firstPage).` });
+    }
+    content.push({
+      type: "text",
+      text: printReady
+        ? "Print the PDFs on A4 at 100% (actual size). Each lesson starts on a new page, so single lessons can be printed from the lesson links. The answers PDF shows saved answers in dark pink; keep it away from pupils. Keep the JSON to make changes later."
+        : "No files were made because the booklet does not fit yet. Fix the issues above (move a card, trim wording or reduce working space; text is never shrunk) and call create_booklet again.",
+    });
+    return {
+      structuredContent: {
+        booklet,
+        contentHash: hash,
+        rendererVersion: "booklet-a4-1" as const,
+        printReady,
+        pages: pupil.pages.length,
+        issues: pupil.issues,
+        files,
+        downloads: links,
+        lessons,
+        physicalSizeMm: { width: 210 as const, height: 297 as const },
+      },
+      content,
+    };
   }
 
   async function result(resource: Resource, signal: AbortSignal) {
@@ -187,7 +363,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     server.registerTool(
       "worksheet_capabilities",
       {
-        description: "Read the A3 worksheet layout, item types and limits before PRODUCE. Use with create_worksheet.",
+        description: "Read the A3 worksheet and A4 booklet layouts, item types and limits before PRODUCE. Use with create_worksheet or create_booklet.",
         inputSchema: z.object({}).strict(),
         annotations,
       },
@@ -197,7 +373,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
             type: "text" as const,
             text: JSON.stringify({
               rendererVersion: "worksheet-a3-1",
-              kinds: ["worksheet-a3"],
+              kinds: ["worksheet-a3", "booklet-a4"],
               layout: LAYOUT,
               limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
               items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "steps", "checklist", "part"],
@@ -206,6 +382,15 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               markup: "**bold** and *italic* only; no HTML",
               outputs: ["pupil PDF", "answers PDF", "editable JSON", "side previews"],
               fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf",
+              booklet: {
+                tool: "create_booklet",
+                rendererVersion: "booklet-a4-1",
+                layout: BOOKLET_LAYOUT,
+                limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
+                sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
+                cardWidthsMm: { full: 186, half: 90.5 },
+                fileNames: "[code]_[title]_Booklet_A4.pdf, [code]_[title]_Booklet_Answers_A4.pdf and [code]_[title]_Lesson N_A4.pdf",
+              },
             }),
           },
         ],
@@ -231,6 +416,33 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
                 text: JSON.stringify({
                   code: e instanceof GraphError ? e.code : "invalid_worksheet",
                   message: e instanceof Error ? e.message : "The worksheet could not be made.",
+                }),
+              },
+            ],
+          };
+        }
+      },
+    );
+    server.registerTool(
+      "create_booklet",
+      {
+        description: BOOKLET_DESCRIPTION,
+        inputSchema: z.object({ booklet: bookletSchema }).strict(),
+        outputSchema: bookletOutput,
+        annotations,
+      },
+      async (args, extra) => {
+        try {
+          return await bookletResult(validateBooklet(args.booklet), AbortSignal.any([connection, extra.signal]));
+        } catch (e) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({
+                  code: e instanceof GraphError ? e.code : "invalid_booklet",
+                  message: e instanceof Error ? e.message : "The booklet could not be made.",
                 }),
               },
             ],
