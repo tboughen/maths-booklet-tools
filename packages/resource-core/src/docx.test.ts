@@ -58,6 +58,12 @@ describe("Word output for worksheets", () => {
   it("sets two A3 landscape sides of fixed tables with pinned card heights", async () => {
     const { document } = await open(comparativeBarCharts);
     const xml = parse(document);
+    // One section, whose settings are the body's last child: a paragraph-level sectPr would make
+    // Word add a default-size page at the end (found in real Word, 11 November 2026).
+    const sections = [...xml.getElementsByTagNameNS(W, "sectPr")];
+    expect(sections).toHaveLength(1);
+    expect((sections[0].parentNode as Element | null)?.localName).toBe("body");
+    expect(sections[0].nextSibling).toBeNull();
     const size = xml.getElementsByTagNameNS(W, "pgSz")[0];
     expect([size.getAttribute("w:w"), size.getAttribute("w:h"), size.getAttribute("w:orient")]).toEqual(["23811", "16838", "landscape"]);
     // The bottom margin gives back WORD_FOOT_MM so a fractionally taller card stays on its side.

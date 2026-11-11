@@ -3,7 +3,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { card as measureCard, overflowMessage, planColumn, renderResource, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { FRAC_LINE, fracStyle, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { FRAC_FOOT, FRAC_LINE, fracStyle, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -60,6 +60,11 @@ export const WORD_WRAP_SLACK_MM = 1;
  * where the PDF's does.
  */
 export const WORD_FOOT_MM = 3;
+/**
+ * How much smaller Word prints the parts of an in-line fraction than their font size: in Word 16,
+ * 11 pt parts printed at 8 pt (real-Word check, 11 November 2026).
+ */
+export const WORD_INLINE_FRACTION = 8 / 11;
 /** The paragraph Word requires after a nested table: 1 pt high. */
 const END_MM = 0.36;
 
@@ -107,10 +112,13 @@ const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
  * digits match the rest of the sheet; letters are italic, as in the SVG pages.
  */
 function fraction(f: { num: string; den: string }, o: RunStyle): string {
+  // Word sets an in-line fraction's parts smaller than the text; the parts are enlarged by the
+  // same factor so they print at body size, as the layout measured them.
+  const size = (o.sizeMm ?? S.body) / WORD_INLINE_FRACTION;
   const part = (s: string) =>
     [...s]
       .map((c) => {
-        const r = rPr({ color: o.color, sizeMm: o.sizeMm, italic: fracStyle(c) === "italic" });
+        const r = rPr({ color: o.color, sizeMm: size, italic: fracStyle(c) === "italic" });
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
@@ -377,8 +385,11 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
       }
       const mark = show === i;
       const letter = run(`\u00a0${String.fromCharCode(65 + i)}\u00a0`, { bold: true, color: mark ? "#ffffff" : st.navy, border: mark ? st.answer : st.navy, shade: mark ? st.answer : undefined });
+      // A row holding a fraction keeps FRAC_FOOT below it, as the layout does, so Word does not
+      // clip the denominators at the foot of the cell.
+      const foot = item.options.slice(start, start + perRow).some((o) => grows(ctx, o)) ? gap(FRAC_FOOT) : "";
       cells.push(
-        cell(para(letter + tab() + mt(item.options[i], ctx), { left: 2 * r + g, hanging: 2 * r + g, grow: grows(ctx, item.options[i]) }), {
+        cell(para(letter + tab() + mt(item.options[i], ctx), { left: 2 * r + g, hanging: 2 * r + g, grow: grows(ctx, item.options[i]) }) + foot, {
           width: cw,
           margin: { top: start ? 1.6 : 0, right: j < perRow - 1 ? 6 : 0 },
         }),
@@ -529,8 +540,11 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
           ],
         );
   if (plainWidth(c.title, S.cardTitle, "bold") > inner - (number === null ? 0 : S.tile + 2.8)) ctx.issues.push({ ...ctx.where, message: "The card title is wider than the card." });
-  const body = stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap);
   const rule = { color: st.rule, width: 0.45 };
+  // The card's top and bottom padding are exact empty paragraphs, not cell margins: Word adds a
+  // cell's top and bottom margins to a minimum row height (real-Word check, 11 November 2026),
+  // which made every card about 5.5 mm taller than the layout.
+  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + gap(pad - rule.width);
   return table(
     [w],
     [
@@ -539,9 +553,8 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
           cell(body, {
             width: w,
             borders: { top: rule, left: rule, bottom: rule, right: rule },
-            // Borders sit inside the cell in Word, so the margins give their width back; the bottom
-            // also leaves room for the 1 pt paragraph Word adds after a nested table.
-            margin: { top: pad - rule.width, left: pad, bottom: pad - rule.width - END_MM, right: pad - WORD_WRAP_SLACK_MM },
+            // Borders sit inside the cell in Word, so the padding paragraphs give their width back.
+            margin: { top: 0, left: pad, bottom: 0, right: pad - WORD_WRAP_SLACK_MM },
           }),
         ],
         { mm: height },
@@ -707,8 +720,10 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
   const sect =
     `<w:sectPr><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}" w:orient="landscape"/>` +
     `<w:pgMar w:top="${tw(S.margin)}" w:right="${tw(S.margin)}" w:bottom="${tw(S.margin - WORD_FOOT_MM)}" w:left="${tw(S.margin)}" w:header="0" w:footer="0" w:gutter="0"/><w:cols w:space="0"/><w:docGrid w:linePitch="360"/></w:sectPr>`;
-  const last = `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr>${sect}</w:pPr></w:p>`;
-  const document = `${XML}<w:document ${NS}><w:body>${sides[0]}${pageBreak}${sides[1]}${last}</w:body></w:document>`;
+  // The page settings are the body's own last child. Inside a paragraph they would end a section
+  // there, and Word would start another at its default (A4 portrait) size for the rest of the body.
+  const last = `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>`;
+  const document = `${XML}<w:document ${NS}><w:body>${sides[0]}${pageBreak}${sides[1]}${last}${sect}</w:body></w:document>`;
 
   // Pictures: outlined SVG plus PNG fallback.
   const files: Record<string, Uint8Array> = {};

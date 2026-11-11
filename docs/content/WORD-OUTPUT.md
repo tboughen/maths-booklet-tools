@@ -79,9 +79,37 @@ was written as Word, converted by LibreOffice 24.2 in the cloud sandbox, and com
 | Equations | LibreOffice draws OMML in its own maths font (Liberation Serif digits) and ignores the "normal text" setting, so its fractions are larger and in a different font than Word's will be. Treat the equations as the part of the preview to trust least. |
 | Answers | Every saved answer appears in the answers copy only. One golden-sheet answer (eight outcomes on one short line) was found to run past its line, in the PDF too; it is now reported, and the fixture has two lines. |
 
-Not yet tested: real desktop Word. Microsoft's cloud converter (option 3) was not tried, because
-it ignores embedded custom fonts and the sheets use Inter. The Arial version was not made, for the
-same reason.
+Microsoft's cloud converter (option 3) was not tried, because it ignores embedded custom fonts
+and the sheets use Inter. The Arial version was not made, for the same reason.
+
+## Real desktop Word (11 November 2026)
+
+The real-Word check below was run on Tim's Windows PC (Word 16.0, Inter not installed) on the
+three sheets above, pupil and answers.
+
+First run: every file was 5 pages. Two causes, both fixed:
+
+- The page settings were inside the last paragraph, so Word ended a section there and added an A4
+  portrait page. They are now the body's last child.
+- Word adds a cell's top and bottom margins to a minimum row height, so every card was 5.5 to
+  5.9 mm taller than the layout and the last card in each column moved to the next page. A card's
+  top and bottom padding are now exact empty paragraphs, with no top or bottom cell margin.
+
+Word also printed in-line fraction parts at 8 pt for 11 pt text, so the parts are now written
+11/8 larger (`WORD_INLINE_FRACTION`) and print at 10.6 pt.
+
+Second run, with those fixes: all six files are 2 A3 landscape pages. Every card is on its planned
+side and column. Card bottoms are 1.1 to 2.3 mm below the PDF writer's: each card is 0.7 to 0.8 mm
+taller, so the difference builds down a column. That is inside the 3 mm foot allowance; the
+lowest card ends about 6 mm above the page edge. Word used the embedded Inter Regular, Italic and
+SemiBold. The diagrams printed as vector SVG. The saved answers appear only in the answers copies.
+Typing 21 extra words into a card made it grow by two lines, and nothing was hidden. Fractions
+are evenly spaced and whole, except in a row of lettered options, where Word clipped the bottom of
+round denominators at the foot of the cell. Such a row now keeps 1 mm (`FRAC_FOOT`) below it, in
+the PDF and in Word.
+
+Known differences in Word: diagonal hatching in bar charts prints as flat grey (Word's SVG
+drawing does not support pattern fills); the bars and key still match each other.
 
 ## The real-Word check (option 4)
 
@@ -94,7 +122,7 @@ install. Run it only with Tim's agreement, on a Windows computer with Word:
 powershell -ExecutionPolicy Bypass -File word-to-pdf.ps1 -Folder "C:\path\to\word-files"
 ```
 
-It is needed for the pilot, and again whenever the Word writer or the font changes. Things to
+It is needed again whenever the Word writer or the font changes. Things to
 look for in Word's PDFs: two pages each; card bottoms within 3 mm of the PDF writer's; fraction
 size and spacing; that the SVG diagrams (not the PNG fallbacks) printed; and, after typing extra
 words into a card, that the card grows and nothing is hidden.

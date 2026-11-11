@@ -13,6 +13,11 @@ export const FRAC_SCALE = 1;
 export const FRAC_PAD = 0.8;
 /** A paragraph holding a stacked fraction has lines this many body sizes high (ordinary: 1.4). */
 export const FRAC_LINE = 2.4;
+/**
+ * Room below a lettered option that holds a fraction. Word draws a denominator a little below
+ * its exact line and clips it at the foot of a table cell (real-Word check, 11 November 2026).
+ */
+export const FRAC_FOOT = 1;
 /** {numerator/denominator}: one slash, no braces inside, up to 12 characters a side. */
 export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
 

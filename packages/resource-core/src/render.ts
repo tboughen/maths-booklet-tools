@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, FRAC_LINE, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -222,14 +222,14 @@ function letters(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx
       rowH = 0;
     }
     const f = para(o, (slot || widths[i]) - 2 * r - gap + 0.5, ctx, { x: 2 * r + gap });
-    const cy = baseline(size) - size * 0.34;
+    const cy = (f.first ?? baseline(size)) - size * 0.34;
     const letter = String.fromCharCode(65 + i);
     const mark = show === i;
     out.push(`<g transform="translate(${n(x)},${n(y)})">`);
     out.push(`<circle cx="${r}" cy="${n(cy)}" r="${r}" fill="${mark ? ctx.st.answer : "white"}" stroke="${mark ? ctx.st.answer : ctx.st.navy}" stroke-width="0.35"/>`);
     out.push(textSvg([{ text: letter, style: "bold" }], r, cy + size * 0.34, S.body * 0.9, mark ? "white" : ctx.st.navy, "middle"));
     out.push(f.svg, "</g>");
-    rowH = Math.max(rowH, f.h);
+    rowH = Math.max(rowH, f.h + (f.first === undefined ? 0 : FRAC_FOOT));
     x += (slot || widths[i]) + 6;
   });
   return { h: y + rowH, svg: out.join("") };
