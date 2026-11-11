@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { emptyReason, emptyRoute, exportSelection, filterQuestions, matchingParts, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
 const first = {id: "first", order: 1, codes: ["U837", "U879"], tier: "H", calculator: true, collection: "Past papers", marks: 5, parts: [{label: "9a", marks: 2, codes: ["U837"]}, {label: "9b", marks: 2, codes: ["U879"]}, {label: "9c", marks: 1, codes: ["U837"]}]} as BankQuestion;
@@ -71,6 +71,24 @@ describe("Sparx link and question selection contract", () => {
       expect(() => verifyCatalogue({...catalogue, questions: [f, bad] as BankQuestion[]})).toThrow("crossover");
     }
     expect(() => verifyCatalogue({...catalogue, questions: [f]})).toThrow("crossover");
+  });
+  it("names the failing question and field in the console but keeps the teacher message (A95)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const ready = {...first, review: "reviewed", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"} as BankQuestion;
+      const broken = {...ready, id: "1MA1_JUN_2017_1F_Q9", schemePdf: ""} as BankQuestion;
+      expect(() => verifyCatalogue({...catalogue, questions: [broken]})).toThrow("A question failed its catalogue check. Please report the affected question.");
+      expect(errors).toHaveBeenCalledOnce();
+      expect(String(errors.mock.calls[0][0])).toContain("question 1MA1_JUN_2017_1F_Q9, field schemePdf");
+      errors.mockClear();
+      expect(() => verifyCatalogue({...catalogue, questions: [ready, {...ready}]})).toThrow("failed its catalogue check");
+      expect(String(errors.mock.calls[0][0])).toContain(`question ${ready.id}, field id (duplicate)`);
+      errors.mockClear();
+      expect(() => verifyCatalogue({...catalogue, questions: [{...ready, codes: ["Z999"]}]})).toThrow("failed its catalogue check");
+      expect(String(errors.mock.calls[0][0])).toContain("field codes (Z999 is not a topic)");
+    } finally {
+      errors.mockRestore();
+    }
   });
   it("only opens draft assets in an explicitly labelled draft catalogue", () => {
     const q = {...first, review: "draft", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"};
