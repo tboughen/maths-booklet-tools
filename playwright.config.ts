@@ -62,6 +62,7 @@ const suites: Suite[] = [
   { name: "probability-tree", server: "dev", testMatch: "probability-tree.spec.ts" },
   { name: "frequency-tree", server: "dev", testMatch: "frequency-tree.spec.ts" },
   { name: "worksheet", server: "dev", testMatch: "worksheet.spec.ts", timeout: 60000 },
+  { name: "booklet", server: "dev", testMatch: "booklet.spec.ts", timeout: 90000 },
   { name: "venn", server: "dev", external: env.MATHSDOCK_VENN_URL, testMatch: ["venn.spec.ts", "venn-layouts.spec.ts"] },
   {
     name: "venn-regression", server: "dev", external: env.MATHSDOCK_VENN_URL,

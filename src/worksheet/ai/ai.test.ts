@@ -4,6 +4,7 @@ import type { Resource } from "../../../packages/resource-core/src/index";
 import { changeRequest, firstRequest, parseSubmission, SubmissionError, systemPrompt, toolSchema, TOOL_NAME } from "./brief";
 import { checkSubmission } from "./check";
 import { makeWithClaude } from "./anthropic";
+import { worksheetJob } from "./run";
 import { makeWithGemini } from "./gemini";
 import { makeWithOpenAI } from "./openai";
 import { estimateCost, priceFor, prices, PRICES_CHECKED } from "./prices";
@@ -211,9 +212,9 @@ describe("making a worksheet", () => {
       }),
     );
     const stages: string[] = [];
-    const result = await makeWithClaude({ apiKey: "sk-ant-test-0000000000000000000000", model: "claude-opus-5-5", effort: "high", request: "Make it", onStage: (s) => stages.push(s.kind) });
+    const result = await makeWithClaude(worksheetJob, { apiKey: "sk-ant-test-0000000000000000000000", model: "claude-opus-5-5", effort: "high", request: "Make it", onStage: (s) => stages.push(s.kind) });
     expect(result.attempts).toBe(2);
-    expect(result.resource.document.title).toBe(treeDiagrams.document.title);
+    expect(result.value.resource.document.title).toBe(treeDiagrams.document.title);
     expect(result.usage).toEqual({ input: 200, output: 1800, cacheRead: 100, cacheWrite: 0 });
     expect(stages).toEqual(expect.arrayContaining(["thinking", "writing", "checking", "fixing"]));
     expect(bodies[0]).toMatchObject({ model: "claude-opus-5-5", thinking: { type: "adaptive" }, output_config: { effort: "high" }, cache_control: { type: "ephemeral" }, fallbacks: "default", stream: true });
@@ -233,7 +234,7 @@ describe("making a worksheet", () => {
         return turns.shift()!;
       }),
     );
-    const result = await makeWithOpenAI({ apiKey: "sk-test-00000000000000000000000000", model: "gpt-test", effort: "medium", request: "Make it" });
+    const result = await makeWithOpenAI(worksheetJob, { apiKey: "sk-test-00000000000000000000000000", model: "gpt-test", effort: "medium", request: "Make it" });
     expect(result.attempts).toBe(2);
     expect(result.model).toBe("gpt-test");
     expect(result.usage).toEqual({ input: 200, output: 1600, cacheRead: 40, cacheWrite: 0 });
@@ -254,7 +255,7 @@ describe("making a worksheet", () => {
       }),
     );
     const seen: number[] = [];
-    const result = await makeWithGemini({ apiKey: "AIzaTest000000000000000000000000000000", model: "gemini-3.8-flash", effort: "xhigh", request: "Make it", onUsage: (u) => seen.push(u.output) });
+    const result = await makeWithGemini(worksheetJob, { apiKey: "AIzaTest000000000000000000000000000000", model: "gemini-3.8-flash", effort: "xhigh", request: "Make it", onUsage: (u) => seen.push(u.output) });
     expect(result.attempts).toBe(2);
     expect(result.model).toBe("gemini-3.8-flash");
     expect(result.usage).toEqual({ input: 200, output: 2000, cacheRead: 100, cacheWrite: 0 });
@@ -276,6 +277,6 @@ describe("making a worksheet", () => {
       "fetch",
       vi.fn(async () => claudeTurn(submit(overflowing()), String(Math.random()).slice(2))),
     );
-    await expect(makeWithClaude({ apiKey: "sk-ant-test-0000000000000000000000", model: "claude-haiku-5-5", effort: "low", request: "Make it" })).rejects.toThrow(/after 4 tries/);
+    await expect(makeWithClaude(worksheetJob, { apiKey: "sk-ant-test-0000000000000000000000", model: "claude-haiku-5-5", effort: "low", request: "Make it" })).rejects.toThrow(/after 4 tries/);
   });
 });

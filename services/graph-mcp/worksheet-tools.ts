@@ -107,7 +107,7 @@ const LAYOUT = [
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
   "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,columns:[3 columns, each {heading,cards:[{title,items}]}]}]}}. " +
-  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick options), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
+  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers PDF; never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
@@ -200,7 +200,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               kinds: ["worksheet-a3"],
               layout: LAYOUT,
               limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
-              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "part"],
+              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "steps", "checklist", "part"],
               diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
               cellStates: ["supplied", "blank", "hidden"],
               markup: "**bold** and *italic* only; no HTML",

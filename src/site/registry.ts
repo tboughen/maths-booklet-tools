@@ -5,7 +5,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { GitFork, Network, BookOpen, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
+import { GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -35,6 +35,7 @@ export const bookletTools = [
 export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
+export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
 export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
 // Each tool needs a path; this fails to compile if the two lists drift apart.
 type RegistryTool = typeof bookletTools[number]["id"];
@@ -46,6 +47,7 @@ export const siteSections = [
   { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: FileSpreadsheet, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
   { id: "worksheets", name: "Worksheets", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
+  { id: "booklets", name: "Booklets", href: pageHref("booklets"), icon: BookOpenCheck, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
   { id: "booklet-tools", name: "Booklet tools", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Explore booklet tools" },
 ] as const;
 export type SectionId = PageId | "paper-builder";
@@ -62,6 +64,7 @@ export function pageName(id: PageId): string {
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
   if (id === "worksheets") return "Worksheets";
+  if (id === "booklets") return "Booklets";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
 }
@@ -70,5 +73,6 @@ export function preloadPage(id: PageId) {
   if (id === "question-bank") return QuestionBank.preload();
   if (id === "assessment-follow-up") return AssessmentPage.preload();
   if (id === "worksheets") return WorksheetPage.preload();
+  if (id === "booklets") return BookletPage.preload();
   return bookletTools.find((tool) => tool.id === id)?.component.preload();
 }

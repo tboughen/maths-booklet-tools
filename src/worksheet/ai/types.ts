@@ -51,3 +51,20 @@ export const MAX_ATTEMPTS = 4;
 
 /** A failure the teacher can act on, with no provider jargon. */
 export class MakerError extends Error {}
+
+/** One kind of thing the AI makes: its instructions, its single submit tool and the page's checks. */
+export interface Job<T> {
+  system: string;
+  toolName: string;
+  toolDescription: string;
+  toolSchema: Record<string, unknown>;
+  /** What is being made, for messages to the model and the teacher: "worksheet", "lesson". */
+  noun: string;
+  check(input: unknown): { ok: true; value: T } | { ok: false; feedback: string };
+}
+export interface JobResult<T> {
+  value: T;
+  usage: Usage;
+  attempts: number;
+  model: string;
+}

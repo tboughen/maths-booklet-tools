@@ -1,8 +1,6 @@
 import OpenAI from "openai";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
-import { systemPrompt, toolDescription, toolSchema, TOOL_NAME } from "./brief";
-import { checkSubmission } from "./check";
-import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type RunOptions, type RunResult } from "./types";
+import { addUsage, MakerError, MAX_ATTEMPTS, noUsage, type Job, type JobResult, type RunOptions } from "./types";
 
 export function openaiClient(apiKey: string) {
   // The teacher's own key goes straight from this browser to OpenAI; MathsDock never sees it.
@@ -30,7 +28,7 @@ function friendly(e: unknown): Error {
   return e instanceof Error ? e : new Error(String(e));
 }
 
-export async function makeWithOpenAI(o: RunOptions): Promise<RunResult> {
+export async function makeWithOpenAI<T>(job: Job<T>, o: RunOptions): Promise<JobResult<T>> {
   const client = openaiClient(o.apiKey);
   const usage = noUsage();
   // Nothing is stored at OpenAI between turns (store: false); the conversation is resent, with
@@ -45,9 +43,9 @@ export async function makeWithOpenAI(o: RunOptions): Promise<RunResult> {
       const stream = client.responses.stream(
         {
           model: o.model,
-          instructions: systemPrompt,
+          instructions: job.system,
           input,
-          tools: [{ type: "function", name: TOOL_NAME, description: toolDescription, parameters: toolSchema, strict: false }],
+          tools: [{ type: "function", name: job.toolName, description: job.toolDescription, parameters: job.toolSchema, strict: false }],
           reasoning: { effort: o.effort },
           store: false,
           include: ["reasoning.encrypted_content"],
@@ -70,13 +68,13 @@ export async function makeWithOpenAI(o: RunOptions): Promise<RunResult> {
       throw new MakerError(
         response.incomplete_details?.reason === "content_filter"
           ? "The model declined this request. Rephrase the objective or notes and try again."
-          : "The model ran out of room before finishing the worksheet. Try a lower thinking level or a shorter request.",
+          : `The model ran out of room before finishing the ${job.noun}. Try a lower thinking level or a shorter request.`,
       );
     const calls = response.output.filter((item): item is OpenAI.Responses.ResponseFunctionToolCall => item.type === "function_call");
     input.push(...(response.output as ResponseInputItem[]));
-    const call = calls.find((c) => c.name === TOOL_NAME);
+    const call = calls.find((c) => c.name === job.toolName);
     if (!call) {
-      input.push({ role: "user", content: `Submit the complete worksheet now by calling ${TOOL_NAME}.` });
+      input.push({ role: "user", content: `Submit the complete ${job.noun} now by calling ${job.toolName}.` });
       continue;
     }
     o.onStage?.({ kind: "checking", attempt });
@@ -86,10 +84,10 @@ export async function makeWithOpenAI(o: RunOptions): Promise<RunResult> {
     } catch {
       args = undefined;
     }
-    const checked = args === undefined ? ({ ok: false, feedback: "The tool arguments were not valid JSON. Submit the whole worksheet again." } as const) : checkSubmission(args);
-    if (checked.ok) return { submission: checked.submission, resource: checked.resource, usage, attempts: attempt, model };
+    const checked = args === undefined ? ({ ok: false, feedback: `The tool arguments were not valid JSON. Submit the whole ${job.noun} again.` } as const) : job.check(args);
+    if (checked.ok) return { value: checked.value, usage, attempts: attempt, model };
     if (attempt < MAX_ATTEMPTS) o.onStage?.({ kind: "fixing", attempt, problems: checked.feedback });
     for (const c of calls) input.push({ type: "function_call_output", call_id: c.call_id, output: c === call ? checked.feedback : "Ignored: submit once." });
   }
-  throw new MakerError(`The worksheet still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
+  throw new MakerError(`The ${job.noun} still did not pass the checks after ${MAX_ATTEMPTS} tries. Try again, or choose a stronger model or higher thinking level.`);
 }

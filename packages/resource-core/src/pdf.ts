@@ -17,6 +17,18 @@ type SvgToPdf = (doc: never, svg: string, x: number, y: number, options: object)
 
 const MM = 72 / 25.4;
 
+/** Mathematical alphanumerics (italic 𝑥, 𝑦 and so on) exist only in STIX Two Math, and the PDF
+ * writer picks one font per text run, so runs containing them are pointed at the maths font. */
+const MATH_ALPHANUMERIC = /[\u{1D400}-\u{1D7FF}]/u;
+export function mathFontForMathLetters(svg: string): string {
+  return svg.replace(/<(text|tspan)\b([^>]*)>([^<]*)<\/\1>/g, (whole, tag: string, attrs: string, body: string) => {
+    if (!MATH_ALPHANUMERIC.test(body)) return whole;
+    const font = `font-family="'STIX Two Math'"`;
+    const next = /\bfont-family=("[^"]*"|'[^']*')/.test(attrs) ? attrs.replace(/\bfont-family=("[^"]*"|'[^']*')/, font) : `${attrs} ${font}`;
+    return `<${tag}${next}>${body}</${tag}>`;
+  });
+}
+
 export function writeWorksheetPdf(
   PDFDocument: PdfConstructor,
   SVGtoPDF: SvgToPdf,
@@ -62,7 +74,7 @@ export function writeWorksheetPdf(
     const width = Number(size[1]) * MM,
       height = Number(size[2]) * MM;
     doc.addPage({ size: [width, height], margin: 0 });
-    SVGtoPDF(doc as never, svg, 0, 0, {
+    SVGtoPDF(doc as never, mathFontForMathLetters(svg), 0, 0, {
       width,
       height,
       preserveAspectRatio: "none",

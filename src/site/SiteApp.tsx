@@ -19,6 +19,7 @@ import {
   bookletTools,
   QuestionBank,
   WorksheetPage,
+  BookletPage,
   sectionName,
   readPage,
   readSection,
@@ -212,6 +213,13 @@ export default function SiteApp() {
         <div className="site-page" hidden={page !== "worksheets"}>
           <LazyPage onReady={pageReady}>
             <WorksheetPage active={page === "worksheets"} />
+          </LazyPage>
+        </div>
+      )}
+      {visited.includes("booklets") && (
+        <div className="site-page" hidden={page !== "booklets"}>
+          <LazyPage onReady={pageReady}>
+            <BookletPage active={page === "booklets"} />
           </LazyPage>
         </div>
       )}
