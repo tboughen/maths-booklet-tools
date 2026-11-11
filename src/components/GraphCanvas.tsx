@@ -1,8 +1,20 @@
 import { fitResource } from "../site/useResourceFit";
-import { getExportMetrics } from "../export/svg";
+import {
+  NAME_SUBSCRIPT_FONT_POINTS,
+  axisTextPlacement,
+  getExportMetrics,
+  nameBox,
+  nameCentre,
+} from "../export/svg";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { axisTicks, sharedOriginLabel } from "../../packages/graph-core/src/axes";
+import {
+  axisTicks,
+  mathsDigits,
+  mathsLetter,
+  nameParts,
+  sharedOriginLabel,
+} from "../../packages/graph-core/src/axes";
 import {
   AXIS_LIMITS,
   axisOrigin,
@@ -62,7 +74,7 @@ interface GraphCanvasProps {
 }
 
 type ObjectDrag = {
-  kind: "point" | "start" | "end" | "label";
+  kind: "point" | "start" | "end" | "label" | "name";
   objectId: string;
   baseDocument: DiagramDocumentV1;
   pointerId: number;
@@ -84,6 +96,10 @@ const AXIS_LABEL_FONT_SIZE = pointsToDiagramUnits(
 );
 const AXIS_ARROW_EXTENSION =
   12 + EDITOR_UNITS_PER_CENTIMETRE * AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES;
+/** The editor draws at 60 units per cm; print geometry is 100 units per cm. */
+const FROM_PRINT = EDITOR_UNITS_PER_CENTIMETRE / 100;
+const NAME_SUBSCRIPT_FONT_SIZE =
+  AXIS_LABEL_FONT_SIZE * (NAME_SUBSCRIPT_FONT_POINTS / AXIS_LABEL_FONT_POINTS);
 const STRAIGHT_DASH_ARRAY = [
   EDITOR_UNITS_PER_CENTIMETRE * STRAIGHT_DASH_LENGTH_CENTIMETRES,
   EDITOR_UNITS_PER_CENTIMETRE * STRAIGHT_DASH_GAP_CENTIMETRES,
@@ -434,6 +450,15 @@ export function GraphCanvas({
 
     const existing = getObjectById(drag.baseDocument, drag.objectId);
     if (!existing) return;
+    if (drag.kind === "name") {
+      setDraftDocument(
+        updateObject(drag.baseDocument, {
+          ...existing,
+          namePosition: graphPointer(event, false),
+        }),
+      );
+      return;
+    }
     if (drag.kind === "point" && existing.kind === "point") {
       setDraftDocument(
         updateObject(drag.baseDocument, {
@@ -499,8 +524,9 @@ export function GraphCanvas({
     }
   }
 
+  const placement = axisTextPlacement(document);
   const xLabels = [];
-  const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
+  const xNumberBaseline = origin.y + placement.xNumberDrop * FROM_PRINT;
   for (const tick of axisTicks(document, "x")) {
     xLabels.push(
       <AxisTickLabel
@@ -581,6 +607,36 @@ export function GraphCanvas({
             width={paper.width}
             height={paper.height}
           />
+          {gridDivisions(document) > 1 && (
+            <g className="grid-lines grid-lines--fine">
+              {Array.from(
+                { length: horizontalSquares * gridDivisions(document) },
+                (_, index) =>
+                  index % gridDivisions(document) === 0 ? null : (
+                    <line
+                      key={`fx-${index}`}
+                      x1={layout.plotLeft + (index * layout.square) / gridDivisions(document)}
+                      y1={layout.plotTop}
+                      x2={layout.plotLeft + (index * layout.square) / gridDivisions(document)}
+                      y2={layout.plotBottom}
+                    />
+                  ),
+              )}
+              {Array.from(
+                { length: verticalSquares * gridDivisions(document) },
+                (_, index) =>
+                  index % gridDivisions(document) === 0 ? null : (
+                    <line
+                      key={`fy-${index}`}
+                      x1={layout.plotLeft}
+                      y1={layout.plotTop + (index * layout.square) / gridDivisions(document)}
+                      x2={layout.plotRight}
+                      y2={layout.plotTop + (index * layout.square) / gridDivisions(document)}
+                    />
+                  ),
+              )}
+            </g>
+          )}
           <g className="grid-lines">
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
               <line
@@ -629,26 +685,72 @@ export function GraphCanvas({
                 origin={document.originLabel !== "O"}
               />
             )}
-            <text
-              className="axis-name axis-name--x"
-              x={layout.plotRight + 29}
-              y={xNumberBaseline}
-              fontFamily={fontFamily}
-            >
-              {AXIS_X_NAME}
-            </text>
-            <text
-              className="axis-name axis-name--y"
-              x={
-                origin.x -
-                EDITOR_UNITS_PER_CENTIMETRE * axisNameYGapCentimetres(document)
-              }
-              y={layout.plotTop - 18}
-              textAnchor="end"
-              fontFamily={fontFamily}
-            >
-              {AXIS_Y_NAME}
-            </text>
+            {!document.axes.x.title && (
+              <text
+                className="axis-name axis-name--x"
+                x={layout.plotRight + 29}
+                y={xNumberBaseline}
+                fontFamily={fontFamily}
+              >
+                {AXIS_X_NAME}
+              </text>
+            )}
+            {!document.axes.y.title && (
+              <text
+                className="axis-name axis-name--y"
+                x={
+                  origin.x -
+                  EDITOR_UNITS_PER_CENTIMETRE *
+                    axisNameYGapCentimetres(document)
+                }
+                y={layout.plotTop - 18}
+                textAnchor="end"
+                fontFamily={fontFamily}
+              >
+                {AXIS_Y_NAME}
+              </text>
+            )}
+            {placement.xTitle && (
+              <text
+                className="axis-title axis-title--x"
+                textAnchor="middle"
+                fontFamily={fontFamily}
+              >
+                {placement.xTitle.lines.map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={(layout.plotLeft + layout.plotRight) / 2}
+                    y={
+                      layout.plotBottom +
+                      (placement.xTitle!.baselineBelowPlot +
+                        index * placement.lineHeight) *
+                        FROM_PRINT
+                    }
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            )}
+            {placement.yTitle && (
+              <text className="axis-title axis-title--y" fontFamily={fontFamily}>
+                {placement.yTitle.lines.map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={layout.plotLeft + placement.yTitle!.leftFromPlotLeft * FROM_PRINT}
+                    y={
+                      (layout.plotTop + layout.plotBottom) / 2 +
+                      ((index - (placement.yTitle!.lines.length - 1) / 2) *
+                        placement.lineHeight) *
+                        FROM_PRINT +
+                      AXIS_LABEL_FONT_SIZE * 0.34
+                    }
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            )}
           </g>
           <g clipPath="url(#editor-plot-clip)">
             {visibleDocument.objects
@@ -729,6 +831,51 @@ export function GraphCanvas({
                   </text>
                 );
               })}
+          </g>
+          <g className="object-names" fontFamily={fontFamily}>
+            {visibleDocument.objects.map((object) => {
+              if (!object.name) return null;
+              if (
+                object.kind === "point"
+                  ? !pointInBounds(object.position, layout.bounds)
+                  : !visibleStraightPoints(object, layout.bounds)
+              )
+                return null;
+              const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE)!;
+              const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE);
+              const parts = nameParts(object.name);
+              const style = object.kind === "point" ? "italic" : "bold";
+              const left = centre.x - box.width / 2 + AXIS_LABEL_FONT_SIZE * 0.08;
+              const baseline = centre.y + AXIS_LABEL_FONT_SIZE * 0.34;
+              return (
+                <g
+                  key={object.id}
+                  className={`object-name${object.answerOnly ? " object-name--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " selected" : ""}`}
+                  onPointerDown={(event) => startObjectDrag(event, "name", object.id)}
+                >
+                  <rect
+                    x={centre.x - box.width / 2}
+                    y={centre.y - box.height / 2}
+                    width={box.width}
+                    height={box.height}
+                    rx={AXIS_LABEL_FONT_SIZE * 0.05}
+                  />
+                  <text x={left} y={baseline} fontSize={AXIS_LABEL_FONT_SIZE}>
+                    {mathsLetter(parts.letter, style)}
+                    {parts.prime ? "′" : ""}
+                  </text>
+                  {parts.subscript && (
+                    <text
+                      x={left + box.letterWidth}
+                      y={baseline + AXIS_LABEL_FONT_SIZE * 0.22}
+                      fontSize={NAME_SUBSCRIPT_FONT_SIZE}
+                    >
+                      {mathsDigits(parts.subscript, style)}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
           </g>
           {selected?.kind === "straight" && (
             <g className="selection-handles">

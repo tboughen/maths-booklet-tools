@@ -167,3 +167,15 @@ describe("answer-only objects", () => {
     expect(isDiagramDocument(d)).toBe(true);
   });
 });
+
+describe("crowded axis numbers", () => {
+  it("warns when times of day on every line would touch, and not for ordinary graphs", async () => {
+    const { graphWarnings } = await import("./interchange");
+    const crowded = createGraph({ axes: { x: { negativeSquares: 0, positiveSquares: 10, unitsPerSquare: 15, origin: 540, format: "time" }, y: { negativeSquares: 0, positiveSquares: 5, unitsPerSquare: 1 } }, objects: [] });
+    expect(graphWarnings(crowded)[0]).toMatch(/touch at print size/);
+    const spaced = createGraph({ axes: { x: { negativeSquares: 0, positiveSquares: 10, unitsPerSquare: 15, origin: 540, format: "time", labelEvery: 2 }, y: { negativeSquares: 0, positiveSquares: 5, unitsPerSquare: 1 } }, objects: [] });
+    expect(graphWarnings(spaced)).toEqual([]);
+    const wide = createGraph({ axes: { x: { negativeSquares: 9, positiveSquares: 9, unitsPerSquare: 2 }, y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 } }, objects: [] });
+    expect(graphWarnings(wide)).toEqual([]);
+  });
+});

@@ -4,6 +4,7 @@
  */
 import { gridDivisions, shouldLabelAxisSquare } from "./diagram";
 import { formatNumber } from "./equations";
+import { AXIS_LABEL_FONT_POINTS, axisLabelBoxWidth, pointsToDiagramUnits } from "./graphStyle";
 import type { AxisConfig, DiagramDocumentV1 } from "./types";
 
 export interface AxisTick {
@@ -22,6 +23,16 @@ export function formatTime(minutes: number): string {
   const hours = Math.floor(day / 60);
   const rest = day % 60;
   return `${String(hours).padStart(2, "0")}${TIME_GAP}${String(rest).padStart(2, "0")}`;
+}
+
+/** Reads 12:30, 12 30, 12.30 or 1230 as minutes after midnight. */
+export function parseTimeOfDay(text: string): number | null {
+  const match = text.trim().match(/^(\d{1,2})(?:[:.\s\u2009]?)(\d{2})$/);
+  if (!match) return null;
+  const hours = Number(match[1]),
+    minutes = Number(match[2]);
+  if (hours > 24 || minutes > 59 || (hours === 24 && minutes > 0)) return null;
+  return hours * 60 + minutes;
 }
 
 /** Axis numbers are decimals (0.25, not 1/4); whole numbers print exactly as before. */
@@ -100,4 +111,19 @@ export function mathsDigits(digits: string, style: "bold" | "italic"): string {
 /** Plain-text reading of a name: L1 reads "L₁", for descriptions and accessible text. */
 export function readableName(name: string): string {
   return name.replace(/[0-9]/g, (d) => String.fromCharCode(0x2080 + Number(d)));
+}
+
+/**
+ * True when neighbouring x-axis numbers would touch at print size (for example times of day on
+ * every 1 cm line). Numbering every 2nd or 5th line fixes it; nothing is shrunk to fit.
+ */
+export function xNumbersCrowded(document: DiagramDocumentV1): boolean {
+  const fontSize = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, 100);
+  const ticks = axisTicks(document, "x");
+  return ticks.some((tick, i) => {
+    const next = ticks[i + 1];
+    if (!next) return false;
+    const room = (next.index - tick.index) * 100;
+    return (axisLabelBoxWidth(tick.label, fontSize) + axisLabelBoxWidth(next.label, fontSize)) / 2 > room - 4;
+  });
 }

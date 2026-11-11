@@ -122,6 +122,12 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-canvas { display: block; width: 100%; max-height: 680px; min-height: 520px; touch-action: none; user-select: none; filter: drop-shadow(0 9px 19px rgba(43,39,29,.065)); }
 .canvas-paper { fill: #fff; }
 .grid-lines { stroke: #a9abaa; stroke-width: 3.175; }
+.grid-lines--fine { stroke: #a9abaa; stroke-width: 1.27; }
+.axis-labels .axis-title { fill: #242628; font-size: 25.4px; font-style: normal; }
+.object-names .object-name { cursor: grab; fill: #202224; }
+.object-names .object-name rect { fill: #fff; }
+.object-names .object-name--answer { fill: #b0125b; }
+.object-names .object-name.selected text { fill: var(--blue); }
 .graph-axes { stroke: #25282a; stroke-width: 4.233; fill: none; }
 #editor-axis-arrow path { fill: #25282a; }
 .axis-labels { pointer-events: none; }
@@ -156,6 +162,8 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .selected-equation { margin: 14px 0 12px; padding: 9px 10px; border-radius: 8px; background: #f1eee7; font: italic 14px Georgia, serif; text-align: center; }
 .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 8px; background: #ebe8e1; }
 .segmented button { min-height: var(--control-md); padding: 0 16px; border: 0; border-radius: 6px; background: transparent; font-size: var(--button-label); font-weight: 600; }
+.segmented--three { grid-template-columns: repeat(3, 1fr); }
+.segmented--three button { padding: 0 8px; }
 .segmented button.active { background: #fff; color: var(--blue); box-shadow: 0 1px 4px rgba(30,30,30,.1); }
 .line-style-field { display: grid; gap: 6px; margin-top: 12px; }
 .line-style-field > span { color: var(--muted); font-size: var(--supporting-text); font-weight: 700; }
@@ -190,6 +198,14 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .axis-panel .panel-heading { margin-bottom: 12px; }
 .axis-scale-row { display: grid; gap: 6px; margin-top: 10px; }
 .axis-scale-row > strong { font-size: var(--supporting-text); }
+.exam-axes { margin-top: 10px; }
+.exam-axes-row { display: grid; gap: 6px; margin-top: 10px; font-size: var(--supporting-text); }
+.exam-axis { display: grid; gap: 8px; margin: 12px 0 0; padding: 10px; border: 1px solid var(--line, #c8ccd0); border-radius: 8px; }
+.exam-axis legend { padding: 0 4px; font-weight: 600; font-size: var(--supporting-text); }
+.exam-axis-select { display: grid; gap: 4px; font-size: var(--supporting-text); }
+.exam-axis-select select { min-height: 36px; }
+.object-name-fields { display: grid; gap: 8px; margin: 12px 0; }
+.field-hint { margin: 4px 0 0; color: var(--muted); font-size: var(--supporting-text); line-height: 16px; }
 .scale-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .scale-options button { min-height: 64px; display: grid; align-content: center; gap: 2px; padding: 8px; border: 1px solid #d8d2c7; border-radius: 7px; background: #fff; }
 .scale-options button span { font-size: var(--button-label); font-weight: 650; line-height: 18px; }

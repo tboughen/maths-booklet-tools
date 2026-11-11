@@ -8,7 +8,7 @@ import {
   pointInBounds,
   visibleStraightPoints,
 } from "./diagram";
-import { OBJECT_NAME_PATTERN, formatAxisValue, normaliseObjectName, readableName } from "./axes";
+import { OBJECT_NAME_PATTERN, formatAxisValue, normaliseObjectName, readableName, xNumbersCrowded } from "./axes";
 import {
   parseNumericInput,
   pointsForEquation,
@@ -566,13 +566,16 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
 }
 export function graphWarnings(envelope: GraphEnvelope): string[] {
   const bounds = getBounds(envelope.document);
-  return envelope.document.objects
+  const crowded = xNumbersCrowded(envelope.document)
+    ? ["The x-axis numbers touch at print size. Number every 2nd, 3rd or 5th line (labelEvery) or use a larger scale."]
+    : [];
+  return crowded.concat(envelope.document.objects
     .filter((o) =>
       o.kind === "point"
         ? !pointInBounds(o.position, bounds)
         : !visibleStraightPoints(o, bounds),
     )
-    .map((o) => `${o.id} is outside the visible grid.`);
+    .map((o) => `${o.id} is outside the visible grid.`));
 }
 export function describeGraph(envelope: GraphEnvelope): string {
   const d = envelope.document,
