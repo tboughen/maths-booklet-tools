@@ -40,12 +40,23 @@ export function makeId(prefix: "point" | "straight" = "straight"): string {
 }
 
 export function getBounds(document: DiagramDocumentV1): Bounds {
+  const { x, y } = document.axes;
   return {
-    xMin: -document.axes.x.negativeSquares * document.axes.x.unitsPerSquare,
-    xMax: document.axes.x.positiveSquares * document.axes.x.unitsPerSquare,
-    yMin: -document.axes.y.negativeSquares * document.axes.y.unitsPerSquare,
-    yMax: document.axes.y.positiveSquares * document.axes.y.unitsPerSquare,
+    xMin: cleanNumber((x.origin ?? 0) - x.negativeSquares * x.unitsPerSquare),
+    xMax: cleanNumber((x.origin ?? 0) + x.positiveSquares * x.unitsPerSquare),
+    yMin: cleanNumber((y.origin ?? 0) - y.negativeSquares * y.unitsPerSquare),
+    yMax: cleanNumber((y.origin ?? 0) + y.positiveSquares * y.unitsPerSquare),
   };
+}
+
+/** Where the axes cross, in graph coordinates. (0, 0) unless an axis sets its origin. */
+export function axisOrigin(document: DiagramDocumentV1): Coordinate {
+  return { x: document.axes.x.origin ?? 0, y: document.axes.y.origin ?? 0 };
+}
+
+/** Fine squares per 1 cm square. */
+export function gridDivisions(document: Pick<DiagramDocumentV1, "grid">): 1 | 2 | 5 {
+  return document.grid === "5mm" ? 2 : document.grid === "2mm" ? 5 : 1;
 }
 
 export function createEditorLayout(document: DiagramDocumentV1): SvgLayout {
@@ -144,16 +155,23 @@ export function clampToBounds(point: Coordinate, bounds: Bounds): Coordinate {
   };
 }
 
+/**
+ * Snaps to half squares on a 1 cm grid, or to the fine grid's own lines. Steps are counted from
+ * each axis origin, so a graph starting at 09 00 snaps to its own lines.
+ */
 export function snapCoordinate(
   point: Coordinate,
   xScale: UnitsPerSquare,
   yScale: UnitsPerSquare,
+  divisions: 1 | 2 | 5 = 1,
+  origin: Coordinate = { x: 0, y: 0 },
 ): Coordinate {
-  const xStep = xScale / 2;
-  const yStep = yScale / 2;
+  const per = divisions === 1 ? 2 : divisions;
+  const xStep = xScale / per;
+  const yStep = yScale / per;
   return {
-    x: cleanNumber(Math.round(point.x / xStep) * xStep),
-    y: cleanNumber(Math.round(point.y / yStep) * yStep),
+    x: cleanNumber(origin.x + Math.round((point.x - origin.x) / xStep) * xStep),
+    y: cleanNumber(origin.y + Math.round((point.y - origin.y) / yStep) * yStep),
   };
 }
 
@@ -380,8 +398,28 @@ export function pointToSegmentDistance(
   return Math.sqrt(squaredDistance(point, projection));
 }
 
-export function shouldLabelAxisSquare(squareOffset: number, scale: UnitsPerSquare): boolean {
+export function shouldLabelAxisSquare(
+  squareOffset: number,
+  scale: UnitsPerSquare,
+  labelEvery?: number,
+): boolean {
+  if (labelEvery !== undefined) return squareOffset % labelEvery === 0;
   return scale !== 0.5 || squareOffset % 2 === 0;
+}
+
+/** The largest positive scale a saved file may use, in units per 1 cm square. */
+export const MAX_UNITS_PER_SQUARE = 100_000;
+export const MAX_AXIS_TITLE_LENGTH = 60;
+export const MAX_AXIS_ORIGIN = 1_000_000;
+
+export function isUnitsPerSquare(value: unknown): value is UnitsPerSquare {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value > 0 &&
+    value <= MAX_UNITS_PER_SQUARE &&
+    Math.abs(value * 1000 - Math.round(value * 1000)) < 1e-6
+  );
 }
 
 export function isAxisConfig(value: unknown): value is AxisConfig {
@@ -390,8 +428,21 @@ export function isAxisConfig(value: unknown): value is AxisConfig {
   return (
     Number.isInteger(candidate.negativeSquares) &&
     Number.isInteger(candidate.positiveSquares) &&
-    (candidate.unitsPerSquare === 0.5 ||
-      candidate.unitsPerSquare === 1 ||
-      candidate.unitsPerSquare === 2)
+    isUnitsPerSquare(candidate.unitsPerSquare) &&
+    (candidate.origin === undefined ||
+      (typeof candidate.origin === "number" &&
+        Number.isFinite(candidate.origin) &&
+        Math.abs(candidate.origin) <= MAX_AXIS_ORIGIN)) &&
+    (candidate.labelEvery === undefined ||
+      (Number.isInteger(candidate.labelEvery) &&
+        candidate.labelEvery >= 1 &&
+        candidate.labelEvery <= 10)) &&
+    (candidate.format === undefined ||
+      candidate.format === "number" ||
+      candidate.format === "time") &&
+    (candidate.title === undefined ||
+      (typeof candidate.title === "string" &&
+        candidate.title.trim().length > 0 &&
+        candidate.title.length <= MAX_AXIS_TITLE_LENGTH))
   );
 }

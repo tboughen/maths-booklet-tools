@@ -2,24 +2,26 @@ import { fitResource } from "../site/useResourceFit";
 import { getExportMetrics } from "../export/svg";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { axisTicks, sharedOriginLabel } from "../../packages/graph-core/src/axes";
 import {
   AXIS_LIMITS,
+  axisOrigin,
   clampToBounds,
   coordinateToSvg,
   createEditorLayout,
   getObjectById,
   getSelectedObject,
+  gridDivisions,
   makeId,
   pointInBounds,
   pointToSegmentDistance,
   snapCoordinate,
   squaredDistance,
   svgToCoordinate,
-  shouldLabelAxisSquare,
   updateObject,
   visibleStraightPoints,
 } from "../domain/diagram";
-import { equationForObject, formatNumber } from "../domain/equations";
+import { equationForObject } from "../domain/equations";
 import {
   AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
@@ -272,9 +274,9 @@ export function GraphCanvas({
     left = gutter + (controlWidth - paperWidth) / 2,
     top = 72 + (controlHeight - paperHeight) / 2;
   const axisX =
-    left + (coordinateToSvg({ x: 0, y: 0 }, layout).x - paper.x) * scale;
+    left + (coordinateToSvg(axisOrigin(document), layout).x - paper.x) * scale;
   const axisY =
-    top + (coordinateToSvg({ x: 0, y: 0 }, layout).y - paper.y) * scale;
+    top + (coordinateToSvg(axisOrigin(document), layout).y - paper.y) * scale;
   const controls = (
     [
       ["x", "negative"],
@@ -301,7 +303,7 @@ export function GraphCanvas({
           ? 8
           : 72 + controlHeight + 16,
   }));
-  const origin = coordinateToSvg({ x: 0, y: 0 }, layout);
+  const origin = coordinateToSvg(axisOrigin(document), layout);
   const horizontalSquares =
     document.axes.x.negativeSquares + document.axes.x.positiveSquares;
   const verticalSquares =
@@ -333,6 +335,8 @@ export function GraphCanvas({
           raw,
           document.axes.x.unitsPerSquare,
           document.axes.y.unitsPerSquare,
+          gridDivisions(document),
+          axisOrigin(document),
         )
       : raw;
   }
@@ -497,23 +501,12 @@ export function GraphCanvas({
 
   const xLabels = [];
   const xNumberBaseline = origin.y + AXIS_LABEL_FONT_SIZE * 1.08;
-  for (let index = 0; index <= horizontalSquares; index += 1) {
-    if (
-      !shouldLabelAxisSquare(
-        index - document.axes.x.negativeSquares,
-        document.axes.x.unitsPerSquare,
-      )
-    )
-      continue;
-    const value =
-      (index - document.axes.x.negativeSquares) *
-      document.axes.x.unitsPerSquare;
-    if (Math.abs(value) < 1e-9) continue;
+  for (const tick of axisTicks(document, "x")) {
     xLabels.push(
       <AxisTickLabel
-        key={index}
-        text={formatNumber(value)}
-        x={layout.plotLeft + index * layout.square}
+        key={tick.index}
+        text={tick.label}
+        x={layout.plotLeft + tick.index * layout.square}
         baseline={xNumberBaseline}
       />,
     );
@@ -521,25 +514,14 @@ export function GraphCanvas({
   const yLabels = [];
   const yNumberX =
     origin.x - EDITOR_UNITS_PER_CENTIMETRE * Y_AXIS_LABEL_GAP_CENTIMETRES;
-  for (let index = 0; index <= verticalSquares; index += 1) {
-    if (
-      !shouldLabelAxisSquare(
-        document.axes.y.positiveSquares - index,
-        document.axes.y.unitsPerSquare,
-      )
-    )
-      continue;
-    const value =
-      (document.axes.y.positiveSquares - index) *
-      document.axes.y.unitsPerSquare;
-    if (Math.abs(value) < 1e-9) continue;
+  for (const tick of axisTicks(document, "y").reverse()) {
     yLabels.push(
       <AxisTickLabel
-        key={index}
-        text={formatNumber(value)}
+        key={tick.index}
+        text={tick.label}
         x={yNumberX}
         baseline={
-          layout.plotTop + index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34
+          layout.plotBottom - tick.index * layout.square + AXIS_LABEL_FONT_SIZE * 0.34
         }
         textAnchor="end"
       />,
@@ -638,13 +620,15 @@ export function GraphCanvas({
           <g className="axis-labels">
             {xLabels}
             {yLabels}
-            <AxisTickLabel
-              text="0"
-              x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
-              baseline={xNumberBaseline}
-              textAnchor="end"
-              origin
-            />
+            {sharedOriginLabel(document) && (
+              <AxisTickLabel
+                text={document.originLabel === "O" ? "𝑂" : "0"}
+                x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
+                baseline={xNumberBaseline}
+                textAnchor="end"
+                origin={document.originLabel !== "O"}
+              />
+            )}
             <text
               className="axis-name axis-name--x"
               x={layout.plotRight + 29}

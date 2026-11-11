@@ -1,3 +1,4 @@
+import { OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
 
@@ -16,6 +17,12 @@ function isGraphObject(value: unknown): value is GraphObject {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<GraphObject> & Record<string, unknown>;
   if (typeof candidate.id !== "string") return false;
+  if (
+    (candidate.name !== undefined &&
+      (typeof candidate.name !== "string" || !OBJECT_NAME_PATTERN.test(candidate.name))) ||
+    (candidate.namePosition !== undefined && !isCoordinate(candidate.namePosition))
+  )
+    return false;
   if (candidate.kind === "point") return isCoordinate(candidate.position);
   if (candidate.kind !== "straight") return false;
   return (
@@ -39,6 +46,13 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     (candidate.styleProfile !== undefined &&
       candidate.styleProfile !== "legacy" &&
       candidate.styleProfile !== "portable-v1") ||
+    (candidate.grid !== undefined &&
+      candidate.grid !== "1cm" &&
+      candidate.grid !== "5mm" &&
+      candidate.grid !== "2mm") ||
+    (candidate.originLabel !== undefined &&
+      candidate.originLabel !== "0" &&
+      candidate.originLabel !== "O") ||
     !candidate.axes ||
     !Array.isArray(candidate.objects)
   )

@@ -30,7 +30,12 @@ const graphGuide: FamilyGuide = {
   capabilities: {
     rendererVersion: graph.RENDERER_VERSION,
     objects: ["point", "segment", "line"],
-    unitsPerSquare: [0.5, 1, 2],
+    unitsPerSquare: "any positive scale per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25, 50; minutes for time axes",
+    commonUnitsPerSquare: [0.5, 1, 2, 5, 10, 20, 25, 50],
+    axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title"],
+    grids: ["1cm", "5mm", "2mm"],
+    originLabels: ["0", "O"],
+    objectNames: "A, B, P′, L, L1, L2 (capital letter, optional prime, optional subscript number)",
     squares: { x: [2, 18], y: [2, 26] },
     maximumObjects: 50,
     maximumRequestBytes: graph.MAX_REQUEST_BYTES,
@@ -38,12 +43,15 @@ const graphGuide: FamilyGuide = {
       x: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
       y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
     },
-    revisionOperations: ["add_object", "replace_object", "remove_object", "set_axes", "set_label"],
+    revisionOperations: ["add_object", "replace_object", "remove_object", "set_axes", "set_label", "set_grid", "set_name"],
   },
   create:
-    "One-centimetre grid squares with points, segments and straight lines; no curves. spec is {schemaVersion?:1, axes, objects}: supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly asks to print, show or label the equation; plotting y = 2x + 1 alone gives an unlabelled line.",
+    "One-centimetre grid squares with points, segments and straight lines; no curves. spec is {schemaVersion?:1, axes, grid?, originLabel?, objects}: supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly asks to print, show or label the equation; plotting y = 2x + 1 alone gives an unlabelled line. " +
+    "Edexcel style: originLabel \"O\" prints an italic O; name:\"L\" (or \"L1\", \"L2\") prints a bold line name beside the line; a point with name:\"A\" prints an italic A beside its cross. Names never reveal answers, so add them only when the question names the object. " +
+    "Real-life graphs: each axis takes unitsPerSquare (any positive scale per 1 cm square, e.g. 5, 10, 25), origin (value where the axes cross), labelEvery (number every nth 1 cm line), format \"time\" (values are minutes after midnight, printed 12 00) and title (words and unit, e.g. \"Distance from home (km)\", replacing the italic letter). grid \"2mm\" or \"5mm\" adds a fine grid inside heavier 1 cm lines; points and line ends may sit on fine lines. " +
+    "Example travel graph 12 00 to 14 30, 0 to 30 km: axes {x:{negativeSquares:0,positiveSquares:15,unitsPerSquare:10,origin:720,labelEvery:3,format:\"time\",title:\"Time of day\"}, y:{negativeSquares:0,positiveSquares:6,unitsPerSquare:5,labelEvery:2,title:\"Distance from home (km)\"}}, grid \"2mm\", segments in minutes and km such as {kind:\"segment\",start:{x:720,y:0},end:{x:765,y:25}}.",
   revise:
-    "Operations apply atomically. replace_object keeps the ID; set_label shows, hides or moves a line equation; set_axes sets both axes. Keep label visibility, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
+    "Operations apply atomically. replace_object keeps the ID; set_label shows, hides or moves a line equation; set_axes sets both axes (include every axis option you want to keep); set_grid {grid?, originLabel?} changes the grid or origin mark; set_name {id, name?: string|null, position?: {x,y}|null} names, renames, unnames or moves an object's printed name. Keep label visibility, names, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
 };
 
 const ratioGuide: FamilyGuide = {

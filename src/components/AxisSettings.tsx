@@ -87,16 +87,20 @@ export function AxisSettings({
                   drafts={drafts}
                   disabled={disabled}
                   onApply={(next) => {
-                    const squares =
-                      (minimum ? -next : next) /
-                      document.axes[axis].unitsPerSquare;
+                    const fromOrigin = next - (document.axes[axis].origin ?? 0);
+                    const squares = Number(
+                      (
+                        (minimum ? -fromOrigin : fromOrigin) /
+                        document.axes[axis].unitsPerSquare
+                      ).toFixed(9),
+                    );
                     const other =
                       document.axes[axis][
                         minimum ? "positiveSquares" : "negativeSquares"
                       ];
                     if (!Number.isInteger(squares) || squares < 0)
                       throw Error(
-                        "Use a supported grid step and keep the range on its side of zero.",
+                        "Use a whole number of grid squares and keep the range on its side of the axis.",
                       );
                     if (
                       squares + other < AXIS_LIMITS[axis].minTotal ||
