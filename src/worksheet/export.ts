@@ -22,13 +22,18 @@ function loadFonts() {
   return fonts;
 }
 
+/** A vector PDF of rendered pages (any millimetre size), written in the browser. */
+export async function pagesPdf(pages: string[], title: string): Promise<Blob> {
+  const [{ default: PDFDocument }, { default: SVGtoPDF }, f] = await Promise.all([import("pdfkit"), import("svg-to-pdfkit"), loadFonts()]);
+  const bytes = await writeWorksheetPdf(PDFDocument as never, SVGtoPDF as never, pages, title, f);
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+}
+
 /** The vector PDF for one view, written in the browser with the same writer as the MCP service. */
 export async function worksheetPdf(resource: Resource, view: View): Promise<Blob> {
   const { pages, issues } = renderResource(resource, { view });
   if (issues.length) throw Error("Fix the layout checks before downloading: the worksheet does not fit two sides yet.");
-  const [{ default: PDFDocument }, { default: SVGtoPDF }, f] = await Promise.all([import("pdfkit"), import("svg-to-pdfkit"), loadFonts()]);
-  const bytes = await writeWorksheetPdf(PDFDocument as never, SVGtoPDF as never, pages, resource.document.title, f);
-  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+  return pagesPdf(pages, resource.document.title);
 }
 
 export async function downloadPdf(resource: Resource, view: View) {

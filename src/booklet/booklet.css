@@ -1,0 +1,24 @@
+/* Booklet editor: builds on the worksheet editor's styles. */
+.bk-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 16px; }
+/* Long booklets: pages off screen skip rendering until scrolled to. */
+.bk-page { content-visibility: auto; contain-intrinsic-size: auto 540px; scroll-margin-top: 80px; }
+.bk-jump select { max-width: 16rem; }
+.bk-small { min-height: 0; padding: 2px 8px; font-size: 0.8rem; gap: 4px; }
+.bk-lesson > summary { display: flex; align-items: center; gap: 6px; }
+.bk-tag { font-size: 0.75rem; font-style: normal; color: #a4161a; font-weight: 600; }
+.bk-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bk-notes > summary { cursor: pointer; font-size: 0.85rem; color: var(--muted, #5d6470); }
+.bk-sub { font-size: 0.9rem; margin: 6px 0 0; }
+.bk-keyword { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: 4px; align-items: end; }
+.bk-objectives { display: grid; gap: 4px; margin: 0; padding: 6px 8px; border: 1px solid #d5dbe3; border-radius: 6px; max-height: 260px; overflow: auto; }
+.bk-objectives legend { font-size: 0.85rem; color: var(--muted, #5d6470); padding: 0 4px; }
+.bk-objective { align-items: flex-start; }
+.bk-objective input { margin-top: 3px; }
+.bk-estimate { color: var(--ink, #262720); }
+.bk-progress { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
+.bk-progress li { display: flex; align-items: center; gap: 6px; }
+.bk-progress li.done svg { color: #1f7a4d; }
+.bk-progress li.problem { color: #a4161a; }
+.bk-progress li.waiting { color: var(--muted, #5d6470); }
+.bk-dot { display: inline-block; width: 8px; height: 8px; margin: 0 3px; border-radius: 50%; border: 1.5px solid currentColor; }
+.bk-flags { margin: 0; padding-left: 1.2em; font-size: 0.85rem; display: grid; gap: 4px; }

@@ -28,7 +28,8 @@ export type LinkPageId =
   | "booklet-tools"
   | "question-bank"
   | "assessment-follow-up"
-  | "worksheets";
+  | "worksheets"
+  | "booklets";
 /** Every page the site can show, including the not-found page. */
 export type PageId = LinkPageId | "not-found";
 
@@ -40,6 +41,7 @@ const sitePaths: Partial<Record<LinkPageId, string>> = {
   "question-bank": "question-bank",
   "assessment-follow-up": "assessment-follow-up",
   worksheets: "worksheets",
+  booklets: "booklets",
 };
 
 /** Pages that moved; their old addresses open the new page. Worksheets sat with the booklet
@@ -68,7 +70,7 @@ export function readPage(where: LocationLike = location): PageId {
   const rest = path.slice(base.length, -1);
   if (rest === "" || rest === "index.html") return "home";
   if (rest === "tools") return "booklet-tools";
-  if (rest === "question-bank" || rest === "assessment-follow-up" || rest === "worksheets") return rest;
+  if (rest === "question-bank" || rest === "assessment-follow-up" || rest === "worksheets" || rest === "booklets") return rest;
   if (movedPaths[rest]) return movedPaths[rest];
   const tool = /^tools\/([a-z-]+)$/.exec(rest)?.[1];
   return tool && isTool(tool) ? tool : "not-found";

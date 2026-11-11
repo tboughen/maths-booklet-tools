@@ -1,4 +1,3 @@
-import { FAMILIES } from "../../diagram-core/src/registry";
 import { validateBooklet, type Booklet } from "./booklet";
 import type { Card, Item } from "./schema";
 
@@ -13,7 +12,8 @@ import type { Card, Item } from "./schema";
 type Pt = [number, number];
 const axes = (x: Pt, y: Pt) => ({ x: { negativeSquares: x[0], positiveSquares: x[1], unitsPerSquare: 1 as const }, y: { negativeSquares: y[0], positiveSquares: y[1], unitsPerSquare: 1 as const } });
 function graph(x: Pt, y: Pt, objects: unknown[] = []): Item {
-  return { type: "diagram", diagram: { tool: "graph", envelope: FAMILIES.graph.create({ spec: { axes: axes(x, y), objects } }) as Record<string, unknown> } };
+  // Written as a spec, as the AI maker writes it; validateBooklet builds the envelope.
+  return { type: "diagram", diagram: { tool: "graph", spec: { axes: axes(x, y), objects } } };
 }
 const line = (a: Pt, b: Pt) => ({ kind: "line", start: { x: a[0], y: a[1] }, end: { x: b[0], y: b[1] } });
 const seg = (a: Pt, b: Pt, dashed = true) => ({ kind: "segment", start: { x: a[0], y: a[1] }, end: { x: b[0], y: b[1] }, strokeStyle: dashed ? "dashed" : "solid" });
@@ -22,7 +22,6 @@ const point = (p: Pt) => ({ kind: "point", position: { x: p[0], y: p[1] } });
 const gradientGrid = (a: Pt, b: Pt) => graph([1, 5], [1, 6], [line(a, b)]);
 
 const t = (text: string): Item => ({ type: "text", text });
-const info = (text: string): Item => ({ type: "info", text });
 const claim = (text: string): Item => ({ type: "claim", text });
 const answer = (prefix: string, value = "", suffix = ""): Item => ({ type: "answerLine", prefix, suffix, answer: value, inline: false });
 const part = (text: string, ...items: Item[]): Item => ({ type: "part", text, items: items as never });
@@ -39,7 +38,8 @@ const table = (columns: string[], ...rows: C[][]): Item => ({ type: "table", col
 const moves = (...rows: C[][]) => table(["*x* →", "*y* ↑"], ...rows);
 const card = (title: string, ...items: Item[]): Card => ({ title, items: items as Card["items"] });
 
-const gradientLesson = {
+/** The model lesson, as source (diagrams as specs). The AI maker shows it as its example. */
+export const exampleLessonSource = {
   title: "Find the gradient of a line (positive)",
   code: "A7.03",
   objective: "Find the gradient of a straight line (positive)",
@@ -257,6 +257,6 @@ export const a7Booklet: Booklet = validateBooklet({
         { word: "*y*-intercept", meaning: "Where a line crosses the *y*-axis." },
       ],
     },
-    lessons: [plotLesson, gradientLesson],
+    lessons: [plotLesson, exampleLessonSource],
   },
 });
