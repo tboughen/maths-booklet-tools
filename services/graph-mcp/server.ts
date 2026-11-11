@@ -394,7 +394,7 @@ export function graphService(options: ServiceOptions) {
         limits.output(file.body.length); bytes = file.body.length;
         res.writeHead(200, {
           "Content-Type": file.type,
-          "Content-Disposition": `attachment; filename="maths-ratio-table.${format}"`,
+          "Content-Disposition": `attachment; filename="maths-ratio-table${view === "answer" ? "-answers" : ""}.${format}"`,
           "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
         });
         res.end(file.body); return;

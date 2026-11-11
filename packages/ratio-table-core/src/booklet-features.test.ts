@@ -59,7 +59,7 @@ describe("hidden answers", () => {
     expect(pupil).toMatch(/data-hidden="true"><path class="ratio-answer-line"/);
     expect(answer).toContain("÷");
     expect(pupil.match(/<svg[^>]*>/)![0]).toBe(answer.match(/<svg[^>]*>/)![0]);
-    expect(describeRatio(e)).toContain("Hidden operations print only in the answers copy.");
+    expect(describeRatio(e, "answer")).toContain("Hidden operations print only in the answers copy.");
   });
 
   it("reserves a full answer line for a hidden operation, never a shorter one", () => {
@@ -173,5 +173,16 @@ describe("compact form", () => {
     expect(() => createRatioTable({ table: [["2", "4"]], steps: ["÷ 2"] })).toThrow(/one step for each gap/);
     expect(() => createRatioTable({ table: [["2", "4"]], rows: [{ cells: [{ kind: "empty" }] }] })).toThrow(/not both/);
     expect(() => createRatioTable({ steps: ["÷ 2"] })).toThrow(/steps go with table/);
+  });
+});
+
+describe("pupil-facing descriptions", () => {
+  it("never state a hidden answer or a hidden operation in the pupil description (alt text)", () => {
+    const e = createRatioTable({ table: [["4", "8"], ["1", "[37]_"]], steps: ["[÷ 4]"] });
+    const pupil = describeRatio(e);
+    expect(pupil).not.toContain("37");
+    expect(pupil).not.toContain("Hidden");
+    expect(pupil).toContain("answer line");
+    expect(describeRatio(e, "answer")).toContain("hidden answer 37");
   });
 });

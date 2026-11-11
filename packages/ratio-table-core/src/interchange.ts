@@ -549,15 +549,19 @@ export function ratioWarnings(envelope: RatioEnvelope): string[] {
     );
   return warnings;
 }
-export function describeRatio(envelope: RatioEnvelope): string {
+/**
+ * Plain-text description of one copy. The pupil copy (the default, also used as alt text) never
+ * states a hidden answer or a hidden operation: it reads them as the blank or answer line pupils see.
+ */
+export function describeRatio(envelope: RatioEnvelope, view: "pupil" | "answer" = "pupil"): string {
   const d = envelope.document;
   const rows = d.rows
     .map(
       (row) =>
-        `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? `hidden answer ${c.value}${c.line ? " on an answer line" : ""}` : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
+        `${row.id}: (${row.cells.map((c) => (c.kind === "number" ? c.value : c.kind === "hidden" ? (view === "answer" ? `hidden answer ${c.value}` : c.line ? "answer line" : "empty") : c.kind === "empty" ? "empty" : "answer line")).join(", ")})`,
     )
     .join("; ");
-  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
+  return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
   return btoa(

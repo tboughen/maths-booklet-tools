@@ -62,7 +62,7 @@ export function ratioTools(
   async function result(envelope: RatioEnvelope, signal: AbortSignal, view: "pupil" | "answer" = "pupil") {
     const metrics = ratioMetrics(envelope.document),
       hash = await ratioHash(envelope),
-      description = describeRatio(envelope),
+      description = describeRatio(envelope, view),
       warnings = ratioWarnings(envelope);
     const printFile = await artifacts(envelope, "png", signal, view);
     const width = Math.min(

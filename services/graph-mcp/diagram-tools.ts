@@ -78,7 +78,7 @@ export function diagramFailure(error: unknown, kindName?: string) {
 function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Checked", size: { width: number; height: number }, alt: string, warnings: string[]) {
   const f = FAMILIES[source.kind];
   const what =
-    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope) : source.kind === "number-line" ? line.describe(source.envelope) : alt;
+    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : alt;
   const viewNote = f.answerView ? ` Artwork view: ${("outputView" in source && source.outputView) || "pupil"}.` : "";
   const notes = warnings.length ? ` ${warnings.length} note${warnings.length === 1 ? "" : "s"}: ${warnings.join(" ")}` : "";
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;

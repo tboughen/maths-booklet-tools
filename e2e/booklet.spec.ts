@@ -43,10 +43,13 @@ test("shows the example booklet with a contents page, edits a lesson title and u
   // Answers appear only in the teacher preview.
   // The check-in's ratio tables hold their answers as hidden cells and hidden ÷ 4 steps.
   const hiddenOnPage5 = page.locator("#bk-page-5 .ratio-hidden-answer");
+  const answerInk = page.locator('#bk-page-5 [fill="#b0125b"]');
   await expect(hiddenOnPage5).toHaveCount(0);
+  await expect(answerInk).toHaveCount(0);
   await expect(page.locator("#bk-page-5")).not.toContainText("÷");
   await page.getByLabel("Teacher preview: show hidden answers").check();
   await expect(hiddenOnPage5).toHaveCount(2);
+  await expect(answerInk).not.toHaveCount(0);
   await expect(page.locator("#bk-page-5")).toContainText("÷");
 });
 

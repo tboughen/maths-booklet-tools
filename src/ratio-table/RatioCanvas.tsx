@@ -30,6 +30,7 @@ export function RatioCanvas({
   envelope,
   zoom,
   guides,
+  view = "pupil",
   inputVersion,
   disabled,
   structureDisabled,
@@ -51,6 +52,8 @@ export function RatioCanvas({
   envelope: RatioEnvelope;
   zoom: number;
   guides: boolean;
+  /** The copy the preview draws: pupil by default, answer for the teacher preview. */
+  view?: "pupil" | "answer";
   inputVersion: number;
   disabled: boolean;
   structureDisabled: boolean;
@@ -128,9 +131,8 @@ export function RatioCanvas({
             className="ratio-preview"
             data-testid="ratio-preview"
             role="img"
-            aria-label={speakRatio(envelope)}
-            // The editor shows the answers copy: hidden answers appear in the answer colour.
-            dangerouslySetInnerHTML={{ __html: renderRatioSvg(document, "answer") }}
+            aria-label={speakRatio(envelope, view)}
+            dangerouslySetInnerHTML={{ __html: renderRatioSvg(document, view) }}
           />
           {guides && (
             <svg

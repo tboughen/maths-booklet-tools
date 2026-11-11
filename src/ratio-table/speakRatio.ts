@@ -12,12 +12,16 @@ const never = (value: never): never => {
 
 const speakNumber = (value: string) => value.replace(/\//g, " over ");
 
-function speakCell(cell: RatioCell): string {
+function speakCell(cell: RatioCell, view: "pupil" | "answer"): string {
   switch (cell.kind) {
     case "number": return speakNumber(cell.value);
     case "empty": return "blank";
     case "answer-line": return "answer line";
-    case "hidden": return `hidden answer ${speakNumber(cell.value)}${cell.line ? " on an answer line" : ""}`;
+    case "hidden":
+      // The pupil copy is read as pupils see it, without the answer.
+      return view === "answer"
+        ? `hidden answer ${speakNumber(cell.value)}`
+        : `${cell.line ? "answer line" : "blank"}, answer hidden`;
     default: return never(cell);
   }
 }
@@ -32,12 +36,14 @@ function speakHeading(heading: RatioDocument["headings"][number]): string {
   }
 }
 
-export function speakRatio(envelope: RatioEnvelope): string {
+export function speakRatio(envelope: RatioEnvelope, view: "pupil" | "answer" = "pupil"): string {
   const d = envelope.document;
-  const rows = d.rows.map((row, i) => `Row ${i + 1}: ${row.cells.map(speakCell).join(", ")}`).join(". ");
+  const rows = d.rows.map((row, i) => `Row ${i + 1}: ${row.cells.map((cell) => speakCell(cell, view)).join(", ")}`).join(". ");
   const rowNumber = (id: string) => d.rows.findIndex((row) => row.id === id) + 1;
   const operations = d.mode === "annotated" && d.showOperations
-    ? d.transitions.map((t) => ` Row ${rowNumber(t.from)} to row ${rowNumber(t.to)}: ${t.operation === "multiply" ? "multiply" : "divide"} by ${speakNumber(t.factor)}${t.hidden ? ", hidden in the pupil copy" : ""}.`).join("")
+    ? d.transitions.map((t) => t.hidden && view === "pupil"
+        ? ` Row ${rowNumber(t.from)} to row ${rowNumber(t.to)}: operation hidden.`
+        : ` Row ${rowNumber(t.from)} to row ${rowNumber(t.to)}: ${t.operation === "multiply" ? "multiply" : "divide"} by ${speakNumber(t.factor)}.`).join("")
     : "";
   const notes = d.mode === "simple"
     ? "Scaling annotations hidden."

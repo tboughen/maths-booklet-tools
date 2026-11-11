@@ -10,14 +10,21 @@ import { headingText, headingFromText } from "./headingText";
 
 type RatioCellValue = RatioDocument["rows"][number]["cells"][number];
 type CellType = "number" | "empty" | "answer-line" | "hidden" | "hidden-line";
+const hasValue = (cell: RatioCellValue) =>
+  cell.kind === "number" || cell.kind === "hidden";
 const cellType = (cell: RatioCellValue): CellType =>
   cell.kind === "hidden" ? (cell.line ? "hidden-line" : "hidden") : cell.kind;
-/** A new cell type keeps the cell's value where the new type has one. Nothing is calculated. */
+/**
+ * A new cell type keeps the cell's value where the new type has one. Nothing is calculated, and a
+ * hidden answer is made only from a value the teacher typed, never from a blank.
+ */
 function changeCellType(cell: RatioCellValue, type: CellType): RatioCellValue {
-  const value = cell.kind === "number" || cell.kind === "hidden" ? cell.value : "0";
-  if (type === "number") return { kind: "number", value };
-  if (type === "hidden") return { kind: "hidden", value };
-  if (type === "hidden-line") return { kind: "hidden", value, line: true };
+  const value = cell.kind === "number" || cell.kind === "hidden" ? cell.value : null;
+  if (type === "number") return { kind: "number", value: value ?? "0" };
+  if (type === "hidden" || type === "hidden-line") {
+    if (value === null) return cell;
+    return type === "hidden" ? { kind: "hidden", value } : { kind: "hidden", value, line: true };
+  }
   return { kind: type };
 }
 
@@ -197,15 +204,26 @@ export function RatioInspector({
                 <option value="number">Value</option>
                 <option value="empty">Empty</option>
                 <option value="answer-line">Answer line</option>
-                <option value="hidden">Hidden answer (blank for pupils)</option>
-                <option value="hidden-line">Hidden answer on an answer line</option>
+                <option value="hidden" disabled={!hasValue(row.cells[selection.column])}>
+                  Hidden answer (blank for pupils)
+                </option>
+                <option value="hidden-line" disabled={!hasValue(row.cells[selection.column])}>
+                  Hidden answer on an answer line
+                </option>
               </select>
             </label>
-            {row.cells[selection.column].kind === "hidden" && (
+            {row.cells[selection.column].kind === "hidden" ? (
               <p className="panel-note">
                 Pupils see a blank. The value prints in the answers copy only,
                 in the answer colour.
               </p>
+            ) : (
+              !hasValue(row.cells[selection.column]) && (
+                <p className="panel-note">
+                  To hide an answer, type it in the cell first, then choose
+                  Hidden answer.
+                </p>
+              )
             )}
           </>
         )}

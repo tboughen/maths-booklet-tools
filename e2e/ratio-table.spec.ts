@@ -1093,24 +1093,27 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
 }) => {
   await seed(page);
   await page.goto("/tools/ratio-table");
-  // Make the answer-line cell a hidden answer of 2/3 through the cell panel.
-  await page.getByLabel("Row 2 y value", { exact: true }).click();
-  await page
-    .getByLabel("Row 2 y cell type", { exact: true })
-    .selectOption("hidden");
-  await expect
-    .poll(async () => (await stored(page)).document.rows[1].cells[1])
-    .toEqual({ kind: "hidden", value: "0" });
+  // A blank cannot become a hidden answer: there is no value to hide, and none is invented.
   const cell = page.getByLabel("Row 2 y value", { exact: true });
+  await cell.click();
+  const type = page.getByLabel("Row 2 y cell type", { exact: true });
+  await expect(type.locator('option[value="hidden"]')).toHaveAttribute("disabled", "");
+  // Type the answer, then hide it.
   await cell.fill("2/3");
   await cell.press("Enter");
+  await cell.click();
+  await type.selectOption("hidden");
   await expect
     .poll(async () => (await stored(page)).document.rows[1].cells[1])
     .toEqual({ kind: "hidden", value: "2/3" });
-  // The editor shows it in the answer colour.
-  await expect(
-    page.getByTestId("ratio-preview").locator(".ratio-hidden-answer"),
-  ).toHaveCount(1);
+  // The preview is the pupil copy until the teacher asks to see hidden answers.
+  const preview = page.getByTestId("ratio-preview");
+  await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(0);
+  await expect(preview).not.toHaveAttribute("aria-label", /2 over 3/);
+  await page
+    .getByLabel("Teacher preview: show hidden answers", { exact: true })
+    .check();
+  await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(1);
   for (const [name, file, shown] of [
     ["Download SVG", "maths-ratio-table.svg", false],
     ["Download answers SVG", "maths-ratio-table-answers.svg", true],
