@@ -2,10 +2,11 @@
 // editor must reach every visible control, every control that takes focus must have an accessible
 // name, and focus must be visible on screen when it lands. tool-nav-keyboard.spec.ts and
 // editor-layout.spec.ts cover the tool row and the settings jump; this covers the whole page.
+//
+// The bare `e2e` project and the `release` project (release qualification) both run every spec.
 import { test, expect, type Page } from "@playwright/test";
 import { toolIds } from "../src/site/routes";
 
-const tools = toolIds;
 // Enough for the busiest editor; the walk stops early when focus wraps round to the start.
 const MAX_TABS = 600;
 
@@ -20,22 +21,32 @@ const FOCUSABLE = [
   "[tabindex]",
 ].join(",");
 
-/** Marks every control a keyboard user can see and should be able to reach, and returns their ids. */
-async function markReachable(page: Page): Promise<string[]> {
+/**
+ * Records how every tabbable control looks at rest, before anything has focus, and returns the ids
+ * of those a keyboard user can see and must be able to reach. A focus indicator is then a change
+ * from that resting look, so a permanent shadow or an SVG shape's ordinary stroke never counts.
+ */
+async function markControls(page: Page): Promise<string[]> {
   return page.evaluate((selector) => {
-    const ids: string[] = [];
+    const reachable: string[] = [];
     let n = 0;
     for (const el of document.querySelectorAll<HTMLElement>(selector)) {
       if (el.tabIndex < 0 || el.matches(":disabled") || el.closest("[inert],[aria-hidden=true]")) continue;
-      if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
-      const box = el.getBoundingClientRect();
-      // Skip links and jump buttons sit off screen or shrink to nothing until they take focus.
-      if (box.width <= 1 || box.height <= 1) continue;
       const id = `kp-${n++}`;
       el.dataset.kp = id;
-      ids.push(id);
+      const s = getComputedStyle(el);
+      const box = el.getBoundingClientRect();
+      el.dataset.kpRest = JSON.stringify([
+        s.outlineStyle === "none" ? "none" : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}`,
+        s.boxShadow, s.stroke, s.strokeWidth, s.fill, s.backgroundColor, s.borderColor, s.borderWidth,
+        s.color, s.textDecorationLine, Math.round(box.width), Math.round(box.height),
+      ]);
+      if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+      // Skip links and jump buttons sit off screen or shrink to nothing until they take focus.
+      if (box.width <= 1 || box.height <= 1) continue;
+      reachable.push(id);
     }
-    return ids;
+    return reachable;
   }, FOCUSABLE);
 }
 
@@ -47,15 +58,17 @@ async function focusFacts(page: Page): Promise<Stop | null> {
     let el = document.activeElement as HTMLElement | null;
     while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement as HTMLElement;
     if (!el || el === document.body || el === document.documentElement) return null;
-    if (!el.dataset.kpSeen) el.dataset.kpSeen = String(document.querySelectorAll("[data-kp-seen]").length);
-    const style = getComputedStyle(el);
-    const outline = style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0;
-    const ring = style.boxShadow !== "none";
-    // Diagram objects are SVG shapes that show focus by drawing their own stroke.
-    const stroke =
-      el instanceof SVGElement && style.stroke !== "none" && !/rgba\(.*,\s*0\)$|transparent/.test(style.stroke) &&
-      parseFloat(style.strokeWidth) > 0;
+    const s = getComputedStyle(el);
     const box = el.getBoundingClientRect();
+    const now = [
+      s.outlineStyle === "none" ? "none" : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}`,
+      s.boxShadow, s.stroke, s.strokeWidth, s.fill, s.backgroundColor, s.borderColor, s.borderWidth,
+      s.color, s.textDecorationLine, Math.round(box.width), Math.round(box.height),
+    ];
+    const rest = el.dataset.kpRest ? (JSON.parse(el.dataset.kpRest) as unknown[]) : null;
+    const outline = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0;
+    // A control created after the page loaded has no resting record; it needs a real outline.
+    const visible = rest ? now.some((value, i) => value !== rest[i]) : outline;
     const onScreen =
       box.width > 0 && box.height > 0 && box.bottom > 0 && box.right > 0 &&
       box.top < innerHeight && box.left < innerWidth;
@@ -63,21 +76,22 @@ async function focusFacts(page: Page): Promise<Stop | null> {
       `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}` +
       `${el.getAttribute("aria-label") ? `[aria-label="${el.getAttribute("aria-label")}"]` : ""}` +
       ` "${(el.textContent ?? "").trim().slice(0, 40)}"`;
-    return { id: el.dataset.kp ?? null, label, visible: outline || ring || stroke, onScreen };
+    if (!el.dataset.kpSeen) el.dataset.kpSeen = String(document.querySelectorAll("[data-kp-seen]").length);
+    return { id: el.dataset.kp ?? null, label, visible, onScreen };
   });
 }
 
-for (const tool of tools)
+for (const tool of toolIds)
   test(`${tool}: Tab reaches every visible control, each named, with focus visible on screen`, async ({ page }) => {
     test.setTimeout(120000);
     await page.goto(`/tools/${tool}`);
-    await expect(page.getByRole("main")).toBeVisible();
-    await page.waitForLoadState("networkidle");
-    const reachable = await markReachable(page);
-    expect(reachable.length, `${tool} has controls to reach`).toBeGreaterThan(3);
-
+    // The editor is ready once its File menu button is on screen.
+    await expect(page.getByRole("main").getByRole("button", { name: "File", exact: true }).first()).toBeVisible();
     // Start from the top of the page, as a keyboard user arriving on it does.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    const reachable = await markControls(page);
+    expect(reachable.length, `${tool} has controls to reach`).toBeGreaterThan(3);
+
     const reached = new Set<string>();
     const unnamed: string[] = [];
     const invisible: string[] = [];
@@ -85,21 +99,34 @@ for (const tool of tools)
     let first: string | null = null;
     for (let i = 0; i < MAX_TABS; i++) {
       await page.keyboard.press("Tab");
-      const stop = await focusFacts(page);
+      // Let scroll-into-view settle before deciding where focus landed.
+      let stop = await focusFacts(page);
+      if (!stop) continue;
+      if (!stop.onScreen)
+        await expect
+          .poll(async () => (stop = await focusFacts(page))?.onScreen, { timeout: 1000 })
+          .toBe(true)
+          .catch(() => undefined);
       if (!stop) continue;
       const seen = await page.evaluate(() => (document.activeElement as HTMLElement).dataset.kpSeen);
       if (first === null) first = seen ?? null;
       else if (seen === first) break; // wrapped round to the first stop
       if (stop.id) reached.add(stop.id);
-      const focused = page.locator(":focus");
-      const named = await expect(focused).toHaveAccessibleName(/\S/, { timeout: 100 }).then(() => true, () => false);
+      const name = await page.locator(":focus").evaluate((el) => {
+        // Chromium's accessibility tree is the oracle; computedName is not on every element type.
+        const labelled = el.getAttribute("aria-labelledby");
+        return (
+          el.getAttribute("aria-label") ||
+          (labelled && labelled.split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? "").join(" ")) ||
+          ""
+        ).trim();
+      });
+      const named = name
+        ? true
+        : await expect(page.locator(":focus")).toHaveAccessibleName(/\S/, { timeout: 500 }).then(() => true, () => false);
       if (!named) unnamed.push(stop.label);
       if (!stop.visible) invisible.push(stop.label);
-      // Let scroll-into-view settle before deciding focus landed off screen.
-      if (!stop.onScreen) {
-        await page.waitForTimeout(200);
-        if (!(await focusFacts(page))?.onScreen) offScreen.push(stop.label);
-      }
+      if (!stop.onScreen) offScreen.push(stop.label);
     }
 
     const missed = await page.evaluate(
@@ -112,6 +139,6 @@ for (const tool of tools)
     expect(reached.size, `${tool}: controls Tab reached`).toBeGreaterThan(3);
     expect(missed, `${tool}: visible controls Tab never reached`).toEqual([]);
     expect(unnamed, `${tool}: focused controls with no accessible name`).toEqual([]);
-    expect(invisible, `${tool}: focused controls with no visible focus indicator`).toEqual([]);
+    expect(invisible, `${tool}: focused controls whose look does not change when focused`).toEqual([]);
     expect(offScreen, `${tool}: focused controls left off screen`).toEqual([]);
   });
