@@ -38,6 +38,7 @@
   <g class="graph-axes" fill="none" stroke-width="7.06" stroke="#1f2224">
     <line marker-end="url(#axis-arrow)" x1="49" x2="1072.33" y1="570" y2="570">
     <line marker-end="url(#axis-arrow)" x1="549" x2="549" y1="1070" y2="46.67">
+  <g clip-path="url(#plot-clip)" fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
   <g class="axis-labels" fill="#242628" font-family="'STIX Two Text', 'STIX Two Math', serif" font-size="42.33">
     <g class="axis-number">
       <rect fill="#ffffff" height="44.03" rx="2.12" width="61.81" x="18.1" y="581.01">
@@ -127,6 +128,5 @@
       "𝑥"
     <text class="axis-name axis-name-y" font-family="'STIX Two Text', 'STIX Two Math', serif" text-anchor="end" x="529" y="40">
       "𝑦"
-  <g clip-path="url(#plot-clip)" fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
   <g fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
   <g fill="#202224" font-family="'STIX Two Text', 'STIX Two Math', serif" font-size="35.28" font-style="italic">

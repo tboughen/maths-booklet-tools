@@ -33,7 +33,7 @@ const graphGuide: FamilyGuide = {
     unitsPerSquare: "any positive scale per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25, 50; minutes for time axes",
     commonUnitsPerSquare: [0.5, 1, 2, 5, 10, 20, 25, 50],
     axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title"],
-    grids: ["1cm", "5mm", "2mm"],
+    grids: ["1cm", "5mm", "2mm", "none"],
     originLabels: ["0", "O"],
     objectNames: "A, B, P′, L, L1, L2 (capital letter, optional prime, optional subscript number)",
     squares: { x: [2, 18], y: [2, 26] },
@@ -50,9 +50,10 @@ const graphGuide: FamilyGuide = {
     "Edexcel style: originLabel \"O\" prints an italic O; name:\"L\" (or \"L1\", \"L2\") prints a bold line name beside the line; a point with name:\"A\" prints an italic A beside its cross. Names never reveal answers, so add them only when the question names the object. " +
     "Hidden answers: answerOnly:true on a point, segment or line draws it in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy keeps the grid blank. Use it for the line or shape a pupil is asked to draw; ask for outputView answer only when the user wants the answers copy. " +
     "Real-life graphs: each axis takes unitsPerSquare (any positive scale per 1 cm square, e.g. 5, 10, 25), origin (value where the axes cross), labelEvery (number every nth 1 cm line), format \"time\" (values are minutes after midnight, printed 12 00) and title (words and unit, e.g. \"Distance from home (km)\", replacing the italic letter). grid \"2mm\" or \"5mm\" adds a fine grid inside heavier 1 cm lines; points and line ends may sit on fine lines. " +
+    "Sketch questions: grid \"none\" draws sketch axes (no grid, no axis numbers, just the axes with x, y and, with originLabel \"O\", an italic O). Squares still set the size and scale. A segment or line takes labels: up to 4 {at:{x,y}, text, side?} short texts such as \"3\", \"-2\" (printed −2) or \"(0, 3)\" beside a point, usually where it crosses an axis; side defaults to the free corner left of the y-axis or below the x-axis. Labels follow the line's answerOnly, so a sketch answer is a line with answerOnly:true and its intercept labels, and the pupil copy is blank axes. " +
     "Example travel graph 12 00 to 14 30, 0 to 30 km: axes {x:{negativeSquares:0,positiveSquares:15,unitsPerSquare:10,origin:720,labelEvery:3,format:\"time\",title:\"Time of day\"}, y:{negativeSquares:0,positiveSquares:6,unitsPerSquare:5,labelEvery:2,title:\"Distance from home (km)\"}}, grid \"2mm\", segments in minutes and km such as {kind:\"segment\",start:{x:720,y:0},end:{x:765,y:25}}.",
   revise:
-    "Operations apply atomically. replace_object keeps the ID; set_label shows, hides or moves a line equation; set_axes sets both axes (include every axis option you want to keep); set_grid {grid?, originLabel?} changes the grid or origin mark; set_name {id, name?: string|null, position?: {x,y}|null} names, renames, unnames or moves an object's printed name. Keep label visibility, names, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
+    "Operations apply atomically. replace_object keeps the ID (use it to change a line's labels); set_label shows, hides or moves a line equation; set_axes sets both axes (include every axis option you want to keep); set_grid {grid?, originLabel?} changes the grid or origin mark; set_name {id, name?: string|null, position?: {x,y}|null} names, renames, unnames or moves an object's printed name. Keep label visibility, names, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
 };
 
 const ratioGuide: FamilyGuide = {

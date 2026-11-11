@@ -3804,6 +3804,59 @@
                     "answerOnly": {
                       "type": "boolean",
                       "const": true
+                    },
+                    "labels": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "at": {
+                            "type": "object",
+                            "properties": {
+                              "x": {
+                                "type": "number",
+                                "minimum": -1000000,
+                                "maximum": 1000000
+                              },
+                              "y": {
+                                "type": "number",
+                                "minimum": -1000000,
+                                "maximum": 1000000
+                              }
+                            },
+                            "required": [
+                              "x",
+                              "y"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 16
+                          },
+                          "side": {
+                            "type": "string",
+                            "enum": [
+                              "left",
+                              "right",
+                              "above",
+                              "below",
+                              "above-left",
+                              "above-right",
+                              "below-left",
+                              "below-right"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "at",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -3844,9 +3897,10 @@
             "enum": [
               "1cm",
               "5mm",
-              "2mm"
+              "2mm",
+              "none"
             ],
-            "description": "1cm squares (default), or a fine grid of 5mm or 2mm squares inside heavier 1 cm lines. Scales still count 1 cm squares."
+            "description": "1cm squares (default), or a fine grid of 5mm or 2mm squares inside heavier 1 cm lines. Scales still count 1 cm squares. none draws sketch axes, as exam sketch questions print them: no grid and no axis numbers, only the axes with arrowheads, x, y and the origin (use originLabel O). Mark values on a sketch with a line's labels."
           },
           "originLabel": {
             "type": "string",

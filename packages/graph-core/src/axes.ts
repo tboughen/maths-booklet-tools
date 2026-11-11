@@ -2,7 +2,7 @@
  * Axis numbering and object names shared by the editor preview, the print renderer and the
  * connector, so every copy of a graph numbers and names things the same way.
  */
-import { gridDivisions, shouldLabelAxisSquare } from "./diagram";
+import { gridDivisions, isSketch, shouldLabelAxisSquare } from "./diagram";
 import { formatNumber } from "./equations";
 import { AXIS_LABEL_FONT_POINTS, axisLabelBoxWidth, pointsToDiagramUnits } from "./graphStyle";
 import type { AxisConfig, DiagramDocumentV1 } from "./types";
@@ -59,6 +59,7 @@ export function sharedOriginLabel(document: DiagramDocumentV1): boolean {
  * returns left to right; the y-axis returns bottom to top.
  */
 export function axisTicks(document: DiagramDocumentV1, axis: "x" | "y"): AxisTick[] {
+  if (isSketch(document)) return [];
   const config = document.axes[axis];
   const origin = config.origin ?? 0;
   const total = config.negativeSquares + config.positiveSquares;
@@ -76,6 +77,7 @@ export function axisTicks(document: DiagramDocumentV1, axis: "x" | "y"): AxisTic
 
 /** The 1 cm line pitch and, for a fine grid, its smaller pitch, in millimetres. */
 export function gridPitchesMm(document: Pick<DiagramDocumentV1, "grid">): number[] {
+  if (isSketch(document)) return [];
   const divisions = gridDivisions(document);
   return divisions === 1 ? [10] : [10, 10 / divisions];
 }
@@ -106,6 +108,25 @@ export function mathsLetter(letter: string, style: "bold" | "italic"): string {
 export function mathsDigits(digits: string, style: "bold" | "italic"): string {
   if (style === "italic") return digits;
   return [...digits].map((d) => String.fromCodePoint(0x1d7ce + Number(d))).join("");
+}
+
+export const LABEL_SIDES = [
+  "left",
+  "right",
+  "above",
+  "below",
+  "above-left",
+  "above-right",
+  "below-left",
+  "below-right",
+] as const;
+
+/** The longest label text a line can carry, such as "(−12, 3.5)". */
+export const MAX_LABEL_TEXT_LENGTH = 16;
+
+/** Label text prints minus signs, not hyphens: "-2" becomes "−2". */
+export function normaliseLabelText(text: string): string {
+  return text.replaceAll("-", "−");
 }
 
 /** Plain-text reading of a name: L1 reads "L₁", for descriptions and accessible text. */

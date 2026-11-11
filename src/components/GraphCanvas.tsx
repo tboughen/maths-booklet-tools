@@ -5,6 +5,7 @@ import {
   getExportMetrics,
   nameBox,
   nameCentre,
+  pointLabelPlacement,
 } from "../export/svg";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
@@ -24,6 +25,7 @@ import {
   getObjectById,
   getSelectedObject,
   gridDivisions,
+  isSketch,
   makeId,
   pointInBounds,
   pointToSegmentDistance,
@@ -637,6 +639,7 @@ export function GraphCanvas({
               )}
             </g>
           )}
+          {!isSketch(document) && (
           <g className="grid-lines">
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
               <line
@@ -657,6 +660,7 @@ export function GraphCanvas({
               />
             ))}
           </g>
+          )}
           <g className="graph-axes">
             <line
               x1={layout.plotLeft}
@@ -672,6 +676,34 @@ export function GraphCanvas({
               y2={layout.plotTop - AXIS_ARROW_EXTENSION}
               markerEnd="url(#editor-axis-arrow)"
             />
+          </g>
+          <g clipPath="url(#editor-plot-clip)">
+            {visibleDocument.objects
+              .filter(
+                (object): object is StraightObject =>
+                  object.kind === "straight",
+              )
+              .map((object) => {
+                const visible = visibleStraightPoints(object, layout.bounds);
+                if (!visible) return null;
+                const start = coordinateToSvg(visible[0], layout);
+                const end = coordinateToSvg(visible[1], layout);
+                return (
+                  <line
+                    key={object.id}
+                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
+                    x1={start.x}
+                    y1={start.y}
+                    x2={end.x}
+                    y2={end.y}
+                    strokeDasharray={
+                      object.strokeStyle === "dashed"
+                        ? STRAIGHT_DASH_ARRAY
+                        : undefined
+                    }
+                  />
+                );
+              })}
           </g>
           <g className="axis-labels">
             {xLabels}
@@ -755,32 +787,6 @@ export function GraphCanvas({
           <g clipPath="url(#editor-plot-clip)">
             {visibleDocument.objects
               .filter(
-                (object): object is StraightObject =>
-                  object.kind === "straight",
-              )
-              .map((object) => {
-                const visible = visibleStraightPoints(object, layout.bounds);
-                if (!visible) return null;
-                const start = coordinateToSvg(visible[0], layout);
-                const end = coordinateToSvg(visible[1], layout);
-                return (
-                  <line
-                    key={object.id}
-                    className={`graph-straight${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
-                    x1={start.x}
-                    y1={start.y}
-                    x2={end.x}
-                    y2={end.y}
-                    strokeDasharray={
-                      object.strokeStyle === "dashed"
-                        ? STRAIGHT_DASH_ARRAY
-                        : undefined
-                    }
-                  />
-                );
-              })}
-            {visibleDocument.objects
-              .filter(
                 (object): object is PointObject =>
                   object.kind === "point" &&
                   pointInBounds(object.position, layout.bounds),
@@ -832,6 +838,33 @@ export function GraphCanvas({
                 );
               })}
           </g>
+          <g className="point-labels" fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
+            {visibleDocument.objects.flatMap((object) =>
+              object.kind !== "straight" || !object.labels
+                ? []
+                : object.labels
+                    .filter((label) => pointInBounds(label.at, layout.bounds))
+                    .map((label, index) => {
+                      const place = pointLabelPlacement(
+                        document,
+                        object,
+                        label,
+                        layout,
+                        AXIS_LABEL_FONT_SIZE,
+                        0.12 * EDITOR_UNITS_PER_CENTIMETRE,
+                      );
+                      return (
+                        <g key={`${object.id}-${index}`} className={`point-label${object.answerOnly ? " point-label--answer" : ""}`}>
+                          {["text-halo", undefined].map((halo) => (
+                            <text key={halo ?? "text"} className={halo} aria-hidden={halo ? true : undefined} x={place.x} y={place.baseline} textAnchor={place.anchor}>
+                              {label.text}
+                            </text>
+                          ))}
+                        </g>
+                      );
+                    }),
+            )}
+          </g>
           <g className="object-names" fontFamily={fontFamily}>
             {visibleDocument.objects.map((object) => {
               if (!object.name) return null;
@@ -854,25 +887,29 @@ export function GraphCanvas({
                   onPointerDown={(event) => startObjectDrag(event, "name", object.id)}
                 >
                   <rect
+                    className="object-name-hit"
                     x={centre.x - box.width / 2}
                     y={centre.y - box.height / 2}
                     width={box.width}
                     height={box.height}
-                    rx={AXIS_LABEL_FONT_SIZE * 0.05}
                   />
-                  <text x={left} y={baseline} fontSize={AXIS_LABEL_FONT_SIZE}>
-                    {mathsLetter(parts.letter, style)}
-                    {parts.prime ? "′" : ""}
-                  </text>
-                  {parts.subscript && (
-                    <text
-                      x={left + box.letterWidth}
-                      y={baseline + AXIS_LABEL_FONT_SIZE * 0.22}
-                      fontSize={NAME_SUBSCRIPT_FONT_SIZE}
-                    >
-                      {mathsDigits(parts.subscript, style)}
-                    </text>
-                  )}
+                  {["text-halo", undefined].map((halo) => (
+                    <g key={halo ?? "text"} className={halo} aria-hidden={halo ? true : undefined}>
+                      <text x={left} y={baseline} fontSize={AXIS_LABEL_FONT_SIZE}>
+                        {mathsLetter(parts.letter, style)}
+                        {parts.prime ? "′" : ""}
+                      </text>
+                      {parts.subscript && (
+                        <text
+                          x={left + box.letterWidth}
+                          y={baseline + AXIS_LABEL_FONT_SIZE * 0.22}
+                          fontSize={NAME_SUBSCRIPT_FONT_SIZE}
+                        >
+                          {mathsDigits(parts.subscript, style)}
+                        </text>
+                      )}
+                    </g>
+                  ))}
                 </g>
               );
             })}

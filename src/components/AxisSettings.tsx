@@ -11,6 +11,7 @@ const grids: Array<{ value: GridSize; label: string }> = [
   { value: "1cm", label: "1 cm" },
   { value: "5mm", label: "5 mm" },
   { value: "2mm", label: "2 mm" },
+  { value: "none", label: "Sketch" },
 ];
 
 function editAxis(
@@ -170,7 +171,7 @@ export function AxisSettings({
         <summary>Exam-style axes and grid</summary>
         <div className="exam-axes-row">
           <span>Grid squares</span>
-          <div className="segmented segmented--three" role="group" aria-label="Grid squares">
+          <div className="segmented segmented--four" role="group" aria-label="Grid squares" title="Sketch: axes only, with no grid or numbers">
             {grids.map((grid) => {
               const active = (document.grid ?? "1cm") === grid.value;
               return (

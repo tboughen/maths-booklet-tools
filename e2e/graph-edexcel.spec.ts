@@ -75,3 +75,29 @@ test("exam-style axis, grid, name and answer-only controls are undoable edits", 
   expect((await saved(page)).axes.x).toMatchObject({ format: "time", origin: 540, title: "Time (s)" });
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/editor-controls.png`, fullPage: true });
 });
+
+test("sketch axes show no grid or numbers, with the line's labels in the answer colour", async ({ page }) => {
+  const sketch = createGraph({
+    grid: "none",
+    originLabel: "O",
+    axes: { x: { negativeSquares: 3, positiveSquares: 4, unitsPerSquare: 1 }, y: { negativeSquares: 3, positiveSquares: 4, unitsPerSquare: 1 } },
+    objects: [{ kind: "line", id: "l", equation: { kind: "slope", slope: -1.5, intercept: 3 }, answerOnly: true, labels: [{ at: { x: 0, y: 3 }, text: "3" }, { at: { x: 2, y: 0 }, text: "2" }] }],
+  });
+  await page.addInitScript(({ key, raw }) => localStorage.setItem(key, raw), { key, raw: JSON.stringify(sketch) });
+  await page.goto("/tools/graph");
+  const canvas = page.locator(".graph-canvas");
+  await expect(canvas.locator(".point-label--answer text:not(.text-halo)")).toHaveText(["3", "2"]);
+  await expect(canvas.locator(".grid-lines line")).toHaveCount(0);
+  // The only axis mark left is the italic O.
+  await expect(canvas.locator(".axis-number text")).toHaveText(["𝑂"]);
+  if (SHOTS) await page.locator(".graph-stage").screenshot({ path: `${SHOTS}/editor-sketch.png` });
+
+  // The grid control turns sketch axes back into a numbered grid, as one undoable edit.
+  await page.getByText("Exam-style axes and grid").click();
+  await page.getByRole("group", { name: "Grid squares" }).getByRole("button", { name: "1 cm" }).click();
+  await expect(canvas.locator(".grid-lines line")).toHaveCount(7 + 1 + 7 + 1);
+  await expect.poll(async () => (await saved(page))?.grid).toBeUndefined();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.grid).toBe("none");
+  expect((await saved(page)).objects[0].labels).toHaveLength(2);
+});
