@@ -1,4 +1,10 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 export interface DownloadAction {
@@ -10,6 +16,11 @@ export interface DownloadAction {
   separator?: boolean;
   picker?: boolean;
 }
+/** The File menu item whose success shows a short "Saved to file" check (improvement list U42). */
+export const SAVE_EDITABLE_LABEL = "Save editable file";
+export const SAVED_NOTE = "Saved to file";
+/** How long the check stays beside the File button. */
+export const SAVED_NOTE_MS = 3000;
 export const LINK_DESCRIPTION =
   "Anyone with the link can open the saved resource, including hidden answers.";
 
@@ -40,6 +51,16 @@ export function EditorDownloadMenu({
     maxHeight: 300,
     width: 300,
   });
+  // A short visible check beside the File button after Save editable file. It is screen chrome
+  // drawn on the page body, never inside the resource, so no export can include it.
+  const [saved, setSaved] = useState<{ top: number; left: number } | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(() => setSaved(null), SAVED_NOTE_MS);
+    return () => clearTimeout(timer);
+  }, [saved]);
   const callbacks = useRef({ onClose, active, open });
   callbacks.current = { onClose, active, open };
   const trigger = useCallback(
@@ -121,7 +142,35 @@ export function EditorDownloadMenu({
   useLayoutEffect(() => {
     if (!active && open) callbacks.current.onClose();
   }, [active, open]);
-  if (!open || !active) return null;
+  const savedNote =
+    saved && active
+      ? createPortal(
+          // The tool's status line announces the save, so screen readers do not hear it twice.
+          <div
+            className="resource-saved-note"
+            aria-hidden="true"
+            data-testid="saved-note"
+            style={{
+              position: "fixed",
+              top: saved.top,
+              left: saved.left,
+              zIndex: 1000,
+              padding: "4px 10px",
+              borderRadius: 6,
+              background: "var(--green)",
+              color: "var(--paper)",
+              fontWeight: 600,
+              fontSize: "var(--button-label)",
+              lineHeight: 1.4,
+              pointerEvents: "none",
+            }}
+          >
+            ✓ {SAVED_NOTE}
+          </div>,
+          globalThis.document.body,
+        )
+      : null;
+  if (!open || !active) return savedNote;
   async function invoke(item: DownloadAction) {
     if (invoking.current || item.disabled) return;
     invoking.current = true;
@@ -132,6 +181,15 @@ export function EditorDownloadMenu({
       await item.action();
       success = true;
       if (item.success) onMessage(item.success);
+      if (item.label === SAVE_EDITABLE_LABEL) {
+        // Tools without their own success text still get an announced confirmation.
+        if (!item.success) onMessage(`${SAVED_NOTE}.`);
+        const rect = trigger()?.getBoundingClientRect();
+        setSaved({
+          top: rect ? rect.bottom + 4 : 8,
+          left: rect ? Math.max(8, rect.left) : 8,
+        });
+      }
     } catch (error) {
       onMessage(
         error instanceof Error
@@ -161,7 +219,7 @@ export function EditorDownloadMenu({
         }
       });
   }
-  return createPortal(
+  const menuPortal = createPortal(
     <div
       ref={menu}
       id={id}
@@ -240,5 +298,11 @@ export function EditorDownloadMenu({
       ))}
     </div>,
     globalThis.document.body,
+  );
+  return (
+    <>
+      {savedNote}
+      {menuPortal}
+    </>
   );
 }
