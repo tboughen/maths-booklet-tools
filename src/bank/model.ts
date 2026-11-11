@@ -155,8 +155,8 @@ function readView(raw: string | null, count: number | undefined): Pick<BankRoute
   const limit = count && count > 0 ? Math.min(count, MAX_VIEWS) : MAX_VIEWS;
   if (Number.isInteger(n) && n >= 1 && n <= limit) return {view: n - 1};
   const reason = !(Number.isInteger(n) && n > limit) ? "views are numbered from 1"
-    : count ? `this question has ${count} view${count === 1 ? "" : "s"}`
-    : `a question has at most ${MAX_VIEWS} views`;
+    : count && count <= MAX_VIEWS ? `this question has ${count} view${count === 1 ? "" : "s"}`
+    : `a link can name at most ${MAX_VIEWS} views`;
   return {view: 0, viewError: `The link asked for view ${raw.trim() || "(blank)"}, but ${reason}. Showing view 1.`};
 }
 

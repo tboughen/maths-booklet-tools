@@ -33,7 +33,9 @@ describe("Sparx link and question selection contract", () => {
     expect(at("4")).toEqual({...emptyRoute, code: "U837", question: "first", view: 0, viewError: "The link asked for view 4, but this question has 3 views. Showing view 1."});
     for (const bad of ["0", "-1", "abc", "2.5", "1e1"])
       expect(at(bad).viewError, bad).toBe(`The link asked for view ${bad}, but views are numbered from 1. Showing view 1.`);
-    expect(at("101", catalogue).viewError).toBe("The link asked for view 101, but a question has at most 100 views. Showing view 1.");
+    expect(at("101", catalogue).viewError).toBe("The link asked for view 101, but a link can name at most 100 views. Showing view 1.");
+    const long = {...catalogue, questions: [{...first, questionViewCount: 120}, second]} as BankCatalogue;
+    expect(at("101", long).viewError).toBe("The link asked for view 101, but a link can name at most 100 views. Showing view 1.");
     expect(at("0").view).toBe(0);
     // The address written back is the corrected one.
     expect(routeQuery(at("4"))).toBe("?code=U837&question=first");

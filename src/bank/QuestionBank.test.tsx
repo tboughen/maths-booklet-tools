@@ -5,9 +5,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { BankIndex } from "./catalogueLoader";
 import { PAPER_STORAGE_KEY } from "./paper-storage";
 
-const mocks = vi.hoisted(() => ({index: undefined as unknown}));
+const mocks = vi.hoisted(() => ({index: undefined as unknown, loaded: false}));
 vi.mock("./catalogueLoader", () => ({
-  fetchCatalogueIndex: () => Promise.resolve(mocks.index),
+  fetchCatalogueIndex: () => Promise.resolve(mocks.index).then(index => { mocks.loaded = true; return index; }),
   createDetailLoader: () => ({load: () => new Promise(() => undefined)}),
 }));
 vi.mock("./PdfView", () => ({PdfView: () => null}));
@@ -18,11 +18,15 @@ import QuestionBank from "./QuestionBank";
 const question = {id: "q1", order: 1, paperId: "p1", codes: ["U1"], tier: "F", calculator: false, collection: "Past papers", marks: 2, parts: [{label: "1", marks: 2, codes: ["U1"]}], source: "Test paper Q1", description: "Test", review: "reviewed", questionViewCount: 3, hasWorkedSolution: false};
 const index = (version = "v1") => ({schemaVersion: 1, title: "Test bank", reviewedAt: "2026-11-11", pilotCodes: [], scope: {sets: 1, papers: 1, sourceQuestions: 1, publishedQuestions: 1}, version, aliases: {}, papers: {p1: "bank/catalogue-papers/p1.0123456789abcdef.json"}, questions: [question], topics: [{code: "U1", title: "Test topic", strand: "Test", bankCount: 1, pilotCount: 0}]}) as unknown as BankIndex;
 
-async function open(search: string) {
+async function loaded(search: string) {
   history.replaceState({}, "", `/question-bank${search}`);
   render(<QuestionBank/>);
-  // The catalogue has loaded once the bank writes back the corrected address (without the bad view).
-  await waitFor(() => expect(location.search).not.toMatch(/view=/));
+  await waitFor(() => expect(mocks.loaded, "catalogue fetched").toBe(true));
+  await act(async () => undefined); // let the bank apply the loaded catalogue
+}
+
+async function open(search: string) {
+  await loaded(search);
   const notice = document.querySelector(".qb-notice");
   expect(notice, "the bank shows a notice").not.toBeNull();
   return notice as HTMLElement;
@@ -33,7 +37,7 @@ beforeAll(() => {
   HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.removeAttribute("open"); };
 });
-afterEach(() => { localStorage.clear(); });
+afterEach(() => { localStorage.clear(); mocks.loaded = false; });
 
 describe("question bank: a link's invalid view", () => {
   it("reports a badly written view after the catalogue loads and writes back the corrected address", async () => {
@@ -49,6 +53,19 @@ describe("question bank: a link's invalid view", () => {
     expect(notice).toHaveTextContent("The link asked for view 4, but this question has 3 views. Showing view 1.");
     await act(async () => fireEvent.click(screen.getByRole("button", {name: "Clear filters"})));
     await waitFor(() => expect(screen.queryByText(/The link asked for view/)).not.toBeInTheDocument());
+  });
+
+  it("reports an invalid view reached with the back button and corrects that address too", async () => {
+    mocks.index = index();
+    await loaded("?code=U1&question=q1");
+    expect(document.querySelector(".qb-notice")).toBeNull();
+    await act(async () => {
+      history.pushState({}, "", "/question-bank?code=U1&question=q1&view=9");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(document.querySelectorAll(".qb-notice")).toHaveLength(1);
+    expect(document.querySelector(".qb-notice")).toHaveTextContent("The link asked for view 9, but this question has 3 views. Showing view 1.");
+    expect(location.search).toBe("?code=U1&question=q1");
   });
 
   it("keeps the reconciled-paper warning beside the view report", async () => {
