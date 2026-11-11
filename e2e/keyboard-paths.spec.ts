@@ -21,11 +21,7 @@ const FOCUSABLE = [
   "[tabindex]",
 ].join(",");
 
-/**
- * Records how every tabbable control looks at rest, before anything has focus, and returns the ids
- * of those a keyboard user can see and must be able to reach. A focus indicator is then a change
- * from that resting look, so a permanent shadow or an SVG shape's ordinary stroke never counts.
- */
+/** Marks every tabbable control and returns the ids of those a keyboard user can see and must reach. */
 async function markControls(page: Page): Promise<string[]> {
   return page.evaluate((selector) => {
     const reachable: string[] = [];
@@ -34,13 +30,7 @@ async function markControls(page: Page): Promise<string[]> {
       if (el.tabIndex < 0 || el.matches(":disabled") || el.closest("[inert],[aria-hidden=true]")) continue;
       const id = `kp-${n++}`;
       el.dataset.kp = id;
-      const s = getComputedStyle(el);
       const box = el.getBoundingClientRect();
-      el.dataset.kpRest = JSON.stringify([
-        s.outlineStyle === "none" ? "none" : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}`,
-        s.boxShadow, s.stroke, s.strokeWidth, s.fill, s.backgroundColor, s.borderColor, s.borderWidth,
-        s.color, s.textDecorationLine, Math.round(box.width), Math.round(box.height),
-      ]);
       if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
       // Skip links and jump buttons sit off screen or shrink to nothing until they take focus.
       if (box.width <= 1 || box.height <= 1) continue;
@@ -48,6 +38,24 @@ async function markControls(page: Page): Promise<string[]> {
     }
     return reachable;
   }, FOCUSABLE);
+}
+
+/**
+ * Records how every control without focus looks at rest, just before the next Tab press. Only focus
+ * indicator properties count (outline, box-shadow, SVG stroke), so a permanent shadow, an ordinary
+ * SVG stroke, a reflow or a font load never passes as a focus ring.
+ */
+async function recordRest(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll<HTMLElement>("[data-kp]")) {
+      if (el === document.activeElement) continue;
+      const s = getComputedStyle(el);
+      el.dataset.kpRest = JSON.stringify([
+        s.outlineStyle === "none" ? "none" : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}`,
+        s.boxShadow, s.stroke, s.strokeWidth,
+      ]);
+    }
+  });
 }
 
 type Stop = { id: string | null; label: string; visible: boolean; onScreen: boolean };
@@ -62,8 +70,7 @@ async function focusFacts(page: Page): Promise<Stop | null> {
     const box = el.getBoundingClientRect();
     const now = [
       s.outlineStyle === "none" ? "none" : `${s.outlineStyle} ${s.outlineWidth} ${s.outlineColor}`,
-      s.boxShadow, s.stroke, s.strokeWidth, s.fill, s.backgroundColor, s.borderColor, s.borderWidth,
-      s.color, s.textDecorationLine, Math.round(box.width), Math.round(box.height),
+      s.boxShadow, s.stroke, s.strokeWidth,
     ];
     const rest = el.dataset.kpRest ? (JSON.parse(el.dataset.kpRest) as unknown[]) : null;
     const outline = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0;
@@ -98,6 +105,7 @@ for (const tool of toolIds)
     const offScreen: string[] = [];
     let first: string | null = null;
     for (let i = 0; i < MAX_TABS; i++) {
+      await recordRest(page);
       await page.keyboard.press("Tab");
       // Let scroll-into-view settle before deciding where focus landed.
       let stop = await focusFacts(page);
@@ -139,6 +147,6 @@ for (const tool of toolIds)
     expect(reached.size, `${tool}: controls Tab reached`).toBeGreaterThan(3);
     expect(missed, `${tool}: visible controls Tab never reached`).toEqual([]);
     expect(unnamed, `${tool}: focused controls with no accessible name`).toEqual([]);
-    expect(invisible, `${tool}: focused controls whose look does not change when focused`).toEqual([]);
+    expect(invisible, `${tool}: focused controls whose outline, shadow or stroke does not change when focused`).toEqual([]);
     expect(offScreen, `${tool}: focused controls left off screen`).toEqual([]);
   });
