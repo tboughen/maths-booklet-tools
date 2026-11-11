@@ -54,6 +54,26 @@ describe("worksheet diagrams from every family", () => {
       expect(doc.getPageCount()).toBe(2);
     }
   }, 60000);
+  it("prints an Edexcel-style graph (names, axis titles, fine grid, italic O) in the worksheet PDF", async () => {
+    const spec = {
+      originLabel: "O",
+      grid: "2mm",
+      axes: {
+        x: { negativeSquares: 0, positiveSquares: 6, unitsPerSquare: 30, origin: 720, labelEvery: 2, format: "time", title: "Time of day" },
+        y: { negativeSquares: 0, positiveSquares: 5, unitsPerSquare: 5, title: "Distance (km)" },
+      },
+      objects: [
+        { kind: "segment", id: "l", start: { x: 720, y: 0 }, end: { x: 810, y: 20 }, name: "L1" },
+        { kind: "point", id: "a", position: { x: 810, y: 20 }, name: "A" },
+      ],
+    };
+    const resource = validate(withDiagram({ tool: "graph", spec }));
+    const rendered = renderResource(resource, { view: "pupil" });
+    expect(rendered.pages[0]).toContain("Distance (km)");
+    expect(rendered.pages[0]).toContain("𝐋");
+    const pdf = await worksheetPdf(rendered.pages, "edexcel graph test", roots);
+    expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
+  }, 60000);
   it("refuses a diagram with both or neither of spec and envelope, and names a bad spec field", () => {
     expect(() => validate(withDiagram({ tool: "venn" }))).toThrow(/envelope or its spec/);
     expect(() => validate(withDiagram({ tool: "venn", spec: {}, envelope: {} }))).toThrow(/envelope or its spec/);

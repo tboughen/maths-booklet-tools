@@ -1,16 +1,20 @@
 import { z } from "zod";
 import {
+  MAX_AXIS_ORIGIN,
+  MAX_AXIS_TITLE_LENGTH,
   cloneDefaultDocument,
   getBounds,
+  isUnitsPerSquare,
   pointInBounds,
   visibleStraightPoints,
 } from "./diagram";
+import { OBJECT_NAME_PATTERN, formatAxisValue, normaliseObjectName, readableName, xNumbersCrowded } from "./axes";
 import {
   parseNumericInput,
   pointsForEquation,
   equationForObject,
 } from "./equations";
-import type { DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 
 export const RENDERER_VERSION = "graph-1";
 export const MAX_REQUEST_BYTES = 64 * 1024;
@@ -47,13 +51,64 @@ const identifier = z
   .min(1)
   .max(64)
   .regex(/^[a-zA-Z0-9_-]+$/);
+const nameSchema = z
+  .string()
+  .regex(OBJECT_NAME_PATTERN, "Use a capital letter with an optional prime and subscript number, such as A, B′, L or L1.");
+const nameInput = z
+  .string()
+  .max(8)
+  .transform(normaliseObjectName)
+  .pipe(nameSchema)
+  .describe(
+    "Exam-style name printed beside the object: a capital letter, optional prime and optional subscript number (A, B, P′, L, L1, L2). Lines print bold (L₁), points italic beside their cross (A).",
+  );
+const answerOnlyInput = z
+  .boolean()
+  .optional()
+  .describe(
+    "true makes this a hidden answer: drawn in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy stays blank for the pupil to draw. Use for the line or shape a pupil is asked to draw.",
+  );
+const titleSchema = z
+  .string()
+  .max(MAX_AXIS_TITLE_LENGTH)
+  .refine((t) => t.trim().length > 0 && t.trim() === t && ![...t].some((c) => c.charCodeAt(0) < 32), "Use a short single-line title without leading or trailing spaces.");
 export const axisSchema = z
   .object({
     negativeSquares: z.number().int().nonnegative(),
     positiveSquares: z.number().int().nonnegative(),
-    unitsPerSquare: z.union([z.literal(0.5), z.literal(1), z.literal(2)]),
+    unitsPerSquare: z
+      .number()
+      .refine(isUnitsPerSquare, "Use a positive scale of at most 100000 units a square, to 3 decimal places.")
+      .describe("Units per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25 or 50. For time axes, minutes per square (15, 30, 60)."),
+    origin: z
+      .number()
+      .finite()
+      .min(-MAX_AXIS_ORIGIN)
+      .max(MAX_AXIS_ORIGIN)
+      .optional()
+      .describe("Value where the other axis crosses, default 0. A travel graph from 12 00 uses x origin 720 (minutes) with negativeSquares 0."),
+    labelEvery: z
+      .number()
+      .int()
+      .min(1)
+      .max(10)
+      .optional()
+      .describe("Number every nth 1 cm line from the origin. Omit for every line (every second line at 0.5 a square)."),
+    format: z
+      .enum(["number", "time"])
+      .optional()
+      .describe("time reads values as minutes after midnight and prints 12 00, 12 30. Default number."),
+    title: titleSchema
+      .optional()
+      .describe("Axis title in words with its unit in brackets, such as \"Distance from home (km)\" or \"Time of day\". Replaces the italic x or y."),
   })
   .strict();
+const gridSchema = z
+  .enum(["1cm", "5mm", "2mm"])
+  .describe("1cm squares (default), or a fine grid of 5mm or 2mm squares inside heavier 1 cm lines. Scales still count 1 cm squares.");
+const originLabelSchema = z
+  .enum(["0", "O"])
+  .describe("O prints an italic O at the origin, as Edexcel papers do. Default 0.");
 const axesSchema = z
   .object({ x: axisSchema, y: axisSchema })
   .strict()
@@ -89,6 +144,11 @@ const straightInput = {
       "Print the equation on the diagram only when the user explicitly asks to show or label it. Plotting an equation alone does not request a printed label. Default false.",
     ),
   equationLabelPosition: inputCoordinate.optional(),
+  name: nameInput.optional(),
+  namePosition: inputCoordinate
+    .optional()
+    .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+  answerOnly: answerOnlyInput,
 };
 export const objectInputSchema = z.union([
   z
@@ -96,6 +156,11 @@ export const objectInputSchema = z.union([
       id: identifier.optional(),
       kind: z.literal("point"),
       position: inputCoordinate,
+      name: nameInput.optional(),
+      namePosition: inputCoordinate
+        .optional()
+        .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+      answerOnly: answerOnlyInput,
     })
     .strict(),
   z
@@ -123,12 +188,21 @@ export const graphSpecSchema = z
     // Only version 1 exists, so it may be omitted (M6).
     schemaVersion: z.literal(1).default(1),
     axes: axesSchema.optional(),
+    grid: gridSchema.optional(),
+    originLabel: originLabelSchema.optional(),
     objects: z.array(objectInputSchema).max(50),
   })
   .strict();
 const objectSchema = z.union([
   z
-    .object({ id: identifier, kind: z.literal("point"), position: coordinate })
+    .object({
+      id: identifier,
+      kind: z.literal("point"),
+      position: coordinate,
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
     .strict(),
   z
     .object({
@@ -140,6 +214,9 @@ const objectSchema = z.union([
       end: coordinate,
       equationVisible: z.boolean(),
       equationLabelPosition: coordinate.optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
     })
     .strict(),
 ]);
@@ -150,6 +227,8 @@ const documentSchema = z
     objects: z.array(objectSchema),
     selectedObjectId: identifier.nullable(),
     styleProfile: z.enum(["legacy", "portable-v1"]).optional(),
+    grid: gridSchema.optional(),
+    originLabel: originLabelSchema.optional(),
   })
   .strict()
   .superRefine((d, c) => {
@@ -251,8 +330,13 @@ function makeObject(
   document: DiagramDocumentV1,
 ): GraphObject {
   const id = input.id ?? `object-${index + 1}`;
+  const named = {
+    ...(input.name ? { name: input.name } : {}),
+    ...(input.namePosition ? { namePosition: input.namePosition } : {}),
+    ...(input.answerOnly ? { answerOnly: true as const } : {}),
+  };
   if (input.kind === "point")
-    return { id, kind: "point", position: input.position };
+    return { id, kind: "point", position: input.position, ...named };
   const [start, end] =
     input.kind === "line" && input.equation
       ? pointsForEquation(input.equation, getBounds(document))
@@ -268,12 +352,15 @@ function makeObject(
     ...(input.equationLabelPosition
       ? { equationLabelPosition: input.equationLabelPosition }
       : {}),
+    ...named,
   };
 }
 export function createGraph(value: unknown): GraphEnvelope {
   const input = parse(graphSpecSchema, value);
   const document = cloneDefaultDocument();
   if (input.axes) document.axes = input.axes;
+  if (input.grid) document.grid = input.grid;
+  if (input.originLabel) document.originLabel = input.originLabel;
   document.styleProfile = "portable-v1";
   document.objects = input.objects.map((object, index) =>
     makeObject(object, index, document),
@@ -293,6 +380,21 @@ const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_axes"), axes: axesSchema }).strict(),
   z
     .object({
+      op: z.literal("set_grid"),
+      grid: gridSchema.optional(),
+      originLabel: originLabelSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal("set_name"),
+      id: identifier,
+      name: nameInput.nullable().optional(),
+      position: inputCoordinate.nullable().optional(),
+    })
+    .strict(),
+  z
+    .object({
       op: z.literal("set_label"),
       id: identifier,
       visible: z.boolean().optional(),
@@ -307,6 +409,24 @@ export const revisionSchema = z
     operations: z.array(operationSchema).max(100),
   })
   .strict();
+function canonicalAxis(a: AxisConfig): AxisConfig {
+  return {
+    negativeSquares: a.negativeSquares,
+    positiveSquares: a.positiveSquares,
+    unitsPerSquare: a.unitsPerSquare,
+    ...(a.origin !== undefined ? { origin: a.origin } : {}),
+    ...(a.labelEvery !== undefined ? { labelEvery: a.labelEvery } : {}),
+    ...(a.format !== undefined ? { format: a.format } : {}),
+    ...(a.title !== undefined ? { title: a.title } : {}),
+  };
+}
+function canonicalName(o: GraphObject) {
+  return {
+    ...(o.name ? { name: o.name } : {}),
+    ...(o.namePosition ? { namePosition: { x: o.namePosition.x, y: o.namePosition.y } } : {}),
+    ...(o.answerOnly ? { answerOnly: true as const } : {}),
+  };
+}
 export function canonicalEnvelope(envelope: GraphEnvelope): string {
   const document = documentFromEnvelope(envelope);
   // Explicit property construction fixes ordering and defaults across all clients.
@@ -316,6 +436,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           id: o.id,
           kind: o.kind,
           position: { x: o.position.x, y: o.position.y },
+          ...canonicalName(o),
         }
       : {
           id: o.id,
@@ -333,19 +454,12 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
                 },
               }
             : {}),
+          ...canonicalName(o),
         },
   );
   document.axes = {
-    x: {
-      negativeSquares: document.axes.x.negativeSquares,
-      positiveSquares: document.axes.x.positiveSquares,
-      unitsPerSquare: document.axes.x.unitsPerSquare,
-    },
-    y: {
-      negativeSquares: document.axes.y.negativeSquares,
-      positiveSquares: document.axes.y.positiveSquares,
-      unitsPerSquare: document.axes.y.unitsPerSquare,
-    },
+    x: canonicalAxis(document.axes.x),
+    y: canonicalAxis(document.axes.y),
   };
   return JSON.stringify(
     createEnvelope({
@@ -354,6 +468,9 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
       objects: document.objects,
       selectedObjectId: null,
       styleProfile: envelope.styleProfile,
+      // New settings join the hash only when present, so older graphs keep their hashes.
+      ...(document.grid ? { grid: document.grid } : {}),
+      ...(document.originLabel ? { originLabel: document.originLabel } : {}),
     }),
   );
 }
@@ -378,6 +495,17 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
   for (const op of input.operations) {
     if (op.op === "set_axes") {
       document.axes = op.axes;
+      continue;
+    }
+    if (op.op === "set_grid") {
+      if (op.grid !== undefined) {
+        if (op.grid === "1cm") delete document.grid;
+        else document.grid = op.grid;
+      }
+      if (op.originLabel !== undefined) {
+        if (op.originLabel === "0") delete document.originLabel;
+        else document.originLabel = op.originLabel;
+      }
       continue;
     }
     if (op.op === "add_object") {
@@ -411,6 +539,19 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
       continue;
     }
     const object = document.objects[index];
+    if (op.op === "set_name") {
+      if (op.name === null) {
+        delete object.name;
+        delete object.namePosition;
+      } else if (op.name !== undefined) object.name = op.name;
+      if (op.position === null) delete object.namePosition;
+      else if (op.position) {
+        if (!object.name)
+          throw new GraphError("invalid_graph", `${op.id} needs a name before its name can be moved.`);
+        object.namePosition = op.position;
+      }
+      continue;
+    }
     if (object.kind !== "straight")
       throw new GraphError(
         "invalid_graph",
@@ -425,25 +566,41 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
 }
 export function graphWarnings(envelope: GraphEnvelope): string[] {
   const bounds = getBounds(envelope.document);
-  return envelope.document.objects
+  const crowded = xNumbersCrowded(envelope.document)
+    ? ["The x-axis numbers touch at print size. Number every 2nd, 3rd or 5th line (labelEvery) or use a larger scale."]
+    : [];
+  return crowded.concat(envelope.document.objects
     .filter((o) =>
       o.kind === "point"
         ? !pointInBounds(o.position, bounds)
         : !visibleStraightPoints(o, bounds),
     )
-    .map((o) => `${o.id} is outside the visible grid.`);
+    .map((o) => `${o.id} is outside the visible grid.`));
 }
 export function describeGraph(envelope: GraphEnvelope): string {
   const d = envelope.document,
     b = getBounds(d);
+  const named = (o: GraphObject) =>
+    `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
       o.kind === "point"
-        ? `${o.id}: point (${o.position.x}, ${o.position.y})`
-        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}`,
+        ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
+        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}`,
     )
     .join("; ");
-  return `Coordinate graph: x ${b.xMin} to ${b.xMax}, y ${b.yMin} to ${b.yMax}; scales ${d.axes.x.unitsPerSquare} and ${d.axes.y.unitsPerSquare} units per 1 cm square. ${objects || "Empty grid."}`;
+  const range = (axis: "x" | "y", min: number, max: number) => {
+    const a = d.axes[axis];
+    const words = `${axis} ${formatAxisValue(min, a)} to ${formatAxisValue(max, a)}`;
+    return a.format === "time" || a.title
+      ? `${words}${a.format === "time" ? " (times of day)" : ""}${a.title ? ` titled "${a.title}"` : ""}`
+      : `${axis} ${min} to ${max}`;
+  };
+  const extras = [
+    d.grid && d.grid !== "1cm" ? ` ${d.grid} fine grid.` : "",
+    d.originLabel === "O" ? " Origin labelled O." : "",
+  ].join("");
+  return `Coordinate graph: ${range("x", b.xMin, b.xMax)}, ${range("y", b.yMin, b.yMax)}; scales ${d.axes.x.unitsPerSquare} and ${d.axes.y.unitsPerSquare} units per 1 cm square.${extras} ${objects || "Empty grid."}`;
 }
 export function encodeEnvelope(envelope: GraphEnvelope): string {
   return btoa(
