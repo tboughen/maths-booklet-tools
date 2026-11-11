@@ -284,10 +284,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   </select>
                 </label>
                 <label className="ws-field">
-                  <span>Layout</span>
+                  <span>Cards per row</span>
                   <select value={section.columns} disabled={blocked} onChange={(e) => setLesson((l) => void (l.sections[si].columns = Number(e.target.value) as 1 | 2))}>
-                    <option value={2}>Two cards a row</option>
-                    <option value={1}>Full width</option>
+                    <option value={2}>Two</option>
+                    <option value={1}>One (full width)</option>
                   </select>
                 </label>
               </div>
@@ -493,7 +493,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               ))}
             </div>
           </Panel>
-          <aside className="inspector-stack" aria-label="Booklet settings">
+          <aside className="inspector-stack bk-outline" aria-label="Booklet settings">
             <BookletAiPanel
               current={b}
               focusLesson={focus}

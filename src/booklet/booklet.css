@@ -22,3 +22,13 @@
 .bk-progress li.waiting { color: var(--muted, #5d6470); }
 .bk-dot { display: inline-block; width: 8px; height: 8px; margin: 0 3px; border-radius: 50%; border: 1.5px solid currentColor; }
 .bk-flags { margin: 0; padding-left: 1.2em; font-size: 0.85rem; display: grid; gap: 4px; }
+/* Keep every control inside the narrow inspector column. */
+.bk-outline, .bk-outline * { box-sizing: border-box; }
+.bk-outline { min-width: 0; }
+.bk-outline details, .bk-outline fieldset, .bk-outline .ws-field { min-width: 0; max-width: 100%; }
+.bk-outline input, .bk-outline textarea, .bk-outline select { max-width: 100%; width: 100%; }
+.bk-outline input[type="checkbox"], .bk-outline input[type="radio"] { width: auto; }
+.bk-outline .ws-line-edit { grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr)); }
+.bk-outline .ws-toolbar, .bk-outline .bk-section-head { flex-wrap: wrap; }
+.bk-lesson > .ws-card-moves { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.bk-small { white-space: nowrap; }
