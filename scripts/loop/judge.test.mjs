@@ -169,6 +169,12 @@ test('a follow-up carries the earlier review\'s findings on files it does not se
   assert.match(text, /^### Judge panel: pass, with 2 finding\(s\) still open from the earlier review/);
   assert.match(text, /unchanged since the last review \(which was concerns\)/);
   assert.match(text, /Still open from the earlier review[\s\S]*`src\/b\.ts`: B[\s\S]*`src\/c\.ts`: C/);
+  // What is still open counts in the verdict: a carried blocker keeps it at fail.
+  const { withCarried } = await import('./judge.mjs');
+  assert.equal(withCarried('pass', [finding('b', 'x')]), 'concerns');
+  assert.equal(withCarried('concerns', [{ ...finding('b', 'x'), severity: 'blocker' }]), 'fail');
+  assert.equal(withCarried('pass', [{ ...finding('b', 'x'), severity: 'minor' }]), 'pass');
+  assert.equal(withCarried('abstain', [{ ...finding('b', 'x'), severity: 'blocker' }]), 'abstain');
   // Only a run where every judge answered is a baseline for later follow-ups.
   assert.equal(fullyReviewed([v, { ...v, judge: 'product' }, { ...v, judge: 'adversarial' }]), true);
   assert.equal(fullyReviewed([v, { judge: 'product', error: '400' }, { ...v, judge: 'adversarial' }]), false);

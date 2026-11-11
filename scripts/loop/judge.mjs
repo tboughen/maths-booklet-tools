@@ -84,6 +84,17 @@ export function carriedFindings(earlier, followUp) {
   return [...earlierFindings, ...(earlier.carried ?? [])].filter(f => !resent.has(f.file));
 }
 
+/**
+ * A follow-up's verdict also counts what is still open: a carried blocker keeps it at fail and a
+ * carried major finding at least at concerns, as a full review of the unchanged files would.
+ */
+export function withCarried(overall, carried = []) {
+  if (overall === 'abstain' || overall === 'fail') return overall;
+  if (carried.some(f => f.severity === 'blocker')) return 'fail';
+  if (carried.some(f => f.severity === 'major')) return 'concerns';
+  return overall;
+}
+
 /** A run the next follow-up may compare against: every judge gave a verdict. */
 export const fullyReviewed = results => results.length > 0 && results.every(r => r.verdict);
 
@@ -254,7 +265,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       diff = onlyFiles(diff, followUp.changed);
     }
     const results = await runPanel({ diff, tier, title, body, followUp });
-    const overall = panel(results);
+    const overall = withCarried(panel(results), carried);
     const costUSD = panelCost(results);
     report(summary({ tier, results, overall, costUSD, followUp, carried, earlier }));
     console.log(`::notice title=Judge panel ${overall} (shadow mode)::${results.map(r => `${r.judge}: ${r.verdict?.verdict ?? 'did not run'}`).join(', ')}; cost $${costUSD.toFixed(2)}`);
