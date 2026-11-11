@@ -169,6 +169,11 @@ export const resourceSchema = z
         /** Year group or tier shown top right, e.g. "Year 8". */
         group: text(40).default(""),
         nameLine: z.boolean().default(true),
+        /**
+         * plain (saved files from before, and the default): text prints as typed. maths: {3/4} in
+         * question text prints as a stacked fraction, and as a native equation in Word.
+         */
+        notation: z.enum(["plain", "maths"]).default("plain"),
         sides: z.array(sideSchema).length(2),
       })
       .strict()

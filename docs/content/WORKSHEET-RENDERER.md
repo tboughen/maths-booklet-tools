@@ -18,7 +18,10 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
   suffix, inline groups), `space` (working or drawing room), `diagram` (a full editable Charts or
   Probability tree envelope) and `part` (a, b, c… holding further items).
-- Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated.
+- Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
+  `notation: "maths"` (default `"plain"`, so saved sheets print as before) also prints `{3/4}` in
+  question text as a stacked fraction, and `2{1/2}` as a mixed number; see
+  [Word output](WORD-OUTPUT.md#stacked-fractions).
 - Saved answers (hidden table cells, answer-line answers, choice answers, hidden diagram values)
   print only in the answers view, in dark pink. Blank and hidden stay distinct.
 
@@ -32,7 +35,10 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - Too much content is reported per column (`issues`), never fixed by shrinking text. Too-wide
   tables, diagrams and short answer lines are reported too.
 - Pupil and answers views share one layout (diagrams reserve the larger of their two sizes).
-- File names follow the guide: `[code]_[full objective]_A3.pdf`, `_Answers` before `_A3`.
+- A saved answer wider than its answer line is reported: it would run past the line in the
+  answers copy.
+- File names follow the guide: `[code]_[full objective]_A3.pdf`, `_Answers` before `_A3`. Word
+  files use the same name with `.docx` ([Word output](WORD-OUTPUT.md)).
 
 ## MathsDock style, and the evidence behind it
 

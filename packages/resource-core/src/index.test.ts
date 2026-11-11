@@ -87,6 +87,12 @@ describe("saved worksheets from before the diagram registry", () => {
   it.each(Object.keys(before))("%s still opens and prints byte-identically", (key) => {
     const [name, view] = key.split(":") as ["comparativeBarCharts" | "treeDiagrams", "pupil" | "answers"];
     const saved = JSON.parse(JSON.stringify({ comparativeBarCharts, treeDiagrams }[name]));
+    if (name === "treeDiagrams") {
+      // The fixture's question 12 b) later gained a second answer line (its eight outcomes did not
+      // fit one short line); the saved file from before had one line.
+      const part = saved.document.sides[1].columns[2].cards[1].items[2];
+      part.items = [{ type: "answerLine", prefix: "", suffix: "", answer: "HHH, HHT, HTH, HTT, THH, THT, TTH, TTT", inline: false }];
+    }
     const pages = renderResource(validate(saved), { view }).pages.map((p) => createHash("sha256").update(p).digest("hex").slice(0, 16));
     expect(pages).toEqual(before[key]);
   });

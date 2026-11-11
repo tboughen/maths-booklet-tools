@@ -39,6 +39,7 @@ Per-tool records:
 
 - [Maths Resource Design Guide](content/MATHS-RESOURCE-DESIGN-GUIDE.md) (text copy; the [.docx](content/MATHS-RESOURCE-DESIGN-GUIDE.docx) is the master) and the [lesson resource project instructions](content/RESOURCE-PROJECT-INSTRUCTIONS.md), including the PLAN, FINALISE and PRODUCE commands.
 - [Worksheet renderer](content/WORKSHEET-RENDERER.md): the A3 worksheet document, layout rules and the evidence behind the MathsDock style (wave 3).
+- [Word output for worksheets](content/WORD-OUTPUT.md): how the pupil and answers `.docx` files are built so they cannot reflow, the rendering test and the real-Word check.
 - [Booklet maker](tools/BOOKLET-MAKER.md): the A4 unit booklet document, its layout and the AI lesson standard.
 - [Per-question worked solutions](content/WORKED-SOLUTION-REGISTRATION.md).
 - [Automatic question accessibility](content/ACCESSIBILITY-TESTING.md).
