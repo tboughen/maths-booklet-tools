@@ -39,8 +39,8 @@ try {
     new StreamableHTTPClientTransport(new URL("/mcp", base), {fetch:request}),
   );
   const tools = { tools: await discoverTools(cursor => client.listTools(cursor ? { cursor } : undefined)) };
-  const expected = ["diagram_capabilities", "create_diagram", "revise_diagram", "check_diagram_placement", "download_diagram_bundle", "get_diagram_svg", "worksheet_capabilities", "create_worksheet"];
-  if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the generic diagram tools, the output tools and the worksheet tools.");
+  const expected = ["diagram_capabilities", "create_diagram", "revise_diagram", "check_diagram_placement", "download_diagram_bundle", "get_diagram_svg", "worksheet_capabilities", "create_worksheet", "create_booklet"];
+  if (JSON.stringify(tools.tools.map(tool => tool.name).sort()) !== JSON.stringify(expected.sort())) throw Error("Expected the generic diagram tools, the output tools, the worksheet tools and create_booklet.");
   // ChatGPT imports every advertised array schema, including nested unions.
   function checkArrays(value: unknown): void {
     if (!value || typeof value !== "object") return;
