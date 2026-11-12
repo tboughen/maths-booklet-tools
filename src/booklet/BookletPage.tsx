@@ -23,7 +23,7 @@ import {
   type Lesson,
 } from "../../packages/resource-core/src/index";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
-import { Field, LeafEditor, type Leaf } from "../worksheet/fields";
+import { Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { pagesPdf } from "../worksheet/export";
 import { BookletAiPanel } from "./ai/BookletAiPanel";
 import { isPlaceholder } from "./ai/make";
@@ -332,6 +332,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                               <LeafEditor item={leaf} set={(next) => setItem([i, j], next)} label="" disabled={blocked} />
                             </div>
                           ))}
+                          <WorkingField
+                            label="Part hidden working"
+                            value={item.working}
+                            disabled={blocked}
+                            onCommit={(v) =>
+                              setLesson((l) => {
+                                const part = l.sections[si].cards[ci].items[i] as Extract<Item, { type: "part" }>;
+                                if (v === undefined) delete part.working;
+                                else part.working = v;
+                              })
+                            }
+                          />
                         </div>
                       ) : (
                         <div key={i}>
@@ -339,6 +351,18 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                         </div>
                       ),
                     )}
+                    <WorkingField
+                      label="Card hidden working"
+                      value={card.working}
+                      disabled={blocked}
+                      onCommit={(v) =>
+                        setLesson((l) => {
+                          const cd = l.sections[si].cards[ci];
+                          if (v === undefined) delete cd.working;
+                          else cd.working = v;
+                        })
+                      }
+                    />
                   </details>
                 );
               })}

@@ -19,7 +19,7 @@ const question = (page: Page, n: number) => page.locator("details.ws-card", { ha
 
 test("edits wording, saves it, shows it on the sheet and undoes", async ({ page }) => {
   await boot(page);
-  await question(page, 1).locator("summary").click();
+  await question(page, 1).locator(":scope > summary").click();
   const title = page.getByRole("textbox", { name: "Question 1 title" });
   await title.fill("Read the tree diagram");
   await title.press("Enter");
@@ -33,7 +33,7 @@ test("edits wording, saves it, shows it on the sheet and undoes", async ({ page 
 
 test("switches a table cell between given, blank and hidden answer without losing its text", async ({ page }) => {
   await boot(page, comparativeBarCharts);
-  await question(page, 3).locator("summary").click();
+  await question(page, 3).locator(":scope > summary").click();
   const state = page.getByRole("combobox", { name: "Row 1 cell 2 shows" }).first();
   await state.selectOption("hidden");
   let cell = (await saved(page)).document.sides[0].columns[1].cards[0].items.find((i) => i.type === "table");
@@ -52,7 +52,7 @@ test("switches a table cell between given, blank and hidden answer without losin
 test("reports overflow, blocks the PDF and recovers when a question moves", async ({ page }) => {
   await boot(page, treeDiagrams);
   await expect(page.locator(".ws-checks li.problem")).toHaveCount(0);
-  await question(page, 4).locator("summary").click();
+  await question(page, 4).locator(":scope > summary").click();
   const space = page.getByRole("spinbutton", { name: /drawing space/ }).first();
   await space.fill("200");
   await space.press("Enter");
@@ -171,4 +171,59 @@ test("makes a worksheet with a Gemini key and keeps a running cost for this tab"
   await expect(page.getByRole("region", { name: "Make with AI" })).toContainText("about $0.17 over 1 AI reply");
   await page.getByRole("region", { name: "Make with AI" }).getByRole("button", { name: "Reset spend estimate" }).click();
   await expect(page.getByRole("region", { name: "Make with AI" })).not.toContainText("Spent in this tab");
+});
+
+test("sets layout, score box, stage band, grid paper and hidden working from the editor, and undoes", async ({ page }) => {
+  await boot(page, treeDiagrams);
+  const side1 = page.getByTestId("worksheet-pages").locator(".ws-art > svg").first();
+  const third = treeDiagrams.document.sides[0].columns[2];
+  // Two columns: the third column's questions join the second under a stage band named by its heading.
+  await page.getByRole("combobox", { name: "Side 1 layout" }).selectOption("two");
+  let doc = await saved(page);
+  expect(doc.document.sides[0].layout).toBe("two");
+  expect(doc.document.sides[0].columns).toHaveLength(2);
+  expect(doc.document.sides[0].columns[1].cards.find((c) => c.title === third.cards[0].title)?.stage).toBe(third.heading);
+  await expect(side1).toContainText(third.heading);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.sides[0].layout).toBe("three");
+
+  // Score box: starts at one mark per answer space and can be changed.
+  await page.getByRole("checkbox", { name: "Score box" }).first().check();
+  const score = page.getByRole("spinbutton", { name: "Side 1 score out of" });
+  await score.fill("12");
+  await score.press("Enter");
+  expect((await saved(page)).document.sides[0].score).toBe(12);
+  await expect(side1).toContainText("/ 12");
+
+  // A stage band above question 2.
+  await question(page, 2).locator(":scope > summary").click();
+  const stage = page.getByRole("textbox", { name: "Stage band above question 2 (empty for none)" });
+  await stage.fill("Use the tree");
+  await stage.press("Enter");
+  expect((await saved(page)).document.sides[0].columns[0].cards[1].stage).toBe("Use the tree");
+  await expect(side1).toContainText("Use the tree");
+
+  // Hidden working keeps its lines and never prints.
+  await question(page, 2).locator("details.ws-working > summary", { hasText: /^Question 2 hidden working/ }).click();
+  const working = page.getByRole("textbox", { name: "Question 2 hidden working" });
+  await working.fill("P(both) = 0.3 × 0.3\n= 0.09");
+  await working.blur();
+  expect((await saved(page)).document.sides[0].columns[0].cards[1].working).toBe("P(both) = 0.3 × 0.3\n= 0.09");
+  await page.getByLabel("Teacher preview: show hidden answers").check();
+  await expect(side1).not.toContainText("P(both)");
+  await page.getByLabel("Teacher preview: show hidden answers").uncheck();
+
+  // Grid paper with blank axes.
+  const before = (await saved(page)).document.sides[0].columns[0].cards[1].items.length;
+  await question(page, 2).getByRole("button", { name: "Add grid paper" }).click();
+  doc = await saved(page);
+  const paper = doc.document.sides[0].columns[0].cards[1].items.find((i) => i.type === "paper");
+  expect(doc.document.sides[0].columns[0].cards[1].items).toHaveLength(before + 1);
+  expect(paper).toMatchObject({ type: "paper", style: "squared", widthMm: 120, heightMm: 60 });
+  await question(page, 2).getByRole("combobox", { name: "Grid paper" }).selectOption("graph");
+  await question(page, 2).getByRole("checkbox", { name: /Blank axes/ }).check();
+  doc = await saved(page);
+  expect(doc.document.sides[0].columns[0].cards[1].items.find((i) => i.type === "paper")).toMatchObject({ style: "graph", axes: { xLabel: "x", yLabel: "y" } });
+  await question(page, 2).getByRole("button", { name: "Remove grid paper" }).click();
+  expect((await saved(page)).document.sides[0].columns[0].cards[1].items).toHaveLength(before);
 });

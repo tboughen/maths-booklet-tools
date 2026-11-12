@@ -53,3 +53,10 @@
 .ws-hint.problem { color: #a4161a; }
 .ws-ai-notes > summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
 .ws-pre { margin: 0; white-space: pre-wrap; font-size: 0.85rem; max-height: 320px; overflow: auto; }
+.ws-side-settings { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; margin-top: 6px; }
+.ws-paper-edit { display: grid; gap: 6px; }
+.ws-working { display: grid; gap: 2px; font-size: 0.85rem; }
+.ws-working > summary { cursor: pointer; color: var(--muted, #5d6470); }
+.ws-working[open] > summary { margin-bottom: 2px; }
+.ws-working textarea { font-family: inherit; }
+.ws-small { justify-self: start; font-size: 0.85rem; padding: 4px 8px; display: inline-flex; gap: 4px; align-items: center; }

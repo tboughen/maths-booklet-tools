@@ -11,7 +11,7 @@ const familyLabel = (kind: keyof typeof FAMILIES) => {
 };
 
 export /** Typing stays local; leaving the field or Enter applies one undoable change, Escape restores. */
-function Field({ label, value, onCommit, max, multiline, disabled }: { label: string; value: string; onCommit: (v: string) => void; max: number; multiline?: boolean; disabled?: boolean }) {
+function Field({ label, value, onCommit, max, multiline, lines, disabled }: { label: string; value: string; onCommit: (v: string) => void; max: number; multiline?: boolean; /** Keeps line breaks: Enter starts a new line, leaving the field applies. */ lines?: boolean; disabled?: boolean }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -19,8 +19,8 @@ function Field({ label, value, onCommit, max, multiline, disabled }: { label: st
   }, [value, editing]);
   const commit = () => {
     setEditing(false);
-    // Saved text is one line: line breaks become spaces.
-    const clean = draft.replace(/[\r\n\t]+/g, " ");
+    // Saved text is one line (line breaks become spaces), except where lines are kept.
+    const clean = lines ? draft.replace(/\r\n?/g, "\n").replace(/\t/g, " ") : draft.replace(/[\r\n\t]+/g, " ");
     if (clean !== value) onCommit(clean);
   };
   const common = {
@@ -34,7 +34,7 @@ function Field({ label, value, onCommit, max, multiline, disabled }: { label: st
     },
     onBlur: commit,
     onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !(multiline && e.shiftKey)) {
+      if (e.key === "Enter" && !lines && !(multiline && e.shiftKey)) {
         e.preventDefault();
         commit();
       }
@@ -49,7 +49,7 @@ function Field({ label, value, onCommit, max, multiline, disabled }: { label: st
   return (
     <label className="ws-field">
       <span>{label}</span>
-      {multiline ? <textarea rows={Math.min(5, Math.max(2, Math.ceil(value.length / 48)))} {...common} /> : <input {...common} />}
+      {multiline || lines ? <textarea rows={Math.min(lines ? 8 : 5, Math.max(2, Math.ceil(value.length / 48), lines ? value.split("\n").length : 0))} {...common} /> : <input {...common} />}
     </label>
   );
 }
@@ -147,7 +147,7 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
       case "diagram":
         return <p className="ws-note">{familyLabel(item.diagram.tool)}: ask the AI to change it, or change it in its own tool.</p>;
       case "paper":
-        return <NumberField label={`${label} ${item.style} paper height (mm)`} value={item.heightMm} min={10} max={250} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />;
+        return <PaperEditor item={item} set={set} label={label} disabled={blocked} />;
     case "steps":
       return item.steps.map((st, i) => (
         <div className="ws-line-edit" role="group" aria-label={`${label} step ${i + 1}`} key={i}>
@@ -159,3 +159,71 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
       return item.items.map((c, i) => <Field key={i} label={`${label} tick box ${i + 1}`} value={c} max={120} disabled={blocked} onCommit={(v) => set({ ...item, items: item.items.map((x, j) => (j === i ? v : x)) })} />);
     }
   }
+
+type Paper = Extract<Leaf, { type: "paper" }>;
+const PAPER_STYLES: [Paper["style"], string][] = [
+  ["squared", "Squared (5 mm)"],
+  ["dotted", "Dotted (5 mm)"],
+  ["graph", "Graph paper (2 mm, bold every 10 mm)"],
+];
+
+/** Grid paper: style, printed size and optional blank axes. Grids are never shrunk; a grid wider than its card is reported. */
+function PaperEditor({ item, set, label, disabled }: { item: Paper; set: (next: Leaf) => void; label: string; disabled: boolean }) {
+  const axes = item.axes;
+  const name = (t: string) => (label ? `${label} ${t}` : t[0].toUpperCase() + t.slice(1));
+  return (
+    <div className="ws-paper-edit" role="group" aria-label={name("grid paper")}>
+      <label className="ws-field">
+        <span>Grid paper</span>
+        <select value={item.style} disabled={disabled} onChange={(e) => set({ ...item, style: e.target.value as Paper["style"] })}>
+          {PAPER_STYLES.map(([v, t]) => (
+            <option key={v} value={v}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="ws-line-edit">
+        <NumberField label={name("paper width (mm)")} value={item.widthMm} min={20} max={400} disabled={disabled} onCommit={(widthMm) => set({ ...item, widthMm })} />
+        <NumberField label={name("paper height (mm)")} value={item.heightMm} min={10} max={250} disabled={disabled} onCommit={(heightMm) => set({ ...item, heightMm })} />
+      </div>
+      <label className="ws-check">
+        <input
+          type="checkbox"
+          checked={!!axes}
+          disabled={disabled}
+          onChange={(e) => {
+            const next = { ...item };
+            if (e.target.checked) next.axes = { originMm: { x: Math.min(10, item.widthMm), y: Math.min(10, item.heightMm) }, xLabel: "x", yLabel: "y" };
+            else delete next.axes;
+            set(next);
+          }}
+        />
+        Blank axes (no numbers, pupils choose the scale)
+      </label>
+      {axes && (
+        <div className="ws-line-edit">
+          <NumberField label="Origin from left (mm)" value={axes.originMm.x} min={0} max={Math.min(400, item.widthMm)} disabled={disabled} onCommit={(x) => set({ ...item, axes: { ...axes, originMm: { ...axes.originMm, x } } })} />
+          <NumberField label="Origin from bottom (mm)" value={axes.originMm.y} min={0} max={Math.min(250, item.heightMm)} disabled={disabled} onCommit={(y) => set({ ...item, axes: { ...axes, originMm: { ...axes.originMm, y } } })} />
+          <Field label="Across axis label" value={axes.xLabel} max={8} disabled={disabled} onCommit={(xLabel) => set({ ...item, axes: { ...axes, xLabel } })} />
+          <Field label="Up axis label" value={axes.yLabel} max={8} disabled={disabled} onCommit={(yLabel) => set({ ...item, axes: { ...axes, yLabel } })} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A hidden worked solution: stored with the question, never printed. Empty removes it. */
+export function WorkingField({ label, value, onCommit, disabled }: { label: string; value: string | undefined; onCommit: (v: string | undefined) => void; disabled?: boolean }) {
+  return (
+    // Closed until used, so the outline stays short; a saved solution opens it.
+    <details className="ws-working" open={!!value}>
+      <summary>
+        {label}
+        {value ? "" : " (none)"}
+      </summary>
+      <Field label={label} value={value ?? ""} max={3000} lines disabled={disabled} onCommit={(v) => onCommit(v.trim() ? v : undefined)} />
+      <p className="ws-hint">Never printed, in the pupil or the answers copy.</p>
+    </details>
+  );
+}
