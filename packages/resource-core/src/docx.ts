@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { card as measureCard, overflowMessage, planColumn, renderResource, type Ctx, type Issue, type View } from "./render";
+import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { FRAC_FOOT, FRAC_LINE, fracStyle, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -67,6 +67,15 @@ export const WORD_FOOT_MM = 3;
 export const WORD_INLINE_FRACTION = 8 / 11;
 /** The paragraph Word requires after a nested table: 1 pt high. */
 const END_MM = 0.36;
+/**
+ * An answer row is two exact rows in Word: the writing row, whose bottom border is the answer
+ * line, and the space below the line. Word draws a 0.3 mm bottom border with its centre about
+ * 0.2 mm below the row's edge and makes the pair about 0.08 mm taller than asked, so these put the
+ * line 7.2 mm down a 9 mm row, as on the SVG page (layout probe P8, real Word, 11 November 2026).
+ * A single row with a bottom cell margin printed each row about 1.3 mm taller (probe P7).
+ */
+const ANSWER_WRITE_MM = S.answerRow - 2.6 + 0.8 - 0.2;
+const ANSWER_BELOW_MM = S.answerRow - ANSWER_WRITE_MM - 0.08;
 
 const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
 const emu = (mm: number) => Math.round(mm * 36000);
@@ -167,6 +176,11 @@ function para(content: string, o: ParaStyle = {}): string {
 }
 /** An empty paragraph exactly `mm` high: gaps between items, and the end of a cell. */
 const gap = (mm: number, left = 0) => para("", { line: Math.max(mm, 0.36), markMm: 0.36, left });
+/**
+ * Space at the end of a cell. Word does not print the last paragraph of a cell when it follows a
+ * nested table (layout probe P4, real Word, 11 November 2026), so the space is two paragraphs.
+ */
+const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 
 // ---------------------------------------------------------------- tables
 
@@ -232,6 +246,16 @@ function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): string {
   }
   const room = w + 2 * (S.cardPad - 0.6);
   if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: `A diagram is ${drawn.widthMm} mm wide; the card has ${room} mm. Diagrams are never shrunk to fit.` });
+  return drawing(drawn, w, indent, ctx);
+}
+/** Grid paper: the same SVG as the page, as a picture at its printed size. */
+function paper(item: Extract<Leaf, { type: "paper" }>, w: number, indent: number, ctx: WordCtx): string {
+  const { widthMm, heightMm } = item;
+  const alt = `Blank ${item.style === "graph" ? "graph paper" : `${item.style} paper`}${item.axes ? " with blank axes" : ""}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${widthMm}mm" height="${heightMm}mm" viewBox="0 0 ${widthMm} ${heightMm}" font-family="Inter" role="img" aria-label="${alt}">${paperSvg(item, ctx.st)}</svg>`;
+  return drawing({ svg, widthMm, heightMm }, w, indent, ctx);
+}
+function drawing(drawn: { svg: string; widthMm: number; heightMm: number }, w: number, indent: number, ctx: WordCtx): string {
   const id = ctx.pictures.length + 1;
   const png = `rIdImg${id}p`,
     vector = `rIdImg${id}s`;
@@ -277,7 +301,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
     const text = (s: string, o: RunStyle = {}) => para(runs(s, o), { line: lineBox(size) });
     if (pre) {
       grid.push(pre);
-      cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom", margin: { bottom: 0.9 } }));
+      cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
     }
     grid.push(mid);
     const shown = ctx.view === "answers" && l.answer;
@@ -286,19 +310,20 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
         width: mid,
         vAlign: "bottom",
         borders: { bottom: { color: ctx.st.ink, width: 0.3 } },
-        margin: { left: 2, bottom: 0.9 },
+        margin: { left: 2 },
       }),
     );
     if (post) {
       grid.push(post);
-      cells.push(cell(text(l.suffix), { width: post, vAlign: "bottom", margin: { left: 1.8, bottom: 0.9 } }));
+      cells.push(cell(text(l.suffix), { width: post, vAlign: "bottom", margin: { left: 1.8 } }));
     }
   });
   return { grid, cells };
 }
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, indent: number, ctx: WordCtx): Block {
   const { grid, cells } = answerCells(lines, w, ctx);
-  return table(grid, [row(cells, { mm: S.answerRow, exact: true })], indent);
+  const below = grid.map((g) => cell(gap(END_MM), { width: g }));
+  return table(grid, [row(cells, { mm: ANSWER_WRITE_MM, exact: true }), row(below, { mm: ANSWER_BELOW_MM, exact: true })], indent);
 }
 
 function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: number, ctx: WordCtx): Block {
@@ -444,6 +469,8 @@ function leaf(item: Leaf, w: number, indent: number, ctx: WordCtx, extra: number
       return gap(item.heightMm + extra, indent);
     case "diagram":
       return picture(item.diagram, w, indent, ctx);
+    case "paper":
+      return paper(item, w, indent, ctx);
     case "steps": {
       const labels = item.steps.map((s, i) => (s.label.trim() || `Step ${i + 1}`) + ":");
       const hang = Math.min(Math.max(...labels.map((l) => plainWidth(l, S.body, "bold"))) + 2, w * 0.35);
@@ -544,20 +571,24 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
   // The card's top and bottom padding are exact empty paragraphs, not cell margins: Word adds a
   // cell's top and bottom margins to a minimum row height (real-Word check, 11 November 2026),
   // which made every card about 5.5 mm taller than the layout.
-  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + gap(pad - rule.width);
+  const body = gap(pad - rule.width) + stack([titleRow, ...items(c.items, inner, 0, ctx, extra)], S.itemGap) + endGap(pad - rule.width);
+  // Word prints a card's top and bottom borders outside its minimum height (probe P1), and its
+  // right border outside the cell, where the column cell cuts it off (probes P9 and P10). So the
+  // card is one border narrower and two borders shorter, and its outside matches the SVG card.
+  const cw = w - rule.width;
   return table(
-    [w],
+    [cw],
     [
       row(
         [
           cell(body, {
-            width: w,
+            width: cw,
             borders: { top: rule, left: rule, bottom: rule, right: rule },
-            // Borders sit inside the cell in Word, so the padding paragraphs give their width back.
-            margin: { top: 0, left: pad, bottom: 0, right: pad - WORD_WRAP_SLACK_MM },
+            // The padding paragraphs give the top and bottom borders' width back.
+            margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
           }),
         ],
-        { mm: height },
+        { mm: height - 2 * rule.width },
       ),
     ],
   );
@@ -565,15 +596,59 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
 
 // ---------------------------------------------------------------- page
 
-function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number): { xml: string; next: number } {
+/** A stage tile and heading: a one-row table exactly one tile high. */
+function stageTable(letter: string, heading: string, w: number, st: HouseStyle): string {
+  return table(
+    [S.tile, 2.8, w - S.tile - 2.8],
+    [
+      row(
+        [
+          cell(para(run(letter, { bold: true, color: "#ffffff", sizeMm: S.columnHeading }), { align: "center", line: lineBox(S.columnHeading) }), {
+            width: S.tile,
+            shade: st.navy,
+            vAlign: "center",
+          }),
+          cell(gap(END_MM), { width: 2.8 }),
+          cell(para(runs(heading, { bold: true, color: st.navy, sizeMm: S.columnHeading }), { line: lineBox(S.columnHeading) }), {
+            width: w - S.tile - 2.8,
+            vAlign: "center",
+          }),
+        ],
+        { mm: S.tile, exact: true },
+      ),
+    ],
+  );
+}
+
+/** "Score ____ / 18" then "Side 1 of 2", placed as in the PDF by tab stops. */
+function scoreLine(score: number, sideNumber: number, rightW: number, st: HouseStyle): string {
+  const box = scoreBox(score, sideNumber);
+  const end = rightW - box.lineEnd;
+  const o = { sizeMm: S.objective };
+  const start = end - box.lineMm - 1.2 - plainWidth(box.label, S.objective);
+  return para(
+    run(box.label, o) + tab(o) + tab(o) + run(`\u00a0${box.total}`, o) + tab(o) + run(`Side ${sideNumber} of 2`, { ...o, color: st.muted }),
+    {
+      line: 4.8,
+      tabs: [
+        { pos: end - box.lineMm, align: "left" },
+        { pos: end, align: "left", leader: "underscore" },
+        { pos: rightW, align: "right" },
+      ],
+      left: start,
+    },
+  );
+}
+
+function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, letters: ReturnType<typeof stageLetters>): { xml: string; next: number } {
   const doc = resource.document;
   const sideData = doc.sides[s];
   const st = ctx.st;
   const P = S.page,
     m = S.margin;
   const width = P.width - 2 * m;
-  const colW = (width - S.gutter * 2) / 3;
-  const rightW = 90;
+  const boxes = columnBoxes(sideData);
+  const rightW = HEADER_RIGHT;
   // Header: title, objective and instruction left; group, name line and side right; a hairline below.
   const left = [
     para(runs(doc.title, { bold: true, color: st.navy, sizeMm: S.title }), { line: 8.47 }),
@@ -587,7 +662,9 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
       left: rightW - 76,
       tabs: [{ pos: rightW, align: "right", leader: "underscore" }],
     }),
-    para(run(`Side ${s + 1} of 2`, { color: st.muted, sizeMm: S.objective }), { line: 4.8, align: "right" }),
+    sideData.score === null
+      ? para(run(`Side ${s + 1} of 2`, { color: st.muted, sizeMm: S.objective }), { line: 4.8, align: "right" })
+      : scoreLine(sideData.score, s + 1, rightW, st),
   ].join("");
   const hairline = { bottom: { color: st.rule, width: 0.3 } };
   const header = table(
@@ -596,7 +673,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
   );
 
   // Stage headings (A to F across both sides), then one tall cell per strand column.
-  const grid = [colW, S.gutter, colW, S.gutter, colW];
+  const grid = boxes.flatMap((b, c) => (c ? [S.gutter, b.w] : [b.w]));
   const spacer = (h?: number) => cell(gap(h ?? END_MM), { width: S.gutter });
   const bands: string[] = [];
   const columns: string[] = [];
@@ -607,44 +684,26 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number):
       bands.push(spacer());
       columns.push(spacer());
     }
-    const letter = String.fromCharCode(65 + s * 3 + c);
-    bands.push(
-      cell(
-        table(
-          [S.tile, 2.8, colW - S.tile - 2.8],
-          [
-            row(
-              [
-                cell(para(run(letter, { bold: true, color: "#ffffff", sizeMm: S.columnHeading }), { align: "center", line: lineBox(S.columnHeading) }), {
-                  width: S.tile,
-                  shade: st.navy,
-                  vAlign: "center",
-                }),
-                cell(gap(END_MM), { width: 2.8 }),
-                cell(para(runs(col.heading, { bold: true, color: st.navy, sizeMm: S.columnHeading }), { line: lineBox(S.columnHeading) }), {
-                  width: colW - S.tile - 2.8,
-                  vAlign: "center",
-                }),
-              ],
-              { mm: S.tile, exact: true },
-            ),
-          ],
-        ),
-        { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } },
-      ),
-    );
+    const colW = boxes[c].w;
+    bands.push(cell(stageTable(letters.columns[s][c], col.heading, colW, st), { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } }));
     const numbers = col.cards.map(() => ++number);
     ctx.where = { side: s + 1, column: c + 1, question: 0 };
     const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
     if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
     const quiet = { ...ctx, issues: [], diagrams: 0 };
-    const cards = col.cards.map((cd, i) => {
+    // Cards with exact gaps between them; a card that starts a stage has its band in the gap.
+    const half = (S.columnHeadingBand - S.tile) / 2;
+    const parts: string[] = [];
+    col.cards.forEach((cd, i) => {
       ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
       const stretch = i === col.cards.length - 1 ? stretchLast : 0;
       const h = measureCard(cd, numbers[i], colW, quiet, extra, stretch).h;
-      return wordCard(cd, numbers[i], colW, ctx, extra, h);
+      const letter = letters.cards[s][c][i];
+      if (i) parts.push(gap(S.cardGap + (letter ? half : 0)));
+      if (letter) parts.push(stageTable(letter, cd.stage ?? "", colW, st), gap(STAGE_BAND - S.tile - half));
+      parts.push(wordCard(cd, numbers[i], colW, ctx, extra, h));
     });
-    columns.push(cell(cards.length ? stack(cards, S.cardGap) : gap(END_MM), { width: colW }));
+    columns.push(cell(parts.length ? parts.join("") : gap(END_MM), { width: colW }));
   });
   const body = table(grid, [row(bands, { mm: S.columnHeadingBand + 2.5, exact: true }), row(columns, { mm: avail })]);
   return { xml: header + gap(1.3) + body, next: number };
@@ -706,10 +765,11 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
   // The SVG layout's own checks come first: Word output never hides a problem the pages have.
   const issues = [...renderResource(resource, { view }).issues];
   const ctx: WordCtx = { st, view, diagrams: 0, issues: [], where: { side: 0, column: 0 }, media: [], rels: [], pictures: [], maths: resource.document.notation === "maths" };
+  const letters = stageLetters(resource);
   let number = 0;
   const sides: string[] = [];
   for (let s = 0; s < 2; s++) {
-    const r = side(resource, s, ctx, number);
+    const r = side(resource, s, ctx, number, letters);
     number = r.next;
     sides.push(r.xml);
   }

@@ -10,14 +10,29 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 `resource` schema 1, `kind: "worksheet-a3"` (see `src/schema.ts`):
 
 - Header: title, objective code and full objective, group (year or tier), optional Name line.
-- Exactly two sides. Each side has an optional instruction line and exactly three strand columns.
-  A column heading names the progression stage (for example Read and compare, Complete paired
-  bars, Organise and interpret).
+- Exactly two sides. Each side has an optional instruction line, a `layout` and its strand
+  columns. A column heading names the progression stage (for example Read and compare, Complete
+  paired bars, Organise and interpret).
+- Layouts (widths in thirds of the page, so columns line up from side to side): `three` (the
+  default: three 131.3 mm columns), `two` (two 199.5 mm), `wide-narrow` (267.7 + 131.3 mm),
+  `narrow-wide` and `one` (full-width 404 mm cards). Cards are as wide as their column, so a
+  quadratic graph can have one large card instead of three small ones. The number of columns must
+  match the layout.
+- A card with `stage` starts a new stage band above it, inside its column, with the next letter.
+  Stage letters run in reading order across both sides (column headings and stage bands), so three
+  plain columns a side are still A to F. A stage on a column's first card is reported: that card
+  sits under the column heading.
+- `score: n` on a side prints "Score ____ / n" in the header beside "Side 1 of 2" (one mark per
+  answer). Leave it `null` (the default) for no score box.
+- `working` on a card or a part stores a hidden worked solution (up to 3000 characters, several
+  lines). It is never printed, in the pupil or the answers copy; it lets a reviewer or teacher check
+  the saved answers.
 - Columns hold titled question cards. Numbers are computed, running across both sides.
 - Card items: `text`, `info` (pale card), `claim` (a pupil's statement), `bullets`, `table`
   (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
-  suffix, inline groups), `space` (working or drawing room), `diagram` (a full editable Charts or
-  Probability tree envelope) and `part` (a, b, c… holding further items).
+  suffix, inline groups), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
+  size, optionally with blank axes: arrows, *x*, *y* and *O* but no numbers, so pupils choose the
+  scale), `diagram` (a full editable Charts or Probability tree envelope) and `part` (a, b, c… holding further items).
 - Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
   `notation: "maths"` (default `"plain"`, so saved sheets print as before) also prints `{3/4}` in
   question text as a stacked fraction, and `2{1/2}` as a mixed number; see
@@ -27,9 +42,11 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 
 ## Layout rules
 
-- 420 × 297 mm pages, 8 mm margins, three 131 mm columns, one fixed type scale (11 pt body
+- 420 × 297 mm pages, 8 mm margins, 5 mm gutters, columns in thirds of the page (three 131.3 mm by default), one fixed type scale (11 pt body
   and card titles, 20 pt title, nothing below 10 pt) in Inter. Diagrams keep their own STIX fonts and native size.
-- Cards never split. Diagrams are never shrunk; one may use its card's padding.
+- Cards never split. Diagrams are never shrunk; one may use its card's padding. Grid paper wider
+  than its card is reported. A stage band takes 9.5 mm of its column. An instruction longer than
+  one header line is reported.
 - A short answer line sits on the question's last line, which grows to a full 9 mm writing row.
 - Spare column height goes to working and drawing spaces; with none, the last card reaches the foot.
 - Too much content is reported per column (`issues`), never fixed by shrinking text. Too-wide

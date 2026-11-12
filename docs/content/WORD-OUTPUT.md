@@ -15,8 +15,8 @@ node scripts/resource/word.mjs sheet.json --out output/word --preview
 ```
 
 This writes `sheet.docx` and `sheet_answers.docx` (and, with `--preview`, LibreOffice PDFs and page
-images plus the PDF writer's own PDF for comparison). With no file it writes the golden sheets and
-the rendering-test sheet. `--no-system-inter` hides any installed Inter from LibreOffice, which
+images plus the PDF writer's own PDF for comparison). With no file it writes the golden sheets, the
+rendering-test sheet and the layout-test sheet. `--no-system-inter` hides any installed Inter from LibreOffice, which
 proves the embedded fonts are used. The preview needs LibreOffice Writer **and LibreOffice Math**
 (`apt-get install libreoffice-math`); without Math, LibreOffice silently drops every equation.
 
@@ -43,6 +43,14 @@ Saved answers print only in the answers copy, in the answers colour, exactly as 
 hidden table cells, answer-line answers (written on the line), the chosen option of a choice, and
 hidden diagram values. Blank, hidden and zero stay distinct. The Word writer reports the same
 layout issues as the PDF (and any of its own); it still writes the file, so the problem can be seen.
+
+Layouts, stage bands, the score box and grid paper follow the SVG layout exactly. Each side's
+body table has one grid column per strand column (and a gutter between), so a wide column is one
+wide cell. A stage band is a one-tile-high table between two cards, with exact gaps that add up
+to the 9.5 mm the layout gives it. The score box is "Score", a tab, an underscore leader to the
+end of the line, then the total, at the PDF's positions. Grid paper is the same SVG as the page,
+placed as a picture at its printed size (with a 300 ppi PNG fallback), so its squares are true
+millimetres. Stored working is never written to the file.
 
 ### Differences from the PDF, by design
 
@@ -109,7 +117,44 @@ round denominators at the foot of the cell. Such a row now keeps 1 mm (`FRAC_FOO
 the PDF and in Word.
 
 Known differences in Word: diagonal hatching in bar charts prints as flat grey (Word's SVG
-drawing does not support pattern fills); the bars and key still match each other.
+drawing does not support pattern fills); the bars and key still match each other. In the answers
+copy, the pink behind a chosen letter fills the whole line height in a row with fractions.
+
+### Layout test (11 November 2026)
+
+`packages/resource-core/src/layout-sample.ts` has a three-column side with a score box and graph
+paper with blank axes, and a wide-narrow side with a stage band, squared paper with axes and dotted
+paper, plus hidden working. Pupil and answers files are each two pages in LibreOffice, with the
+embedded fonts and no layout issues, and columns, bands, the score box and the grids sit where the
+PDF puts them. The tests also fit the `two`, `narrow-wide` and `one` layouts.
+
+In real Word (same PC, same day) all eight layout files were two pages, with cards within 3 mm,
+columns, the stage band and the score box in place and no stored working printed. Three faults
+showed, and a probe (`scripts/word/probe.mjs`: small labelled tables, each with the size it
+should print at) measured why:
+
+| Probe | Asked | Word printed | Rule taken |
+|---|---|---|---|
+| P1 minimum row 30 mm, 0.45 mm borders | 30 | 30.93 | Top and bottom borders print outside a minimum row height: a card's row is two borders shorter. |
+| P2 minimum 30 mm, 3 + 3 mm cell margins | 30 | 36.90 | Margins are added too (already avoided). |
+| P3 exact 30 mm, 3 + 3 mm cell margins | 30 | 33.46 | Exact rows grow by a margin as well: no answer row uses a bottom margin. |
+| P4 nested table then a 3 mm paragraph | 23 | 20.88 | The last paragraph of a cell is dropped when it follows a nested table. |
+| P5 nested table then 1.5 + 1.5 mm | 23 | 23.93 | Two paragraphs both print: a card's bottom padding is two paragraphs. |
+| P7 answer row, exact 9 mm, 0.9 mm bottom margin | box 19 | 20.46 | Each answer row printed 1.3 mm taller, which pushed answer lines down a card. |
+| P8 exact 6.9 mm row, line as its bottom border, exact 1.8 mm row | box 19, line 12.05–12.2 | 18.96, line 12.05–12.35 | Answer rows are two exact rows (`ANSWER_WRITE_MM`, `ANSWER_BELOW_MM`). |
+| P9 two cards per column, as wide as the column | 4 borders | right border missing on the lower card | Word draws a right border outside the cell and the column cuts it off. |
+| P10 the same, 0.3 mm narrower | 4 borders | right border 0.12–0.18 mm of 0.44 | Cards are one border (0.45 mm) narrower than the column. |
+
+Re-check with these rules (same evening, all eight files, pupil and answers): two pages each;
+every card shows all four borders at full thickness; card edges are within 0.11 mm across and
+0.9 mm down of the PDF writer's; every answer line is within 0.6 mm of the PDF's, and the last
+line in a card keeps its space below (4.6 mm, was 0.5 mm).
+
+Known differences in Word: the text baseline of an answer sits about 1.2 mm above the line's
+centre (0.8 mm on the SVG page). Word's own PDF export prints pictures 0.43 % small (100 mm graph
+paper measures 99.57 mm between frame centres, against 99.99 mm in the PDF writer's, measured the
+same way), although the file holds them at full size (Word reports 283.45 pt). The outer frame of
+grid paper prints half as thick, because Word clips the half of the stroke outside the picture.
 
 ## The real-Word check (option 4)
 

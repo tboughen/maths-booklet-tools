@@ -391,6 +391,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
         issues.push({ lesson: p.lesson, section: block.section + 1, question: block.row.cards[0].number ?? undefined, page: pageNo, message: `A card is ${n(block.row.h)} mm tall, more than a page holds. Split it into two cards or reduce its working space; text is never shrunk.` });
       block.row.cards.forEach((c, k) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
+        if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
         const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
         const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));

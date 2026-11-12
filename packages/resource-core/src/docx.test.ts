@@ -4,6 +4,7 @@ import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { obfuscateFont, writeWorksheetDocx, WORD_FOOT_MM, type DocxOptions } from "./docx";
 import { renderResource, styles, validate, type Resource } from "./index";
 import { wordSample } from "./word-sample";
+import { layoutSample } from "./layout-sample";
 
 // Stand-ins: the real fonts and picture maker live in the service (services/graph-mcp/worksheet-docx.ts).
 const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
@@ -26,6 +27,7 @@ describe("Word output for worksheets", () => {
     ["comparative bar charts", comparativeBarCharts],
     ["tree diagrams", treeDiagrams],
     ["the Word rendering test", wordSample],
+    ["the layout test", layoutSample],
   ];
 
   for (const [name, doc] of sheets) {
@@ -77,6 +79,35 @@ describe("Word output for worksheets", () => {
     // No paragraph uses automatic line spacing except pictures.
     const auto = document.match(/w:lineRule="auto"/g)?.length ?? 0;
     expect(auto).toBe((document.match(/<w:drawing>/g) ?? []).length);
+  });
+
+  it("sizes cards and answer rows as real Word draws them", async () => {
+    const xml = parse((await open(layoutSample)).document);
+    const mm = (v: string | null) => (Number(v) * 25.4) / 1440;
+    const cards = [...xml.getElementsByTagNameNS(W, "tc")].filter((c) => c.getElementsByTagNameNS(W, "top")[0]?.getAttribute("w:sz") === "10");
+    expect(cards.length).toBeGreaterThan(0);
+    for (const c of cards) {
+      // One border narrower than its column, so Word's right border is not cut off by the column.
+      const column = c.parentNode!.parentNode!.parentNode as Element;
+      expect(column.localName).toBe("tc");
+      const width = mm(c.getElementsByTagNameNS(W, "tcW")[0].getAttribute("w:w"));
+      const colW = mm(column.getElementsByTagNameNS(W, "tcW")[0].getAttribute("w:w"));
+      expect(colW - width).toBeCloseTo(0.45, 1);
+      // The card's last paragraph never directly follows a nested table: Word drops that one.
+      const kids = [...c.childNodes].filter((k): k is Element => k.nodeType === 1);
+      expect(kids.at(-1)!.localName).toBe("p");
+      expect(kids.at(-2)!.localName).toBe("p");
+    }
+    // Each answer line: an exact writing row with the line as its bottom border, then the space below.
+    const lines = [...xml.getElementsByTagNameNS(W, "tc")].filter((c) => c.getElementsByTagNameNS(W, "bottom")[0]?.getAttribute("w:sz") === "7" && c.getElementsByTagNameNS(W, "vAlign").length);
+    expect(lines.length).toBeGreaterThan(0);
+    for (const l of lines) {
+      const tr = l.parentNode as Element;
+      const next = tr.nextSibling as Element;
+      const h = (r: Element) => mm(r.getElementsByTagNameNS(W, "trHeight")[0].getAttribute("w:val"));
+      expect(h(tr) + h(next)).toBeCloseTo(9 - 0.08, 1);
+      expect(l.getElementsByTagNameNS(W, "tcMar")[0]?.getElementsByTagNameNS(W, "bottom")[0]?.getAttribute("w:w") ?? "0").toBe("0");
+    }
   });
 
   it("embeds Inter, obfuscated with a stable key, and marks the fonts for embedding", async () => {

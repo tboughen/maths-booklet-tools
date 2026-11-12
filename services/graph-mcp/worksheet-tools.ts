@@ -8,9 +8,11 @@ import {
   A4,
   bookletFileName,
   bookletSchema,
+  columnBoxes,
   fileName,
   isBooklet,
   issuePlace,
+  LAYOUTS,
   lessonFileName,
   renderBooklet,
   renderResource,
@@ -204,16 +206,17 @@ const BOOKLET_DESCRIPTION =
   "A whole unit (up to 12 lessons) goes in one call; requests may be up to 512 KiB, so send diagrams as specs rather than full envelopes. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDF and editable JSON links (kept for 7 days), a pupil and answers PDF link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
 
 const LAYOUT = [
-  "A3 landscape (420 x 297 mm), exactly two sides, three titled strand columns per side.",
+  "A3 landscape (420 x 297 mm), exactly two sides. Each side's layout is three (three columns, the default), two (two wide), wide-narrow, narrow-wide or one (full-width cards); each column has a titled stage heading, and a card with stage starts a new stage band within its column.",
   "Body text Inter 11 pt (nothing below 10 pt); cards never split; diagrams keep their native size.",
   "Text never shrinks to fit. Overflow is returned as issues naming side, column and the millimetres needed; fix by moving a card, trimming wording or reducing working space, then create again.",
   "Spare column height goes to working and drawing space.",
+  "side.score n prints 'Score ____ / n' in the header (one mark per answer). card.working and part.working store a hidden worked solution that is never printed.",
 ];
 
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
-  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,columns:[3 columns, each {heading,cards:[{title,items}]}]}]}}. " +
-  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
+  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
+  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers PDF; never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
@@ -407,8 +410,11 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               rendererVersion: "worksheet-a3-1",
               kinds: ["worksheet-a3", "booklet-a4"],
               layout: LAYOUT,
+              columnWidthsMm: Object.fromEntries(
+                (Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]).map((layout) => [layout, columnBoxes({ layout }).map((b) => Math.round(b.w * 10) / 10)]),
+              ),
               limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
-              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "steps", "checklist", "part"],
+              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
               diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
               cellStates: ["supplied", "blank", "hidden"],
               markup: "**bold** and *italic* only; no HTML",

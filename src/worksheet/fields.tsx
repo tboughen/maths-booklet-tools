@@ -146,6 +146,8 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
         return <NumberField label={`${label} ${item.kind === "drawing" ? "drawing" : "working"} space (mm)`} value={item.heightMm} min={8} max={200} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />;
       case "diagram":
         return <p className="ws-note">{familyLabel(item.diagram.tool)}: ask the AI to change it, or change it in its own tool.</p>;
+      case "paper":
+        return <NumberField label={`${label} ${item.style} paper height (mm)`} value={item.heightMm} min={10} max={250} disabled={blocked} onCommit={(heightMm) => set({ ...item, heightMm })} />;
     case "steps":
       return item.steps.map((st, i) => (
         <div className="ws-line-edit" role="group" aria-label={`${label} step ${i + 1}`} key={i}>
