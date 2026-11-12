@@ -48,17 +48,18 @@ test("shared code/manual selection survives navigation, excludes once, restores 
   await page.getByRole("button",{name:"Select question",exact:true}).click();
   await summary.getByRole("button",{name:"Untick U538"}).click();await summary.getByRole("button",{name:"Untick U793"}).click();
   await expect(summary).toContainText("0 selected codes · 1 distinct question · 4 marks");
-  await page.getByRole("button",{name:"Build by topic",exact:true}).click();
+  await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await expect(search).toHaveValue("U793");
   await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Booklet tools",exact:true}).click();
   await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await expect(summary).toContainText("1 distinct question");
   await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Paper type",exact:true}).selectOption("mock");
   await expect(summary.getByRole("button",{name:"Review paper",exact:true})).toBeDisabled();
-  await page.getByRole("button",{name:"Browse questions",exact:true}).click();
+  // The question bank under the same filters (the main Question bank link restores the bank's own last view instead).
+  await page.goto("/question-bank?code=U793&collection=mock");
   await expect(page.getByRole("button",{name:"Review paper (0)",exact:true})).toBeDisabled();
   await page.goBack();
-  await expect(page.getByRole("button",{name:"Build by topic",exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true})).toHaveAttribute("aria-current","page");
   await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Paper type",exact:true}).selectOption("all");
   await summary.getByRole("button",{name:"Review paper",exact:true}).click();
   const dialog=page.getByRole("dialog");await dialog.getByRole("button",{name:"Remove question 1",exact:true}).click();
@@ -89,7 +90,7 @@ test("actual browser downloads retain multipart, crossover, writing space and ph
   await page.getByRole("button",{name:"Select question",exact:true}).click();
   await page.getByRole("combobox",{name:"Sparx code or topic"}).fill("U350");
   await page.getByRole("button",{name:"Find",exact:true}).click();await page.getByRole("button",{name:"Select question",exact:true}).click();
-  await page.getByRole("button",{name:"Build by topic",exact:true}).click();
+  await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await page.getByRole("searchbox",{name:"Search codes or topics"}).fill("U538");
   await page.getByRole("checkbox",{name:"Include questions for U538",exact:true}).check();
   await page.getByRole("region",{name:"Your paper",exact:true}).getByRole("button",{name:"Review paper",exact:true}).click();

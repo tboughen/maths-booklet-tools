@@ -113,7 +113,10 @@ export interface BankRoute {
   calculator: CalculatorFilter;
   collection: CollectionFilter;
   question: string;
+  /** The question view, counted from 0 here; the address counts from 1 (`view=1` is the first view). */
   view: number;
+  /** Set only when the address asked for a view that does not exist; the route then opens the first view. */
+  viewError?: string;
 }
 
 export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", question: "", view: 0};
@@ -129,8 +132,32 @@ export function readRoute(search: string, catalogue?: BankCatalogue<BankListQues
     calculator: p.get("calc") === "yes" || p.get("calc") === "no" ? p.get("calc") as CalculatorFilter : "all",
     collection: p.get("collection") === "past" || p.get("collection") === "mock" ? p.get("collection") as CollectionFilter : "all",
     question: p.get("question") || "",
-    view: Math.max(0, Math.min(99, Number.parseInt(p.get("view") || "1", 10) - 1 || 0)),
+    ...readView(p.get("view"), viewCount(catalogue, p.get("question") || "")),
   };
+}
+
+/** Most views a question link may name; matches the cap old links were clamped to. */
+const MAX_VIEWS = 100;
+
+function viewCount(catalogue: BankCatalogue<BankListQuestion> | undefined, id: string): number | undefined {
+  const q = id ? catalogue?.questions.find(item => item.id === id) : undefined;
+  return q?.questionViewCount ?? (q as Partial<BankQuestion> | undefined)?.questionViews?.length;
+}
+
+/**
+ * Reads the 1-based `view` address value. A missing value is the first view. A value that is not a
+ * whole number from 1, or names a view the question does not have, opens the first view and says so
+ * instead of quietly showing a different one.
+ */
+function readView(raw: string | null, count: number | undefined): Pick<BankRoute, "view" | "viewError"> {
+  if (raw === null || raw === "") return {view: 0};
+  const n = /^\d+$/.test(raw.trim()) ? Number(raw.trim()) : NaN;
+  const limit = count && count > 0 ? Math.min(count, MAX_VIEWS) : MAX_VIEWS;
+  if (Number.isInteger(n) && n >= 1 && n <= limit) return {view: n - 1};
+  const reason = !(Number.isInteger(n) && n > limit) ? "views are numbered from 1"
+    : count && count <= MAX_VIEWS ? `this question has ${count} view${count === 1 ? "" : "s"}`
+    : `a link can name at most ${MAX_VIEWS} views`;
+  return {view: 0, viewError: `The link asked for view ${raw.trim() || "(blank)"}, but ${reason}. Showing view 1.`};
 }
 
 /** The query string for a bank route, without the page path; empty for the default route. */

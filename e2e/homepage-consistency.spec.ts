@@ -40,10 +40,10 @@ test("bank and paper builder retain their routes, shared selection, and history 
   await expect(page).toHaveURL(bankUrl);
   await page.goForward();
   await expect(page).toHaveURL(builderUrl);
-  await page.getByRole("button", { name: "Browse questions", exact: true }).click();
+  await nav(page).getByRole("link", { name: "Question bank", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Question bank", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page).toHaveTitle("Question bank · Maths Dock");
-  await page.getByRole("button", { name: "Build by topic", exact: true }).click();
+  await nav(page).getByRole("link", { name: "Paper builder", exact: true }).click();
   await expect(nav(page).getByRole("link", { name: "Paper builder", exact: true })).toHaveAttribute("aria-current", "page");
 });
 
