@@ -46,7 +46,7 @@ test("split hosting displays question/scheme canvases, PNG previews and both rea
   await page.getByRole("combobox", {name: "Sparx code or topic"}).fill("U350");
   await page.getByRole("button", {name: "Find", exact: true}).click();
   await page.getByRole("button", {name: "Select question", exact: true}).click();
-  await page.getByRole("button", {name: "Build by topic", exact: true}).click();
+  await page.getByRole("navigation", {name: "Main sections"}).getByRole("link", {name: "Paper builder", exact: true}).click();
   await page.getByRole("searchbox", {name: "Search codes or topics"}).fill("U538");
   await page.getByRole("checkbox", {name: "Include questions for U538", exact: true}).check();
   await page.getByRole("region", {name: "Your paper", exact: true}).getByRole("button", {name: "Review paper", exact: true}).click();

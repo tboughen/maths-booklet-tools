@@ -154,3 +154,29 @@ test.describe("question viewer touch", () => {
     await expect(page.locator(".qb-navigation strong")).not.toHaveText(question!);
   });
 });
+
+test("the question sits at the top of the viewer, the search shows one focus ring and Filters closes on an outside click", async ({ page }) => {
+  await open(page);
+  const top = await page.evaluate(() => {
+    const stageBox = document.querySelector(".qb-stage")!.getBoundingClientRect(), group = document.querySelector(".qb-view-group")!.getBoundingClientRect();
+    return { gap: group.top - stageBox.top, padding: parseFloat(getComputedStyle(document.querySelector(".qb-stage")!).paddingTop) };
+  });
+  expect(Math.abs(top.gap - top.padding)).toBeLessThan(2);
+
+  const search = page.getByRole("combobox", { name: "Sparx code or topic" });
+  await search.focus();
+  expect(await search.evaluate(el => getComputedStyle(el).outlineStyle)).toBe("none");
+  expect(await page.locator(".qb-search").evaluate(el => getComputedStyle(el).boxShadow)).not.toBe("none");
+
+  const filters = page.locator("details.qb-filters");
+  const isOpen = () => filters.evaluate(el => (el as HTMLDetailsElement).open);
+  await filters.locator("summary").click();
+  await filters.getByRole("combobox", { name: "Calculator" }).selectOption("no");
+  expect(await isOpen()).toBe(true);
+  await page.locator(".qb-toolbar h1").click();
+  expect(await isOpen()).toBe(false);
+  await filters.locator("summary").click();
+  await page.keyboard.press("Escape");
+  expect(await isOpen()).toBe(false);
+  await expect(filters.locator("summary")).toBeFocused();
+});
