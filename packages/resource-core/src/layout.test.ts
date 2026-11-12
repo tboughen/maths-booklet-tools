@@ -141,9 +141,23 @@ describe("worksheet layouts", () => {
     }
     expect(JSON.stringify(layoutSample)).toContain("2 × 3 + 1 = 7");
     expect(resourceSchema.safeParse(edit(layoutSample, () => {})).success).toBe(true);
-    const markup = structuredClone(layoutSample) as unknown as { document: { sides: { columns: { cards: { working?: string }[] }[] }[] } };
-    markup.document.sides[0].columns[0].cards[0].working = "<b>7</b>";
-    expect(resourceSchema.safeParse(markup).success).toBe(false);
+    // Inequalities are kept as written (working is never printed); control characters are refused.
+    const stored = structuredClone(layoutSample) as unknown as { document: { sides: { columns: { cards: { working?: string }[] }[] }[] } };
+    stored.document.sides[0].columns[0].cards[0].working = "2x + 1 > 7\nso x > 3, and 3 < x";
+    expect(resourceSchema.safeParse(stored).success).toBe(true);
+    const inequality = validate(stored);
+    for (const view of ["pupil", "answers"] as const) {
+      expect(renderResource(inequality, { view }).pages.join("")).not.toContain("so x");
+      expect((await word(inequality, view)).document).not.toContain("so x");
+    }
+    stored.document.sides[0].columns[0].cards[0].working = "x\u0007";
+    expect(resourceSchema.safeParse(stored).success).toBe(false);
+  });
+
+  it("reports a side instruction longer than one header line", () => {
+    const long = edit(layoutSample, (d) => void (d.sides[0].instruction = "WM ".repeat(53).trim()));
+    expect(renderResource(long).issues.map((i) => i.message)).toContain("The instruction on side 1 is longer than one line of the header. Shorten it.");
+    expect(renderResource(layoutSample).issues).toEqual([]);
   });
 
   it("fits every layout on two sides in the SVG and in Word", async () => {

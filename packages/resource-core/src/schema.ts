@@ -155,7 +155,8 @@ export const leafSchema = z.discriminatedUnion("type", leafItems);
 export const workingSchema = z
   .string()
   .max(3000)
-  .refine((s) => ![...s].some((c) => (c.charCodeAt(0) < 32 && c !== "\n") || c === "<" || c === ">"), "Use ordinary text without markup.")
+  // Never printed or read as markup, so < and > are allowed for inequalities; control characters are not.
+  .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 && c !== "\n"), "Use ordinary text: line breaks are the only control characters allowed.")
   .describe("Hidden worked solution: stored with the question, never printed.");
 
 export const partSchema = z

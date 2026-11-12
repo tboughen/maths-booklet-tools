@@ -69,6 +69,15 @@ describe("A4 booklet renderer", () => {
     expect(staged.issues.some((i) => i.lesson === 1 && /worksheet stage, which booklets do not print/.test(i.message))).toBe(true);
   });
 
+  it("prints grid paper in a booklet card and reports paper wider than the card", () => {
+    const b = clone(a7Booklet);
+    const items = b.document.lessons[0].sections[0].cards[0].items;
+    items.push({ type: "paper", style: "squared", widthMm: 60, heightMm: 30 });
+    expect(renderBooklet(validateBooklet(b)).issues.some((i) => /grid paper/.test(i.message))).toBe(false);
+    items[items.length - 1] = { type: "paper", style: "squared", widthMm: 300, heightMm: 30 };
+    expect(renderBooklet(validateBooklet(b)).issues.some((i) => /The grid paper is 300 mm wide/.test(i.message))).toBe(true);
+  });
+
   it("reports a diagram too wide for a half-width card", () => {
     const b = clone(a7Booklet);
     const lesson = structuredClone(exampleLessonSource) as never as Booklet["document"]["lessons"][number];
