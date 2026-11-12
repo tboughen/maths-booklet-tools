@@ -88,6 +88,8 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   },[reload,go]);
   useEffect(()=>{const back=()=>{if(readPage()!=="question-bank")return;const {viewError,...next}=readRoute(location.search,catalogue);setMode(previous=>previous.role==="worked-solution"?{id:"",role:"question",view:0}:previous);if(viewError){history.replaceState(history.state,"",bankAddress(next));setNotice(viewError);}if(JSON.stringify(next)===JSON.stringify(route))return;setReviewOpen(false);setDisplay(false);setRoute(next);setSearch(readRoute(location.search,catalogue).code);setZoom(1);};window.addEventListener("popstate",back);return()=>window.removeEventListener("popstate",back);},[catalogue,route]);
   useEffect(()=>{try{localStorage.setItem("qb-room",room);}catch{/* Optional device preference. */}},[room]);
+  // The Filters panel and question options menu close when a teacher clicks, taps or tabs anywhere else, or presses Escape.
+  useEffect(()=>{const menus=()=>Array.from(app.current?.querySelectorAll<HTMLDetailsElement>("details.qb-filters[open], details.qb-more[open]")??[]);const outside=(event:Event)=>{for(const menu of menus())if(!menu.contains(event.target as Node))menu.open=false;};const escape=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;const menu=menus().find(m=>m.contains(document.activeElement));if(!menu)return;event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector("summary")?.focus();};document.addEventListener("pointerdown",outside);document.addEventListener("focusin",outside);document.addEventListener("keydown",escape,true);return()=>{document.removeEventListener("pointerdown",outside);document.removeEventListener("focusin",outside);document.removeEventListener("keydown",escape,true);};},[]);
   useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
 
@@ -223,7 +225,6 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
-      {!display&&<nav className="qb-bank-modes" aria-label="Question bank views"><button className="qb-button" aria-pressed={!topicsMode} onClick={()=>go({...route,bankView:"questions"})}>Browse questions</button><button className="qb-button" aria-pressed={topicsMode} onClick={()=>go({...route,bankView:"topics"})}>Build by topic</button></nav>}
       {!topicsMode&&<><div className="qb-page-search">
       <form onSubmit={submitSearch} className="qb-search-form">
         <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
