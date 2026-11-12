@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { renderResource, stageLetters, validate, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
-import { answerSpaces, setLayout } from "./edit";
+import { layoutSample } from "../../packages/resource-core/src/layout-sample";
+import { answerSpaces, moveCard, setLayout } from "./edit";
 
 const ok = (r: Resource | string): Resource => {
   if (typeof r === "string") throw Error(r);
@@ -119,5 +120,17 @@ describe("answerSpaces", () => {
       },
     ];
     expect(answerSpaces(side)).toBe(5);
+  });
+});
+
+// Kept beside the website code: the service build type-checks packages/resource-core alone, so
+// tests there must not import from src/.
+describe("worksheet editor moves", () => {
+  it("moves cards across columns on sides with fewer columns", () => {
+    const moved = moveCard(layoutSample, 1, 0, 0, "next");
+    expect(moved?.document.sides[1].columns[1].cards[0].title).toBe("Draw y = 3x − 2");
+    const back = moveCard(layoutSample, 1, 0, 0, "previous");
+    expect(back?.document.sides[0].columns[2].cards.at(-1)?.title).toBe("Draw y = 3x − 2");
+    expect(moveCard(layoutSample, 1, 1, 0, "next")).toBeNull();
   });
 });
