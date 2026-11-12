@@ -54,6 +54,10 @@ describe("worksheet tools", () => {
     const { client } = await start();
     const tools = (await client.listTools()).tools.map((t) => t.name);
     expect(tools).toEqual(expect.arrayContaining(["worksheet_capabilities", "create_worksheet"]));
+    // The advertised column widths are the renderer's own.
+    const caps = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
+    const widths = JSON.parse((caps.content as { text: string }[])[0].text).columnWidthsMm;
+    expect(widths).toEqual({ three: [131.3, 131.3, 131.3], two: [199.5, 199.5], "wide-narrow": [267.7, 131.3], "narrow-wide": [131.3, 267.7], one: [404] });
     const r = await client.callTool({ name: "create_worksheet", arguments: { resource: treeDiagrams } });
     expect(r.isError, JSON.stringify(r.content)).not.toBe(true);
     const reply = r.structuredContent as unknown as Reply;

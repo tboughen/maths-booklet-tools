@@ -55,6 +55,20 @@ describe("A4 booklet renderer", () => {
     expect(r.issues.some((i) => i.lesson === 1 && /more than a page holds/.test(i.message))).toBe(true);
   });
 
+  it("reports a worksheet stage on a booklet card and never prints stored working", () => {
+    const b = clone(a7Booklet);
+    const card = b.document.lessons[0].sections[0].cards[0];
+    const before = renderBooklet(b);
+    card.working = "STORED-WORKING-NOT-PRINTED";
+    const withWorking = renderBooklet(validateBooklet(b));
+    expect(withWorking.pages).toEqual(before.pages);
+    expect(withWorking.issues).toEqual(before.issues);
+    card.stage = "Use your graph";
+    const staged = renderBooklet(validateBooklet(b));
+    expect(staged.pages).toEqual(before.pages);
+    expect(staged.issues.some((i) => i.lesson === 1 && /worksheet stage, which booklets do not print/.test(i.message))).toBe(true);
+  });
+
   it("reports a diagram too wide for a half-width card", () => {
     const b = clone(a7Booklet);
     const lesson = structuredClone(exampleLessonSource) as never as Booklet["document"]["lessons"][number];

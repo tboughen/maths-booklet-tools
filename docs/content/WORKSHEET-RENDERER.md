@@ -15,7 +15,7 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   paired bars, Organise and interpret).
 - Layouts (widths in thirds of the page, so columns line up from side to side): `three` (the
   default: three 131.3 mm columns), `two` (two 199.5 mm), `wide-narrow` (267.7 + 131.3 mm),
-  `narrow-wide` and `one` (full-width 394 mm cards). Cards are as wide as their column, so a
+  `narrow-wide` and `one` (full-width 404 mm cards). Cards are as wide as their column, so a
   quadratic graph can have one large card instead of three small ones. The number of columns must
   match the layout.
 - A card with `stage` starts a new stage band above it, inside its column, with the next letter.
