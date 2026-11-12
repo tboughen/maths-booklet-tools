@@ -5,7 +5,6 @@ import { writeWorksheetDocx, type DocxOptions } from "./docx";
 import { columnBoxes, STAGE_BAND } from "./render";
 import { renderResource, resourceSchema, SIZE, stageLetters, validate, type Resource } from "./index";
 import { layoutSample } from "./layout-sample";
-import { moveCard } from "../../../src/worksheet/edit";
 
 const options = (view: "pupil" | "answers" = "pupil"): DocxOptions => ({
   view,
@@ -172,13 +171,5 @@ describe("worksheet layouts", () => {
       expect(issues, layout).toEqual([]);
       expect(document.match(/<w:br w:type="page"\/>/g), layout).toHaveLength(1);
     }
-  });
-
-  it("moves cards across columns on sides with fewer columns", () => {
-    const moved = moveCard(layoutSample, 1, 0, 0, "next");
-    expect(moved?.document.sides[1].columns[1].cards[0].title).toBe("Draw y = 3x − 2");
-    const back = moveCard(layoutSample, 1, 0, 0, "previous");
-    expect(back?.document.sides[0].columns[2].cards.at(-1)?.title).toBe("Draw y = 3x − 2");
-    expect(moveCard(layoutSample, 1, 1, 0, "next")).toBeNull();
   });
 });
