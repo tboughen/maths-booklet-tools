@@ -30,7 +30,8 @@ import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
 
-export type WorksheetFormat = "pdf" | "json";
+/** Word (docx) is made for worksheets only; booklets print as PDFs. */
+export type WorksheetFormat = "pdf" | "docx" | "json";
 /** A worksheet or a booklet: both travel through the same signed download links. */
 export type PrintDocument = Resource | Booklet;
 export interface Numbering {
@@ -39,6 +40,7 @@ export interface Numbering {
 }
 const validateDocument = (input: unknown): PrintDocument => (isBooklet(input) ? validateBooklet(input) : validate(input));
 const MAX_LINK = 7500;
+const DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const PREVIEW_WIDTH = 1400;
 
 const tokenSchema = z
@@ -46,7 +48,7 @@ const tokenSchema = z
     v: z.literal(1),
     key: z.string().max(32),
     expires: z.number().int(),
-    format: z.enum(["pdf", "json"]),
+    format: z.enum(["pdf", "docx", "json"]),
     view: z.enum(["pupil", "answers"]),
     // The document itself, or `ref`: the sha256 of a document kept in the document store.
     resource: z.unknown().optional(),
@@ -132,6 +134,7 @@ export class WorksheetDownloads {
     if (parsed.ref && worksheetHash(resource).slice(7) !== parsed.ref) throw new GraphError("invalid_download", "Invalid worksheet token.");
     if (parsed.numbering && (!("lessons" in resource.document) || resource.document.lessons.length !== 1 || parsed.format !== "pdf"))
       throw new GraphError("invalid_download", "Invalid worksheet token.");
+    if (parsed.format === "docx" && isBooklet(resource)) throw new GraphError("invalid_download", "Invalid worksheet token.");
     return { resource, format: parsed.format, view: parsed.view, numbering: parsed.numbering };
   }
 }
@@ -157,8 +160,10 @@ const output = z
     issues: z.array(
       z.object({ side: z.number(), column: z.number(), question: z.number().optional(), message: z.string() }).strict(),
     ),
-    files: z.object({ pupilPdf: z.string(), answersPdf: z.string(), json: z.string() }).strict(),
-    downloads: z.object({ pupilPdf: link.optional(), answersPdf: link.optional(), json: link.optional() }).strict(),
+    files: z.object({ pupilPdf: z.string(), answersPdf: z.string(), pupilDocx: z.string(), answersDocx: z.string(), json: z.string() }).strict(),
+    downloads: z
+      .object({ pupilPdf: link.optional(), answersPdf: link.optional(), pupilDocx: link.optional(), answersDocx: link.optional(), json: link.optional() })
+      .strict(),
     physicalSizeMm: z.object({ width: z.literal(420), height: z.literal(297) }).strict(),
     sides: z.literal(2),
   })
@@ -218,7 +223,7 @@ const DESCRIPTION =
   "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
   "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers PDF; never invent answers the teacher did not give. " +
-  "Returns side previews, pupil and answers vector PDFs, editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
+  "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs), editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
 export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownloads, limits: TrafficLimits) {
   async function artifacts(doc: PrintDocument, format: WorksheetFormat, view: View, signal?: AbortSignal, numbering?: Numbering) {
@@ -226,12 +231,17 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const resource = doc as Resource;
     if (format === "json")
       return { body: Buffer.from(JSON.stringify(resource, null, 2)), type: "application/json", name: fileName(resource, view).replace(/_A3\.pdf$/, ".json") };
+    if (format === "docx") {
+      const docx = await raster.worksheetDocx(resource, view, signal);
+      return { body: Buffer.from(docx), type: DOCX_TYPE, name: fileName(resource, view).replace(/\.pdf$/, ".docx") };
+    }
     const r = renderResource(resource, { view });
     const pdf = await raster.worksheetPdf(r.pages, resource.document.title, signal);
     return { body: Buffer.from(pdf), type: "application/pdf", name: fileName(resource, view) };
   }
 
   async function bookletArtifacts(booklet: Booklet, format: WorksheetFormat, view: View, signal?: AbortSignal, numbering?: Numbering) {
+    if (format === "docx") throw new GraphError("unsupported", "Booklets print as PDFs; Word files are made for worksheets only.");
     if (format === "json")
       return { body: Buffer.from(JSON.stringify(booklet, null, 2)), type: "application/json", name: bookletFileName(booklet).replace(/_A4\.pdf$/, ".json") };
     const r = renderBooklet(booklet, { view, numbering });
@@ -349,11 +359,20 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       content.push({ type: "text", text: `Preview of side ${i + 1} (pupil view, screen resolution; print from the PDF).` });
       content.push({ type: "image", mimeType: "image/png", data: Buffer.from(png).toString("base64") });
     }
-    const files = { pupilPdf: fileName(resource, "pupil"), answersPdf: fileName(resource, "answers"), json: fileName(resource).replace(/_A3\.pdf$/, ".json") };
+    const docxName = (view: View) => fileName(resource, view).replace(/\.pdf$/, ".docx");
+    const files = {
+      pupilPdf: fileName(resource, "pupil"),
+      answersPdf: fileName(resource, "answers"),
+      pupilDocx: docxName("pupil"),
+      answersDocx: docxName("answers"),
+      json: fileName(resource).replace(/_A3\.pdf$/, ".json"),
+    };
     const links: z.infer<typeof output>["downloads"] = {};
     const wanted = [
       ["pupilPdf", "pdf", "pupil"],
       ["answersPdf", "pdf", "answers"],
+      ["pupilDocx", "docx", "pupil"],
+      ["answersDocx", "docx", "answers"],
       ["json", "json", "pupil"],
     ] as const;
     for (const [slot, format, view] of wanted) {
@@ -368,14 +387,14 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           resource: {
             uri: `worksheet://${hash.slice(7, 23)}/${encodeURIComponent(file.name)}`,
             mimeType: file.type,
-            ...(format === "pdf" ? { blob: file.body.toString("base64") } : { text: file.body.toString("utf8") }),
+            ...(format === "json" ? { text: file.body.toString("utf8") } : { blob: file.body.toString("base64") }),
           },
         });
       }
     }
     content.push({
       type: "text",
-      text: "Print the PDFs on A3 at 100% (actual size), double-sided, flipping on the short edge. The answers PDF shows saved answers in dark pink; keep it away from pupils. Keep the JSON to make changes later.",
+      text: "Print the PDFs on A3 at 100% (actual size), double-sided, flipping on the short edge. The answers files show saved answers in dark pink; keep them away from pupils. The Word files open in desktop Word with the same layout, for small edits such as changing a number. Keep the JSON to make changes later.",
     });
     return {
       structuredContent: {
@@ -418,8 +437,8 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
               cellStates: ["supplied", "blank", "hidden"],
               markup: "**bold** and *italic* only; no HTML",
-              outputs: ["pupil PDF", "answers PDF", "editable JSON", "side previews"],
-              fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf",
+              outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
+              fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
               booklet: {
                 tool: "create_booklet",
                 rendererVersion: "booklet-a4-1",

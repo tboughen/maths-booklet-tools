@@ -6,6 +6,8 @@ import {
   setDensityBytes,
   verifyPrintBytes,
 } from "../../packages/graph-core/src/png-bytes";
+/** Written into each Word file's properties, so a printed copy can be traced to the renderer. */
+const WORD_VERSION = "MathsDock worksheet renderer, Word output 1";
 process.once(
   "message",
   (job: {
@@ -19,6 +21,8 @@ process.once(
     /** Worksheet text fonts (assets/resource-fonts), loaded beside the diagram fonts. */
     textFontRoot?: string;
     pdf?: { pages: string[]; title: string };
+    /** A validated worksheet and the view to write as a Word file. */
+    docx?: { resource: unknown; view: "pupil" | "answers" };
     measureCrop?: boolean;
     archive?: Record<string, Uint8Array>;
   }) => {
@@ -36,6 +40,17 @@ process.once(
           (pdf) => process.send?.({ pdf }, () => process.exit(0)),
           () => process.send?.({ code: "render_failed", error: "The PDF could not be made." }, () => process.exit(1)),
         );
+        return;
+      }
+      if (job.docx) {
+        if (!job.textFontRoot) throw Error("Worksheet fonts are missing.");
+        const { resource, view } = job.docx, roots = { text: job.textFontRoot, diagrams: job.fontRoot };
+        Promise.all([import("./worksheet-docx"), import("../../packages/resource-core/src/index")])
+          .then(([{ worksheetDocx }, { validate }]) => worksheetDocx(validate(resource), view, roots, WORD_VERSION))
+          .then(
+            ({ bytes }) => process.send?.({ docx: bytes }, () => process.exit(0)),
+            () => process.send?.({ code: "render_failed", error: "The Word file could not be made." }, () => process.exit(1)),
+          );
         return;
       }
       if (job.measureCrop) {

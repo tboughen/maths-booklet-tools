@@ -7,6 +7,12 @@ deliverable; PDFs and page images are only used for checking.
 
 ## Making the files
 
+In any chat with the MathsDock connector, `create_worksheet` returns `pupilDocx` and `answersDocx`
+download links beside the PDFs (13 November 2026). Booklets print as PDFs only. The connector's file is
+byte-identical to the one `scripts/resource/word.mjs` writes for the same sheet: both call
+`services/graph-mcp/worksheet-docx.ts`, which the service runs in its render worker. A Word link
+carries the worksheet, like the PDF links, so it makes the file again on each download and needs no stored file.
+
 In a project thread, from a fresh clone (no website release, connector or API key needed):
 
 ```

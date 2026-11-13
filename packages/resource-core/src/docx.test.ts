@@ -167,3 +167,86 @@ describe("stacked fractions in the SVG pages", () => {
     expect(renderResource(doc).issues.some((i) => /saved answer is [\d.]+ mm wider than its answer line/.test(i.message))).toBe(true);
   });
 });
+
+describe("Word answer canary", () => {
+  // Answer canary for the Word files (gate 7 does the same for diagram artwork): plant a sentinel in
+  // one hidden slot at a time and look for it in every part of the pupil package and in every
+  // picture handed to the picture maker. A control shows the same slot, so a slot only counts when
+  // the writer would have printed it. Hidden working must not print in either file.
+  it("keeps every hidden slot out of every part of the pupil file", async () => {
+    type Json = Record<string, unknown>;
+    type Slot = { path: (string | number)[]; hide: (o: Json, s: string) => void; show?: (o: Json, s: string) => void; kind: string };
+    const SENTINELS = ["Qzx7canary", "917"];
+    const diagramRules: Omit<Slot, "path">[] = [
+      { kind: "diagram value", hide: (o, s) => { o.value = s; o.hidden = true; }, show: (o, s) => { o.value = s; o.hidden = false; } },
+      { kind: "diagram answer", hide: (o, s) => { o.answer = s; o.answerVisible = false; }, show: (o, s) => { o.answer = s; o.answerVisible = true; } },
+      { kind: "diagram label", hide: (o, s) => { o.text = s; o.show = "hidden"; }, show: (o, s) => { o.text = s; o.show = "show"; } },
+      { kind: "diagram label", hide: (o, s) => { o.text = s; o.visibility = "hidden"; }, show: (o, s) => { o.text = s; o.visibility = "show"; } },
+      { kind: "diagram label", hide: (o, s) => { o.text = s; o.state = "hidden"; }, show: (o, s) => { o.text = s; o.state = "value"; } },
+    ];
+    const matches = (o: Json, kind: number) =>
+      [
+        typeof o.hidden === "boolean" && "value" in o,
+        typeof o.answerVisible === "boolean" && typeof o.answer === "string",
+        typeof o.show === "string" && typeof o.text === "string",
+        typeof o.visibility === "string" && typeof o.text === "string",
+        typeof o.state === "string" && typeof o.text === "string",
+      ][kind];
+    function slots(value: unknown, path: (string | number)[] = [], inDiagram = false): Slot[] {
+      if (!value || typeof value !== "object") return [];
+      const o = value as Json, found: Slot[] = [];
+      if (!Array.isArray(value)) {
+        if (inDiagram) diagramRules.forEach((r, i) => matches(o, i) && found.push({ ...r, path }));
+        else if (o.type === "answerLine") found.push({ kind: "answer line", path, hide: (n, s) => { n.answer = s; } });
+        else if (Array.isArray(o.rows) && o.type === "table")
+          (o.rows as Json[][]).forEach((row, r) => row.forEach((_, c) =>
+            found.push({ kind: "table cell", path: [...path, "rows", r, c], hide: (n, s) => { n.text = s; n.state = "hidden"; }, show: (n, s) => { n.text = s; n.state = "supplied"; } })));
+        if (!inDiagram && Array.isArray(o.items) && (typeof o.title === "string" || o.type === "part"))
+          found.push({ kind: "working", path, hide: (n, s) => { n.working = s; } });
+      }
+      for (const [k, v] of Object.entries(o)) {
+        if (!inDiagram && k === "rows" && o.type === "table") continue;
+        found.push(...slots(v, [...path, Array.isArray(value) ? Number(k) : k], inDiagram || k === "envelope"));
+      }
+      return found;
+    }
+    const planted = (doc: Resource, slot: Slot, how: "hide" | "show", s: string) => {
+      const copy = structuredClone(doc) as unknown as Json;
+      let node: unknown = copy;
+      for (const key of slot.path) node = (node as Json)[key as string];
+      (how === "hide" ? slot.hide : slot.show!)(node as Json, s);
+      return copy;
+    };
+    /** Every package part as text, plus the drawn text of each picture the writer asked for. */
+    async function everything(raw: unknown, view: "pupil" | "answers") {
+      let doc: Resource;
+      try { doc = validate(raw); } catch { return null; }
+      const pictures: string[] = [];
+      const { bytes } = await writeWorksheetDocx(doc, { ...options(view), picture: (svg) => (pictures.push(svg), { svg, png: new Uint8Array([137, 80, 78, 71]) }) });
+      const parts = Object.values(unzipSync(bytes)).map((b) => Buffer.from(b).toString("latin1"));
+      return [...parts, ...pictures.map((svg) => [...svg.matchAll(/>([^<]*)</g)].map((m) => m[1]).join(" "))].join("\n");
+    }
+    const checked: Record<string, number> = {}, leaks: string[] = [];
+    for (const [name, doc] of [["comparative bar charts", comparativeBarCharts], ["tree diagrams", treeDiagrams], ["Word test", wordSample], ["layout test", layoutSample]] as const) {
+      for (const slot of slots(doc)) {
+        for (const s of SENTINELS) {
+          const pupil = await everything(planted(doc, slot, "hide", s), "pupil");
+          if (pupil === null) continue;
+          if (slot.kind === "working") {
+            const answers = await everything(planted(doc, slot, "hide", s), "answers");
+            if (pupil.includes(s) || answers!.includes(s)) leaks.push(`${name} ${slot.path.join(".")} working`);
+          } else {
+            // The control: the same text where it should print (shown, or the answers file).
+            const control = slot.show ? await everything(planted(doc, slot, "show", s), "pupil") : await everything(planted(doc, slot, "hide", s), "answers");
+            if (!control?.includes(s)) continue;
+            if (pupil.includes(s)) leaks.push(`${name} ${slot.path.join(".")} (${slot.kind})`);
+          }
+          checked[slot.kind] = (checked[slot.kind] ?? 0) + 1;
+          break;
+        }
+      }
+    }
+    expect(leaks).toEqual([]);
+    for (const kind of ["answer line", "table cell", "working", "diagram label"]) expect(checked[kind] ?? 0, JSON.stringify(checked)).toBeGreaterThan(0);
+  }, 120_000);
+});
