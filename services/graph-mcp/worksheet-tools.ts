@@ -254,6 +254,24 @@ const DESCRIPTION =
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
+const LINK_LABELS: Record<string, string> = {
+  pupilPdf: "Pupil PDF",
+  answersPdf: "Answers PDF",
+  pupilDocx: "Pupil Word file",
+  answersDocx: "Answers Word file",
+  json: "Editable JSON",
+};
+/**
+ * The download links as text. Some clients (claude.ai among them) show the model only the text
+ * and image blocks, not structuredContent, so links that live only there never reach the teacher.
+ */
+function linkText(links: Record<string, { url: string; expiresAt: string } | undefined>, heading: string) {
+  const rows = Object.entries(links).filter((e): e is [string, { url: string; expiresAt: string }] => !!e[1]);
+  if (!rows.length) return null;
+  const until = rows.map(([, l]) => l.expiresAt).sort()[0].slice(0, 10);
+  return `${heading} (open in a browser; valid until ${until}). Give them to the teacher exactly as written:\n${rows.map(([k, l]) => `- ${LINK_LABELS[k] ?? k}: ${l.url}`).join("\n")}`;
+}
+
 export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownloads, limits: TrafficLimits) {
   async function artifacts(doc: PrintDocument, format: WorksheetFormat, view: View, signal?: AbortSignal, numbering?: Numbering) {
     if (isBooklet(doc)) return bookletArtifacts(doc as Booklet, format, view, signal, numbering);
@@ -347,6 +365,14 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       if (unlinked.length)
         content.push({ type: "text", text: `Lesson ${unlinked.join(", ")} ${unlinked.length > 1 ? "are" : "is"} too large for a single-lesson link; print ${unlinked.length > 1 ? "them" : "it"} from the whole-booklet PDF (lesson pages are listed in lessons[].firstPage).` });
     }
+    const bookletLinks = linkText(links, "Whole-booklet download links");
+    if (bookletLinks) content.push({ type: "text", text: bookletLinks });
+    const lessonRows = lessons.filter((l) => l.pupilPdf || l.answersPdf);
+    if (lessonRows.length)
+      content.push({
+        type: "text",
+        text: `Lesson PDF links:\n${lessonRows.map((l) => `- Lesson ${l.lesson} (${l.title}): pupil ${l.pupilPdf?.url ?? "not available"}${l.answersPdf ? ` | answers ${l.answersPdf.url}` : ""}`).join("\n")}`,
+      });
     content.push({
       type: "text",
       text: printReady
@@ -425,6 +451,8 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         });
       }
     }
+    const worksheetLinks = linkText(links, "Download links");
+    if (worksheetLinks) content.push({ type: "text", text: worksheetLinks });
     content.push({
       type: "text",
       text: "Give the teacher these download links exactly as returned; they open in a browser, so there is no need to download them yourself. Print the PDFs on A3 at 100% (actual size), double-sided, flipping on the short edge. The answers files show saved answers in dark pink; keep them away from pupils. The Word files open in desktop Word with the same layout, for small edits such as changing a number. Keep the JSON to make changes later.",
