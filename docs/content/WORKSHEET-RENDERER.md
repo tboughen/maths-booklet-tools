@@ -118,8 +118,14 @@ from `create_chart` or `create_probability_tree`) and returns:
 
 - a screen preview of each side (pupil view);
 - signed links to the pupil PDF, the answers PDF, the pupil and answers Word files (`.docx`, see
-  `WORD-OUTPUT.md`) and the editable JSON, named by the guide's convention (the worksheet travels deflated inside the link; files are embedded in the reply when
-  a link would be too long);
+  `WORD-OUTPUT.md`) and the editable JSON, named by the guide's convention. In production the document is saved for 8 days in the
+  Workers KV document store (one write per call) and each link, valid 7 days, names its sha256, so
+  links stay about 300 characters; without a durable store, or if the write fails, the worksheet
+  travels deflated inside the link, and files are embedded in the reply when a link would be too long;
+- `notes` naming any column more than a third blank (advice; the sheet stays print-ready). New
+  worksheets set `document.spareSpace: "share"`, which shares a column's spare height between its
+  cards; sheets without it keep the old layout (last card reaches the foot), and the tool never
+  adds the field itself;
 - `printReady` and the layout issues. Overflow is reported, never fixed by shrinking: the client
   revises the document and calls `create_worksheet` again;
 - a `contentHash` of the document.

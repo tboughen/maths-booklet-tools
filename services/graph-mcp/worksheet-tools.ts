@@ -80,15 +80,18 @@ export class WorksheetDownloads {
   /** A link for a document too large to carry: it is saved in the store and the link names its hash. */
   async storedLink(resource: PrintDocument, format: WorksheetFormat, view: View, now = Date.now()) {
     const ref = worksheetHash(resource).slice(7);
-    if (!this.saved.has(ref)) {
+    // One write per document per call: a save under an hour old still has more than the 7-day
+    // link lifetime left (documents are kept 8 days), so the links it signs cannot outlive it.
+    const at = this.saved.get(ref);
+    if (at === undefined || now - at > 3600_000 || now < at) {
       await this.store.put(ref, JSON.stringify(resource), 8 * 86400);
-      this.saved.add(ref);
-      // Remember recent saves only; a repeat save of an older document is harmless.
-      if (this.saved.size > 200) this.saved.delete(this.saved.values().next().value as string);
+      this.saved.delete(ref);
+      this.saved.set(ref, now);
+      if (this.saved.size > 200) this.saved.delete(this.saved.keys().next().value as string);
     }
     return this.signed({ format, view, ref }, now);
   }
-  private saved = new Set<string>();
+  private saved = new Map<string, number>();
   /**
    * A short link when the store survives restarts (the document is saved for 8 days and the link
    * names its hash), otherwise the document travels in the link. Short links are about 300
@@ -98,8 +101,9 @@ export class WorksheetDownloads {
     if (this.store.durable) {
       try {
         return await this.storedLink(resource, format, view, now);
-      } catch {
-        // The store is unavailable: fall back to a self-contained link.
+      } catch (error) {
+        // The store is unavailable: fall back to a self-contained link, and say so in the log.
+        console.warn(`Document store write failed; using a self-contained link. ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     return this.link(resource, format, view, now);
@@ -238,14 +242,14 @@ const LAYOUT = [
   "A3 landscape (420 x 297 mm), exactly two sides. Each side's layout is three (three columns, the default), two (two wide), wide-narrow, narrow-wide or one (full-width cards); each column has a titled stage heading, and a card with stage starts a new stage band within its column.",
   "Body text Inter 11 pt (nothing below 10 pt); cards never split; diagrams keep their native size.",
   "Text never shrinks to fit. Overflow is returned as issues naming side, column and the millimetres needed; fix by moving a card, trimming wording or reducing working space, then create again.",
-  "Spare column height goes to working and drawing spaces. A column with none shares it as working room at the foot of every card (document.spareSpace share, the default for new worksheets); older saved sheets without spareSpace give it all to the last card.",
+  "Spare column height goes to working and drawing spaces. Set document.spareSpace 'share' on every new worksheet: a column with none then shares it as working room at the foot of every card. Without spareSpace (older saved sheets, kept as they are) the last card takes it all.",
   "A column more than a third blank is returned as a note (not an issue): the sheet is still print-ready, but offer the teacher another question for that column.",
   "side.score n prints 'Score ____ / n' in the header (one mark per answer). card.working and part.working store a hidden worked solution that is never printed.",
 ];
 
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
-  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
+  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
   "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
@@ -493,10 +497,8 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       },
       async (args, extra) => {
         try {
-          const resource = validate(args.resource);
-          // New worksheets share spare height between cards; an explicit "last" is kept.
-          resource.document.spareSpace ??= "share";
-          return await result(resource, AbortSignal.any([connection, extra.signal]));
+          // spareSpace is never filled in here: a saved sheet sent back keeps its own layout.
+          return await result(validate(args.resource), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
           return {
             isError: true,

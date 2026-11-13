@@ -147,7 +147,9 @@ usual default, not a rule. To produce, read `worksheet_capabilities` once and ca
 `create_worksheet` with the whole document, in one call rather than many small attempts,
 because each call costs the teacher time and tokens. Check the mathematics before the
 call, then report every layout issue it returns and look at the returned pages before
-calling the worksheet finished. If it returns `notes` naming a column that is more than a third
+calling the worksheet finished. On a new worksheet set `document.spareSpace` to `"share"`, so a
+column's spare height becomes working room under every question; leave the value of a returned or
+saved sheet as it is. If it returns `notes` naming a column that is more than a third
 blank, the sheet is still print-ready and the spare height prints as working room under every
 question. Tell the teacher which column is mostly blank and offer one or two more questions that fit
 its stage; add them only if the teacher agrees, then call `create_worksheet` again.

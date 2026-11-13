@@ -90,8 +90,9 @@ describe("worksheet tools", () => {
     expect((await PDFDocument.load(new Uint8Array(await answers.arrayBuffer()))).getPageCount()).toBe(2);
 
     const json = await (await fetch(reply.downloads.json.url)).json();
-    // New worksheets share spare height between cards; everything else is returned unchanged.
-    expect(json).toEqual({ ...treeDiagrams, document: { ...treeDiagrams.document, spareSpace: "share" } });
+    // The editable JSON is the sheet exactly as sent: an older sheet without spareSpace stays without it.
+    expect(json).toEqual(treeDiagrams);
+    expect((reply.resource as { document: Record<string, unknown> }).document).not.toHaveProperty("spareSpace");
   });
 
   it("keeps an explicit spareSpace and notes columns that are mostly blank", async () => {
@@ -280,6 +281,7 @@ describe("booklet tool", () => {
 
   it("gives short links from a durable store and self-contained links without one", async () => {
     const durable = { ...memoryDocumentStore(), durable: true };
+    const day = 86_400_000;
     let puts = 0;
     const counting = { ...durable, put: async (id: string, text: string, ttl: number) => (puts++, durable.put(id, text, ttl)) };
     const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", counting);
@@ -287,6 +289,9 @@ describe("booklet tool", () => {
     const docx = new URL((await d.shortLink(treeDiagrams, "docx", "answers", 1_000_000)).url);
     expect(pdf.href.length).toBeLessThan(400);
     expect(puts).toBe(1);
+    // A later request saves again, so a fresh 7-day link never outlives its 8-day stored copy.
+    await d.shortLink(treeDiagrams, "pdf", "pupil", 1_000_000 + day);
+    expect(puts).toBe(2);
     await expect(d.verify(pdf, 1_000_000)).resolves.toMatchObject({ format: "pdf", view: "pupil" });
     await expect(d.verify(docx, 1_000_000)).resolves.toMatchObject({ format: "docx", view: "answers" });
     const failing = { ...durable, put: async () => Promise.reject(Error("down")) };
