@@ -11,6 +11,7 @@ import {
   lessonFileName,
   lessonPagesOf,
   issuePlace,
+  singleLessonBooklet,
   renderBooklet,
   SECTION_KINDS,
   SECTION_TITLES,
@@ -25,6 +26,7 @@ import {
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { pagesPdf } from "../worksheet/export";
+import { DOCX_TYPE, wordKit } from "../export/word";
 import { BookletAiPanel } from "./ai/BookletAiPanel";
 import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
@@ -189,6 +191,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const pages = r.pages;
     downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
   }
+  /** The Word file: the same pages as the PDF, written here with the connector's own writer. */
+  async function downloadWord(view: "pupil" | "answers", lesson?: number) {
+    const one = lesson === undefined ? null : singleLessonBooklet(b, lesson);
+    const [{ writeBookletDocx }, kit] = await Promise.all([import("../../packages/resource-core/src/booklet-docx"), wordKit()]);
+    const r = await writeBookletDocx(one ? one.booklet : b, { view, numbering: one?.numbering, fonts: kit.fonts, picture: kit.picture, version: "MathsDock booklet renderer, Word output 1" });
+    if (r.issues.length) throw Error("Fix the layout checks before downloading.");
+    downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), pdfName(b, view, lesson).replace(/\.pdf$/, ".docx"));
+  }
   const editableName = () => bookletFileName(b).replace(/_A4\.pdf$/, ".json");
   const showPage = (page: number) => pagesRef.current?.querySelector(`#bk-page-${page}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -200,7 +210,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     },
     { ok: placeholders === 0, text: placeholders ? `${placeholders} lesson${placeholders > 1 ? "s" : ""} not made yet: rebuild under Change a lesson.` : "Every lesson is made." },
     { ok: true, text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit." },
-    { ok: true, text: "Saved answers print only in the answers PDF." },
+    { ok: true, text: "Saved answers print only in the answers PDF and Word file." },
   ];
 
   const lessonEditor = (lesson: Lesson, li: number): ReactNode => {
@@ -229,6 +239,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           </button>
           <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadPdf("pupil", li), `Lesson ${li + 1} PDF download started.`)}>
             <Download size={15} aria-hidden="true" /> Lesson PDF
+          </button>
+          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadWord("pupil", li), `Lesson ${li + 1} Word file download started.`)}>
+            <Download size={15} aria-hidden="true" /> Lesson Word
           </button>
         </div>
         <Field label={`Lesson ${li + 1} title`} value={lesson.title} max={80} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.title = v))} />
@@ -383,7 +396,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor bk-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Booklets" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs.">
+        <PageHeading title="Booklets" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs or Word files.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
@@ -423,6 +436,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               actions={[
                 { label: "Download pupil PDF", action: () => downloadPdf("pupil"), disabled: blocked || issues.length > 0, success: "Pupil booklet download started." },
                 { label: "Download answers PDF", action: () => downloadPdf("answers"), disabled: blocked || issues.length > 0, success: "Answers booklet download started. Keep it away from pupils." },
+                { label: "Download pupil Word file", action: () => downloadWord("pupil"), disabled: blocked || issues.length > 0, success: "Pupil Word file download started: the same pages as the PDF, for small edits in Word.", separator: true },
+                { label: "Download answers Word file", action: () => downloadWord("answers"), disabled: blocked || issues.length > 0, success: "Answers Word file download started. Keep it away from pupils. Editing it does not change the pupil file." },
                 { label: "Save editable file", action: () => downloadBlob(new Blob([JSON.stringify(b, null, 2)], { type: "application/json" }), editableName()), disabled: blocked, success: `Saved ${editableName()}.`, separator: true },
                 { label: "Open booklet file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
               ]}
