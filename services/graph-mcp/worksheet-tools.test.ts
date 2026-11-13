@@ -67,6 +67,9 @@ describe("worksheet tools", () => {
     expect(reply.files.pupilPdf).toBe("SP7.01_List outcomes of combined events using a tree diagram_A3.pdf");
     const images = (r.content as { type: string; mimeType?: string }[]).filter((c) => c.type === "image");
     expect(images).toHaveLength(2);
+    // Clients that show the model only text and images still get every link.
+    const text = (r.content as { type: string; text?: string }[]).filter((c) => c.type === "text").map((c) => c.text).join("\n");
+    for (const link of Object.values(reply.downloads)) expect(text).toContain(link.url);
 
     const pupil = await fetch(reply.downloads.pupilPdf.url);
     expect(pupil.status).toBe(200);
@@ -196,6 +199,9 @@ describe("booklet tool", () => {
     const content = r.content as { type: string; resource?: { mimeType: string; blob?: string; text?: string } }[];
     // Cover plus the first page of each lesson (two lessons in the example).
     expect(content.filter((c) => c.type === "image")).toHaveLength(3);
+    const bookletText = (r.content as { type: string; text?: string }[]).filter((c) => c.type === "text").map((c) => c.text).join("\n");
+    for (const link of Object.values(reply.downloads)) expect(bookletText).toContain((link as { url: string }).url);
+    for (const lesson of reply.lessons) if (lesson.pupilPdf) expect(bookletText).toContain(lesson.pupilPdf.url);
 
     // The whole booklet is either a link or an included file, for each of the three outputs.
     const included = content.filter((c) => c.type === "resource").map((c) => c.resource!);
