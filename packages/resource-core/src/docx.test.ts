@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { obfuscateFont, writeWorksheetDocx, WORD_FOOT_MM, type DocxOptions } from "./docx";
-import { renderResource, styles, validate, type Resource } from "./index";
+import { lessonPagesOf, renderBooklet, renderResource, singleLessonBooklet, styles, validate, validateBooklet, type Resource } from "./index";
+import { planBooklet } from "./booklet-render";
+import { writeBookletDocx } from "./booklet-docx";
+import { a7Booklet } from "./booklet-fixtures";
 import { wordSample } from "./word-sample";
 import { layoutSample } from "./layout-sample";
 
@@ -143,6 +146,111 @@ describe("Word output for worksheets", () => {
   });
 });
 
+describe("Word output for booklets", () => {
+  async function word(doc: typeof a7Booklet, view: "pupil" | "answers" = "pupil", lesson?: number) {
+    const one = lesson === undefined ? null : singleLessonBooklet(doc, lesson);
+    const r = await writeBookletDocx(one ? one.booklet : doc, { ...options(view), numbering: one?.numbering });
+    const files = unzipSync(r.bytes);
+    const text = (name: string) => strFromU8(files[name]);
+    return { ...r, files, text, document: text("word/document.xml") };
+  }
+  const mm = (v: string | null) => (Number(v) * 25.4) / 1440;
+
+  it("writes a well-formed package with one fixed page per planned page", async () => {
+    const full = renderBooklet(a7Booklet);
+    for (const view of ["pupil", "answers"] as const) {
+      for (const lesson of [undefined, 0, 1]) {
+        const w = await word(a7Booklet, view, lesson);
+        for (const xml of Object.keys(w.files).filter((f) => f.endsWith(".xml") || f.endsWith(".rels")))
+          expect(parse(w.text(xml)).getElementsByTagName("parsererror"), xml).toHaveLength(0);
+        expect(w.issues).toEqual([]);
+        const expected = lesson === undefined ? full.pages.length : lessonPagesOf(a7Booklet, lesson, { view }).pages.length;
+        expect(w.pages).toBe(expected);
+        // Every page opens with a page break of its own, so Word never chooses where pages end.
+        expect(w.document.match(/<w:pageBreakBefore\/>/g)?.length ?? 0).toBe(expected - 1);
+        expect(w.document).not.toContain('<w:br w:type="page"/>');
+        // Numbered as in the whole booklet: a lesson file starts at the lesson's first page and has no cover.
+        expect(w.document).toContain(`<w:pgNumType w:start="${lesson === undefined ? 1 : full.lessonPages[lesson]}"/>`);
+        expect(w.document.includes("<w:titlePg/>")).toBe(lesson === undefined);
+        expect(w.document.includes("Contents")).toBe(lesson === undefined);
+      }
+    }
+  });
+
+  it("sets A4 portrait pages with the layout's margins and a footer from the plan", async () => {
+    const w = await word(a7Booklet);
+    const xml = parse(w.document);
+    const sections = [...xml.getElementsByTagNameNS(W, "sectPr")];
+    expect(sections).toHaveLength(1);
+    expect((sections[0].parentNode as Element | null)?.localName).toBe("body");
+    const size = xml.getElementsByTagNameNS(W, "pgSz")[0];
+    expect([size.getAttribute("w:w"), size.getAttribute("w:h"), size.getAttribute("w:orient")]).toEqual(["11906", "16838", null]);
+    const margin = xml.getElementsByTagNameNS(W, "pgMar")[0];
+    expect(mm(margin.getAttribute("w:left"))).toBeCloseTo(12, 1);
+    // Content ends at 281 mm; Word's bottom margin gives back WORD_FOOT_MM for a fractionally taller card.
+    expect(mm(margin.getAttribute("w:bottom"))).toBeCloseTo(297 - 281 - WORD_FOOT_MM, 1);
+    // The footer sits below the content area, so it never pushes a page's content.
+    const footerTop = 297 - mm(margin.getAttribute("w:footer")) - 0.36 - 6.34;
+    expect(footerTop).toBeGreaterThan(297 - mm(margin.getAttribute("w:bottom")));
+    const footer = w.text("word/footer1.xml");
+    expect(footer).toContain('<w:fldSimple w:instr=" PAGE ">');
+    expect(footer).toContain("A7 · Algebraic proficiency: visualising");
+    // The cover's own footer is empty.
+    expect(w.text("word/footer2.xml")).not.toContain("<w:tbl>");
+    expect(w.text("[Content_Types].xml")).toContain('PartName="/word/footer1.xml"');
+  });
+
+  it("pins every row of cards to its planned height and never lets a row split", async () => {
+    const plan = planBooklet(a7Booklet);
+    const planned = plan.pages.flatMap((p) => p.blocks.filter((b) => b.kind === "row"));
+    const xml = parse((await word(a7Booklet)).document);
+    const body = xml.getElementsByTagNameNS(W, "body")[0];
+    // Card rows are body-level tables whose cells carry the card frame.
+    const rows = [...body.childNodes]
+      .filter((n): n is Element => (n as Element).localName === "tbl")
+      .map((t) => t.getElementsByTagNameNS(W, "tr")[0])
+      .filter((tr) => [...tr.childNodes].some((c) => (c as Element).getElementsByTagNameNS?.(W, "top")[0]?.getAttribute("w:sz") === "10"))
+      // The introduction's three boxes are framed like cards, but are not lesson rows.
+      .filter((tr) => !tr.textContent?.includes("What will I learn?"));
+    expect(rows).toHaveLength(planned.length);
+    rows.forEach((tr, i) => {
+      const trPr = [...tr.childNodes].find((c) => (c as Element).localName === "trPr") as Element;
+      expect(trPr.getElementsByTagNameNS(W, "cantSplit")).toHaveLength(1);
+      const h = trPr.getElementsByTagNameNS(W, "trHeight")[0];
+      expect(h.getAttribute("w:hRule")).toBe("atLeast");
+      expect(mm(h.getAttribute("w:val"))).toBeCloseTo(planned[i].h - 0.9, 1);
+      // Side-by-side cards are one border narrower than their half, with the gap between.
+      const cells = [...tr.childNodes].filter((c): c is Element => (c as Element).localName === "tc");
+      const widths = cells.map((c) => mm(c.getElementsByTagNameNS(W, "tcW")[0].getAttribute("w:w")));
+      if (planned[i].kind === "row" && planned[i].cards.length === 2) {
+        expect(widths[0]).toBeCloseTo(90.5 - 0.45, 1);
+        expect(widths[1]).toBeCloseTo(5.45, 1);
+        expect(widths[2]).toBeCloseTo(90.5 - 0.45, 1);
+      }
+    });
+  });
+
+  it("lists the planned page numbers on the cover and keeps answers out of the pupil file", async () => {
+    const plan = planBooklet(a7Booklet);
+    const pupil = (await word(a7Booklet)).document;
+    for (const c of plan.contents) expect(pupil).toContain(`<w:t xml:space="preserve">${c.page}</w:t>`);
+    const colour = styles.mathsdock.answer.slice(1).toUpperCase();
+    expect(pupil).not.toContain(colour);
+    expect((await word(a7Booklet, "answers")).document).toContain(colour);
+    // No paragraph uses automatic line spacing except pictures.
+    expect(pupil.match(/w:lineRule="auto"/g)?.length ?? 0).toBe((pupil.match(/<w:drawing>/g) ?? []).length);
+  });
+
+  it("is deterministic and reports the same problems as the PDF", async () => {
+    expect((await word(a7Booklet)).bytes).toEqual((await word(structuredClone(a7Booklet))).bytes);
+    const tall = structuredClone(a7Booklet);
+    tall.document.lessons[0].sections[0].cards[0].items.push({ type: "space", kind: "working", heightMm: 200 }, { type: "space", kind: "working", heightMm: 100 });
+    const w = await word(tall);
+    expect(w.issues.length).toBeGreaterThan(0);
+    expect(w.issues.slice(0, renderBooklet(tall).issues.length)).toEqual(renderBooklet(tall).issues);
+  });
+});
+
 describe("stacked fractions in the SVG pages", () => {
   it("draws {a/b} stacked and keeps plain sheets unchanged", () => {
     const svg = renderResource(wordSample).pages.join("");
@@ -173,7 +281,8 @@ describe("Word answer canary", () => {
   // Answer canary for the Word files (gate 7 does the same for diagram artwork): plant a sentinel in
   // one hidden slot at a time and look for it in every part of the pupil package and in every
   // picture handed to the picture maker. A control shows the same slot, so a slot only counts when
-  // the writer would have printed it. Hidden working must not print in either file.
+  // the writer would have printed it. Hidden working must not print in either file. Worksheets and
+  // booklets (whole, and one lesson printed on its own) are both checked.
   it("keeps every hidden slot out of every part of the pupil file", async () => {
     type Json = Record<string, unknown>;
     type Slot = { path: (string | number)[]; hide: (o: Json, s: string) => void; show?: (o: Json, s: string) => void; kind: string };
@@ -211,43 +320,62 @@ describe("Word answer canary", () => {
       }
       return found;
     }
-    const planted = (doc: Resource, slot: Slot, how: "hide" | "show", s: string) => {
+    const planted = (doc: object, slot: Slot, how: "hide" | "show", s: string) => {
       const copy = structuredClone(doc) as unknown as Json;
       let node: unknown = copy;
       for (const key of slot.path) node = (node as Json)[key as string];
       (how === "hide" ? slot.hide : slot.show!)(node as Json, s);
       return copy;
     };
-    /** Every package part as text, plus the drawn text of each picture the writer asked for. */
-    async function everything(raw: unknown, view: "pupil" | "answers") {
+    type Writer = (raw: unknown, o: DocxOptions) => Promise<Uint8Array> | null;
+    const worksheet: Writer = (raw, o) => {
       let doc: Resource;
       try { doc = validate(raw); } catch { return null; }
+      return writeWorksheetDocx(doc, o).then((r) => r.bytes);
+    };
+    const booklet = (): Writer => (raw, o) => {
+      let doc: ReturnType<typeof validateBooklet>;
+      try { doc = validateBooklet(raw); } catch { return null; }
+      return writeBookletDocx(doc, o).then((r) => r.bytes);
+    };
+    /** Every package part as text, plus the drawn text of each picture the writer asked for. */
+    async function everything(write: Writer, raw: unknown, view: "pupil" | "answers") {
       const pictures: string[] = [];
-      const { bytes } = await writeWorksheetDocx(doc, { ...options(view), picture: (svg) => (pictures.push(svg), { svg, png: new Uint8Array([137, 80, 78, 71]) }) });
-      const parts = Object.values(unzipSync(bytes)).map((b) => Buffer.from(b).toString("latin1"));
+      const made = write(raw, { ...options(view), picture: (svg) => (pictures.push(svg), { svg, png: new Uint8Array([137, 80, 78, 71]) }) });
+      if (made === null) return null;
+      const parts = Object.values(unzipSync(await made)).map((b) => Buffer.from(b).toString("latin1"));
       return [...parts, ...pictures.map((svg) => [...svg.matchAll(/>([^<]*)</g)].map((m) => m[1]).join(" "))].join("\n");
     }
-    const checked: Record<string, number> = {}, leaks: string[] = [];
-    for (const [name, doc] of [["comparative bar charts", comparativeBarCharts], ["tree diagrams", treeDiagrams], ["Word test", wordSample], ["layout test", layoutSample]] as const) {
+    const checked: Record<string, number> = {}, checkedIn: Record<string, number> = {}, leaks: string[] = [];
+    const sources: [string, object, Writer][] = [
+      ["comparative bar charts", comparativeBarCharts, worksheet],
+      ["tree diagrams", treeDiagrams, worksheet],
+      ["Word test", wordSample, worksheet],
+      ["layout test", layoutSample, worksheet],
+      ["example booklet", a7Booklet, booklet()],
+    ];
+    for (const [name, doc, write] of sources) {
       for (const slot of slots(doc)) {
         for (const s of SENTINELS) {
-          const pupil = await everything(planted(doc, slot, "hide", s), "pupil");
+          const pupil = await everything(write, planted(doc, slot, "hide", s), "pupil");
           if (pupil === null) continue;
           if (slot.kind === "working") {
-            const answers = await everything(planted(doc, slot, "hide", s), "answers");
+            const answers = await everything(write, planted(doc, slot, "hide", s), "answers");
             if (pupil.includes(s) || answers!.includes(s)) leaks.push(`${name} ${slot.path.join(".")} working`);
           } else {
             // The control: the same text where it should print (shown, or the answers file).
-            const control = slot.show ? await everything(planted(doc, slot, "show", s), "pupil") : await everything(planted(doc, slot, "hide", s), "answers");
+            const control = slot.show ? await everything(write, planted(doc, slot, "show", s), "pupil") : await everything(write, planted(doc, slot, "hide", s), "answers");
             if (!control?.includes(s)) continue;
             if (pupil.includes(s)) leaks.push(`${name} ${slot.path.join(".")} (${slot.kind})`);
           }
           checked[slot.kind] = (checked[slot.kind] ?? 0) + 1;
+          checkedIn[name] = (checkedIn[name] ?? 0) + 1;
           break;
         }
       }
     }
     expect(leaks).toEqual([]);
     for (const kind of ["answer line", "table cell", "working", "diagram label"]) expect(checked[kind] ?? 0, JSON.stringify(checked)).toBeGreaterThan(0);
-  }, 120_000);
+    expect(checkedIn["example booklet"] ?? 0, JSON.stringify(checkedIn)).toBeGreaterThan(5);
+  }, 300_000);
 });
