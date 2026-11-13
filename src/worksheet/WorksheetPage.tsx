@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, Download, LoaderCircle, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, Download, Grid3x3, LoaderCircle, Redo2, RotateCcw, Trash2, Undo2 } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
-import { fileName, renderResource, stageLetters, validate, type Item, type Resource } from "../../packages/resource-core/src/index";
+import { LAYOUTS, columnBoxes, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
-import { Field, LeafEditor, type Leaf } from "./fields";
+import { Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
-import { moveCard, type Move } from "./edit";
+import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 
@@ -24,16 +24,28 @@ function initial(): { r: Resource; message: string; recovery: string | null } {
     try {
       return { r: validate(JSON.parse(raw)), message: "", recovery: null };
     } catch {
-      return { r: treeDiagrams, message: "Saved worksheet data needs recovery. Download it before starting again.", recovery: raw };
+      return {
+        r: treeDiagrams,
+        message: "Saved worksheet data needs recovery. Download it before starting again.",
+        recovery: raw,
+      };
     }
   } catch {
-    return { r: treeDiagrams, message: "Device storage is unavailable. Save the editable file to keep your work.", recovery: null };
+    return {
+      r: treeDiagrams,
+      message: "Device storage is unavailable. Save the editable file to keep your work.",
+      recovery: null,
+    };
   }
 }
 
 export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{ past: Resource[]; present: Resource; future: Resource[] }>({ past: [], present: startup.r, future: [] });
+  const [history, setHistory] = useState<{
+    past: Resource[];
+    present: Resource;
+    future: Resource[];
+  }>({ past: [], present: startup.r, future: [] });
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -52,7 +64,15 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     try {
       const valid = validate(next);
-      setHistory((h) => (JSON.stringify(h.present) === JSON.stringify(valid) ? h : { past: [...h.past, h.present].slice(-80), present: valid, future: [] }));
+      setHistory((h) =>
+        JSON.stringify(h.present) === JSON.stringify(valid)
+          ? h
+          : {
+              past: [...h.past, h.present].slice(-80),
+              present: valid,
+              future: [],
+            },
+      );
       setMessage("");
     } catch (e) {
       // Invalid drafts are refused with the specific reason; the last valid sheet stays.
@@ -65,8 +85,28 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     update(next.document);
     commit(next);
   }
-  const undo = () => !blocked && setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h));
-  const redo = () => !blocked && setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h));
+  const undo = () =>
+    !blocked &&
+    setHistory((h) =>
+      h.past.length
+        ? {
+            past: h.past.slice(0, -1),
+            present: h.past[h.past.length - 1],
+            future: [h.present, ...h.future],
+          }
+        : h,
+    );
+  const redo = () =>
+    !blocked &&
+    setHistory((h) =>
+      h.future.length
+        ? {
+            past: [...h.past, h.present],
+            present: h.future[0],
+            future: h.future.slice(1),
+          }
+        : h,
+    );
 
   useEffect(() => {
     if (recovery !== null) return;
@@ -105,7 +145,10 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
       } catch {
         throw Error("This file is not a worksheet file (it is not JSON).");
       }
-      setPending({ r: validate(parsed), title: "Open this worksheet? It replaces the current one. You can undo it." });
+      setPending({
+        r: validate(parsed),
+        title: "Open this worksheet? It replaces the current one. You can undo it.",
+      });
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     }
@@ -129,14 +172,30 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (next) commit(next);
   };
 
+  const changeLayout = (side: number, layout: Layout) => {
+    if (blocked) return;
+    const next = setLayout(r, side, layout);
+    if (typeof next === "string") setMessage(next);
+    else commit(next);
+  };
+
   const d = r.document;
   let number = 0;
   const letters = stageLetters(r);
   const checks: { ok: boolean; text: string }[] = [
-    { ok: issues.length === 0, text: issues.length ? `${issues.length} layout problem${issues.length > 1 ? "s" : ""}: ${issues.map((i) => i.message).join(" ")}` : "Fits exactly two A3 sides; no card is split or cut off." },
-    { ok: true, text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit." },
+    {
+      ok: issues.length === 0,
+      text: issues.length ? `${issues.length} layout problem${issues.length > 1 ? "s" : ""}: ${issues.map((i) => i.message).join(" ")}` : "Fits exactly two A3 sides; no card is split or cut off.",
+    },
+    {
+      ok: true,
+      text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit.",
+    },
     { ok: true, text: "Saved answers print only in the answers PDF." },
-    { ok: d.code.trim() !== "" && d.objective.trim() !== "", text: d.code.trim() && d.objective.trim() ? `Files are named ${fileName(r)}.` : "Add the objective code and objective so the files are named by the guide." },
+    {
+      ok: d.code.trim() !== "" && d.objective.trim() !== "",
+      text: d.code.trim() && d.objective.trim() ? `Files are named ${fileName(r)}.` : "Add the objective code and objective so the files are named by the guide.",
+    },
   ];
 
   const leafEditor = (item: Leaf, set: (next: Leaf) => void, label: string): ReactNode => <LeafEditor item={item} set={set} label={label} disabled={blocked} />;
@@ -157,7 +216,17 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                 <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title="Redo (Ctrl+Y)" onClick={redo}>
                   <Redo2 size={18} aria-hidden="true" />
                 </button>
-                <button className="tool-button reset-button" disabled={blocked} aria-label="Open the example worksheet" onClick={() => setPending({ r: treeDiagrams, title: "Open the example worksheet? It replaces the current one. You can undo it." })}>
+                <button
+                  className="tool-button reset-button"
+                  disabled={blocked}
+                  aria-label="Open the example worksheet"
+                  onClick={() =>
+                    setPending({
+                      r: treeDiagrams,
+                      title: "Open the example worksheet? It replaces the current one. You can undo it.",
+                    })
+                  }
+                >
                   <RotateCcw size={17} aria-hidden="true" />
                   <span>Example</span>
                 </button>
@@ -182,10 +251,32 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={(m) => setMessage(m)}
               actions={[
-                { label: "Download pupil PDF", action: () => downloadPdf(r, "pupil"), disabled: blocked || issues.length > 0, success: "Pupil PDF download started." },
-                { label: "Download answers PDF", action: () => downloadPdf(r, "answers"), disabled: blocked || issues.length > 0, success: "Answers PDF download started. Keep it away from pupils." },
-                { label: "Save editable file", action: () => downloadEditable(r), disabled: blocked, success: `Saved ${editableName(r)}.`, separator: true },
-                { label: "Open worksheet file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
+                {
+                  label: "Download pupil PDF",
+                  action: () => downloadPdf(r, "pupil"),
+                  disabled: blocked || issues.length > 0,
+                  success: "Pupil PDF download started.",
+                },
+                {
+                  label: "Download answers PDF",
+                  action: () => downloadPdf(r, "answers"),
+                  disabled: blocked || issues.length > 0,
+                  success: "Answers PDF download started. Keep it away from pupils.",
+                },
+                {
+                  label: "Save editable file",
+                  action: () => downloadEditable(r),
+                  disabled: blocked,
+                  success: `Saved ${editableName(r)}.`,
+                  separator: true,
+                },
+                {
+                  label: "Open worksheet file",
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                  success: "",
+                  picker: true,
+                },
               ]}
             />
             <input
@@ -216,7 +307,11 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     const next = pending.r;
                     setPending(null);
-                    setHistory((h) => ({ past: [...h.past, h.present].slice(-80), present: next, future: [] }));
+                    setHistory((h) => ({
+                      past: [...h.past, h.present].slice(-80),
+                      present: next,
+                      future: [],
+                    }));
                     setMessage("");
                   }}
                 >
@@ -248,7 +343,12 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
               {shown.pages.map((svg, i) => (
                 <figure key={i} className="ws-page">
                   <figcaption>Side {i + 1}</figcaption>
-                  <div className="ws-art" dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
+                  <div
+                    className="ws-art"
+                    dangerouslySetInnerHTML={{
+                      __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"'),
+                    }}
+                  />
                 </figure>
               ))}
             </div>
@@ -283,6 +383,24 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                 <details key={s} className="ws-side" open={s === 0}>
                   <summary>Side {s + 1}</summary>
                   <Field label="Instruction line" value={side.instruction} max={160} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].instruction = v))} />
+                  <div className="ws-side-settings">
+                    <label className="ws-field">
+                      <span>Layout</span>
+                      <select aria-label={`Side ${s + 1} layout`} value={side.layout} disabled={blocked} onChange={(e) => changeLayout(s, e.target.value as Layout)}>
+                        {(Object.keys(LAYOUTS) as Layout[]).map((l) => (
+                          <option key={l} value={l}>
+                            {LAYOUT_NAMES[l]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="ws-check">
+                      <input type="checkbox" checked={side.score !== null} disabled={blocked} onChange={(e) => patch((x) => void (x.sides[s].score = e.target.checked ? Math.max(1, answerSpaces(side)) : null))} />
+                      Score box
+                    </label>
+                    {side.score !== null && <NumberField label={`Side ${s + 1} score out of`} value={side.score} min={1} max={200} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].score = v))} />}
+                  </div>
+                  <p className="ws-hint">Fewer columns turn the removed column into a stage band; more columns split the last stage band off again.</p>
                   {side.columns.map((col, c) => (
                     <div key={c} className="ws-column">
                       <Field label={`Column ${letters.columns[s][c]} heading`} value={col.heading} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].heading = v))} />
@@ -295,6 +413,8 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                             else (items[path[0]] as Extract<Item, { type: "part" }>).items[path[1]] = next as Leaf;
                           });
                         const linear = d.sides.slice(0, s).reduce((t, x) => t + x.columns.length, 0) + c;
+                        const setCard = (update: (cd: (typeof col.cards)[number]) => void) => patch((x) => update(x.sides[s].columns[c].cards[k]));
+                        const stageLetter = letters.cards[s][c][k];
                         return (
                           <details key={k} className="ws-card">
                             <summary>
@@ -315,6 +435,8 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                               </button>
                             </div>
                             <Field label={`Question ${q} title`} value={card.title} max={60} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].cards[k].title = v))} />
+                            <Field label={stageLetter ? `Stage ${stageLetter} band above question ${q}` : `Stage band above question ${q} (empty for none)`} value={card.stage ?? ""} max={40} disabled={blocked} onCommit={(v) => setCard((cd) => (v.trim() ? (cd.stage = v) : delete cd.stage))} />
+                            {k === 0 && card.stage ? <p className="ws-hint problem">The first question sits under the column heading, so this band is not printed. Use the column heading instead.</p> : null}
                             {card.items.map((item, i) =>
                               item.type === "part" ? (
                                 <div key={i} className="ws-part">
@@ -322,11 +444,34 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                   {item.items.map((leaf, j) => (
                                     <div key={j}>{leafEditor(leaf, (next) => setItem([i, j], next), "")}</div>
                                   ))}
+                                  <WorkingField
+                                    label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)} hidden working`}
+                                    value={item.working}
+                                    disabled={blocked}
+                                    onCommit={(v) =>
+                                      setCard((cd) => {
+                                        const part = cd.items[i] as Extract<Item, { type: "part" }>;
+                                        if (v === undefined) delete part.working;
+                                        else part.working = v;
+                                      })
+                                    }
+                                  />
                                 </div>
                               ) : (
-                                <div key={i}>{leafEditor(item, (next) => setItem([i], next), "")}</div>
+                                <div key={i}>
+                                  {leafEditor(item, (next) => setItem([i], next), "")}
+                                  {item.type === "paper" && (
+                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => void cd.items.splice(i, 1))}>
+                                      <Trash2 size={15} aria-hidden="true" /> Remove grid paper
+                                    </button>
+                                  )}
+                                </div>
                               ),
                             )}
+                            <button className="tool-button ws-small" disabled={blocked || card.items.length >= 16} onClick={() => setCard((cd) => addPaper(cd, columnBoxes(side)[c].w))}>
+                              <Grid3x3 size={15} aria-hidden="true" /> Add grid paper
+                            </button>
+                            <WorkingField label={`Question ${q} hidden working`} value={card.working} disabled={blocked} onCommit={(v) => setCard((cd) => (v === undefined ? delete cd.working : (cd.working = v)))} />
                           </details>
                         );
                       })}
