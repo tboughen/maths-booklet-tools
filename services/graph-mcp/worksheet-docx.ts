@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
-import { writeWorksheetDocx, type DocxPicture, type RenderedDocx } from "../../packages/resource-core/src/docx";
-import type { Resource, View } from "../../packages/resource-core/src/index";
+import { writeWorksheetDocx, type DocxFonts, type DocxPicture, type RenderedDocx } from "../../packages/resource-core/src/docx";
+import { writeBookletDocx, type RenderedBookletDocx } from "../../packages/resource-core/src/booklet-docx";
+import type { Booklet, Resource, View } from "../../packages/resource-core/src/index";
 
 /** Worksheet text fonts (assets/resource-fonts) and diagram fonts (assets/graph-fonts). */
 export type DocxFontRoots = { text: string; diagrams: string };
@@ -28,13 +29,23 @@ export function wordPicture(svg: string, widthMm: number, heightMm: number, root
   return { svg: outlined, png };
 }
 
+function fonts(roots: DocxFontRoots): DocxFonts {
+  const read = (file: string) => new Uint8Array(readFileSync(join(roots.text, file)));
+  return { regular: read("Inter-Regular.ttf"), semiBold: read("Inter-SemiBold.ttf"), italic: read("Inter-Italic.ttf") };
+}
+
 /** The Word file for one view of a worksheet, with the fonts read from disk. */
 export function worksheetDocx(resource: Resource, view: View, roots: DocxFontRoots, version?: string): Promise<RenderedDocx> {
-  const read = (file: string) => new Uint8Array(readFileSync(join(roots.text, file)));
-  return writeWorksheetDocx(resource, {
-    view,
-    version,
-    fonts: { regular: read("Inter-Regular.ttf"), semiBold: read("Inter-SemiBold.ttf"), italic: read("Inter-Italic.ttf") },
-    picture: (svg, w, h) => wordPicture(svg, w, h, roots),
-  });
+  return writeWorksheetDocx(resource, { view, version, fonts: fonts(roots), picture: (svg, w, h) => wordPicture(svg, w, h, roots) });
+}
+
+/** The Word file for one view of a booklet (or of one lesson, with `numbering`), with the fonts read from disk. */
+export function bookletDocx(
+  booklet: Booklet,
+  view: View,
+  roots: DocxFontRoots,
+  version?: string,
+  numbering?: { lessonOffset: number; pageOffset: number },
+): Promise<RenderedBookletDocx> {
+  return writeBookletDocx(booklet, { view, version, numbering, fonts: fonts(roots), picture: (svg, w, h) => wordPicture(svg, w, h, roots) });
 }
