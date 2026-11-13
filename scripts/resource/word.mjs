@@ -3,10 +3,12 @@
 // the layout.
 //
 // Usage:
-//   node scripts/resource/word.mjs [worksheet-or-booklet.json ...] [--out dir] [--preview] [--no-system-inter] [--lessons]
+//   node scripts/resource/word.mjs [worksheet-or-booklet.json ...] [--out dir] [--preview] [--no-system-inter] [--lessons] [--unit] [--renderer-pdf]
 // With no files, the golden fixtures and the example booklet are written. --lessons also writes
-// each booklet lesson on its own, numbered as in the whole booklet. word-expected.json lists the
-// page count each file must print as, for scripts/word/word-to-pdf.ps1. --no-system-inter runs LibreOffice
+// each booklet lesson on its own, numbered as in the whole booklet; --unit adds a 12-lesson unit
+// made from the example's lessons. --renderer-pdf writes the PDF writer's own PDF beside each file
+// (--preview does too) for scripts/word/compare-text.mjs. word-expected.json lists the page count
+// each file must print as, for scripts/word/word-to-pdf.ps1. --no-system-inter runs LibreOffice
 // with a font set that leaves out any installed Inter, so the preview proves the embedded fonts.
 import { build } from "esbuild";
 import { execFileSync } from "node:child_process";
@@ -65,6 +67,13 @@ const sources = inputs.length
       ["layout-test", r.layoutSample],
       ["a7-booklet", r.a7Booklet],
     ];
+if (flag("--unit")) {
+  // A whole unit: the example's two lessons repeated to twelve, each with its own title.
+  const unit = structuredClone(r.a7Booklet);
+  const [a, b] = r.a7Booklet.document.lessons;
+  unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
+  sources.push(["a7-unit-12-lessons", r.validateBooklet(unit)]);
+}
 const sheets = sources.filter(([, d]) => !r.isBooklet(d));
 const booklets = sources.filter(([, d]) => r.isBooklet(d));
 
@@ -98,6 +107,7 @@ function clearImages(stem) {
 /** The PDF writer's own pages, for side-by-side comparison with the Word preview. */
 async function rendererPdf(file, pages, title) {
   await writeFile(file, await r.worksheetPdf(pages, title, roots));
+  if (!flag("--preview")) return;
   const stem = file.replace(/\.pdf$/, "");
   clearImages(stem);
   execFileSync("pdftoppm", ["-r", "60", "-png", file, stem]);
@@ -112,10 +122,9 @@ for (const [id, doc] of sheets)
     await writeFile(file, bytes);
     const entry = { id, view, file, name, bytes: bytes.length, issues: issues.map((i) => `side ${i.side} column ${i.column}: ${i.message}`) };
     entry.expectedPages = 2;
-    if (flag("--preview")) {
-      entry.preview = preview(file);
+    if (flag("--preview")) entry.preview = preview(file);
+    if (flag("--preview") || flag("--renderer-pdf"))
       await rendererPdf(join(out, `${id}${view === "answers" ? "_answers" : ""}_renderer.pdf`), r.renderResource(doc, { view }).pages, doc.document.title);
-    }
     report.push(entry);
   }
 for (const [id, booklet] of booklets) {
@@ -131,8 +140,8 @@ for (const [id, booklet] of booklets) {
       const file = join(out, `${name}${view === "answers" ? "_answers" : ""}.docx`);
       await writeFile(file, bytes);
       const entry = { id: name, view, file, name: pdfName(b, view).replace(/\.pdf$/, ".docx"), bytes: bytes.length, expectedPages: pages, issues: issues.map((i) => `${r.issuePlace(i)}: ${i.message}`) };
-      if (flag("--preview")) {
-        entry.preview = preview(file);
+      if (flag("--preview")) entry.preview = preview(file);
+      if (flag("--preview") || flag("--renderer-pdf")) {
         const rendered = r.renderBooklet(b, { view, numbering }).pages;
         await rendererPdf(join(out, `${name}${view === "answers" ? "_answers" : ""}_renderer.pdf`), numbering ? rendered.slice(1) : rendered, b.document.title);
       }
