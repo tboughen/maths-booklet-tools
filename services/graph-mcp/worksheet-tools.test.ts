@@ -8,7 +8,7 @@ import { PDFDocument } from "pdf-lib";
 import { graphService } from "./server";
 import { WorksheetDownloads } from "./worksheet-tools";
 import { memoryDocumentStore } from "./document-store";
-import { inflateSync } from "fflate";
+import { inflateSync, strFromU8, unzipSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { lessonPagesOf, renderBooklet, validateBooklet } from "../../packages/resource-core/src/index";
@@ -91,6 +91,39 @@ describe("worksheet tools", () => {
 
     const json = await (await fetch(reply.downloads.json.url)).json();
     expect(json).toEqual(treeDiagrams);
+  });
+
+  it("gives pupil and answers Word files with the PDF layout", async () => {
+    const { client } = await start();
+    const r = await client.callTool({ name: "create_worksheet", arguments: { resource: comparativeBarCharts } });
+    expect(r.isError, JSON.stringify(r.content)).not.toBe(true);
+    const reply = r.structuredContent as unknown as Reply;
+    expect(reply.files.pupilDocx).toBe(reply.files.pupilPdf.replace(/\.pdf$/, ".docx"));
+    expect(reply.files.answersDocx).toBe(reply.files.answersPdf.replace(/\.pdf$/, ".docx"));
+    const word = async (slot: string) => {
+      const res = await fetch(reply.downloads[slot].url);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      expect(res.headers.get("content-disposition")).toContain(".docx");
+      const files = unzipSync(new Uint8Array(await res.arrayBuffer()));
+      return { files, xml: strFromU8(files["word/document.xml"]) };
+    };
+    const pupil = await word("pupilDocx"),
+      answers = await word("answersDocx");
+    // A3 landscape (420 x 297 mm in twips), Inter embedded, diagrams as SVG with a PNG fallback.
+    expect(pupil.xml).toMatch(/<w:pgSz w:w="23811" w:h="16838" w:orient="landscape"\/>/);
+    expect(Object.keys(pupil.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(3);
+    expect(Object.keys(pupil.files).some((f) => f.endsWith(".svg"))).toBe(true);
+    expect(Object.keys(pupil.files).some((f) => f.endsWith(".png"))).toBe(true);
+    // Saved answers print only in the answers file.
+    expect(pupil.xml).not.toContain(">Walk<");
+    expect(answers.xml).toContain(">Walk<");
+  });
+
+  it("refuses a Word link for a booklet", async () => {
+    const downloads = new WorksheetDownloads("http://127.0.0.1", { test: key }, "test");
+    const link = downloads.link(renderable(a7Booklet), "docx", "pupil");
+    await expect(downloads.verify(new URL(link.url))).rejects.toThrow("Invalid worksheet token.");
   });
 
   it("reports overflow as issues instead of shrinking text", async () => {

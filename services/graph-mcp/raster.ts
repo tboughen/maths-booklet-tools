@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { validateArchiveMembers } from "./archive";
 export type Crop = { svg: string; widthCm: number; heightCm: number };
-type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop; pdf?: Uint8Array };
+type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop; pdf?: Uint8Array; docx?: Uint8Array };
 export class RasterQueue {
   private active = false;
   private waiting: Array<() => void> = [];
@@ -29,6 +29,12 @@ export class RasterQueue {
     const result = await this.run({ pdf: { pages, title }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
     if (!result.pdf) throw new GraphError("render_failed", "No PDF was generated.");
     return result.pdf;
+  }
+  /** Word file of one view of a worksheet: fonts embedded, diagrams as outlined SVG with a PNG fallback. */
+  async worksheetDocx(resource: unknown, view: "pupil" | "answers", signal?: AbortSignal): Promise<Uint8Array> {
+    const result = await this.run({ docx: { resource, view }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
+    if (!result.docx) throw new GraphError("render_failed", "No Word file was generated.");
+    return result.docx;
   }
   async render(
     svg: string,
@@ -142,7 +148,7 @@ export class RasterQueue {
             if (message.error)
               finish(new GraphError(message.code ?? "render_failed", message.error));
             else if (
-              (message.zip?.byteLength ?? message.png?.byteLength ?? message.pdf?.byteLength ??
+              (message.zip?.byteLength ?? message.png?.byteLength ?? message.pdf?.byteLength ?? message.docx?.byteLength ??
                 Buffer.byteLength(message.svg ?? message.crop?.svg ?? "")) >
               10 * 1024 * 1024
             )

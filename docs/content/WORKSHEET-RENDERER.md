@@ -117,14 +117,14 @@ resource document (the PRODUCE step from a finalised question set; diagrams are 
 from `create_chart` or `create_probability_tree`) and returns:
 
 - a screen preview of each side (pupil view);
-- signed links to the pupil PDF, the answers PDF and the editable JSON, named by the guide's
-  convention (the worksheet travels deflated inside the link; files are embedded in the reply when
+- signed links to the pupil PDF, the answers PDF, the pupil and answers Word files (`.docx`, see
+  `WORD-OUTPUT.md`) and the editable JSON, named by the guide's convention (the worksheet travels deflated inside the link; files are embedded in the reply when
   a link would be too long);
 - `printReady` and the layout issues. Overflow is reported, never fixed by shrinking: the client
   revises the document and calls `create_worksheet` again;
 - a `contentHash` of the document.
 
-The PDFs and previews run in the service's render worker, so they share its queue, timeout and
+The PDFs, Word files and previews run in the service's render worker, so they share its queue, timeout and
 daily output quota. `services/graph-mcp/worksheet-tools.test.ts` covers the round trip.
 
 ## Samples and checks
