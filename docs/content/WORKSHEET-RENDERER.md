@@ -40,6 +40,26 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - Saved answers (hidden table cells, answer-line answers, choice answers, hidden diagram values)
   print only in the answers view, in dark pink. Blank and hidden stay distinct.
 
+## Website editor
+
+The Worksheets page edits a sheet without the AI or the JSON. Every change is one undoable step.
+
+- **Layout** (each side): picking fewer columns moves each removed column's questions to the end
+  of the column before it, and the first of them starts a stage band named by the removed heading,
+  so the stage letters read as before. Picking more columns splits the side's last stage band off
+  into a new column (its label becomes the heading), or adds an empty column. Three, one, then three
+  again gives back the same side. A change that would put more than six questions in a column is
+  refused with the reason.
+- **Score box** (each side): ticking it starts the total at one mark per answer space on that side
+  (answer lines, choices, and blank or hidden table cells); the teacher can change it.
+- **Stage band** (each question): a label starts a new band above the question; empty removes it.
+  A band on a column's first question is flagged, since that question sits under the heading.
+- **Hidden working** (each question and part): several lines, closed until used. Never printed.
+- **Grid paper**: Add grid paper puts squared paper as wide as the card (whole centimetres) and
+  60 mm tall before the card's closing answer lines. Style, width, height and blank axes (origin and
+  labels) can be changed, and the paper removed. The booklet editor shares the grid paper and hidden
+  working controls; booklets do not print stages.
+
 ## Layout rules
 
 - 420 × 297 mm pages, 8 mm margins, 5 mm gutters, columns in thirds of the page (three 131.3 mm by default), one fixed type scale (11 pt body
@@ -116,5 +136,4 @@ no answers in pupil pages, identical placement across views, JSON round trips, o
 and file names.
 
 Known gaps for later steps: the Charts y-axis title is horizontal, which makes dual charts wide in
-a 131 mm column; Triangle, number line and graph diagrams are not wired in yet; there is no
-browser editor (step 3) and no A4 booklet (step 4).
+a 131 mm column. The editor cannot yet add or remove other kinds of item.
