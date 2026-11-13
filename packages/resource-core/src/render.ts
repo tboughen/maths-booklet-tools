@@ -376,16 +376,17 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
 
 /**
  * Measures a column of cards, then shares its spare height between the working and drawing
- * spaces (or, with none, lets the last card reach the foot). Shared by the SVG and Word writers.
+ * spaces. With none, every card gets an equal share at its foot as working room, so the column
+ * still reaches the foot without one oversized last card. Shared by the SVG and Word writers.
  */
-export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx): { spare: number; extra: number; stretchLast: number } {
+export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx): { spare: number; extra: number; stretchEach: number } {
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
   const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
   const spare = avail - used;
   const spaces = cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
-  return { spare, extra, stretchLast: spare > 0 && !spaces ? spare : 0 };
+  return { spare, extra, stretchEach: spare > 0 && !spaces && cards.length ? spare / cards.length : 0 };
 }
 
 /** A stage band inside a column: the heading band and the gap to the first card below it. */
@@ -547,12 +548,12 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
       out.push(stageSvg(letters.columns[s][c], col.heading, x, colTop, st));
       const numbers = col.cards.map(() => ++number);
-      const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
+      const { spare, extra, stretchEach } = planColumn(col.cards, numbers, colW, avail, ctx);
       if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
       let y = cardsTop;
       col.cards.forEach((cd, i) => {
         ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
-        const stretch = i === col.cards.length - 1 ? stretchLast : 0;
+        const stretch = stretchEach;
         const letter = letters.cards[s][c][i];
         if (i === 0 && cd.stage) issue(ctx, "The first card in a column sits under the column heading, so its stage is not printed. Put the stage in the column heading.");
         if (letter) {

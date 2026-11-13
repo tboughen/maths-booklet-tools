@@ -688,7 +688,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, 
     bands.push(cell(stageTable(letters.columns[s][c], col.heading, colW, st), { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } }));
     const numbers = col.cards.map(() => ++number);
     ctx.where = { side: s + 1, column: c + 1, question: 0 };
-    const { spare, extra, stretchLast } = planColumn(col.cards, numbers, colW, avail, ctx);
+    const { spare, extra, stretchEach } = planColumn(col.cards, numbers, colW, avail, ctx);
     if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
     const quiet = { ...ctx, issues: [], diagrams: 0 };
     // Cards with exact gaps between them; a card that starts a stage has its band in the gap.
@@ -696,7 +696,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, 
     const parts: string[] = [];
     col.cards.forEach((cd, i) => {
       ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
-      const stretch = i === col.cards.length - 1 ? stretchLast : 0;
+      const stretch = stretchEach;
       const h = measureCard(cd, numbers[i], colW, quiet, extra, stretch).h;
       const letter = letters.cards[s][c][i];
       if (i) parts.push(gap(S.cardGap + (letter ? half : 0)));
