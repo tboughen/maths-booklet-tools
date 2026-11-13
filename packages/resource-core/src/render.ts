@@ -23,6 +23,8 @@ export interface Rendered {
   pages: string[];
   /** Layout problems. Nothing is shrunk to hide them. */
   issues: Issue[];
+  /** Columns that are mostly blank. Advice, not a layout problem: the sheet is still print-ready. */
+  notes: Issue[];
 }
 
 /** A laid-out piece of a page: its height in millimetres and its SVG at the origin. */
@@ -376,18 +378,26 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
 
 /**
  * Measures a column of cards, then shares its spare height between the working and drawing
- * spaces. With none, every card gets an equal share at its foot as working room, so the column
- * still reaches the foot without one oversized last card. Shared by the SVG and Word writers.
+ * spaces. With none, `share` gives every card an equal share at its foot as working room;
+ * otherwise (saved sheets from before) the last card reaches the foot. Shared by the SVG and
+ * Word writers.
  */
-export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx): { spare: number; extra: number; stretchEach: number } {
+export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
   const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
   const spare = avail - used;
   const spaces = cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
-  return { spare, extra, stretchEach: spare > 0 && !spaces && cards.length ? spare / cards.length : 0 };
+  const free = spare > 0 && !spaces ? spare : 0;
+  const stretch = (i: number) => (share ? free / cards.length : i === cards.length - 1 ? free : 0);
+  return { spare, extra, stretch };
 }
+
+/** A column more than this fraction blank (before spare height is shared out) gets a space note. */
+export const SPARSE_COLUMN = 1 / 3;
+export const sparseMessage = (s: number, c: number, blank: number) =>
+  `Column ${c + 1} on side ${s + 1} is about ${Math.round(blank * 100)}% blank. If more working space is not the intent, consider proposing another question for it.`;
 
 /** A stage band inside a column: the heading band and the gap to the first card below it. */
 export const STAGE_BAND = S.columnHeadingBand + 2.5;
@@ -511,6 +521,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
   const cardsTop = colTop + S.columnHeadingBand + 2.5;
   const avail = P.height - m - cardsTop;
   let number = 0;
+  const notes: Issue[] = [];
   const letters = stageLetters(resource);
   const pages = doc.sides.map((side, s) => {
     const out: string[] = [];
@@ -548,19 +559,19 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
       out.push(stageSvg(letters.columns[s][c], col.heading, x, colTop, st));
       const numbers = col.cards.map(() => ++number);
-      const { spare, extra, stretchEach } = planColumn(col.cards, numbers, colW, avail, ctx);
+      const { spare, extra, stretch } = planColumn(col.cards, numbers, colW, avail, ctx, doc.spareSpace === "share");
       if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
+      if (spare / avail > SPARSE_COLUMN) notes.push({ side: s + 1, column: c + 1, message: sparseMessage(s, c, spare / avail) });
       let y = cardsTop;
       col.cards.forEach((cd, i) => {
         ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
-        const stretch = stretchEach;
         const letter = letters.cards[s][c][i];
         if (i === 0 && cd.stage) issue(ctx, "The first card in a column sits under the column heading, so its stage is not printed. Put the stage in the column heading.");
         if (letter) {
           out.push(stageSvg(letter, cd.stage ?? "", x, y, st));
           y += STAGE_BAND;
         }
-        const f = card(cd, numbers[i], colW, ctx, extra, stretch);
+        const f = card(cd, numbers[i], colW, ctx, extra, stretch(i));
         out.push(at(f, x, y));
         y += f.h + S.cardGap;
       });
@@ -569,7 +580,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     const label = `${doc.title}, side ${s + 1}${ctx.view === "answers" ? ", answers" : ""}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
-  return { pages, issues: ctx.issues };
+  return { pages, issues: ctx.issues, notes };
 }
 
 /** The guide's file name: [code]_[full learning objective]_A3.pdf, with _Answers before _A3 for an answer sheet. */

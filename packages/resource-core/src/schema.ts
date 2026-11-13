@@ -233,6 +233,12 @@ export const resourceSchema = z
          * question text prints as a stacked fraction, and as a native equation in Word.
          */
         notation: z.enum(["plain", "maths"]).default("plain"),
+        /**
+         * How a column without working spaces uses its spare height. share: every card gets an
+         * equal share at its foot as working room. Left out (saved files from before): the last
+         * card reaches the foot, as those files printed. New worksheets are made with share.
+         */
+        spareSpace: z.enum(["share", "last"]).optional().describe("share: a column's spare height is shared as working room at the foot of every card (new worksheets). last, or left out: the last card takes it all (older saved sheets)."),
         sides: z.array(sideSchema).length(2),
       })
       .strict()

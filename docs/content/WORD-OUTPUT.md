@@ -36,7 +36,7 @@ version (fonts from `assets/`, pictures with resvg).
 | Rule | Why |
 | --- | --- |
 | Each side is one fixed-layout table: a header table, then a row of stage headings and a row with one cell per strand column. Cards are bordered one-cell tables inside the column cells. | Word never moves a table cell, so the columns stay where the PDF puts them. Floating text boxes would be fragile to edit. |
-| Each card's row has a minimum height equal to the height the SVG layout measured (including the share of spare height its working spaces get). | The card is the same size as in the PDF. Word grows a card rather than overlapping text when a teacher adds words, so an edit pushes content down and never hides it. |
+| Each card's row has a minimum height equal to the height the SVG layout measured (including the share of spare height its working spaces get, or, in a column with none, the share every card gets at its foot when the sheet's `spareSpace` is `share`). | The card is the same size as in the PDF. Word grows a card rather than overlapping text when a teacher adds words, so an edit pushes content down and never hides it. |
 | Text has exact line spacing (11 pt type on 15.4 pt lines); working space, answer rows and table rows have exact heights. | Only line breaks could then change a card's height. |
 | The text area in each card is 1 mm wider than the width the layout measured. | Line breaks are predicted from Inter's own advance widths, the ones Word uses. The extra millimetre means Word never needs more lines than predicted. |
 | Word's bottom page margin is 3 mm smaller than the layout's (5 mm, not 8 mm). | A card that Word draws a fraction taller cannot push its column onto a third page. Content still ends where the PDF's does. |

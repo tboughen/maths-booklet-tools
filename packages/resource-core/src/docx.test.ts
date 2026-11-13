@@ -28,6 +28,7 @@ describe("Word output for worksheets", () => {
     ["tree diagrams", treeDiagrams],
     ["the Word rendering test", wordSample],
     ["the layout test", layoutSample],
+    ["tree diagrams sharing spare space", { ...treeDiagrams, document: { ...treeDiagrams.document, spareSpace: "share" } }],
   ];
 
   for (const [name, doc] of sheets) {
