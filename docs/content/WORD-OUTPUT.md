@@ -11,7 +11,7 @@ In any chat with the MathsDock connector, `create_worksheet` returns `pupilDocx`
 download links beside the PDFs (13 November 2026). Booklets print as PDFs only. The connector's file is
 byte-identical to the one `scripts/resource/word.mjs` writes for the same sheet: both call
 `services/graph-mcp/worksheet-docx.ts`, which the service runs in its render worker. A Word link
-carries the worksheet, like the PDF links, so it makes the file again on each download and needs no stored file.
+carries the worksheet (or, in production, the hash of the copy saved in the document store), like the PDF links, and the file is made again on each download.
 
 In a project thread, from a fresh clone (no website release, connector or API key needed):
 
@@ -36,7 +36,7 @@ version (fonts from `assets/`, pictures with resvg).
 | Rule | Why |
 | --- | --- |
 | Each side is one fixed-layout table: a header table, then a row of stage headings and a row with one cell per strand column. Cards are bordered one-cell tables inside the column cells. | Word never moves a table cell, so the columns stay where the PDF puts them. Floating text boxes would be fragile to edit. |
-| Each card's row has a minimum height equal to the height the SVG layout measured (including the share of spare height its working spaces get). | The card is the same size as in the PDF. Word grows a card rather than overlapping text when a teacher adds words, so an edit pushes content down and never hides it. |
+| Each card's row has a minimum height equal to the height the SVG layout measured (including the share of spare height its working spaces get, or, in a column with none, the share every card gets at its foot when the sheet's `spareSpace` is `share`). | The card is the same size as in the PDF. Word grows a card rather than overlapping text when a teacher adds words, so an edit pushes content down and never hides it. |
 | Text has exact line spacing (11 pt type on 15.4 pt lines); working space, answer rows and table rows have exact heights. | Only line breaks could then change a card's height. |
 | The text area in each card is 1 mm wider than the width the layout measured. | Line breaks are predicted from Inter's own advance widths, the ones Word uses. The extra millimetre means Word never needs more lines than predicted. |
 | Word's bottom page margin is 3 mm smaller than the layout's (5 mm, not 8 mm). | A card that Word draws a fraction taller cannot push its column onto a third page. Content still ends where the PDF's does. |

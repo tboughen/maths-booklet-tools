@@ -90,7 +90,23 @@ describe("worksheet tools", () => {
     expect((await PDFDocument.load(new Uint8Array(await answers.arrayBuffer()))).getPageCount()).toBe(2);
 
     const json = await (await fetch(reply.downloads.json.url)).json();
+    // The editable JSON is the sheet exactly as sent: an older sheet without spareSpace stays without it.
     expect(json).toEqual(treeDiagrams);
+    expect((reply.resource as { document: Record<string, unknown> }).document).not.toHaveProperty("spareSpace");
+  });
+
+  it("keeps an explicit spareSpace and notes columns that are mostly blank", async () => {
+    const { client } = await start();
+    const sparse = structuredClone(treeDiagrams) as unknown as { document: { spareSpace?: string; sides: { columns: { cards: unknown[] }[] }[] } };
+    sparse.document.spareSpace = "last";
+    sparse.document.sides[1].columns[2].cards.splice(1);
+    const r = await client.callTool({ name: "create_worksheet", arguments: { resource: sparse } });
+    expect(r.isError, JSON.stringify(r.content)).not.toBe(true);
+    const reply = r.structuredContent as unknown as Reply & { notes: { side: number; column: number; message: string }[] };
+    expect((reply.resource as { document: { spareSpace: string } }).document.spareSpace).toBe("last");
+    expect(reply.printReady).toBe(true);
+    expect(reply.notes.some((n) => n.side === 2 && n.column === 3 && /blank/.test(n.message))).toBe(true);
+    expect((r.content as { type: string; text?: string }[])[0].text).toContain("ask the teacher before adding questions");
   });
 
   it("gives pupil and answers Word files with the PDF layout", async () => {
@@ -262,6 +278,28 @@ describe("booklet tool", () => {
     expect(res.status).toBe(400);
     expect(await res.text()).toContain("64 KiB");
   }, 180_000);
+
+  it("gives short links from a durable store and self-contained links without one", async () => {
+    const durable = { ...memoryDocumentStore(), durable: true };
+    const day = 86_400_000;
+    let puts = 0;
+    const counting = { ...durable, put: async (id: string, text: string, ttl: number) => (puts++, durable.put(id, text, ttl)) };
+    const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", counting);
+    const pdf = new URL((await d.shortLink(treeDiagrams, "pdf", "pupil", 1_000_000)).url);
+    const docx = new URL((await d.shortLink(treeDiagrams, "docx", "answers", 1_000_000)).url);
+    expect(pdf.href.length).toBeLessThan(400);
+    expect(puts).toBe(1);
+    // A later request saves again, so a fresh 7-day link never outlives its 8-day stored copy.
+    await d.shortLink(treeDiagrams, "pdf", "pupil", 1_000_000 + day);
+    expect(puts).toBe(2);
+    await expect(d.verify(pdf, 1_000_000)).resolves.toMatchObject({ format: "pdf", view: "pupil" });
+    await expect(d.verify(docx, 1_000_000)).resolves.toMatchObject({ format: "docx", view: "answers" });
+    const failing = { ...durable, put: async () => Promise.reject(Error("down")) };
+    const fallback = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", failing);
+    const inline = new URL((await fallback.shortLink(treeDiagrams, "pdf", "pupil", 1_000_000)).url);
+    expect(inline.href.length).toBeGreaterThan(400);
+    await expect(fallback.verify(inline, 1_000_000)).resolves.toMatchObject({ format: "pdf" });
+  });
 
   it("refuses a stored-document link that was tampered with or has gone", async () => {
     const store = memoryDocumentStore();

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { fileName, renderResource, styles, validate, type Resource, type StyleId } from "./index";
 import { wrap } from "./text";
+import { planColumn, SPARSE_COLUMN } from "./render";
 
 const fixtures: [string, Resource][] = [
   ["comparative bar charts", comparativeBarCharts],
@@ -95,5 +96,36 @@ describe("saved worksheets from before the diagram registry", () => {
     }
     const pages = renderResource(validate(saved), { view }).pages.map((p) => createHash("sha256").update(p).digest("hex").slice(0, 16));
     expect(pages).toEqual(before[key]);
+  });
+});
+
+describe("spare column height", () => {
+  const ctx = { st: styles.mathsdock, view: "pupil" as const, diagrams: 0, issues: [], where: { side: 1, column: 1, question: 0 } };
+  const cards: Resource["document"]["sides"][number]["columns"][number]["cards"] = [
+    { title: "One", items: [{ type: "text", text: "Explain what fair means." }] },
+    { title: "Two", items: [{ type: "text", text: "Explain what biased means." }] },
+    { title: "Three", items: [{ type: "text", text: "Explain what random means." }] },
+  ];
+  it("shares spare height between all cards for share, and gives it to the last card otherwise", () => {
+    const share = planColumn(cards, [1, 2, 3], 131.3, 250, ctx, true);
+    const last = planColumn(cards, [1, 2, 3], 131.3, 250, ctx, false);
+    expect(share.spare).toBeGreaterThan(100);
+    expect([0, 1, 2].map(share.stretch)).toEqual([share.spare / 3, share.spare / 3, share.spare / 3]);
+    expect([0, 1, 2].map(last.stretch)).toEqual([0, 0, last.spare]);
+  });
+  it("gives working spaces the spare height first, whatever the setting", () => {
+    const withSpace = [...cards, { title: "Four", items: [{ type: "space" as const, kind: "working" as const, heightMm: 20 }] }];
+    const r = planColumn(withSpace, [1, 2, 3, 4], 131.3, 250, ctx, true);
+    expect(r.extra).toBeGreaterThan(0);
+    expect([0, 1, 2, 3].map(r.stretch)).toEqual([0, 0, 0, 0]);
+  });
+  it("notes a column more than a third blank without making the sheet unready", () => {
+    const sparse = structuredClone(treeDiagrams);
+    sparse.document.spareSpace = "share";
+    sparse.document.sides[1].columns[2].cards.splice(1);
+    const r = renderResource(validate(sparse));
+    expect(r.issues).toEqual([]);
+    expect(r.notes.find((n) => n.side === 2 && n.column === 3)?.message).toMatch(/% blank/);
+    expect(SPARSE_COLUMN).toBeCloseTo(1 / 3);
   });
 });

@@ -379,6 +379,15 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
               <Field label="Objective code" value={d.code} max={16} disabled={blocked} onCommit={(v) => patch((x) => void (x.code = v))} />
               <Field label="Objective" value={d.objective} max={200} multiline disabled={blocked} onCommit={(v) => patch((x) => void (x.objective = v))} />
               <Field label="Year or tier" value={d.group} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.group = v))} />
+              <label className="ws-check">
+                <input
+                  type="checkbox"
+                  checked={d.spareSpace === "share"}
+                  disabled={blocked}
+                  onChange={(e) => patch((x) => void (x.spareSpace = e.target.checked ? "share" : "last"))}
+                />
+                Share spare space between questions
+              </label>
               {d.sides.map((side, s) => (
                 <details key={s} className="ws-side" open={s === 0}>
                   <summary>Side {s + 1}</summary>

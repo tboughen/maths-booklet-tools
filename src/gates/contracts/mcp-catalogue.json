@@ -1833,7 +1833,7 @@
   {
     "name": "create_worksheet",
     "title": "Make an A3 worksheet",
-    "description": "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers PDF; never invent answers the teacher did not give. Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs), editable JSON, contentHash and layout issues. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.",
+    "description": "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1884,6 +1884,14 @@
                   "enum": [
                     "plain",
                     "maths"
+                  ]
+                },
+                "spareSpace": {
+                  "description": "share: a column's spare height is shared as working room at the foot of every card (new worksheets). last, or left out: the last card takes it all (older saved sheets).",
+                  "type": "string",
+                  "enum": [
+                    "share",
+                    "last"
                   ]
                 },
                 "sides": {
@@ -2946,6 +2954,14 @@
                     "maths"
                   ]
                 },
+                "spareSpace": {
+                  "description": "share: a column's spare height is shared as working room at the foot of every card (new worksheets). last, or left out: the last card takes it all (older saved sheets).",
+                  "type": "string",
+                  "enum": [
+                    "share",
+                    "last"
+                  ]
+                },
                 "sides": {
                   "minItems": 2,
                   "maxItems": 2,
@@ -4006,6 +4022,33 @@
             "additionalProperties": false
           }
         },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "side": {
+                "type": "number"
+              },
+              "column": {
+                "type": "number"
+              },
+              "question": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "side",
+              "column",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Columns more than a third blank. The sheet is still print-ready; offer the teacher another question for each, and add it only if they agree."
+        },
         "files": {
           "type": "object",
           "properties": {
@@ -4154,6 +4197,7 @@
         "rendererVersion",
         "printReady",
         "issues",
+        "notes",
         "files",
         "downloads",
         "physicalSizeMm",

@@ -46,7 +46,10 @@ export function parseSubmission(input: unknown): Submission {
     );
   // Diagrams written as specs are built into envelopes now, so the page only ever holds envelopes.
   try {
-    return { ...r.data, resource: resolveDiagrams(r.data.resource) };
+    const resource = resolveDiagrams(r.data.resource);
+    // New worksheets share a column's spare height between its cards as working room.
+    resource.document.spareSpace ??= "share";
+    return { ...r.data, resource };
   } catch (e) {
     throw new SubmissionError(e instanceof Error ? e.message : String(e));
   }

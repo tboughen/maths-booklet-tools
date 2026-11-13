@@ -9,7 +9,7 @@
       "name": "mathsdock",
       "source": "./plugins/mathsdock-claude",
       "description": "Create and revise editable MathsDock teaching diagrams and A3 worksheets through the MathsDock MCP connector, with real print files and editor links.",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "author": { "name": "Tim Boughen" },
       "category": "education",
       "keywords": ["maths", "teaching", "diagrams", "worksheets", "mcp"]

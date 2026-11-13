@@ -149,7 +149,12 @@ usual default, not a rule. To produce, read `worksheet_capabilities` once and ca
 `create_worksheet` with the whole document, in one call rather than many small attempts,
 because each call costs the teacher time and tokens. Check the mathematics before the
 call, then report every layout issue it returns and look at the returned pages before
-calling the worksheet finished.
+calling the worksheet finished. On a new worksheet set `document.spareSpace` to `"share"`, so a
+column's spare height becomes working room under every question; leave the value of a returned or
+saved sheet as it is. If it returns `notes` naming a column that is more than a third
+blank, the sheet is still print-ready and the spare height prints as working room under every
+question. Tell the teacher which column is mostly blank and offer one or two more questions that fit
+its stage; add them only if the teacher agrees, then call `create_worksheet` again.
 
 For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the
 whole booklet; `worksheet_capabilities` lists its layout and section kinds. Give every lesson a
@@ -169,7 +174,9 @@ line beside the arrow. Keep plain tables for tables of values and other non-rati
 ## Files and links
 
 - Show the returned preview and the real links it returned: SVG, 600 ppi print PNG,
-  editable JSON and the MathsDock editor link. Use only URLs a tool returned. Never build,
+  editable JSON and the MathsDock editor link. For a worksheet or booklet, give the pupil and
+  answers PDF (and Word) links as clickable links. They open in the teacher's browser, so do not
+  try to download them into your own workspace, which often cannot reach the service. Use only URLs a tool returned. Never build,
   shorten or edit a signed download link, and never invent a download tool. Editor links
   should point at `mathsdock.co.uk`; report a different returned target rather than
   rewriting it.
