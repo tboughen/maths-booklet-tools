@@ -157,8 +157,9 @@ its stage; add them only if the teacher agrees, then call `create_worksheet` aga
 Fractions on worksheets are always stacked. On a new worksheet set `document.notation` to
 `"maths"` and write every fraction as `{3/4}` (a mixed number as `2{1/2}`, algebra as `{x/2}`) in
 question text, options, steps, bullets, claims and parts; never `1/2` or `½`. Table cells,
-answer-line prefixes, suffixes and saved answers, circle-one options and headings cannot stack, so
-put fractions in the question text instead where you can. A note naming a question means a
+answer-line prefixes, suffixes and saved answers, circle-one options and headings cannot stack: an
+exact fractional value there stays a fraction typed as `3/4`, never a decimal, and where it reads as
+well, put the fraction in the question text instead. A note naming a question means a
 fraction there will not print stacked: fix it and call `create_worksheet` again.
 
 For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the

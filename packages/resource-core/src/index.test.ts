@@ -149,6 +149,11 @@ describe("stacked fraction notes", () => {
     expect(notes[0]).toMatchObject({ side: 1, column: 1, question: 1 });
     expect(notes[0].message).toContain("{1/2}");
     expect(notes[0].message).toContain('notation to "maths"');
+    // Places that cannot stack (table cells, answer lines, circle-one options) are never flagged.
+    first.items[0] = { type: "table", columns: ["p", "q"], rows: [[{ state: "supplied", text: "1/2" }, { state: "hidden", text: "3/4" }]] };
+    first.items.push({ type: "answerLine", prefix: "1/2 of 8 =", suffix: "", answer: "1/4", inline: false });
+    first.items.push({ type: "choice", mode: "circle", options: ["1/2", "3/4"], answer: 0 });
+    expect(renderResource(validate(doc)).notes.filter((n) => n.question !== undefined)).toEqual([]);
     first.items[0] = { type: "text", text: "P(red) = {1/2} and P(blue) = {1/4}." };
     doc.document.notation = "maths";
     expect(renderResource(validate(doc)).notes.filter((n) => n.question !== undefined)).toEqual([]);
