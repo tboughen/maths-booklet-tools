@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -23,7 +23,10 @@ export interface Rendered {
   pages: string[];
   /** Layout problems. Nothing is shrunk to hide them. */
   issues: Issue[];
-  /** Columns that are mostly blank. Advice, not a layout problem: the sheet is still print-ready. */
+  /**
+   * Advice, not layout problems: the sheet is still print-ready. Columns that are mostly blank (no
+   * question number), and questions with a fraction that will not print stacked (with one).
+   */
   notes: Issue[];
 }
 
@@ -40,6 +43,8 @@ export interface Ctx<W extends object = { side: number; column: number; question
   compactTables?: boolean;
   /** Maths notation in flowing text: {3/4} prints as a stacked fraction (worksheet `notation: "maths"`). */
   maths?: boolean;
+  /** Collects one note per question whose flowing text holds a fraction that will not print stacked. */
+  inline?: Map<string, Issue>;
 }
 
 const S = SIZE;
@@ -58,7 +63,22 @@ export const fractionLine = (size: number) => size * FRAC_LINE;
 /** Baseline within a fraction line: the ordinary gap below it, and the extra height above. */
 export const fractionBaseline = (size: number) => fractionLine(size) - (lineBox(size) - baseline(size)) - size * 0.55;
 
+/** Stacked fractions are the rule on worksheets, so a fraction typed inline gets a note. */
+export const fractionMessage = (question: number, found: string, maths: boolean) =>
+  found.startsWith("{")
+    ? `Question ${question} has ${found}, which prints with its braces because document.notation is not "maths". Set notation "maths" so it prints as a stacked fraction.`
+    : `Question ${question} writes the fraction ${found} inline. Fractions print stacked: write it as ${/\d/.test(found) ? `{${found.replace(/ /g, "")}}` : "{numerator/denominator}"}${maths ? "" : ' and set document.notation to "maths"'} (a mixed number as 2{1/2}).`;
+
+function noteInline(source: string, ctx: AnyCtx) {
+  if (!ctx.inline || !ctx.where.question) return;
+  const key = `${ctx.where.side}.${ctx.where.column}.${ctx.where.question}`;
+  if (ctx.inline.has(key)) return;
+  const found = inlineFraction(source, !!ctx.maths);
+  if (found) ctx.inline.set(key, { side: ctx.where.side, column: ctx.where.column, question: ctx.where.question, message: fractionMessage(ctx.where.question, found, !!ctx.maths) });
+}
+
 function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number; fill?: string; base?: FontStyle; x?: number } = {}): Frag {
+  noteInline(source, ctx);
   const size = opts.size ?? S.body;
   const lines = wrap(source, size, width, opts.base, ctx.maths);
   const lh = lineBox(size);
@@ -383,7 +403,7 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
  * Word writers.
  */
 export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
-  const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0 };
+  const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0, inline: undefined };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
   const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
   const spare = avail - used;
@@ -514,6 +534,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     issues: [],
     where: { side: 0, column: 0, question: 0 },
     maths: doc.notation === "maths",
+    inline: new Map(),
   };
   const P = S.page,
     m = S.margin;
@@ -580,6 +601,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     const label = `${doc.title}, side ${s + 1}${ctx.view === "answers" ? ", answers" : ""}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
+  notes.push(...ctx.inline!.values());
   return { pages, issues: ctx.issues, notes };
 }
 

@@ -36,7 +36,10 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
   `notation: "maths"` (default `"plain"`, so saved sheets print as before) also prints `{3/4}` in
   question text as a stacked fraction, and `2{1/2}` as a mixed number; see
-  [Word output](WORD-OUTPUT.md#stacked-fractions).
+  [Word output](WORD-OUTPUT.md#stacked-fractions). Fractions on worksheets are always stacked, so
+  new sheets use `notation: "maths"`; a question whose flowing text has a fraction typed inline
+  (`1/2`, `½`, or `{1/2}` on a plain sheet) gets a note naming it. The note is advice, not a layout
+  issue, and the text is never rewritten for the author.
 - Saved answers (hidden table cells, answer-line answers, choice answers, hidden diagram values)
   print only in the answers view, in dark pink. Blank and hidden stay distinct.
 

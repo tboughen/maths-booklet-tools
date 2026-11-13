@@ -71,7 +71,9 @@ A sheet with `notation: "maths"` prints `{3/4}` in question text (text, info, cl
 parts, steps, checklists and choice options) as a stacked fraction; `2{1/2}` is a mixed number.
 Each side holds up to 12 characters, with no braces or second slash. Letters print in italic.
 Table cells, answer lines and titles stay plain. Saved sheets default to `notation: "plain"` and
-print exactly as before. A brace that is not part of a fraction is reported.
+print exactly as before. A brace that is not part of a fraction is reported. New sheets (the
+connector's guidance, the skill and the website's AI maker) use `notation: "maths"`, and a fraction
+typed inline in question text is returned as a note naming the question.
 
 A paragraph holding a fraction sets all its lines at 2.4 times the body size (9.3 mm at 11 pt),
 in the PDF and, with exact spacing, in Word, so its height is as fixed as ordinary text. A

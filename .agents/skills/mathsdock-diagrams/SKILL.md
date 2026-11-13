@@ -154,6 +154,13 @@ blank, the sheet is still print-ready and the spare height prints as working roo
 question. Tell the teacher which column is mostly blank and offer one or two more questions that fit
 its stage; add them only if the teacher agrees, then call `create_worksheet` again.
 
+Fractions on worksheets are always stacked. On a new worksheet set `document.notation` to
+`"maths"` and write every fraction as `{3/4}` (a mixed number as `2{1/2}`, algebra as `{x/2}`) in
+question text, options, steps, bullets, claims and parts; never `1/2` or `½`. Table cells,
+answer-line prefixes, suffixes and saved answers, circle-one options and headings cannot stack, so
+put fractions in the question text instead where you can. A note naming a question means a
+fraction there will not print stacked: fix it and call `create_worksheet` again.
+
 For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the
 whole booklet; `worksheet_capabilities` lists its layout and section kinds. Give every lesson a
 one-sentence key idea, a check in on its prerequisites, worked example and "Our turn" pairs,

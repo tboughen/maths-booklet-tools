@@ -49,6 +49,9 @@ export function parseSubmission(input: unknown): Submission {
     const resource = resolveDiagrams(r.data.resource);
     // New worksheets share a column's spare height between its cards as working room.
     resource.document.spareSpace ??= "share";
+    // New worksheets print {3/4} as a stacked fraction unless the model chose otherwise.
+    const sent = (input as { resource?: { document?: { notation?: unknown } } } | null)?.resource?.document?.notation;
+    if (sent === undefined) resource.document.notation = "maths";
     return { ...r.data, resource };
   } catch (e) {
     throw new SubmissionError(e instanceof Error ? e.message : String(e));
@@ -102,7 +105,8 @@ One two-sided A3 landscape worksheet in the MathsDock house style. The page rend
 - Leave real room for working: "space" items with kind "working" for calculations and "drawing" for sketches and charts, sized for the work pupils actually do (typically 20 to 60 mm).
 - Use "info" items for shared information and key facts (a pale card), "claim" for a statement a pupil made that others check, "choice" for circle-one or tick-one, "answerLine" for a final answer with prefix and unit, "table" for data tables, "part" for lettered parts a, b, c.
 - Diagrams: "diagram" items are MathsDock diagrams, written as {"tool": kind, "spec": {...}} and built by the page. Each request lists the diagram families suited to it with their spec schemas; use only those, following the schema exactly. To keep an existing diagram unchanged, keep its {"tool", "envelope"} exactly as it is. Prefer a pre-drawn diagram with blanks over describing a diagram in words. A blank set of axes for pupils to draw on is a "space" item of kind "drawing". Pupil diagrams never use worked, calculate or answerVisible settings: leave answers blank or hidden so they print only in the answers copy.
-- Plain Unicode text only, with **bold** and *italic* as the only marks. Write maths with Unicode (×, ÷, −, ², √, ½, ≤). No HTML, no LaTeX.
+- Plain Unicode text only, with **bold** and *italic* as the only marks. Write maths with Unicode (×, ÷, −, ², √, ≤). No HTML, no LaTeX.
+- Fractions always print stacked: set document.notation to "maths" and write every fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts. Never write 1/2 or ½. Table cells, answer-line prefix, suffix and answer, circle-one options and headings cannot stack, so keep fractions out of them where you can.
 
 # Answers and blanks
 - Pupil blanks, answer lines and hidden answers are different states. A table cell is "supplied" (printed), "blank" (an empty box) or "hidden" (an empty box whose saved answer prints only on the teacher's answers copy).

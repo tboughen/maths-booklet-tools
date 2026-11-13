@@ -112,6 +112,22 @@ describe("worksheet tools", () => {
     expect((r.content as { type: string; text?: string }[])[0].text).toContain("ask the teacher before adding questions");
   });
 
+  it("returns a fraction note for a fraction typed inline and prints {3/4} stacked", async () => {
+    const { client } = await start();
+    const sheet = structuredClone(treeDiagrams) as unknown as { document: { notation?: string; sides: { columns: { cards: { items: unknown[] }[] }[] }[] } };
+    sheet.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "P(red) = 1/2" });
+    const r = await client.callTool({ name: "create_worksheet", arguments: { resource: sheet } });
+    const reply = r.structuredContent as unknown as Reply & { notes: { question?: number; message: string }[] };
+    expect(reply.printReady).toBe(true);
+    expect(reply.notes.find((n) => n.question === 1)?.message).toContain("{1/2}");
+    expect((r.content as { type: string; text?: string }[])[0].text).toContain("Fraction notes:");
+    sheet.document.notation = "maths";
+    sheet.document.sides[0].columns[0].cards[0].items[0] = { type: "text", text: "P(red) = {1/2}" };
+    const fixed = await client.callTool({ name: "create_worksheet", arguments: { resource: sheet } });
+    const ok = fixed.structuredContent as unknown as Reply & { notes: { question?: number }[] };
+    expect(ok.notes.filter((n) => n.question !== undefined)).toEqual([]);
+  });
+
   it("gives pupil and answers Word files with the PDF layout", async () => {
     const { client } = await start();
     const r = await client.callTool({ name: "create_worksheet", arguments: { resource: comparativeBarCharts } });
