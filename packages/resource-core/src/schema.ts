@@ -232,7 +232,10 @@ export const resourceSchema = z
          * plain (saved files from before, and the default): text prints as typed. maths: {3/4} in
          * question text prints as a stacked fraction, and as a native equation in Word.
          */
-        notation: z.enum(["plain", "maths"]).default("plain"),
+        notation: z
+          .enum(["plain", "maths"])
+          .default("plain")
+          .describe("maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed."),
         /**
          * How a column without working spaces uses its spare height. share: every card gets an
          * equal share at its foot as working room. Left out (saved files from before): the last

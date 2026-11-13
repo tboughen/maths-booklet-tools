@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { comparativeBarCharts, treeDiagrams } from "./fixtures";
 import { fileName, renderResource, styles, validate, type Resource, type StyleId } from "./index";
-import { wrap } from "./text";
+import { inlineFraction, wrap } from "./text";
 import { planColumn, SPARSE_COLUMN } from "./render";
 
 const fixtures: [string, Resource][] = [
@@ -127,5 +127,35 @@ describe("spare column height", () => {
     expect(r.issues).toEqual([]);
     expect(r.notes.find((n) => n.side === 2 && n.column === 3)?.message).toMatch(/% blank/);
     expect(SPARSE_COLUMN).toBeCloseTo(1 / 3);
+  });
+});
+
+describe("stacked fraction notes", () => {
+  it("finds fractions that will not print stacked", () => {
+    expect(inlineFraction("Find 3/4 of 20.", true)).toBe("3/4");
+    expect(inlineFraction("Find ¾ of 20.", true)).toBe("¾");
+    expect(inlineFraction("Find {3/4} of 20.", true)).toBeNull();
+    expect(inlineFraction("Find {3/4} of 20.", false)).toBe("{3/4}");
+    expect(inlineFraction("Speed in m/s and km/h, 0.5 kg, date 2/3/24", true)).toBeNull();
+  });
+  it("notes each question with an inline fraction and keeps the sheet print-ready", () => {
+    const doc = structuredClone(treeDiagrams);
+    const first = doc.document.sides[0].columns[0].cards[0];
+    first.items.unshift({ type: "text", text: "P(red) = 1/2 and P(blue) = 1/4." });
+    const plain = renderResource(validate(doc));
+    expect(plain.issues).toEqual([]);
+    const notes = plain.notes.filter((n) => n.question !== undefined);
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toMatchObject({ side: 1, column: 1, question: 1 });
+    expect(notes[0].message).toContain("{1/2}");
+    expect(notes[0].message).toContain('notation to "maths"');
+    // Places that cannot stack (table cells, answer lines, circle-one options) are never flagged.
+    first.items[0] = { type: "table", columns: ["p", "q"], rows: [[{ state: "supplied", text: "1/2" }, { state: "hidden", text: "3/4" }]] };
+    first.items.push({ type: "answerLine", prefix: "1/2 of 8 =", suffix: "", answer: "1/4", inline: false });
+    first.items.push({ type: "choice", mode: "circle", options: ["1/2", "3/4"], answer: 0 });
+    expect(renderResource(validate(doc)).notes.filter((n) => n.question !== undefined)).toEqual([]);
+    first.items[0] = { type: "text", text: "P(red) = {1/2} and P(blue) = {1/4}." };
+    doc.document.notation = "maths";
+    expect(renderResource(validate(doc)).notes.filter((n) => n.question !== undefined)).toEqual([]);
   });
 });

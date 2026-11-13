@@ -21,6 +21,18 @@ export const FRAC_FOOT = 1;
 /** {numerator/denominator}: one slash, no braces inside, up to 12 characters a side. */
 export const FRACTION = /\{([^{}/]{1,12})\/([^{}/]{1,12})\}/g;
 
+const VULGAR = /[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞⅑⅒]/;
+const SLASHED = /(?<![\w./{])\d+ ?\/ ?\d+(?![\w/}]|\.\d)/;
+/**
+ * A fraction that will not print stacked: 1/2 or ½ typed inline, or {1/2} while maths notation is
+ * off (it would print with its braces). Returns the first one found, or null.
+ */
+export function inlineFraction(source: string, maths: boolean): string | null {
+  const rest = maths ? source.replace(FRACTION, " ") : source;
+  const m = rest.match(SLASHED) ?? rest.match(VULGAR) ?? (maths ? null : source.match(FRACTION));
+  return m ? m[0] : null;
+}
+
 function plainRuns(source: string, base: FontStyle): Run[] {
   const runs: Run[] = [];
   const re = /\*\*(.+?)\*\*|\*(.+?)\*/g;

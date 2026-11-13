@@ -187,7 +187,7 @@ const output = z
     ),
     notes: z
       .array(z.object({ side: z.number(), column: z.number(), question: z.number().optional(), message: z.string() }).strict())
-      .describe("Columns more than a third blank. The sheet is still print-ready; offer the teacher another question for each, and add it only if they agree."),
+      .describe("Advice; the sheet is still print-ready. A note without a question names a column more than a third blank: offer the teacher another question for it, and add it only if they agree. A note with a question names a fraction that will not print stacked: rewrite it as {3/4} with notation 'maths' and create the sheet again."),
     files: z.object({ pupilPdf: z.string(), answersPdf: z.string(), pupilDocx: z.string(), answersDocx: z.string(), json: z.string() }).strict(),
     downloads: z
       .object({ pupilPdf: link.optional(), answersPdf: link.optional(), pupilDocx: link.optional(), answersDocx: link.optional(), json: link.optional() })
@@ -244,15 +244,16 @@ const LAYOUT = [
   "Text never shrinks to fit. Overflow is returned as issues naming side, column and the millimetres needed; fix by moving a card, trimming wording or reducing working space, then create again.",
   "Spare column height goes to working and drawing spaces. Set document.spareSpace 'share' on every new worksheet: a column with none then shares it as working room at the foot of every card. Without spareSpace (older saved sheets, kept as they are) the last card takes it all.",
   "A column more than a third blank is returned as a note (not an issue): the sheet is still print-ready, but offer the teacher another question for that column.",
+  "Fractions always print stacked: set document.notation 'maths' on every new worksheet and write each fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2 or ½. Table cells, answer-line prefix, suffix and saved answer, circle-one options and headings cannot stack: an exact fractional value there stays a fraction typed as 3/4, never a decimal, and where it reads as well, put the fraction in the question text instead. A fraction typed inline is returned as a note naming the question.",
   "side.score n prints 'Score ____ / n' in the header (one mark per answer). card.working and part.working store a hidden worked solution that is never printed.",
 ];
 
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
-  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
-  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*. " +
+  "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,notation:'maths' (always on a new worksheet, so {3/4} prints as a stacked fraction),spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
+  "Cards are numbered automatically across both sides. Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*, plus {3/4} for a stacked fraction: write every fraction this way, never 1/2 or ½. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. " +
-  "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
+  "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. A note naming a question means a fraction there will not print stacked: rewrite it as {3/4} and create again. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
 const LINK_LABELS: Record<string, string> = {
   pupilPdf: "Pupil PDF",
@@ -403,9 +404,11 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const content: ContentBlock[] = [];
     const printReady = pupil.issues.length === 0;
     const notes = printReady ? pupil.notes : [];
-    const advice = notes.length
-      ? ` Space notes: ${notes.map((i) => i.message).join(" ")} Spare height is printed as working room; ask the teacher before adding questions.`
-      : "";
+    const space = notes.filter((i) => i.question === undefined);
+    const fractions = notes.filter((i) => i.question !== undefined);
+    const advice =
+      (space.length ? ` Space notes: ${space.map((i) => i.message).join(" ")} Spare height is printed as working room; ask the teacher before adding questions.` : "") +
+      (fractions.length ? ` Fraction notes: ${fractions.map((i) => i.message).join(" ")} Unless the teacher asked to keep the wording exactly, fix these and create the sheet again before giving the teacher the files.` : "");
     content.push({
       type: "text",
       text: printReady
@@ -498,7 +501,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
               items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
               diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
               cellStates: ["supplied", "blank", "hidden"],
-              markup: "**bold** and *italic* only; no HTML",
+              markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
               outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
               fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
               booklet: {

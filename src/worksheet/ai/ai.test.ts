@@ -69,6 +69,12 @@ describe("diagrams the AI writes", () => {
     // The missing value stays an empty pupil box.
     expect(JSON.stringify(item.diagram.envelope)).toContain('{"value":"","show":"show"}');
   });
+  it("keeps the notation the model sent, and asks for stacked fractions", () => {
+    const sheet = withChart(chart);
+    (sheet.resource as unknown as { document: { notation: string } }).document.notation = "plain";
+    expect(parseSubmission(sheet).resource.document.notation).toBe("plain");
+    expect(systemPrompt).toContain("{3/4}");
+  });
   it("refuses worked or answer-revealing settings on a pupil diagram", () => {
     const worked = { example: "dual-transport", worked: true };
     expect(() => parseSubmission(withChart(worked))).toThrow(SubmissionError);
