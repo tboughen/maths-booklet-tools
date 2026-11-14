@@ -1,3 +1,4 @@
+import { withWorked, workedOf } from "../../packages/envelope-core/src/worked";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import * as cuboid from "../../packages/cuboid-core/src/index";
 import * as line from "../../packages/number-line-core/src/index";
@@ -84,7 +85,10 @@ export function resourceTools(
   /** The artwork for the requested view; cuboids use the measured crop, Venn SVG files outline text. */
   function artwork(source: NewSource, info: Awaited<ReturnType<typeof prepareDiagram>>, format: DownloadFormat | "preview") {
     if (source.kind === "cuboids") return info.crop!.svg;
-    if (source.kind === "venn" && format === "svg") return renderPortableSvg(venn.forView(source.envelope, viewOf(source), true));
+    if (source.kind === "venn" && format === "svg") {
+      const svg = renderPortableSvg(venn.forView(source.envelope, viewOf(source), true));
+      return viewOf(source) === "answer" ? withWorked(svg, workedOf(source.envelope)) : svg;
+    }
     return FAMILIES[source.kind].svg(source.envelope, viewOf(source));
   }
   async function artifacts(source: NewSource, format: DownloadFormat, signal?: AbortSignal) {

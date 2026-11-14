@@ -12,6 +12,7 @@
  */
 import { z } from "zod";
 import { tidySvgRoot } from "../../envelope-core/src/svg-root";
+import { artworkSizeMm, withWorked, workedIssues, workedOf } from "../../envelope-core/src/worked";
 import * as graph from "../../graph-core/src/interchange";
 import { renderDiagramSvg } from "../../graph-core/src/svg";
 import * as ratio from "../../ratio-table-core/src/interchange";
@@ -87,7 +88,25 @@ export interface DiagramFamily<E = unknown> {
 }
 
 // Every family's artwork leaves with tidy root numbers (U38): same print size, readable bytes.
-const family = <E>(f: DiagramFamily<E>) => ({ ...f, svg: (e: E, view: View) => tidySvgRoot(f.svg(e, view)) }) as DiagramFamily<unknown>;
+// Worked-solution notes (U116) print in dark pink on the answers copy of every family with one,
+// and every saved or supplied envelope is checked so its notes fit inside that copy's artwork.
+const family = <E>(f: DiagramFamily<E>) => {
+  const svg = (e: E, view: View) => {
+    const art = f.svg(e, view);
+    return tidySvgRoot(view === "answer" && f.answerView ? withWorked(art, workedOf(e)) : art);
+  };
+  const validate = (raw: unknown, view: View) => {
+    const e = f.validate(raw, view);
+    const notes = workedOf(e);
+    if (notes.length) {
+      if (!f.answerView) throw Error(`A ${f.label} has no answers copy yet, so it cannot hold worked notes. Remove the worked list.`);
+      const issue = workedIssues(notes, artworkSizeMm(f.svg(e, "answer")))[0];
+      if (issue) throw Error(issue);
+    }
+    return e;
+  };
+  return { ...f, svg, validate } as DiagramFamily<unknown>;
+};
 /** Families whose create input is the flat spec itself rather than { spec, envelope }. */
 const flatCreate = (create: (spec: unknown) => unknown, validate: (raw: unknown) => unknown) =>
   (input: { spec?: unknown; envelope?: unknown }) => {

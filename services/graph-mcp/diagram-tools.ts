@@ -73,6 +73,21 @@ export const diagramOutput = z
   })
   .passthrough();
 
+/**
+ * diagram_capabilities returns either the family list or one family's guide (M13). Only the
+ * fields every reply of that kind carries are named; each family adds its own options.
+ */
+const capabilitiesOutput = z
+  .object({
+    families: z.array(z.object({ kind: diagramKindSchema, summary: z.string(), answerView: z.boolean() }).strict()).optional(),
+    next: z.string().optional(),
+    kind: diagramKindSchema.optional(),
+    label: z.string().optional(),
+    createGuide: z.string().optional(),
+    reviseGuide: z.string().optional(),
+  })
+  .passthrough();
+
 /** An error a model can act on, in the connector's one error shape (see tool-error.ts). */
 export function diagramFailure(error: unknown, kindName?: string) {
   return toolFailure(error, {
@@ -121,6 +136,7 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
       {
         description: `List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: ${DIAGRAM_KINDS.join(", ")}.`,
         inputSchema: capabilitiesInput,
+        outputSchema: capabilitiesOutput,
         annotations,
       },
       async (input) => {

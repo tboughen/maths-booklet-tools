@@ -139,6 +139,27 @@ revision keep them unchanged; a file without them keeps its exact canonical text
 (`packages/diagram-core/src/about.test.ts`). A new family spreads `aboutShape` into its envelope
 schema and carries `aboutOf(envelope)` onto any envelope it rebuilds.
 
+## Worked-solution notes (U116, 14 November 2026)
+
+The same spread carries an optional `worked` list (`packages/envelope-core/src/worked.ts`): up to
+12 notes of dark-pink guidance for the worked copy, each with `text` (one line, up to 160
+characters, wrapped at word boundaries to `widthMm`, default 60 mm), `x` and `y` (the note's
+top-left corner, in mm from the artwork's top-left at its printed size) and an optional straight
+`leader` ending at a point in the same mm frame. They follow the worked-solution rulebook: black
+maths, nearby dark-pink guidance, no leader by default, a straight leader only when needed, never
+an L-shaped leader.
+
+- They print only on the answers copy, as the artwork's last layer, at 11 pt STIX Two in the house
+  answer colour (`ANSWER_COLOUR`). The pupil copy is byte-identical with or without them.
+- They never change a printed size. The registry's `validate` refuses a note that runs past the
+  artwork's edge, a leader that ends outside it or on its own note, and notes that overlap one
+  another, each with a message naming the note and what to change.
+- `FAMILIES[kind].svg(envelope, "answer")` draws them, so worksheets, booklets, the connector's
+  files, bundles and get_diagram_svg all show the same notes. Families without an answers copy
+  (tables of values and graphs, cuboids) refuse a `worked` list until they have one.
+- They take part in the contentHash and survive every revision through `aboutOf`
+  (`packages/diagram-core/src/worked.test.ts`).
+
 ## Adding a family
 
 1. Build the family's core package as usual (`docs/tools/ADDING-BOOKLET-TOOLS.md`).

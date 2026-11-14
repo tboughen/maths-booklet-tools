@@ -65,6 +65,10 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 600
+            },
+            "worked": {
+              "type": "array",
+              "items": {}
             }
           },
           "required": [
@@ -4383,6 +4387,87 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false
     },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "families": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "graph",
+                  "ratio-table",
+                  "value-graph",
+                  "cuboids",
+                  "number-line",
+                  "venn",
+                  "algebra-grid",
+                  "bar-model",
+                  "charts",
+                  "probability-tree",
+                  "frequency-tree",
+                  "two-way-table",
+                  "triangle",
+                  "construction",
+                  "elevations"
+                ],
+                "description": "The diagram family the envelope belongs to."
+              },
+              "summary": {
+                "type": "string"
+              },
+              "answerView": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "summary",
+              "answerView"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "next": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "graph",
+            "ratio-table",
+            "value-graph",
+            "cuboids",
+            "number-line",
+            "venn",
+            "algebra-grid",
+            "bar-model",
+            "charts",
+            "probability-tree",
+            "frequency-tree",
+            "two-way-table",
+            "triangle",
+            "construction",
+            "elevations"
+          ],
+          "description": "The diagram family the envelope belongs to."
+        },
+        "label": {
+          "type": "string"
+        },
+        "createGuide": {
+          "type": "string"
+        },
+        "reviseGuide": {
+          "type": "string"
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": {}
+    },
     "annotations": {
       "readOnlyHint": true,
       "destructiveHint": false,
@@ -4459,6 +4544,10 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 600
+            },
+            "worked": {
+              "type": "array",
+              "items": {}
             }
           },
           "required": [
@@ -4700,6 +4789,10 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 600
+            },
+            "worked": {
+              "type": "array",
+              "items": {}
             }
           },
           "required": [
@@ -5129,6 +5222,63 @@
       "properties": {},
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "rendererVersion": {
+          "type": "string",
+          "const": "worksheet-a3-1"
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limits": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "booklet": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "type": "string",
+              "const": "create_booklet"
+            },
+            "rendererVersion": {
+              "type": "string",
+              "const": "booklet-a4-1"
+            }
+          },
+          "required": [
+            "tool",
+            "rendererVersion"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "rendererVersion",
+        "kinds",
+        "limits",
+        "items",
+        "booklet"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": {}
     },
     "annotations": {
       "readOnlyHint": true,
