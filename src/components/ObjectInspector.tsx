@@ -4,6 +4,7 @@ import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
 import type { Bounds, Coordinate, GraphObject, GradientTriangle, RegionObject, StraightObject } from "../domain/types";
 import { gradientTriangleProblem, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
+import { MAX_REGION_INEQUALITIES, parseInequality, regionProblem } from "../../packages/graph-core/src/region";
 
 /** The first whole-number start and short run where a labelled triangle fits on the grid. */
 function fittingTriangle(object: StraightObject, bounds: Bounds): GradientTriangle | null {
@@ -108,7 +109,6 @@ function GradientTriangleFields({
     </fieldset>
   );
 }
-import { MAX_REGION_INEQUALITIES, parseInequality } from "../../packages/graph-core/src/region";
 import {
   OBJECT_NAME_PATTERN,
   coordinatesPrintable,
@@ -283,6 +283,9 @@ function RegionFields({
           if (!inequalities.length || inequalities.length > MAX_REGION_INEQUALITIES)
             throw Error(`Enter 1 to ${MAX_REGION_INEQUALITIES} inequalities, separated by commas.`);
           inequalities.forEach(parseInequality);
+          // A range such as −2 < x ≤ 3 counts as two boundaries; refuse what the renderer cannot draw.
+          const problem = regionProblem({ inequalities });
+          if (problem) throw Error(problem);
           onUpdate({ ...object, inequalities });
         }}
       />
