@@ -499,7 +499,8 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderResource(resource, { view: "answers" }).pages }];
       for (const p of await renderedProblems(raster, copies, resource.document.title, signal)) {
         const boxes = columnBoxes(resource.document.sides[p.page]);
-        const column = boxes.reduce((found, box, i) => (box.x <= p.x + 0.5 ? i + 1 : found), 1);
+        // Column 0 is the header, as in the renderer's own issues.
+        const column = p.y < SIZE.margin + SIZE.headerHeight ? 0 : boxes.reduce((found, box, i) => (box.x <= p.x + 0.5 ? i + 1 : found), 1);
         pupil.issues.push({ side: p.page + 1, column, message: p.message });
       }
     }
