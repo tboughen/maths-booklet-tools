@@ -1,3 +1,4 @@
+import { curvePathData } from "./families";
 import {
   fractionString,
   parseNumber,
@@ -33,9 +34,18 @@ export function displayNumber(v: string, places: number | null = null): string {
   );
 }
 export function equationText(e: Equation): string {
+  if (e.exponential) {
+    const k = e.exponential.coefficient, base = displayNumber(e.exponential.base);
+    const power = `${base.includes("/") ? `(${base})` : base}ˣ`;
+    const front = number(k) === 1 ? "" : number(k) === -1 ? "−" : `${displayNumber(k)} × `;
+    const c = number(e.c);
+    return `y = ${front}${power}${c ? (c < 0 ? " − " : " + ") + displayNumber(e.c.replace(/^[−-]/, "")) : ""}`;
+  }
   const terms: [string, string][] = [
+    [e.cubic ?? "0", "x³"],
     [e.a, "x²"],
     [e.b, "x"],
+    [e.reciprocal ?? "0", "/x"],
     [e.c, ""],
   ];
   let out = "";
@@ -45,7 +55,7 @@ export function equationText(e: Equation): string {
     const magnitude = displayNumber(v.replace(/^[−-]/, ""));
     out +=
       (out ? (n < 0 ? " − " : " + ") : n < 0 ? "−" : "") +
-      (suffix && Math.abs(n) === 1 ? "" : magnitude) +
+      (suffix && suffix !== "/x" && Math.abs(n) === 1 ? "" : magnitude) +
       suffix;
   }
   return "y = " + out;
@@ -302,16 +312,14 @@ export function renderSvg(raw: ValueEnvelope): string {
         const min = Math.max(number(c.min), number(b.xMin)),
           max = Math.min(number(c.max), number(b.xMax));
         if (min >= max) return;
-        const a = number(c.equation.a),
-          bb = number(c.equation.b),
-          cc = number(c.equation.c);
-        // A quadratic Bezier is the exact polynomial, including between sampled table x values.
-        const y0 = a * min * min + bb * min + cc,
-          y1 = a * max * max + bb * max + cc;
-        const controlY = y0 + ((2 * a * min + bb) * (max - min)) / 2;
-        elements.push(
-          `<path data-curve="${escape(c.id)}" d="M${px(min)} ${py(y0)}Q${px((min + max) / 2)} ${py(controlY)} ${px(max)} ${py(y1)}"/>`,
-        );
+        // Quadratics stay one exact quadratic Bezier; other families use exact or
+        // gradient-matched cubic pieces (families.ts).
+        const path = curvePathData(c.equation, min, max, px, py, {
+          min: number(b.yMin),
+          max: number(b.yMax),
+        });
+        if (path)
+          elements.push(`<path data-curve="${escape(c.id)}" d="${path}"/>`);
       });
     const markers: string[] = [];
     for (const s of g.series) {
