@@ -79,6 +79,7 @@ import {
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
 import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
@@ -1479,7 +1480,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "maths-triangle-recovery.json",
+                      downloadName("triangle", "json", { recovery: true }),
                     );
                     setProtectedCopy(true);
                     setMessage(

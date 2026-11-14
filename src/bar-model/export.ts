@@ -17,6 +17,7 @@ import {
   downloadBlob,
   svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -48,13 +49,13 @@ export async function downloadImage(e: Envelope, format: "svg" | "png" | "pdf") 
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
         }),
-    `maths-bar-model.${format}`,
+    downloadName("bar-model", format, { resource: e }),
   );
 }
 export function downloadEditable(e: Envelope) {
   downloadBlob(
     new Blob([canonical(e)], { type: "application/json" }),
-    "maths-bar-model.json",
+    downloadName("bar-model", "json", { resource: e }),
   );
 }
 export async function copyWord(e: Envelope) {

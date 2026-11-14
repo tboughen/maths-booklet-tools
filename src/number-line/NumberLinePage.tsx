@@ -39,6 +39,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -782,7 +783,7 @@ export default function NumberLinePage({
                       new Blob([canonical(history.present)], {
                         type: "application/json",
                       }),
-                      "maths-number-line.json",
+                      downloadName("number-line", "json", { resource: history.present }),
                     ),
                   disabled: blocked,
                   success: "Editable file download started.",
@@ -1004,7 +1005,7 @@ export default function NumberLinePage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "number-line-recovery.json",
+                      downloadName("number-line", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}

@@ -58,6 +58,7 @@ import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import "./probability-tree.css";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
@@ -365,9 +366,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
-                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },
+                svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
                 save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
                 open: { action: () => file.current?.click(), disabled: blocked, success: "" },
                 link: {
@@ -799,7 +800,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "probability-tree-recovery.json");
+                downloadBlob(new Blob([recovery], { type: "application/json" }), downloadName("probability-tree", "json", { recovery: true }));
                 setProtectedCopy(true);
               }}
             >

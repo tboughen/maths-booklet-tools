@@ -54,6 +54,7 @@ import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -1401,7 +1402,7 @@ export default function ValueGraphPage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recoverRaw], { type: "application/json" }),
-                      "value-graph-recovery.json",
+                      downloadName("value-table-graph", "json", { recovery: true }),
                     );
                     setMessage(
                       "Recovery download prepared. You can now start afresh.",

@@ -17,6 +17,7 @@ import {
   downloadBlob,
   svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -36,7 +37,7 @@ export async function printPng(e: Envelope) {
   );
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf", answers = false) {
   downloadBlob(
     format === "pdf"
       ? await svgPdf((await prepareImage(e)).svg)
@@ -45,13 +46,13 @@ export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") 
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
         }),
-    `maths-venn.${format}`,
+    downloadName("venn", format, { resource: e, answers }),
   );
 }
 export function downloadEditable(e: Envelope) {
   downloadBlob(
     new Blob([canonical(e)], { type: "application/json" }),
-    "maths-venn.json",
+    downloadName("venn", "json", { resource: e }),
   );
 }
 export async function copyWord(e: Envelope) {

@@ -48,6 +48,7 @@ import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Pending = {
   title: string;
@@ -516,7 +517,7 @@ export default function RatioTablePage({
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "maths-ratio-table-recovery.json",
+                  downloadName("ratio-table", "json", { recovery: true }),
                 );
                 setRecoveryDownloaded(true);
               }}
@@ -615,7 +616,7 @@ export default function RatioTablePage({
                       new Blob([JSON.stringify(envelope, null, 2)], {
                         type: "application/json",
                       }),
-                      "maths-ratio-table.json",
+                      downloadName("ratio-table", "json", { resource: envelope }),
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
