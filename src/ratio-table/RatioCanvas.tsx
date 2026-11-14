@@ -305,7 +305,7 @@ export function RatioCanvas({
                       }));
                 return lanes.flatMap(({ edge, side }, index) => {
                   // Match the printed label's geometry without changing the SVG or saved format.
-                  const font = (12 / 72) * 2.54 * 100 * 0.8,
+                  const font = (10 / 72) * 2.54 * 100, // operation labels print at 10 pt (U111)
                     factorWidth = numberWidth(step.factor, font),
                     total =
                       textWidth(

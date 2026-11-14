@@ -401,7 +401,7 @@
   z-index: 5;
 }
 .ratio-app .ratio-inline-factor input {
-  font-size: calc(var(--ratio-edit-font) * 0.8);
+  font-size: calc(var(--ratio-edit-font) * 10 / 12); /* 10 pt, as printed (U111) */
 }
 .ratio-inline-factor {
   --ratio-factor-edit-width: 48px;
@@ -431,7 +431,7 @@
   transform: translateY(-50%);
   background: white;
   font-family: "STIX Two Text", serif;
-  font-size: calc(var(--ratio-edit-font) * 0.8);
+  font-size: calc(var(--ratio-edit-font) * 10 / 12); /* 10 pt, as printed (U111) */
 }
 .ratio-edit-layer .field-error {
   position: absolute;
