@@ -72,3 +72,11 @@ requests. The page refuses spec settings that would print a worked answer on the
 6. Run `npx vitest run services/graph-mcp/diagram-tools.test.ts services/graph-mcp/worksheet-families.test.ts`,
    then refresh the contract snapshot (`UPDATE_CONTRACTS=1 npx vitest run src/gates/contracts.test.ts`);
    the catalogue change goes to Tim.
+
+## Schema versions and upgrades
+
+`packages/diagram-core/src/migrations.ts` is the one table of each family's readable and issued
+schema versions and its explicit upgrades (improvement list A11). A saved file is never upgraded
+by reading it; an upgrade runs only on request and is one undoable edit. Adding a schema version
+means adding it to `SCHEMA_VERSIONS`, its migration to `MIGRATIONS` and at least one saved file of
+that version to `packages/envelope-core/fixtures/corpus/` (see that package's README).

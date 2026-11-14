@@ -17,6 +17,12 @@
   "pupilSvg": "2a5440ac897f064898cf575d6bdcecd4a19d3a37a03efbe10343ae02b68ab731",
   "answerSvg": "2a5440ac897f064898cf575d6bdcecd4a19d3a37a03efbe10343ae02b68ab731"
  },
+ "ratio-table/three-columns-v2": {
+  "schemaVersion": 2,
+  "contentHash": "862fca72e66c85c67963829c10bccf4076b6beddfa68dcba7063350451a4c73e",
+  "pupilSvg": "b020e04a49bc49812abc6916c2e4e41bbe40d7ccd3ec956d495836416a7a156b",
+  "answerSvg": "b020e04a49bc49812abc6916c2e4e41bbe40d7ccd3ec956d495836416a7a156b"
+ },
  "value-graph/default": {
   "schemaVersion": 1,
   "contentHash": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",

@@ -33,3 +33,12 @@ New families should use `canonical: "sorted"`, which does not depend on schema o
 
 To add newly found saved files to the corpus, run
 `COLLECT_CORPUS=1 npx vitest run packages/diagram-core/src/corpus-collect.test.ts`.
+
+## Schema versions and upgrades (A11)
+
+`src/migrations.ts` defines a `Migration` (one schema step, pure, never automatic) and
+`migrationPath`/`runMigrations`. The table of every family's readable and issued versions and
+its upgrades is `packages/diagram-core/src/migrations.ts` (`SCHEMA_VERSIONS`, `MIGRATIONS`,
+`upgradeEnvelope`). `migrations.test.ts` beside it makes compatibility a test: every readable
+version has corpus files, reading never upgrades, each upgrade is pure and valid on every
+corpus file of its starting version, and matches the connector's `upgrade_document` operation.
