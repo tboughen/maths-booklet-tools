@@ -697,6 +697,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
   notes.push(...ctx.inline!.values());
+  ctx.issues.push(...questionReferenceIssues(resource));
   return { pages, issues: ctx.issues, notes };
 }
 
@@ -706,4 +707,45 @@ export function fileName(resource: Resource, view: View = "pupil"): string {
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
   const parts = [d.code, d.objective].map(safe).filter(Boolean);
   return `${parts.join("_")}${view === "answers" ? "_Answers" : ""}_A3.pdf`;
+}
+
+/** Every string a pupil can read in a card (titles and items, not saved answers or hidden working). */
+function readableText(cd: Card): string[] {
+  const out: string[] = [cd.title];
+  const walk = (v: unknown, key = ""): void => {
+    if (typeof v === "string") {
+      if (!["answer", "working", "type", "state", "kind", "style", "mode"].includes(key)) out.push(v);
+    } else if (Array.isArray(v)) v.forEach((x) => walk(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram") walk(x, k);
+  };
+  walk(cd.items);
+  return out;
+}
+
+/**
+ * "Question N" in a card's text must name a real, different question, except in Edexcel's
+ * "(Total for Question N is M marks)", which must name the card's own number. Reminder cards are not
+ * numbered, so adding or moving one shifts the numbers these references rely on.
+ */
+export function questionReferenceIssues(resource: Resource): Issue[] {
+  const issues: Issue[] = [];
+  const cards: { cd: Card; n: number; side: number; column: number }[] = [];
+  let n = 0;
+  resource.document.sides.forEach((side, s) => side.columns.forEach((col, c) => col.cards.forEach((cd) => {
+    if (!isReminder(cd)) cards.push({ cd, n: ++n, side: s + 1, column: c + 1 });
+  })));
+  for (const { cd, n: own, side, column } of cards) {
+    for (const text of readableText(cd)) {
+      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+        const ref = Number(m[2]);
+        const where = { side, column, question: own };
+        const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";
+        if (m[1]) {
+          if (ref !== own) issues.push({ ...where, message: `Question ${own} says "Total for Question ${ref}"; it is question ${own}. ${tail}` });
+        } else if (ref === own) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, which is itself. ${tail}` });
+        else if (ref < 1 || ref > n) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, but the sheet has ${n} questions. ${tail}` });
+      }
+    }
+  }
+  return issues;
 }
