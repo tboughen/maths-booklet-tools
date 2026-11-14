@@ -40,8 +40,8 @@ describe("connector catalogue budget (M2)", () => {
     console.log(`catalogue: tools/list ${total} bytes (budget ${budget.toolsList})\n` + rows.map((r) => `  ${r.tool}: ${r.bytes} / ${r.budget} bytes, description ${r.description} chars`).join("\n"));
     expect(total, "tools/list bytes").toBeLessThanOrEqual(budget.toolsList);
     for (const r of rows) {
-      expect(r.bytes, `${r.tool} bytes`).toBeLessThanOrEqual(r.budget);
-      expect(r.description, `${r.tool} description characters`).toBeLessThanOrEqual(budget.descriptionChars);
+      expect.soft(r.bytes, `${r.tool} bytes`).toBeLessThanOrEqual(r.budget);
+      expect.soft(r.description, `${r.tool} description characters`).toBeLessThanOrEqual(budget.descriptionChars);
     }
   });
 
@@ -53,7 +53,7 @@ describe("connector catalogue budget (M2)", () => {
       const size = bytes(r.content);
       const limit = caps[kind] ?? caps.default;
       lines.push(`  ${kind}: ${size} / ${limit}`);
-      expect(size, `${kind} capabilities bytes`).toBeLessThanOrEqual(limit);
+      expect.soft(size, `${kind} capabilities bytes`).toBeLessThanOrEqual(limit);
     }
     const w = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
     lines.push(`  worksheet: ${bytes(w.content)} / ${caps.worksheet}`);
