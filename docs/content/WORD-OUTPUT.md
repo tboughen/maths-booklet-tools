@@ -72,7 +72,8 @@ parts, steps, checklists and choice options) as a stacked fraction; `2{1/2}` is 
 Each side holds up to 12 characters, with no braces or second slash. Letters print in italic.
 Answer lines stack too: their prefix, suffix and saved answer print `1/3`, `2 1/2` and `2½` as
 stacked fractions, in a writing row 1.8 mm taller (the fraction sits on a 0.8 mm gap above the
-line). Table cells and titles stay plain. Saved sheets default to `notation: "plain"` and
+line). Table cells and headings and circle-one options stack too, in rows one fraction line
+(9.3 mm) high; a chosen circle-one fraction is boxed with an equation border box. Titles stay plain. Saved sheets default to `notation: "plain"` and
 print exactly as before. A brace that is not part of a fraction is reported. New sheets (the
 connector's guidance, the skill and the website's AI maker) use `notation: "maths"`, and a fraction
 typed inline in question text is returned as a note naming the question.

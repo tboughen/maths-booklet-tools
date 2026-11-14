@@ -56,6 +56,10 @@ export const answerHasFraction = (source: string, maths: boolean) =>
  * fraction answer stays inside its row with its denominator clear of the line.
  */
 export const FRAC_ANSWER_EXTRA = 1.8;
+/** A table row holding a stacked fraction (maths notation) is this high (mm): one fraction line. */
+export const FRAC_TABLE_ROW = 11 * (25.4 / 72) * FRAC_LINE;
+/** A circle-one row holding a stacked fraction (maths notation) is this high (mm); ordinary rows are 8.5. */
+export const FRAC_CIRCLE_ROW = 11;
 /** A saved fraction answer's baseline sits this far above an ordinary answer's (mm), clear of the line. */
 export const FRAC_ANSWER_RAISE = 1.8;
 

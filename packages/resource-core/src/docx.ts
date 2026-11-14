@@ -3,7 +3,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { answerHasFraction, FRAC_ANSWER_EXTRA, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { answerHasFraction, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -142,6 +142,21 @@ const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", 
   parseRuns(source, base, maths)
     .map((r) => (r.frac ? fraction(r.frac, o) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
     .join("");
+
+/**
+ * Marked-up text holding stacked fractions as one Word equation: text as normal-text maths runs in
+ * the sheet's font, fractions as m:f. boxed draws a box round it (a chosen circle-one option).
+ */
+function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
+  const inner = parseRuns(source, o.bold ? "bold" : "regular", true)
+    .map((r) =>
+      r.frac
+        ? fraction(r.frac, o).replace(/^<m:oMath>|<\/m:oMath>$/g, "")
+        : `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ ...o, bold: o.bold || r.style === "bold", italic: r.style === "italic" })}<m:t xml:space="preserve">${x(r.text)}</m:t></m:r>`,
+    )
+    .join("");
+  return `<m:oMath>${boxed ? `<m:borderBox><m:e>${inner}</m:e></m:borderBox>` : inner}</m:oMath>`;
+}
 
 interface ParaStyle {
   /** Exact line height in millimetres; omitted = exact body line. */
@@ -345,7 +360,13 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
   const size = S.body;
   const st = ctx.st;
   const cellText = (c: Cell) => (c.state === "supplied" || (c.state === "hidden" && ctx.view === "answers") ? c.text : "");
-  const natural = item.columns.map((head, j) => Math.max(plainWidth(head, size, "bold"), ...item.rows.map((r) => plainWidth(r[j]?.text ?? "", size))) + 5);
+  // Maths notation: fractions in cells and headings print stacked, as on the SVG page.
+  const maths = !!ctx.maths;
+  const shown = (t: string) => (maths ? stackAnswerText(t) : t);
+  const cellWidth = (t: string, bold = false) =>
+    maths ? lineWidth(parseRuns(shown(t), bold ? "bold" : "regular", true), size) : plainWidth(t, size, bold ? "bold" : "regular");
+  const tall = (texts: string[]) => texts.some((t) => answerHasFraction(t, maths));
+  const natural = item.columns.map((head, j) => Math.max(cellWidth(head, true), ...item.rows.map((r) => cellWidth(r[j]?.text ?? ""))) + 5);
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) ctx.issues.push({ ...ctx.where, message: `A table needs ${Math.round((total - w) * 100) / 100} mm more width than the column has.` });
   const widths = natural.map((v) => (v * w) / total);
@@ -354,21 +375,28 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
   const rowXml = (texts: { text: string; bold?: boolean; color?: string }[], h: number, head: boolean) =>
     row(
       texts.map((t, j) =>
-        cell(para(t.text ? runs(t.text, { bold: t.bold, color: t.color }) : "", { align: j === 0 ? "left" : "center" }), {
+        cell(
+          para(t.text ? runs(shown(t.text), { bold: t.bold, color: t.color }, "regular", maths) : "", {
+            align: j === 0 ? "left" : "center",
+            // A stacked fraction needs the whole row as its line.
+            ...(answerHasFraction(t.text, maths) ? { line: h - 0.2 } : {}),
+          }),
+          {
           width: widths[j],
           borders: border,
           shade: head ? st.tableHead : undefined,
           vAlign: "center",
           margin: { left: j === 0 ? 2 : 0.5, right: 0.5 },
-        }),
+          },
+        ),
       ),
       { mm: h, exact: true },
       true,
     );
-  const rows = [rowXml(item.columns.map((t) => ({ text: t, bold: true })), S.tableRow, true)];
+  const rows = [rowXml(item.columns.map((t) => ({ text: t, bold: true })), tall(item.columns) ? FRAC_TABLE_ROW : S.tableRow, true)];
   for (const r of item.rows) {
-    const writing = r.some((c) => c.state !== "supplied");
-    rows.push(rowXml(r.map((c) => ({ text: cellText(c), color: c.state === "hidden" ? st.answer : undefined })), writing ? S.tableAnswerRow : S.tableRow, false));
+    const h = r.some((c) => c.state !== "supplied") ? S.tableAnswerRow : S.tableRow;
+    rows.push(rowXml(r.map((c) => ({ text: cellText(c), color: c.state === "hidden" ? st.answer : undefined })), tall(r.map((c) => c.text)) ? Math.max(h, FRAC_TABLE_ROW) : h, false));
   }
   return table(widths, rows, indent);
 }
@@ -381,16 +409,20 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
   const st = ctx.st;
   const show = ctx.view === "answers" ? item.answer : null;
   if (item.mode === "circle") {
+    // Maths notation: a fraction option prints stacked; a chosen one is boxed as a Word equation.
+    const maths = !!ctx.maths;
+    const tallRow = item.options.some((o) => answerHasFraction(o, maths));
     let pos = indent + 2;
     const tabs: { pos: number }[] = [];
     const parts: string[] = [];
     item.options.forEach((o, i) => {
       tabs.push({ pos });
-      parts.push(tab(), runs(o, { bold: true, border: show === i ? st.answer : undefined }));
-      pos += plainWidth(o, size, "bold") + 9;
+      const border = show === i ? st.answer : undefined;
+      parts.push(tab(), answerHasFraction(o, maths) ? mathRuns(stackAnswerText(o), { bold: true }, !!border) : runs(o, { bold: true, border }));
+      pos += (maths ? lineWidth(parseRuns(stackAnswerText(o), "bold", true), size) : plainWidth(o, size, "bold")) + 9;
     });
     if (pos - 9 - indent > w) ctx.issues.push({ ...ctx.where, message: "Circle-one options are wider than the card." });
-    return para(parts.join(""), { line: 8.5, tabs, left: indent });
+    return para(parts.join(""), { line: tallRow ? FRAC_CIRCLE_ROW : 8.5, tabs, left: indent });
   }
   if (item.mode === "tick") {
     return item.options

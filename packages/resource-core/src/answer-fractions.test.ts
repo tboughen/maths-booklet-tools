@@ -101,3 +101,62 @@ describe("answer-line fractions", () => {
     expect(plain).toContain("2 1/2");
   });
 });
+
+const withItems = (notation: "plain" | "maths", items: unknown[]): Resource =>
+  validate({
+    tool: "resource",
+    schemaVersion: 1,
+    document: {
+      kind: "worksheet-a3",
+      title: "Cell fractions",
+      code: "TEST",
+      objective: "Tables and circle-one options with fractions",
+      notation,
+      sides: [
+        { columns: [{ heading: "A", cards: [{ title: "One", items }] }, { heading: "B", cards: [] }, { heading: "C", cards: [] }] },
+        { columns: [{ heading: "D", cards: [] }, { heading: "E", cards: [] }, { heading: "F", cards: [] }] },
+      ],
+    },
+  } as never);
+const fractionTable = {
+  type: "table",
+  columns: ["x", "m"],
+  rows: [
+    [{ text: "1", state: "supplied" }, { text: "1/2", state: "supplied" }],
+    [{ text: "2", state: "supplied" }, { text: "2½", state: "hidden" }],
+  ],
+};
+const circle = { type: "choice", mode: "circle", options: ["1/2", "2 1/2", "3"], answer: 1 };
+const tableHeight = (svg: string) => Number(svg.match(/<path d="M0,0H[\d.]+V([\d.]+)H0Z/)![1]);
+
+describe("table cells and circle-one options", () => {
+  it("prints table fractions stacked in taller rows, the same in both copies", () => {
+    const pupil = svgOf(withItems("maths", [fractionTable]), "pupil"),
+      answers = svgOf(withItems("maths", [fractionTable]), "answers");
+    expect(pupil.match(/data-fraction="stacked"/g)).toHaveLength(1);
+    expect(answers.match(/data-fraction="stacked"/g)).toHaveLength(2);
+    expect(tableHeight(pupil)).toBe(tableHeight(answers));
+    expect(tableHeight(pupil)).toBeGreaterThan(tableHeight(svgOf(withItems("plain", [fractionTable]), "pupil")));
+    expect(svgOf(withItems("plain", [fractionTable]), "answers")).toContain("2½");
+  });
+
+  it("prints circle-one fractions stacked and rings the chosen one in the answers copy", () => {
+    const answers = svgOf(withItems("maths", [circle]), "answers");
+    expect(answers.match(/data-fraction="stacked"/g)).toHaveLength(2);
+    expect(answers).toMatch(/<ellipse[^>]*ry="4.2"/);
+    expect(svgOf(withItems("plain", [circle]), "answers")).not.toContain('data-fraction="stacked"');
+  });
+
+  it("writes table and circle-one fractions as Word equations, boxing the chosen option", async () => {
+    const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
+    const { bytes, issues } = await writeWorksheetDocx(withItems("maths", [fractionTable, circle]), {
+      view: "answers",
+      fonts: { regular: font(1), semiBold: font(2), italic: font(3) },
+      picture: (svg) => ({ svg, png: new Uint8Array([137, 80, 78, 71]) }),
+    });
+    expect(issues).toEqual([]);
+    const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
+    expect(xml.match(/<m:f>/g)).toHaveLength(4);
+    expect(xml).toMatch(/<m:borderBox><m:e><m:r>[^]*?2<\/m:t><\/m:r><m:f>/);
+  });
+});
