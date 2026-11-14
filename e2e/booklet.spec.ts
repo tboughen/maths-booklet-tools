@@ -41,8 +41,8 @@ test("shows the example booklet with a contents page, edits a lesson title and u
   await expect(page.getByTestId("booklet-pages").locator("svg").first()).toContainText("Gradients of lines");
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.lessons[1].title).toBe(a7Booklet.document.lessons[1].title);
-  // Stacked fractions are a cover setting, undoable like any edit.
-  const stacked = page.getByRole("checkbox", { name: /Stacked fractions/ });
+  // Maths printing (stacked fractions and maths typesetting) is a cover setting, undoable like any edit.
+  const stacked = page.getByRole("checkbox", { name: /Maths printing/ });
   await expect(stacked).toBeChecked();
   await stacked.uncheck();
   expect((await saved(page)).document.notation).toBe("plain");

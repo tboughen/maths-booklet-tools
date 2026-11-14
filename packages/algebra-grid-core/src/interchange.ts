@@ -138,7 +138,7 @@ export async function revise(input: unknown) {
   const v = revisionSchema.parse(input);
   if ((await hash(v.envelope)) !== v.baseHash)
     throw Error(
-      "base_hash_mismatch: Use the exact returned envelope and contentHash.",
+      "stale_hash: Use the exact returned envelope and contentHash.",
     );
   let e = structuredClone(v.envelope);
   for (const op of v.operations) {

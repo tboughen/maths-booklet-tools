@@ -52,12 +52,8 @@ const RETRY: Record<string, RetryAdvice> = {
   render_failed: "try_later",
   internal: "none",
 };
-/** Older codes, kept readable in the cores, mapped to the one current name. */
-const ALIASES: Record<string, string> = { base_hash_mismatch: "stale_hash", stale_document: "stale_hash" };
-/** The wording older cores use for a stale baseHash without a code. */
-const STALE = /^(The baseHash does not match|The base hash is stale)/;
 /** Codes a plain Error may carry as a "code: message" prefix. Any other "word: " stays message text. */
-const PREFIXES = new Set([...Object.keys(RETRY), ...Object.keys(ALIASES), "invalid_input", "invalid_diagram", "invalid_graph", "invalid_ratio", "unsupported"]);
+const PREFIXES = new Set([...Object.keys(RETRY), "invalid_input", "invalid_diagram", "invalid_graph", "invalid_ratio", "unsupported"]);
 
 export function retryFor(code: string): RetryAdvice {
   return RETRY[code] ?? "fix_input";
@@ -117,8 +113,7 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
     code = prefixed[1];
     message = prefixed[2];
   }
-  code = ALIASES[code ?? ""] ?? code;
-  if (!code) code = STALE.test(message) ? "stale_hash" : defaults.code;
+  code ??= defaults.code;
   const details = error instanceof MathsDockError ? error.details : {};
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {

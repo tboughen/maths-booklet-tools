@@ -28,7 +28,7 @@ describe("Triangle interchange", () => {
   it("does not infer answers; revisions are atomic and hash bound", async () => {
     const e = scaffold(), before = core.canonical(e);
     expect(core.getLabel(e, "e:BC").answer).toBe("");
-    await expect(ti.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow("base_hash_mismatch");
+    await expect(ti.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow("stale_hash");
     await expect(edit(e, [{ op: "set_label", ref: "e:AB", patch: { text: "6" } }, { op: "set_label", ref: "e:no", patch: { text: "2" } }])).rejects.toThrow();
     expect(core.canonical(e)).toBe(before);
   });
