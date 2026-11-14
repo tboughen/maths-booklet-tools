@@ -125,8 +125,8 @@ export const documentSchema = z
 export const envelopeSchema = z
   .object({
     kind: z.literal("triangle"),
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    rendererVersion: z.enum(["triangle-1", "triangle-2"]),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal("triangle-2"),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
     ...aboutShape,
@@ -287,13 +287,6 @@ export function numeric(text: string): number {
 export function validate(raw: unknown): Envelope {
   const e = envelopeSchema.parse(raw),
     d = e.document;
-  if (
-    (e.schemaVersion === 1 &&
-      (e.rendererVersion !== "triangle-1" ||
-        d.triangles.some((t) => t.area))) ||
-    (e.schemaVersion === 2 && e.rendererVersion !== "triangle-2")
-  )
-    throw Error("Triangle area labels need schema 2 and renderer triangle-2.");
   const unique = (ids: string[]) => new Set(ids).size === ids.length;
   for (const list of [
     d.vertices,

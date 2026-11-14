@@ -1,4 +1,5 @@
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines } from "../../envelope-core/src/house-style";
 import {
   axisOrigin,
   coordinateToSvg,
@@ -530,9 +531,11 @@ function axesMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: st
     : `
       <text class="axis-name axis-name-y" x="${n(origin.x - UNITS_PER_CM * axisNameYGapCentimetres(document))}" y="${n(layout.plotTop - 30)}" text-anchor="end" font-family="${svgFontFamily(document)}">${AXIS_Y_NAME}</text>`;
   const originLabel = originMarkup(document, originX, xNumberBaseline);
+  // Bold axes (U111) get arrowheads 1.5 times as large, so the heavier line stays inside the head.
+  const arrowSize = document.lines === "bold" ? 37.5 : 25;
   const lines = `
     <defs>
-      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="25" markerHeight="25" orient="auto">
+      <marker id="axis-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="${arrowSize}" markerHeight="${arrowSize}" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224"/>
       </marker>
     </defs>
@@ -1069,6 +1072,18 @@ function gridDescription(document: DiagramDocumentV1): string {
   return "A one centimetre square grid";
 }
 
+/**
+ * Bold lines (U111): the axes and plotted strokes are 1.5 times as heavy. The grid is drawn
+ * separately and keeps its weight; text halos keep theirs, so letters print the same.
+ */
+function boldInk(markup: string, lines: DiagramDocumentV1["lines"]): string {
+  if (lines !== "bold") return markup;
+  return markup
+    .split(/(<text\b[^>]*>)/)
+    .map((part) => (part.startsWith("<text") ? part : boldLines(part, "bold")))
+    .join("");
+}
+
 export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = "pupil"): string {
   document = documentForView(document, view);
   const metrics = getExportMetrics(document);
@@ -1082,10 +1097,10 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
   ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
-  ${axes.lines}
-  ${objects.lines}
+  ${boldInk(axes.lines, document.lines)}
+  ${boldInk(objects.lines, document.lines)}
   ${shadeLabelKnockouts(axes.labels, document, layout)}
-  ${objects.marks}${coordinatesMarkup(document, layout, view)}
+  ${boldInk(objects.marks, document.lines)}${coordinatesMarkup(document, layout, view)}
 </svg>`;
 }
 

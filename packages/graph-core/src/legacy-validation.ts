@@ -104,6 +104,7 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     (candidate.originLabel !== undefined &&
       candidate.originLabel !== "0" &&
       candidate.originLabel !== "O") ||
+    (candidate.lines !== undefined && candidate.lines !== "bold") ||
     !candidate.axes ||
     !Array.isArray(candidate.objects)
   )

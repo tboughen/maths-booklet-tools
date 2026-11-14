@@ -3,7 +3,7 @@
   "cases": [
     {
       "name": "scaffold",
-      "contentHash": "34cb996920a5809b7d57ad26b2ad653474d63c7843623832d15739150d620cdb",
+      "contentHash": "735035921e63cc8eca9e79b24e51168ee32369997bed19471e861c95b89adc4f",
       "physicalSizeCm": {
         "width": 12,
         "height": 8.420497369391144
@@ -11,7 +11,7 @@
     },
     {
       "name": "hidden-answer",
-      "contentHash": "41898b143c2cf5541adcf3a577b5a6b850bf6ff7b5f2da58df1b4a898937b903",
+      "contentHash": "430e1be853d05317a7ac68d59fa5ab974c72d4bf4ccc7864f7117077e9e8aa5b",
       "physicalSizeCm": {
         "width": 12,
         "height": 8.420497369391144
@@ -27,7 +27,7 @@
     },
     {
       "name": "split",
-      "contentHash": "ed822830827e18dd467e5b58cbb76f585a588c711758603ccc7a5d614e2bd037",
+      "contentHash": "514951446b8ac7b2877a363f9e12856db67276cc1b195df7c6a06ebae171ab94",
       "physicalSizeCm": {
         "width": 16,
         "height": 11.386522516560067

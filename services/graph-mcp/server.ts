@@ -339,7 +339,7 @@ export function graphService(options: ServiceOptions) {
             algebraGridRendererVersion: "algebra-grid-1",
           chartRendererVersion: "charts-1",
           probabilityTreeRendererVersion: "probability-tree-1",
-          triangleRendererVersions: ["triangle-1", "triangle-2"],
+          triangleRendererVersions: ["triangle-2"],
           buildId: options.buildId ?? "development",
         });
         return;

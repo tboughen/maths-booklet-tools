@@ -141,6 +141,8 @@ export interface DiagramDocumentV1 {
   grid?: GridSize;
   /** "O" prints an italic O at the origin, as exam papers do. Omitted prints 0. */
   originLabel?: "0" | "O";
+  /** Bold lines (U111): the axes and everything plotted are 1.5 times as heavy; the grid keeps its weight. Omitted is normal. */
+  lines?: "bold";
   objects: GraphObject[];
   selectedObjectId: string | null;
 }

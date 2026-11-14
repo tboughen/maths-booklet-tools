@@ -75,16 +75,16 @@ describe("Triangle interchange", () => {
     const labelled = await edit(mark, [{ op: "set_label", ref: "a:T1-B", patch: { text: "x", state: "symbol" } }]);
     expect(labelled.document.angles[1].mark).toBe("none");
   });
-  it("upgrades only when adding an area, preserves no-op v2 and restores version on removal", async () => {
+  it("keeps schema 2 when adding or removing an area and rejects a version-1 file", async () => {
     const e = scaffold();
+    expect(e.schemaVersion).toBe(2);
+    expect(e.rendererVersion).toBe("triangle-2");
     const area = await edit(e, [{ op: "set_area", triangleId: "T1", label: { state: "answer-line", prefix: "Area = " } }]);
     expect(area.schemaVersion).toBe(2);
-    expect(area.rendererVersion).toBe("triangle-2");
     expect((await edit(area, [])).schemaVersion).toBe(2);
-    expect((await edit(area, [{ op: "set_area", triangleId: "T1", label: null }])).schemaVersion).toBe(1);
-    const oldV2 = { ...e, schemaVersion: 2, rendererVersion: "triangle-2" };
-    expect(ti.create({ envelope: oldV2 })).toEqual(oldV2);
-    expect(() => ti.create({ envelope: { ...area, schemaVersion: 1 } })).toThrow();
+    expect((await edit(area, [{ op: "set_area", triangleId: "T1", label: null }])).schemaVersion).toBe(2);
+    expect(ti.create({ envelope: e })).toEqual(e);
+    expect(() => ti.create({ envelope: { ...e, schemaVersion: 1, rendererVersion: "triangle-1" } })).toThrow();
   });
   it("edits shared text, unlinks without losing it and retains hidden answers", async () => {
     const e = await edit(scaffold(), [
