@@ -266,25 +266,6 @@
 .cb-settings {
   padding: 14px !important;
 }
-.cb-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-bottom: 1px solid var(--line);
-  margin: -2px 0 12px;
-}
-.cb-tabs button {
-  min-height: 42px;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  background: white;
-  color: var(--muted);
-  cursor: pointer;
-}
-.cb-tabs button[aria-selected="true"] {
-  border-bottom-color: var(--blue);
-  color: var(--ink);
-  font-weight: 600;
-}
 .cb-dimensions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -3,8 +3,7 @@ import { z } from "zod";
 import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { canonicalRatioNumber, RatioError } from "./numbers";
 
-export const RATIO_RENDERER_VERSION = "ratio-1";
-export const RATIO_THREE_COLUMN_RENDERER_VERSION = "ratio-2";
+export const RATIO_RENDERER_VERSION = "ratio-2";
 export const RATIO_STYLE_PROFILE = "ratio-lesson-v1";
 export const RATIO_MAX_FILE_BYTES = 64 * 1024;
 export const RATIO_MAX_ENVELOPE_BYTES = 8 * 1024;
@@ -63,7 +62,7 @@ export const documentSchema = z
     headings: headingsSchema,
     rows: z.array(rowSchema).min(1).max(6),
     transitions: z.array(transitionSchema).max(5),
-    size: z.enum(["compact", "standard", "large"]),
+    size: z.enum(["standard", "large"]),
     mode: z.enum(["simple", "annotated"]),
     showArrows: z.boolean(),
     showOperations: z.boolean(),
@@ -79,11 +78,8 @@ export type RatioTransition = z.infer<typeof transitionSchema>;
 export const ratioEnvelopeSchema = z
   .object({
     kind: z.literal("ratio-table"),
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    rendererVersion: z.enum([
-      RATIO_RENDERER_VERSION,
-      RATIO_THREE_COLUMN_RENDERER_VERSION,
-    ]),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal(RATIO_RENDERER_VERSION),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
     document: documentSchema,
     ...aboutShape,
@@ -96,7 +92,7 @@ export const DEFAULT_HEADINGS: RatioDocument["headings"] = [
 ];
 export const ratioSpecSchema = z
   .object({
-    schemaVersion: z.union([z.literal(1), z.literal(2)]).optional(),
+    schemaVersion: z.literal(2).optional(),
     rows: z
       .array(z.object({ id: id.optional(), cells: cellsSchema }).strict())
       .min(1)
@@ -104,7 +100,7 @@ export const ratioSpecSchema = z
       .optional(),
     headings: headingsSchema.optional(),
     transitions: z.array(transitionSchema).max(5).optional(),
-    size: z.enum(["compact", "standard", "large"]).optional(),
+    size: z.enum(["standard", "large"]).optional(),
     mode: z.enum(["simple", "annotated"]).optional(),
     showArrows: z.boolean().optional(),
     showOperations: z.boolean().optional(),

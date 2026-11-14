@@ -402,7 +402,7 @@ export function svgSizeMm(svg: string): { width: number; height: number } {
 /** Short alt text: the artwork's own aria-label when it has one, else the family name. */
 export function altText(kind: DiagramKind, svg: string): string {
   const label = svg.match(/<svg\b[^>]*\saria-label="([^"]*)"/)?.[1] ?? svg.match(/<title\b[^>]*>([^<]*)<\/title>/)?.[1];
-  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&apos;/g, "'").replace(/&amp;/g, "&").trim();
+  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&apos;/g, "'").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
   const name = FAMILIES[kind].label;
   return text ? text : `${name[0].toUpperCase()}${name.slice(1)}`;
 }

@@ -24,68 +24,68 @@
   "answerSvg": "d940c273ed1c888ef272b1d003dc7c97c5287bc98c86f13351d6bb2020f1c081"
  },
  "ratio-table/default": {
-  "schemaVersion": 1,
-  "contentHash": "a460e2fd24bfacc1c2b9db243cb6364838f0c1b234c3b319e04c6543e9d73c61",
+  "schemaVersion": 2,
+  "contentHash": "a7196316baf4fbece3b7031161027f0c4af2a66e03402ba047c442645ed19a1b",
   "pupilSvg": "5fb881997db1153df957daa3d26ebb44f889fb9eb285d71b98ac910133108163",
   "answerSvg": "5fb881997db1153df957daa3d26ebb44f889fb9eb285d71b98ac910133108163"
  },
  "ratio-table/file-ratio-table-core-fixtures-legacy-v1-2": {
-  "schemaVersion": 1,
-  "contentHash": "fd40f834a2bd8aef5a3b57fdf579a8f9e88c10170892c45720f68fd90275d8fb",
+  "schemaVersion": 2,
+  "contentHash": "4c837762a6b8e31fbf4e3e9c1a072352794473df2cc5387693870a80729fbe7c",
   "pupilSvg": "37e203910b2e7b9268e3da90a9cf923b263324392288a06ed4e65f4179d91d64",
   "answerSvg": "37e203910b2e7b9268e3da90a9cf923b263324392288a06ed4e65f4179d91d64"
  },
  "ratio-table/file-ratio-table-core-fixtures-legacy-v1-3": {
-  "schemaVersion": 1,
-  "contentHash": "da873aefd011c9da3e092feaa25d7dd7de2b8bd17b7a244d391f08c97e018aac",
+  "schemaVersion": 2,
+  "contentHash": "b783d0ff7fd2439e8d7b5f0445c5b1f829fdc744e51b7b4d2c6a3f47324ebae5",
   "pupilSvg": "5d6832d2ad140d74aa7031d93ce02f4ab3549984973524a22c0532384799a862",
   "answerSvg": "5d6832d2ad140d74aa7031d93ce02f4ab3549984973524a22c0532384799a862"
  },
  "ratio-table/file-ratio-table-examples-fraction-complete": {
-  "schemaVersion": 1,
-  "contentHash": "0d0d115401366179261756947ff651831bad92db7862ddddbedf5eb0e3edec94",
+  "schemaVersion": 2,
+  "contentHash": "4de2f070c6bc0e41fa1cdc5479718c41ac22b71e4c33fc06454c9597a63ed62e",
   "pupilSvg": "be54bc939c6d354c4727a1d1d4a7546a12ced7653c8c9c64b5acb052a3cfd34b",
   "answerSvg": "be54bc939c6d354c4727a1d1d4a7546a12ced7653c8c9c64b5acb052a3cfd34b"
  },
  "ratio-table/file-ratio-table-examples-fraction-scaffold": {
-  "schemaVersion": 1,
-  "contentHash": "30b464adcb6cbc9f67d3c60e28c3892b845c5c790275238ae0455ead79754ef1",
+  "schemaVersion": 2,
+  "contentHash": "3a0ec2318ac8da2d70da550aca1241ce8fab7435e8df59ce5c8d003a524a8ceb",
   "pupilSvg": "1ed8de916160197a201302cb58df40df6f8479dfa14e98465c7fa1111e7b97b7",
   "answerSvg": "1ed8de916160197a201302cb58df40df6f8479dfa14e98465c7fa1111e7b97b7"
  },
  "ratio-table/file-ratio-table-examples-negative": {
-  "schemaVersion": 1,
-  "contentHash": "f2c2d9fb1b07afdcae6b112c0958aa8196ed5da9de549afcd75b2c24fd0daf57",
+  "schemaVersion": 2,
+  "contentHash": "89381c8348b4594ee32808824dfe7a94b9ab003bf210f9c6b526495bd4dcc871",
   "pupilSvg": "7b4f2353f0ba73aca1e7c8ad32dff2eb7c120dd7a820945442d77875a43ba724",
   "answerSvg": "7b4f2353f0ba73aca1e7c8ad32dff2eb7c120dd7a820945442d77875a43ba724"
  },
  "ratio-table/file-ratio-table-examples-simple": {
-  "schemaVersion": 1,
-  "contentHash": "e3bded9e3f59fb3726fcf802ba74ef2eb9d70cfd8ac12305eb0d05cc4c9c077f",
+  "schemaVersion": 2,
+  "contentHash": "60deebbc8e65d1d4c69c50a89f5864aa90a661030b84fc633ff7a569e37788b1",
   "pupilSvg": "e020341b730f4615498129c1073404bfd7a8414b82d1fb0eb1e8602aaa8f027b",
   "answerSvg": "e020341b730f4615498129c1073404bfd7a8414b82d1fb0eb1e8602aaa8f027b"
  },
  "ratio-table/file-ratio-table-examples-six-rows": {
-  "schemaVersion": 1,
-  "contentHash": "00cf2a49338fee221d058b33c1c633d00f927f6bf57e47f7ba6af4e7e9b7aa44",
+  "schemaVersion": 2,
+  "contentHash": "20220a867c71045f27519c946db4730c055f43f0679c1fe6503d7d0dfb834133",
   "pupilSvg": "e2bb0e94c40e07ad2a38881fe3227cf3fe892d9980d26109540e9748837f7b88",
   "answerSvg": "e2bb0e94c40e07ad2a38881fe3227cf3fe892d9980d26109540e9748837f7b88"
  },
  "ratio-table/file-ratio-table-examples-worked": {
-  "schemaVersion": 1,
-  "contentHash": "bbadec67c4da090ff8150be3c37f3e4bf6a12ea4856a3d8c6227ba04d9afedca",
+  "schemaVersion": 2,
+  "contentHash": "be4fe45633f12d77076ff9761276b4ab48c59b4161000abcf53439ea8c30edc8",
   "pupilSvg": "a42def207c99d77b2b244bf69b5537b39b74faffd255b08afb26d37e0425b6ff",
   "answerSvg": "a42def207c99d77b2b244bf69b5537b39b74faffd255b08afb26d37e0425b6ff"
  },
  "ratio-table/file-tool-card-preview-examples-ratio-tables": {
-  "schemaVersion": 1,
-  "contentHash": "cbda504399d86655a994977e91bcf15f4bb17c30110437f7a36fb6bb181a17d5",
+  "schemaVersion": 2,
+  "contentHash": "0f051ca2898d3b6dc9dc48b59be86e1237a31550ac8f8288fbc8cbec35b176b6",
   "pupilSvg": "25ad863f3c134e4de046c830a72a1daaf08296e2104282eb0c923e8a64c61998",
   "answerSvg": "25ad863f3c134e4de046c830a72a1daaf08296e2104282eb0c923e8a64c61998"
  },
  "ratio-table/starter": {
-  "schemaVersion": 1,
-  "contentHash": "9b3a7c0efc12bdc512d6c474fa039ed414e06a5f40305109caa28f009ea043a5",
+  "schemaVersion": 2,
+  "contentHash": "861553c9df4b986503c5703ad02858a9d50b97cdb070c6f65424429fe7f349e6",
   "pupilSvg": "e9e566504c4a0529871ff6156614e25a770be102b0e457934ae72f9d6f7f93cf",
   "answerSvg": "e9e566504c4a0529871ff6156614e25a770be102b0e457934ae72f9d6f7f93cf"
  },

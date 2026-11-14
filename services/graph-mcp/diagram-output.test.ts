@@ -58,12 +58,12 @@ describe("physical facts and independent placement", () => {
     line.start = {x: 100, y: 100}; line.end = {x: 101, y: 100};
     expect(graphPrintFacts(labelled.document).referenceFeatures.textSizesPt).toEqual([12]);
   });
-  it.each(["compact", "standard", "large"] as const)("measures actual ratio text/fraction/answer space at %s size", (size) => {
+  it.each(["standard", "large"] as const)("measures actual ratio text/fraction/answer space at %s size", (size) => {
     const e = createRatioTable({ ...ratioSpec, size });
     e.document.rows[0].cells[0] = {kind: "number", value: "1/2"};
     e.document.transitions[0].factor = "1/2";
     const facts = ratioPrintFacts(e.document).referenceFeatures;
-    const scale = {compact: 0.8, standard: 1, large: 1.2}[size];
+    const scale = {standard: 1, large: 1.2}[size];
     expect(facts.answerLineLengthsMm[0]).toBeCloseTo(6 * scale);
     expect(facts.tableRowHeightsMm[0]).toBeCloseTo(10 * scale);
     expect(facts.textSizesPt).toHaveLength(2);
@@ -198,6 +198,8 @@ describe("real MCP output workflows", () => {
     verifyPrintBytes(files["diagram.png"], pngSize.width, pngSize.height);
     expect(Buffer.from(files["diagram.svg"]).toString()).toBe(await (await fetch(moved.downloads.svg.url)).text());
     expect(Buffer.from(files["README.txt"]).toString()).not.toMatch(/signature=|token=/);
+    // M16: the bundle carries the pupil-safe alt text for Word and PowerPoint.
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("Alt text (for Word or PowerPoint): Coordinate graph\n");
     const broken = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: moved.envelope}});
     expect(broken.isError).toBe(true);
     expect((await client.callTool({name: "create_graph", arguments: graphSpec})).isError).not.toBe(true);

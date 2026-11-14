@@ -373,7 +373,6 @@ export function RatioInspector({
               ])
             }
           >
-            <option value="compact">Compact · 80%</option>
             <option value="standard">Standard · lesson size</option>
             <option value="large">Large · 120%</option>
           </select>

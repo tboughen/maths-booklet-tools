@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, PrintScaling, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { assetUrl } from "./pdf";
 import type { BankQuestion } from "./model";
+import { auditPaperPdf } from "../../packages/resource-core/src/pdf-audit";
 
 export interface ExportProgress { done: number; total: number; message: string; }
 export interface ExportResult { questions: Blob; schemes: Blob; questionCount: number; marks: number; version: string; }
@@ -67,6 +68,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
     doc.setCreator("Maths Dock question bank"); doc.setLanguage("en-GB");
     doc.catalog.getOrCreateViewerPreferences().setPrintScaling(PrintScaling.None);
   }
+  const studentHeadings: string[] = [], schemeHeadings: string[] = [];
   let studentPage: PDFPage | undefined;
   let sy = 0;
   const addStudent = () => {studentPage = student.addPage(A4); sy = A4[1] - 28; return studentPage;};
@@ -93,6 +95,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const h = embedded.height * scale;
       if (!studentPage || sy - h - 34 - noteHeight < 32 || preset === "writing") addStudent();
       studentPage!.drawText(label, {x: 24, y: sy - 11, size: 10, font: sb, color: rgb(.12,.22,.34)});
+      studentHeadings.push(label);
       sy -= 28;
       for (const note of notes) {
         studentPage!.drawText(note, {x:24, y:sy, size:8, font:sf, color:rgb(.35,.25,.1)});
@@ -123,7 +126,9 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const notes = q.schemeSourceNote ? noteLines([{note:q.schemeSourceNote}], mf, LANDSCAPE[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       const scale = Math.min(1, (LANDSCAPE[0]-48)/embedded.width, (LANDSCAPE[1]-85-noteHeight)/embedded.height);
-      page.drawText(`${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | Mark scheme | ${q.marks} mark${q.marks === 1 ? "" : "s"}`, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
+      const heading = `${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | Mark scheme | ${q.marks} mark${q.marks === 1 ? "" : "s"}`;
+      page.drawText(heading, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
+      schemeHeadings.push(heading);
       notes.forEach((note,i)=>page.drawText(note,{x:24,y:LANDSCAPE[1]-46-i*10,font:mf,size:8,color:rgb(.35,.25,.1)}));
       page.drawPage(embedded,{x:24,y:LANDSCAPE[1]-56-noteHeight-embedded.height*scale,width:embedded.width*scale,height:embedded.height*scale});
     }
@@ -134,5 +139,12 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
   onProgress({done:snapshots.length*2,total:snapshots.length*2,message:"Saving both PDFs"});
   const [qBytes,mBytes] = await Promise.all([student.save(),scheme.save()]);
   abortIfNeeded(signal);
+  // L23: read both papers back and check them before they are offered.
+  const problems = [
+    ...(await auditPaperPdf(qBytes, {pages: student.getPageCount(), widthMm: 210, heightMm: 297, headings: studentHeadings})).map(p => `Questions PDF: ${p}`),
+    ...(await auditPaperPdf(mBytes, {pages: scheme.getPageCount(), widthMm: 297, heightMm: 210, headings: schemeHeadings})).map(p => `Mark schemes PDF: ${p}`),
+  ];
+  abortIfNeeded(signal);
+  if (problems.length) throw new Error(`The paper failed its print check. ${problems[0]} No incomplete paper has been produced.`);
   return {questions:new Blob([new Uint8Array(qBytes).buffer],{type:"application/pdf"}),schemes:new Blob([new Uint8Array(mBytes).buffer],{type:"application/pdf"}),questionCount:snapshots.length,marks,version};
 }

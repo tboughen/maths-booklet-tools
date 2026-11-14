@@ -27,8 +27,8 @@ const thirdColumn = () =>
     },
   ]);
 
-describe("legacy saved tables and three-column ratios", () => {
-  it("keeps untouched legacy files, content hashes and rendered SVGs exactly the same", async () => {
+describe("saved tables and three-column ratios", () => {
+  it("keeps untouched saved files, content hashes and rendered SVGs exactly the same", async () => {
     for (const fixture of legacy) {
       const saved = parseRatioFile(JSON.stringify(fixture.envelope));
       expect(saved).toEqual(fixture.envelope);
@@ -37,7 +37,7 @@ describe("legacy saved tables and three-column ratios", () => {
       expect(decodeRatio(encodeRatio(saved))).toEqual(saved);
     }
   });
-  it("upgrades only when adding a column, retains blanks and can return to the legacy format", async () => {
+  it("keeps schema 2 when adding and removing a column and retains blanks", async () => {
     const before = legacy[1].envelope,
       added = thirdColumn();
     expect(added.schemaVersion).toBe(2);
@@ -101,10 +101,10 @@ describe("legacy saved tables and three-column ratios", () => {
         schemaVersion: 1,
         rendererVersion: "ratio-1",
       }),
-    ).toThrow(/format/);
+    ).toThrow(/schemaVersion/);
     expect(() =>
       createRatioTable({ schemaVersion: 1, rows: added.document.rows }),
-    ).toThrow(/schemaVersion 2/);
+    ).toThrow(/schemaVersion/);
     expect(() =>
       createRatioTable({
         schemaVersion: 2,
@@ -136,7 +136,7 @@ describe("legacy saved tables and three-column ratios", () => {
     expect(added).toEqual(thirdColumn());
   });
   it("allocates a distinct, unclipped scaling lane for every column at all print sizes", () => {
-    for (const size of ["compact", "standard", "large"] as const) {
+    for (const size of ["standard", "large"] as const) {
       const envelope = applyRatioOperations(thirdColumn(), [
         { op: "set_size", size },
       ]);
