@@ -26,7 +26,7 @@ async function preset(page: Page, id: string, worked = false) {
   });
   await card
     .getByRole("button", {
-      name: worked ? "Use worked version" : "Open scaffold",
+      name: worked ? "Use worked version" : "Use this example",
       exact: true,
     })
     .click();
