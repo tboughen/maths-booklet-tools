@@ -1,0 +1,153 @@
+{
+ "tool": "construction",
+ "schemaVersion": 1,
+ "rendererVersion": "construction-1",
+ "document": {
+  "width": 12,
+  "height": 10,
+  "grid": "none",
+  "border": false,
+  "caption": {
+   "text": "1 cm represents 100 metres.",
+   "show": "show"
+  },
+  "points": [
+   {
+    "id": "A",
+    "x": 2.5,
+    "y": 5.5,
+    "label": {
+     "text": "A",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "B",
+    "x": 10.3,
+    "y": 8.1,
+    "label": {
+     "text": "B",
+     "show": "show"
+    },
+    "labelAt": "n",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "C",
+    "x": 7.8,
+    "y": 1.8,
+    "label": {
+     "text": "C",
+     "show": "show"
+    },
+    "labelAt": "s",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "pb1-p",
+    "x": 11.802,
+    "y": 3.858,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "pb1"
+   },
+   {
+    "id": "pb1-q",
+    "x": 6.298,
+    "y": 6.042,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "pb1"
+   }
+  ],
+  "objects": [
+   {
+    "id": "lp1-circle",
+    "role": "answer",
+    "group": "lp1",
+    "type": "arc",
+    "center": "A",
+    "radius": 2.5,
+    "start": 90,
+    "sweep": 360,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc1",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "B",
+    "radius": 4.5,
+    "start": -79.42,
+    "sweep": 17.83,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc2",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "C",
+    "radius": 4.5,
+    "start": 18.3,
+    "sweep": 17.83,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc3",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "B",
+    "radius": 4.5,
+    "start": -161.7,
+    "sweep": 17.83,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc4",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "C",
+    "radius": 4.5,
+    "start": 100.58,
+    "sweep": 17.83,
+    "dash": false
+   },
+   {
+    "id": "pb1-line",
+    "role": "answer",
+    "group": "pb1",
+    "type": "segment",
+    "from": "pb1-p",
+    "to": "pb1-q",
+    "extend": [
+     2.5,
+     2.5
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   }
+  ]
+ }
+}

@@ -21,7 +21,7 @@ function walk(value: unknown, path: string, visit: (node: Node, path: string) =>
   }
 }
 
-/** A {text, show} label (probability trees, frequency trees) or a {value, show} chart cell. */
+/** A {text, show} label (probability trees, frequency trees, two-way tables) or a {value, show} chart cell. */
 function shown(node: Node, path: string, out: AnswerSlot[]) {
   if (node.show !== "show" && node.show !== "hidden") return false;
   const text = typeof node.text === "string" ? node.text : str(node.value);
@@ -83,6 +83,14 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else if (state === "answer-line") out.push(slot(at, "answerLine", value));
       else out.push(slot(at, "supplied", value));
     }
+    // A second scale's hidden and answer-line labels are answers too (U109).
+    const secondary = isNode(doc.secondary) && isNode(doc.secondary.labels) ? doc.secondary.labels : {};
+    for (const [value, state] of Object.entries(secondary)) {
+      const at = `document.secondary.labels.${value}`;
+      if (state === "hidden") out.push(slot(at, "hidden", value));
+      else if (state === "answer-line") out.push(slot(at, "answerLine", value));
+      else out.push(slot(at, "supplied", value));
+    }
     if (doc.solution) out.push({ path: "document.solution", state: t.solutionVisible === false ? "hidden" : "supplied", text: str((doc.solution as Node).kind) });
     const answer = str(t.answer);
     if (answer && t.answerVisible === true) out.push(slot("document.teaching.answer", "supplied", answer));
@@ -125,6 +133,35 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
   "frequency-tree"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
+  construction(doc, out) {
+    // Answer points and objects (constructions, loci, bearings) print only on the answers copy;
+    // a hidden {text, show} label prints a gap for the pupil and its text on the answers copy.
+    for (const list of ["points", "objects"] as const) {
+      const items = Array.isArray(doc[list]) ? (doc[list] as Node[]) : [];
+      items.forEach((o, i) => {
+        const path = `document.${list}.${i}`;
+        // An answer with a label (a length, an angle, a bearing) holds that label as its saved answer.
+        if (o.role === "answer" && isNode(o.label) && str(o.label.text)) out.push(slot(`${path}.label`, "hidden", str(o.label.text)));
+        else if (o.role === "answer") out.push(slot(path, "hidden", str(o.id) || str(o.type)));
+        else if (isNode(o.label) && str(o.label.text)) shown(o.label, `${path}.label`, out);
+      });
+    }
+    if (isNode(doc.caption) && str(doc.caption.text)) shown(doc.caption, "document.caption", out);
+  },
+  elevations(doc, out) {
+    // An answer panel is an empty grid for the pupil and the drawn view on the answers copy.
+    const panels = Array.isArray(doc.panels) ? (doc.panels as Node[]) : [];
+    panels.forEach((p, i) => {
+      const path = `document.panels.${i}`;
+      if (p.state === "answer") out.push(slot(path, "hidden", str(p.view)));
+      else if (p.state === "blank") out.push(slot(path, "blank"));
+      else out.push(slot(path, "supplied", str(p.view)));
+      if (isNode(p.label) && p.label.show === "hidden" && str(p.label.text)) out.push(slot(`${path}.label`, "hidden", str(p.label.text)));
+    });
+  },
+  "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
   triangle(doc, out) {

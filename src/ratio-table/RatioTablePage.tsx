@@ -6,6 +6,7 @@ import {
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -47,7 +48,8 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
-import { handleUndoKeys, objectKeyCommand, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Pending = {
   title: string;
@@ -131,13 +133,13 @@ export default function RatioTablePage({
       }),
     [],
   );
-  const commit = useCallback((next: RatioEnvelope) => {
+  const commit = useCallback((next: RatioEnvelope, label?: string) => {
     if (blocked.current)
       throw Error("Save the recovery copy before replacing the saved table.");
-    record(next);
+    record(next, label);
   }, [record]);
   function operations(ops: RatioOperation[]) {
-    commit(applyRatioOperations(current.current, ops));
+    commit(applyRatioOperations(current.current, ops), operationLabel(ops));
   }
   function attempt(action: () => void) {
     try {
@@ -525,7 +527,7 @@ export default function RatioTablePage({
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "maths-ratio-table-recovery.json",
+                  downloadName("ratio-table", "json", { recovery: true }),
                 );
                 setRecoveryDownloaded(true);
               }}
@@ -555,6 +557,10 @@ export default function RatioTablePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!recovery && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -599,6 +605,11 @@ export default function RatioTablePage({
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
                 answers: hasRatioAnswers(envelope)
                   ? {
                       svg: {
@@ -619,7 +630,7 @@ export default function RatioTablePage({
                       new Blob([JSON.stringify(envelope, null, 2)], {
                         type: "application/json",
                       }),
-                      "maths-ratio-table.json",
+                      downloadName("ratio-table", "json", { resource: envelope }),
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
@@ -673,13 +684,19 @@ export default function RatioTablePage({
                 </label>
               )}
             </div>
-            <p className="ratio-edit-hint">
-              {tool === "arrow"
-                ? arrowFrom
-                  ? "Select the row immediately below."
-                  : "Select a source row, then the row below, or use the arrow settings."
-                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
-            </p>
+            <EditorHint
+              tool="ratio-table"
+              prompt={
+                tool === "arrow"
+                  ? arrowFrom
+                    ? "Select the row immediately below."
+                    : "Select a source row, then the row below, or use the arrow settings."
+                  : undefined
+              }
+            >
+              Click a heading, cell or arrow number and type. Click a curved
+              arrow for its settings.
+            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}
@@ -721,7 +738,7 @@ export default function RatioTablePage({
               active={active}
               disabled={exportDisabled || !!pending}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card specialist-tools">
@@ -824,7 +841,7 @@ export default function RatioTablePage({
           onConfirm={() => {
             attempt(() => {
               if (pending.envelope) {
-                commit(pending.envelope);
+                commit(pending.envelope, stepName(pending.title));
                 setInputVersion((v) => v + 1);
                 setSelection(null);
                 setTool("edit");

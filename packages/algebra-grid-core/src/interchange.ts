@@ -33,6 +33,8 @@ export const exampleNames = [
   "factor",
   "negative",
   "common",
+  "numeric",
+  "decimal",
   "source-expand",
   "source-factor",
 ] as const;
@@ -136,7 +138,7 @@ export async function revise(input: unknown) {
   const v = revisionSchema.parse(input);
   if ((await hash(v.envelope)) !== v.baseHash)
     throw Error(
-      "base_hash_mismatch: Use the exact returned envelope and contentHash.",
+      "stale_hash: Use the exact returned envelope and contentHash.",
     );
   let e = structuredClone(v.envelope);
   for (const op of v.operations) {
@@ -212,7 +214,8 @@ export function printFacts(e: core.Envelope) {
     d = e.document;
   return guidance({
     textSizesPt: renderedTextSizesPt(core.renderSvg(e), 72 / 25.4),
-    gridPitchMm: d.gridVisible ? [d.cellMm] : [],
+    // Multiply mode's working rows are 3/4 of the cell, so it has no square pitch; row heights cover it.
+    gridPitchMm: d.gridVisible && d.mode !== "multiply" ? [d.cellMm] : [],
     tableRowHeightsMm: d.gridVisible ? g.rowHeights : [],
     answerLineLengthsMm: d.answerLines ? [g.width - 6] : [],
   });
