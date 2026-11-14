@@ -185,7 +185,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const r = lesson === undefined ? renderBooklet(b, { view }) : lessonPagesOf(b, lesson, { view });
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
     const pages = r.pages;
-    downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
+    downloadBlob(await pagesPdf(pages, d.title, "Page"), pdfName(b, view, lesson));
   }
   /** The Word file: the same pages as the PDF, written here with the connector's own writer. */
   async function downloadWord(view: "pupil" | "answers", lesson?: number) {
