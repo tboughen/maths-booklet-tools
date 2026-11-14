@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * Frequency trees, drawn left to right as in GCSE papers: the total in the
@@ -141,14 +142,14 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("count") || path.includes("total"))
-      throw Error("Use counts of at most 12 characters, without markup.");
-    if (path.includes("category")) throw Error("Use group names of at most 30 characters, without markup.");
+      throw withFields(Error("Use counts of at most 12 characters, without markup."), parsed.error);
+    if (path.includes("category")) throw withFields(Error("Use group names of at most 30 characters, without markup."), parsed.error);
     if (path.includes("questions"))
-      throw Error(`Use at most ${MAX_QUESTIONS} questions of at most 60 characters, with answers of at most 24.`);
-    if (path.includes("nodes")) throw Error(`Use 2 to ${MAX_NODES} groups with IDs such as n1.`);
-    if (path.includes("branchMm")) throw Error("Choose a branch length from 24 to 60 mm.");
-    if (path.includes("gapMm")) throw Error("Choose a spacing from 14 to 30 mm.");
-    throw Error("This is not a supported frequency tree file (version 1 is supported).");
+      throw withFields(Error(`Use at most ${MAX_QUESTIONS} questions of at most 60 characters, with answers of at most 24.`), parsed.error);
+    if (path.includes("nodes")) throw withFields(Error(`Use 2 to ${MAX_NODES} groups with IDs such as n1.`), parsed.error);
+    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 24 to 60 mm."), parsed.error);
+    if (path.includes("gapMm")) throw withFields(Error("Choose a spacing from 14 to 30 mm."), parsed.error);
+    throw withFields(Error("This is not a supported frequency tree file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data,
     d = e.document;

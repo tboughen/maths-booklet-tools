@@ -230,7 +230,7 @@ describe("actual MCP transport and print downloads", () => {
       arguments: { envelope: valid, baseHash: "0".repeat(64), operations: [] },
     });
     expect(stale.isError).toBe(true);
-    expect(JSON.stringify(stale)).toContain("stale_document");
+    expect(JSON.stringify(stale)).toContain("stale_hash");
   });
   it("renders the maximum grid with the correct physical density", async () => {
     const { client } = await start();

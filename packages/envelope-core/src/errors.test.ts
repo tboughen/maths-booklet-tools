@@ -1,0 +1,55 @@
+// @vitest-environment node
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { MathsDockError, toErrorBody } from "./errors";
+
+const defaults = { code: "invalid_diagram", message: "The diagram could not be processed.", fieldHint: "Check the schema." };
+
+describe("toErrorBody", () => {
+  it("turns a zod error into invalid_input with dotted field paths", () => {
+    const r = z.object({ spec: z.object({ n: z.number() }) }).safeParse({ spec: { n: "x" } });
+    const body = toErrorBody(r.error, { ...defaults, pathPrefix: ["resource"] });
+    expect(body).toMatchObject({ code: "invalid_input", fields: [{ path: "resource.spec.n" }], hint: "Check the schema.", retry: "fix_input" });
+    expect(body.message).toMatch(/^resource\.spec\.n: /);
+  });
+  it("keeps a coded error's code, fields and hint", () => {
+    const e = new MathsDockError("label_clash", "Labels B and C overlap.", { fields: [{ path: "document.labels.1", message: "overlaps label C" }], hint: "Widen the tree." });
+    expect(toErrorBody(e, defaults)).toEqual({ code: "label_clash", message: "Labels B and C overlap.", fields: [{ path: "document.labels.1", message: "overlaps label C" }], hint: "Widen the tree.", retry: "fix_input" });
+  });
+  it("reads every older stale-hash spelling as stale_hash", () => {
+    for (const m of ["stale_hash: use the exact returned envelope and contentHash.", "base_hash_mismatch: Use the exact returned envelope and contentHash.", "The baseHash does not match this definition. Use the last returned envelope and hash."]) {
+      const body = toErrorBody(new Error(m), defaults);
+      expect(body.code, m).toBe("stale_hash");
+      expect(body.retry).toBe("refresh_envelope");
+      expect(body.message).not.toMatch(/^(stale_hash|base_hash_mismatch):/);
+    }
+  });
+  it("uses the default code for a plain error and never leaks a non-Error", () => {
+    expect(toErrorBody(new Error("Each data set needs exactly one value."), defaults)).toEqual({ code: "invalid_diagram", message: "Each data set needs exactly one value.", retry: "fix_input" });
+    expect(toErrorBody({ secret: 1 }, defaults)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+  });
+  it("marks temporary limits as try_later", () => {
+    expect(toErrorBody(new MathsDockError("rate_limited", "Today's allowance has been reached."), defaults).retry).toBe("try_later");
+    expect(toErrorBody(new MathsDockError("busy", "The renderer is busy."), defaults).retry).toBe("try_later");
+  });
+});
+
+describe("union errors name the failing branch (M11)", () => {
+  const point = z.object({ kind: z.literal("point"), x: z.number() }).strict();
+  const line = z.object({ kind: z.literal("line"), slope: z.string().regex(/^-?\d+(\/\d+)?$/, "Use an integer or fraction such as 1/2.") }).strict();
+  const spec = z.object({ objects: z.array(z.union([point, line])) });
+  it("reports only the branch whose kind matched, at the full path", () => {
+    const r = spec.safeParse({ objects: [{ kind: "line", slope: "a/b" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.slope", message: "Use an integer or fraction such as 1/2." }]);
+  });
+  it("lists the accepted kinds when none matched", () => {
+    const r = spec.safeParse({ objects: [{ kind: "curve" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.kind", message: 'Use one of: "point", "line".' }]);
+  });
+  it("picks the version branch for a versioned union with an optional legacy version", () => {
+    const v1 = z.object({ bars: z.array(z.string()) }).strict();
+    const v3 = z.object({ schemaVersion: z.literal(3), bars: z.array(z.string()) }).strict();
+    const r = z.union([v1, v3]).safeParse({ schemaVersion: 3, bars: "x" });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "bars", message: expect.stringContaining("expected array") }]);
+  });
+});
