@@ -1879,6 +1879,21 @@ export default function ValueGraphPage({
               }}
               onWorked={(resource) => commit(resource, "use worked version")}
             />
+            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
+            {selection && !localSelection ? (
+              <InspectorEditor
+                title={contextTitle}
+                active={active && !pending}
+                blocked={blocked}
+                onClose={close}
+              >
+                <div key={JSON.stringify(selection)}>{contextContent()}</div>
+              </InspectorEditor>
+            ) : (
+              <p className="inspector-hint">
+                Click a value or object to edit it.
+              </p>
+            )}
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>
               <div className="specialist-actions">
@@ -1987,20 +2002,6 @@ export default function ValueGraphPage({
                 </div>
               )}
             </section>
-            {selection && !localSelection ? (
-              <InspectorEditor
-                title={contextTitle}
-                active={active && !pending}
-                blocked={blocked}
-                onClose={close}
-              >
-                <div key={JSON.stringify(selection)}>{contextContent()}</div>
-              </InspectorEditor>
-            ) : (
-              <p className="inspector-hint">
-                Click a value or object to edit it.
-              </p>
-            )}
           </aside>
         </section>
         {active && pending && (
