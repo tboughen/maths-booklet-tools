@@ -299,3 +299,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - triangles: triangle-sine-side (worked): json d3fca6ef29f9c8a7 -> 349d92930e7a9286
 - triangles: triangle-ssa: json d90aa08547abd19d -> 090c06f8a3053640
 - triangles: triangle-ssa (worked): json d90aa08547abd19d -> 090c06f8a3053640
+
+## 2026-11-14: Ratio-table schema 1 removed (no backwards compatibility): every ratio table is schema 2 / ratio-2; artwork unchanged, only saved JSON version fields differ.
+
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: json d6c85dd42a56129b -> be402050fe6fbd84
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked): json 3e8113e21671e1bb -> 2833b2975c022512
+- ratio table: ratio-fraction: json d3858173690d4d59 -> 534293c99defe67c
+- ratio table: ratio-fraction (worked): json d3858173690d4d59 -> 534293c99defe67c
+- ratio table: ratio-simple: json 3560c4e3f60144d3 -> dbd0b8e1c472f7ed
+- ratio table: ratio-simple (worked): json 3560c4e3f60144d3 -> dbd0b8e1c472f7ed
+- ratio table: ratio-worked: json e895ae5f535ef595 -> 501b6d028824888b
+- ratio table: ratio-worked (worked): json e895ae5f535ef595 -> 501b6d028824888b

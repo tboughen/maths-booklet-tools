@@ -22,7 +22,6 @@ const legacyFixtures = JSON.parse(
 const key = "maths-booklet-tools:ratio-table-envelope:v1";
 const graphKey = "maths-booklet-tools:graph-envelope:v1";
 const simple = createRatioTable({
-  schemaVersion: 1,
   rows: [
     {
       cells: [
@@ -34,7 +33,6 @@ const simple = createRatioTable({
   ],
 });
 const scaffold = createRatioTable({
-  schemaVersion: 1,
   mode: "annotated",
   rows: [
     {
@@ -395,7 +393,7 @@ test("clipboard includes the verified PNG and centimetre dimensions; blocked cop
   ).toBeVisible();
 });
 
-test("direct editing, three clear scaling arrows, explicit fill and legacy undo work together", async ({
+test("direct editing, three clear scaling arrows, explicit fill and undo work together", async ({
   page,
 }, testInfo) => {
   await seed(page, JSON.stringify(legacyFixtures[1].envelope));
@@ -418,7 +416,7 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
   );
   await expect(page.locator(".ratio-preview .ratio-operation")).toHaveCount(3);
   await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
-  expect((await stored(page)).document.rows[1].cells).toEqual([
+  await expect.poll(async () => (await stored(page)).document.rows[1].cells).toEqual([
     { kind: "number", value: "1" },
     { kind: "answer-line" },
     { kind: "empty" },
@@ -480,7 +478,7 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
   await expect
     .poll(async () => (await stored(page)).document)
     .toEqual(legacyFixtures[1].envelope.document);
@@ -921,9 +919,9 @@ test("visible remove controls shrink to one row/column, retain values and restor
     page.getByLabel("Edit column 2 heading", { exact: true }),
   ).toHaveValue("y ↑");
   await structure.getByRole("button", { name: "Add row", exact: true }).click();
-  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect.poll(async () => (await stored(page)).document.rows.length).toBe(2);
   await expect
-    .poll(async () => (await stored(page)).document.rows[1].cells)
+    .poll(async () => (await stored(page)).document.rows[1]?.cells)
     .toEqual([{ kind: "empty" }, { kind: "empty" }]);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();

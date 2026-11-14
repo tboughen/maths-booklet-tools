@@ -13,7 +13,6 @@ import {
   readSchema,
   normalizeDocument,
   RATIO_RENDERER_VERSION,
-  RATIO_THREE_COLUMN_RENDERER_VERSION,
   RATIO_STYLE_PROFILE,
   RATIO_MAX_ENVELOPE_BYTES,
   RATIO_MAX_FILE_BYTES,
@@ -46,13 +45,10 @@ function bounded(value: unknown, maximum: number, name: string) {
 export function ratioEnvelope(input: unknown, about: About = {}): RatioEnvelope {
   const document = normalizeDocument(input);
   ratioMetrics(document);
-  const legacy = document.headings.length === 2 && document.rows.length >= 2;
   const envelope: RatioEnvelope = {
     kind: "ratio-table",
-    schemaVersion: legacy ? 1 : 2,
-    rendererVersion: legacy
-      ? RATIO_RENDERER_VERSION
-      : RATIO_THREE_COLUMN_RENDERER_VERSION,
+    schemaVersion: 2,
+    rendererVersion: RATIO_RENDERER_VERSION,
     styleProfile: RATIO_STYLE_PROFILE,
     document,
     ...about,
@@ -73,22 +69,6 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
       "This file is not a ratio table. Open graph files in the Graph builder.",
     );
   const envelope = readSchema(ratioEnvelopeSchema, input);
-  const version =
-    envelope.document.headings.length === 2 &&
-    envelope.document.rows.length >= 2
-      ? 1
-      : 2;
-  if (
-    envelope.schemaVersion !== version ||
-    envelope.rendererVersion !==
-      (version === 1
-        ? RATIO_RENDERER_VERSION
-        : RATIO_THREE_COLUMN_RENDERER_VERSION)
-  )
-    throw new RatioError(
-      "invalid_ratio_table",
-      "The saved format must match the row and column counts.",
-    );
   return ratioEnvelope(envelope.document, aboutOf(envelope));
 }
 type RatioSpec = z.infer<typeof ratioSpecSchema>;
@@ -176,14 +156,6 @@ export function createRatioTable(input: unknown): RatioEnvelope {
   ];
   const spec = { ...given, rows },
     used = new Set(spec.rows.flatMap((r) => (r.id ? [r.id] : [])));
-  if (
-    spec.schemaVersion === 1 &&
-    (spec.rows[0].cells.length !== 2 || spec.rows.length < 2)
-  )
-    throw new RatioError(
-      "invalid_ratio_table",
-      "Use schemaVersion 2 for one row, one column or three columns.",
-    );
   return ratioEnvelope({
     headings:
       spec.headings ??
@@ -218,7 +190,6 @@ export function emptyRatioTable(): RatioEnvelope {
 // finds the value for 5. The answer cell is an answer line, never a calculated value.
 export function starterRatioTable(): RatioEnvelope {
   return createRatioTable({
-    schemaVersion: 1,
     rows: [
       {
         cells: [

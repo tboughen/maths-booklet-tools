@@ -63,7 +63,7 @@ describe("MCP tool metadata (M4, M10, M17, M18)", () => {
     const table = await client.callTool({ name: "create_ratio_table", arguments: {} });
     expect(table.isError).toBeFalsy();
     const data = table.structuredContent as { envelope: { schemaVersion: number; document: { rows: { cells: { kind: string }[] }[] } }; editorUrl: string };
-    expect(data.envelope.schemaVersion).toBe(1);
+    expect(data.envelope.schemaVersion).toBe(2);
     expect(data.envelope.document.rows.map((r) => r.cells.map((c) => c.kind))).toEqual([["empty", "empty"], ["empty", "empty"]]);
     expect(data.editorUrl).toMatch(/^https:\/\/mathsdock\.co\.uk\/tools\/ratio-table#ratio-table=/);
   }, 30000);

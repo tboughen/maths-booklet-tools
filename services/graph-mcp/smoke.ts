@@ -62,7 +62,7 @@ try {
     rows: { minimum: number; maximum: number }; revisionOperations: string[];
   };
   if (capabilities.isError || JSON.stringify(caps.supportedColumns) !== "[1,2,3]" ||
-      JSON.stringify(caps.rendererVersions) !== '["ratio-1","ratio-2"]' ||
+      JSON.stringify(caps.rendererVersions) !== '["ratio-2"]' ||
       caps.rows.minimum !== 1 || caps.rows.maximum !== 6 ||
       !caps.revisionOperations.includes("add_column") || !caps.revisionOperations.includes("remove_column"))
     throw Error("Extended ratio capabilities were not advertised.");
@@ -186,7 +186,7 @@ try {
     largest.printRaster.height,
   );
   const ratio = await client.callTool({ name: "create_ratio_table", arguments: {
-    schemaVersion: 1, mode: "annotated", rows: [
+    mode: "annotated", rows: [
       { id: "start", cells: [{ kind: "number", value: "3" }, { kind: "number", value: "2" }] },
       { id: "target", cells: [{ kind: "number", value: "1" }, { kind: "answer-line" }] },
     ], transitions: [{ from: "start", to: "target", operation: "divide", factor: "3" }],

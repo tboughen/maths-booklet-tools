@@ -107,7 +107,6 @@ export function ratioTeachingExample(kind: "simple" | "worked" | "fraction") {
             ["1", null],
           ];
   return createRatioTable({
-    schemaVersion: 1,
     rows: values.map((pair, i) => ({
       id: `row-${i + 1}`,
       cells: pair.map((value) =>

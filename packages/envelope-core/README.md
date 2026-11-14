@@ -18,8 +18,8 @@ The twelve families that existed before this package use **schema-order** canoni
 table have their own canonical writers. All of them are frozen by the golden corpus:
 
 - `fixtures/corpus/<kind>/*.json`: real saved envelopes, including every schema version still
-  read (bar model 1, 2 and 3; Venn 1 and 2; ratio table 1 and 2). When a version is removed
-  (Tim, 14 Nov 2026: no backwards compatibility; cuboids 1 and triangle 1 so far), its files
+  read (bar model 1, 2 and 3; Venn 1 and 2). When a version is removed
+  (Tim, 14 Nov 2026: no backwards compatibility; cuboids 1, triangle 1 and ratio table 1 so far), its files
   are upgraded to the current version in the same change and golden.json is regenerated.
 - `fixtures/golden.json`: each file's schema version, contentHash and the SHA-256 of its pupil
   and answer SVG.
