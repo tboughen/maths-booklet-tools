@@ -17,11 +17,11 @@ describe("toErrorBody", () => {
     expect(toErrorBody(e, defaults)).toEqual({ code: "label_clash", message: "Labels B and C overlap.", fields: [{ path: "document.labels.1", message: "overlaps label C" }], hint: "Widen the tree.", retry: "fix_input" });
   });
   it("reads every older stale-hash spelling as stale_hash", () => {
-    for (const m of ["stale_hash: use the exact returned envelope and contentHash.", "base_hash_mismatch: Use the exact returned envelope and contentHash.", "The baseHash does not match this definition. Use the last returned envelope and hash."]) {
+    for (const m of ["stale_hash: use the exact returned envelope and contentHash.", "stale_hash: The baseHash does not match this definition. Use the last returned envelope and hash."]) {
       const body = toErrorBody(new Error(m), defaults);
       expect(body.code, m).toBe("stale_hash");
       expect(body.retry).toBe("refresh_envelope");
-      expect(body.message).not.toMatch(/^(stale_hash|base_hash_mismatch):/);
+      expect(body.message).not.toMatch(/^stale_hash:/);
     }
   });
   it("uses the default code for a plain error and never leaks a non-Error", () => {
@@ -32,8 +32,7 @@ describe("toErrorBody", () => {
     for (const m of ["arx: must be a positive number", "discriminator: expected one of point, line", "objects: too many lines"]) {
       expect(toErrorBody(new Error(m), defaults), m).toEqual({ code: "invalid_diagram", message: m, retry: "fix_input" });
     }
-    expect(toErrorBody(new Error("Labels mention stale_hash and base_hash_mismatch."), defaults).code).toBe("invalid_diagram");
-    expect(toErrorBody(new Error("The base hash is stale."), defaults).code).toBe("stale_hash");
+    expect(toErrorBody(new Error("Labels mention stale_hash and refresh."), defaults).code).toBe("invalid_diagram");
   });
   it("hides an uncoded runtime error's text where the tool asks for it", () => {
     const opaque = { ...defaults, opaque: true };
