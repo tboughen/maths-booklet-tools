@@ -54,30 +54,15 @@ import {
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import "./probability-tree.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
 type LabelKey = "outcome" | "probability" | "endOutcome" | "endProbability";
 
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return {
-          e: create(),
-          recovery: raw,
-          message: "Saved tree data needs recovery. Download the original before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return { e: create(), recovery: null, message: "Device storage is unavailable. Save an editable file to keep your work." };
-  }
-  return { e: create(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: create, recoveryMessage: "Saved tree data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
@@ -155,7 +140,6 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
@@ -164,8 +148,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     [bag, setBag] = useState("5, 3"),
     [replacement, setReplacementMode] = useState(false),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
@@ -223,35 +206,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (expected.current !== null && raw !== expected.current && raw !== text) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage("A newer draft exists in another tab. Its saved data is protected.");
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage("Saved tree data changed in another tab. Download its data before replacing it.");
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: canonical(history.present),
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved tree data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -807,14 +771,12 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage("Saved data changed again. Download this latest copy first.");
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {
