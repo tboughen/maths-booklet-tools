@@ -583,36 +583,46 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options"]);
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+/** The printed characters in a document part that the worksheet font does not hold, each once. */
+export function missingCharacters(value: unknown): string[] {
+  const known = measuredWidths("regular");
+  const found = new Set<string>();
+  const scan = (v: unknown, key = "") => {
+    if (typeof v === "string") {
+      if (!PRINTED.has(key)) return;
+      for (const c of v) if (!(c in known) && c !== "\n") found.add(c);
+    } else if (Array.isArray(v)) v.forEach((x) => scan(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram" && k !== "working") scan(x, k);
+  };
+  scan(value);
+  return [...found];
+}
+const charName = (c: string) => `"${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")})`;
+/** The issue text for a character the font lacks; `where` names the place, e.g. "Question 3". */
+export const missingCharacterMessage = (where: string, c: string) =>
+  `${where} uses ${charName(c)}, which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words${c >= "\u2150" && c <= "\u215f" ? ", or as a stacked fraction such as {1/3}" : ""}).`;
 /**
  * A character the worksheet font does not hold would print as a gap in the PDF and as a
  * substitute font in Word, so it is reported as an issue, once per character and question.
  */
 export function missingGlyphIssues(resource: Resource): Issue[] {
-  const known = measuredWidths("regular");
   const found = new Map<string, Issue>();
   type Where = Omit<Issue, "message">;
-  const scan = (value: unknown, where: Where, key = "") => {
-    if (typeof value === "string") {
-      if (!PRINTED.has(key)) return;
-      for (const c of new Set(value)) {
-        if (c in known || c === "\n") continue;
-        const id = `${c}.${where.side}.${where.question ?? 0}`;
-        if (!found.has(id))
-          found.set(id, { ...where, message: `${where.question ? `Question ${where.question}` : "The header"} uses "${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")}), which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words).` });
-      }
-    } else if (Array.isArray(value)) value.forEach((v) => scan(v, where, key));
-    else if (value && typeof value === "object")
-      for (const [k, v] of Object.entries(value)) if (k !== "diagram" && k !== "working") scan(v, where, k);
+  const report = (value: unknown, where: Where) => {
+    for (const c of missingCharacters(value)) {
+      const id = `${c}.${where.side}.${where.question ?? 0}`;
+      if (!found.has(id)) found.set(id, { ...where, message: missingCharacterMessage(where.question ? `Question ${where.question}` : "The header", c) });
+    }
   };
   const d = resource.document;
-  scan({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
+  report({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
   let question = 0;
   d.sides.forEach((side, s) => {
-    scan({ instruction: side.instruction }, { side: s + 1, column: 0 });
+    report({ instruction: side.instruction }, { side: s + 1, column: 0 });
     side.columns.forEach((col, c) => {
-      scan({ heading: col.heading }, { side: s + 1, column: c + 1 });
-      for (const card of col.cards) scan(card, { side: s + 1, column: c + 1, question: ++question });
+      report({ heading: col.heading }, { side: s + 1, column: c + 1 });
+      for (const card of col.cards) report(card, { side: s + 1, column: c + 1, question: ++question });
     });
   });
   return [...found.values()];

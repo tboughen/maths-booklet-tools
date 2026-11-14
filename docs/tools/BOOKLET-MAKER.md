@@ -12,6 +12,14 @@ and the page downloads pupil and answers PDFs and Word files for the whole bookl
   booklet has a cover (title, unit code, year or tier, contents, name and class lines, an optional
   note), an optional unit introduction (what to remember, what you will learn, how it progresses,
   key words) and 1 to 12 lessons.
+- `notation`: `"maths"` (new booklets, the example and every AI-made booklet) prints `{3/4}` as a
+  stacked fraction, `2{1/2}` as a mixed number, and stacks `1/3` in answer lines, table cells and
+  circle-one options, as on worksheets; Word files hold them as equations. `"plain"` (the default,
+  so booklets saved before 14 November 2026 print exactly as before) prints text as typed. Card,
+  section and lesson titles and key ideas never stack.
+- A character the worksheet font does not have (for example ⅓) would print as a gap in the PDF and
+  in another font in Word, so it is reported as an issue naming the lesson and question, and no
+  files are made until it is rewritten.
 - A lesson has a title, objective code, objective, a one or two sentence key idea (shown in a pale
   card under the lesson heading) and 1 to 12 sections. Section kinds: check in, worked example,
   practice ("Your turn"), diagnostic questions, spot the mistake, challenge, discover and notes.

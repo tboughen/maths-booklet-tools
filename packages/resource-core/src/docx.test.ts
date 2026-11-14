@@ -156,6 +156,17 @@ describe("Word output for booklets", () => {
   }
   const mm = (v: string | null) => (Number(v) * 25.4) / 1440;
 
+  it("writes stacked fractions as Word equations with maths notation, and plain text without", async () => {
+    const maths = await word(a7Booklet, "answers", 1);
+    expect(maths.document).toContain("<m:f>");
+    expect(maths.document).not.toContain("{1/3}");
+    const plain = structuredClone(a7Booklet);
+    plain.document.notation = "plain";
+    const typed = await word(plain, "answers", 1);
+    expect(typed.document).not.toContain("<m:f>");
+    expect(typed.document).toContain("{1/3}");
+  });
+
   it("writes a well-formed package with one fixed page per planned page", async () => {
     const full = renderBooklet(a7Booklet);
     for (const view of ["pupil", "answers"] as const) {

@@ -92,7 +92,8 @@ Number of cards: about 25 to 35 per lesson, which prints as 5 to 8 A4 pages. Few
 # Items
 Cards hold items: "text"; "info" (a pale key-fact or generalisation card); "claim" (a pupil's statement others check); "bullets"; "steps" (a worked method, one step per line; empty labels print Step 1, Step 2…); "checklist" (boxes pupils tick as they work; never answers); "table" (cells "supplied", "blank" or "hidden"); "choice" (mode "letters" for hinge questions, "circle" or "tick"); "answerLine" (prefix, suffix, saved answer, inline for several on a row); "space" (kind "working" or "drawing", heightMm); "diagram"; "part" (lettered parts a, b, c holding further items).
 - Movement and value tables are table items, so answers can be hidden: headings "*x* →" and "*y* ↑" for gradient movements, "*x*" then the values for a table of values with "*y*" as the first cell of the row below.
-- Text is plain Unicode with **bold** and *italic* only. Variables are italic (*x*, *y*, *m*, *c*); use the true minus sign −, ×, ÷, ², √, ½, ⅓, ¾, ≤, ≥. No LaTeX or HTML.
+- Text is plain Unicode with **bold** and *italic* only. Variables are italic (*x*, *y*, *m*, *c*); use the true minus sign −, ×, ÷, ², √, ≤, ≥. No LaTeX or HTML.
+- Fractions always print stacked: write every fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2, ½ or ⅓. In answer lines (prefix, suffix, saved answer), table cells and headings, and circle-one options, 1/3 and 2 1/2 stack too. Card titles, section titles and key ideas cannot stack; keep fractions out of them. An exact fractional value is never a decimal.
 - UK spelling and exam wording. Short sentences. No decorative text, no generic instructions repeated on every card.
 
 # Answers and blanks
@@ -143,7 +144,7 @@ ${JSON.stringify(exampleLessonSource)}
 
 /** One lesson as a booklet of its own, so it can be laid out and checked alone. */
 function soloBooklet(lesson: Lesson): Booklet {
-  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, intro: null, lessons: [lesson] } };
+  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, notation: "maths", intro: null, lessons: [lesson] } };
 }
 
 const REVEALING = /^(worked[A-Za-z]*|calculate|answerVisible)$/;

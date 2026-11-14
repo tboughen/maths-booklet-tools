@@ -1,4 +1,4 @@
-import { at, card, countSpaces, type Ctx, type Frag, type View } from "./render";
+import { at, card, countSpaces, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
 import type { FontStyle } from "./metrics";
@@ -337,7 +337,7 @@ export const CONTINUED_RULE = 5.6;
 export function planBooklet(booklet: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}): BookletPlan {
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
-  const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true };
+  const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true, maths: booklet.document.notation === "maths" };
   const contentTop = A4.top;
   const contHead = CONTINUED_HEAD;
 
@@ -411,11 +411,18 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
   const view = options.view ?? "pupil";
-  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true };
+  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true, maths: doc.notation === "maths" };
   const issues: BookletIssue[] = [];
   const contentTop = A4.top;
   const contHead = CONTINUED_HEAD;
   const plan = planBooklet(booklet, options);
+
+  // A character the font does not hold prints as a gap in the PDF and in another font in Word.
+  const glyphs = (value: unknown, where: Omit<BookletIssue, "message">, place: string) => {
+    for (const c of missingCharacters(value)) issues.push({ ...where, message: missingCharacterMessage(place, c) });
+  };
+  glyphs({ title: doc.title, code: doc.code, group: doc.group, coverNote: doc.coverNote }, { lesson: 0, page: 1 }, "The cover");
+  if (doc.intro) glyphs(doc.intro, { lesson: 0, page: 2 }, "The unit introduction");
 
   const pages: string[] = [];
   pages.push(page(cover(doc, plan.contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));
@@ -435,10 +442,12 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
       const yy = block.y;
       if (block.kind === "head") {
         out.push(at(lessonHead(lesson, p.lesson + (options.numbering?.lessonOffset ?? 0), st), A4.marginX, yy));
+        glyphs({ title: lesson.title, code: lesson.code, objective: lesson.objective, keyIdea: lesson.keyIdea }, { lesson: p.lesson, page: pageNo }, `Lesson ${p.lesson}`);
         continue;
       }
       if (block.kind === "section") {
         out.push(at(sectionHead(lesson.sections[block.section], st, block.continued), A4.marginX, yy));
+        if (!block.continued) glyphs({ title: lesson.sections[block.section].title, instruction: lesson.sections[block.section].instruction }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, section ${block.section + 1}`);
         continue;
       }
       const section = lesson.sections[block.section];
@@ -450,6 +459,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
       block.cards.forEach((c, k) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
+        glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${c.number ? `question ${c.number}` : `section ${block.section + 1}`}`);
         const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
         const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
