@@ -15,6 +15,7 @@ import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
 import * as line from "../../packages/number-line-core/src/index";
 import { diagramSource, type DiagramSource } from "./diagram-source";
 import { toolFailure } from "./tool-error";
+import { prefixFields } from "../../packages/envelope-core/src/errors";
 import { answerLeaks } from "../../packages/diagram-core/src/answer-leaks";
 
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
@@ -131,7 +132,14 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
         try {
           const f = FAMILIES[input.kind];
           if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", `outputView applies only to ${ANSWER_VIEW_KINDS}.`);
-          const envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
+          let envelope;
+          try {
+            envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
+          } catch (error) {
+            // Field paths read from the tool's arguments. A spec-built envelope's own document.*
+            // paths are not in what the caller sent, so those fields are dropped (the message stays).
+            throw input.envelope !== undefined ? prefixFields(error, "envelope") : prefixFields(error, "spec", (path) => !/^(document|tool|schemaVersion|rendererVersion)\b/.test(path));
+          }
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], AbortSignal.any([extra.signal, connection]));
         } catch (error) {

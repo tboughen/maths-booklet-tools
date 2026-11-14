@@ -4396,7 +4396,7 @@
   {
     "name": "download_diagram_bundle",
     "title": "Download diagram files",
-    "description": "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require an explicit revise_diagram conversion first.",
+    "description": "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, a vector PDF page at actual size (A4 or A3, M24), print facts and README. Supply kind and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require an explicit revise_diagram conversion first.",
     "inputSchema": {
       "type": "object",
       "properties": {

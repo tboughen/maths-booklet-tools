@@ -186,24 +186,12 @@
   display: grid;
   gap: 5px;
   margin: 10px 0;
-  font-size: 13px;
+  font-size: var(--button-label, 14px);
 }
 .vn-inspector .vn-check {
   display: flex;
   align-items: center;
 }
-.vn-tabs {
-  display: flex;
-  gap: 3px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 8px;
-}
-.vn-tabs button {
-  flex: 1;
-  padding: 8px 5px;
-  font-size: var(--button-label, 14px);
-}
-.vn-tabs button[aria-selected="true"],
 .vn-inspector button[aria-pressed="true"] {
   background: #e2efff;
   border-color: #386ba5;

@@ -61,10 +61,78 @@ export function retryFor(code: string): RetryAdvice {
 
 /** Field problems from a zod error, paths joined with dots ("input" for the root). */
 export function zodFields(error: z.ZodError, prefix: (string | number)[] = []): FieldProblem[] {
-  return error.issues.map((i) => {
-    const path = [...prefix, ...i.path.map((p) => (typeof p === "symbol" ? String(p) : p))];
-    return { path: path.length ? path.join(".") : "input", message: i.message };
+  return narrowIssues(error.issues as Issue[], prefix.map(String)).map((i) => ({ path: i.path.length ? i.path.join(".") : "input", message: i.message }));
+}
+
+type Issue = { code: string; path: PropertyKey[]; message: string; errors?: Issue[][]; keys?: string[]; values?: unknown[] };
+/** Keys that say which branch of a union an object belongs to. */
+const DISCRIMINATORS = ["kind", "op", "schemaVersion"];
+
+/**
+ * Whether a branch's issues reject the input's own discriminator, so it is the wrong branch. A
+ * discriminator is one literal per branch, so an enum field that happens to share the name (several
+ * allowed values) is an ordinary field problem, not a sign of the wrong branch.
+ */
+function wrongBranch(issues: Issue[]) {
+  return issues.some(
+    (i) =>
+      (i.path.length === 1 && DISCRIMINATORS.includes(String(i.path[0])) && i.code === "invalid_value" && (i.values ?? []).length === 1) ||
+      (i.path.length === 0 && i.code === "unrecognized_keys" && (i.keys ?? []).some((k) => DISCRIMINATORS.includes(k))),
+  );
+}
+
+/**
+ * Flattens zod issues to field problems with full paths (M11). A failed union reports only the
+ * branch the input chose (the one whose kind/op/type/schemaVersion matched), so "objects.0.equation.slope:
+ * Use a finite number" replaces "objects.0: Invalid input". When no branch matches its
+ * discriminator, the problem names the discriminator and the values it accepts.
+ */
+function narrowIssues(issues: Issue[], base: string[]): { path: string[]; message: string }[] {
+  return issues.flatMap((i) => {
+    const path = [...base, ...i.path.map((p) => (typeof p === "symbol" ? String(p) : String(p)))];
+    if (i.code !== "invalid_union" || !i.errors?.length) return [{ path, message: i.message }];
+    const chosen = i.errors.filter((branch) => !wrongBranch(branch));
+    if (chosen.length === 1) return narrowIssues(chosen[0], path);
+    if (chosen.length === 0) {
+      for (const key of DISCRIMINATORS) {
+        const allowed = i.errors.flatMap((branch) => branch.filter((x) => x.path.length === 1 && String(x.path[0]) === key && x.code === "invalid_value").flatMap((x) => x.values ?? []));
+        if (allowed.length) return [{ path: [...path, key], message: `Use one of: ${[...new Set(allowed.map((v) => JSON.stringify(v)))].join(", ")}.` }];
+      }
+    }
+    const left = chosen.length ? chosen : i.errors;
+    // A union of literals or of different types (2 | 3, string | object) fails every branch at the
+    // value itself: report every value it accepts, or the union's own message, never one branch.
+    if (left.every((branch) => branch.every((x) => x.path.length === 0))) {
+      const values = left.flatMap((branch) => (branch.every((x) => x.code === "invalid_value") ? branch.flatMap((x) => x.values ?? []) : [undefined]));
+      return [{ path, message: values.length && !values.includes(undefined) ? `Use one of: ${[...new Set(values.map((v) => JSON.stringify(v)))].join(", ")}.` : i.message }];
+    }
+    // Still ambiguous: the branch with the fewest problems is the most likely intent.
+    const best = [...left].sort((a, b) => a.length - b.length)[0];
+    return narrowIssues(best, path);
   });
+}
+
+/**
+ * Attaches a zod error's field problems to an Error whose message a core has already written in
+ * words, so the connector can still name every field. Returns the same error for `throw`.
+ */
+export function withFields<E extends Error>(error: E, zod: z.ZodError, prefix: (string | number)[] = []): E {
+  Object.defineProperty(error, "fields", { value: zodFields(zod, prefix), enumerable: false });
+  return error;
+}
+
+/**
+ * Puts a tool argument name ("spec", "envelope") in front of the field paths a core attached, so
+ * they read from the tool's arguments. Fields that do not come from the caller's input (keep
+ * returns false) are dropped; the error's message still says what is wrong.
+ */
+export function prefixFields<E>(error: E, prefix: string, keep: (path: string) => boolean = () => true): E {
+  const shift = (fields: FieldProblem[] | undefined) =>
+    fields?.filter((f) => keep(f.path)).map((f) => ({ ...f, path: f.path === "input" ? prefix : `${prefix}.${f.path}` }));
+  if (error instanceof MathsDockError) error.details = { ...error.details, fields: shift(error.details.fields) };
+  else if (error instanceof Error && Array.isArray((error as unknown as { fields?: unknown }).fields))
+    Object.defineProperty(error, "fields", { value: shift((error as unknown as { fields: FieldProblem[] }).fields), enumerable: false });
+  return error;
 }
 
 /** "a.b: problem; c: problem (3 more)": the field problems as one readable sentence. */
@@ -114,7 +182,11 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
     message = prefixed[2];
   }
   code ??= defaults.code;
-  const details = error instanceof MathsDockError ? error.details : {};
+  const ownFields = (error as unknown as { fields?: FieldProblem[] }).fields;
+  const prefix = defaults.pathPrefix?.join(".");
+  const attached = Array.isArray(ownFields) && prefix ? ownFields.map((f) => ({ ...f, path: f.path === "input" ? prefix : `${prefix}.${f.path}` })) : ownFields;
+  const merged = error instanceof MathsDockError ? { ...error.details, fields: error.details.fields ?? attached } : { fields: Array.isArray(attached) ? attached : undefined };
+  const details = { ...merged, fields: merged.fields?.slice(0, 20) };
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {
     code,

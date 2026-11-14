@@ -38,7 +38,7 @@ import {
   regionProblem,
 } from "./region";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
-import { MathsDockError } from "../../envelope-core/src/errors";
+import { MathsDockError, zodFields } from "../../envelope-core/src/errors";
 
 export const RENDERER_VERSION = "graph-1";
 export const MAX_REQUEST_BYTES = 64 * 1024;
@@ -219,7 +219,8 @@ const straightInput = {
   labels: labelsInput,
   gradientTriangle: gradientTriangleInput,
 };
-export const objectInputSchema = z.union([
+// One branch per kind, so a bad field is reported against that kind only (M11).
+export const objectInputSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier.optional(),
@@ -305,7 +306,7 @@ export const graphSpecSchema = z
     objects: z.array(objectInputSchema).max(50),
   })
   .strict();
-const objectSchema = z.union([
+const objectSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: identifier,
@@ -427,13 +428,10 @@ export type GraphEnvelope = z.infer<typeof envelopeSchema>;
 export type GraphSpec = z.input<typeof graphSpecSchema>;
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
-  if (!result.success)
-    throw new GraphError(
-      "invalid_graph",
-      result.error.issues
-        .map((i) => `${i.path.join(".") || "graph"}: ${i.message}`)
-        .join("; "),
-    );
+  if (!result.success) {
+    const fields = zodFields(result.error);
+    throw new GraphError("invalid_graph", fields.map((f) => `${f.path === "input" ? "graph" : f.path}: ${f.message}`).join("; "), { fields });
+  }
   return result.data;
 }
 export function createEnvelope(

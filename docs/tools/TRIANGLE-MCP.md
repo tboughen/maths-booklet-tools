@@ -162,8 +162,8 @@ including operations/protocol overhead. Oversized links use bounded inline files
 no promise that every maximum source fits every transport. Existing raster/queue/
 archive/chunk/time/memory limits remain. Downloads expire after seven days.
 
-Generic helpers use kind `triangle` and the exact envelope. Bundles keep the
-existing five files; placement does not edit the source. `get_diagram_svg` returns
+Generic helpers use kind `triangle` and the exact envelope. Bundles hold the
+standard six files; placement does not edit the source. `get_diagram_svg` returns
 the original outlined bytes when URL retrieval is unavailable. Check source hash,
 UTF-8 offsets, chunk/full checksums and saved-file bytes. Source hash and SVG file
 checksum have different meanings. Do not redraw, normalize or substitute previews.

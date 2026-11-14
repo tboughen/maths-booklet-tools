@@ -213,6 +213,7 @@ describe("three new families through actual MCP/HTTP", () => {
           "source.json",
           "diagram.svg",
           "diagram.png",
+          "diagram.pdf",
           "print-info.json",
           "README.txt",
         ].sort(),
