@@ -1170,10 +1170,8 @@ export const hash = envelope.contentHash;
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#construction=";
 export const linkHash = (e: Envelope): string => LINK_PREFIX + envelope.encodeLink(e);
-/** The website editor is a later step; until it is released the connector returns no editor link. */
-export const EDITOR_RELEASED = false;
+/** The website editor link, or null when the drawing is too large for a link. */
 export function editorLink(e: Envelope, base: string): string | null {
-  if (!EDITOR_RELEASED) return null;
   const url = new URL(base);
   url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/construction";
   url.search = "";

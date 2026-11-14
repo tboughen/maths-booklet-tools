@@ -182,3 +182,29 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - algebra grid: algebra-numeric (worked): mm 39x50 -> 39x42.5
 - algebra grid: algebra-numeric (worked): png600 921x1181 -> 921x1004
 - algebra grid: algebra-numeric (worked): pixels 8cf8d9ec64b8727f -> b202353bba390da8
+## 2026-11-14: Add the constructions and plans-and-elevations editor galleries (new outputs only)
+
+- constructions: construction-perpendicular-bisector: added
+- constructions: construction-perpendicular-bisector (worked): added
+- constructions: construction-angle-bisector: added
+- constructions: construction-angle-bisector (worked): added
+- constructions: construction-perpendicular-from-point: added
+- constructions: construction-perpendicular-from-point (worked): added
+- constructions: construction-perpendicular-at-point: added
+- constructions: construction-perpendicular-at-point (worked): added
+- constructions: construction-locus-segment: added
+- constructions: construction-locus-segment (worked): added
+- constructions: construction-map-equidistant: added
+- constructions: construction-map-equidistant (worked): added
+- constructions: construction-bearings-port: added
+- constructions: construction-bearings-port (worked): added
+- constructions: construction-loci-garden: added
+- constructions: construction-loci-garden (worked): added
+- plans and elevations: elevations-draw-views: added
+- plans and elevations: elevations-draw-views (worked): added
+- plans and elevations: elevations-draw-solid: added
+- plans and elevations: elevations-draw-solid (worked): added
+- plans and elevations: elevations-steps: added
+- plans and elevations: elevations-steps (worked): added
+- plans and elevations: elevations-scale-2cm: added
+- plans and elevations: elevations-scale-2cm (worked): added

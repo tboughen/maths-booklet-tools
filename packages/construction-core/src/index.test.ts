@@ -138,7 +138,7 @@ describe("construction drawings", () => {
         expect(c.exportIssue(e, "answer"), x.id).toBeNull();
         expect(await c.hash(e)).toMatch(/^[0-9a-f]{64}$/);
       }
-    expect(c.editorLink(c.create(), "https://mathsdock.co.uk/")).toBeNull(); // no editor until it is released
+    expect(c.editorLink(c.create(), "https://mathsdock.co.uk/")).toMatch(/^https:\/\/mathsdock\.co\.uk\/tools\/construction#construction=/);
   });
 
   it("answers the source questions correctly", () => {

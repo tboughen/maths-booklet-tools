@@ -334,9 +334,11 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
   return { width: W, height: Hh, svg: out.join("") };
 }
 
-/** Panels placed left to right, wrapping to a new row at maxWidthCm, each with its label underneath. */
-export function layout(e: Envelope) {
-  const d = e.document,
+/** Panels placed left to right, wrapping to a new row at maxWidthCm, each with its label underneath.
+ * Pass the saved envelope and the copy to draw; an answer panel keeps one size on both copies. */
+export function layout(saved: Envelope, view: View = "pupil") {
+  const e = forView(saved, view),
+    d = e.document,
     issues: string[] = [],
     notes: string[] = [];
   const built = d.panels.map((p) => ({ p, b: p.view === "isometric" ? isoPanel(d, p) : gridPanel(d, p) }));
@@ -361,28 +363,31 @@ export function layout(e: Envelope) {
   const height = y + rowH;
   const M = 1.5;
   if (height > 300) issues.push("The panels are taller than 30 cm. Use fewer panels or a smaller cube edge.");
-  if (d.panels.every((p) => p.state === "drawn") && d.panels.length > 1) notes.push("Every view is drawn, so pupils have nothing to draw. Make a view blank or an answer for a question.");
-  for (const p of d.panels)
+  // Notes describe the saved question, so both copies give the same notes.
+  const sd = saved.document;
+  if (sd.panels.every((p) => p.state === "drawn") && sd.panels.length > 1) notes.push("Every view is drawn, so pupils have nothing to draw. Make a view blank or an answer for a question.");
+  for (const p of sd.panels)
     if (p.view !== "isometric" && p.state !== "drawn" && p.squares.across) {
       const f = flatView(d, p.view);
       if (p.squares.across < f.across || p.squares.up < f.up) notes.push(`The ${p.view} grid is smaller than the ${p.view} view (${f.across} by ${f.up} squares).`);
     }
   return { width: Math.ceil((width + 2 * M) * 10) / 10, height: Math.ceil((height + 2 * M) * 10) / 10, margin: M, placed, issues, notes };
 }
-export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
-export const warnings = (e: Envelope) => {
-  const g = layout(e);
+export const exportIssue = (e: Envelope, view: View = "pupil") => layout(e, view).issues.join(" ") || null;
+export const warnings = (e: Envelope, view: View = "pupil") => {
+  const g = layout(e, view);
   return [...g.issues, ...g.notes];
 };
 
-export function renderSvg(e: Envelope): string {
-  const g = layout(e),
+export function renderSvg(saved: Envelope, view: View = "pupil"): string {
+  const e = forView(saved, view),
+    g = layout(saved, view),
     out: string[] = [`<rect width="${n(g.width)}" height="${n(g.height)}" fill="white"/>`];
   for (const { x, y, p, b } of g.placed) {
     out.push(`<g transform="translate(${n(x + g.margin)} ${n(y + g.margin)})">${b.svg}</g>`);
     if (p.label.text.trim() && p.label.show === "show") out.push(text(p.label.text.trim(), x + g.margin + b.width / 2, y + g.margin + b.height + FONT + 1));
   }
-  const views = e.document.panels.map((p) => `${p.view}${p.state === "drawn" ? "" : " (blank grid)"}`).join(", ");
+  const views = e.document.panels.map((p) => `${p.view}${p.state === "drawn" ? "" : p.view === "isometric" ? " (space to sketch)" : " (blank grid)"}`).join(", ");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(`Solid of ${cubeCount(e.document)} cubes: ${views}`)}">${out.join("")}</svg>`;
 }
 
@@ -392,10 +397,8 @@ export const hash = envelope.contentHash;
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#elevations=";
 export const linkHash = (e: Envelope): string => LINK_PREFIX + envelope.encodeLink(e);
-/** The website editor is a later step; until it is released the connector returns no editor link. */
-export const EDITOR_RELEASED = false;
+/** The website editor link, or null when the drawing is too large for a link. */
 export function editorLink(e: Envelope, base: string): string | null {
-  if (!EDITOR_RELEASED) return null;
   const url = new URL(base);
   url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/elevations";
   url.search = "";
