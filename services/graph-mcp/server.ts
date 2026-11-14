@@ -20,7 +20,6 @@ import {
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
   getExportMetrics,
-  renderDiagramSvg,
   graphPrintFacts,
 } from "../../packages/graph-core/src/svg";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
@@ -37,7 +36,7 @@ import type { DocumentStore } from "./document-store";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools, type NewSource } from "./resource-tools";
 import { diagramTools, type ResultBuilder } from "./diagram-tools";
-import type { DiagramKind } from "../../packages/diagram-core/src/registry";
+import { FAMILIES, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
 import { BundleDownloads } from "./bundle-downloads";
@@ -135,7 +134,7 @@ export function graphService(options: ServiceOptions) {
   ) => {
     const document = documentFromEnvelope(envelope),
       metrics = getExportMetrics(document),
-      svg = renderDiagramSvg(document, view);
+      svg = FAMILIES.graph.svg(envelope, view);
     if (format === "json")
       return {
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
@@ -200,7 +199,7 @@ export function graphService(options: ServiceOptions) {
     );
     const height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderDiagramSvg(document, view),
+      FAMILIES.graph.svg(envelope, view),
       width,
       height,
       false,

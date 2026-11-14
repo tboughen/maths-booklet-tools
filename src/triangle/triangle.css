@@ -126,6 +126,10 @@
   font-weight: 650;
   cursor: pointer;
 }
+/* U20: the common settings are open panel cards with a heading; rare ones stay folded. */
+.tr-card > .tr-section-body {
+  padding: 0;
+}
 .tr-section-body {
   padding: 0 14px 14px;
   display: grid;

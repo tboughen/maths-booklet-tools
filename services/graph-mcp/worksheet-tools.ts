@@ -565,40 +565,40 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       {
         description: "Read the A3 worksheet and A4 booklet layouts, item types and limits before PRODUCE. Use with create_worksheet or create_booklet.",
         inputSchema: z.object({}).strict(),
+        // M13: the reply is also structuredContent; the named fields are the ones a client relies on.
+        outputSchema: z
+          .object({ rendererVersion: z.literal("worksheet-a3-1"), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal("booklet-a4-1") }).passthrough() })
+          .passthrough(),
         annotations,
       },
-      async () => ({
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              rendererVersion: "worksheet-a3-1",
-              kinds: ["worksheet-a3", "booklet-a4"],
-              layout: LAYOUT,
-              columnWidthsMm: Object.fromEntries(
-                (Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]).map((layout) => [layout, columnBoxes({ layout }).map((b) => Math.round(b.w * 10) / 10)]),
-              ),
-              limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
-              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
-              diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
-              cellStates: ["supplied", "blank", "hidden"],
-              markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
-              outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
-              fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
-              booklet: {
-                tool: "create_booklet",
-                rendererVersion: "booklet-a4-1",
-                layout: BOOKLET_LAYOUT,
-                limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
-                sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
-                cardWidthsMm: { full: 186, half: 90.5 },
-                outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "a pupil and answers PDF and Word file per lesson", "page previews"],
-                fileNames: "[code]_[title]_Booklet_A4.pdf, [code]_[title]_Booklet_Answers_A4.pdf and [code]_[title]_Lesson N_A4.pdf, with the same names ending .docx for Word",
-              },
-            }),
+      async () => {
+        const value = {
+          rendererVersion: "worksheet-a3-1",
+          kinds: ["worksheet-a3", "booklet-a4"],
+          layout: LAYOUT,
+          columnWidthsMm: Object.fromEntries(
+            (Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]).map((layout) => [layout, columnBoxes({ layout }).map((b) => Math.round(b.w * 10) / 10)]),
+          ),
+          limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
+          items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
+          diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
+          cellStates: ["supplied", "blank", "hidden"],
+          markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
+          outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
+          fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
+          booklet: {
+            tool: "create_booklet",
+            rendererVersion: "booklet-a4-1",
+            layout: BOOKLET_LAYOUT,
+            limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
+            sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
+            cardWidthsMm: { full: 186, half: 90.5 },
+            outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "a pupil and answers PDF and Word file per lesson", "page previews"],
+            fileNames: "[code]_[title]_Booklet_A4.pdf, [code]_[title]_Booklet_Answers_A4.pdf and [code]_[title]_Lesson N_A4.pdf, with the same names ending .docx for Word",
           },
-        ],
-      }),
+        };
+        return { structuredContent: value, content: [{ type: "text" as const, text: JSON.stringify(value) }] };
+      },
     );
     server.registerTool(
       "create_worksheet",
