@@ -149,7 +149,7 @@ describe("stacked fraction notes", () => {
     expect(notes[0]).toMatchObject({ side: 1, column: 1, question: 1 });
     expect(notes[0].message).toContain("{1/2}");
     expect(notes[0].message).toContain('notation to "maths"');
-    // Places that cannot stack (table cells, answer lines, circle-one options) are never flagged.
+    // Table cells, answer lines and circle-one options are never flagged: with maths notation they stack by themselves.
     first.items[0] = { type: "table", columns: ["p", "q"], rows: [[{ state: "supplied", text: "1/2" }, { state: "hidden", text: "3/4" }]] };
     first.items.push({ type: "answerLine", prefix: "1/2 of 8 =", suffix: "", answer: "1/4", inline: false });
     first.items.push({ type: "choice", mode: "circle", options: ["1/2", "3/4"], answer: 0 });

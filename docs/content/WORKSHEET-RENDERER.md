@@ -43,7 +43,9 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - On a `notation: "maths"` sheet, an answer line's prefix, suffix and saved answer print fractions
   stacked too: `1/3`, `2 1/2`, `2½` and `{1/3}` all stack (a mixed number as the whole number beside
   a stacked fraction). A row holding one is 1.8 mm taller in both copies, and a saved fraction answer
-  is raised so its denominator clears the line. Plain sheets print answer lines exactly as before.
+  is raised so its denominator clears the line. Table cells and table headings stack the same way, in
+  rows 9.3 mm high, and circle-one options in an 11 mm row with a taller ring. Plain sheets print
+  exactly as before.
 - Saved answers (hidden table cells, answer-line answers, choice answers, hidden diagram values)
   print only in the answers view, in dark pink. Blank and hidden stay distinct.
 

@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -97,8 +97,20 @@ function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number;
 function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   const cellText = (c: Cell) => (c.state === "supplied" || (c.state === "hidden" && ctx.view === "answers") ? c.text : "");
+  // Maths notation: fractions in cells and headings print stacked (1/3, 2½, {1/3}), and a row
+  // holding one is one fraction line high in both copies. Plain sheets print exactly as before.
+  const maths = !!ctx.maths;
+  const shown = (t: string) => (maths ? stackAnswerText(t) : t);
+  const cellWidth = (t: string, bold = false) =>
+    maths ? lineWidth(parseRuns(shown(t), bold ? "bold" : "regular", true), size) : plainWidth(t, size, bold ? "bold" : "regular");
+  const tall = (texts: string[]) => texts.some((t) => answerHasFraction(t, maths));
+  const headH = tall(item.columns) ? FRAC_TABLE_ROW : S.tableRow;
+  const rowH = (r: Cell[]) => {
+    const h = r.some((c) => c.state !== "supplied") ? S.tableAnswerRow : S.tableRow;
+    return tall(r.map((c) => c.text)) ? Math.max(h, FRAC_TABLE_ROW) : h;
+  };
   const natural = item.columns.map((head, j) =>
-    Math.max(plainWidth(head, size, "bold"), ...item.rows.map((r) => plainWidth(r[j]?.text ?? "", size))) + 5,
+    Math.max(cellWidth(head, true), ...item.rows.map((r) => cellWidth(r[j]?.text ?? ""))) + 5,
   );
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) issue(ctx, `A table needs ${n(total - w)} mm more width than the column has.`);
@@ -113,27 +125,25 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
     if (header) out.push(`<rect x="0" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${ctx.st.tableHead}"/>`);
     cells.forEach((c, j) => {
       if (!c.text) return;
-      const line: Line = parseRuns(c.text, c.bold ? "bold" : "regular");
+      const line: Line = parseRuns(shown(c.text), c.bold ? "bold" : "regular", maths);
       const left = j === 0 && !compact;
       const cx = left ? xs[j] + 2 : xs[j] + widths[j] / 2;
       out.push(textSvg(line, cx, y + h / 2 + size * 0.34, size, c.fill ?? ctx.st.ink, left ? "start" : "middle"));
     });
     y += h;
   };
-  row(item.columns.map((t) => ({ text: t, bold: true })), S.tableRow, true);
-  for (const r of item.rows) {
-    const writing = r.some((c) => c.state !== "supplied");
+  row(item.columns.map((t) => ({ text: t, bold: true })), headH, true);
+  for (const r of item.rows)
     row(
       r.map((c) => ({ text: cellText(c), fill: c.state === "hidden" ? ctx.st.answer : undefined })),
-      writing ? S.tableAnswerRow : S.tableRow,
+      rowH(r),
       false,
     );
-  }
   const grid: string[] = [`M0,0H${n(w)}V${n(y)}H0Z`];
-  let yy = S.tableRow;
+  let yy = headH;
   grid.push(`M0,${n(yy)}H${n(w)}`);
   for (const r of item.rows.slice(0, -1)) {
-    yy += r.some((c) => c.state !== "supplied") ? S.tableAnswerRow : S.tableRow;
+    yy += rowH(r);
     grid.push(`M0,${n(yy)}H${n(w)}`);
   }
   for (const x of xs.slice(1)) grid.push(`M${n(x)},0V${n(y)}`);
@@ -210,17 +220,24 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx)
   const show = ctx.view === "answers" ? item.answer : null;
   const out: string[] = [];
   if (item.mode === "circle") {
+    // Maths notation: a fraction option prints stacked, in a taller row with a taller ring.
+    const maths = !!ctx.maths;
+    const tall = item.options.some((o) => answerHasFraction(o, maths));
+    const runsOf = (o: string) => parseRuns(maths ? stackAnswerText(o) : o, "bold", maths);
     let x = 2;
-    const y = 6;
+    const y = tall ? FRAC_CIRCLE_ROW - 3.6 : 6;
     item.options.forEach((o, i) => {
-      const ow = plainWidth(o, size, "bold");
-      out.push(textSvg(parseRuns(o, "bold"), x, y, size, ctx.st.ink));
+      const ow = maths ? lineWidth(runsOf(o), size) : plainWidth(o, size, "bold");
+      out.push(textSvg(runsOf(o), x, y, size, ctx.st.ink));
+      const frac = answerHasFraction(o, maths);
       if (show === i)
-        out.push(`<ellipse cx="${n(x + ow / 2)}" cy="${n(y - size * 0.33)}" rx="${n(ow / 2 + 2.2)}" ry="${n(size * 0.9)}" fill="none" stroke="${ctx.st.answer}" stroke-width="0.4"/>`);
+        out.push(
+          `<ellipse cx="${n(x + ow / 2)}" cy="${n(y - size * (frac ? 0.27 : 0.33))}" rx="${n(ow / 2 + 2.2)}" ry="${n(frac ? 4.2 : size * 0.9)}" fill="none" stroke="${ctx.st.answer}" stroke-width="0.4"/>`,
+        );
       x += ow + 9;
     });
     if (x - 9 > w) issue(ctx, "Circle-one options are wider than the card.");
-    return { h: 8.5, svg: out.join("") };
+    return { h: tall ? FRAC_CIRCLE_ROW : 8.5, svg: out.join("") };
   }
   if (item.mode === "letters") return letters(item, w, ctx, show);
   let y = 0;
