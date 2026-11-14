@@ -178,7 +178,7 @@ test("actual PNG, SVG and editable downloads", async ({ page }) => {
   await page.getByRole("button", { name: "File", exact: true }).first().click();
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Download PNG (600 ppi)");
-  expect((await dl).suggestedFilename()).toBe("maths-number-line.png");
+  expect((await dl).suggestedFilename()).toMatch(/^mathsdock-number-line-(.+-)?\d{4}-\d{2}-\d{2}\.png$/);
 });
 for (const width of [320, 375, 768, 1024, 1440])
   test(`clean snip area and usable layout at ${width}`, async ({ page }) => {

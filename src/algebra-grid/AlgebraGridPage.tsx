@@ -41,6 +41,7 @@ import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
 import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -765,7 +766,7 @@ export default function AlgebraGridPage({
                       new Blob([recovery ?? canonical(e)], {
                         type: "application/json",
                       }),
-                      "algebra-grid-recovery.json",
+                      downloadName("expanding-factorising", "json", { recovery: true }),
                     )
                   }
                 >

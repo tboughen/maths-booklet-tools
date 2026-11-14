@@ -17,6 +17,7 @@ import {
   copyWordSizedHtml,
   svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
 export async function printPng(e: ValueEnvelope) {
   const valid = validate(e),
@@ -46,7 +47,7 @@ export async function download(
             type: "image/svg+xml",
           })
         : new Blob([canonical(valid)], { type: "application/json" });
-  downloadBlob(blob, `mathsdock-values-and-graph.${format}`);
+  downloadBlob(blob, downloadName("value-table-graph", format, { resource: valid }));
 }
 export async function copyForWord(e: ValueEnvelope) {
   const m = metrics(e),
