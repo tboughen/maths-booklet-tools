@@ -311,7 +311,7 @@ describe("three new families through actual MCP/HTTP", () => {
     // Compressed links now fit this source, so force the long-link path to check the inline files.
     const spy = vi.spyOn(ResourceDownloads.prototype, "link").mockImplementation(() => { throw new GraphError("size_limit", "Test: link too long."); });
     onTestFinished(() => spy.mockRestore());
-    const e = createVenn({ spec: { sets: 3, widthCm: 16, fontPt: 9 } });
+    const e = createVenn({ spec: { sets: 3, widthCm: 16, fontPt: 10 } });
     // Hidden text is retained without compromising print layout, and is large enough for signed URLs to fall back.
     e.document.definitions = Array.from({ length: 4 }, () => "定".repeat(100));
     e.document.showDefinitions = false;

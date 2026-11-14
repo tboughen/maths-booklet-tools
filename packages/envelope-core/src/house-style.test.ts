@@ -17,3 +17,13 @@ describe("house style presets (U111)", () => {
     expect(parsePreference({ style: "huge", lines: "bold" })).toEqual({ style: "standard", lines: "bold" });
   });
 });
+
+describe("bold lines", () => {
+  it("multiplies every stroke width by 1.5 and leaves normal lines alone", async () => {
+    const { boldLines } = await import("./house-style");
+    const svg = '<path stroke-width=".3"/><line stroke-width="0.2"/>';
+    expect(boldLines(svg, "bold")).toBe('<path stroke-width="0.45"/><line stroke-width="0.3"/>');
+    expect(boldLines(svg, "normal")).toBe(svg);
+    expect(boldLines(svg, undefined)).toBe(svg);
+  });
+});

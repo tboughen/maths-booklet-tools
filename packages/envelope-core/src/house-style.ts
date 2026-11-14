@@ -43,3 +43,9 @@ export function parsePreference(raw: unknown): HousePreference {
     lines: (LINE_WEIGHTS as readonly unknown[]).includes(v.lines) ? (v.lines as LineWeight) : DEFAULT_PREFERENCE.lines,
   };
 }
+
+/** Every stroke-width in an SVG, multiplied for bold lines. Strokes never change a layout. */
+export function boldLines(svg: string, lines: LineWeight | undefined): string {
+  if (lines !== "bold") return svg;
+  return svg.replace(/stroke-width="([\d.]+)"/g, (_, w: string) => `stroke-width="${+(Number(w) * BOLD_LINE_FACTOR).toFixed(4)}"`);
+}

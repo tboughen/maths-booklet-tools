@@ -115,7 +115,7 @@ Neither operation merges values or silently calculates frequencies.
 
 ## Bounds and errors
 
-Print width 8..16 cm; text size 9..14 pt. UI offers integer widths/sizes.
+Print width 8..16 cm; text size 10..14 pt (house minimum 10 pt). UI offers integer widths/sizes. `lines: "normal" | "bold"` (optional, absent = normal) prints every stroke 1.5 times as thick; `set_print` and the create spec accept it. New diagrams start from the house style chosen on the booklet tools page.
 40 members total, 20 per region, 32 characters per member/ordinary region
 label, 24 per set label, 120 per definition line. Editable files <=40k characters.
 Numbers use the existing bounded exact rational parser. Frequency disagreements
