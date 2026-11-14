@@ -1222,157 +1222,157 @@
   },
   "venn: venn-2017": {
    "json": "d8cc264daf26ecb9",
-   "svg": "24e2ad6ab0337869",
+   "svg": "6c4113b19ac5574e",
    "mm": "120x106.64",
    "png600": "2835x2519",
    "pixels": "5b95dc7118ff8737"
   },
   "venn: venn-2017 (worked)": {
    "json": "4768bed58a3eaa75",
-   "svg": "9fb35caa438372f6",
+   "svg": "fee58063992b3800",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "e9da8ce30e7c2da1"
+   "pixels": "4c01926c31e67663"
   },
   "venn: venn-2018": {
    "json": "2ede9098b574e600",
-   "svg": "4e31329620515c1a",
+   "svg": "b040acbb0b812f9b",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "47b1aabdae565d6a"
+   "pixels": "11b7892863068d0f"
   },
   "venn: venn-2018 (worked)": {
    "json": "6aff256ae3368fd0",
-   "svg": "4021069887970a8d",
+   "svg": "0c734e76a48c9c03",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "9e7817b6a1c67012"
+   "pixels": "6ce03bb5bf190f4f"
   },
   "venn: venn-2019": {
    "json": "aefeaf07c3898c9c",
-   "svg": "23821087a7a58328",
+   "svg": "afa4910dd72f511b",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "28ed287f90e599b0"
+   "pixels": "61b6453ebf5c25be"
   },
   "venn: venn-2019 (worked)": {
    "json": "eb5590ce3a15504a",
-   "svg": "8b2662830d3c5ca4",
+   "svg": "b77e770e9d3081a0",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "7eb9060b0cc83acd"
+   "pixels": "68761d2af482be61"
   },
   "venn: venn-algebra": {
    "json": "8afc0f42fafaf13d",
-   "svg": "bf23de182b1a7a92",
+   "svg": "e0db13ce5ccde75d",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "f597c37c81816620"
+   "pixels": "fb5491cc9c118894"
   },
   "venn: venn-algebra (worked)": {
    "json": "8afc0f42fafaf13d",
-   "svg": "bf23de182b1a7a92",
+   "svg": "e0db13ce5ccde75d",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "f597c37c81816620"
+   "pixels": "fb5491cc9c118894"
   },
   "venn: venn-films": {
    "json": "c3d88d3d988240dd",
-   "svg": "92ed00e560700417",
+   "svg": "8d5a8a5c4fbfdeea",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "f4c16ce238c0395b"
+   "pixels": "9d0f24ab62688138"
   },
   "venn: venn-films (worked)": {
    "json": "c3d88d3d988240dd",
-   "svg": "92ed00e560700417",
+   "svg": "8d5a8a5c4fbfdeea",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "f4c16ce238c0395b"
+   "pixels": "9d0f24ab62688138"
   },
   "venn: venn-languages": {
    "json": "4657efc4599f3ea2",
-   "svg": "5da401b77f932c06",
+   "svg": "7def45e15c0d04b2",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "012dcecaded68fee"
+   "pixels": "0060306825449b7b"
   },
   "venn: venn-languages (worked)": {
    "json": "55559d57a9c16e4e",
-   "svg": "6356290375513bfb",
+   "svg": "b3f469c9db529b10",
    "mm": "120x132.52",
    "png600": "2835x3130",
-   "pixels": "6dbbd8f84143c3eb"
+   "pixels": "b624b919b21db4a9"
   },
   "venn: venn-nested": {
    "json": "3d363e69d12c003d",
-   "svg": "eb87cdac5e7d3d86",
+   "svg": "aa89db0dcb32b68f",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "f74393e97539d271"
+   "pixels": "f841bd4cb5fdd318"
   },
   "venn: venn-nested (worked)": {
    "json": "753d9d2f184e28c8",
-   "svg": "4eab1c5179506020",
+   "svg": "c57a83c4487a603e",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "5ab5cce368edf6fb"
+   "pixels": "24f03672e16a1a80"
   },
   "venn: venn-one-set": {
    "json": "c1c38e09777167d2",
-   "svg": "8049feeb468bc058",
+   "svg": "b1718990f727617b",
    "mm": "120x100.76",
    "png600": "2835x2380",
-   "pixels": "a621107fadfb33f3"
+   "pixels": "3637b20b4008f650"
   },
   "venn: venn-one-set (worked)": {
    "json": "1570c6af8795a844",
-   "svg": "d027c23682f7140a",
+   "svg": "ba8fc61532aad215",
    "mm": "120x100.76",
    "png600": "2835x2380",
-   "pixels": "99ab0182c15911e6"
+   "pixels": "feca6e3cabe453b1"
   },
   "venn: venn-overlap-contrast": {
    "json": "541de03078a3e6a8",
-   "svg": "598ef0d04c4488c1",
+   "svg": "d2e1299d36668a89",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "0f215c9d43162a81"
+   "pixels": "6acc1b1bbd8b2ef4"
   },
   "venn: venn-overlap-contrast (worked)": {
    "json": "52bc7116b0dc0373",
-   "svg": "2b38a4859d81c266",
+   "svg": "5d4c67bb40645331",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "042ec9a3a22aa381"
+   "pixels": "ca2cdfb031715e77"
   },
   "venn: venn-separate": {
    "json": "15aa7044d2b2a758",
-   "svg": "007be83db06a4883",
+   "svg": "c9f8fd87cadbea33",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "cbeec5b820433bf1"
+   "pixels": "7402aaa99f537f20"
   },
   "venn: venn-separate (worked)": {
    "json": "8db876d939f5cfcd",
-   "svg": "4648f6e22054eab7",
+   "svg": "622097d9e440f5e1",
    "mm": "120x106.64",
    "png600": "2835x2519",
-   "pixels": "f782587b53446700"
+   "pixels": "775edf1be621d58c"
   },
   "venn: venn-shading": {
    "json": "5fa1e9ce8a83057a",
-   "svg": "29c57d29b63f84a4",
+   "svg": "b10cb7359a9e80e7",
    "mm": "120x85",
    "png600": "2835x2008",
-   "pixels": "5d1602d4ee8b5f2d"
+   "pixels": "a0b7c5aa2a4b0bb0"
   },
   "venn: venn-shading (worked)": {
    "json": "5fa1e9ce8a83057a",
-   "svg": "29c57d29b63f84a4",
+   "svg": "b10cb7359a9e80e7",
    "mm": "120x85",
    "png600": "2835x2008",
-   "pixels": "5d1602d4ee8b5f2d"
+   "pixels": "a0b7c5aa2a4b0bb0"
   }
  }
 }

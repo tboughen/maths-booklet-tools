@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
-import { renderSvg as renderLegacySvg } from "./legacy";
+import { renderSvg as renderLegacySvg, fittedLabelPoint, LABEL_ANGLES } from "./legacy";
 
 export const visibility = ["show", "hidden", "line"] as const;
 export const kinds = [
@@ -441,15 +441,39 @@ export function geometry(e: Envelope) {
           [59.5, 50],
         ]
   ).map(([x, y]) => ({ x: x * scale, y: y * scale + head }));
+  // Set i's label just outside circle c, in the given direction (degrees, clockwise from right).
+  function outside(i: number, c: Ellipse, degrees: number) {
+    const l = d.labels[i + 1],
+      lf = font * 1.1,
+      w = l.visibility === "line" ? 9 : textWidth(l.text, lf) + 2;
+    return fittedLabelPoint(c, degrees, w, lf, { x1: 3, x2: d.widthCm * 10 - 3, y1: head + 3, y2: height - footer - 3 });
+  }
+  // The first direction round the inner circle where its label box stays inside the outer set,
+  // so a long inner label ("Multiples of 4") never crosses the outer boundary.
+  function insideOuter(i: number, c: Ellipse, around: Ellipse) {
+    const l = d.labels[i + 1],
+      lf = font * 1.1,
+      w = l.visibility === "line" ? 9 : textWidth(l.text, lf) + 2;
+    const fits = (p: Point) =>
+      [p.x - w / 2, p.x + w / 2].every((x) =>
+        [p.y - lf * 0.75, p.y + lf * 0.65].every((y) => ellipseInside({ x, y }, around, -1.2)),
+      );
+    for (const degrees of [-140, -115, -90, -165, 180, 155, -65, 130, 90]) {
+      const p = outside(i, c, degrees);
+      if (fits(p)) return p;
+      // Above or below the inner circle a long label may slide sideways, towards the outer
+      // centre, while it stays clear of the inner outline.
+      if (Math.abs(Math.abs(degrees) - 90) < 1)
+        for (let shift = 1; shift <= w / 2; shift += 1) {
+          const q = { x: p.x + Math.sign(around.x - p.x) * shift, y: p.y };
+          if (fits(q)) return q;
+        }
+    }
+    return outside(i, c, -140);
+  }
   let labelPoints = [
     { x: Math.max(7, 7 * scale), y: 9 * scale + head },
-    ...circles.map((c, i) => {
-      const angle = ((i === 0 ? -140 : i === 1 ? -40 : 65) * Math.PI) / 180;
-      return {
-        x: c.x + c.rx * Math.cos(angle),
-        y: c.y + c.ry * Math.sin(angle),
-      };
-    }),
+    ...circles.map((c, i) => outside(i, c, LABEL_ANGLES[i])),
   ];
   if (d.sets === 1 || arrangement(e) !== "overlap") {
     const oval = d.shape === "ovals";
@@ -472,21 +496,23 @@ export function geometry(e: Envelope) {
     if (d.sets === 1) {
       circles = [ellipse(60, 43, oval ? 34 : 27, oval ? 25 : 27)];
       anchors = [point(60, 77), point(60, 43)];
-      labelPoints = [labelPoints[0], point(42, 24)];
+      labelPoints = [labelPoints[0], outside(0, circles[0], -140)];
     } else if (arrangement(e) === "separate") {
       circles = [
         ellipse(32, 43, oval ? 25 : 23, oval ? 21 : 23),
         ellipse(88, 43, oval ? 25 : 23, oval ? 21 : 23),
       ];
       anchors[1] = point(32, 43);
-      labelPoints = [labelPoints[0], point(19, 25), point(101, 25)];
+      labelPoints = [labelPoints[0], outside(0, circles[0], -140), outside(1, circles[1], -40)];
     } else {
       const outer = ellipse(60, 40, oval ? 34 : 29, oval ? 26 : 29);
       const inner = ellipse(72, 40, oval ? 15 : 14, oval ? 13 : 14);
-      const outerLabel = point(40, 20),
-        innerLabel = point(64, 29);
       circles =
         arrangement(e) === "b-inside-a" ? [outer, inner] : [inner, outer];
+      // The inner set's label sits outside the inner circle but inside the outer one.
+      const outerIndex = arrangement(e) === "b-inside-a" ? 0 : 1;
+      const outerLabel = outside(outerIndex, outer, -140),
+        innerLabel = insideOuter(1 - outerIndex, inner, outer);
       labelPoints = [
         labelPoints[0],
         ...(arrangement(e) === "b-inside-a"
@@ -795,10 +821,9 @@ export function renderSvg(e: Envelope) {
       const l = d.labels[i];
       if (l.visibility === "hidden" || (!l.text && l.visibility !== "line"))
         return "";
-      const font = g.font * 1.1,
-        w = l.visibility === "line" ? 9 : textWidth(l.text, font) + 2;
+      const font = g.font * 1.1;
       return (
-        `<rect x="${p.x - w / 2}" y="${p.y - font * 0.7}" width="${w}" height="${font * 1.3}" fill="white"/>` +
+        // Outside the circle, so nothing to mask: a thin white halo keeps it clear of shading.
         (l.visibility === "line"
           ? `<path d="M${p.x - 4.5},${p.y + font * 0.3}h9" stroke="black" stroke-width=".22"/>`
           : inkAnswer(textSvg(l.text, p.x, p.y + font * 0.3, font, i > 0), l))
@@ -816,5 +841,5 @@ export function renderSvg(e: Envelope) {
       : g.caption === "line"
         ? `<path d="M${g.width * 0.25},${g.height - 5}h${g.width * 0.5}" stroke="black" stroke-width=".22"/>`
         : textSvg(relationship(e), g.width / 2, g.height - 5, g.font);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width / 10}cm" height="${g.height / 10}cm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Venn diagram with ${d.sets} ${d.sets === 1 ? "set" : "sets"}"><defs>${defs}</defs><rect width="${g.width}" height="${g.height}" fill="white"/>${definitions}${shading}${rect} fill="none" stroke="black" stroke-width=".3"/>${g.circles.map((c) => ellipse(c, "none", "black")).join("")}${g.contents}${labels}${caption}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width / 10}cm" height="${g.height / 10}cm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Venn diagram with ${d.sets} ${d.sets === 1 ? "set" : "sets"}"><defs>${defs}</defs><rect width="${g.width}" height="${g.height}" fill="white"/>${definitions}${shading}${rect} fill="none" stroke="black" stroke-width=".3"/>${g.circles.map((c) => ellipse(c, "none", "black")).join("")}${g.contents}<g class="vn-set-labels" stroke="white" stroke-width=".8" stroke-linejoin="round" paint-order="stroke">${labels}</g>${caption}</svg>`;
 }

@@ -362,14 +362,14 @@
  "venn/default": {
   "schemaVersion": 2,
   "contentHash": "ed2b35c6cb671b6830db7c0eecf881f91330ac9d14bd177fc77292b1a006d3b0",
-  "pupilSvg": "598bb6d483d59f9d6c0730712028de3678a605121ca1da5e13876bf2a82ab419",
-  "answerSvg": "598bb6d483d59f9d6c0730712028de3678a605121ca1da5e13876bf2a82ab419"
+  "pupilSvg": "a4bcb3c348b01daece16b4a23dde981e544b9a05cf1813dd401fa2b92e011db1",
+  "answerSvg": "a4bcb3c348b01daece16b4a23dde981e544b9a05cf1813dd401fa2b92e011db1"
  },
  "venn/example-2017-worked": {
   "schemaVersion": 1,
   "contentHash": "4768bed58a3eaa75d3f185ba4e20d0043d2a062ab1d30ed754d68d93b2a05d58",
-  "pupilSvg": "9fb35caa438372f69765db745d63a0bc71129f96cf2ac3ab04ed056e8ca68bfa",
-  "answerSvg": "9fb35caa438372f69765db745d63a0bc71129f96cf2ac3ab04ed056e8ca68bfa"
+  "pupilSvg": "fee58063992b38003aafd755ef7d1ffcc0c3de52f7df77e3ca8d278e163cf641",
+  "answerSvg": "fee58063992b38003aafd755ef7d1ffcc0c3de52f7df77e3ca8d278e163cf641"
  },
  "venn/example-2017": {
   "schemaVersion": 1,
@@ -428,8 +428,8 @@
  "venn/example-nested-worked": {
   "schemaVersion": 2,
   "contentHash": "753d9d2f184e28c8bbd5ba7f3445fbbb4aa620b71d142e82f62b58c040d74a8d",
-  "pupilSvg": "4eab1c5179506020e66f7fd0cb7c7265b2a8b9f856662afb3ae75f0b5a13788e",
-  "answerSvg": "4eab1c5179506020e66f7fd0cb7c7265b2a8b9f856662afb3ae75f0b5a13788e"
+  "pupilSvg": "c57a83c4487a603e8cbbffeaf2f8d5ee0bba4975b301ad7a9bb0ce30a030a649",
+  "answerSvg": "c57a83c4487a603e8cbbffeaf2f8d5ee0bba4975b301ad7a9bb0ce30a030a649"
  },
  "venn/example-nested": {
   "schemaVersion": 2,
@@ -494,8 +494,8 @@
  "venn/file-venn-examples-card": {
   "schemaVersion": 1,
   "contentHash": "b8c540f5888b041130ea7fad1d932f132f61d9f5575ea1362a200d349f076112",
-  "pupilSvg": "3f2e1b8f05c33f4f216fd411738bb0796dd2af76d88e51eea22be6367883ac33",
-  "answerSvg": "7320896d9d0ef844031d15b37b4421dcd100c9f27cba46800429d63a182d6441"
+  "pupilSvg": "72ff0f8a5ffa91bdfe25cd5968d5124a75cc071607a07b82bb5c30679b3b45ce",
+  "answerSvg": "4c1560823e9777f36019b1d96e88adbbcd8e8acf6769064a3f6bb60034ad85ff"
  },
  "algebra-grid/default": {
   "schemaVersion": 1,

@@ -273,6 +273,41 @@ export function warnings(e: Envelope) {
   return [...new Set(result)];
 }
 
+/**
+ * A set label's centre just outside its circle, as exam papers print them: along the label's
+ * usual direction, far enough out that the label box (width w, height about one font) clears the
+ * outline by a small gap. The outline is never broken.
+ */
+export function outsideLabelPoint(c: { x: number; y: number; rx: number; ry: number }, degrees: number, w: number, font: number) {
+  const angle = (degrees * Math.PI) / 180,
+    cos = Math.cos(angle),
+    sin = Math.sin(angle);
+  const reach = 0.9 + Math.abs(cos) * (w / 2) + Math.abs(sin) * (font * 0.55);
+  // The returned y is the label's middle; text sits on a baseline 0.3 font below it.
+  return { x: c.x + (c.rx + reach) * cos, y: c.y + (c.ry + reach) * sin + font * 0.05 };
+}
+/** A top left, B top right, C lower right (clear of the outside region's contents below). */
+export const LABEL_ANGLES = [-140, -40, 45];
+type Bounds = { x1: number; x2: number; y1: number; y2: number };
+/**
+ * outsideLabelPoint in the preferred direction when the label fits inside the universe box;
+ * otherwise turned towards the top (or bottom) of the circle, then slid sideways above (or
+ * below) it, so a long label ("People who like cats") stays inside the box.
+ */
+export function fittedLabelPoint(c: Ellipse, degrees: number, w: number, font: number, bounds: Bounds) {
+  const fits = (p: Point) =>
+    p.x - w / 2 >= bounds.x1 && p.x + w / 2 <= bounds.x2 && p.y - font * 0.75 >= bounds.y1 && p.y + font * 0.65 <= bounds.y2;
+  const first = outsideLabelPoint(c, degrees, w, font);
+  if (fits(first)) return first;
+  const pole = degrees < 0 ? -90 : 90;
+  for (let a = degrees; Math.abs(a - pole) > 0.5; a += Math.sign(pole - a) * Math.min(10, Math.abs(pole - a))) {
+    const p = outsideLabelPoint(c, a, w, font);
+    if (fits(p)) return p;
+  }
+  const top = outsideLabelPoint(c, pole, w, font);
+  const x = Math.min(bounds.x2 - w / 2, Math.max(bounds.x1 + w / 2, top.x));
+  return fits({ x, y: top.y }) ? { x, y: top.y } : first;
+}
 type Ellipse = { x: number; y: number; rx: number; ry: number };
 type Point = { x: number; y: number };
 export function geometry(e: Envelope) {
@@ -323,11 +358,10 @@ export function geometry(e: Envelope) {
   const labelPoints = [
     { x: Math.max(7, 7 * scale), y: 9 * scale + head },
     ...circles.map((c, i) => {
-      const angle = ((i === 0 ? -140 : i === 1 ? -40 : 65) * Math.PI) / 180;
-      return {
-        x: c.x + c.rx * Math.cos(angle),
-        y: c.y + c.ry * Math.sin(angle),
-      };
+      const l = d.labels[i + 1],
+        lf = font * 1.1,
+        w = l.visibility === "line" ? 9 : textWidth(l.text, lf) + 2;
+      return fittedLabelPoint(c, LABEL_ANGLES[i], w, lf, { x1: 3, x2: d.widthCm * 10 - 3, y1: head + 3, y2: height - 3 });
     }),
   ];
   return {
@@ -568,10 +602,9 @@ export function renderSvg(e: Envelope) {
       const l = d.labels[i];
       if (l.visibility === "hidden" || (!l.text && l.visibility !== "line"))
         return "";
-      const font = g.font * 1.1,
-        w = l.visibility === "line" ? 9 : textWidth(l.text, font) + 2;
+      const font = g.font * 1.1;
       return (
-        `<rect x="${p.x - w / 2}" y="${p.y - font * 0.7}" width="${w}" height="${font * 1.3}" fill="white"/>` +
+        // Outside the circle, so nothing to mask: a thin white halo keeps it clear of shading.
         (l.visibility === "line"
           ? `<path d="M${p.x - 4.5},${p.y + font * 0.3}h9" stroke="black" stroke-width=".22"/>`
           : textSvg(l.text, p.x, p.y + font * 0.3, font, i > 0))
@@ -583,5 +616,5 @@ export function renderSvg(e: Envelope) {
       textSvg(s, 4, 4 + g.font + i * (g.font + 2), g.font, false, "start"),
     )
     .join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width / 10}cm" height="${g.height / 10}cm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Venn diagram with ${d.sets} sets"><defs>${defs}</defs><rect width="${g.width}" height="${g.height}" fill="white"/>${definitions}${shading}${rect} fill="none" stroke="black" stroke-width=".3"/>${g.circles.map((c) => ellipse(c, "none", "black")).join("")}${g.contents}${labels}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width / 10}cm" height="${g.height / 10}cm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Venn diagram with ${d.sets} sets"><defs>${defs}</defs><rect width="${g.width}" height="${g.height}" fill="white"/>${definitions}${shading}${rect} fill="none" stroke="black" stroke-width=".3"/>${g.circles.map((c) => ellipse(c, "none", "black")).join("")}${g.contents}<g class="vn-set-labels" stroke="white" stroke-width=".8" stroke-linejoin="round" paint-order="stroke">${labels}</g></svg>`;
 }
