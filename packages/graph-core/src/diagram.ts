@@ -3,6 +3,7 @@ import type {
   Bounds,
   Coordinate,
   DiagramDocumentV1,
+  GraphEditorDocument,
   GraphObject,
   StraightObject,
   SvgLayout,
@@ -16,7 +17,6 @@ export const DEFAULT_DOCUMENT: DiagramDocumentV1 = {
     y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
   },
   objects: [],
-  selectedObjectId: null,
 };
 
 export const AXIS_LIMITS = {
@@ -185,12 +185,12 @@ export function cleanNumber(value: number): number {
   return Number(value.toFixed(10));
 }
 
-export function adjustAxis(
-  document: DiagramDocumentV1,
+export function adjustAxis<T extends DiagramDocumentV1>(
+  document: T,
   axis: "x" | "y",
   end: "negative" | "positive",
   delta: -1 | 1,
-): DiagramDocumentV1 {
+): T {
   const current = document.axes[axis];
   const total = current.negativeSquares + current.positiveSquares;
   const limits = AXIS_LIMITS[axis];
@@ -211,11 +211,11 @@ export function adjustAxis(
   };
 }
 
-export function setAxisScale(
-  document: DiagramDocumentV1,
+export function setAxisScale<T extends DiagramDocumentV1>(
+  document: T,
   axis: "x" | "y",
   unitsPerSquare: UnitsPerSquare,
-): DiagramDocumentV1 {
+): T {
   return {
     ...document,
     axes: {
@@ -225,10 +225,10 @@ export function setAxisScale(
   };
 }
 
-export function updateObject(
-  document: DiagramDocumentV1,
+export function updateObject<T extends DiagramDocumentV1>(
+  document: T,
   object: GraphObject,
-): DiagramDocumentV1 {
+): T {
   return {
     ...document,
     objects: document.objects.map((candidate) =>
@@ -237,9 +237,7 @@ export function updateObject(
   };
 }
 
-export function deleteSelectedObject(
-  document: DiagramDocumentV1,
-): DiagramDocumentV1 {
+export function deleteSelectedObject<T extends GraphEditorDocument>(document: T): T {
   if (!document.selectedObjectId) return document;
   return {
     ...document,
@@ -251,7 +249,7 @@ export function deleteSelectedObject(
 }
 
 export function getSelectedObject(
-  document: DiagramDocumentV1,
+  document: GraphEditorDocument,
 ): GraphObject | undefined {
   return document.objects.find(
     (object) => object.id === document.selectedObjectId,
