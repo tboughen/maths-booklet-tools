@@ -7,8 +7,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -58,7 +58,7 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
-import { createHistory, handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 const newDocument = () => upgrade(create());
 function initial() {
@@ -179,11 +179,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       alive = false;
     };
   }, [active, cropKey, e, issue]);
-  function commit(value: Envelope) {
+  function commit(value: Envelope, label?: string) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
     const valid = validate(value);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function changeShape(update: (shape: Shape) => Shape) {
@@ -452,6 +452,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -479,50 +481,48 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="cuboids-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(e, location.origin + location.pathname)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
@@ -748,7 +748,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card cb-settings">
               {d.shapes.length > 1 && (
@@ -1248,7 +1248,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onCancel={() => setPending(null)}
           onConfirm={() => {
-            commit(pending.e);
+            commit(pending.e, stepName(pending.title));
             setSelected(pending.e.document.shapes[0].id);
             setInline(null);
             setPending(null);

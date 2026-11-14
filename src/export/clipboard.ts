@@ -34,6 +34,21 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+const unescapeXml = (s: string) => s.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+/**
+ * Alt text for an image copied for Word (U37): the artwork's own aria-label, else its title and
+ * description, else the fallback. Website copies are pupil copies, so this never names a hidden
+ * answer (the answer-leak check covers aria-label, title and desc). Escaped for an attribute.
+ */
+export function svgAlt(svg: string, fallback: string): string {
+  const open = svg.match(/<svg\b[^>]*>/)?.[0] ?? "";
+  const label = open.match(/\saria-label="([^"]*)"/)?.[1];
+  const title = svg.match(/<title\b[^>]*>([^<]*)<\/title>/)?.[1];
+  const desc = svg.match(/<desc\b[^>]*>([^<]*)<\/desc>/)?.[1];
+  const text = (label ? unescapeXml(label) : title ? [title, desc].filter(Boolean).map((t) => unescapeXml(t!).trim()).join(". ") : "").trim() || fallback;
+  return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export function copyWordSizedHtml(html: string): boolean {
   const executeCopy = getLegacyCopyCommand();
   if (!executeCopy) return false;
@@ -76,7 +91,7 @@ export async function copyDiagram(document: DiagramDocumentV1): Promise<void> {
   const png = await renderDiagramPng(document);
   await assertPrintReadyPng(png, metrics.widthCm, metrics.heightCm);
   const dataUrl = await blobToDataUrl(png);
-  const html = `<img src="${dataUrl}" width="${metrics.widthCm}cm" height="${metrics.heightCm}cm" style="width:${metrics.widthCm}cm;height:${metrics.heightCm}cm" alt="Coordinate graph">`;
+  const html = `<img src="${dataUrl}" width="${metrics.widthCm}cm" height="${metrics.heightCm}cm" style="width:${metrics.widthCm}cm;height:${metrics.heightCm}cm" alt="${svgAlt(renderDiagramSvg(document), "Coordinate graph")}">`;
   try {
     // Word ignores PNG density metadata from a raw browser clipboard image. Native
     // webpage copying preserves both the original PNG bytes and the CSS size in cm.
@@ -101,6 +116,11 @@ export async function downloadDiagramSvg(document: DiagramDocumentV1): Promise<v
   const source = renderDiagramSvg(document);
   const svg = document.styleProfile === "portable-v1" ? await embedPortableFonts(source) : source;
   downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "maths-graph.svg");
+}
+
+export async function downloadDiagramPdf(document: DiagramDocumentV1): Promise<void> {
+  const { svgPdf } = await import("./diagram-pdf");
+  downloadBlob(await svgPdf(renderDiagramSvg(document)), "maths-graph.pdf");
 }
 
 export async function downloadDiagramPng(document: DiagramDocumentV1): Promise<void> {

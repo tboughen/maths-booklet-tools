@@ -9,8 +9,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { copyPngToClipboard } from "../export/clipboard";
@@ -47,7 +47,7 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 
 type Pending = {
   title: string;
@@ -131,13 +131,13 @@ export default function RatioTablePage({
       }),
     [],
   );
-  const commit = useCallback((next: RatioEnvelope) => {
+  const commit = useCallback((next: RatioEnvelope, label?: string) => {
     if (blocked.current)
       throw Error("Save the recovery copy before replacing the saved table.");
-    record(next);
+    record(next, label);
   }, [record]);
   function operations(ops: RatioOperation[]) {
-    commit(applyRatioOperations(current.current, ops));
+    commit(applyRatioOperations(current.current, ops), operationLabel(ops));
   }
   function attempt(action: () => void) {
     try {
@@ -546,6 +546,8 @@ export default function RatioTablePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!recovery && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -573,43 +575,43 @@ export default function RatioTablePage({
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"
+              wordHelp
               open={exportsOpen}
               active={active}
               onClose={() => setExportsOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadRatioImage(envelope, "png"),
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
-                ...(hasRatioAnswers(envelope)
-                  ? [
-                      {
-                        label: "Download answers SVG",
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
+                answers: hasRatioAnswers(envelope)
+                  ? {
+                      svg: {
                         action: () => downloadRatioImage(envelope, "svg", "answer"),
                         disabled: exportDisabled,
                         success: "Answers SVG download started.",
-                        description: "Hidden answers printed in the answer colour.",
                       },
-                      {
-                        label: "Download answers PNG (600 ppi)",
+                      png: {
                         action: () => downloadRatioImage(envelope, "png", "answer"),
                         disabled: exportDisabled,
                         success: "Answers PNG download started.",
                       },
-                    ]
-                  : []),
-                {
-                  label: "Save editable file",
+                    }
+                  : undefined,
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([JSON.stringify(envelope, null, 2)], {
@@ -619,26 +621,21 @@ export default function RatioTablePage({
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: exportDisabled,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(ratioEditorLink(envelope, location.href)),
                     ),
                   disabled: exportDisabled,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               ref={file}
@@ -722,7 +719,7 @@ export default function RatioTablePage({
               active={active}
               disabled={exportDisabled || !!pending}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card specialist-tools">
@@ -825,7 +822,7 @@ export default function RatioTablePage({
           onConfirm={() => {
             attempt(() => {
               if (pending.envelope) {
-                commit(pending.envelope);
+                commit(pending.envelope, stepName(pending.title));
                 setInputVersion((v) => v + 1);
                 setSelection(null);
                 setTool("edit");

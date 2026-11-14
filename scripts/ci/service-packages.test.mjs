@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { packageGaps, relativeImports, servicePackages } from './service-packages.mjs';
+import { bareImports, dependencyGaps, packageGaps, relativeImports, servicePackages } from './service-packages.mjs';
 
 test('the service image, build ID and TypeScript project name every core package it imports', () => {
   assert.deepEqual(packageGaps(), []);
@@ -38,4 +38,12 @@ test('a new package that is imported but not wired in is reported in all three p
   const gaps = packageGaps(root);
   assert.equal(gaps.length, 3);
   assert.ok(gaps.every((g) => g.startsWith('packages/new-core ')));
+});
+
+test('every npm package the service loads at run time is a dependency of its image', () => {
+  assert.deepEqual(dependencyGaps(), []);
+  assert.deepEqual(
+    bareImports('import { a } from "pdf-lib";\nimport type { B } from "zod";\nimport { c } from "node:fs";\nimport { d } from "./local";\nconst e = await import("@resvg/resvg-js/x");\nimport "fflate";'),
+    ['pdf-lib', '@resvg/resvg-js', 'fflate'],
+  );
 });

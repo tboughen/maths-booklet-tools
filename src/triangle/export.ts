@@ -15,7 +15,9 @@ import {
   blobToDataUrl,
   copyWordSizedHtml,
   downloadBlob,
+  svgAlt,
 } from "../export/clipboard";
+import { svgPdf } from "../export/diagram-pdf";
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
   if (issue) throw Error(issue);
@@ -34,9 +36,11 @@ export async function printPng(e: Envelope) {
   );
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") {
   downloadBlob(
-    format === "png"
+    format === "pdf"
+      ? await svgPdf((await prepareImage(e)).svg)
+      : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
@@ -55,7 +59,7 @@ export async function copyWord(e: Envelope) {
     url = await blobToDataUrl(await printPng(e));
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="Triangle diagram">`,
+      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="${svgAlt(m.svg, "Triangle diagram")}">`,
     )
   )
     throw Error(

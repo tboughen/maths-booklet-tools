@@ -1,11 +1,18 @@
 import { useLayoutEffect, useRef } from "react";
+import { HistoryButtons } from "./HistoryButtons";
+
+/** Starts the print-font fetch once, on the first sign of an export (U57). */
+let preloaded = false;
+function preloadExportFonts() {
+  if (preloaded) return;
+  preloaded = true;
+  void import("../export/portable").then((m) => m.preloadPortableFonts()).catch(() => (preloaded = false));
+}
 import {
   ChevronDown,
   Copy,
   LoaderCircle,
-  Redo2,
   RotateCcw,
-  Undo2,
 } from "lucide-react";
 
 interface EditorToolbarProps {
@@ -13,6 +20,10 @@ interface EditorToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  /** Name of the step Undo would reverse, such as "add row" (U8). */
+  undoLabel?: string;
+  /** Name of the step Redo would restore. */
+  redoLabel?: string;
   onReset: () => void;
   resetLabel?: string;
   resetDisabled?: boolean;
@@ -67,24 +78,14 @@ export function EditorToolbar(props: EditorToolbarProps) {
       aria-label="Resource utilities"
     >
       <div className="tool-group" role="group" aria-label="History and reset">
-        <button
-          className="icon-button"
-          disabled={!props.canUndo}
-          aria-label="Undo"
-          title="Undo (Ctrl+Z)"
-          onClick={props.onUndo}
-        >
-          <Undo2 size={18} aria-hidden="true" />
-        </button>
-        <button
-          className="icon-button"
-          disabled={!props.canRedo}
-          aria-label="Redo"
-          title="Redo (Ctrl+Y)"
-          onClick={props.onRedo}
-        >
-          <Redo2 size={18} aria-hidden="true" />
-        </button>
+        <HistoryButtons
+          canUndo={props.canUndo}
+          canRedo={props.canRedo}
+          onUndo={props.onUndo}
+          onRedo={props.onRedo}
+          undoLabel={props.undoLabel}
+          redoLabel={props.redoLabel}
+        />
         <button
           className="tool-button reset-button"
           disabled={props.resetDisabled}
@@ -95,7 +96,12 @@ export function EditorToolbar(props: EditorToolbarProps) {
           <span>Reset</span>
         </button>
       </div>
-      <div className="editor-copy-actions">
+      <div
+        className="editor-copy-actions"
+        // Export intent: fetch the print fonts before the click (U57).
+        onPointerEnter={preloadExportFonts}
+        onFocus={preloadExportFonts}
+      >
         <button
           className="copy-main clipboard-copy"
           disabled={props.exportDisabled || props.busy}

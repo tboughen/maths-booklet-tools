@@ -7,8 +7,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import {
@@ -53,7 +53,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel } from "../editor-kit";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -148,13 +148,13 @@ export default function ValueGraphPage({
       }),
     [],
   );
-  const commit = useCallback((next: ValueEnvelope) => {
+  const commit = useCallback((next: ValueEnvelope, label?: string) => {
     renderSvg(next);
-    record(next);
+    record(next, label);
     setMessage("");
   }, [record]);
   function change(ops: ValueOperation[]) {
-    commit(apply(current.current, ops));
+    commit(apply(current.current, ops), operationLabel(ops));
   }
   function act(action: () => void) {
     if (blocked) return;
@@ -1278,6 +1278,8 @@ export default function ValueGraphPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -1314,50 +1316,48 @@ export default function ValueGraphPage({
               onToggleMenu={() => setExportOpen(!exportOpen)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="quadratics-downloads"
               open={exportOpen}
               active={active}
               onClose={() => setExportOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => download(envelope, "svg"),
                   disabled: blocked || !!renderError,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => download(envelope, "png"),
                   disabled: blocked || !!renderError,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => download(envelope, "pdf"),
+                  disabled: blocked || !!renderError,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => download(envelope, "json"),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(envelope, location.href)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               type="file"
@@ -1860,7 +1860,7 @@ export default function ValueGraphPage({
                 );
                 setExamplePreview(resource);
               }}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>

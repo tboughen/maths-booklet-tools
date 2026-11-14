@@ -45,8 +45,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
@@ -78,7 +78,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
@@ -283,11 +283,11 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       (ex) => ex.sourceId && ex.sourceId === d.sourceId,
     ),
     notes = warnings(e);
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const n = validate(next);
     committed.current = n;
-    documentHistory.commit(n);
+    documentHistory.commit(n, label);
     setChoices([]);
     if (selected && !objects(n).some((o) => o.ref === selected))
       setSelected(null);
@@ -446,7 +446,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   function fork(next: Envelope) {
     if (blocked) return;
     try {
-      commit(workedCopy(next));
+      commit(workedCopy(next), "use worked version");
       setShowAnswers(false);
       setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
@@ -770,6 +770,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -797,51 +799,49 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="triangle-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!exportMetrics.issues.length,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
-                  picker: true,
                   success: "",
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       triangleEditorLink(e, location.href),
                     ),
-                  description: LINK_DESCRIPTION,
                   disabled: blocked,
                   success:
                     "Editable link copied, including any hidden answers.",
                 },
-              ]}
+              })}
             />
             <input
               className="tr-file"
@@ -1511,7 +1511,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
@@ -2307,7 +2307,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               consumeLink();
             }}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setShowAnswers(false);

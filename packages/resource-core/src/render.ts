@@ -1,4 +1,5 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
+import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
@@ -155,7 +156,10 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
   try {
-    drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
+    const envelope = diagramEnvelope(d);
+    drawn = drawDiagram(d.tool, envelope, ctx.view === "answers" ? "answer" : "pupil");
+    // W90: a pupil copy never shows a saved answer.
+    if (ctx.view !== "answers") for (const leak of answerLeaks(d.tool, envelope, drawn.svg)) issue(ctx, leak.message);
   } catch (error) {
     issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
     return { h: 0, svg: "" };

@@ -11,7 +11,7 @@ import { getExportMetrics } from "./export/svg";
 import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ExternalLink, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { PageHeading, Panel } from "./site/PageHeading";
 import { AxisSettings } from "./components/AxisSettings";
 import { EquationPanel } from "./components/EquationPanel";
@@ -49,10 +49,11 @@ import type {
 import {
   copyDiagram,
   copyPngToClipboard,
+  downloadDiagramPdf,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
-import { handleUndoKeys, useDocumentHistory } from "./editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "./editor-kit";
 
 
 interface ToastState {
@@ -104,7 +105,6 @@ export default function App({ active = true }: { active?: boolean }) {
   );
   const [objectsExpanded, setObjectsExpanded] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [wordHelpOpen, setWordHelpOpen] = useState(false);
   const [copying, setCopying] = useState(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -135,7 +135,7 @@ export default function App({ active = true }: { active?: boolean }) {
   }, []);
 
   const commit = useCallback(
-    (next: DiagramDocumentV1) => record(next),
+    (next: DiagramDocumentV1, label?: string) => record(next, label),
     [record],
   );
 
@@ -218,7 +218,6 @@ export default function App({ active = true }: { active?: boolean }) {
         setEquationOpen(false);
         setEditingEquationId(null);
         setExportMenuOpen(false);
-        setWordHelpOpen(false);
         replaceWithoutHistory({ ...document, selectedObjectId: null });
         return;
       }
@@ -385,12 +384,11 @@ export default function App({ active = true }: { active?: boolean }) {
       )
     )
       return;
-    commit(resetDocument);
+    commit(resetDocument, "reset diagram");
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
     setExportMenuOpen(false);
-    setWordHelpOpen(false);
     setObjectsExpanded(false);
   }
 
@@ -427,6 +425,8 @@ export default function App({ active = true }: { active?: boolean }) {
               onReset={resetDiagram}
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}
               exportDisabled={blocked}
@@ -468,10 +468,14 @@ export default function App({ active = true }: { active?: boolean }) {
                   success: "PNG download started.",
                 },
                 {
-                  label: "First-time Word setup",
+                  label: "Download PDF (actual size)",
                   disabled: blocked,
-                  action: () => setWordHelpOpen(true),
-                  picker: true,
+                  action: () => {
+                    if (locked())
+                      throw Error("Apply or cancel unfinished input first.");
+                    return downloadDiagramPdf(document);
+                  },
+                  success: "PDF download started.",
                 },
               ]}
             />
@@ -511,7 +515,7 @@ export default function App({ active = true }: { active?: boolean }) {
               active={active}
               disabled={blocked}
               onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
@@ -629,7 +633,7 @@ export default function App({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onConfirm={() => {
             if (locked()) return;
-            commit(pendingExample);
+            commit(pendingExample, "replace with example");
             setPendingExample(null);
             setTool("select");
             setEquationOpen(false);
@@ -668,81 +672,6 @@ export default function App({ active = true }: { active?: boolean }) {
               }}
             >
               Keep recovery copy and continue
-            </button>
-          </section>
-        </div>
-      )}
-
-      {active && wordHelpOpen && (
-        <div
-          className="word-help-backdrop"
-          onMouseDown={() => setWordHelpOpen(false)}
-        >
-          <section
-            className="word-help-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="word-help-title"
-            aria-describedby="word-help-description"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <header>
-              <div>
-                <p className="eyebrow">ONE-TIME SETUP</p>
-                <h2 id="word-help-title">Keep full image quality in Word</h2>
-              </div>
-              <button
-                className="word-help-dismiss"
-                autoFocus
-                aria-label="Close Word setup"
-                onClick={() => setWordHelpOpen(false)}
-              >
-                <X size={19} />
-              </button>
-            </header>
-            <p id="word-help-description">
-              Set this once in Windows desktop Word so pasted graphs keep all
-              600 pixels per inch.
-            </p>
-            <ol>
-              <li>
-                Open <strong>File › Options › Advanced</strong>.
-              </li>
-              <li>
-                Find <strong>Image Size and Quality</strong> and choose{" "}
-                <strong>All New Documents</strong>.
-              </li>
-              <li>
-                Tick <strong>Do not compress images in file</strong>.
-              </li>
-              <li>
-                Set <strong>Default resolution</strong> to{" "}
-                <strong>High fidelity</strong>.
-              </li>
-            </ol>
-            <div className="word-help-links">
-              <a
-                href="https://support.microsoft.com/en-au/office/change-the-default-resolution-for-inserting-pictures-in-office-f4aca5b4-6332-48c6-9488-bf5e0094a7d2"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: change image resolution{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-              <a
-                href="https://support.microsoft.com/en-au/office/turn-off-picture-compression-81a6b603-0266-4451-b08e-fc1bf58da658"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: turn off compression{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            </div>
-            <button
-              className="word-help-done"
-              onClick={() => setWordHelpOpen(false)}
-            >
-              Done
             </button>
           </section>
         </div>

@@ -8,8 +8,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,7 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -213,11 +213,11 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
-  function commit(e: Envelope) {
+  function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    documentHistory.commit(v);
+    documentHistory.commit(v, label);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -234,6 +234,7 @@ export default function NumberLinePage({
               : op,
         ),
       ),
+      operationLabel(ops),
     );
   }
   function safe(ops: Operation[]) {
@@ -721,6 +722,8 @@ export default function NumberLinePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -753,27 +756,30 @@ export default function NumberLinePage({
               </p>
             )}
             <EditorDownloadMenu
+              wordHelp
               id="number-line-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(history.present, "png"),
                   disabled: blocked,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(history.present, "pdf"),
+                  disabled: blocked,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([canonical(history.present)], {
@@ -783,17 +789,13 @@ export default function NumberLinePage({
                     ),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () => {
                     const raw = editorLink(
                       history.present,
@@ -808,9 +810,8 @@ export default function NumberLinePage({
                   },
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
@@ -1049,7 +1050,7 @@ export default function NumberLinePage({
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card">
               <h2>Draw</h2>
@@ -1527,7 +1528,7 @@ export default function NumberLinePage({
               );
             }}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
               setSelection(null);
               window.history.replaceState(
