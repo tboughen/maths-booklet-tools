@@ -114,6 +114,16 @@ describe("physical facts and independent placement", () => {
     expect(checkPlacement({ ...source, widthMm: 8.553 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
     expect(checkPlacement({ ...source, heightMm: 5.684 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
   });
+  it("reports placement numbers without floating-point noise", () => {
+    const info = { physicalSizeCm: { width: 11.12, height: 7.3 } } as never;
+    const source = { kind: "graph", envelope: createGraph(graphSpec) };
+    const r = checkPlacement({ ...source, widthMm: 100 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) });
+    const decimals = (v: number) => (String(v).split(".")[1] ?? "").length;
+    for (const v of [r.nativeSizeMm.width, r.nativeSizeMm.height, r.requestedSizeMm.height, r.proportionalSizeMm.width, r.proportionalSizeMm.height, r.effectivePngDpi, ...Object.values(r.scaledReferenceFeatures).flat()])
+      expect(decimals(v)).toBeLessThanOrEqual(2);
+    expect(decimals(r.uniformScale)).toBeLessThanOrEqual(4);
+    expect(r.nativeSizeMm).toEqual({ width: 111.2, height: 73 });
+  });
   it("rejects invalid dimensions, mismatched kinds and malformed source relationships", () => {
     const source = { kind: "graph", envelope: createGraph(graphSpec) };
     for (const dimensions of [{}, {widthMm: 0}, {heightMm: -1}, {widthMm: Infinity}, {widthMm: NaN}])
