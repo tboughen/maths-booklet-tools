@@ -64,7 +64,7 @@ const answerLine = z
     /** Printed after the line, e.g. "cm". */
     suffix: text(20).default(""),
     /** Saved answer: printed only in the answers view. */
-    answer: text(60).default(""),
+    answer: text(160).default(""),
     /** Several short lines side by side on one row (e.g. three totals). */
     inline: z.boolean().default(false),
   })
