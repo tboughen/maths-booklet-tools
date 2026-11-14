@@ -36,6 +36,8 @@ A create or revise result starts with a one-line plain summary (`Created a <labe
 100%.`), then the preview image, then `resource_link` blocks for the SVG, PNG and JSON downloads.
 `structuredContent` adds `kind`, `summary` and `altText` to the family's own fields (`envelope`,
 `contentHash`, `downloads`, `editorUrl`, warnings and so on).
+`altText` (M16) always describes the pupil copy, even when `outputView` is `answer`, so it
+never reveals hidden answers; the answer-leak check (W90) covers the label it comes from.
 
 Every connector failure, from any tool and from the SDK's own input checks, has one shape
 (improvement list M12, `services/graph-mcp/tool-error.ts`, body type in

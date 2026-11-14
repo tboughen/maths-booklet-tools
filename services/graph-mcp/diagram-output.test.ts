@@ -198,6 +198,8 @@ describe("real MCP output workflows", () => {
     verifyPrintBytes(files["diagram.png"], pngSize.width, pngSize.height);
     expect(Buffer.from(files["diagram.svg"]).toString()).toBe(await (await fetch(moved.downloads.svg.url)).text());
     expect(Buffer.from(files["README.txt"]).toString()).not.toMatch(/signature=|token=/);
+    // M16: the bundle carries the pupil-safe alt text for Word and PowerPoint.
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("Alt text (for Word or PowerPoint): Coordinate graph\n");
     const broken = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: moved.envelope}});
     expect(broken.isError).toBe(true);
     expect((await client.callTool({name: "create_graph", arguments: graphSpec})).isError).not.toBe(true);
