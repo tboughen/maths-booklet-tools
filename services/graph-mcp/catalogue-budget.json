@@ -1,0 +1,20 @@
+{
+  "comment": "Byte budgets for what every conversation pays for when it loads the connector (improvement list M2). tools/list is sent once per conversation; diagram_capabilities and worksheet_capabilities are read before a family's first use, and their text content is what a model reads (the same JSON also travels as structuredContent). Sizes are UTF-8 bytes of the JSON. Measured 14 Nov 2026 on main 657aee1: tools/list 69,974 bytes (create_worksheet 28,927, create_booklet 20,005); longest description create_booklet, 3,867 characters; capabilities text bar-model 50,748, graph 44,052, triangle 38,497, cuboids 20,334, probability-tree 13,874, ratio-table 13,405, every other family under 12,000; worksheet_capabilities 4,836. Each budget has about 5% headroom. Lower a budget when a change makes the catalogue smaller; raising one needs a reason in this comment and in the pull request.",
+  "toolsList": 73500,
+  "perTool": {
+    "default": 5000,
+    "create_worksheet": 30400,
+    "create_booklet": 21000
+  },
+  "descriptionChars": 4100,
+  "capabilities": {
+    "default": 12500,
+    "bar-model": 53300,
+    "graph": 46300,
+    "triangle": 40500,
+    "cuboids": 21400,
+    "probability-tree": 14600,
+    "ratio-table": 14100,
+    "worksheet": 5100
+  }
+}
