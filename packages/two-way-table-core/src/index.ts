@@ -7,7 +7,6 @@
  * colour. Zero is a value, never a blank. Numbers stay exact: integers, decimals, fractions and
  * mixed numbers, printed with stacked fractions. Totals are filled only by completeTotals.
  */
-import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import {
