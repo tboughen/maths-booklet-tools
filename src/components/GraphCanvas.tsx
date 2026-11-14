@@ -604,7 +604,7 @@ export function GraphCanvas({
       >
         <svg
           ref={svgRef}
-          className="graph-canvas"
+          className={document.lines === "bold" ? "graph-canvas graph-canvas--bold" : "graph-canvas"}
           data-style-profile={document.styleProfile ?? "legacy"}
           viewBox={`${paper.x} ${paper.y} ${paper.width} ${paper.height}`}
           style={{ left, top, width: paperWidth, height: paperHeight }}
@@ -632,8 +632,8 @@ export function GraphCanvas({
               refX="8.5"
               refY="5"
               markerUnits="userSpaceOnUse"
-              markerWidth="15"
-              markerHeight="15"
+              markerWidth={document.lines === "bold" ? 22.5 : 15}
+              markerHeight={document.lines === "bold" ? 22.5 : 15}
               orient="auto"
             >
               <path d="M 0 0 L 10 5 L 0 10 z" />

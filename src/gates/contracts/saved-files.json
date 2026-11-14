@@ -5164,6 +5164,10 @@
               "O"
             ],
             "description": "O prints an italic O at the origin, as Edexcel papers do. Default 0."
+          },
+          "lines": {
+            "type": "string",
+            "const": "bold"
           }
         },
         "required": [
