@@ -196,10 +196,10 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "bar-model": {
     capabilities: { ...barConfig.capabilities, maximumRequestBytes: 32768 },
     create:
-      "Bar models keep one shared unit width and stable anchored spans; labels never set widths or calculate answers. For horizontal working fractions and 12 mm above / 3 mm below handwriting space request spec.schemaVersion:3 explicitly (explicit 2 and bare legacy requests keep their versions). V3 Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
+      "Bar models keep one shared unit width and stable anchored annotations; labels never set widths or calculate answers. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
       barConfig.createDescription,
     revise:
-      "Deleting structure a span refers to needs explicit span removal or discard intent. upgrade_document {targetSchemaVersion:3} upgrades an older file; without a target it still means v1 to v2. " +
+      "Deleting structure an annotation refers to needs explicit annotation removal or discard intent. " +
       barConfig.reviseDescription,
   },
   charts: fromConfig(chartConfig),

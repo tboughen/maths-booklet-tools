@@ -22,7 +22,6 @@ const undoRegistry: Record<string, string> = {
   triangle: "triangle/TrianglePage.tsx",
   "expanding-factorising": "algebra-grid/AlgebraGridPage.tsx",
   "bar-model": "bar-model/LessonBarModelPage.tsx",
-  "bar-model (classic)": "bar-model/BarModelPage.tsx",
   charts: "charts/ChartsPage.tsx",
   "probability-tree": "probability-tree/ProbabilityTreePage.tsx",
   "frequency-tree": "frequency-tree/FrequencyTreePage.tsx",

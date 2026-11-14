@@ -2,8 +2,7 @@ import { afterEach, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Page from "./LessonBarModelPage";
-import * as v from "../../packages/bar-model-core/src/v2";
-import * as old from "../../packages/bar-model-core/src/index";
+import * as v from "../../packages/bar-model-core/src/v3";
 import type { History } from "./LessonBarModelPage";
 afterEach(() => {
   cleanup();
@@ -21,7 +20,7 @@ const open = (e = v.fresh(), history?: History) => {
   return render(
     <Page
       storageKey="v2-test"
-      startup={{ envelope: e, expected: null, legacyRaw: null, message: "" }}
+      startup={{ envelope: e, expected: null, message: "" }}
       initialHistory={history}
     />,
   );
@@ -83,22 +82,21 @@ it("bulk labels commit once and one Undo restores every slot", async () => {
     saved().document.bars[0].parts.every((p) => p.labels.inside.text === "b"),
   ).toBe(true);
 });
-it("worked replacement retains earlier history and restores v1 after explicit upgrade", async () => {
-  const e = old.fresh(),
-    upgraded = v.upgrade(e);
-  open(upgraded, { past: [e], present: upgraded, future: [] });
+it("worked replacement retains earlier history and one Undo restores the model before it", async () => {
+  const first = v.fresh("comparison"),
+    e = v.fresh();
+  open(e, { past: [first], present: e, future: [] });
   const user = userEvent.setup();
   await user.click(screen.getByRole("button", { name: "Worked R4" }));
-  expect(saved().document.sourceId).toBe("lesson-v2-R4");
+  const worked = saved().document.sourceId;
+  expect(worked).toMatch(/R4$/);
   await user.click(screen.getByRole("button", { name: "Undo" }));
   expect(saved().document.sourceId).toBeUndefined();
   await user.click(screen.getByRole("button", { name: "Undo" }));
-  expect(
-    JSON.parse(localStorage.getItem("v2-test")!).envelope.schemaVersion,
-  ).toBe(1);
-  expect(screen.getByText(/Legacy layout and source/)).toBeVisible();
+  expect(saved()).toEqual(first);
   await user.click(screen.getByRole("button", { name: "Redo" }));
-  expect(saved().schemaVersion).toBe(2);
+  await user.click(screen.getByRole("button", { name: "Redo" }));
+  expect(saved().document.sourceId).toBe(worked);
 });
 it("preserves selection, draft and Undo against inactive keyboard shortcuts", async () => {
   const view = open();
@@ -112,7 +110,6 @@ it("preserves selection, draft and Undo against inactive keyboard shortcuts", as
       startup={{
         envelope: v.fresh(),
         expected: null,
-        legacyRaw: null,
         message: "",
       }}
     />,

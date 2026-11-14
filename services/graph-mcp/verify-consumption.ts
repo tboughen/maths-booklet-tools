@@ -17,10 +17,8 @@ import { receiveSvg } from "./svg-consumer";
 import type { SvgDeliveryInput } from "./svg-delivery";
 import { consumptionPacer } from "./consumption-pacing";
 import { discoverTools } from "./discovery";
-import {lessonExample} from "../../packages/bar-model-core/src/lesson-examples";
-import {denseFixture} from "../../packages/bar-model-core/src/stress-fixture";
-import {denseFixture as denseV3} from "../../packages/bar-model-core/src/stress-fixture-v3";
-import {lessonExample as lessonV3} from "../../packages/bar-model-core/src/lesson-examples-v3";
+import {denseFixture as denseV3} from "../../packages/bar-model-core/src/stress-fixture";
+import {lessonExample as lessonV3} from "../../packages/bar-model-core/src/examples";
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10) ?? "full";
 assert(["full", "browser"].includes(profile), "Unknown consumption profile");
 const full = profile === "full";
@@ -197,13 +195,10 @@ try {
   assert.deepEqual((algebraAnswer.envelope.document as {rows:unknown}).rows,(algebraFactor.envelope.document as {rows:unknown}).rows);
   if (full) { const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum); }
   const bar=await call("create_bar_model",{spec:{example:"BM08"}});await save("bar-model",bar);
-  const barRevised=await call("revise_bar_model",{envelope:bar.envelope,baseHash:bar.contentHash,operations:[{op:"set_part",barId:"b1",partId:"b1p1",shade:true}]});await save("bar-model-revised",barRevised);
+  const barRevised=await call("revise_bar_model",{envelope:bar.envelope,baseHash:bar.contentHash,operations:[{op:"set_fill",barId:"b1",partIds:["b1p1"],fill:"neutral"}]});await save("bar-model-revised",barRevised);
   assert.deepEqual((barRevised.envelope.document as {spans:unknown}).spans,(bar.envelope.document as {spans:unknown}).spans);
   if(full){const h07=await call("create_bar_model",{spec:{example:"H07",worked:true}});await save("bar-h07",h07);const algebraBar=await call("create_bar_model",{spec:{example:"H18",worked:true}});await save("bar-h18",algebraBar);const maximum=await call("create_bar_model",{spec:{example:"BM09"}});await save("bar-maximum",maximum);await saveDirect("bar-maximum","bar-model",maximum);}
   if(full){
-    const lesson=await call("create_bar_model",{envelope:lessonExample("R4",true)});await save("bar-v2-reference",lesson);await saveDirect("bar-v2-reference","bar-model",lesson);
-    const revised=await call("revise_bar_model",{envelope:lesson.envelope,baseHash:lesson.contentHash,operations:[{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"above",label:{text:"9",state:"hidden"}},{op:"update_caption",caption:{id:"caption1",label:{text:"n/5 of 45 = 36",state:"value"},alignment:"centre"}}]});await save("bar-v2-revised",revised);await saveDirect("bar-v2-revised","bar-model",revised);
-    const maximum=await call("create_bar_model",{envelope:denseFixture()});await save("bar-v2-dense",maximum);await saveDirect("bar-v2-dense","bar-model",maximum,undefined,49152);
     const v3 = await call("create_bar_model", { envelope: lessonV3("R4", true) }); await save("bar-v3-reference", v3); await saveDirect("bar-v3-reference", "bar-model", v3);
     const v3Revised = await call("revise_bar_model", { envelope: v3.envelope, baseHash: v3.contentHash, operations: [{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"inside",label:{text:"1/5",state:"line"}}, {op:"update_caption",caption:{id:"caption1",label:{text:"n/5 of 45 = 36",state:"value"},alignment:"centre",format:"maths"}}] }); await save("bar-v3-revised", v3Revised); await saveDirect("bar-v3-revised", "bar-model", v3Revised);
     const v3Maximum = await call("create_bar_model", { envelope: denseV3() }); await save("bar-v3-dense", v3Maximum); await saveDirect("bar-v3-dense", "bar-model", v3Maximum, undefined, 49152);

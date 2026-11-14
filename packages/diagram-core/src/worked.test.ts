@@ -7,8 +7,10 @@ import { WORKED_TEXT_MAX } from "../../envelope-core/src/worked";
 import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 
 const corpus = join(__dirname, "../../envelope-core/fixtures/corpus");
+// The bar-model default is two 10 mm sections, too narrow for the 40 mm note; BM08 is 135 mm wide.
+const preferred: Record<string, string> = { "bar-model": "past-paper-bm08.json" };
 const saved = (kind: string) =>
-  readdirSync(join(corpus, kind))
+  preferred[kind] ? (JSON.parse(readFileSync(join(corpus, kind, preferred[kind]), "utf8")) as Record<string, unknown>) : readdirSync(join(corpus, kind))
     .filter((n) => n.endsWith(".json"))
     .sort()
     .map((n) => JSON.parse(readFileSync(join(corpus, kind, n), "utf8")) as Record<string, unknown>)

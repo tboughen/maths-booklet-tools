@@ -1,0 +1,285 @@
+{
+ "kind": "bar-model",
+ "schemaVersion": 3,
+ "rendererVersion": "bar-model-3",
+ "styleProfile": "lesson-v3",
+ "document": {
+  "bars": [
+   {
+    "id": "b2",
+    "name": {
+     "text": "Empty jars",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b2p1",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p2",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p3",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p4",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p5",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p6",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p7",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p8",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p9",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p10",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p11",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p12",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p13",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p14",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b2p15",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     }
+    ]
+   }
+  ],
+  "annotations": [
+   {
+    "id": "empty",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b2",
+      "partId": "b2p1",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b2",
+      "partId": "b2p15",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "150",
+     "state": "value"
+    },
+    "decoration": "brace",
+    "placement": "above"
+   },
+   {
+    "id": "small",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b2",
+      "partId": "b2p1",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b2",
+      "partId": "b2p3",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "30",
+     "state": "hidden"
+    },
+    "decoration": "brace",
+    "placement": "below"
+   },
+   {
+    "id": "medium",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b2",
+      "partId": "b2p4",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b2",
+      "partId": "b2p7",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "40",
+     "state": "hidden"
+    },
+    "decoration": "brace",
+    "placement": "below"
+   },
+   {
+    "id": "large",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b2",
+      "partId": "b2p8",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b2",
+      "partId": "b2p15",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "80",
+     "state": "hidden"
+    },
+    "decoration": "brace",
+    "placement": "below"
+   }
+  ],
+  "presentation": {
+   "unitMm": 8,
+   "barHeightMm": 10,
+   "fontPt": 12,
+   "titlePt": 14,
+   "nameWidthMm": 28,
+   "output": "grey"
+  },
+  "captions": [],
+  "sourceId": "1MA1_JUN_2024_1H_Q7"
+ }
+}

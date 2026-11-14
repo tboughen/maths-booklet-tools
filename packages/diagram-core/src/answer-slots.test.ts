@@ -92,7 +92,7 @@ describe("shared answer states (W3)", () => {
   });
 
   it("bar models, number lines and algebra grids", () => {
-    const b = slotsOf("bar-model", load("bar-model", "v2-lesson-r2-c-worked"));
+    const b = slotsOf("bar-model", load("bar-model", "v3-lesson-r2-c-worked"));
     expect(b.some((s) => s.state === "blank")).toBe(true);
     const n = load("number-line", "example-15-c-1ma1-mock-set-05-3f-q15-worked");
     expect(at("number-line", n, "document.teaching.answer")).toMatchObject({ state: "supplied", text: "−1 ≤ x < 4" });

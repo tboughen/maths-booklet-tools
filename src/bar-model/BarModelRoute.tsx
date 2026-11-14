@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import ModernPage from "./LessonBarModelPage";
 import { readStorage, type Startup } from "./storage";
 import { copyStorageKey } from "../site/copyDocument";
-const key = copyStorageKey("maths-booklet-tools:bar-model:v2"),
-  oldKey = copyStorageKey("maths-booklet-tools:bar-model:v1");
+const key = copyStorageKey("maths-booklet-tools:bar-model:v2");
 export default function BarModelRoute({ active = true }: { active?: boolean }) {
   const [startup, setStartup] = useState<Startup | null>(null);
   useEffect(() => {
@@ -11,7 +10,6 @@ export default function BarModelRoute({ active = true }: { active?: boolean }) {
     void readStorage(
       { getItem: (key) => localStorage.getItem(key) },
       key,
-      oldKey,
     ).then((s) => {
       if (current) setStartup(s);
     });
