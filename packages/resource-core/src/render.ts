@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -181,6 +181,14 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   return { h: height, svg };
 }
 
+/** Width (mm) one inline answer line needs: prefix, suffix and a line that holds its saved answer. */
+export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: boolean) {
+  const widthOf = (s: string) => (maths ? lineWidth(parseRuns(stackAnswerText(s), "regular", true), S.body) : plainWidth(s, S.body));
+  const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
+  const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
+  return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
+}
+
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   // Maths notation: fractions in the prefix, suffix and saved answer print stacked, and a row that
@@ -192,16 +200,16 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
   const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, maths)));
   const h = S.answerRow + (tall ? FRAC_ANSWER_EXTRA : 0);
   const base = h - 2.6;
-  const slot = (w - (lines.length - 1) * 6) / lines.length;
+  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const out: string[] = [];
   lines.forEach((l, i) => {
-    const x0 = i * (slot + 6);
+    const x0 = i * (slot + ANSWER_SLOT_GAP);
     const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
     const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
     if (l.prefix) out.push(textSvg(runsOf(l.prefix), x0, base, size, ctx.st.ink));
     const x1 = x0 + pre,
       x2 = x0 + slot - post;
-    if (x2 - x1 < 18) issue(ctx, "An answer line is shorter than 18 mm.");
+    if (x2 - x1 < ANSWER_LINE_MIN) issue(ctx, "An answer line is shorter than 18 mm.");
     // The saved answer is written on the line in the answers copy; it must not run past it.
     const answerW = l.answer ? widthOf(l.answer) : 0;
     if (l.answer && answerW + 2 > x2 - x1 + 0.01)
@@ -358,14 +366,14 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
     if (it.type === "answerLine" && it.inline) {
       const group = [it];
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
-      frags.push(answerRow(group, w, ctx));
+      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
       const textW = w - S.partIndent;
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
-      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && stubFits(textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0), only.answer, S.body, !!ctx.maths)) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const head = para(it.text, textW, ctx, { x: S.partIndent });
@@ -406,8 +414,10 @@ export function tooWideMessage(tool: string, width: number, room: number): strin
   const fit = Math.floor(room / 5) / 2;
   const hint = WIDTH_CM.has(tool)
     ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`
-    : tool === "probability-tree" || tool === "frequency-tree"
+    : tool === "frequency-tree"
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
+      : tool === "probability-tree"
+        ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the end probability column (settings.endColumn "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
       : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }

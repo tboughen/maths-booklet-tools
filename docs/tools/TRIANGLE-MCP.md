@@ -150,7 +150,8 @@ determines height; 11 pt typography, margins and pupil writing spaces are retain
 
 Returns preview, envelope/hash, outlined SVG, verified 600 ppi PNG, editable JSON,
 physicalSizeCm, printGuidance, warnings and bounded editor link. Ordinary artwork
-follows saved pupil visibility. There is no Triangle `outputView`. Explicit answer
+follows saved pupil visibility. outputView answer (and a worksheet's answers copy) shows saved answers in the
+answer colour (14 Nov 2026). Explicit answer
 visibility/worked-copy revisions return a new source; retain the original scaffold.
 JSON and editor links may contain hidden answers. No UI wedges/handles/warnings
 print. `printVerified` concerns PNG bytes/density, not Word or a physical printer.

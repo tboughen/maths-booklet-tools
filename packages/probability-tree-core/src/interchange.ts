@@ -38,6 +38,9 @@ const flatBranch = z
     parent: id.nullable(),
     outcome: z.string().max(24),
     probability: z.string().max(24).optional(),
+    /** Path-end column text (a path's last branch only): with hidden, a saved answer pupils write. */
+    endOutcome: z.string().max(24).optional(),
+    endProbability: z.string().max(24).optional(),
     hidden: z.array(part).max(4).optional(),
     bold: z.boolean().optional(),
   })
@@ -181,11 +184,17 @@ export function create(input: unknown): core.Envelope {
     n.document.branches = s.branches.map((b) => {
       const branch = core.newBranch(b.id, b.parent, b.outcome, b.probability ?? "");
       branch.bold = b.bold ?? false;
+      if (b.endOutcome !== undefined) branch.endOutcome.text = b.endOutcome;
+      if (b.endProbability !== undefined) branch.endProbability.text = b.endProbability;
       for (const h of b.hidden ?? []) branch[h].show = "hidden";
       return branch;
     });
     n.document.stageTitles = [];
     n.document.linkLabels = false;
+    const parents = new Set(s.branches.map((b) => b.parent));
+    for (const b of s.branches)
+      if (parents.has(b.id) && (b.endOutcome !== undefined || b.endProbability !== undefined))
+        throw Error(`branches ${b.id}: endOutcome and endProbability belong on the last branch of a path.`);
     e = core.validate(n);
   } else if (s.stages) {
     e = core.uniform(s.stages, { stageTitles: [] });

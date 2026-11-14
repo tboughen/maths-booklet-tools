@@ -61,7 +61,8 @@ canonical JSON,preview,outlined SVG,verified600ppi PNG,JSON,physicalSizeCm,
 printGuidance and bounded editor URL (`/tools/expanding-factorising#algebra-grid=`).
 Oversized links use existing bounded inline file content/JSON reopening. Pupil
 visibility is the artwork default; revealing answers is an explicit revision.
-No alternate outputView for this family. No UI controls or teacher warnings print.
+outputView answer (and a worksheet's answers copy) prints hidden products and headings in the answer colour
+(14 Nov 2026; before then the answers copy showed an empty grid). No UI controls or teacher warnings print.
 
 Generic output tools use kind `algebra-grid` and the exact returned envelope.
 Source/renderer versions and pupil blanks remain unchanged through bundles and

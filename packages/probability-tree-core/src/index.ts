@@ -190,14 +190,26 @@ export function parseFile(text: string) {
 }
 
 /** Pupil view leaves hidden labels as spaces; the answer view prints them. */
-export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
+/**
+ * The teacher copy shows every label. With `mark`, labels shown only because they were saved hidden
+ * are drawn in the answer colour (worksheet answers copies and outputView answer); worked copies
+ * made by create keep plain black.
+ */
+export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
-  for (const b of n.document.branches)
-    for (const l of [b.outcome, b.probability, b.endOutcome, b.endProbability]) l.show = "show";
-  for (const q of n.document.questions) q.answer.show = "show";
+  const reveal = (l: Label) => {
+    if (mark && l.show === "hidden" && l.text.trim()) REVEALED.add(l);
+    l.show = "show";
+  };
+  for (const b of n.document.branches) for (const l of [b.outcome, b.probability, b.endOutcome, b.endProbability]) reveal(l);
+  for (const q of n.document.questions) reveal(q.answer);
   return n;
 }
+/** Labels a teacher copy shows only because they were saved hidden: drawn in the answer colour. */
+const REVEALED = new WeakSet<Label>();
+/** The house answer colour, as on ratio tables, graphs and worksheet answer lines. */
+export const TREE_ANSWER_COLOUR = "#b0125b";
 export function allLabels(d: TreeDocument): Label[] {
   return [
     ...d.branches.flatMap((b) => [b.outcome, b.probability, b.endOutcome, b.endProbability]),
@@ -755,7 +767,8 @@ export function layout(e: Envelope) {
     headings.push({ text: d.endHeadings[0], x: endX, y: headY });
     if (d.endColumn === "both") headings.push({ text: d.endHeadings[1], x: pX + pw / 2, y: headY });
     right = d.endColumn === "both" ? pX + pw : endX + ow;
-    const tight = all.some((b) => labelBox(b.endProbability, d.blankStyle, "probability").height > d.gapMm - 1);
+    // Only a drawn probability column can crowd: with endColumn "outcome" its saved text is not printed.
+    const tight = d.endColumn === "both" && all.some((b) => labelBox(b.endProbability, d.blankStyle, "probability").height > d.gapMm - 1);
     if (tight) issues.push("End-column fractions overlap. Increase the path spacing.");
   }
   // Bounding box of the tree.
@@ -856,8 +869,8 @@ export function warnings(e: Envelope) {
 const n = (v: number) => String(Math.round(v * 1000) / 1000);
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const text = (t: string, x: number, y: number, anchor = "middle") =>
-  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(t)}</text>`;
+const text = (t: string, x: number, y: number, anchor = "middle", fill = "black") =>
+  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="${fill}">${esc(t)}</text>`;
 const typeset = (t: string) => t.trim().replace(/^-/, "−").replace(/(\s)-(\s)/g, "$1−$2");
 function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   const l = p.label,
@@ -871,16 +884,17 @@ function drawLabel(p: Placed, blank: TreeDocument["blankStyle"]): string {
   }
   const t = l.text.trim();
   if (!t) return "";
+  const ink = REVEALED.has(l) ? TREE_ANSWER_COLOUR : "black";
   if (isFractionText(t)) {
     const [a, c] = t.split("/").map((s) => typeset(s));
     const mid = left + b.width / 2;
     return (
-      text(a, mid, p.cy - 0.9) +
-      `<line x1="${n(left + 0.2)}" y1="${n(p.cy)}" x2="${n(left + b.width - 0.2)}" y2="${n(p.cy)}" stroke="black" stroke-width="0.25"/>` +
-      text(c, mid, p.cy + FONT * 0.72 + 0.9)
+      text(a, mid, p.cy - 0.9, "middle", ink) +
+      `<line x1="${n(left + 0.2)}" y1="${n(p.cy)}" x2="${n(left + b.width - 0.2)}" y2="${n(p.cy)}" stroke="${ink}" stroke-width="0.25"/>` +
+      text(c, mid, p.cy + FONT * 0.72 + 0.9, "middle", ink)
     );
   }
-  return text(typeset(t), p.align === "start" ? left : p.cx, p.cy + FONT * 0.33, p.align === "start" ? "start" : "middle");
+  return text(typeset(t), p.align === "start" ? left : p.cx, p.cy + FONT * 0.33, p.align === "start" ? "start" : "middle", ink);
 }
 export function renderSvg(e: Envelope): string {
   const d = e.document,
