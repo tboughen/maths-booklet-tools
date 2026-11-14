@@ -755,7 +755,10 @@ export function layout(e: Envelope) {
         )
       : firstWidth;
   const columnWidths = d.columns.map((c, i) => (i ? c.widthMm : headingWidth));
-  const rowHeights = d.rows.map((_, i) => (i ? d.cellMm : headingHeight));
+  // Grid method products are short numbers, so working rows are three quarters of the cell size,
+  // giving the question card more vertical space (Tim, 14 Nov). Algebra rows keep the full size.
+  const workingHeight = d.mode === "multiply" ? Math.round(d.cellMm * 0.75 * 100) / 100 : d.cellMm;
+  const rowHeights = d.rows.map((_, i) => (i ? workingHeight : headingHeight));
   const gridWidth = columnWidths.reduce((a, width) => a + width, 0),
     gridHeight = rowHeights.reduce((a, height) => a + height, 0);
   const question =
