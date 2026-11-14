@@ -58,6 +58,7 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
+import { createHistory, handleUndoKeys, useDocumentHistory } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 const newDocument = () => upgrade(create());
 function initial() {
@@ -87,11 +88,8 @@ function initial() {
 }
 export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{
-      past: Envelope[];
-      present: Envelope;
-      future: Envelope[];
-    }>({ past: [], present: startup.e, future: [] });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
+    { history, setHistory } = documentHistory;
   const [message, setMessage] = useState(startup.error),
     [saveState, setSaveState] = useState("Saved on this device"),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
@@ -185,15 +183,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
     const valid = validate(value);
-    setHistory((h) =>
-      canonical(valid) === canonical(h.present)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid);
     setMessage("");
   }
   function changeShape(update: (shape: Shape) => Shape) {
@@ -242,28 +232,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setInline(null);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setInline(null);
   }
   function replacement(next: Envelope, title: string) {
@@ -333,23 +307,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (event.key === "Escape" && !dirty.size) setInline(null);
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        !(
-          event.target instanceof HTMLElement &&
-          event.target.closest("input,textarea,select,[contenteditable]")
-        )
-      ) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (event.shiftKey) redo();
-          else undo();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redo();
-        }
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -745,11 +703,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     expected.current = null;
                     setRecovery(null);
-                    setHistory({
-                      past: [],
-                      present: newDocument(),
-                      future: [],
-                    });
+                    setHistory(createHistory(newDocument()));
                     setSelected("cuboid-1");
                     setInline(null);
                     setDirty(new Set());

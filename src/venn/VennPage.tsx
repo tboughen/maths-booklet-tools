@@ -40,6 +40,7 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -123,11 +124,8 @@ type Draft = {
 };
 export default function VennPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{
-      past: Envelope[];
-      present: Envelope;
-      future: Envelope[];
-    }>({ past: [], present: startup.e, future: [] });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
+    history = documentHistory.history;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
@@ -177,15 +175,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   function commit(next: Envelope) {
     if (recovery !== null) return;
     const valid = validate(next);
-    setHistory((h) =>
-      canonical(h.present) === canonical(valid)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid);
     setMessage("");
   }
   function patch(update: (n: Envelope["document"]) => void) {
@@ -196,28 +186,12 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setSelected(null);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setSelected(null);
   }
   function replacement(
@@ -408,23 +382,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         closeDraft();
         return;
       }
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        !(
-          event.target instanceof HTMLElement &&
-          event.target.closest("input,textarea,select,[contenteditable]")
-        )
-      ) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (event.shiftKey) redo();
-          else undo();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redo();
-        }
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);

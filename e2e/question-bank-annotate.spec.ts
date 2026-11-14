@@ -119,7 +119,7 @@ test.describe("question viewer annotations", () => {
 test.describe("question viewer annotations on touch boards", () => {
   test.use({ viewport: { width: 1920, height: 1080 }, hasTouch: true });
 
-  test("fingers draw, a fist-sized touch erases, and two fingers still pinch to zoom", async ({ page, context }) => {
+  test("fingers draw, a large contact never erases, and two fingers still pinch to zoom", async ({ page, context }) => {
     await open(page);
     await page.keyboard.press("p");
     const cdp = await context.newCDPSession(page);
@@ -129,11 +129,12 @@ test.describe("question viewer annotations on touch boards", () => {
     for (let i = 1; i <= 6; i++) await touch("touchMove", [{ x: 100 + i * 40, y: 150 }]);
     await touch("touchEnd", []);
     await expect.poll(() => strokes(page)).toBe(1);
-    // The side of a fist: a large contact rubs out, whatever tool is chosen.
+    // A large contact (a fist or palm) is not an eraser: rubbing out needs the Eraser tool or a stylus eraser.
     await touch("touchStart", [{ x: 180, y: 110, r: 40 }]);
     for (let i = 1; i <= 4; i++) await touch("touchMove", [{ x: 180, y: 110 + i * 20, r: 40 }]);
     await touch("touchEnd", []);
-    await expect.poll(() => strokes(page)).toBe(0);
+    await expect.poll(() => strokes(page)).toBe(2);
+    await expect(page.getByText("Fist eraser")).toHaveCount(0);
     await expect(page.getByRole("radio", { name: "Pen" })).toHaveAttribute("aria-checked", "true");
     // A second finger turns a stroke into a pinch, leaving no ink.
     const cx = 400, cy = 300;
@@ -143,6 +144,6 @@ test.describe("question viewer annotations on touch boards", () => {
     for (let i = 1; i <= 8; i++) await touch("touchMove", [{ x: cx - 45 - i * 12, y: cy }, { x: cx + 40 + i * 12, y: cy }]);
     await touch("touchEnd", []);
     await expect.poll(async () => parseInt(await page.locator(".qb-footer .qb-zoom output").textContent() ?? "0")).toBeGreaterThan(150);
-    expect(await strokes(page)).toBe(0);
+    expect(await strokes(page)).toBe(2);
   });
 });

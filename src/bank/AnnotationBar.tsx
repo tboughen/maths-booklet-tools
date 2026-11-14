@@ -51,7 +51,6 @@ export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasI
       <button className="qb-annotate-tool" disabled={!hasInk} title="Clear this view" aria-label="Clear this view" onClick={onClear}><Trash2 size={18}/></button>
       <button className="qb-annotate-text" disabled={!anyInk} title="Clear annotations on every question" onClick={onClearAll}>Clear all</button>
     </div>
-    <label className="qb-annotate-fist" title="On touch boards, the side of a fist or a palm rubs out"><input type="checkbox" checked={p.fistEraser} onChange={event => set({ fistEraser: event.target.checked })}/> Fist eraser</label>
     <button className="qb-annotate-tool" title="Close annotation tools · Esc" aria-label="Close annotation tools" onClick={onClose}><X size={18}/></button>
   </div>;
 }

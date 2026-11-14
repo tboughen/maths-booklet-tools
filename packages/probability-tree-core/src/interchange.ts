@@ -208,6 +208,9 @@ export function create(input: unknown): core.Envelope {
   if (s.hide) e = setVisibility(e, s.hide);
   for (const q of s.questions ?? []) e = addQuestion(e, q);
   if (s.worked) e = core.forView(e, "answer");
+  // A new tree too wide for the page (three stages with both end columns, say) gets the
+  // longest branch length that fits, unless the request chose one.
+  if (s.settings?.branchMm === undefined && !s.example) e = core.fitBranchLength(e);
   return e;
 }
 

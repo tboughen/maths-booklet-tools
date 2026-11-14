@@ -242,12 +242,14 @@
  "number-line/default": {
   "schemaVersion": 1,
   "contentHash": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
-  "pupilSvg": "c3ee70ba5242eb0af4a4d5a656076b464e4187123321f3b04bd55e89b9e264ce"
+  "pupilSvg": "c3ee70ba5242eb0af4a4d5a656076b464e4187123321f3b04bd55e89b9e264ce",
+  "answerSvg": "c3ee70ba5242eb0af4a4d5a656076b464e4187123321f3b04bd55e89b9e264ce"
  },
  "number-line/example-15-c-1ma1-mock-set-05-3f-q15-worked": {
   "schemaVersion": 1,
   "contentHash": "e81b651c87f9601bb929e8b3e4b72d5eb90a8e5f130325020e6a311cbdeed092",
-  "pupilSvg": "87c3683e63a15f3648bdeb5c6812df7936955e9de26e4ba69d42a72d8745b0e9"
+  "pupilSvg": "87c3683e63a15f3648bdeb5c6812df7936955e9de26e4ba69d42a72d8745b0e9",
+  "answerSvg": "87c3683e63a15f3648bdeb5c6812df7936955e9de26e4ba69d42a72d8745b0e9"
  },
  "number-line/example-15-c-1ma1-mock-set-05-3f-q15": {
   "schemaVersion": 1,
@@ -612,22 +614,26 @@
  "bar-model/default": {
   "schemaVersion": 1,
   "contentHash": "7b280091b46153069ff16965e6812f7552eb1aa1f2195ef433fb81c30f6d958d",
-  "pupilSvg": "f8e747b98445d36d186f4440a6cd0c440c35cd1da42e7fed3bbde35472976d12"
+  "pupilSvg": "f8e747b98445d36d186f4440a6cd0c440c35cd1da42e7fed3bbde35472976d12",
+  "answerSvg": "c66d686045fef5fba6f848cc628472cbbf4e6fbea25468cb545c60ea83a62a2c"
  },
  "bar-model/file-bar-model-examples-lesson-v2-tool-card": {
   "schemaVersion": 2,
   "contentHash": "f658e651a6319eb3a17f66c79bae7cf94f8e85b30065ef1528a50c063ee1dd99",
-  "pupilSvg": "319cee9e087d2b6491d156dd7eabb338489ca12c863ab69e55195aadb55a295f"
+  "pupilSvg": "319cee9e087d2b6491d156dd7eabb338489ca12c863ab69e55195aadb55a295f",
+  "answerSvg": "319cee9e087d2b6491d156dd7eabb338489ca12c863ab69e55195aadb55a295f"
  },
  "bar-model/file-bar-model-examples-lesson-v3-tool-card": {
   "schemaVersion": 3,
   "contentHash": "cab5edba13491e737295162d190f9946b63b7f7f582706e4c0ef5868f246d138",
-  "pupilSvg": "cf53aee2c674708ecd931dfe338383fa1ab50acc8d923484e9b3ea25e61ee3a9"
+  "pupilSvg": "cf53aee2c674708ecd931dfe338383fa1ab50acc8d923484e9b3ea25e61ee3a9",
+  "answerSvg": "cf53aee2c674708ecd931dfe338383fa1ab50acc8d923484e9b3ea25e61ee3a9"
  },
  "bar-model/v1-legacy-bm01-worked": {
   "schemaVersion": 1,
   "contentHash": "55d2ddb7619a5385ca8e772b581985691dcb9dfbdf65cf7dd9eaaa8cfe87f0a8",
-  "pupilSvg": "cc9f1b35241fa70e8b057e0dfc10218fd433e86fa3584fd1658514f3e395d703"
+  "pupilSvg": "cc9f1b35241fa70e8b057e0dfc10218fd433e86fa3584fd1658514f3e395d703",
+  "answerSvg": "cc9f1b35241fa70e8b057e0dfc10218fd433e86fa3584fd1658514f3e395d703"
  },
  "bar-model/v1-legacy-bm02": {
   "schemaVersion": 1,
@@ -712,7 +718,8 @@
  "bar-model/v2-lesson-r2-c-worked": {
   "schemaVersion": 2,
   "contentHash": "c13303f8dca3d9ddbca9c0eea5fa2d3aae98208090f9aa855acf4fdc9382066d",
-  "pupilSvg": "626f6f3d90c644f618283c327637ad721d5a1ce51c59ad97a19a927a17eca6d7"
+  "pupilSvg": "626f6f3d90c644f618283c327637ad721d5a1ce51c59ad97a19a927a17eca6d7",
+  "answerSvg": "626f6f3d90c644f618283c327637ad721d5a1ce51c59ad97a19a927a17eca6d7"
  },
  "bar-model/v2-lesson-r2-c": {
   "schemaVersion": 2,
@@ -797,7 +804,8 @@
  "bar-model/v3-lesson-r2-c-worked": {
   "schemaVersion": 3,
   "contentHash": "52c90107cf70d782321810287dd1a3098acedb42a9c6367a5478b8d7a1c25ef4",
-  "pupilSvg": "c5f165d30071bb73f4f5c2da973ab099220003af4b8e5dd2829b09e4d6a10ffb"
+  "pupilSvg": "c5f165d30071bb73f4f5c2da973ab099220003af4b8e5dd2829b09e4d6a10ffb",
+  "answerSvg": "c5f165d30071bb73f4f5c2da973ab099220003af4b8e5dd2829b09e4d6a10ffb"
  },
  "bar-model/v3-lesson-r2-c": {
   "schemaVersion": 3,

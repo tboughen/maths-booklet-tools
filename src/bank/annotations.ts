@@ -101,12 +101,6 @@ export function addPoint(points: [number, number][], point: [number, number], mi
   return [...points, point];
 }
 
-/**
- * A touch much bigger than a fingertip (the side of a fist or a palm) erases. Boards that do not report touch
- * size send 0 or 1, so this never triggers there and the Eraser button remains the way to rub out.
- */
-export const FIST_SIZE = 44;
-export const isFistTouch = (event: { pointerType: string; width: number; height: number }) => event.pointerType === "touch" && Math.max(event.width, event.height) >= FIST_SIZE;
 /** A stylus eraser end, or a board that reports its own eraser. */
 export const isStylusEraser = (event: { pointerType: string; buttons: number; button: number }) => event.pointerType === "pen" && ((event.buttons & 32) !== 0 || event.button === 5);
 
@@ -116,11 +110,10 @@ export interface AnnotationPreferences {
   highlighterColour: string;
   size: SizeName;
   straight: boolean;
-  fistEraser: boolean;
 }
 
 /** Tool choices are remembered on this device; the ink itself never is. */
-export const defaultAnnotationPreferences: AnnotationPreferences = { tool: "pen", penColour: PEN_COLOURS[0].value, highlighterColour: HIGHLIGHTER_COLOURS[0].value, size: "medium", straight: false, fistEraser: true };
+export const defaultAnnotationPreferences: AnnotationPreferences = { tool: "pen", penColour: PEN_COLOURS[0].value, highlighterColour: HIGHLIGHTER_COLOURS[0].value, size: "medium", straight: false };
 
 export function readAnnotationPreferences(): AnnotationPreferences {
   try {
@@ -130,7 +123,6 @@ export function readAnnotationPreferences(): AnnotationPreferences {
     if (PEN_COLOURS.some(c => c.value === saved.penColour)) p.penColour = saved.penColour!;
     if (HIGHLIGHTER_COLOURS.some(c => c.value === saved.highlighterColour)) p.highlighterColour = saved.highlighterColour!;
     if (SIZES.some(size => size.value === saved.size)) p.size = saved.size!;
-    if (typeof saved.fistEraser === "boolean") p.fistEraser = saved.fistEraser;
     return p;
   } catch { return { ...defaultAnnotationPreferences }; }
 }

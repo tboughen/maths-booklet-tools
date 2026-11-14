@@ -13,6 +13,7 @@ import { downloadEditable, downloadPdf, editableName } from "./export";
 import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
+import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
 const MAX_FILE = 400_000;
@@ -41,11 +42,8 @@ function initial(): { r: Resource; message: string; recovery: string | null } {
 
 export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{
-    past: Resource[];
-    present: Resource;
-    future: Resource[];
-  }>({ past: [], present: startup.r, future: [] });
+  const documentHistory = useDocumentHistory<Resource>(startup.r, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
+  const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -64,15 +62,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     try {
       const valid = validate(next);
-      setHistory((h) =>
-        JSON.stringify(h.present) === JSON.stringify(valid)
-          ? h
-          : {
-              past: [...h.past, h.present].slice(-80),
-              present: valid,
-              future: [],
-            },
-      );
+      documentHistory.commit(valid);
       setMessage("");
     } catch (e) {
       // Invalid drafts are refused with the specific reason; the last valid sheet stays.
@@ -85,28 +75,8 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     update(next.document);
     commit(next);
   }
-  const undo = () =>
-    !blocked &&
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
-  const redo = () =>
-    !blocked &&
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+  const undo = () => !blocked && documentHistory.undo();
+  const redo = () => !blocked && documentHistory.redo();
 
   useEffect(() => {
     if (recovery !== null) return;
@@ -121,16 +91,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (!(event.ctrlKey || event.metaKey) || (event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))) return;
-      const k = event.key.toLowerCase();
-      if (k === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-      } else if (k === "y") {
-        event.preventDefault();
-        redo();
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -307,11 +268,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     const next = pending.r;
                     setPending(null);
-                    setHistory((h) => ({
-                      past: [...h.past, h.present].slice(-80),
-                      present: next,
-                      future: [],
-                    }));
+                    setHistory((h) => pushHistory(h, next, { label: "open file" }));
                     setMessage("");
                   }}
                 >

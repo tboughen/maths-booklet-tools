@@ -4,7 +4,12 @@ Implemented on the consistency preview, 15 October 2026. This document describes
 
 ## Common utilities
 
-Reuse `EditorToolbar`, `EditorDownloadMenu`, `ResourceSize` and `resource-utilities.css`. For this local refinement candidate, keep Undo, Redo, Reset, Copy image, Copy for Word and the independent File dropdown in that order. The Word button is no longer a split download control. The common menu contains Download SVG, Download PNG (600 ppi), Save editable file, Open editable file and Copy editable link, followed by genuine help. File inputs and import/recovery dialogs must remain mounted outside the menu.
+Reuse `EditorToolbar`, `EditorDownloadMenu`, `ResourceSize` and `resource-utilities.css`.
+
+## Shared editor kit
+
+Shared editor behaviour lives in `src/editor-kit/` (import from `../editor-kit`). Every editor keeps its document history with `useDocumentHistory` (one limit, `EDITOR_HISTORY_LIMIT`, equal changes ignored through `equals`, optional step names for "Undo …") and reads undo keys with `handleUndoKeys` or `useUndoKeys`: Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z and Ctrl+Y redo, never while typing in a field or while a dialog is open. Do not write a page-local history reducer or undo key handler. Put further shared editor state here (for example a shared draft store) rather than copying it into pages.
+ For this local refinement candidate, keep Undo, Redo, Reset, Copy image, Copy for Word and the independent File dropdown in that order. The Word button is no longer a split download control. The common menu contains Download SVG, Download PNG (600 ppi), Save editable file, Open editable file and Copy editable link, followed by genuine help. File inputs and import/recovery dialogs must remain mounted outside the menu.
 
 The menu is a bounded, scrolling portal with one `role=menu`, matched `aria-controls`, focusable actions and disabled/busy guards. Arrows, Home and End select actions; Escape restores the trigger; Tab continues page navigation; outside clicks preserve the clicked control's focus. A successful action closes it. A failure leaves an actionable message and the failed action focused. Do not return focus from a newly opened picker or help dialog. Navigation closes inactive editors' menus; asynchronous completion must not steal focus from another tool.
 
