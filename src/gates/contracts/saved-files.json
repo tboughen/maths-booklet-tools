@@ -26,7 +26,8 @@
             "type": "string",
             "enum": [
               "expand",
-              "factorise"
+              "factorise",
+              "multiply"
             ]
           },
           "columns": {

@@ -73,11 +73,20 @@ test("answer lines read as None or a count of lines and still save the number", 
 }) => {
   await load(page);
   const select = page.getByRole("combobox", { name: /^Answer lines/ });
-  await expect(select.locator("option")).toHaveText(["None", "1 line", "2 lines", "3 lines"]);
+  await expect(select.locator("option")).toHaveText([
+    "None",
+    "1 line",
+    "2 lines",
+    "3 lines",
+  ]);
   await select.selectOption({ label: "2 lines" });
-  await expect.poll(async () => (await saved(page)).document.answerLines).toBe(2);
+  await expect
+    .poll(async () => (await saved(page)).document.answerLines)
+    .toBe(2);
   await select.selectOption({ label: "None" });
-  await expect.poll(async () => (await saved(page)).document.answerLines).toBe(0);
+  await expect
+    .poll(async () => (await saved(page)).document.answerLines)
+    .toBe(0);
 });
 
 test("multiplication sign is larger than x in compact cells and in real SVG exports", async ({
@@ -1061,4 +1070,49 @@ test("upgrades an existing device draft once with Undo, while importing its old 
   await expect(
     page.getByRole("combobox", { name: "Grid lines", exact: true }),
   ).toHaveValue("0.2");
+});
+test("grid method for numbers: switching task clears algebra with undo, and the worked version splits by place value (U105)", async ({
+  page,
+}) => {
+  await page.goto("/tools/expanding-factorising");
+  const original = example();
+  await page
+    .locator('.site-page:not([hidden]) select:has(option[value="multiply"])')
+    .selectOption("multiply");
+  await page.getByRole("button", { name: "Apply replacement" }).click();
+  await expect
+    .poll(async () => (await saved(page))?.document.mode)
+    .toBe("multiply");
+  expect((await saved(page)).document.rows[0].cells[1].value).toBeNull();
+  const question = page.getByLabel("Question expression", { exact: true });
+  await question.fill("23 x 47");
+  await question.press("Enter");
+  await page.getByLabel("Print question", { exact: true }).check();
+  await expect(
+    resource(page).locator("svg text").filter({ hasText: "Work out" }),
+  ).toHaveText("Work out 23 × 47");
+  // Algebra is refused in a numeric grid, and the draft stays visible.
+  await cell(page, 1, 1).click();
+  await page
+    .getByRole("textbox", { name: "Cell entry", exact: true })
+    .fill("x");
+  await page.getByRole("button", { name: "Apply cell", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Enter a number" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cancel cell", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Use worked version", exact: true })
+    .click();
+  const worked = (await saved(page)).document;
+  expect(
+    worked.rows[0].cells.slice(1).map((c: { value: string }) => c.value),
+  ).toEqual(["20", "3"]);
+  expect(worked.rows[2].cells[2].value).toBe("21");
+  expect(worked.answer).toBe("1081");
+  const undo = page.getByRole("button", { name: "Undo", exact: true });
+  while (await undo.isEnabled()) await undo.click();
+  await expect
+    .poll(async () => (await saved(page)).document.rows)
+    .toEqual(original.document.rows);
 });
