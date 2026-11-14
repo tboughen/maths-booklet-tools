@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 
@@ -156,6 +157,7 @@ export const schema = z
     rendererVersion: z.literal("algebra-grid-1"),
     styleProfile: z.literal("departmental-v1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof schema>;

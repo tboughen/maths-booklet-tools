@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { MIN_TEXT_PT, LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
@@ -59,6 +60,7 @@ const extendedSchema = legacySchema.extend({
     arrangement: z.enum(arrangements),
     caption: z.enum(["off", "relationship", "line"]),
   }),
+  ...aboutShape,
 });
 export const envelopeSchema = z.discriminatedUnion("schemaVersion", [
   legacySchema,

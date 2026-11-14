@@ -215,6 +215,18 @@
           "sourceId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -515,6 +527,18 @@
           "presentation"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -1011,6 +1035,18 @@
           "captions"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -1515,6 +1551,18 @@
           "captions"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -1817,6 +1865,18 @@
               "presentation"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -2312,6 +2372,18 @@
               "captions"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -2815,6 +2887,18 @@
               "captions"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -3013,6 +3097,18 @@
           "barMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -3510,6 +3606,18 @@
           "shapes"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -3960,6 +4068,18 @@
           "selectedObjectId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4308,6 +4428,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4534,6 +4666,18 @@
           "gapMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4805,6 +4949,18 @@
           "gapMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -5055,6 +5211,18 @@
           "showOperations"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -6058,6 +6226,18 @@
           "sourceId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -6514,6 +6694,18 @@
           "print"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -6866,6 +7058,18 @@
               "caption"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [

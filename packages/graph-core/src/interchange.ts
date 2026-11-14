@@ -1,3 +1,4 @@
+import { aboutOf, aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import {
   MAX_AXIS_ORIGIN,
@@ -298,6 +299,7 @@ export const envelopeSchema = z
     rendererVersion: z.literal(RENDERER_VERSION),
     styleProfile: z.enum(["legacy", "portable-v1"]),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict()
   .superRefine((e, c) => {
@@ -520,8 +522,9 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
     x: canonicalAxis(document.axes.x),
     y: canonicalAxis(document.axes.y),
   };
-  return JSON.stringify(
-    createEnvelope({
+  // The saved title and note (U34) follow the drawing, only when present, so other hashes stay put.
+  return JSON.stringify({
+    ...createEnvelope({
       version: 1,
       axes: document.axes,
       objects: document.objects,
@@ -531,7 +534,8 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
       ...(document.grid ? { grid: document.grid } : {}),
       ...(document.originLabel ? { originLabel: document.originLabel } : {}),
     }),
-  );
+    ...aboutOf(envelope),
+  });
 }
 export async function graphHash(envelope: GraphEnvelope): Promise<string> {
   return sha256Hex(canonicalEnvelope(envelope));
@@ -615,7 +619,7 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
     else if (op.position) object.equationLabelPosition = op.position;
   }
   document.selectedObjectId = null;
-  return validateEnvelope(createEnvelope(document), true);
+  return validateEnvelope({ ...createEnvelope(document), ...aboutOf(envelope) }, true);
 }
 export function graphWarnings(envelope: GraphEnvelope): string[] {
   const bounds = getBounds(envelope.document);
