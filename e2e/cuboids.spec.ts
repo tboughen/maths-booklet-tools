@@ -5,7 +5,6 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   create,
-  upgrade,
   canonical,
   encode,
   layout,
@@ -555,7 +554,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
   page,
 }) => {
   test.setTimeout(90000);
-  const e = upgrade(create());
+  const e = create();
   e.document.shapes[0].appearance!.mode = "faces";
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
@@ -643,4 +642,21 @@ test("the printed full-height label edits the separated layers directly", async 
   await field(page, "Edit height", "3");
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
   await expect(resource(page)).toContainText("Full height: 3 cm");
+});
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  const saved = async () =>
+    (await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((k) => k.includes("cuboid"));
+      return key ? localStorage.getItem(key) : null;
+    })) ?? "";
+  await page.locator("summary").filter({ hasText: /^Print settings$/ }).click();
+  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+  expect(await resource(page).innerHTML()).toContain('stroke-width="0.375"');
+  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
+  await expect.poll(saved).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
 });

@@ -1,7 +1,7 @@
 {
  "tool": "cuboids",
- "schemaVersion": 1,
- "rendererVersion": "cuboids-1",
+ "schemaVersion": 2,
+ "rendererVersion": "cuboids-2",
  "document": {
   "widthCm": 10,
   "shapes": [
@@ -69,7 +69,18 @@
     "workedArea": true,
     "counts": false,
     "layerNumbers": false,
-    "caption": ""
+    "caption": "",
+    "appearance": {
+     "mode": "outline",
+     "tone": "light",
+     "face": "bottom",
+     "area": {
+      "mode": "hidden",
+      "heading": "Base area",
+      "text": "",
+      "expression": false
+     }
+    }
    }
   ]
  }

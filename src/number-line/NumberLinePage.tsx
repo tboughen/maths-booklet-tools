@@ -48,7 +48,8 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
+import { nearestTick, TAP_REACH } from "./hitTest";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 /** A new number line starts from the house style's lines (U111); its text is always 11 pt. */
@@ -230,6 +231,9 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
+  /** Where each tick's button sits on screen; the touch hit test (U43) uses the same positions. */
+  const tickHits = ticks(d).map((v) => ({ v, x: position(d, v) * unit })),
+    tickHitTop = (m.axisY + 5) * unit;
   function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
@@ -371,6 +375,24 @@ export default function NumberLinePage({
         if (!dirty.size) setSelection(null);
       }
       if (handleUndoKeys(e, { undo, redo })) return;
+      // U9: Delete removes the selected point or line, never the axis.
+      if (objectKeyCommand(e)?.kind === "delete" && !blocked) {
+        if (selectedPoint) {
+          e.preventDefault();
+          try {
+            change([{ op: "remove_point", id: selectedPoint.id }]);
+            setSelection(null);
+          } catch (err) {
+            setMessage(err instanceof Error ? err.message : String(err));
+          }
+        } else if (
+          connection ||
+          (selection === "segment" && s?.kind === "interval")
+        ) {
+          e.preventDefault();
+          removeSelectedLine();
+        }
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -910,8 +932,21 @@ export default function NumberLinePage({
                     height: m.height * unit,
                   }}
                   onClick={(e) => {
-                    if (e.target instanceof SVGElement && !blocked)
-                      setSelection(null);
+                    if (!(e.target instanceof SVGElement) || blocked) return;
+                    // U43: a finger tap on bare paper near the axis or its tick labels picks the nearest tick
+                    // within 22 px, so touch gets a 44 px target without bigger, overlapping tick buttons.
+                    // A mouse click there still deselects. Endpoint, line and tick buttons sit above the paper.
+                    const pointer = (e.nativeEvent as PointerEvent).pointerType;
+                    const box = e.currentTarget.getBoundingClientRect();
+                    const y = e.clientY - box.top;
+                    const near =
+                      (pointer === "touch" || pointer === "pen") &&
+                      y >= m.axisY * unit - TAP_REACH &&
+                      y <= tickHitTop + TAP_REACH
+                        ? nearestTick(tickHits, e.clientX - box.left)
+                        : null;
+                    if (near !== null) tick(near);
+                    else setSelection(null);
                   }}
                 >
                   <div
@@ -920,15 +955,12 @@ export default function NumberLinePage({
                       __html: renderSvg(history.present),
                     }}
                   />
-                  {ticks(d).map((v) => (
+                  {tickHits.map(({ v, x }) => (
                     <button
                       key={v}
                       aria-label={`Tick ${v}`}
                       className="nl-hit nl-tick"
-                      style={{
-                        left: position(d, v) * unit,
-                        top: (m.axisY + 5) * unit,
-                      }}
+                      style={{ left: x, top: tickHitTop }}
                       onClick={() => tick(v)}
                     />
                   ))}

@@ -3886,23 +3886,12 @@
         "const": "cuboids"
       },
       "schemaVersion": {
-        "anyOf": [
-          {
-            "type": "number",
-            "const": 1
-          },
-          {
-            "type": "number",
-            "const": 2
-          }
-        ]
+        "type": "number",
+        "const": 2
       },
       "rendererVersion": {
         "type": "string",
-        "enum": [
-          "cuboids-1",
-          "cuboids-2"
-        ]
+        "const": "cuboids-2"
       },
       "document": {
         "type": "object",
@@ -4357,6 +4346,13 @@
               ],
               "additionalProperties": false
             }
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
