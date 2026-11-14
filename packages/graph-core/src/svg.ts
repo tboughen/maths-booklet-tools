@@ -816,6 +816,29 @@ function regionsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   return fills.length ? `<g class="graph-regions" stroke="none">${fills.join("")}</g>` : "";
 }
 
+/**
+ * Axis numbers sit on small white boxes that hide the grid lines behind them. Over a shaded
+ * region a plain white box would stand out, so the shading is repainted inside each box that
+ * touches the plot (clipped to the box), keeping the grid hidden and the shade continuous.
+ */
+function shadeLabelKnockouts(labels: string, document: DiagramDocumentV1, layout: SvgLayout): string {
+  const fills = regionsMarkup(document, layout)
+    .replace(/ class="graph-region[^"]*"/g, "")
+    .replace(/ data-object-id="[^"]*"/g, "")
+    .replace(/^<g class="graph-regions"/, '<g aria-hidden="true"');
+  if (!fills) return labels;
+  let count = 0;
+  return labels.replace(
+    /(<g class="axis-number[^"]*">)(<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*\/>)/g,
+    (whole, open: string, rect: string, x: string, y: string, w: string, h: string) => {
+      const [left, top, width, height] = [x, y, w, h].map(Number);
+      if (left > layout.plotRight || left + width < layout.plotLeft || top > layout.plotBottom || top + height < layout.plotTop) return whole;
+      const id = `region-knockout-${++count}`;
+      return `${open}${rect}<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath><g clip-path="url(#${id})">${fills}</g>`;
+    },
+  );
+}
+
 /** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
 function answerMarkup(document: DiagramDocumentV1, points: string[], labels: string[], pointLabels: string): string {
   if (!points.length && !labels.length && !pointLabels) return "";
@@ -852,7 +875,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   ${regionsMarkup(document, layout)}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
-  ${axes.labels}
+  ${shadeLabelKnockouts(axes.labels, document, layout)}
   ${objects.marks}
 </svg>`;
 }
