@@ -3,6 +3,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
   useRef,
@@ -908,10 +909,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 visibility. Use a worked version to export the answers.
               </p>
             )}
-            <p className="tr-guidance">
+            <EditorHint tool="triangle">
               Click a wedge to edit an angle, or a label to edit its text. Drag
               a vertex to reshape. Select a triangle to add its area.
-            </p>
+            </EditorHint>
             <div
               className="tr-scroll"
               ref={scroll}
