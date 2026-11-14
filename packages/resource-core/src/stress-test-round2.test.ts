@@ -163,3 +163,35 @@ describe("reminder cards, round 2", () => {
     expect(docx.bytes.byteLength).toBeGreaterThan(0);
   });
 });
+
+describe("question references, round 2", () => {
+  // A reminder card takes no number, so "Question 2" written before that rule can now point at itself.
+  const sheet = (cards: unknown[][]): Resource => {
+    const doc = structuredClone(treeDiagrams) as unknown as { document: { sides: { columns: { cards: { title: string; items: unknown[] }[] }[] }[] } };
+    const col = doc.document.sides[0].columns[0];
+    col.cards = cards.map((items, i) => ({ ...col.cards[0], title: `Card ${i + 1}`, items }));
+    // Every other column holds one plain card after column 1's cards, so numbering starts in column 1.
+    doc.document.sides.forEach((side, s) => side.columns.forEach((c, k) => {
+      if (s || k) c.cards = [{ ...col.cards[0], title: "Other", items: [{ type: "text", text: "Other." }] }];
+    }));
+    return validate(doc);
+  };
+  const refs = (r: Resource) => messages(r).filter((m) => /refers to Question|Total for Question/.test(m));
+  it("reports a reference that now names its own card, and one past the last question", () => {
+    const r = sheet([
+      [{ type: "info", text: "Along a path: multiply." }],
+      [{ type: "text", text: "A bag holds 3 red and 2 blue counters." }],
+      [{ type: "text", text: "Use the tree in Question 2." }],
+      [{ type: "text", text: "Compare with Question 19." }],
+    ]);
+    const found = refs(r);
+    expect(found.some((m) => m.startsWith("Question 2 refers to Question 2, which is itself"))).toBe(true);
+    expect(found.some((m) => m.startsWith("Question 3 refers to Question 19"))).toBe(true);
+    expect(found.join("\n")).not.toMatch(/Question [4-9] refers/);
+    expect(found).toHaveLength(2);
+  });
+  it("accepts correct references and Edexcel totals, and flags a total with the wrong number", () => {
+    expect(refs(sheet([[{ type: "text", text: "Hello." }], [{ type: "text", text: "Use Question 1. (Total for Question 2 is 3 marks)" }]]))).toEqual([]);
+    expect(refs(sheet([[{ type: "info", text: "Key fact." }], [{ type: "text", text: "(Total for Question 2 is 3 marks)" }]]))).toHaveLength(1);
+  });
+});

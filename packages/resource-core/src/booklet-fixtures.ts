@@ -103,8 +103,8 @@ export const exampleLessonSource = {
       cards: [
         card("Find the gradient", gradientGrid([0, 0], [3, 3]), checklist("Mark two perfect points", "Draw the triangle", "Complete the table"), moves([["", ""], ["1", "[1]"]]), answer("Gradient =", "1")),
         card("Find the gradient", gradientGrid([0, 2], [1, 5]), moves([["", ""], ["1", "[3]"]]), answer("Gradient =", "3")),
-        card("Find the gradient", gradientGrid([0, 1], [4, 3]), moves([["", ""], ["1", "[1/2]"]]), answer("Gradient =", "½")),
-        card("Find the gradient", gradientGrid([1, 0], [3, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2½")),
+        card("Find the gradient", gradientGrid([0, 1], [4, 3]), moves([["", ""], ["1", "[1/2]"]]), answer("Gradient =", "1/2")),
+        card("Find the gradient", gradientGrid([1, 0], [3, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2 1/2")),
       ],
     },
     {
@@ -113,9 +113,9 @@ export const exampleLessonSource = {
       instruction: "Answer on your mini whiteboard.",
       columns: 2,
       cards: [
-        card("Read the movements", t("Between two perfect points a line goes 2 right and 6 up. What is its gradient?"), choose(["2", "3", "6", "⅓"], 1)),
-        card("Read the triangle", t("The triangle under a line is 4 across and 2 up. What is the gradient?"), choose(["2", "½", "4", "6"], 1)),
-        card("Steeper", t("Line P has gradient 3. Line Q has gradient ½. Which line is steeper?"), choose(["P", "Q", "Equally steep"], 0)),
+        card("Read the movements", t("Between two perfect points a line goes 2 right and 6 up. What is its gradient?"), choose(["2", "3", "6", "{1/3}"], 1)),
+        card("Read the triangle", t("The triangle under a line is 4 across and 2 up. What is the gradient?"), choose(["2", "{1/2}", "4", "6"], 1)),
+        card("Steeper", t("Line P has gradient 3. Line Q has gradient {1/2}. Which line is steeper?"), choose(["P", "Q", "Equally steep"], 0)),
         card("Gradient of 1", t("Which line has a gradient of 1?"), choose(["1 right, 2 up", "3 right, 3 up", "2 right, 1 up", "4 right, 2 up"], 1)),
       ],
     },
@@ -126,11 +126,11 @@ export const exampleLessonSource = {
       columns: 2,
       cards: [
         card("Find the gradient", gradientGrid([0, 1], [1, 3]), moves([["[1]", "[2]"], ["1", "[2]"]]), answer("Gradient =", "2")),
-        card("Find the gradient", gradientGrid([0, 0], [2, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2½")),
-        card("Find the gradient", gradientGrid([0, 2], [3, 3]), space(12), answer("Gradient =", "⅓")),
-        card("Find the gradient", gradientGrid([1, 1], [3, 6]), space(12), answer("Gradient =", "2½")),
+        card("Find the gradient", gradientGrid([0, 0], [2, 5]), moves([["", ""], ["1", "[5/2]"]]), answer("Gradient =", "2 1/2")),
+        card("Find the gradient", gradientGrid([0, 2], [3, 3]), space(12), answer("Gradient =", "1/3")),
+        card("Find the gradient", gradientGrid([1, 1], [3, 6]), space(12), answer("Gradient =", "2 1/2")),
         card("No grid", t("A line passes through (1, 2) and (3, 8). Find its gradient."), space(22), answer("Gradient =", "3")),
-        card("No grid", t("A line passes through (0, 1) and (4, 4). Find its gradient."), space(22), answer("Gradient =", "¾")),
+        card("No grid", t("A line passes through (0, 1) and (4, 4). Find its gradient."), space(22), answer("Gradient =", "3/4")),
       ],
     },
     {
@@ -142,7 +142,7 @@ export const exampleLessonSource = {
         card(
           "Adam's working",
           t("Adam found the gradient of the line through (0, 0) and (2, 6)."),
-          claim("The line goes 2 across and 6 up, so the gradient is 2 ÷ 6 = ⅓."),
+          claim("The line goes 2 across and 6 up, so the gradient is 2 ÷ 6 = {1/3}."),
           part("Explain Adam's mistake.", space(14)),
           part("Find the correct gradient.", answer("Gradient =", "3")),
         ),
@@ -151,7 +151,7 @@ export const exampleLessonSource = {
           t("Beatrice used the perfect points (1, 1) and (4, 3)."),
           claim("The triangle is 3 across and 2 up, so the gradient is 3 − 2 = 1."),
           part("Explain Beatrice's mistake.", space(14)),
-          part("Find the correct gradient.", answer("Gradient =", "⅔")),
+          part("Find the correct gradient.", answer("Gradient =", "2/3")),
         ),
       ],
     },
@@ -163,7 +163,7 @@ export const exampleLessonSource = {
       cards: [
         card(
           "Lines through the origin",
-          t("On the grid, draw and label lines through (0, 0) with gradients 1, 2, 3, ½ and ⅓."),
+          t("On the grid, draw and label lines through (0, 0) with gradients 1, 2, 3, {1/2} and {1/3}."),
           graph([1, 12], [1, 8]),
           part("Which line is the steepest? How could you tell without drawing it?", space(12)),
         ),
@@ -251,6 +251,7 @@ export const a7Booklet: Booklet = validateBooklet({
     group: "Year 9",
     coverNote: "Use a sharp pencil and a ruler for every graph. Show your working in the spaces given.",
     nameLine: true,
+    notation: "maths",
     intro: {
       remember: ["Coordinates in all four quadrants", "Substitution into expressions", "Ratio tables and scaling"],
       learn: ["Plotting straight-line graphs", "Gradient and *y*-intercept", "Equations of the form *y* = *mx* + *c*", "Parallel lines"],

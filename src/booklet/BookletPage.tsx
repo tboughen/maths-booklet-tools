@@ -554,6 +554,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <label className="ws-check">
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines
               </label>
+              <label className="ws-check">
+                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
+              </label>
               <details className="ws-side">
                 <summary>Unit introduction</summary>
                 <label className="ws-check">

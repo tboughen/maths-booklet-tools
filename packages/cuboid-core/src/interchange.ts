@@ -19,6 +19,7 @@ import {
   type Envelope,
   type Shape,
 } from "./index";
+import { sha256Hex } from "../../envelope-core/src/index";
 
 const id = shapeSchema.shape.id;
 const labelPatch = labelSchema.partial().optional();
@@ -166,14 +167,8 @@ export const revisionSchema = z
     operations: z.array(operationSchema).max(30),
   })
   .strict();
-export async function hash(e: Envelope) {
-  const bytes = await globalThis.crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(canonical(e)),
-  );
-  return Array.from(new Uint8Array(bytes), (n) =>
-    n.toString(16).padStart(2, "0"),
-  ).join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export function apply(raw: Envelope, operations: unknown): Envelope {
   let next = structuredClone(validate(raw));

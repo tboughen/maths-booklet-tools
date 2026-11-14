@@ -29,6 +29,7 @@ import {
   sameNumber,
 } from "./numbers";
 import { ratioMetrics } from "./svg";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 export * from "./schema";
 export * from "./numbers";
@@ -435,13 +436,7 @@ export function canonicalRatio(input: RatioEnvelope): string {
   return JSON.stringify(stable(validateRatioEnvelope(input)));
 }
 export async function ratioHash(envelope: RatioEnvelope): Promise<string> {
-  const digest = await globalThis.crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(canonicalRatio(envelope)),
-  );
-  return Array.from(new Uint8Array(digest), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("");
+  return sha256Hex(canonicalRatio(envelope));
 }
 export async function reviseRatioTable(input: unknown): Promise<RatioEnvelope> {
   bounded(input, RATIO_MAX_REQUEST_BYTES, "The revision");
@@ -570,14 +565,7 @@ export function describeRatio(envelope: RatioEnvelope, view: "pupil" | "answer" 
   return `Ratio table, headings ${d.headings.map((h) => h.text + (h.direction === "none" ? "" : h.direction === "up" ? " ↑" : h.direction === "down" ? " ↓" : " →")).join(" and ")}. ${rows}. ${d.mode === "simple" ? "Scaling annotations hidden." : `Scaling arrows ${d.showArrows ? "shown" : "hidden"}; operation labels ${d.showOperations ? "shown" : "hidden"}.${view === "answer" && d.transitions.some((t) => t.hidden) ? " Hidden operations print only in the answers copy." : ""}`}`;
 }
 export function encodeRatio(envelope: RatioEnvelope): string {
-  return btoa(
-    Array.from(new TextEncoder().encode(canonicalRatio(envelope)), (b) =>
-      String.fromCharCode(b),
-    ).join(""),
-  )
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/, "");
+  return toBase64Url(canonicalRatio(envelope));
 }
 export function decodeRatio(payload: string): RatioEnvelope {
   if (

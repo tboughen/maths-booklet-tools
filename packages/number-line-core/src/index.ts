@@ -2,6 +2,7 @@ import { z } from "zod";
 import { canonicalNumber, fractionString, isMixedNumber, mixedString, parseNumber, parseRatioNumber, rational } from "../../ratio-table-core/src/numbers";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { patchSchema } from "../../graph-core/src/patch-schema";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 const textWidth = (text: string, size: number) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * size;
 /** Numeric fields where a typed mixed number ("1 1/2" or "1½") is read as its improper fraction ("3/2"). */
 const NUMERIC_KEYS = new Set(["minimum", "maximum", "step", "value", "lower", "upper", "stop"]);
@@ -111,8 +112,8 @@ export function create(raw: unknown = {}): Envelope { return validate({ schemaVe
 export function canonical(e: Envelope) { return JSON.stringify(validate(e)); }
 export function parseFile(text: string) { if (new TextEncoder().encode(text).length > 32768)
     throw Error("Use a number-line file smaller than 32 KiB."); return validate(JSON.parse(text)); }
-export async function hash(e: Envelope) { const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(e))); return Array.from(new Uint8Array(digest), v => v.toString(16).padStart(2, "0")).join(""); }
-export function encode(e: Envelope) { const bytes = new TextEncoder().encode(canonical(e)); let s = ""; bytes.forEach(v => s += String.fromCharCode(v)); return btoa(s).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, ""); }
+export async function hash(e: Envelope): Promise<string> { return sha256Hex(canonical(e)); }
+export function encode(e: Envelope): string { return toBase64Url(canonical(e)); }
 export function decode(text: string) { if (text.length > 16000 || !/^[A-Za-z0-9_-]+$/.test(text))
     throw Error("Invalid number-line link."); return parseFile(new TextDecoder().decode(Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), c => c.charCodeAt(0)))); }
 export function editorLink(e: Envelope, base: string) { const u = new URL(base); u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/number-line"; u.search = ""; u.hash = `number-line=${encode(e)}`; return u.href.length > 7500 ? null : u.href; }

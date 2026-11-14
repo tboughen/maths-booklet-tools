@@ -4,6 +4,7 @@ import {
   type ValueEnvelope,
   type ValueOperation,
 } from "./schema";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 export * from "./schema";
 export * from "./model";
 export * from "./svg";
@@ -17,16 +18,8 @@ export function parseFile(raw: string): ValueEnvelope {
     throw Error("The editable file is too large.");
   return validate(JSON.parse(raw));
 }
-export function encode(e: ValueEnvelope) {
-  const bytes = new TextEncoder().encode(canonical(e));
-  let binary = "";
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
-  return btoa(binary)
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/g, "");
+export function encode(e: ValueEnvelope): string {
+  return toBase64Url(canonical(e));
 }
 export function decode(token: string): ValueEnvelope {
   if (token.length > MAX_LINK_LENGTH || !/^[-_a-zA-Z0-9]+$/.test(token))
@@ -53,12 +46,8 @@ export function editorLink(e: ValueEnvelope, base: string): string {
     );
   return url.href;
 }
-export async function contentHash(e: ValueEnvelope) {
-  const bytes = new TextEncoder().encode(canonical(e));
-  return Array.from(
-    new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
-    (b) => b.toString(16).padStart(2, "0"),
-  ).join("");
+export async function contentHash(e: ValueEnvelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export function create(spec?: unknown) {
   return spec === undefined ? defaultEnvelope() : validate(spec);
