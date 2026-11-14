@@ -1,0 +1,146 @@
+{
+ "tool": "construction",
+ "schemaVersion": 1,
+ "rendererVersion": "construction-1",
+ "document": {
+  "width": 12,
+  "height": 9,
+  "grid": "none",
+  "border": false,
+  "caption": {
+   "text": "",
+   "show": "show"
+  },
+  "points": [
+   {
+    "id": "A",
+    "x": 2.5,
+    "y": 4.5,
+    "label": {
+     "text": "A",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "B",
+    "x": 9.5,
+    "y": 4.5,
+    "label": {
+     "text": "B",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "pb1-p",
+    "x": 6,
+    "y": 7.929,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "pb1"
+   },
+   {
+    "id": "pb1-q",
+    "x": 6,
+    "y": 1.071,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "pb1"
+   }
+  ],
+  "objects": [
+   {
+    "id": "AB",
+    "role": "given",
+    "type": "segment",
+    "from": "A",
+    "to": "B",
+    "extend": [
+     0,
+     0
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   },
+   {
+    "id": "pb1-arc1",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "A",
+    "radius": 4.9,
+    "start": 36.23,
+    "sweep": 16.37,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc2",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "B",
+    "radius": 4.9,
+    "start": 127.4,
+    "sweep": 16.37,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc3",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "A",
+    "radius": 4.9,
+    "start": -52.6,
+    "sweep": 16.37,
+    "dash": false
+   },
+   {
+    "id": "pb1-arc4",
+    "role": "answer",
+    "group": "pb1",
+    "type": "arc",
+    "center": "B",
+    "radius": 4.9,
+    "start": -143.77,
+    "sweep": 16.37,
+    "dash": false
+   },
+   {
+    "id": "pb1-line",
+    "role": "answer",
+    "group": "pb1",
+    "type": "segment",
+    "from": "pb1-p",
+    "to": "pb1-q",
+    "extend": [
+     0.8,
+     0.8
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   }
+  ]
+ }
+}

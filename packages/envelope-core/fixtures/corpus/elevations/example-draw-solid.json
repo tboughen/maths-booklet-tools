@@ -1,0 +1,81 @@
+{
+ "tool": "elevations",
+ "schemaVersion": 1,
+ "rendererVersion": "elevations-1",
+ "document": {
+  "heights": [
+   [
+    3,
+    2,
+    1,
+    1
+   ],
+   [
+    2,
+    1,
+    0,
+    1
+   ],
+   [
+    1,
+    0,
+    0,
+    2
+   ]
+  ],
+  "panels": [
+   {
+    "view": "plan",
+    "state": "drawn",
+    "label": {
+     "text": "Plan",
+     "show": "show"
+    },
+    "squares": {
+     "across": 0,
+     "up": 0
+    }
+   },
+   {
+    "view": "front",
+    "state": "drawn",
+    "label": {
+     "text": "Front elevation",
+     "show": "show"
+    },
+    "squares": {
+     "across": 0,
+     "up": 0
+    }
+   },
+   {
+    "view": "side",
+    "state": "drawn",
+    "label": {
+     "text": "Side elevation",
+     "show": "show"
+    },
+    "squares": {
+     "across": 0,
+     "up": 0
+    }
+   },
+   {
+    "view": "isometric",
+    "state": "answer",
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "squares": {
+     "across": 0,
+     "up": 0
+    }
+   }
+  ],
+  "unitCm": 1,
+  "arrows": true,
+  "isoDots": false,
+  "maxWidthCm": 26
+ }
+}

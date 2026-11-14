@@ -1,0 +1,167 @@
+{
+ "tool": "construction",
+ "schemaVersion": 1,
+ "rendererVersion": "construction-1",
+ "document": {
+  "width": 13,
+  "height": 7,
+  "grid": "none",
+  "border": false,
+  "caption": {
+   "text": "",
+   "show": "show"
+  },
+  "points": [
+   {
+    "id": "A",
+    "x": 3,
+    "y": 3.5,
+    "label": {
+     "text": "A",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "B",
+    "x": 10,
+    "y": 3.5,
+    "label": {
+     "text": "B",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "ls1-a1",
+    "x": 3,
+    "y": 5.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "ls1"
+   },
+   {
+    "id": "ls1-b1",
+    "x": 10,
+    "y": 5.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "ls1"
+   },
+   {
+    "id": "ls1-a2",
+    "x": 3,
+    "y": 1.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "ls1"
+   },
+   {
+    "id": "ls1-b2",
+    "x": 10,
+    "y": 1.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "answer",
+    "group": "ls1"
+   }
+  ],
+  "objects": [
+   {
+    "id": "AB",
+    "role": "given",
+    "type": "segment",
+    "from": "A",
+    "to": "B",
+    "extend": [
+     0,
+     0
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   },
+   {
+    "id": "ls1-side1",
+    "role": "answer",
+    "group": "ls1",
+    "type": "segment",
+    "from": "ls1-a1",
+    "to": "ls1-b1",
+    "extend": [
+     0,
+     0
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   },
+   {
+    "id": "ls1-side2",
+    "role": "answer",
+    "group": "ls1",
+    "type": "segment",
+    "from": "ls1-a2",
+    "to": "ls1-b2",
+    "extend": [
+     0,
+     0
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   },
+   {
+    "id": "ls1-end1",
+    "role": "answer",
+    "group": "ls1",
+    "type": "arc",
+    "center": "A",
+    "radius": 2,
+    "start": 90,
+    "sweep": 180,
+    "dash": false
+   },
+   {
+    "id": "ls1-end2",
+    "role": "answer",
+    "group": "ls1",
+    "type": "arc",
+    "center": "B",
+    "radius": 2,
+    "start": 270,
+    "sweep": 180,
+    "dash": false
+   }
+  ]
+ }
+}

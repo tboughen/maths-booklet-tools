@@ -18,9 +18,10 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 | `create_booklet` | A4 unit booklets (see [BOOKLET-MAKER.md](BOOKLET-MAKER.md)); same items and families as worksheets. Added 11 Nov 2026, the ninth tool. |
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
-`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree` and `triangle`. `outputView` applies
+`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree`, `triangle`, `construction` and `elevations`
+([constructions, loci and bearings](CONSTRUCTION-TOOL.md) and [plans and elevations](ELEVATIONS-TOOL.md), 14 Nov 2026). `outputView` applies
 only to families with an answers copy (ratio tables, graphs, number lines, Venn, bar models, charts,
-probability trees, frequency trees, expanding and factorising grids, and triangles). Value graphs and cuboids hold no
+probability trees, frequency trees, expanding and factorising grids, triangles, constructions, and plans and elevations). Value graphs and cuboids hold no
 saved answers (a blank value-graph cell or cuboid label has nothing stored), so they stay pupil-only: an answers copy
 there would mean calculating. Since M84 (14 November 2026) number lines print answer-line tick values, a hidden
 solution and a hidden saved answer in pink (hidden tick labels stay hidden), and bar models (v1, v2 and v3) print

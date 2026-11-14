@@ -15,6 +15,8 @@ import { examples as ftreeExamples } from "../../frequency-tree-core/src/example
 import { examples as ptreeExamples } from "../../probability-tree-core/src/examples";
 import { examples as vennExamples, teachingExamples as vennTeaching } from "../../venn-core/src/examples";
 import { examples as triangleExamples } from "../../triangle-core/src/examples";
+import { examples as constructionExamples } from "../../construction-core/src/examples";
+import { examples as elevationExamples } from "../../elevation-core/src/examples";
 import { examples as lineExamples, example as lineExample } from "../../number-line-core/src/examples";
 import { lessonExample as barV2, lessonExampleNames } from "../../bar-model-core/src/lesson-examples";
 import { lessonExample as barV3 } from "../../bar-model-core/src/lesson-examples-v3";
@@ -48,7 +50,7 @@ it.skipIf(!process.env.COLLECT_CORPUS)("collects the saved-envelope corpus", () 
     }
   };
   for (const kind of DIAGRAM_KINDS) add(kind, "default", () => FAMILIES[kind].create({}));
-  for (const [kind, list] of [["charts", chartExamples], ["frequency-tree", ftreeExamples], ["probability-tree", ptreeExamples], ["venn", [...vennExamples, ...vennTeaching]]] as const)
+  for (const [kind, list] of [["charts", chartExamples], ["frequency-tree", ftreeExamples], ["construction", constructionExamples], ["elevations", elevationExamples], ["probability-tree", ptreeExamples], ["venn", [...vennExamples, ...vennTeaching]]] as const)
     for (const x of list as { id: string; make: (w: boolean) => unknown }[]) for (const w of [false, true]) add(kind, `example-${slug(x.id)}${w ? "-worked" : ""}`, () => x.make(w));
   for (const x of cuboidExamples) for (const w of [false, true]) add("cuboids", `example-${slug(x.id)}${w ? "-worked" : ""}`, () => x.create(w));
   for (const x of triangleExamples) add("triangle", `example-${slug(x.key)}`, () => x.build());

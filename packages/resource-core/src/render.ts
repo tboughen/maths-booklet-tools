@@ -422,6 +422,10 @@ export function tooWideMessage(tool: string, width: number, room: number): strin
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
       : tool === "probability-tree"
         ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the end probability column (settings.endColumn "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
+      : tool === "construction"
+        ? " Constructions print at true size: reduce the drawing's widthCm (and move points inside it), or use a wider column layout."
+      : tool === "elevations"
+        ? " Use settings.maxWidthCm to wrap the panels onto more rows, a smaller unitCm, or a wider column layout."
       : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }

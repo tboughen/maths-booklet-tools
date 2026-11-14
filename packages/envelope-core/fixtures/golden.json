@@ -1264,5 +1264,155 @@
   "contentHash": "ed822830827e18dd467e5b58cbb76f585a588c711758603ccc7a5d614e2bd037",
   "pupilSvg": "9b2fe7383e637cba4bcf7e413e8da96b59448e9a597bfcabf01805a511692636",
   "answerSvg": "9b2fe7383e637cba4bcf7e413e8da96b59448e9a597bfcabf01805a511692636"
+ },
+ "construction/default": {
+  "schemaVersion": 1,
+  "contentHash": "5ae44278ebc938c8c8a2d4f2ebc74bc368d3e3bf84ee964e9c8142117e04416e",
+  "pupilSvg": "c50fa37c08202aa46b16305f9156e31bc5d2f659958915d001f70541a0795743",
+  "answerSvg": "4674b61d09481809bfd8023d0c3fa5eadc7e9373b67b4ba3403540ed02dcc9f3"
+ },
+ "construction/example-angle-bisector-worked": {
+  "schemaVersion": 1,
+  "contentHash": "adb02ace39ca7822ff78a3cb1529397bd70c70f161240c452e8a39b9ecd6ccff",
+  "pupilSvg": "a0d1bdf4149b8d9fa15f2e740fe10b822b0d178dabca0ff5b93c64dc0360978e",
+  "answerSvg": "a0d1bdf4149b8d9fa15f2e740fe10b822b0d178dabca0ff5b93c64dc0360978e"
+ },
+ "construction/example-angle-bisector": {
+  "schemaVersion": 1,
+  "contentHash": "a607fd3d613e6ca849f59c5fa217f2d6bd3779efca506394ec46756feb865c8f",
+  "pupilSvg": "77dd459281b1b2fd4e146af23ff986608f3655829c29b3b25f72aa4f0754c14b",
+  "answerSvg": "a0d1bdf4149b8d9fa15f2e740fe10b822b0d178dabca0ff5b93c64dc0360978e"
+ },
+ "construction/example-bearings-port-worked": {
+  "schemaVersion": 1,
+  "contentHash": "9a75a39adee1fb8e6a1c7efc2737de322cd71900a6af2e9d291814245e7d3dba",
+  "pupilSvg": "6507524b29846654763c8781c272ccd0568f8207b940433ea238207e90796363",
+  "answerSvg": "6507524b29846654763c8781c272ccd0568f8207b940433ea238207e90796363"
+ },
+ "construction/example-bearings-port": {
+  "schemaVersion": 1,
+  "contentHash": "a82fa82a565d3ff99e5f8e21ad8f43799265925cf3dc18fa4c6d6f7798b8572f",
+  "pupilSvg": "5f4e134abc74b40934aac514d6358f6b92062f2dd84b33699b8d66626626af29",
+  "answerSvg": "6507524b29846654763c8781c272ccd0568f8207b940433ea238207e90796363"
+ },
+ "construction/example-loci-garden-worked": {
+  "schemaVersion": 1,
+  "contentHash": "658df886a1210d26577194b863387d036b05b2043550eaad4fef30ac1fe016a9",
+  "pupilSvg": "17497ca9601d70ea75bb175a5e3838dcf8ad16cd6c700866fa72648c5e012903",
+  "answerSvg": "17497ca9601d70ea75bb175a5e3838dcf8ad16cd6c700866fa72648c5e012903"
+ },
+ "construction/example-loci-garden": {
+  "schemaVersion": 1,
+  "contentHash": "5f641e675dba7cb77d7649d69455240f7e54a93a7def5f82af33680896942c79",
+  "pupilSvg": "ee87b982fd7a0953b66f1e80174e87cc65dc62ff5d47df843816a5560e1b7832",
+  "answerSvg": "17497ca9601d70ea75bb175a5e3838dcf8ad16cd6c700866fa72648c5e012903"
+ },
+ "construction/example-locus-segment-worked": {
+  "schemaVersion": 1,
+  "contentHash": "8db1699e8e09c104827319d56f378d662fcd2bb6694d80d1b9d1d8d04f99e8ab",
+  "pupilSvg": "e3133835fd7632ceb191180ac4fc9339b3cba1d36d8ca99e259f35313a7886f5",
+  "answerSvg": "e3133835fd7632ceb191180ac4fc9339b3cba1d36d8ca99e259f35313a7886f5"
+ },
+ "construction/example-locus-segment": {
+  "schemaVersion": 1,
+  "contentHash": "1928b2f8528d991a2fbdb2df0e614863fe84a066b9d5c46ddb5e194f6e69cc45",
+  "pupilSvg": "949194f854547836a01e1fa92a97fa2585fcf4e0442e0d7733fc719e4e656f28",
+  "answerSvg": "e3133835fd7632ceb191180ac4fc9339b3cba1d36d8ca99e259f35313a7886f5"
+ },
+ "construction/example-map-equidistant-worked": {
+  "schemaVersion": 1,
+  "contentHash": "33c39b3ebb040a7651855be1edab77a12f8fd09da9abb9a61cd1eb6d2445d889",
+  "pupilSvg": "58506c974bfb834f3cc01bcbb9302be91eaaf0ff5ee6c9089e6b6493a5d90f9f",
+  "answerSvg": "58506c974bfb834f3cc01bcbb9302be91eaaf0ff5ee6c9089e6b6493a5d90f9f"
+ },
+ "construction/example-map-equidistant": {
+  "schemaVersion": 1,
+  "contentHash": "ce4e7ec5a7778fd5f87a3e31e00971308fe68996852f3274a3fe2157bb4ce3a7",
+  "pupilSvg": "c1c7b20648a4e7bff30896a64170d3e83ec171e68f0c8b6bc8dafb2121e817ae",
+  "answerSvg": "58506c974bfb834f3cc01bcbb9302be91eaaf0ff5ee6c9089e6b6493a5d90f9f"
+ },
+ "construction/example-perpendicular-at-point-worked": {
+  "schemaVersion": 1,
+  "contentHash": "ba16ab2f81697f4b6c1605082c3043885cce2b41af364e8d95d63a116e189da6",
+  "pupilSvg": "06c2e785a0a4755c1b1a9f61f40c88988b6b667bbd6e9d19fe8cce8294c59a8c",
+  "answerSvg": "06c2e785a0a4755c1b1a9f61f40c88988b6b667bbd6e9d19fe8cce8294c59a8c"
+ },
+ "construction/example-perpendicular-at-point": {
+  "schemaVersion": 1,
+  "contentHash": "b0d5d8198609e09275fd11c79cdb0a495404a7da3fc3f91c2cbe280e2f2e4b8f",
+  "pupilSvg": "065294ff8b6fc315f771a48ba1f17674cb4261e1cf5e02f821879bcdc5f2d07c",
+  "answerSvg": "06c2e785a0a4755c1b1a9f61f40c88988b6b667bbd6e9d19fe8cce8294c59a8c"
+ },
+ "construction/example-perpendicular-bisector-worked": {
+  "schemaVersion": 1,
+  "contentHash": "92c04b5eb8936e15cfb44e9c1694342540d1629d7c631a38ce727dccacdd14b4",
+  "pupilSvg": "252d02cd3559577e3f20fad6a38b7de40fe05c5bd2adda9a5583e6fa479c7b05",
+  "answerSvg": "252d02cd3559577e3f20fad6a38b7de40fe05c5bd2adda9a5583e6fa479c7b05"
+ },
+ "construction/example-perpendicular-bisector": {
+  "schemaVersion": 1,
+  "contentHash": "4842deaa40530f79f9b559e27446eecfce0852710865c2c47db3920713897b72",
+  "pupilSvg": "3014130aa40a0d4d98f3d1a13aba7c7e4ed3a491fb0485de48337f80cb81ed0b",
+  "answerSvg": "252d02cd3559577e3f20fad6a38b7de40fe05c5bd2adda9a5583e6fa479c7b05"
+ },
+ "construction/example-perpendicular-from-point-worked": {
+  "schemaVersion": 1,
+  "contentHash": "02cb9516a620104dede0b1357b15d2da05731d906f62b0bab8f7ab28610b4562",
+  "pupilSvg": "c9c605e65fdf86dccfd77c0e675435fc6fa106e8a681cb89d01dd6e58d0f3c19",
+  "answerSvg": "c9c605e65fdf86dccfd77c0e675435fc6fa106e8a681cb89d01dd6e58d0f3c19"
+ },
+ "construction/example-perpendicular-from-point": {
+  "schemaVersion": 1,
+  "contentHash": "3f11ed201881e0ef08f14690dd6922ebea245392ed5eed5118ca3e1f0642ad35",
+  "pupilSvg": "0804b33acd62b3015048ccd845e2b9abbaf0d423a1737f75bb8689aa96e56d38",
+  "answerSvg": "c9c605e65fdf86dccfd77c0e675435fc6fa106e8a681cb89d01dd6e58d0f3c19"
+ },
+ "elevations/default": {
+  "schemaVersion": 1,
+  "contentHash": "9c27a7412b7eaeae5b12128a4b32c55fff9c2f36df53b893844a0065fd7405fc",
+  "pupilSvg": "0c7dec06f5b5ab0e5502f6b1c5d9a4787503dcc2a665d6e5d2a1e489ecce0a24",
+  "answerSvg": "34c8efda342a5d6f2827b934bcdea9447f4ae3b0a1a6d822cbaaf766d34a613e"
+ },
+ "elevations/example-draw-solid-worked": {
+  "schemaVersion": 1,
+  "contentHash": "a7439d5e994cbad5a0a41a89b0a7cf701e47cc5910bf20dfd3fd71c47cf0b028",
+  "pupilSvg": "e498d9ab3450bfe01b90f5761bcf75058973382ddebf9de1b55d202421248bd3",
+  "answerSvg": "e498d9ab3450bfe01b90f5761bcf75058973382ddebf9de1b55d202421248bd3"
+ },
+ "elevations/example-draw-solid": {
+  "schemaVersion": 1,
+  "contentHash": "18466b2dbad26c01d162243279d7e179f290e380e1862a3b0d72e4d0f05d52d5",
+  "pupilSvg": "5ca762217bd79ef18c0039b53857751dbf935b0f5f0483177b595dfe7d2fb45b",
+  "answerSvg": "e498d9ab3450bfe01b90f5761bcf75058973382ddebf9de1b55d202421248bd3"
+ },
+ "elevations/example-draw-views-worked": {
+  "schemaVersion": 1,
+  "contentHash": "70a86a47aaf0751ce67ea5f58dbcedfb0bb55cb7e148577af20e224a247a737e",
+  "pupilSvg": "34c8efda342a5d6f2827b934bcdea9447f4ae3b0a1a6d822cbaaf766d34a613e",
+  "answerSvg": "34c8efda342a5d6f2827b934bcdea9447f4ae3b0a1a6d822cbaaf766d34a613e"
+ },
+ "elevations/example-scale-2cm-worked": {
+  "schemaVersion": 1,
+  "contentHash": "452a38d6006ad791468b374032560e5d7ba66e2fa13439948633d178cd55ef27",
+  "pupilSvg": "2e084ed604cd58a9b41446ef04dc0b485d971c4d07e585e1aad606b09c2cf585",
+  "answerSvg": "2e084ed604cd58a9b41446ef04dc0b485d971c4d07e585e1aad606b09c2cf585"
+ },
+ "elevations/example-scale-2cm": {
+  "schemaVersion": 1,
+  "contentHash": "c943c26b8dfb66603d294ec6a5d55b7d9ecf080053cf427f3fabd5ea38952f88",
+  "pupilSvg": "e5804258968990b9346018dec454a30ac3b1734b1a34d7b92ee75288b8581dee",
+  "answerSvg": "2e084ed604cd58a9b41446ef04dc0b485d971c4d07e585e1aad606b09c2cf585"
+ },
+ "elevations/example-steps-worked": {
+  "schemaVersion": 1,
+  "contentHash": "5429c1435ed3db7cbb5eec6700397c63ade50e42794c6fa0e4fe9f0986b9a9a0",
+  "pupilSvg": "80a2323266c4444016c7526246eebb3189ca328372ac989f26306a0baf4a1770",
+  "answerSvg": "80a2323266c4444016c7526246eebb3189ca328372ac989f26306a0baf4a1770"
+ },
+ "elevations/example-steps": {
+  "schemaVersion": 1,
+  "contentHash": "01bf9290fce8bf4d8fefde22627b2eedf18a496fb494146b0181331ede3290df",
+  "pupilSvg": "29df4aedfb336f83ee4bbeb28fcf95b8f4569c9f00e4b00a58bdcf5c59f05f76",
+  "answerSvg": "80a2323266c4444016c7526246eebb3189ca328372ac989f26306a0baf4a1770"
  }
 }

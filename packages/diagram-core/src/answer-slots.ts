@@ -127,6 +127,29 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
   "frequency-tree"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
+  construction(doc, out) {
+    // Answer points and objects (constructions, loci, bearings) print only on the answers copy;
+    // a hidden {text, show} label prints a gap for the pupil and its text on the answers copy.
+    for (const list of ["points", "objects"] as const) {
+      const items = Array.isArray(doc[list]) ? (doc[list] as Node[]) : [];
+      items.forEach((o, i) => {
+        const path = `document.${list}.${i}`;
+        if (o.role === "answer") out.push(slot(path, "hidden", str(o.id) || str(o.type)));
+        else if (isNode(o.label) && str(o.label.text)) shown(o.label, `${path}.label`, out);
+      });
+    }
+    if (isNode(doc.caption) && str(doc.caption.text)) shown(doc.caption, "document.caption", out);
+  },
+  elevations(doc, out) {
+    // An answer panel is an empty grid for the pupil and the drawn view on the answers copy.
+    const panels = Array.isArray(doc.panels) ? (doc.panels as Node[]) : [];
+    panels.forEach((p, i) => {
+      const path = `document.panels.${i}`;
+      if (p.state === "answer") out.push(slot(path, "hidden", str(p.view)));
+      else if (p.state === "blank") out.push(slot(path, "blank"));
+      else out.push(slot(path, "supplied", str(p.view)));
+    });
+  },
   triangle(doc, out) {
     walk(doc, "document", (l, path) => {
       if (typeof l.state !== "string" || typeof l.answerVisible !== "boolean") return;
