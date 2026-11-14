@@ -30,6 +30,7 @@ import "./site.css";
 import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
+import "./tablet.css";
 
 /** Each page downloads on first visit; `onReady` runs once its code has loaded and mounted. */
 function LazyPage({

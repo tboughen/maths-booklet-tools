@@ -49,7 +49,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
 import { nearestTick } from "./hitTest";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 /** A new number line starts from the house style's lines (U111); its text is always 11 pt. */
@@ -372,6 +372,24 @@ export default function NumberLinePage({
         if (!dirty.size) setSelection(null);
       }
       if (handleUndoKeys(e, { undo, redo })) return;
+      // U9: Delete removes the selected point or line, never the axis.
+      if (objectKeyCommand(e)?.kind === "delete" && !blocked) {
+        if (selectedPoint) {
+          e.preventDefault();
+          try {
+            change([{ op: "remove_point", id: selectedPoint.id }]);
+            setSelection(null);
+          } catch (err) {
+            setMessage(err instanceof Error ? err.message : String(err));
+          }
+        } else if (
+          connection ||
+          (selection === "segment" && s?.kind === "interval")
+        ) {
+          e.preventDefault();
+          removeSelectedLine();
+        }
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);

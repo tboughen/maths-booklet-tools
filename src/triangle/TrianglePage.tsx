@@ -99,7 +99,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
@@ -314,11 +314,13 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       (ex) => ex.sourceId && ex.sourceId === d.sourceId,
     ),
     notes = warnings(e);
-  function commit(next: Envelope, label?: string) {
+  /** `merge` folds a held-down key's repeats into the step it started, so one press-and-hold is one undo. */
+  function commit(next: Envelope, label?: string, merge = false) {
     if (recovery !== null) return;
     const n = validate(next);
     committed.current = n;
-    documentHistory.commit(n, label);
+    if (merge) documentHistory.replace(n);
+    else documentHistory.commit(n, label);
     setChoices([]);
     if (selected && !objects(n).some((o) => o.ref === selected))
       setSelected(null);
@@ -373,20 +375,20 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     drag.current = null;
     setDragged(null);
   }
-  function change(update: (n: Envelope) => void) {
+  function change(update: (n: Envelope) => void, label?: string) {
     if (blocked) return;
     try {
       const n = structuredClone(e);
       update(n);
-      commit(n);
+      commit(n, label);
     } catch (err) {
       setMessage(errorText(err));
     }
   }
-  function operation(update: () => Envelope) {
+  function operation(update: () => Envelope, label?: string, merge = false) {
     if (blocked) return;
     try {
-      commit(update());
+      commit(update(), label, merge);
     } catch (err) {
       setMessage(errorText(err));
     }
@@ -669,7 +671,32 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         event.target.closest("input,textarea,select,[contenteditable]")
       )
         return;
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      // U9: Escape deselects; Delete removes a selected height; arrows nudge a selected side, angle or height
+      // label 1 mm (Shift 5 mm). A selected vertex is left to its handle, whose arrows move the vertex itself.
+      const command = objectKeyCommand(event);
+      if (!command || !selected || blocked) return;
+      if (command.kind === "deselect") {
+        setSelected(null);
+      } else if (command.kind === "delete" && selected.startsWith("h:")) {
+        event.preventDefault();
+        change((n) => {
+          n.document.heights = n.document.heights.filter(
+            (h) => `h:${h.id}` !== selected,
+          );
+        }, "delete height");
+      } else if (command.kind === "nudge" && chosen && !selected.startsWith("v:")) {
+        event.preventDefault();
+        const { ref, label } = chosen;
+        operation(() =>
+          editLabel(e, ref, {
+            dx: label.dx + command.dx,
+            dy: label.dy + command.dy,
+          }),
+          "move label",
+          event.repeat,
+        );
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
