@@ -27,7 +27,6 @@ import {
   getBounds,
   getObjectById,
   getSelectedObject,
-  HISTORY_LIMIT,
   makeId,
   setAxisScale,
   updateObject,
@@ -53,12 +52,8 @@ import {
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
+import { handleUndoKeys, useDocumentHistory } from "./editor-kit";
 
-interface HistoryState {
-  past: DiagramDocumentV1[];
-  present: DiagramDocumentV1;
-  future: DiagramDocumentV1[];
-}
 
 interface ToastState {
   kind: "success" | "error";
@@ -87,11 +82,15 @@ export default function App({ active = true }: { active?: boolean }) {
     }
   });
   const expectedStorage = useRef(storedAtStart);
-  const [history, setHistory] = useState<HistoryState>(() => ({
-    past: [],
-    present: startup.document,
-    future: [],
-  }));
+  const {
+    history,
+    commit: record,
+    replace: replacePresentDocument,
+    undo: stepBack,
+    redo: stepForward,
+  } = useDocumentHistory<DiagramDocumentV1>(startup.document, {
+    equals: sameDocument,
+  });
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -135,46 +134,22 @@ export default function App({ active = true }: { active?: boolean }) {
     });
   }, []);
 
-  const commit = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => {
-      if (sameDocument(current.present, next)) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: [],
-      };
-    });
-  }, []);
+  const commit = useCallback(
+    (next: DiagramDocumentV1) => record(next),
+    [record],
+  );
 
-  const replaceWithoutHistory = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => ({ ...current, present: next }));
-  }, []);
+  const replaceWithoutHistory = replacePresentDocument;
 
   const undo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const previous = current.past.at(-1);
-      if (!previous) return current;
-      return {
-        past: current.past.slice(0, -1),
-        present: previous,
-        future: [current.present, ...current.future].slice(0, HISTORY_LIMIT),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepBack();
+  }, [hasPendingDraft, recoveryConflict, stepBack]);
 
   const redo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const next = current.future[0];
-      if (!next) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: current.future.slice(1),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepForward();
+  }, [hasPendingDraft, recoveryConflict, stepForward]);
 
   useEffect(() => {
     if (recoveryConflict) {
@@ -237,18 +212,7 @@ export default function App({ active = true }: { active?: boolean }) {
       if (target?.matches("input, textarea, select, [contenteditable='true']"))
         return;
       if (hasPendingDraft() || recoveryConflict) return;
-      const command = event.ctrlKey || event.metaKey;
-      if (command && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-        return;
-      }
-      if (command && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        redo();
-        return;
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
       if (event.key === "Escape") {
         setTool("select");
         setEquationOpen(false);

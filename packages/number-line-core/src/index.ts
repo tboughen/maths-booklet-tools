@@ -236,8 +236,30 @@ function numberSvg(s: string, x: number, y: number): string { if (s.includes(" "
     // A negative fraction prints its minus sign before the bar, as exam papers do: −½, not a minus in the numerator.
     const sign = negative ? `<text x="${x - w / 2 - .3}" y="${y + .45}" text-anchor="end">−</text>` : "";
     return `${sign}<g font-size="${PART}"><text x="${x}" y="${y - 1.7}" text-anchor="middle">${n}</text><path d="M${x - w / 2} ${y - .6}h${w}"/><text x="${x}" y="${y + 3.1}" text-anchor="middle">${b}</text></g>`; }
-export function renderSvg(e: Envelope) {
-    const d = validate(e).document, m = metrics(d), r = 1.3;
+/** Saved answers revealed on an answers copy print in the house answer colour. */
+export const NUMBER_LINE_ANSWER_COLOUR = "#b0125b";
+/** What an answers copy reveals: answer-line tick values, a hidden solution and a hidden saved answer. Hidden tick labels stay hidden. */
+export function revealedAnswers(e: Envelope) {
+    const t = e.document.teaching;
+    return {
+        ticks: ticks(e.document).filter(v => labelled(e.document, v) && t.labels[labelKey(v)] === "answer-line").map(labelKey),
+        solution: !t.solutionVisible && !!e.document.solution,
+        answer: !t.answerVisible && !!t.answer.trim(),
+    };
+}
+/** The answers copy: answer-line ticks print their value, a hidden solution and saved answer show. Nothing is calculated. */
+export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
+    if (view === "pupil") return e;
+    const n = structuredClone(validate(e)), t = n.document.teaching;
+    for (const key of revealedAnswers(e).ticks) t.labels[key] = "value";
+    if (n.document.solution) t.solutionVisible = true;
+    if (t.answer.trim()) t.answerVisible = true;
+    return validate(n);
+}
+export function renderSvg(e: Envelope, showAnswers = false) {
+    const revealed = showAnswers ? revealedAnswers(validate(e)) : { ticks: [] as string[], solution: false, answer: false };
+    const d = validate(showAnswers ? forView(e, "answer") : e).document, m = metrics(d), r = 1.3;
+    const ink = (svg: string, on: boolean) => on ? `<g fill="${NUMBER_LINE_ANSWER_COLOUR}" stroke="${NUMBER_LINE_ANSWER_COLOUR}">${svg.replaceAll("#111", NUMBER_LINE_ANSWER_COLOUR)}</g>` : svg;
     let art = "";
     const circle = (v: string, filled: boolean) => `<circle data-value="${v}" cx="${position(d, v)}" cy="${m.solutionY}" r="${r}" fill="${filled ? "#111" : "white"}" stroke="#111"/>`;
     const arrow = (x: number, y: number, dir: number) => `<path d="M${x} ${y}l${-dir * 2.5} -1.1v2.2Z" fill="#111" stroke="none"/>`;
@@ -253,11 +275,11 @@ export function renderSvg(e: Envelope) {
             continue;
         const state = d.teaching.labels[labelKey(v)] ?? "value";
         if (state === "value")
-            art += numberSvg(displayNumber(d, v), x, m.axisY + 6);
+            art += ink(numberSvg(displayNumber(d, v), x, m.axisY + 6), revealed.ticks.includes(labelKey(v)));
         if (state === "answer-line")
             art += `<path d="M${x - 2.5} ${m.axisY + 6}h5" stroke-dasharray=".4 .7"/>`;
     }
-    const s = d.solution;
+    const s = d.solution, before = art;
     if (d.teaching.solutionVisible && s) {
         if (s.kind === "interval")
             art += `<path d="M${position(d, s.lower) + r} ${m.solutionY}H${position(d, s.upper) - r}"/>${circle(s.lower, s.lowerIncluded)}${circle(s.upper, s.upperIncluded)}`;
@@ -275,8 +297,9 @@ export function renderSvg(e: Envelope) {
             art += s.points.map(p => circle(p.value, p.included!==false)).join("");
         }
     }
+    if (revealed.solution) art = before + ink(art.slice(before.length), true);
     if (d.teaching.answerVisible && d.teaching.answer)
-        art += `<text x="7" y="${m.answerY}">${esc(d.teaching.answer)}</text>`;
+        art += ink(`<text x="7" y="${m.answerY}">${esc(d.teaching.answer)}</text>`, revealed.answer);
     for (let i = 0; i < d.teaching.responseLines; i++)
         art += `<path d="M7 ${m.answerY + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + i * 8}H${m.width - 7}" stroke-dasharray=".4 .8"/>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="${esc(describe(e))}"><style>text{stroke:none}</style><rect width="${m.width}" height="${m.height}" fill="white"/><g fill="#111" stroke="#111" stroke-width=".2" font-family="STIX Two Text" font-size="${FONT}">${art}</g></svg>`;
