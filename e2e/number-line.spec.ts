@@ -289,3 +289,20 @@ test("maximum structure, fractions and all preview zooms preserve clean resource
   await page.getByLabel("First tick", { exact: true }).focus();
   await expect(page.getByLabel("First tick", { exact: true })).toBeFocused();
 });
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  const saved = async () =>
+    (await page.evaluate(() =>
+      localStorage.getItem("maths-booklet-tools:number-line:v1"),
+    )) ?? "";
+  await page.locator("summary").filter({ hasText: /^More settings$/ }).click();
+  await page.locator("summary").filter({ hasText: /^Print size$/ }).click();
+  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+  expect(await page.getByTestId("number-line-resource").innerHTML()).toContain('stroke-width="0.3"');
+  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
+  await expect.poll(saved).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+});

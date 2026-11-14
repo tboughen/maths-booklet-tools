@@ -1,3 +1,5 @@
+import { housePreference } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
@@ -49,6 +51,12 @@ import "./number-line.css";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
+/** A new number line starts from the house style's lines (U111); its text is always 11 pt. */
+function fresh() {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+}
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -57,7 +65,7 @@ function initial() {
         return { envelope: parseFile(raw), recovery: null, error: "" };
       } catch {
         return {
-          envelope: create(),
+          envelope: fresh(),
           recovery: raw,
           error:
             "The saved number line needs recovery. Download its original data before starting afresh.",
@@ -66,13 +74,13 @@ function initial() {
     }
   } catch {
     return {
-      envelope: create(),
+      envelope: fresh(),
       recovery: null,
       error:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { envelope: create(), recovery: null, error: "" };
+  return { envelope: fresh(), recovery: null, error: "" };
 }
 type Selection =
   | "axis-min"
@@ -760,7 +768,7 @@ export default function NumberLinePage({
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset this number line?")}
+              onReset={() => replacement(fresh(), "Reset this number line?")}
               resetDisabled={blocked}
               exportDisabled={blocked}
               busy={busy}
@@ -1637,6 +1645,27 @@ export default function NumberLinePage({
                       {field("Width (cm)", d.widthCm, (v) =>
                         change([{ op: "set_print", widthCm: Number(v) }]),
                       )}
+                      <label>
+                        Lines
+                        <select
+                          aria-label="Lines"
+                          value={d.lines ?? "normal"}
+                          onChange={(ev) =>
+                            change([
+                              {
+                                op: "set_print",
+                                lines: ev.target.value as LineWeight,
+                              },
+                            ])
+                          }
+                        >
+                          {LINE_WEIGHTS.map((v) => (
+                            <option key={v} value={v}>
+                              {LINE_WEIGHT_NAMES[v]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <p>
                         {m.widthCm} × {Number(m.heightCm.toFixed(2))} cm · 600
                         ppi PNG

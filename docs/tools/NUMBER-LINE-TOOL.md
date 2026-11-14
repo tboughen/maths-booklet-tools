@@ -60,5 +60,10 @@ HTML. Actual browser downloads provide SVG with embedded portable fonts,
 verified 600 ppi PNG and editable JSON. Preview zoom changes the view only.
 Print size is independent.
 
+Lines are normal or bold (U111, under Print size): bold multiplies every stroke by 1.5 and is
+saved as `lines: "bold"`; normal is never saved. A new number line starts with the house
+style's lines. Text stays 11 pt in both house presets. The connector takes `spec.lines` and
+`set_print {widthCm?, lines?}`.
+
 This website release does not deploy or refresh the separate MCP service/client.
 Publication uses docs/release/RELEASE-PIPELINE.md and its exact qualified artifact.
