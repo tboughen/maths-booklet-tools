@@ -29,6 +29,7 @@ import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
+import { toolFailure } from "./tool-error";
 
 /** Worksheets and booklets: print-ready PDF, Word file (same layout) or the editable source. */
 export type WorksheetFormat = "pdf" | "docx" | "json";
@@ -612,18 +613,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           // spareSpace is never filled in here: a saved sheet sent back keeps its own layout.
           return await result(validate(args.resource), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_worksheet",
-                  message: e instanceof Error ? e.message : "The worksheet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_worksheet", message: "The worksheet could not be made.", pathPrefix: ["resource"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );
@@ -639,18 +629,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         try {
           return await bookletResult(validateBooklet(args.booklet), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_booklet",
-                  message: e instanceof Error ? e.message : "The booklet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_booklet", message: "The booklet could not be made.", pathPrefix: ["booklet"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );
