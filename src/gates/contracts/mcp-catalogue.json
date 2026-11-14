@@ -50,6 +50,18 @@
             },
             "tool": {
               "type": "string"
+            },
+            "title": {
+              "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "note": {
+              "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
             }
           },
           "required": [
@@ -4402,6 +4414,18 @@
             },
             "tool": {
               "type": "string"
+            },
+            "title": {
+              "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "note": {
+              "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
             }
           },
           "required": [
@@ -4625,6 +4649,18 @@
             },
             "tool": {
               "type": "string"
+            },
+            "title": {
+              "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "note": {
+              "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
             }
           },
           "required": [

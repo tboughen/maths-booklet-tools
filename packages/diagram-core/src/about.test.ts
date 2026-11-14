@@ -31,4 +31,17 @@ describe("every family saves a title and a note beside the drawing (U34)", () =>
       expect(() => f.validate({ ...plain, colour: "red" }, "pupil")).toThrow();
     });
   }
+
+  it("every saved file of every schema version takes them, and a bar model keeps them through its upgrade", async () => {
+    for (const kind of DIAGRAM_KINDS) {
+      for (const name of readdirSync(join(corpus, kind)).filter((n) => n.endsWith(".json"))) {
+        const raw = JSON.parse(readFileSync(join(corpus, kind, name), "utf8")) as Record<string, unknown>;
+        expect(FAMILIES[kind].create({ envelope: { ...raw, ...about } }), `${kind}/${name}`).toMatchObject(about);
+      }
+    }
+    const bar = FAMILIES["bar-model"];
+    const v1 = { ...(readdirSync(join(corpus, "bar-model")).map((n) => JSON.parse(readFileSync(join(corpus, "bar-model", n), "utf8")) as Record<string, unknown>).find((e) => e.schemaVersion === 1)!), ...about };
+    expect(await bar.revise({ envelope: v1, baseHash: await bar.hash(v1), operations: [{ op: "upgrade_document" }] })).toMatchObject({ ...about, schemaVersion: 2 });
+  });
 });
+

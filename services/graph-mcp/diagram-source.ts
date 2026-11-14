@@ -1,3 +1,4 @@
+import { aboutShape } from "../../packages/envelope-core/src/about";
 import { z } from "zod";
 import { GraphError, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { getExportMetrics, graphPrintFacts } from "../../packages/graph-core/src/svg";
@@ -32,6 +33,7 @@ export const diagramSourceSchema = z.object({
   envelope: z.object({
     schemaVersion: z.number().int(), rendererVersion: z.string(), styleProfile: z.string().optional(),
     document: z.record(z.string(), z.unknown()), kind: z.string().optional(), tool: z.string().optional(),
+    ...aboutShape,
   }).strict(),
   outputView: z.enum(["pupil", "answer"]).optional(),
 }).strict();

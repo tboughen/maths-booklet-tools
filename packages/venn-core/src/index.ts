@@ -43,6 +43,7 @@ const legacySchema = z
         lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export const arrangements = [
@@ -60,7 +61,6 @@ const extendedSchema = legacySchema.extend({
     arrangement: z.enum(arrangements),
     caption: z.enum(["off", "relationship", "line"]),
   }),
-  ...aboutShape,
 });
 export const envelopeSchema = z.discriminatedUnion("schemaVersion", [
   legacySchema,

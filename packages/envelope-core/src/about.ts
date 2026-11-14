@@ -11,8 +11,8 @@ export const NOTE_MAX = 600;
 
 /** Spread into a family's envelope object schema, after `document`. */
 export const aboutShape = {
-  title: z.string().trim().min(1).max(TITLE_MAX).optional().describe("The teacher's name for this diagram. Saved in the editable file; never printed."),
-  note: z.string().trim().min(1).max(NOTE_MAX).optional().describe("A free note about this diagram (source, class, intent). Saved in the editable file; never printed."),
+  title: z.string().min(1).max(TITLE_MAX).optional().describe("The teacher's name for this diagram. Saved in the editable file; never printed."),
+  note: z.string().min(1).max(NOTE_MAX).optional().describe("A free note about this diagram (source, class, intent). Saved in the editable file; never printed."),
 };
 
 export type About = { title?: string; note?: string };
