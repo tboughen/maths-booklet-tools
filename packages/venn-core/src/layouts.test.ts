@@ -56,7 +56,7 @@ describe("Venn layout relationships", () => {
     "keeps blank %i-set diagrams printable throughout supported sizes",
     (sets) => {
       for (const widthCm of [8, 12, 16])
-        for (const fontPt of [9, 11, 14])
+        for (const fontPt of [10, 11, 14])
           for (const shape of ["circles", "ovals"] as const) {
             const e = createExtended(sets);
             e.document.widthCm = widthCm;
@@ -244,7 +244,7 @@ describe("Venn layout relationships", () => {
           ? createExtended(1)
           : upgrade(changeArrangement(create(), value));
       e.document.widthCm = 16;
-      e.document.fontPt = 9;
+      e.document.fontPt = 10;
       const masks = activeMasks(e),
         counts = masks.length === 2 ? [20, 20] : [16, 14, 10];
       let n = 1;

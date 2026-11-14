@@ -8,6 +8,8 @@ export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "descrip
 export function diagramFileMenu(items: {
   svg: FileMenuItem;
   png: FileMenuItem;
+  /** The diagram on an A4 or A3 PDF page at actual size (U32). */
+  pdf?: FileMenuItem;
   /** Teacher copies with hidden answers printed, for tools that offer them. */
   answers?: { svg: FileMenuItem; png: FileMenuItem };
   save: FileMenuItem;
@@ -17,6 +19,7 @@ export function diagramFileMenu(items: {
   return [
     { ...items.svg, label: "Download SVG" },
     { ...items.png, label: "Download PNG (600 ppi)" },
+    ...(items.pdf ? [{ ...items.pdf, label: "Download PDF (actual size)" }] : []),
     ...(items.answers
       ? [
           { ...items.answers.svg, label: "Download answers SVG", description: "Hidden answers printed in the answer colour." },

@@ -2,6 +2,7 @@ import type { DiagramDocumentV1 } from "../domain/types";
 import { assertPrintReadyPng, renderDiagramPng } from "./png";
 import { getExportMetrics, renderDiagramSvg } from "./svg";
 import { embedPortableFonts } from "./portable";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 function getLegacyCopyCommand(): ((commandId: string) => boolean) | undefined {
   return (document as unknown as { execCommand?: (commandId: string) => boolean }).execCommand;
@@ -114,8 +115,13 @@ export function downloadBlob(blob: Blob, filename: string): void {
 
 export async function downloadDiagramSvg(document: DiagramDocumentV1): Promise<void> {
   const source = renderDiagramSvg(document);
-  const svg = document.styleProfile === "portable-v1" ? await embedPortableFonts(source) : source;
+  const svg = document.styleProfile === "portable-v1" ? await embedPortableFonts(source) : tidySvgRoot(source);
   downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "maths-graph.svg");
+}
+
+export async function downloadDiagramPdf(document: DiagramDocumentV1): Promise<void> {
+  const { svgPdf } = await import("./diagram-pdf");
+  downloadBlob(await svgPdf(renderDiagramSvg(document)), "maths-graph.pdf");
 }
 
 export async function downloadDiagramPng(document: DiagramDocumentV1): Promise<void> {

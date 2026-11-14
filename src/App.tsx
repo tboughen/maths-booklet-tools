@@ -49,10 +49,11 @@ import type {
 import {
   copyDiagram,
   copyPngToClipboard,
+  downloadDiagramPdf,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
-import { handleUndoKeys, useDocumentHistory } from "./editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "./editor-kit";
 
 
 interface ToastState {
@@ -134,7 +135,7 @@ export default function App({ active = true }: { active?: boolean }) {
   }, []);
 
   const commit = useCallback(
-    (next: DiagramDocumentV1) => record(next),
+    (next: DiagramDocumentV1, label?: string) => record(next, label),
     [record],
   );
 
@@ -383,7 +384,7 @@ export default function App({ active = true }: { active?: boolean }) {
       )
     )
       return;
-    commit(resetDocument);
+    commit(resetDocument, "reset diagram");
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -424,6 +425,8 @@ export default function App({ active = true }: { active?: boolean }) {
               onReset={resetDiagram}
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}
               exportDisabled={blocked}
@@ -464,6 +467,16 @@ export default function App({ active = true }: { active?: boolean }) {
                   },
                   success: "PNG download started.",
                 },
+                {
+                  label: "Download PDF (actual size)",
+                  disabled: blocked,
+                  action: () => {
+                    if (locked())
+                      throw Error("Apply or cancel unfinished input first.");
+                    return downloadDiagramPdf(document);
+                  },
+                  success: "PDF download started.",
+                },
               ]}
             />
             {drafts.pending && (
@@ -502,7 +515,7 @@ export default function App({ active = true }: { active?: boolean }) {
               active={active}
               disabled={blocked}
               onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
@@ -620,7 +633,7 @@ export default function App({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onConfirm={() => {
             if (locked()) return;
-            commit(pendingExample);
+            commit(pendingExample, "replace with example");
             setPendingExample(null);
             setTool("select");
             setEquationOpen(false);

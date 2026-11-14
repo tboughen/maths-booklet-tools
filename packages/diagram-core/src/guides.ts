@@ -153,7 +153,8 @@ const vennGuide: FamilyGuide = {
     maximumMembers: 40,
     maximumMembersPerRegion: 20,
     widthCm: { minimum: 8, maximum: 16 },
-    fontPt: { minimum: 9, maximum: 14 },
+    fontPt: { minimum: 10, maximum: 14 },
+    lines: ["normal", "bold"],
     maximumRevisionOperations: 30,
     regionMasks: "0=outside; A=bit1, B=bit2, C=bit4; use only active masks for the layout",
     visibility: venn.visibility,
@@ -161,9 +162,9 @@ const vennGuide: FamilyGuide = {
     operations: vi.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "One, two or three set Venn diagrams; omit spec for a blank two-set version-2 overlap. spec: {sets, shape, arrangement, widthCm, fontPt, labels:[{set,label}], definitions:[{set,text}], regions:[{mask,region}], showDefinitions, caption}. Region mask 0 is outside; bits A=1 B=2 C=4. Arrangements overlap, separate, b-inside-a, a-inside-b (non-overlap only with two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView answer must be explicitly requested.",
+    "One, two or three set Venn diagrams; omit spec for a blank two-set version-2 overlap. spec: {sets, shape, arrangement, widthCm, fontPt (10-14), lines (normal|bold; bold prints every stroke 1.5 times as thick), labels:[{set,label}], definitions:[{set,text}], regions:[{mask,region}], showDefinitions, caption}. Region mask 0 is outside; bits A=1 B=2 C=4. Arrangements overlap, separate, b-inside-a, a-inside-b (non-overlap only with two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView answer must be explicitly requested.",
   revise:
-    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?}; upgrade_document {}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need an explicit upgrade for new layouts.",
+    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?,lines?}; upgrade_document {}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need an explicit upgrade for new layouts.",
 };
 
 const fromConfig = (c: { capabilities: Record<string, unknown>; createDescription: string; reviseDescription: string }): FamilyGuide => ({
