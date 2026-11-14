@@ -157,6 +157,10 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .gradient-triangle .point-label text { fill: #202224; }
 .gradient-triangle .point-label--answer text { fill: #b0125b; }
 .graph-canvas .gradient-triangle .point-label text.text-halo { fill: #fff; }
+/* Inequality regions (U73): grey shading under the grid; hidden answers in a pale answer colour. */
+.graph-region { fill: #d4d4d4; stroke: none; pointer-events: none; }
+.graph-region--answer { fill: #b0125b; fill-opacity: 0.22; }
+.graph-region--selected { fill: #c9daf8; }
 .segment-preview { stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 6; }
 .selection-handles circle { fill: #fff; stroke: var(--blue); stroke-width: 3; cursor: grab; }
 .selection-handles circle:active { cursor: grabbing; }
