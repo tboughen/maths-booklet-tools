@@ -7,6 +7,27 @@ import {
   OBJECT_NAME_PATTERN,
   normaliseObjectName,
 } from "../../packages/graph-core/src/axes";
+import {
+  POLYGON_MAX_VERTICES,
+  POLYGON_MIN_VERTICES,
+  formatVertices,
+  polygonProblem,
+} from "../../packages/graph-core/src/polygon";
+
+/** Reads corners typed as "(1, 1) (4, 1) (1, 3)"; minus signs and spaces are forgiven. */
+function parseVertices(text: string): Coordinate[] {
+  const cleaned = text.replaceAll("−", "-");
+  const pairs = [...cleaned.matchAll(/\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g)];
+  const leftover = cleaned.replace(/\(\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*\)/g, "").replace(/[\s,;]/g, "");
+  if (leftover)
+    throw Error("Type each corner in brackets, such as (1, 1) (4, 1) (1, 3).");
+  if (pairs.length < POLYGON_MIN_VERTICES || pairs.length > POLYGON_MAX_VERTICES)
+    throw Error(`A shape needs ${POLYGON_MIN_VERTICES} to ${POLYGON_MAX_VERTICES} corners.`);
+  const vertices = pairs.map((m) => ({ x: Number(m[1]), y: Number(m[2]) }));
+  const problem = polygonProblem(vertices);
+  if (problem) throw Error(`This shape can't be drawn: ${problem}`);
+  return vertices;
+}
 
 /** The exam-style name printed beside the object, and whether it is a hidden answer. */
 function NameAndAnswer({
@@ -20,15 +41,15 @@ function NameAndAnswer({
   drafts: GraphDrafts;
   disabled?: boolean;
 }) {
-  const kind = object.kind === "point" ? "point" : "line";
+  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : "line";
   return (
     <div className="object-name-fields">
       <GraphDraftField
         id={object.id + "-name"}
-        label={`Name printed beside the ${kind}`}
+        label={kind === "shape" ? "Name printed in the shape" : `Name printed beside the ${kind}`}
         displayLabel="Name"
         inputMode="text"
-        hint={kind === "point" ? "For example A, B or P′" : "For example L, L1 or L2"}
+        hint={kind === "line" ? "For example L, L1 or L2" : "For example A, B or P′"}
         value={object.name ?? ""}
         drafts={drafts}
         disabled={disabled}
@@ -177,6 +198,61 @@ export function ObjectInspector({
         >
           <Trash2 size={16} />
           Delete point
+        </button>
+      </section>
+    );
+  }
+
+  if (object.kind === "polygon") {
+    return (
+      <section className="panel-card selection-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">SELECTED OBJECT</p>
+            <h2>Shape</h2>
+          </div>
+        </div>
+        <GraphDraftField
+          id={object.id + "-vertices"}
+          label="Shape corners"
+          displayLabel="Corners"
+          inputMode="text"
+          hint="In order, such as (1, 1) (4, 1) (1, 3)"
+          value={formatVertices(object.vertices)}
+          drafts={drafts}
+          disabled={disabled}
+          onApplyText={(text) =>
+            onUpdate({ ...object, vertices: parseVertices(text) })
+          }
+        />
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            disabled={disabled || drafts.pending}
+            checked={!!object.shaded}
+            onChange={(event) => {
+              const next = { ...object };
+              if (event.target.checked) next.shaded = true;
+              else delete next.shaded;
+              onUpdate(next);
+            }}
+          />{" "}
+          Shade the shape
+        </label>
+        <NameAndAnswer
+          object={object}
+          onUpdate={onUpdate}
+          drafts={drafts}
+          disabled={disabled}
+        />
+        <p className="panel-note">Arrow keys move the whole shape.</p>
+        <button
+          disabled={disabled || drafts.pending}
+          className="danger-button"
+          onClick={onDelete}
+        >
+          <Trash2 size={16} />
+          Delete shape
         </button>
       </section>
     );

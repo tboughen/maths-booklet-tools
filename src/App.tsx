@@ -23,6 +23,7 @@ import { EditorToolbar } from "./site/EditorToolbar";
 import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
+  cleanNumber,
   deleteSelectedObject,
   getBounds,
   getObjectById,
@@ -287,7 +288,23 @@ export default function App({ active = true }: { active?: boolean }) {
             ? document.axes.y.unitsPerSquare / 2
             : 0;
       const moved: GraphObject =
-        selectedObject.kind === "point"
+        selectedObject.kind === "polygon"
+          ? {
+              ...selectedObject,
+              vertices: selectedObject.vertices.map((p) => ({
+                x: cleanNumber(p.x + dx),
+                y: cleanNumber(p.y + dy),
+              })),
+              ...(selectedObject.namePosition
+                ? {
+                    namePosition: {
+                      x: cleanNumber(selectedObject.namePosition.x + dx),
+                      y: cleanNumber(selectedObject.namePosition.y + dy),
+                    },
+                  }
+                : {}),
+            }
+          : selectedObject.kind === "point"
           ? {
               ...selectedObject,
               position: {
@@ -335,6 +352,38 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function updateSelected(object: GraphObject) {
     commit(updateObject(document, object));
+  }
+
+  /** Adds a right-angled triangle, named with the next free letter, for the user to edit. */
+  function addShape() {
+    if (locked()) return;
+    const b = getBounds(document),
+      ux = document.axes.x.unitsPerSquare,
+      uy = document.axes.y.unitsPerSquare;
+    const corner = (min: number, max: number, unit: number) =>
+      cleanNumber(Math.max(min + unit, Math.min(unit, max - 4 * unit)));
+    const x = corner(b.xMin, b.xMax, ux),
+      y = corner(b.yMin, b.yMax, uy);
+    const used = new Set(document.objects.map((o) => o.name));
+    const name = [..."ABCDEFGHPQRST"].find((letter) => !used.has(letter));
+    const shape: GraphObject = {
+      id: makeId("polygon"),
+      kind: "polygon",
+      vertices: [
+        { x, y },
+        { x: cleanNumber(x + 3 * ux), y },
+        { x, y: cleanNumber(y + 2 * uy) },
+      ],
+      ...(name ? { name } : {}),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, shape],
+      selectedObjectId: shape.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
   }
 
   function openEquationEditor(object?: StraightObject) {
@@ -599,6 +648,7 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEditingEquationId(null);
                 }}
                 onEquation={() => openEquationEditor()}
+                onShape={addShape}
               />
             </fieldset>
             <AxisSettings

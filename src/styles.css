@@ -146,6 +146,11 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-point--selected { stroke: var(--blue); stroke-width: 4; }
 /* Answer-only objects: printed on the answers copy only, so the editor shows them in the answer colour. */
 .graph-straight--answer, .graph-point--answer { stroke: #b0125b; }
+.graph-polygon { stroke: #222426; stroke-width: 3; stroke-linejoin: round; fill: none; pointer-events: none; }
+.graph-polygon--shaded { fill: #d4d4d4; }
+.graph-polygon--answer { stroke: #b0125b; }
+.graph-polygon--answer.graph-polygon--shaded { fill: #b0125b; fill-opacity: .18; }
+.graph-polygon--selected { stroke: var(--blue); stroke-width: 4; }
 .segment-preview { stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 6; }
 .selection-handles circle { fill: #fff; stroke: var(--blue); stroke-width: 3; cursor: grab; }
 .selection-handles circle:active { cursor: grabbing; }

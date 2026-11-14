@@ -31,7 +31,7 @@ export function cloneDefaultDocument(): DiagramDocumentV1 {
   return structuredClone(DEFAULT_DOCUMENT);
 }
 
-export function makeId(prefix: "point" | "straight" = "straight"): string {
+export function makeId(prefix: "point" | "straight" | "polygon" = "straight"): string {
   const suffix =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()

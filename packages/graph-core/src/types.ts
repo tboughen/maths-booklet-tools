@@ -85,7 +85,17 @@ export interface StraightObject extends BaseObject, NamedObject {
   labels?: PointLabel[];
 }
 
-export type GraphObject = PointObject | StraightObject;
+/** A closed shape for transformations, such as triangle A or shape P (U72). Its name prints
+ * upright in the middle of the shape, as exam papers label shapes. */
+export interface PolygonObject extends BaseObject, NamedObject {
+  kind: "polygon";
+  /** 3 to 12 corners in order, in graph coordinates. */
+  vertices: Coordinate[];
+  /** Grey shading inside the shape. Omitted means unshaded. */
+  shaded?: true;
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject;
 
 export interface DiagramDocumentV1 {
   version: 1;

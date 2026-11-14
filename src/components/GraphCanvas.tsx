@@ -5,8 +5,10 @@ import {
   getExportMetrics,
   nameBox,
   nameCentre,
+  nameStyle,
   pointLabelPlacement,
 } from "../export/svg";
+import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
@@ -57,6 +59,7 @@ import type {
   DrawingTool,
   GraphObject,
   PointObject,
+  PolygonObject,
   StraightObject,
   SvgLayout,
 } from "../domain/types";
@@ -188,6 +191,18 @@ function objectHitIds(
       const point = coordinateToSvg(object.position, layout);
       const distance = Math.sqrt(squaredDistance(pointer, point));
       if (distance <= 17) hits.push({ id: object.id, distance, priority: 0 });
+      continue;
+    }
+    if (object.kind === "polygon") {
+      const corners = object.vertices.map((p) => coordinateToSvg(p, layout));
+      const edge = Math.min(...corners.map((p, i) => pointToSegmentDistance(pointer, p, corners[(i + 1) % corners.length])));
+      // Inside the shape counts too, so a shape is easy to pick on a touch screen.
+      let inside = false;
+      for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
+        const a = corners[i], b = corners[j];
+        if (a.y > pointer.y !== b.y > pointer.y && pointer.x < ((b.x - a.x) * (pointer.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+      }
+      if (edge <= 13 || inside) hits.push({ id: object.id, distance: inside ? Math.min(edge, 13) : edge, priority: 2 });
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);
@@ -680,6 +695,23 @@ export function GraphCanvas({
           <g clipPath="url(#editor-plot-clip)">
             {visibleDocument.objects
               .filter(
+                (object): object is PolygonObject =>
+                  object.kind === "polygon" &&
+                  polygonVisible(object, layout.bounds),
+              )
+              .map((object) => (
+                <polygon
+                  key={object.id}
+                  className={`graph-polygon${object.answerOnly ? " graph-polygon--answer" : ""}${object.shaded ? " graph-polygon--shaded" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-polygon--selected" : ""}`}
+                  data-object-id={object.id}
+                  points={object.vertices
+                    .map((p) => coordinateToSvg(p, layout))
+                    .map((p) => `${p.x},${p.y}`)
+                    .join(" ")}
+                />
+              ))}
+            {visibleDocument.objects
+              .filter(
                 (object): object is StraightObject =>
                   object.kind === "straight",
               )
@@ -871,13 +903,15 @@ export function GraphCanvas({
               if (
                 object.kind === "point"
                   ? !pointInBounds(object.position, layout.bounds)
-                  : !visibleStraightPoints(object, layout.bounds)
+                  : object.kind === "polygon"
+                    ? !polygonVisible(object, layout.bounds)
+                    : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;
               const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE)!;
               const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE);
               const parts = nameParts(object.name);
-              const style = object.kind === "point" ? "italic" : "bold";
+              const style = nameStyle(object);
               const left = centre.x - box.width / 2 + AXIS_LABEL_FONT_SIZE * 0.08;
               const baseline = centre.y + AXIS_LABEL_FONT_SIZE * 0.34;
               return (

@@ -38,6 +38,15 @@ function isGraphObject(value: unknown): value is GraphObject {
   )
     return false;
   if (candidate.kind === "point") return isCoordinate(candidate.position);
+  if (candidate.kind === "polygon")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "vertices", "shaded", "name", "namePosition", "answerOnly"].includes(key)) &&
+      Array.isArray(candidate.vertices) &&
+      candidate.vertices.length >= 3 &&
+      candidate.vertices.length <= 12 &&
+      candidate.vertices.every(isCoordinate) &&
+      (candidate.shaded === undefined || candidate.shaded === true)
+    );
   if (candidate.kind !== "straight") return false;
   return (
     (candidate.display === "segment" || candidate.display === "line") &&
