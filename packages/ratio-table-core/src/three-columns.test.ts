@@ -136,7 +136,7 @@ describe("saved tables and three-column ratios", () => {
     expect(added).toEqual(thirdColumn());
   });
   it("allocates a distinct, unclipped scaling lane for every column at all print sizes", () => {
-    for (const size of ["compact", "standard", "large"] as const) {
+    for (const size of ["standard", "large"] as const) {
       const envelope = applyRatioOperations(thirdColumn(), [
         { op: "set_size", size },
       ]);

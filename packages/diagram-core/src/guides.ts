@@ -77,7 +77,7 @@ const ratioGuide: FamilyGuide = {
     cellKinds: ["number", "empty", "answer-line", "hidden"],
     headingDirections: ["right", "up", "down", "none"],
     compactSpec: { columns: "heading strings ending in → ↑ ↓", table: "rows of cell strings: 3, -1/2, \"\", _, [3], [3]_", steps: "\"\", × 2, ÷ 2, [÷ 2]" },
-    sizes: ["compact", "standard", "large"],
+    sizes: ["standard", "large"],
     lines: ["normal", "bold"],
     modes: ["simple", "annotated"],
     maximumRequestBytes: ratio.RATIO_MAX_REQUEST_BYTES,

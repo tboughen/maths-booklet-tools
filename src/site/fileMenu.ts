@@ -12,6 +12,8 @@ export function diagramFileMenu(items: {
   pdf?: FileMenuItem;
   /** Teacher copies with hidden answers printed, for tools that offer them. */
   answers?: { svg: FileMenuItem; png: FileMenuItem };
+  /** Pupil and answers SVG and PNG in one ZIP (U28), whatever the editor is showing. */
+  both?: FileMenuItem;
   /** "Title and note…" (U34): from `useTitleNote`. */
   about: FileMenuItem;
   save: FileMenuItem;
@@ -27,6 +29,9 @@ export function diagramFileMenu(items: {
           { ...items.answers.svg, label: "Download answers SVG", description: "Hidden answers printed in the answer colour." },
           { ...items.answers.png, label: "Download answers PNG (600 ppi)" },
         ]
+      : []),
+    ...(items.both
+      ? [{ ...items.both, label: "Download pupil and answers (ZIP)", description: "SVG and PNG of both copies. The view on screen does not change." }]
       : []),
     { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
     { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },

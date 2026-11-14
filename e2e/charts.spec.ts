@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
+import { unzipSync, strFromU8 } from "fflate";
 import { resolve } from "node:path";
 import { canonical, layout, type Envelope } from "../packages/chart-core/src";
 import { examples } from "../packages/chart-core/src/examples";
@@ -104,4 +105,32 @@ test("bold lines are saved, printed and undoable; the grid keeps its weight (U11
   await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+});
+
+test("downloads pupil and answers copies in one ZIP without changing the view (U28)", async ({ page }) => {
+  await boot(page, examples[0].make(false));
+  await expect(bars(page)).toHaveCount(9);
+  const before = JSON.stringify(await saved(page));
+  const pending = page.waitForEvent("download");
+  await clickResourceAction(page, "Download pupil and answers (ZIP)");
+  const download = await pending;
+  expect(download.suggestedFilename()).toMatch(/^mathsdock-charts-.*\d{4}-\d{2}-\d{2}\.zip$/);
+  const path = resolve(report, "both-copies.zip");
+  await download.saveAs(path);
+  const files = unzipSync(new Uint8Array(readFileSync(path)));
+  const names = Object.keys(files).sort();
+  expect(names).toHaveLength(4);
+  const pupilSvg = names.find((n) => n.endsWith(".svg") && !n.includes("-answers-"))!,
+    answerSvg = names.find((n) => n.endsWith(".svg") && n.includes("-answers-"))!;
+  expect(names.filter((n) => n.endsWith(".png"))).toHaveLength(2);
+  // The pupil copy keeps the hidden bar out; the answers copy draws it in the answer colour.
+  const count = (svg: string) => (svg.match(/<rect [^>]*stroke-width="0.3"/g) ?? []).length;
+  expect(count(strFromU8(files[answerSvg]))).toBeGreaterThan(count(strFromU8(files[pupilSvg])));
+  for (const name of names.filter((n) => n.endsWith(".png"))) {
+    const e = examples[0].make(false), g = layout(e), size = printRasterSize(g.width / 10, g.height / 10);
+    verifyPrintBytes(files[name], size.width, size.height);
+  }
+  // The editor still shows the pupil copy, and the saved chart is unchanged.
+  await expect(bars(page)).toHaveCount(9);
+  expect(JSON.stringify(await saved(page))).toBe(before);
 });

@@ -39,7 +39,7 @@ import type {
   RatioEnvelope,
 } from "../../packages/ratio-table-core/src/interchange";
 import { downloadBlob } from "../export/clipboard";
-import { copyRatioForWord, downloadRatioImage, hasRatioAnswers } from "./export";
+import { copyRatioForWord, downloadRatioBoth, downloadRatioImage, hasRatioAnswers } from "./export";
 import {
   loadRatioRecovery,
   saveRatio,
@@ -630,6 +630,13 @@ export default function RatioTablePage({
                         disabled: exportDisabled,
                         success: "Answers PNG download started.",
                       },
+                    }
+                  : undefined,
+                both: hasRatioAnswers(envelope)
+                  ? {
+                      action: () => downloadRatioBoth(envelope),
+                      disabled: exportDisabled,
+                      success: "Pupil and answers ZIP download started.",
                     }
                   : undefined,
                 save: {

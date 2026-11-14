@@ -1,3 +1,5 @@
+import { forView as viewOf } from "../../packages/venn-core/src";
+import { downloadBothCopies } from "../export/bothCopies";
 import {
   canonical,
   exportIssue,
@@ -67,3 +69,10 @@ export async function copyWord(e: Envelope) {
       "The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.",
     );
 }
+
+/** Pupil and answers copies in one ZIP (U28); the editor's view is not used. */
+export const downloadBoth = (e: Envelope) =>
+  downloadBothCopies("venn", e, async (view) => {
+    const copy = viewOf(e, view);
+    return { svg: (await prepareImage(copy)).svg, png: await printPng(copy) };
+  });

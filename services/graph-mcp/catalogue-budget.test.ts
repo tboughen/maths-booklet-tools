@@ -1,0 +1,77 @@
+// @vitest-environment node
+/**
+ * M2: the connector's catalogue has a byte budget, so schema growth cannot slip in unseen. Every
+ * conversation that loads the connector pays for tools/list; a family's capabilities are paid
+ * the first time it is used. Budgets live in catalogue-budget.json with the measurements behind
+ * them. The test prints the current sizes, so a pull request's CI log shows the change.
+ */
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { createServer } from "node:net";
+import type { Server } from "node:http";
+import { graphService } from "./server";
+import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
+import budget from "./catalogue-budget.json" with { type: "json" };
+
+const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value), "utf8");
+/** The text a model reads from a tool result; an error result fails rather than counting as small. */
+function textBytes(reply: unknown, name: string) {
+  const result = reply as { isError?: unknown; content?: unknown };
+  expect(result.isError, `${name} returned an error`).toBeFalsy();
+  const content = result.content as { type: string; text?: string }[];
+  expect(content.length, `${name} content`).toBeGreaterThan(0);
+  for (const c of content) expect(c.type, `${name} content type`).toBe("text");
+  return Buffer.byteLength(content.map((c) => c.text ?? "").join(""), "utf8");
+}
+let server: Server, client: Client;
+beforeAll(async () => {
+  const reservation = createServer();
+  await new Promise<void>((r) => reservation.listen(0, "127.0.0.1", r));
+  const port = (reservation.address() as { port: number }).port;
+  await new Promise<void>((r) => reservation.close(() => r()));
+  const base = "http://127.0.0.1:" + port;
+  server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: "test-only-secret-".repeat(4) }, activeKey: "test" });
+  await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
+  client = new Client({ name: "catalogue-budget", version: "1" });
+  await client.connect(new StreamableHTTPClientTransport(new URL(base + "/mcp")));
+});
+afterAll(async () => {
+  await client?.close();
+  if (server) await new Promise<void>((r) => server.close(() => r()));
+});
+
+describe("connector catalogue budget (M2)", () => {
+  it("keeps tools/list, each tool and each description within budget", async () => {
+    const tools = (await client.listTools()).tools;
+    const total = bytes(tools);
+    const rows = tools.map((t) => ({ tool: t.name, bytes: bytes(t), budget: (budget.perTool as Record<string, number>)[t.name] ?? budget.perTool.default, description: t.description?.length ?? 0 }));
+    console.log(`catalogue: tools/list ${total} bytes (budget ${budget.toolsList})\n` + rows.map((r) => `  ${r.tool}: ${r.bytes} / ${r.budget} bytes, description ${r.description} chars`).join("\n"));
+    expect.soft(total, "tools/list bytes").toBeLessThanOrEqual(budget.toolsList);
+    const names = new Set(tools.map((t) => t.name));
+    expect(Object.keys(budget.perTool).filter((k) => k !== "default" && !names.has(k)), "budgets for unknown tools").toEqual([]);
+    for (const r of rows) {
+      expect.soft(r.bytes, `${r.tool} bytes`).toBeLessThanOrEqual(r.budget);
+      expect.soft(r.description, `${r.tool} description characters`).toBeLessThanOrEqual(budget.descriptionChars);
+    }
+  });
+
+  it("keeps every family's capabilities and the worksheet capabilities within budget", async () => {
+    const caps = budget.capabilities as Record<string, number>;
+    const lines: string[] = [];
+    const known = new Set<string>([...DIAGRAM_KINDS, "worksheet", "default"]);
+    expect(Object.keys(caps).filter((k) => !known.has(k)), "budgets for unknown families").toEqual([]);
+    for (const kind of DIAGRAM_KINDS) {
+      const r = await client.callTool({ name: "diagram_capabilities", arguments: { kind } });
+      const size = textBytes(r, `${kind} capabilities`);
+      const limit = caps[kind] ?? caps.default;
+      lines.push(`  ${kind}: ${size} / ${limit}`);
+      expect.soft(size, `${kind} capabilities bytes`).toBeLessThanOrEqual(limit);
+    }
+    const w = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
+    const worksheet = textBytes(w, "worksheet_capabilities");
+    lines.push(`  worksheet: ${worksheet} / ${caps.worksheet}`);
+    console.log("capabilities:\n" + lines.join("\n"));
+    expect.soft(worksheet, "worksheet_capabilities bytes").toBeLessThanOrEqual(caps.worksheet);
+  });
+});

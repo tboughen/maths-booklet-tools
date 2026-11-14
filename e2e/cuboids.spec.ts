@@ -19,16 +19,6 @@ const resource = (p: Page) => p.getByTestId("cuboid-resource");
 async function field(p: Page, label: string, value: string) {
   const input = p.getByRole("textbox", { name: label, exact: true });
   if (!(await input.isVisible())) {
-    if (
-      [
-        "Label text",
-        "Label horizontal offset",
-        "Label vertical offset",
-      ].includes(label)
-    )
-      await p.getByRole("tab", { name: "Labels", exact: true }).click();
-    else if (!label.startsWith("Edit "))
-      await p.getByRole("tab", { name: "Shape", exact: true }).click();
     if (label === "Cube side length" && !(await input.isVisible()))
       await p.getByText("Cube size and counts", { exact: true }).click();
   }
@@ -78,7 +68,6 @@ test("direct label edit changes the dimension with Undo and Redo", async ({
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
   await field(page, "Edit width", "5");
-  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("5");
@@ -92,14 +81,10 @@ test("direct label edit changes the dimension with Undo and Redo", async ({
 test("1 cm cubes and separated layers keep a missing height blank", async ({
   page,
 }) => {
-  await page.getByRole("tab", { name: "Labels", exact: true }).click();
   await page.getByLabel("Edge or face", { exact: true }).selectOption("height");
-  await page.getByRole("tab", { name: "Labels", exact: true }).click();
   await page
     .getByLabel("Label appearance", { exact: true })
     .selectOption("blank");
-  // U1: View and the cube shortcut are document settings, on the Shape tab.
-  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await page
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
@@ -116,7 +101,6 @@ test("1 cm cubes and separated layers keep a missing height blank", async ({
   });
   await page.reload();
   await expect(page.getByLabel("View", { exact: true })).toHaveValue("layers");
-  await page.getByRole("tab", { name: "Labels", exact: true }).click();
   await page.getByLabel("Edge or face", { exact: true }).selectOption("height");
   await expect(
     page.getByLabel("Label appearance", { exact: true }),
@@ -215,7 +199,6 @@ test("multiple cuboids preserve independent labels through removal and Undo", as
 }) => {
   await page.getByRole("button", { name: "Add cuboid", exact: true }).click();
   await field(page, "Width", "6");
-  await page.getByRole("tab", { name: "Labels", exact: true }).click();
   await page
     .getByLabel("Label appearance", { exact: true })
     .selectOption("text");
@@ -236,7 +219,6 @@ test("face areas and hidden edges survive direction changes", async ({
   await expect(resource(page)).toContainText("27 cm²");
   await expect(resource(page)).toContainText("45 cm²");
   await expect(resource(page)).toContainText("15 cm²");
-  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await page.getByText("More shape options", { exact: true }).click();
   await page
     .getByLabel("Dashed hidden edges (exam view)", { exact: true })
@@ -261,7 +243,6 @@ test("source cube sizes and explicit worked choice have the right counts", async
   await page
     .getByLabel("Selected cuboid", { exact: true })
     .selectOption("cuboid");
-  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await page.getByText("Cube size and counts", { exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Cube side length", exact: true }),
@@ -601,7 +582,6 @@ test("an invalid inline draft is protected from a second editor", async ({
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
   await field(page, "Edit width", "bad");
-  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Edit width", exact: true }),
   ).toHaveValue("bad");

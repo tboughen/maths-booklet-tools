@@ -57,7 +57,7 @@ import {
   type Fill,
 } from "../../packages/chart-core/src";
 import { chartEditorLink, parseChartLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
@@ -399,6 +399,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
