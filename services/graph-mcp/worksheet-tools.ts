@@ -251,7 +251,7 @@ const BOOKLET_LAYOUT = [
   "Body text Inter 11 pt (nothing below 10 pt); cards never split; a section heading stays with its first row of cards and repeats with '(continued)' after a page break.",
   "Text never shrinks to fit. A card taller than a page, or a diagram too wide for its card, is returned as an issue naming lesson, section, question and page.",
   "Spare page height goes to working and drawing space (up to 40 mm extra each).",
-  "Word files (.docx) have exactly the same pages as the PDFs: each page is fixed and ends with its own page break, Inter is embedded, diagrams are pictures at their printed size.",
+  "Word files (.docx) are laid out from the same page plan as the PDFs: every page starts with its own page break, a row of cards never splits across pages, Inter is embedded and diagrams are pictures at their printed size.",
 ];
 
 const BOOKLET_DESCRIPTION =
@@ -262,7 +262,7 @@ const BOOKLET_DESCRIPTION =
   "Cards use the same items as create_worksheet (text, info, claim, bullets, table, choice, steps, checklist, answerLine, space, diagram, part); worked and notes cards are not numbered, other cards are numbered within their section. Half-width cards (columns:2) are 90.5 mm wide, so a diagram there must fit about 84 mm. " +
   "Saved answers print only in the answers files; never invent answers the teacher did not give. " +
   "For a ratio or x → / y ↑ movement table (scaling, gradients, rates) use a ratio-table diagram rather than a plain table, so the curved scaling arrows show the method, in its compact form: {type:'diagram',diagram:{tool:'ratio-table',spec:{columns:['x →','y ↑'],table:[['2','4'],['1','[2]']],steps:['÷ 2']}}}. Cells: '4' printed, '' blank, '_' answer line, '[2]' hidden answer (answers PDF only); headings end in → ↑ or ↓ (y ↓ for negative gradients); steps '× 3' or '÷ 2', '[÷ 2]' hidden for pupils. " +
-  "A whole unit (up to 12 lessons) goes in one call; requests may be up to 512 KiB, so send diagrams as specs rather than full envelopes. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDF, pupil and answers Word file (.docx, A4, same pages as the PDFs, fonts embedded) and editable JSON links (kept for 7 days), a pupil and answers PDF and Word link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
+  "A whole unit (up to 12 lessons) goes in one call; requests may be up to 512 KiB, so send diagrams as specs rather than full envelopes. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDF, pupil and answers Word file (.docx, A4, laid out page for page like the PDFs, fonts embedded) and editable JSON links (kept for 7 days), a pupil and answers PDF and Word link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
 
 const LAYOUT = [
   "A3 landscape (420 x 297 mm), exactly two sides. Each side's layout is three (three columns, the default), two (two wide), wide-narrow, narrow-wide or one (full-width cards); each column has a titled stage heading, and a card with stage starts a new stage band within its column.",
@@ -401,9 +401,10 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           }
         }
       }
-      // Each lesson on its own. With the booklet stored, a lesson link names it and the lesson, so it
-      // stays short; otherwise the lesson travels in the link, which works even when the whole
-      // booklet is too big for one.
+      // Each lesson on its own. With the booklet in a store that survives restarts, a lesson link
+      // names it and the lesson, so it stays short; otherwise the lesson travels in the link, which
+      // works even when the whole booklet is too big for one and outlives a restart.
+      const storedLessons = stored && downloads.durableStore;
       for (const [i] of doc.lessons.entries()) {
         const one = singleLessonBooklet(booklet, i);
         for (const [slot, format, view] of [
@@ -412,7 +413,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           ["pupilDocx", "docx", "pupil"],
           ["answersDocx", "docx", "answers"],
         ] as const) {
-          if (stored) {
+          if (storedLessons) {
             try {
               lessons[i][slot] = await downloads.storedLink(booklet, format, view, Date.now(), i);
               continue;
@@ -456,7 +457,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     content.push({
       type: "text",
       text: printReady
-        ? "Print the PDFs on A4 at 100% (actual size). Each lesson starts on a new page, so single lessons can be printed from the lesson links. The answers files show saved answers in dark pink; keep them away from pupils. The Word files open in desktop Word with the same pages, for small edits such as changing a number; editing a Word file does not change the other Word file, the PDFs or the JSON, so make the same change in each copy you use, or change the booklet and create it again. Keep the JSON to make changes later."
+        ? "Print the PDFs on A4 at 100% (actual size). Each lesson starts on a new page, so single lessons can be printed from the lesson links. The answers files show saved answers in dark pink; keep them away from pupils. The Word files open in desktop Word laid out page for page like the PDFs, for small edits such as changing a number; editing a Word file does not change the other Word file, the PDFs or the JSON, so make the same change in each copy you use, or change the booklet and create it again. Keep the JSON to make changes later."
         : "No files were made because the booklet does not fit yet. Fix the issues above (move a card, trim wording or reduce working space; text is never shrunk) and call create_booklet again.",
     });
     return {

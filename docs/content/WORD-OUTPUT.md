@@ -211,6 +211,12 @@ as Word does). The website's Word files are byte-identical to the connector's: t
 `@resvg/resvg-wasm` 2.6.2, the same resvg as the service's `@resvg/resvg-js` 2.6.2, and makes the
 same outlined SVG and PNG for every diagram (`e2e/booklet.spec.ts` compares the bytes).
 
+Desktop Word is not yet checked for booklets (14 November 2026): Tim has the example booklet (pupil,
+answers, lesson 2) and the 12-lesson unit to open in Word, with the expected page counts 11, 11, 7
+and 56 (`word-expected.json`). Until that is recorded here, describe booklet Word files as laid out
+from the PDF's page plan rather than as proven identical in Word. To measure a Word PDF against the
+PDF writer, run `node scripts/word/compare-text.mjs <folder>`.
+
 Differences from the PDF, by design: rounded corners are square; contents dot leaders are Word's
 dots; the lesson and code tiles are square.
 

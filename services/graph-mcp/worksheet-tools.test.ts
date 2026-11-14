@@ -332,8 +332,11 @@ describe("booklet tool", () => {
     expect(await (await fetch(reply.downloads.json.url)).json()).toEqual(renderable(doc));
     expect(reply.lessons).toHaveLength(11);
     expect(reply.lessons.every((l) => l.pupilPdf && l.answersPdf && l.pupilDocx && l.answersDocx)).toBe(true);
-    // Lesson Word links name the stored booklet and a lesson, so they stay short.
-    expect(Math.max(...reply.lessons.map((l) => l.pupilDocx!.url.length))).toBeLessThan(600);
+    // This store does not survive a restart, so each lesson travels in its own link and keeps
+    // working after one (the durable-store test checks the short stored lesson links).
+    expect(Math.min(...reply.lessons.map((l) => l.pupilDocx!.url.length))).toBeGreaterThan(600);
+    const tokenOf = (url: string) => JSON.parse(new TextDecoder().decode(inflateSync(Buffer.from(new URL(url).searchParams.get("token")!, "base64url"))));
+    expect(reply.lessons.every((l) => tokenOf(l.pupilDocx!.url).ref === undefined && tokenOf(l.answersPdf!.url).ref === undefined)).toBe(true);
     const whole = await bookletWord(reply.downloads.pupilDocx.url);
     expect(whole.pages).toBe(reply.pages);
     const last = reply.lessons[10];
