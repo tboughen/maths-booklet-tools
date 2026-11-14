@@ -4346,6 +4346,13 @@
               ],
               "additionalProperties": false
             }
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
