@@ -1,4 +1,4 @@
-import { MousePointer2, Plus, Slash, Triangle, X } from "lucide-react";
+import { MousePointer2, Plus, Slash, SquareDashed, Triangle, X } from "lucide-react";
 import type { DrawingTool } from "../domain/types";
 
 const tools: Array<{
@@ -27,11 +27,13 @@ export function GraphTools({
   onToolChange,
   onEquation,
   onShape,
+  onRegion,
 }: {
   tool: DrawingTool;
   onToolChange: (tool: DrawingTool) => void;
   onEquation: () => void;
   onShape?: () => void;
+  onRegion?: () => void;
 }) {
   return (
     <section className="panel-card specialist-tools">
@@ -61,6 +63,12 @@ export function GraphTools({
         <button className="secondary-panel-button" onClick={onShape}>
           <Triangle size={16} aria-hidden="true" />
           <span>Add shape</span>
+        </button>
+      )}
+      {onRegion && (
+        <button className="secondary-panel-button" onClick={onRegion}>
+          <SquareDashed size={16} aria-hidden="true" />
+          <span>Shade a region</span>
         </button>
       )}
       <p className="panel-note">

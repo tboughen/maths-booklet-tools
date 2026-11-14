@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight, EyeOff, Slash, Triangle, X } from "lucide-react";
+import { ChevronDown, ChevronRight, EyeOff, Slash, SquareDashed, Triangle, X } from "lucide-react";
 import { formatVertices, polygonInBounds } from "../../packages/graph-core/src/polygon";
+import { regionHalfPlanes, regionPolygon } from "../../packages/graph-core/src/region";
 import { getBounds, pointInBounds, visibleStraightPoints } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
 import type { DiagramDocumentV1, GraphObject } from "../domain/types";
@@ -14,12 +15,14 @@ interface ObjectsPanelProps {
 function objectTitle(object: GraphObject, index: number): string {
   if (object.kind === "point") return `Point ${index + 1}`;
   if (object.kind === "polygon") return `Shape ${object.name ?? index + 1}`;
+  if (object.kind === "region") return `Region ${object.name ?? index + 1}`;
   return `${object.display === "line" ? "Line" : "Segment"} ${index + 1}`;
 }
 
 function objectDescription(object: GraphObject): string {
   if (object.kind === "point") return `(${formatNumber(object.position.x)}, ${formatNumber(object.position.y)})`;
   if (object.kind === "polygon") return `${formatVertices(object.vertices)}${object.shaded ? " · shaded" : ""}`;
+  if (object.kind === "region") return `${object.inequalities.join(", ")}${object.shade === "unwanted" ? " · unwanted side shaded" : ""}`;
   return `${equationForObject(object)}${object.strokeStyle === "dashed" ? " · dashed" : ""}`;
 }
 
@@ -33,14 +36,14 @@ export function ObjectsPanel({ document, expanded, onToggle, onSelect }: Objects
       </button>
       {expanded && (
         <div className="objects-list">
-          {document.objects.length === 0 ? <p>No objects yet. Add a point, segment, line or shape.</p> : document.objects.map((object, index) => {
-            const offGrid = object.kind === "point" ? !pointInBounds(object.position, bounds) : object.kind === "polygon" ? !polygonInBounds(object, bounds) : !visibleStraightPoints(object, bounds);
+          {document.objects.length === 0 ? <p>No objects yet. Add a point, segment, line, shape or region.</p> : document.objects.map((object, index) => {
+            const offGrid = object.kind === "point" ? !pointInBounds(object.position, bounds) : object.kind === "polygon" ? !polygonInBounds(object, bounds) : object.kind === "region" ? !regionPolygon(regionHalfPlanes(object), bounds).length : !visibleStraightPoints(object, bounds);
             const selected = object.id === document.selectedObjectId;
             const title = objectTitle(object, index);
             const description = objectDescription(object);
             return (
               <button key={object.id} type="button" className={selected ? "selected" : ""} aria-pressed={selected} aria-label={`Select ${title}: ${description}`} onClick={() => onSelect(object.id)}>
-                <span className="list-icon">{object.kind === "point" ? <X size={16} /> : object.kind === "polygon" ? <Triangle size={16} /> : <Slash size={16} />}</span>
+                <span className="list-icon">{object.kind === "point" ? <X size={16} /> : object.kind === "polygon" ? <Triangle size={16} /> : object.kind === "region" ? <SquareDashed size={16} /> : <Slash size={16} />}</span>
                 <span className="list-copy"><strong>{title}</strong><small>{description}</small></span>
                 {offGrid && <span className="off-grid" title="This object is outside the visible grid"><EyeOff size={14} /><span className="sr-only">Off grid</span></span>}
               </button>
