@@ -44,9 +44,19 @@ import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
+import { housePreference } from "../site/houseStyle";
+import { startingTextPt } from "../../packages/envelope-core/src/house-style";
 import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
+
+
+/** A new Venn diagram at the teacher's house style text size (U111); its own setting overrides it. */
+function freshVenn() {
+  const e = create();
+  e.document.fontPt = startingTextPt(housePreference().style, e.document.fontPt, { min: 9, max: 14 });
+  return e;
+}
 
 const STORAGE = copyStorageKey("maths-booklet-tools:venn:v1");
 const arrangementNames: Record<Arrangement, string> = {
@@ -96,7 +106,7 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: freshVenn(),
           recovery: raw,
           message:
             "Saved Venn data needs recovery. Download the original before starting afresh.",
@@ -105,13 +115,13 @@ function initial() {
     }
   } catch {
     return {
-      e: create(),
+      e: freshVenn(),
       recovery: null,
       message:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: freshVenn(), recovery: null, message: "" };
 }
 type Draft = {
   type: "region" | "label" | "definition" | "expression";
@@ -466,7 +476,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset the Venn diagram?")}
+              onReset={() => replacement(freshVenn(), "Reset the Venn diagram?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
