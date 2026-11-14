@@ -56,4 +56,10 @@ describe("second scale and percentage bar (U109)", () => {
     const e = bar({ "30": "answer-line" });
     expect(() => apply(e, [{ op: "set_axis", axis: { ...e.document.axis, step: "8" } }])).toThrow(/30 no longer falls on a tick/);
   });
+
+  it("refuses arrow markers together with a second scale", () => {
+    const axis = { minimum: "0", maximum: "4", step: "1", variable: "" };
+    const secondary = { minimum: "0", maximum: "100", unit: "%", unitPlace: "after" as const, style: "line" as const, labels: {} };
+    expect(() => create({ axis, secondary, markers: [{ id: "a", value: "2", label: "A" }] })).toThrow(/not both/);
+  });
 });
