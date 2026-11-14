@@ -1,0 +1,169 @@
+{
+ "graph/file-tool-card-preview-examples-graph-tool": {
+  "schemaVersion": 1,
+  "contentHash": "607aa1172fe1f675a1197b241cc2724ad27716933c122ee8d5fc2cb4ad388d71",
+  "pupilSvg": "f61be3f446f7be419af2caf0911ce1a60c5cb254d4804d825964602968c0d5be",
+  "answerSvg": "f61be3f446f7be419af2caf0911ce1a60c5cb254d4804d825964602968c0d5be"
+ },
+ "ratio-table/default": {
+  "schemaVersion": 1,
+  "contentHash": "a460e2fd24bfacc1c2b9db243cb6364838f0c1b234c3b319e04c6543e9d73c61",
+  "pupilSvg": "5fb881997db1153df957daa3d26ebb44f889fb9eb285d71b98ac910133108163",
+  "answerSvg": "5fb881997db1153df957daa3d26ebb44f889fb9eb285d71b98ac910133108163"
+ },
+ "ratio-table/file-ratio-table-examples-worked": {
+  "schemaVersion": 1,
+  "contentHash": "bbadec67c4da090ff8150be3c37f3e4bf6a12ea4856a3d8c6227ba04d9afedca",
+  "pupilSvg": "2a5440ac897f064898cf575d6bdcecd4a19d3a37a03efbe10343ae02b68ab731",
+  "answerSvg": "2a5440ac897f064898cf575d6bdcecd4a19d3a37a03efbe10343ae02b68ab731"
+ },
+ "value-graph/default": {
+  "schemaVersion": 1,
+  "contentHash": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",
+  "pupilSvg": "513612a887963c6149f2db21e0ac0510832fac2ff0bf3cea8a60c62491b3a34e"
+ },
+ "cuboids/default": {
+  "schemaVersion": 2,
+  "contentHash": "4616db56d0be2f2ab7efaac97dca0d681cafc463fb59bd50031d286b3aa2f22e",
+  "pupilSvg": "34c6a481cdef0d103d480ff7d11db361e30be6b073ab2bf3e4c6d63665cd6305"
+ },
+ "cuboids/example-1ma1-jun-2017-3f-q12-worked": {
+  "schemaVersion": 1,
+  "contentHash": "74e2375f51c04e02f2c2c23f7e248675c75cd235518f61628088e20a446f1f77",
+  "pupilSvg": "1ba376415a53c2e4d3198fc2ecbf922a6a96958b86efd92c8522eb243100bcd2"
+ },
+ "cuboids/example-base-area-worked": {
+  "schemaVersion": 2,
+  "contentHash": "2880e54f2007a0be4d772e9e0cde15249f8c8a9a4df2d15732fb9eba0a225178",
+  "pupilSvg": "4cc14a2273e6562f967cbffd3b33d035bf1c18be1aa9842ec2ca00ab669615cd"
+ },
+ "cuboids/file-cuboid-examples-card-preview": {
+  "schemaVersion": 1,
+  "contentHash": "5d9832c429e855ce230036dc997e05c5ed949d828def3c9755a4609b076676c0",
+  "pupilSvg": "9e2e60ca32b61ed2628f675b38d85cf7182cc029ca59209a47fc915e2002021f"
+ },
+ "number-line/default": {
+  "schemaVersion": 1,
+  "contentHash": "9fed89c635d4f16d4992fe5f4cb93342aee0f3c5408ee2e574d1dcc9785470a1",
+  "pupilSvg": "c3ee70ba5242eb0af4a4d5a656076b464e4187123321f3b04bd55e89b9e264ce"
+ },
+ "number-line/example-15-c-1ma1-mock-set-05-3f-q15-worked": {
+  "schemaVersion": 1,
+  "contentHash": "e81b651c87f9601bb929e8b3e4b72d5eb90a8e5f130325020e6a311cbdeed092",
+  "pupilSvg": "87c3683e63a15f3648bdeb5c6812df7936955e9de26e4ba69d42a72d8745b0e9"
+ },
+ "venn/default": {
+  "schemaVersion": 2,
+  "contentHash": "ed2b35c6cb671b6830db7c0eecf881f91330ac9d14bd177fc77292b1a006d3b0",
+  "pupilSvg": "598bb6d483d59f9d6c0730712028de3678a605121ca1da5e13876bf2a82ab419",
+  "answerSvg": "598bb6d483d59f9d6c0730712028de3678a605121ca1da5e13876bf2a82ab419"
+ },
+ "venn/example-2017-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4768bed58a3eaa75d3f185ba4e20d0043d2a062ab1d30ed754d68d93b2a05d58",
+  "pupilSvg": "9fb35caa438372f69765db745d63a0bc71129f96cf2ac3ab04ed056e8ca68bfa",
+  "answerSvg": "9fb35caa438372f69765db745d63a0bc71129f96cf2ac3ab04ed056e8ca68bfa"
+ },
+ "venn/example-nested-worked": {
+  "schemaVersion": 2,
+  "contentHash": "753d9d2f184e28c8bbd5ba7f3445fbbb4aa620b71d142e82f62b58c040d74a8d",
+  "pupilSvg": "4eab1c5179506020e66f7fd0cb7c7265b2a8b9f856662afb3ae75f0b5a13788e",
+  "answerSvg": "4eab1c5179506020e66f7fd0cb7c7265b2a8b9f856662afb3ae75f0b5a13788e"
+ },
+ "venn/file-venn-examples-card": {
+  "schemaVersion": 1,
+  "contentHash": "b8c540f5888b041130ea7fad1d932f132f61d9f5575ea1362a200d349f076112",
+  "pupilSvg": "3f2e1b8f05c33f4f216fd411738bb0796dd2af76d88e51eea22be6367883ac33",
+  "answerSvg": "7320896d9d0ef844031d15b37b4421dcd100c9f27cba46800429d63a182d6441"
+ },
+ "algebra-grid/default": {
+  "schemaVersion": 1,
+  "contentHash": "26c3923c08738b4c10d24b96462e3b83c724e81b2d91fa394dfea2ef5318f94d",
+  "pupilSvg": "f2101f9e26831701c1e1fc6f5029ff117b9596d74abbf4e901122741dc7e9187",
+  "answerSvg": "f2101f9e26831701c1e1fc6f5029ff117b9596d74abbf4e901122741dc7e9187"
+ },
+ "algebra-grid/file-algebra-grid-examples-common-worked": {
+  "schemaVersion": 1,
+  "contentHash": "77884d70afc7726b389a397d629baa9b7c69543bba3923624484c962f10b8a82",
+  "pupilSvg": "374e3ded3266518c5434a9217f95e0654415f6381ae7a871f6e1ec6fb36a03be",
+  "answerSvg": "374e3ded3266518c5434a9217f95e0654415f6381ae7a871f6e1ec6fb36a03be"
+ },
+ "bar-model/default": {
+  "schemaVersion": 1,
+  "contentHash": "7b280091b46153069ff16965e6812f7552eb1aa1f2195ef433fb81c30f6d958d",
+  "pupilSvg": "f8e747b98445d36d186f4440a6cd0c440c35cd1da42e7fed3bbde35472976d12"
+ },
+ "bar-model/file-bar-model-examples-lesson-v2-tool-card": {
+  "schemaVersion": 2,
+  "contentHash": "f658e651a6319eb3a17f66c79bae7cf94f8e85b30065ef1528a50c063ee1dd99",
+  "pupilSvg": "319cee9e087d2b6491d156dd7eabb338489ca12c863ab69e55195aadb55a295f"
+ },
+ "bar-model/file-bar-model-examples-lesson-v3-tool-card": {
+  "schemaVersion": 3,
+  "contentHash": "cab5edba13491e737295162d190f9946b63b7f7f582706e4c0ef5868f246d138",
+  "pupilSvg": "cf53aee2c674708ecd931dfe338383fa1ab50acc8d923484e9b3ea25e61ee3a9"
+ },
+ "bar-model/v1-legacy-bm01-worked": {
+  "schemaVersion": 1,
+  "contentHash": "55d2ddb7619a5385ca8e772b581985691dcb9dfbdf65cf7dd9eaaa8cfe87f0a8",
+  "pupilSvg": "cc9f1b35241fa70e8b057e0dfc10218fd433e86fa3584fd1658514f3e395d703"
+ },
+ "bar-model/v2-lesson-r2-c-worked": {
+  "schemaVersion": 2,
+  "contentHash": "c13303f8dca3d9ddbca9c0eea5fa2d3aae98208090f9aa855acf4fdc9382066d",
+  "pupilSvg": "626f6f3d90c644f618283c327637ad721d5a1ce51c59ad97a19a927a17eca6d7"
+ },
+ "bar-model/v3-lesson-r2-c-worked": {
+  "schemaVersion": 3,
+  "contentHash": "52c90107cf70d782321810287dd1a3098acedb42a9c6367a5478b8d7a1c25ef4",
+  "pupilSvg": "c5f165d30071bb73f4f5c2da973ab099220003af4b8e5dd2829b09e4d6a10ffb"
+ },
+ "charts/default": {
+  "schemaVersion": 1,
+  "contentHash": "288adbf5852632ee6070f946f38d4ae7c5d2d5d29502d3e04fc28123d8857f6a",
+  "pupilSvg": "6ec040cb492ff54cc7226c852d0e68a3dc0e89c34d09f4754c6c6c8be81f68de",
+  "answerSvg": "6ec040cb492ff54cc7226c852d0e68a3dc0e89c34d09f4754c6c6c8be81f68de"
+ },
+ "charts/example-bar-draw-worked": {
+  "schemaVersion": 1,
+  "contentHash": "4931421172fb64c1503a86b18bd5324d05932c71df0bc97d38ae39a6d2d41a31",
+  "pupilSvg": "75100670549c37ff7c84438bdd4b1a42422fa1e66282a03e22d2641922afb619",
+  "answerSvg": "75100670549c37ff7c84438bdd4b1a42422fa1e66282a03e22d2641922afb619"
+ },
+ "probability-tree/default": {
+  "schemaVersion": 1,
+  "contentHash": "58812faaea4dc5167ab66794b460540c2e7cfa94f7616d193415f39984268b9c",
+  "pupilSvg": "d9e0cca477012b9ccff1d1b797b4ceba795328fde7f34f1918a655b98314310a",
+  "answerSvg": "d9e0cca477012b9ccff1d1b797b4ceba795328fde7f34f1918a655b98314310a"
+ },
+ "probability-tree/example-darts-worked": {
+  "schemaVersion": 1,
+  "contentHash": "bb3c167bc955d4bef5564c78cf6ac58db14911df00608d9ce21725c2c3f1c614",
+  "pupilSvg": "81552fae9597fb9c1eb512329849436158f9718331591967c2508f46adef52bb",
+  "answerSvg": "81552fae9597fb9c1eb512329849436158f9718331591967c2508f46adef52bb"
+ },
+ "frequency-tree/default": {
+  "schemaVersion": 1,
+  "contentHash": "27d53fefc290587865b8245f36cda5e366aecdb780be9c4965f748041678caae",
+  "pupilSvg": "7ed4d141de06e85e418552bbea1c219eaee920293a1b9c34a1434efaee21632e",
+  "answerSvg": "e74e8874acf8c4d7aaeca9131dabbc3e2975dbcc0cca9d7bc4f8b03178accdc4"
+ },
+ "frequency-tree/example-coffee-worked": {
+  "schemaVersion": 1,
+  "contentHash": "abb264ed16b63b57ea1dfe0b87b43f5703090a542c0863c0acbcb76713ab360b",
+  "pupilSvg": "a5074458e78b0b241e19741c5868ff0d97d48b27caef2f75e4e9f83786d927af",
+  "answerSvg": "a5074458e78b0b241e19741c5868ff0d97d48b27caef2f75e4e9f83786d927af"
+ },
+ "triangle/default": {
+  "schemaVersion": 1,
+  "contentHash": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
+  "pupilSvg": "1139741561f7048c72b53c3102512159db97a7a095c0a6dc76a9937d12eed8bb",
+  "answerSvg": "1139741561f7048c72b53c3102512159db97a7a095c0a6dc76a9937d12eed8bb"
+ },
+ "triangle/file-fixtures-triangle-area-v2": {
+  "schemaVersion": 2,
+  "contentHash": "a1ab3b49f6b05277e9ff6c2716f62daa82f718b54c5da35813f0cbcea796c35f",
+  "pupilSvg": "4a31e4195ec75866a2b04f3b60e7a7aff6793ada75c20d0f0cd99e50b76a02e2",
+  "answerSvg": "715f2d7afd8ce1dc3662cc0866c7cd1e380616afb12e8fd7875d3f4b709db9b8"
+ }
+}

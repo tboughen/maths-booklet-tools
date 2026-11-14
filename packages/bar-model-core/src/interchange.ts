@@ -1,5 +1,6 @@
 import { z } from "zod";
 import * as c from "./index";
+import { toBase64Url } from "../../envelope-core/src/index";
 const target = z
   .object({
     barId: z.string().optional(),
@@ -235,16 +236,13 @@ export async function revise(raw: unknown) {
   return apply(v.envelope, v.operations);
 }
 export function editorLink(e: c.Envelope, base: string) {
-  const bytes = new TextEncoder().encode(c.canonical(e));
-  let binary = "";
-  bytes.forEach((v) => (binary += String.fromCharCode(v)));
   const u = new URL(base);
   // The editor's own page path, such as /tools/bar-model (old ?tool= links still redirect).
   u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/bar-model";
   u.search = "";
   u.hash =
     "bar-model=" +
-    btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+    toBase64Url(c.canonical(e));
   if (u.href.length > 16000)
     throw Error("This model is too large for a link. Save its editable file.");
   return u.href;

@@ -24,6 +24,7 @@ import {
   equationForObject,
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 export const RENDERER_VERSION = "graph-1";
 export const MAX_REQUEST_BYTES = 64 * 1024;
@@ -535,13 +536,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
   );
 }
 export async function graphHash(envelope: GraphEnvelope): Promise<string> {
-  const hash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(canonicalEnvelope(envelope)),
-  );
-  return Array.from(new Uint8Array(hash), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("");
+  return sha256Hex(canonicalEnvelope(envelope));
 }
 export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
   const input = parse(revisionSchema, value),
@@ -667,14 +662,7 @@ export function describeGraph(envelope: GraphEnvelope): string {
   return `Coordinate graph: ${range("x", b.xMin, b.xMax)}, ${range("y", b.yMin, b.yMax)}; scales ${d.axes.x.unitsPerSquare} and ${d.axes.y.unitsPerSquare} units per 1 cm square.${extras} ${objects || "Empty grid."}`;
 }
 export function encodeEnvelope(envelope: GraphEnvelope): string {
-  return btoa(
-    Array.from(new TextEncoder().encode(canonicalEnvelope(envelope)), (b) =>
-      String.fromCharCode(b),
-    ).join(""),
-  )
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/, "");
+  return toBase64Url(canonicalEnvelope(envelope));
 }
 export function decodeEnvelope(payload: string): GraphEnvelope {
   if (payload.length > MAX_FILE_BYTES * 2 || !/^[A-Za-z0-9_-]+$/.test(payload))
