@@ -107,3 +107,19 @@ test("work survives leaving the page and reloading", async ({ page }) => {
   await page.reload();
   await expect(total).toHaveValue("120");
 });
+
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({ page }) => {
+  await boot(page);
+  const art = page.getByTestId("frequency-tree-resource").locator("svg").first();
+  const first = async () => Number((await art.innerHTML()).match(/stroke-width="([\d.]+)"/)![1]);
+  const normal = await first();
+  const lines = page.getByLabel("Lines", { exact: true });
+  await lines.selectOption("bold");
+  await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+  // The preview is the printed SVG: every stroke is 1.5 times as heavy.
+  await expect.poll(first).toBeCloseTo(normal * 1.5, 3);
+  await lines.selectOption("normal");
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+});

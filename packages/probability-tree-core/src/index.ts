@@ -1,5 +1,6 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
@@ -67,6 +68,11 @@ export const documentSchema = z
     blankStyle: z.enum(["dots", "box"]),
     branchMm: z.number().int().min(20).max(50),
     gapMm: z.number().int().min(10).max(24),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export const envelopeSchema = z
@@ -949,7 +955,7 @@ export function renderSvg(e: Envelope): string {
     out.push(text(r.q.text, r.textX + 8, r.y + FONT * 0.33, "start"));
   }
   const label = `Probability tree diagram with ${maxDepth(d)} stage${maxDepth(d) === 1 ? "" : "s"}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`;
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`, d.lines);
 }
 
 /* ---------- Editor links ---------- */
