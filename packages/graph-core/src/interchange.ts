@@ -712,7 +712,7 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
     envelope = validateEnvelope(input.envelope, true);
   if ((await graphHash(envelope)) !== input.baseHash)
     throw new GraphError(
-      "stale_document",
+      "stale_hash",
       "Use the content hash from the exact graph being revised.",
     );
   const document = documentFromEnvelope(envelope);

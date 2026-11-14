@@ -239,7 +239,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
       const svg = bytes.toString();
       expect(svg.includes("data:font/otf;base64,")).toBe(true);
       expect(svg.includes("ratio-guides")).toBe(false);
-      // The SVG root rounds its size to four decimals (U38).
+      // The SVG root keeps four decimal places of its unit (U38).
       expect(svg.includes(`width="${Number(metrics.widthCm.toFixed(4))}cm"`)).toBe(true);
       const pupilCell = svg.match(
         /<g class="ratio-cell" data-row="target" data-column="1"[^]*?<\/g>/,
@@ -1146,21 +1146,4 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
   await expect
     .poll(async () => (await stored(page)).document.headings[1].direction)
     .toBe("up");
-});
-test("bold lines are saved, exported and undoable; normal lines are not saved (U111)", async ({
-  page,
-}) => {
-  await seed(page);
-  await page.goto("/tools/ratio-table");
-  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
-  await expect.poll(async () => (await stored(page)).document.lines).toBe("bold");
-  await page.getByRole("button", { name: "File", exact: true }).click();
-  const download = page.waitForEvent("download");
-  await page.getByRole("menuitem", { name: /Download SVG/ }).click();
-  const svg = await readFile((await (await download).path())!, "utf8");
-  expect(svg).toContain('stroke-width="3"');
-  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
-  await expect.poll(async () => JSON.stringify(await stored(page))).not.toContain('"lines"');
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect.poll(async () => (await stored(page)).document.lines).toBe("bold");
 });

@@ -456,7 +456,7 @@ export async function reviseRatioTable(input: unknown): Promise<RatioEnvelope> {
     envelope = validateRatioEnvelope(revision.envelope);
   if ((await ratioHash(envelope)) !== revision.baseHash)
     throw new RatioError(
-      "stale_document",
+      "stale_hash",
       "Use the contentHash from the exact ratio table being revised.",
     );
   return applyRatioOperations(envelope, revision.operations);
