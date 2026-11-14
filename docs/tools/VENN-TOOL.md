@@ -22,11 +22,12 @@ runtime dependencies or newly published question-bank assets.
   and preserves pupil visibility in autosave/editable files. It is disabled
   during pending edits/replacements/recovery/export like the previous control.
 - One Edit/Shade switch above the diagram is the only mode control. Edit shows
-  Diagram/Contents tabs; Shade shows shading controls instead. Direct region
+  the Diagram and Region contents cards, stacked; Shade shows the Region
+  shading card instead (U20: no settings tabs). Direct region
   clicks follow the chosen mode, whose active state is explicit. Labels can
   still be edited directly. Drafts block conflicting mode changes; navigation
-  preserves mode, view and unfinished editing. The old Shading tab and three
-  separate mode actions are removed. Two Edit tabs retain arrow/Home/End keys.
+  preserves mode, view and unfinished editing. The old tabs and three separate
+  mode actions are removed.
 - Labels and definitions are together in one collapsed section; direct label
   and printed-definition editing stays available. Print size has its own
   collapsed section. Essential keyboard alternatives remain labelled.
@@ -134,7 +135,7 @@ newline. One draft can be open at a time; a pending draft blocks other edits
 and exports. It stays present through scrolling, resizing and tool navigation;
 inactive overlays are hidden/inert. Floating editors are portal children of
 document.body, clamped to the visual viewport, with their own scroll overflow.
-Diagram/Contents/Shading tabs support arrows, Home and End. All essential
+All essential
 actions have keyboard alternatives. A separate shading mode distinguishes
 editing from painting. The white artwork contains only transparent edit hits;
 buttons and utilities are in the surrounding workspace or inspector.

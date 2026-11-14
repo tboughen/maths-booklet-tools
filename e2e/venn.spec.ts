@@ -82,7 +82,7 @@ test("invalid and unfinished input blocks export, Cancel never commits", async (
   await boot(page);
   await page.locator('[data-region-hit="3"]').click();
   await page.getByLabel("Content type").selectOption("number");
-  await page.getByLabel("Region content").fill("1/0");
+  await page.getByLabel("Region content", { exact: true }).fill("1/0");
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator(".vn-floating [role=alert]")).toContainText(
     "denominator",
@@ -455,7 +455,7 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   expect((await saved(page)).document.regions[1].text).toBe("4");
 });
 
-test("newline members, keyboard tabs and direct definition edits", async ({
+test("newline members, stacked cards and direct definition edits", async ({
   page,
 }) => {
   await boot(page);
@@ -465,19 +465,9 @@ test("newline members, keyboard tabs and direct definition edits", async ({
   expect((await saved(page)).document.regions[1].text).toBe("0\n1/2\n-3");
   // Closing the editor returns focus to the region on the next frame; wait for it before moving focus.
   await expect(page.locator('[data-region-hit="1"]')).toBeFocused();
-  await page.getByRole("tab", { name: "Contents", exact: true }).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(
-    page.getByRole("tab", { name: "Diagram", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("End");
-  await expect(
-    page.getByRole("tab", { name: "Contents", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("Home");
-  await expect(
-    page.getByRole("tab", { name: "Diagram", exact: true }),
-  ).toBeFocused();
+  // U20: the Diagram and Region contents cards are both shown; there are no tabs.
+  await expect(page.getByRole("tab")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Region contents", exact: true })).toBeVisible();
   await page.getByText("Labels and definitions", { exact: true }).click();
   await page
     .getByRole("checkbox", {
