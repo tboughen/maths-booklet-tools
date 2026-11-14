@@ -1,4 +1,8 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
+import { houseRatio } from "./house";
 import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import {
@@ -6,6 +10,7 @@ import {
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -470,6 +475,7 @@ export default function RatioTablePage({
     selection?.kind === "cell" || selection?.kind === "heading"
       ? selection.column
       : document.headings.length - 1;
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
@@ -554,7 +560,7 @@ export default function RatioTablePage({
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(starterRatioTable(), "Reset this table?")}
+              onReset={() => replace(houseRatio(starterRatioTable()), "Reset this table?")}
               resetDisabled={structureDisabled}
               exportDisabled={exportDisabled}
               busy={busy}
@@ -585,6 +591,7 @@ export default function RatioTablePage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
@@ -640,6 +647,7 @@ export default function RatioTablePage({
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               className="sr-only"
@@ -674,13 +682,19 @@ export default function RatioTablePage({
                 </label>
               )}
             </div>
-            <p className="ratio-edit-hint">
-              {tool === "arrow"
-                ? arrowFrom
-                  ? "Select the row immediately below."
-                  : "Select a source row, then the row below, or use the arrow settings."
-                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
-            </p>
+            <EditorHint
+              tool="ratio-table"
+              prompt={
+                tool === "arrow"
+                  ? arrowFrom
+                    ? "Select the row immediately below."
+                    : "Select a source row, then the row below, or use the arrow settings."
+                  : undefined
+              }
+            >
+              Click a heading, cell or arrow number and type. Click a curved
+              arrow for its settings.
+            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}

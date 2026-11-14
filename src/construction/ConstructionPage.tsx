@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -11,6 +14,7 @@ import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
+import { EditorHint } from "../site/EditorHint";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -492,6 +496,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
     ...segments.map((s) => <option key={s.id} value={s.id}>Line {s.from}{s.to}</option>),
   ];
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor cn-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -529,6 +534,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: { action: () => downloadImage(e, "svg", view), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(e, "png", view), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(e, "pdf", view), disabled: blocked || !!issue, success: "PDF download started." },
@@ -537,6 +543,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                 link: { action: () => navigator.clipboard.writeText(constructionLink(e, location.href)), disabled: blocked, success: "Editable link copied." },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
@@ -553,6 +560,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <ResourceSize width={g.width / 10} height={g.height / 10} />
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
+            <EditorHint tool="construction">Drag a point to move it, or select it and use the arrow keys. Add constructions and measurements in the settings.</EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div

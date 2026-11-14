@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
   useRef,
@@ -10,6 +13,8 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -331,6 +336,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor ch-editor">
       <main
@@ -384,6 +390,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
@@ -419,6 +426,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
@@ -439,6 +447,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="charts">
+              Click a bar, line or category label to edit its value. Enter
+              applies; Escape restores.
+            </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
               <div className="ch-stage">
                 <div
@@ -499,35 +511,28 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                <div
-                  className="ch-structure"
-                  role="group"
-                  aria-label="Categories"
-                >
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length >= MAX_CATEGORIES}
-                    aria-label="Add a category at the end"
-                    title="Add category"
-                    onClick={() => {
+                <StructureStepper
+                                    vertical
+                  name="Categories"
+                  caption=""
+                  add={{
+                    label: "Add a category at the end",
+                    title: "Add category",
+                    disabled: blocked || d.categories.length >= MAX_CATEGORIES,
+                    onClick: () => {
                       commit(addCategory(e));
                       requestAnimationFrame(() =>
                         focusField(`ch-cat-${d.categories.length}`),
                       );
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length <= 1}
-                    aria-label={`Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`}
-                    title="Remove last category"
-                    onClick={() => commit(removeCategory(e))}
-                  >
-                    −
-                  </button>
-                </div>
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`,
+                    title: "Remove last category",
+                    disabled: blocked || d.categories.length <= 1,
+                    onClick: () => commit(removeCategory(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (

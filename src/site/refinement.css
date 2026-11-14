@@ -170,9 +170,6 @@
   flex-wrap: wrap;
   gap: 10px;
 }
-.booklet-editor .vn-layout-tools .vn-structure > span {
-  display: none;
-}
 .booklet-editor .vn-layout-tools .vn-arrangements {
   padding: 0;
   display: grid;

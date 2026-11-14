@@ -6,9 +6,7 @@ import {
 import { diagramFileMenu } from "../site/fileMenu";
 import { useEffect, useRef, useState } from "react";
 import {
-  createEnvelope,
   decodeEnvelope,
-  documentFromEnvelope,
   editorLink,
   MAX_FILE_BYTES,
   MAX_LINK_LENGTH,
@@ -17,7 +15,8 @@ import {
 } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { renderDiagramSvg } from "../export/svg";
-import type { DiagramDocumentV1 } from "../domain/types";
+import { graphDocument, graphEnvelope, type GraphDocument } from "../domain/graphAbout";
+import type { FileMenuItem } from "../site/fileMenu";
 import { downloadBlob } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
 
@@ -31,9 +30,12 @@ export function GraphExchange({
   imageActions,
   active = true,
   onBusyChange,
+  about,
 }: {
-  document: DiagramDocumentV1;
-  onImport: (d: DiagramDocumentV1) => void;
+  document: GraphDocument;
+  onImport: (d: GraphDocument) => void;
+  /** "Title and note…" (U34), from `useTitleNote`. */
+  about: FileMenuItem;
   onClose: () => void;
   onMessage: (message: string, error?: boolean) => void;
   visible: boolean;
@@ -170,6 +172,7 @@ export function GraphExchange({
         onMessage={onMessage}
         wordHelp
         actions={diagramFileMenu({
+          about,
           svg: imageAction("Download SVG"),
           png: imageAction("Download PNG (600 ppi)"),
           pdf: imageAction("Download PDF (actual size)"),
@@ -178,11 +181,12 @@ export function GraphExchange({
             action: () => {
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
+              const envelope = graphEnvelope(document);
               downloadBlob(
-                new Blob([JSON.stringify(createEnvelope(document), null, 2)], {
+                new Blob([JSON.stringify(envelope, null, 2)], {
                   type: "application/json",
                 }),
-                downloadName("graph", "json", { resource: { document } }),
+                downloadName("graph", "json", { resource: envelope }),
               );
             },
             success: "Editable file download started.",
@@ -199,7 +203,7 @@ export function GraphExchange({
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
               return navigator.clipboard.writeText(
-                pathLink(editorLink(createEnvelope(document), location.href)),
+                pathLink(editorLink(graphEnvelope(document), location.href)),
               );
             },
             success: "Editable link copied.",
@@ -223,7 +227,7 @@ export function GraphExchange({
             <div
               className="graph-import-preview"
               dangerouslySetInnerHTML={{
-                __html: renderDiagramSvg(documentFromEnvelope(pending)),
+                __html: renderDiagramSvg(graphDocument(pending)),
               }}
             />
             <div className="graph-import-actions">
@@ -240,7 +244,7 @@ export function GraphExchange({
                 className="word-help-done"
                 onClick={() => {
                   if (!available.current) return;
-                  onImport(documentFromEnvelope(pending));
+                  onImport(graphDocument(pending));
                   setPending(null);
                   removeFragment();
                   onClose();

@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
@@ -5,6 +8,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -731,6 +735,7 @@ export default function NumberLinePage({
       ]);
     setSelection(null);
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor nl-editor">
       <main
@@ -792,6 +797,7 @@ export default function NumberLinePage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
@@ -841,18 +847,10 @@ export default function NumberLinePage({
                 },
               })}
             />
+            {titleNote.dialog}
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
-              <span>
-                {mode === "select"
-                  ? "Click a circle to change its type; drag to move it."
-                  : mode === "interval"
-                    ? first
-                      ? "Choose the other endpoint"
-                      : "Choose the first endpoint"
-                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}`}
-              </span>
               {mode !== "select" && (
                 <button
                   onClick={() => {
@@ -864,6 +862,20 @@ export default function NumberLinePage({
                 </button>
               )}
             </div>
+            <EditorHint
+              tool="number-line"
+              prompt={
+                mode === "select"
+                  ? undefined
+                  : mode === "interval"
+                    ? first
+                      ? "Choose the other endpoint."
+                      : "Choose the first endpoint."
+                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+              }
+            >
+              Click a circle to change its type; drag to move it.
+            </EditorHint>
             <div
               className="nl-scroll"
               ref={fitted.ref}

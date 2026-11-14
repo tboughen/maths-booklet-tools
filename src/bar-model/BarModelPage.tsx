@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useRef, useState } from "react";
 import * as c from "../../packages/bar-model-core/src";
@@ -16,6 +19,7 @@ import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -355,7 +359,9 @@ export default function BarModelPage({
       },
     });
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const actions = diagramFileMenu({
+                about: titleNote.item,
     svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
@@ -521,6 +527,7 @@ export default function BarModelPage({
               onMessage={setMessage}
               onBusyChange={setBusy}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               aria-label="Open bar model file"
@@ -556,6 +563,9 @@ export default function BarModelPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
+            <EditorHint tool="bar-model-classic">
+              Click a bar name, part label or brace on the model to edit it.
+            </EditorHint>
             <div ref={fit.ref} className="bm-scroll">
               <div
                 className="bm-stage"

@@ -1,9 +1,14 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -1260,6 +1265,7 @@ export default function ValueGraphPage({
     selection &&
     ["equation", "axis", "bound", "cell", "point"].includes(selection.kind);
 
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: blocked, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vg-editor">
       <main
@@ -1269,7 +1275,7 @@ export default function ValueGraphPage({
       >
         <PageHeading
           title="Plotting quadratics"
-          description="Click the equation, table or graph to edit your resource."
+          description="Make tables of values and plot quadratic graphs on exam-style axes."
         >
           <ResourceSaveStatus
             text={saved ? "Saved on this device" : "Not saved on device"}
@@ -1327,6 +1333,7 @@ export default function ValueGraphPage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => download(envelope, "svg"),
                   disabled: blocked || !!renderError,
@@ -1362,6 +1369,7 @@ export default function ValueGraphPage({
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               type="file"
               accept=".json,application/json"
@@ -1391,6 +1399,10 @@ export default function ValueGraphPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
             </div>
+            <EditorHint tool="value-table-graph">
+              Click the equation, table or graph to edit it. Blank cells stay
+              blank until you choose to calculate.
+            </EditorHint>
             {!!message && (
               <p role="status" className="resource-feedback">
                 {message}
@@ -1726,38 +1738,34 @@ export default function ValueGraphPage({
                   >
                     <div className="vg-actions">
                       <strong><em>x</em> values</strong>
-                      <button
-                        aria-label="Add column"
-                        title="Add column"
-                        disabled={blocked || d.columns.length >= 13}
-                        onClick={() => act(appendColumn)}
-                      >
-                        +
-                      </button>
-                      <button
-                        aria-label={
-                          selectedColumn
+                      <StructureStepper
+                        name="x values"
+                        caption=""
+                        add={{
+                          label: "Add column",
+                          disabled: blocked || d.columns.length >= 13,
+                          onClick: () => act(appendColumn),
+                        }}
+                        remove={{
+                          label: selectedColumn
                             ? "Remove selected column"
-                            : "Remove last column"
-                        }
-                        title="Remove column"
-                        disabled={blocked || d.columns.length <= 2}
-                        onClick={() =>
-                          act(() => {
-                            change([
-                              {
-                                op: "remove_column",
-                                columnId:
-                                  selectedColumn?.id ??
-                                  d.columns[d.columns.length - 1].id,
-                              },
-                            ]);
-                            setSelection(null);
-                          })
-                        }
-                      >
-                        −
-                      </button>
+                            : "Remove last column",
+                          title: "Remove column",
+                          disabled: blocked || d.columns.length <= 2,
+                          onClick: () =>
+                            act(() => {
+                              change([
+                                {
+                                  op: "remove_column",
+                                  columnId:
+                                    selectedColumn?.id ??
+                                    d.columns[d.columns.length - 1].id,
+                                },
+                              ]);
+                              setSelection(null);
+                            }),
+                        }}
+                      />
                     </div>
                   </div>
                 )}

@@ -1,9 +1,14 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -300,6 +305,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const fieldId = (key: string, id: string) => `ft-${key}-${id}`;
   const letter = (i: number) => String.fromCharCode(97 + i);
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor ft-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -337,6 +343,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
@@ -349,6 +356,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
@@ -365,6 +373,10 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               <ResourceSize width={g.width / 10} height={g.height / 10} />
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
+            <EditorHint tool="frequency-tree">
+              Click an oval or a name on the tree to edit it. Enter applies;
+              Escape restores.
+            </EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
@@ -402,20 +414,24 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                     );
                   })}
                 </div>
-                <div className="pt-structure" role="group" aria-label="Levels">
-                  <button
-                    type="button"
-                    disabled={blocked || depth >= MAX_DEPTH}
-                    aria-label="Split every first-level group into a second level"
-                    title="Add level"
-                    onClick={() => commit(addLevel(e))}
-                  >
-                    +
-                  </button>
-                  <button type="button" disabled={blocked || depth <= 1} aria-label="Remove the second level" title="Remove level" onClick={() => commit(removeLevel(e))}>
-                    −
-                  </button>
-                </div>
+                <StructureStepper
+                 
+                  vertical
+                  name="Levels"
+                  caption=""
+                  add={{
+                    label: "Split every first-level group into a second level",
+                    title: "Add level",
+                    disabled: blocked || depth >= MAX_DEPTH,
+                    onClick: () => commit(addLevel(e)),
+                  }}
+                  remove={{
+                    label: "Remove the second level",
+                    title: "Remove level",
+                    disabled: blocked || depth <= 1,
+                    onClick: () => commit(removeLevel(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (

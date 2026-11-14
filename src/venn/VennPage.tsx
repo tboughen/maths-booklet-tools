@@ -1,8 +1,12 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
@@ -457,6 +461,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main
@@ -511,6 +516,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
@@ -546,6 +552,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
@@ -566,6 +573,16 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint
+              tool="venn"
+              prompt={
+                mode === "shade"
+                  ? "Shade mode: click a region to shade or clear it."
+                  : undefined
+              }
+            >
+              Click a region or label to edit it.
+            </EditorHint>
             <div
               className="vn-scroll"
               ref={fitted.ref}
@@ -731,12 +748,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     Shade
                   </button>
                 </div>
-                <span>
-                  {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
-                  {mode === "shade"
-                    ? "Click a region to shade or clear it"
-                    : "Click a region or label to edit"}
-                </span>
                 <label>
                   Number of sets
                   <select

@@ -1,8 +1,11 @@
 import { ExampleGallery } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
 import { PreviewControls } from "./site/PreviewControls";
+import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
-import { createEnvelope } from "../packages/graph-core/src/interchange";
+import { graphEnvelope, withGraphAbout, type GraphDocument } from "./domain/graphAbout";
+import { useTitleNote } from "./site/TitleNote";
+import { TITLE_NOTE_STEP } from "./site/titleNoteData";
 import { useGraphDrafts } from "./components/useGraphDrafts";
 import { newBrowserGraph } from "./domain/browserGraph";
 import { ResourceSize } from "./site/ResourceSize";
@@ -64,8 +67,8 @@ interface ToastState {
 }
 
 function sameDocument(
-  first: DiagramDocumentV1,
-  second: DiagramDocumentV1,
+  first: GraphDocument,
+  second: GraphDocument,
 ): boolean {
   return JSON.stringify(first) === JSON.stringify(second);
 }
@@ -90,7 +93,7 @@ export default function App({ active = true }: { active?: boolean }) {
     replace: replacePresentDocument,
     undo: stepBack,
     redo: stepForward,
-  } = useDocumentHistory<DiagramDocumentV1>(startup.document, {
+  } = useDocumentHistory<GraphDocument>(startup.document, {
     equals: sameDocument,
   });
   const [pendingReset, setPendingReset] = useState(false);
@@ -139,7 +142,7 @@ export default function App({ active = true }: { active?: boolean }) {
   }, []);
 
   const commit = useCallback(
-    (next: DiagramDocumentV1, label?: string) => record(next, label),
+    (next: GraphDocument, label?: string) => record(next, label),
     [record],
   );
 
@@ -164,7 +167,7 @@ export default function App({ active = true }: { active?: boolean }) {
     const timeout = window.setTimeout(() => {
       try {
         const raw = localStorage.getItem(ENVELOPE_STORAGE_KEY),
-          next = JSON.stringify(createEnvelope(document, false));
+          next = JSON.stringify(graphEnvelope(document, false));
         if (raw !== expectedStorage.current && raw !== next) {
           setRecoveryReason(
             "The saved graph changed in another tab. Keep a recovery copy before replacing it with this graph.",
@@ -475,6 +478,13 @@ export default function App({ active = true }: { active?: boolean }) {
     return "Saved on this device";
   }, [saveState]);
 
+  // U34: the title and note ride on the document as `about` and are saved at the envelope's top level.
+  const titleNote = useTitleNote({
+    active,
+    about: document.about ?? {},
+    disabled: blocked,
+    onSave: (about) => commit(withGraphAbout(document, about), TITLE_NOTE_STEP),
+  });
   return (
     <div className="app-shell booklet-editor graph-editor">
       <main
@@ -518,6 +528,7 @@ export default function App({ active = true }: { active?: boolean }) {
             />
             <GraphExchange
               document={document}
+              about={titleNote.item}
               onImport={(next) => act(() => commit(next))}
               onClose={() => setExportMenuOpen(false)}
               onMessage={exchangeMessage}
@@ -558,6 +569,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 },
               ]}
             />
+            {titleNote.dialog}
             {drafts.pending && (
               <p className="graph-pending-note" role="status">
                 Unapplied changes. Apply or cancel the unfinished field before
@@ -571,6 +583,11 @@ export default function App({ active = true }: { active?: boolean }) {
                 height={exportMetrics.heightCm}
               />
             </div>
+            <EditorHint tool="graph">
+              Choose a tool, then click or drag on the grid. Click a line,
+              segment or cross to change it. Blue handles are editing guides
+              and are never copied.
+            </EditorHint>
             <GraphCanvas
               zoom={previewZoom}
               disabled={blocked}

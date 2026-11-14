@@ -239,7 +239,8 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
       const svg = bytes.toString();
       expect(svg.includes("data:font/otf;base64,")).toBe(true);
       expect(svg.includes("ratio-guides")).toBe(false);
-      expect(svg.includes(`width="${metrics.widthCm}cm"`)).toBe(true);
+      // The SVG root keeps four decimal places of its unit (U38).
+      expect(svg.includes(`width="${Number(metrics.widthCm.toFixed(4))}cm"`)).toBe(true);
       const pupilCell = svg.match(
         /<g class="ratio-cell" data-row="target" data-column="1"[^]*?<\/g>/,
       )![0];
@@ -855,12 +856,9 @@ test("visible remove controls shrink to one row/column, retain values and restor
     await expect(
       pair.getByRole("button", { name: remove, exact: true }),
     ).toBeVisible();
-    const [addBounds, removeBounds] = await pair.evaluate((element) =>
-      Array.from(element.querySelectorAll("button")).map((button) => {
-        const { x, y, width, height } = button.getBoundingClientRect();
-        return { x, y, width, height };
-      }),
-    );
+    // U6 steppers: vertical ones put + above −; horizontal ones read − then +.
+    const addBounds = await pair.getByRole("button", { name: add, exact: true }).boundingBox();
+    const removeBounds = await pair.getByRole("button", { name: remove, exact: true }).boundingBox();
     expect(addBounds).not.toBeNull();
     expect(removeBounds).not.toBeNull();
     if (group === "Columns") {
@@ -868,7 +866,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
       expect(removeBounds!.y).toBeGreaterThan(addBounds!.y + addBounds!.height);
     } else {
       expect(removeBounds!.y).toBe(addBounds!.y);
-      expect(removeBounds!.x).toBeGreaterThan(addBounds!.x + addBounds!.width);
+      expect(addBounds!.x).toBeGreaterThan(removeBounds!.x + removeBounds!.width);
     }
   }
   await page.getByLabel("Row 1 x value", { exact: true }).click();
