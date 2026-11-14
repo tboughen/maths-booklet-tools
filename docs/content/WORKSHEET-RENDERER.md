@@ -79,7 +79,12 @@ The Worksheets page edits a sheet without the AI or the JSON. Every change is on
 - A short answer line sits on the question's last line, which grows to a full 9 mm writing row.
 - Spare column height goes to working and drawing spaces; with none, the last card reaches the foot.
 - Too much content is reported per column (`issues`), never fixed by shrinking text. Too-wide
-  tables, diagrams and short answer lines are reported too.
+  tables, diagrams and short answer lines are reported too; a too-wide diagram's issue names the
+  setting that makes it fit (a number line, Venn diagram or triangle's `widthCm`, a tree's
+  `branchMm`, or a wider column layout).
+- Text is plain Unicode: `<` and `>` are ordinary characters (inequalities need them) and are
+  escaped on every page and in Word. A character the worksheet font does not hold (for example
+  ∩, ∪ or ∈) is reported as an issue naming the question, because it would print as a gap.
 - Pupil and answers views share one layout (diagrams reserve the larger of their two sizes).
 - A saved answer wider than its answer line is reported: it would run past the line in the
   answers copy.

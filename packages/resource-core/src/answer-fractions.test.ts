@@ -95,7 +95,8 @@ describe("answer-line fractions", () => {
       return strFromU8(unzipSync(bytes)["word/document.xml"]);
     };
     const maths = await word(sheet("maths", "2 1/2"));
-    expect(maths).toMatch(/2<\/w:t><\/w:r><m:oMath><m:f>/);
+    // A thin space pads the fraction either side, as the pages do.
+    expect(maths).toMatch(/2<\/w:t><\/w:r><m:oMath><m:r>[^]*?\u2009<\/m:t><\/m:r><m:f>/);
     const plain = await word(sheet("plain", "2 1/2"));
     expect(plain).not.toContain("<m:f>");
     expect(plain).toContain("2 1/2");
@@ -157,6 +158,6 @@ describe("table cells and circle-one options", () => {
     expect(issues).toEqual([]);
     const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
     expect(xml.match(/<m:f>/g)).toHaveLength(4);
-    expect(xml).toMatch(/<m:borderBox><m:e><m:r>[^]*?2<\/m:t><\/m:r><m:f>/);
+    expect(xml).toMatch(/<m:borderBox><m:e><m:r>[^]*?2<\/m:t><\/m:r><m:r>[^]*?\u2009<\/m:t><\/m:r><m:f>/);
   });
 });

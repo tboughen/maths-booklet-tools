@@ -508,6 +508,13 @@ export function editLabel(e: Envelope, ref: string, update: Partial<Label>) {
     n.document.sharedLabels.find((s) => s.id === l.shared)!.text = update.text;
     update = { ...update, text: "" };
   }
+  // "71°" or "5 cm" typed into a label whose unit prints after it would print the unit twice.
+  const unit = update.unit ?? l.unit;
+  if (update.text && unit && !ref.startsWith("c:")) {
+    const trimmed = update.text.trimEnd();
+    if (trimmed.endsWith(unit) && trimmed.length > unit.length)
+      update = { ...update, text: trimmed.slice(0, -unit.length).trimEnd() };
+  }
   Object.assign(l, update);
   return validate(n);
 }

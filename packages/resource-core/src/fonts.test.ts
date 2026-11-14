@@ -56,7 +56,7 @@ describe("worksheet text fonts", () => {
   ] as [string, FontStyle][]) {
     it(`${file} holds the empty box and the worksheet maths symbols`, () => {
       const map = cmap(readFileSync(`assets/resource-fonts/${file}`));
-      for (const c of "□−×÷²³°θπ≤≥≠√½→↑")
+      for (const c of "□○●ξ∅≈∞−×÷²³°θπ≤≥≠√½→↑")
         expect(map.has(c.codePointAt(0)!), `${file} U+${c.codePointAt(0)!.toString(16)}`).toBe(true);
       // The empty box has its own measured width, not the wide unknown-character fallback.
       expect(advance("□", style)).not.toBe(0.66);

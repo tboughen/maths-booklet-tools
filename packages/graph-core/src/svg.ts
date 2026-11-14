@@ -1,3 +1,4 @@
+import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import {
   axisOrigin,
   coordinateToSvg,
@@ -341,6 +342,44 @@ function axisTickLabelMarkup(
     ? ` transform="translate(${n(x)} ${n(baseline)}) skewX(-12) translate(${n(-x)} ${n(-baseline)})"`
     : "";
   return `<g class="${className}"><rect x="${n(rectX)}" y="${n(rectY)}" width="${n(width)}" height="${n(height)}" rx="${n(AXIS_LABEL_FONT_SIZE * 0.05)}" fill="#ffffff"/><text x="${n(x)}" y="${n(baseline)}" text-anchor="${textAnchor}"${originTransform}>${escapeXml(label)}</text></g>`;
+}
+
+/**
+ * An equation label, left-aligned at (x, baseline). A fraction such as 1/2 prints stacked, as on
+ * worksheets: numerator over a bar over denominator, centred on the maths axis of the line.
+ * Widths come from the bundled STIX Two Text italic metrics the label is drawn in.
+ */
+function equationLabelMarkup(equation: string, x: number, baseline: number): string {
+  const size = EQUATION_FONT_SIZE;
+  const width = (text: string, fontSize: number) =>
+    Array.from(text).reduce((sum, c) => sum + glyphAdvance(c, true) * fontSize, 0);
+  const parts = equation.split(/(\d+\/\d+)/);
+  if (parts.length === 1)
+    return `<text x="${n(x)}" y="${n(baseline)}">${escapeXml(equation)}</text>`;
+  const small = size * 0.8;
+  const axis = baseline - size * 0.31;
+  const out: string[] = [];
+  let left = x;
+  for (const part of parts) {
+    if (!part) continue;
+    const fraction = part.match(/^(\d+)\/(\d+)$/);
+    if (!fraction) {
+      out.push(`<text x="${n(left)}" y="${n(baseline)}" xml:space="preserve">${escapeXml(part)}</text>`);
+      left += width(part, size);
+      continue;
+    }
+    const [, top, bottom] = fraction;
+    const bar = Math.max(width(top, small), width(bottom, small)) + size * 0.2;
+    const centre = left + size * 0.08 + bar / 2;
+    out.push(
+      `<text x="${n(centre)}" y="${n(axis - size * 0.15)}" font-size="${n(small)}" text-anchor="middle">${top}</text>`,
+      // A filled bar, so it takes the label's own colour (black, or the answer colour).
+      `<rect x="${n(centre - bar / 2)}" y="${n(axis - size * 0.03)}" width="${n(bar)}" height="${n(size * 0.06)}"/>`,
+      `<text x="${n(centre)}" y="${n(axis + size * 0.78)}" font-size="${n(small)}" text-anchor="middle">${bottom}</text>`,
+    );
+    left = centre + bar / 2 + size * 0.08;
+  }
+  return `<g class="equation-label">${out.join("")}</g>`;
 }
 
 function autoLabelPosition(
@@ -703,9 +742,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       const position = object.equationLabelPosition
         ? coordinateToSvg(object.equationLabelPosition, layout)
         : autoLabelPosition(object, layout);
-      labelsOut.push(
-        `<text x="${n(position.x)}" y="${n(position.y)}">${escapeXml(equationForObject(object))}</text>`,
-      );
+      labelsOut.push(equationLabelMarkup(equationForObject(object), position.x, position.y));
     }
   }
   const straightObjects = (answerOnly: boolean) =>

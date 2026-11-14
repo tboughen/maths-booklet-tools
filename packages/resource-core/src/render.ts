@@ -2,7 +2,7 @@ import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
-import type { FontStyle } from "./metrics";
+import { measuredWidths, type FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
 export interface Issue {
@@ -170,7 +170,7 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   }
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
-  if (width > room + 0.01) issue(ctx, `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.`);
+  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room));
   const k = `d${++ctx.diagrams}-`;
   svg = svg
     .replace(/ id="/g, ` id="${k}`)
@@ -399,6 +399,19 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
 export const countSpaces = (list: Item[]): number =>
   list.reduce((c, it) => c + (it.type === "space" ? 1 : it.type === "part" ? countSpaces(it.items) : 0), 0);
 
+/** Families whose printed width is set by spec.widthCm. */
+const WIDTH_CM = new Set(["number-line", "venn", "triangle"]);
+/** The issue for a diagram wider than its card, with the change that makes it fit. */
+export function tooWideMessage(tool: string, width: number, room: number): string {
+  const fit = Math.floor(room / 5) / 2;
+  const hint = WIDTH_CM.has(tool)
+    ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`
+    : tool === "probability-tree" || tool === "frequency-tree"
+      ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
+      : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
+  return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
+}
+
 /** One framed question card. A null number leaves out the number tile (worked examples, notes). */
 export function card(c: Card, number: number | null, w: number, ctx: AnyCtx, extra: number, stretch: number): Frag {
   const st = ctx.st,
@@ -552,6 +565,42 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
   return out.join("");
 }
 
+/** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options"]);
+/**
+ * A character the worksheet font does not hold would print as a gap in the PDF and as a
+ * substitute font in Word, so it is reported as an issue, once per character and question.
+ */
+export function missingGlyphIssues(resource: Resource): Issue[] {
+  const known = measuredWidths("regular");
+  const found = new Map<string, Issue>();
+  type Where = Omit<Issue, "message">;
+  const scan = (value: unknown, where: Where, key = "") => {
+    if (typeof value === "string") {
+      if (!PRINTED.has(key)) return;
+      for (const c of new Set(value)) {
+        if (c in known || c === "\n") continue;
+        const id = `${c}.${where.side}.${where.question ?? 0}`;
+        if (!found.has(id))
+          found.set(id, { ...where, message: `${where.question ? `Question ${where.question}` : "The header"} uses "${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")}), which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words).` });
+      }
+    } else if (Array.isArray(value)) value.forEach((v) => scan(v, where, key));
+    else if (value && typeof value === "object")
+      for (const [k, v] of Object.entries(value)) if (k !== "diagram" && k !== "working") scan(v, where, k);
+  };
+  const d = resource.document;
+  scan({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
+  let question = 0;
+  d.sides.forEach((side, s) => {
+    scan({ instruction: side.instruction }, { side: s + 1, column: 0 });
+    side.columns.forEach((col, c) => {
+      scan({ heading: col.heading }, { side: s + 1, column: c + 1 });
+      for (const card of col.cards) scan(card, { side: s + 1, column: c + 1, question: ++question });
+    });
+  });
+  return [...found.values()];
+}
+
 export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
@@ -564,6 +613,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     maths: doc.notation === "maths",
     inline: new Map(),
   };
+  ctx.issues.push(...missingGlyphIssues(resource));
   const P = S.page,
     m = S.margin;
   const colTop = m + S.headerHeight;

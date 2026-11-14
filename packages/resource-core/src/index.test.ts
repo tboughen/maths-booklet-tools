@@ -57,10 +57,15 @@ describe("resource worksheet renderer", () => {
     expect(r.pages[0]).toContain('font-size="3.88"');
   });
 
-  it("refuses markup and unknown blocks", () => {
+  it("refuses control characters and unknown blocks, and keeps < and > as text", () => {
     const doc = structuredClone(treeDiagrams) as unknown as { document: { title: string } };
-    doc.document.title = "<b>x</b>";
-    expect(() => validate(doc)).toThrow(/ordinary text/);
+    doc.document.title = "Bad\u0007title";
+    expect(() => validate(doc)).toThrow(/control characters/);
+    // Inequalities need < and >: they are ordinary text, escaped on every page.
+    doc.document.title = "Solve x < 3 and y > <b>2</b>";
+    const pages = renderResource(validate(doc)).pages.join("");
+    expect(pages).toContain("x &lt; 3 and y &gt; &lt;b&gt;2&lt;/b&gt;");
+    expect(pages).not.toContain("<b>");
     expect(() => validate({ ...treeDiagrams, document: { ...treeDiagrams.document, kind: "booklet" } })).toThrow();
   });
 

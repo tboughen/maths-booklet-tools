@@ -198,9 +198,14 @@ export function displayNumber(d: LineDocument, s: string) {
     return String(Number((Number(q.n) / Number(q.d)).toFixed(6)));
 }
 function esc(s: string) { return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"); }
-function numberWidth(s: string) { return s.includes("/") ? Math.max(...s.split("/").map(v => textWidth(v.replace("-", "−"), FONT * .8))) : textWidth(s.replace("-", "−"), FONT); }
+/** Fraction parts print at 10 pt, the house minimum, under 11 pt whole numbers. */
+const PART = FONT * 10 / 11;
+function numberWidth(s: string) { return s.includes("/") ? Math.max(...s.split("/").map(v => textWidth(v.replace("-", "−"), PART))) : textWidth(s.replace("-", "−"), FONT); }
 function numberSvg(s: string, x: number, y: number) { if (!s.includes("/"))
-    return `<text x="${x}" y="${y}" text-anchor="middle">${esc(s.replace("-", "−"))}</text>`; const [n, b] = s.split("/"), w = numberWidth(s) + 1; return `<g font-size="${FONT * .8}"><text x="${x}" y="${y - 1.6}" text-anchor="middle">${n.replace("-", "−")}</text><path d="M${x - w / 2} ${y - .6}h${w}"/><text x="${x}" y="${y + 2.8}" text-anchor="middle">${b}</text></g>`; }
+    return `<text x="${x}" y="${y}" text-anchor="middle">${esc(s.replace("-", "−"))}</text>`; const [top, b] = s.split("/"), negative = top.startsWith("-"), n = negative ? top.slice(1) : top, w = numberWidth(n + "/" + b) + 1;
+    // A negative fraction prints its minus sign before the bar, as exam papers do: −½, not a minus in the numerator.
+    const sign = negative ? `<text x="${x - w / 2 - .3}" y="${y + .45}" text-anchor="end">−</text>` : "";
+    return `${sign}<g font-size="${PART}"><text x="${x}" y="${y - 1.7}" text-anchor="middle">${n}</text><path d="M${x - w / 2} ${y - .6}h${w}"/><text x="${x}" y="${y + 3.1}" text-anchor="middle">${b}</text></g>`; }
 export function renderSvg(e: Envelope) {
     const d = validate(e).document, m = metrics(d), r = 1.3;
     let art = "";

@@ -71,7 +71,7 @@ A sheet with `notation: "maths"` prints `{3/4}` in question text (text, info, cl
 parts, steps, checklists and choice options) as a stacked fraction; `2{1/2}` is a mixed number.
 Each side holds up to 12 characters, with no braces or second slash. Letters print in italic.
 Answer lines stack too: their prefix, suffix and saved answer print `1/3`, `2 1/2` and `2½` as
-stacked fractions, in a writing row 1.8 mm taller (the fraction sits on a 0.8 mm gap above the
+stacked fractions, in a writing row 1.8 mm taller (the fraction sits on a 1.4 mm gap above the
 line). Table cells and headings and circle-one options stack too, in rows one fraction line
 (9.3 mm) high; a chosen circle-one fraction is boxed with an equation border box. Titles stay plain. Saved sheets default to `notation: "plain"` and
 print exactly as before. A brace that is not part of a fraction is reported. New sheets (the
@@ -82,6 +82,21 @@ A paragraph holding a fraction sets all its lines at 2.4 times the body size (9.
 in the PDF and, with exact spacing, in Word, so its height is as fixed as ordinary text. A
 fraction is measured as if its parts were at full body size plus 0.8 mm each side: Word and
 LibreOffice set equations with their own spacing, and the layout must never under-measure a line.
+
+### Fractions in real Word (14 November 2026)
+
+Tim saw fractions print slightly differently in Word and in the PDF. Six stress-test sheets were
+printed to PDF by Word 16 (Microsoft 365) on Tim's PC and compared with the PDF writer character
+by character. Before: every fraction sat tight against its neighbours (a mixed number's whole
+number touched it, and "2½." ran into the full stop), each fraction about 1.6 mm narrower than on
+the PDF, and a fraction on an answer line sat 0.4 mm above the line (0.9 mm on the PDF). Word adds
+no space round an equation, and the 0.8 mm gap had been set by eye in LibreOffice.
+
+Now each fraction has a thin space either side at 0.55 of the text size (`WORD_FRACTION_PAD`), and
+an answer-line fraction sits on a 1.4 mm gap (`FRAC_WORD_LIFT`). After three rounds in Word every
+character of the test lines is within 0.2 mm of its PDF position, the answer-line denominator is
+0.55 mm clear of the line, and every file is still two pages. Word still draws the fraction bar a
+little thinner than the PDF.
 
 ## Rendering test (11 November 2026)
 
