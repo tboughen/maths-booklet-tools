@@ -39,7 +39,9 @@ export const diagramSourceSchema = z.object({
   envelope: z.object({
     schemaVersion: z.number().int(), rendererVersion: z.string(), styleProfile: z.string().optional(),
     document: z.record(z.string(), z.unknown()), kind: z.string().optional(), tool: z.string().optional(),
-    ...aboutShape,
+    title: aboutShape.title, note: aboutShape.note,
+    // Worked notes (U116) are checked by the family; the outer schema only lets them through.
+    worked: z.array(z.unknown()).optional(),
   }).strict(),
   outputView: z.enum(["pupil", "answer"]).optional(),
 }).strict();

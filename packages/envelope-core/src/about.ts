@@ -3,8 +3,12 @@
  * editable file beside the drawing. Neither is printed: the artwork, previews and print files are
  * the same with or without them. Every family's envelope carries the same two optional fields at
  * its top level, after `document`, so a file without them keeps its exact canonical text and hash.
+ *
+ * The same spread carries the diagram's worked-solution notes (U116, see worked.ts). Unlike the
+ * title and note they print, but only on the answers copy, inside the artwork's own size.
  */
 import { z } from "zod";
+import { workedSchema, type WorkedNote } from "./worked";
 
 export const TITLE_MAX = 80;
 export const NOTE_MAX = 600;
@@ -13,12 +17,17 @@ export const NOTE_MAX = 600;
 export const aboutShape = {
   title: z.string().min(1).max(TITLE_MAX).optional().describe("The teacher's name for this diagram. Saved in the editable file; never printed."),
   note: z.string().min(1).max(NOTE_MAX).optional().describe("A free note about this diagram (source, class, intent). Saved in the editable file; never printed."),
+  worked: workedSchema,
 };
 
-export type About = { title?: string; note?: string };
+export type About = { title?: string; note?: string; worked?: WorkedNote[] };
 
-/** The title and note of a saved envelope, to carry onto one rebuilt from it. */
+/** The title, note and worked notes of a saved envelope, to carry onto one rebuilt from it. */
 export function aboutOf(envelope: unknown): About {
   const e = (envelope ?? {}) as About;
-  return { ...(e.title !== undefined ? { title: e.title } : {}), ...(e.note !== undefined ? { note: e.note } : {}) };
+  return {
+    ...(e.title !== undefined ? { title: e.title } : {}),
+    ...(e.note !== undefined ? { note: e.note } : {}),
+    ...(e.worked !== undefined ? { worked: e.worked } : {}),
+  };
 }
