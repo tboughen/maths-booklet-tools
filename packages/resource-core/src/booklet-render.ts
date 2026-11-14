@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { at, card, countSpaces, missingCharacterMessage, missingCharacters, type Ctx, type Frag, type View } from "./render";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { esc, n, parseRuns, plainWidth, textSvg, wrap } from "./text";
@@ -334,7 +335,8 @@ export interface BookletPlan {
 export const CONTINUED_HEAD = 9;
 export const CONTINUED_RULE = 5.6;
 
-export function planBooklet(booklet: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}): BookletPlan {
+export function planBooklet(saved: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}): BookletPlan {
+  const booklet = typesetForPrint(saved);
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
   const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true, maths: booklet.document.notation === "maths" };
@@ -407,7 +409,8 @@ export function planBooklet(booklet: Booklet, options: Pick<BookletRenderOptions
   return { pages, lessonPages, introPage: introPageNo, contents };
 }
 
-export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
+export function renderBooklet(saved: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
+  const booklet = typesetForPrint(saved);
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
   const view = options.view ?? "pupil";

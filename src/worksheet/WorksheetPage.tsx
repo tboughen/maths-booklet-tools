@@ -345,6 +345,10 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                 />
                 Share spare space between questions
               </label>
+              <label className="ws-check">
+                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} />
+                Maths printing: stacked {"{3/4}"}, x², a true minus, ≤ and italic x
+              </label>
               {d.sides.map((side, s) => (
                 <details key={s} className="ws-side" open={s === 0}>
                   <summary>Side {s + 1}</summary>

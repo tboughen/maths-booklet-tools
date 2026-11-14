@@ -277,7 +277,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new booklet): {3/4} in question text, options, steps, bullets, parts, answer lines and table cells prints as a stacked fraction. plain (older saved booklets): text prints as typed.",
+                  "description": "maths (every new booklet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper (x^2 as x², a true minus, <= as ≤, sqrt as √, pi as π, letters used as maths in italic). plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",
@@ -1970,7 +1970,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed.",
+                  "description": "maths (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",
@@ -3041,7 +3041,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed.",
+                  "description": "maths (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",

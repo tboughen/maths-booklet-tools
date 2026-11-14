@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
@@ -632,7 +633,8 @@ export function missingGlyphIssues(resource: Resource): Issue[] {
   return [...found.values()];
 }
 
-export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
+export function renderResource(saved: Resource, options: RenderOptions = {}): Rendered {
+  const resource = typesetForPrint(saved);
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
   const ctx: Ctx<{ side: number; column: number; question?: number }> = {
