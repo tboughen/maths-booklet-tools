@@ -396,6 +396,8 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
       case "set_presentation":
         Object.assign(d.presentation, op.presentation);
         if (op.autoName) delete d.presentation.nameWidthMm;
+        // Normal lines are the default and are not written into the file.
+        if (d.presentation.lines === "normal") delete d.presentation.lines;
         break;
       case "set_quantity_name":
         bar(op.barId).name = op.label;

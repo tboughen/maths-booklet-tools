@@ -16,3 +16,14 @@ describe("bar model lines (U111)", () => {
     }
   });
 });
+
+describe("set_presentation lines", () => {
+  it("saves bold, and choosing normal removes the field", async () => {
+    const api = await import("./versioned-interchange");
+    const { fresh } = await import("./v3");
+    const bold = api.apply(fresh(), [{ op: "set_presentation", presentation: { lines: "bold" } }]);
+    expect(bold.document.presentation.lines).toBe("bold");
+    const normal = api.apply(bold, [{ op: "set_presentation", presentation: { lines: "normal" } }]);
+    expect("lines" in normal.document.presentation).toBe(false);
+  });
+});
