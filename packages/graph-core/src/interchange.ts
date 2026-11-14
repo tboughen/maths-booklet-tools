@@ -27,6 +27,7 @@ import {
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { gradientTriangleProblem } from "./gradient-triangle";
+import { gradientLabelClashes } from "./svg";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { MathsDockError } from "../../envelope-core/src/errors";
 
@@ -725,7 +726,7 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
     const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
     return problem ? [`${o.id}: ${problem}`] : [];
   });
-  return crowded.concat(triangles, envelope.document.objects
+  return crowded.concat(triangles, gradientLabelClashes(envelope.document), envelope.document.objects
     .filter((o) =>
       o.kind === "point"
         ? !pointInBounds(o.position, bounds)

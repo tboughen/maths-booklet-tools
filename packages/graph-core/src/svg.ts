@@ -786,8 +786,18 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
  * if they held it, so the answers copy shows each value where the pupil writes it. */
 export const GRADIENT_BLANK = "………";
 
+/** The bands the axis numbers print in, in the same units as the layout: under the x-axis and
+ * left of the y-axis. Sketch axes have no numbers. */
+export function axisNumberBands(document: DiagramDocumentV1, layout: SvgLayout, font: number) {
+  if (isSketch(document)) return null;
+  const o = coordinateToSvg(axisOrigin(document), layout);
+  return { xAxisY: o.y, xBottom: o.y + font * 1.65, yAxisX: o.x, yLeft: o.x - font * 2.4 };
+}
+type NumberBands = ReturnType<typeof axisNumberBands>;
+
 /** Where a gradient triangle's run and rise print: outside the triangle, unless that would leave
- * the grid, when the label moves inside. Shared by the export and the editor. */
+ * the grid or sit on the axis numbers, when the label moves to the other side of its leg.
+ * `clash` is set when no side is clear. Shared by the export and the editor. */
 export function gradientLabelPlacement(
   a: Coordinate,
   b: Coordinate,
@@ -796,18 +806,39 @@ export function gradientLabelPlacement(
   font: number,
   runText: string,
   riseText: string,
+  bands: NumberBands = null,
 ) {
   const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * font;
   const gap = font * 0.45;
   const climbs = e.y < b.y;
+  const runFits = (below: boolean) => (below ? b.y + gap + font * 0.95 <= layout.plotBottom : b.y - gap - font * 0.75 >= layout.plotTop);
+  const runHitsNumbers = (below: boolean) => {
+    if (!bands) return false;
+    const top = below ? b.y + gap - font * 0.05 : b.y - gap - font * 0.75, bottom = below ? b.y + gap + font * 0.95 : b.y - gap + font * 0.2;
+    const left = (a.x + b.x) / 2 - width(runText) / 2, rightEdge = (a.x + b.x) / 2 + width(runText) / 2;
+    const xBand = top < bands.xBottom && bottom > bands.xAxisY;
+    const yBand = left < bands.yAxisX && rightEdge > bands.yLeft;
+    return xBand || yBand;
+  };
   let runBelow = climbs;
-  if (runBelow && b.y + gap + font * 0.95 > layout.plotBottom) runBelow = false;
-  else if (!runBelow && b.y - gap - font * 0.75 < layout.plotTop) runBelow = true;
+  if (!runFits(runBelow) || (runHitsNumbers(runBelow) && runFits(!runBelow) && !runHitsNumbers(!runBelow))) runBelow = !runBelow;
+  if (!runFits(runBelow)) runBelow = !runBelow;
   const right = b.x > a.x;
-  let outside = true;
-  if (right ? b.x + gap + width(riseText) > layout.plotRight : b.x - gap - width(riseText) < layout.plotLeft) outside = false;
-  const riseRight = right === outside;
+  const riseFits = (onRight: boolean) => (onRight ? b.x + gap + width(riseText) <= layout.plotRight : b.x - gap - width(riseText) >= layout.plotLeft);
+  const riseHitsNumbers = (onRight: boolean) => {
+    if (!bands) return false;
+    const left = onRight ? b.x + gap : b.x - gap - width(riseText), rightEdge = onRight ? b.x + gap + width(riseText) : b.x - gap;
+    const top = Math.min(b.y, e.y), bottom = Math.max(b.y, e.y);
+    const yBand = left < bands.yAxisX && rightEdge > bands.yLeft;
+    const mid = (b.y + e.y) / 2;
+    const xBand = mid - font * 0.5 < bands.xBottom && mid + font * 0.5 > bands.xAxisY && top < bands.xBottom && bottom > bands.xAxisY;
+    return yBand || xBand;
+  };
+  let riseRight = right;
+  if (!riseFits(riseRight) || (riseHitsNumbers(riseRight) && riseFits(!riseRight) && !riseHitsNumbers(!riseRight))) riseRight = !riseRight;
+  const clash = runHitsNumbers(runBelow) || riseHitsNumbers(riseRight);
   return {
+    clash,
     run: { x: (a.x + b.x) / 2, y: runBelow ? b.y + gap + font * 0.72 : b.y - gap, anchor: "middle" as const },
     rise: {
       x: b.x + (riseRight ? gap : -gap),
@@ -834,7 +865,7 @@ export function gradientTriangleMarkup(document: DiagramDocumentV1, object: Stra
     halo(`<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}">${value}</text>`);
   // Blank spaces are placed as if they held the longer value, so the answers copy matches.
   const labels = (run: string, rise: string) => {
-    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, run, mode === "blank" ? GRADIENT_BLANK : rise);
+    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, run, mode === "blank" ? GRADIENT_BLANK : rise, axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE));
     return `<g class="gradient-triangle-labels" data-object-id="${escapeXml(object.id)}">${text(place.run.x, place.run.y, place.run.anchor, run)}${text(place.rise.x, place.rise.y, place.rise.anchor, rise)}</g>`;
   };
   if (mode === "values") return { legs, labels: labels(values.run, values.rise), answerLabels: "" };
@@ -984,4 +1015,20 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   ${axes.labels}
   ${objects.marks}${coordinatesMarkup(document, layout, view)}
 </svg>`;
+}
+
+/** Gradient-triangle labels that would print on the axis numbers wherever they go (U76). */
+export function gradientLabelClashes(document: DiagramDocumentV1): string[] {
+  const { layout } = getExportMetrics(document);
+  const bands = axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE);
+  return document.objects.flatMap((object) => {
+    if (object.kind !== "straight" || !object.gradientTriangle?.labels) return [];
+    const c = gradientTriangleCorners(object);
+    if (!c || Math.abs(c.end.y - c.corner.y) < 1e-12 || ![c.start, c.corner, c.end].every((p) => pointInBounds(p, layout.bounds))) return [];
+    const [a, b, e] = [c.start, c.corner, c.end].map((p) => coordinateToSvg(p, layout));
+    const values = gradientTriangleValues(object)!;
+    const blank = object.gradientTriangle.labels === "blank";
+    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, blank ? GRADIENT_BLANK : values.run, blank ? GRADIENT_BLANK : values.rise, bands);
+    return place.clash ? [`${object.id}: the gradient triangle's labels sit on the axis numbers. Start the triangle at another x, or use a different run.`] : [];
+  });
 }

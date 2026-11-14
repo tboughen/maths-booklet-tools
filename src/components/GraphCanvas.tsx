@@ -7,6 +7,7 @@ import {
   getExportMetrics,
   nameBox,
   GRADIENT_BLANK,
+  axisNumberBands,
   gradientLabelPlacement,
   nameCentre,
   nameStyle,
@@ -884,7 +885,7 @@ export function GraphCanvas({
               const values = gradientTriangleValues(object)!;
               const mode = object.gradientTriangle.labels;
               const inside = [corners.start, corners.corner, corners.end].every((p) => pointInBounds(p, layout.bounds));
-              const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, values.run, mode === "blank" ? GRADIENT_BLANK : values.rise);
+              const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, values.run, mode === "blank" ? GRADIENT_BLANK : values.rise, axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE));
               // The editor shows blank labels' values in the answer colour, as it shows hidden answers.
               const answer = object.answerOnly || mode === "blank";
               return [

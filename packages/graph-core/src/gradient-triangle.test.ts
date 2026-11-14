@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createGraph, documentFromEnvelope, graphHash, graphWarnings, parseGraphFile, reviseGraph } from "./interchange";
 import { isDiagramDocument } from "./legacy-validation";
 import { gradientTriangleCorners, gradientTriangleValues } from "./gradient-triangle";
-import { renderDiagramSvg } from "./svg";
+import { getExportMetrics, renderDiagramSvg } from "./svg";
+import { coordinateToSvg } from "./diagram";
 
 const axes = {
   x: { negativeSquares: 2, positiveSquares: 8, unitsPerSquare: 1 },
@@ -60,4 +61,15 @@ describe("gradient triangles (U76)", () => {
     expect(object).toMatchObject({ gradientTriangle: { x: 2, run: 2, labels: "blank" } });
     if (object.kind === "straight") expect(gradientTriangleValues(object)).toEqual({ run: "2", rise: "−2" });
   });
+
+  it("moves a run label off the x-axis numbers when the leg lies on the axis", () => {
+    const e = createGraph({ axes, objects: [{ kind: "line", id: "L", equation: { kind: "slope", slope: 1, intercept: -2 }, gradientTriangle: { x: 2, run: 2, labels: "values" } }] });
+    const svg = renderDiagramSvg(documentFromEnvelope(e));
+    const run = svg.match(/gradient-triangle-labels[^]*?<text x="[^"]+" y="([^"]+)"/)!;
+    const corner = coordinateToSvg({ x: 4, y: 0 }, getExportMetrics(documentFromEnvelope(e)).layout);
+    // The run label prints above its leg, which lies on the x-axis, not over the numbers below it.
+    expect(Number(run[1])).toBeLessThan(corner.y);
+    expect(graphWarnings(e).some((w) => w.includes("axis numbers"))).toBe(false);
+  });
 });
+
