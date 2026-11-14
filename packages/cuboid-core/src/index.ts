@@ -1,6 +1,7 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import * as legacy from "./legacy";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   parseNumber,
   canonicalNumber,
@@ -94,6 +95,11 @@ export const envelopeSchema = z
       .object({
         widthCm: z.number().min(4).max(18),
         shapes: z.array(shapeSchema).min(1).max(3),
+        /** Bold lines (U111). Normal lines are the default and are never saved. */
+        lines: z
+          .enum(LINE_WEIGHTS)
+          .transform((v) => (v === "bold" ? v : undefined))
+          .optional(),
       })
       .strict(),
     ...aboutShape,
@@ -473,6 +479,10 @@ function wrap(s: string, width: number): string[] {
 export function layout(envelope: Envelope): Layout {
   if (envelope.schemaVersion === 1)
     return legacy.layout(envelope as legacy.Envelope);
+  const drawn = layoutCurrent(envelope);
+  return { ...drawn, svg: boldLines(drawn.svg, envelope.document.lines) };
+}
+function layoutCurrent(envelope: Envelope): Layout {
   const e = validate(envelope),
     width = e.document.widthCm * 10,
     shapes = e.document.shapes;

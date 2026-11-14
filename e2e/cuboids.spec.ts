@@ -644,3 +644,20 @@ test("the printed full-height label edits the separated layers directly", async 
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
   await expect(resource(page)).toContainText("Full height: 3 cm");
 });
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  const saved = async () =>
+    (await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((k) => k.includes("cuboid"));
+      return key ? localStorage.getItem(key) : null;
+    })) ?? "";
+  await page.locator("summary").filter({ hasText: /^Print settings$/ }).click();
+  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+  expect(await resource(page).innerHTML()).toContain('stroke-width="0.375"');
+  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
+  await expect.poll(saved).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+});

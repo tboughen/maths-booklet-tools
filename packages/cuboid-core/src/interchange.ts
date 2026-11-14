@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   appearance,
   appearanceSchema,
@@ -43,6 +44,7 @@ export const shapeSpecSchema = shapeSchema
 export const specSchema = z
   .object({
     widthCm: z.number().min(4).max(18).optional(),
+    lines: z.enum(LINE_WEIGHTS).optional(),
     shapes: z.array(shapeSpecSchema).min(1).max(3).optional(),
   })
   .strict();
@@ -70,6 +72,7 @@ export function createCuboid(raw: unknown = {}): Envelope {
   }
   const e = upgrade(create());
   if (v.spec?.widthCm !== undefined) e.document.widthCm = v.spec.widthCm;
+  if (v.spec?.lines === "bold") e.document.lines = "bold";
   if (v.spec?.shapes)
     e.document.shapes = v.spec.shapes.map((s, i) =>
       shape(s, `cuboid-${i + 1}`),
@@ -156,8 +159,9 @@ export const operationSchema = z.discriminatedUnion("op", [
     .object({ op: z.literal("set_presentation"), id, settings: presentation })
     .strict(),
   z
-    .object({ op: z.literal("set_print"), widthCm: z.number().min(4).max(18) })
-    .strict(),
+    .object({ op: z.literal("set_print"), widthCm: z.number().min(4).max(18).optional(), lines: z.enum(LINE_WEIGHTS).optional() })
+    .strict()
+    .refine((o) => o.widthCm !== undefined || o.lines !== undefined, "set_print needs widthCm or lines."),
   z.object({ op: z.literal("upgrade_document") }).strict(),
 ]);
 export const revisionSchema = z
@@ -178,7 +182,11 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
       continue;
     }
     if (o.op === "set_print") {
-      next.document.widthCm = o.widthCm;
+      if (o.widthCm !== undefined) next.document.widthCm = o.widthCm;
+      if (o.lines !== undefined && next.schemaVersion === 1)
+        throw Error("Upgrade this drawing (upgrade_document) before choosing its lines.");
+      if (o.lines === "bold") next.document.lines = "bold";
+      else if (o.lines === "normal") delete next.document.lines;
       continue;
     }
     if (o.op === "add_shape") {
