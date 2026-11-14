@@ -974,6 +974,17 @@ function text(
   linear = false,
   maths = false,
 ) {
+  return legacy.inkRevealed(l, labelSvg(l, x, centre, font, anchor, linear, maths));
+}
+function labelSvg(
+  l: Label,
+  x: number,
+  centre: number,
+  font: number,
+  anchor: "middle" | "start" | "end" = "middle",
+  linear = false,
+  maths = false,
+) {
   if (l.state === "line")
     return `<path data-answer-line="true" d="M${x - 4} ${centre + WRITING.baselineOffsetMm}h8" stroke="#000" stroke-width="0.25" fill="none"/>`;
   const s = visible(l);
