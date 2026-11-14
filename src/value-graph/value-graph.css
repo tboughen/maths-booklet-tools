@@ -428,3 +428,8 @@
 .vg-editor .vg-axis-end button:hover:not(:disabled), .vg-editor .vg-axis-end button:focus-visible { background: var(--blue-soft); border-color: #93afd3; color: var(--blue); }
 .vg-table-tools { width: 100px; }
 .vg-table-tools .vg-actions { gap: 4px; }
+
+/* U21: with nothing selected the first card is a one-line prompt that spans the inspector grid. */
+.vg-editor .vg-selected-empty {
+  grid-column: 1 / -1;
+}

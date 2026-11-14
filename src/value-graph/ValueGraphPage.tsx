@@ -627,8 +627,9 @@ export default function ValueGraphPage({
   );
   const close = () => {
     if (!blocked) {
-      anchor?.focus();
       setSelection(null);
+      // The editor card sits above its opener (U21), so focus the opener after the card has gone.
+      requestAnimationFrame(() => anchor?.focus());
     }
   };
   const removeSelectedPoint = () => {
@@ -1879,6 +1880,23 @@ export default function ValueGraphPage({
               }}
               onWorked={(resource) => commit(resource, "use worked version")}
             />
+            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
+            {selection && !localSelection ? (
+              <InspectorEditor
+                title={contextTitle}
+                active={active && !pending}
+                blocked={blocked}
+                onClose={close}
+              >
+                <div key={JSON.stringify(selection)}>{contextContent()}</div>
+              </InspectorEditor>
+            ) : (
+              <section className="panel-card vg-selected-empty" aria-label="Selected item">
+                <p className="inspector-hint">
+                  Click a value or object to edit it, or choose a tool below.
+                </p>
+              </section>
+            )}
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>
               <div className="specialist-actions">
@@ -1987,20 +2005,6 @@ export default function ValueGraphPage({
                 </div>
               )}
             </section>
-            {selection && !localSelection ? (
-              <InspectorEditor
-                title={contextTitle}
-                active={active && !pending}
-                blocked={blocked}
-                onClose={close}
-              >
-                <div key={JSON.stringify(selection)}>{contextContent()}</div>
-              </InspectorEditor>
-            ) : (
-              <p className="inspector-hint">
-                Click a value or object to edit it.
-              </p>
-            )}
           </aside>
         </section>
         {active && pending && (

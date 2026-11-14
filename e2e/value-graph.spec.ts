@@ -536,3 +536,16 @@ test("bold lines are saved, printed and undoable; the grid keeps its weight (U11
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(async () => (await stored(page))?.document.print.lines).toBe("bold");
 });
+
+test("the selected editor is the first settings card and Close returns focus to its opener (U21)", async ({ page }) => {
+  await page.goto("/tools/value-table-graph");
+  const stack = page.locator(".inspector-stack").filter({ visible: true }).first();
+  const cards = stack.locator(":scope > .panel-card");
+  await expect(cards.first()).toHaveAccessibleName("Selected item");
+  const opener = page.getByRole("button", { name: "Table settings", exact: true });
+  await opener.click();
+  await expect(cards.first()).toHaveClass(/vg-inspector-editor/);
+  await cards.first().getByRole("button", { name: /^Close/ }).click();
+  await expect(cards.first()).toHaveAccessibleName("Selected item");
+  await expect(opener).toBeFocused();
+});

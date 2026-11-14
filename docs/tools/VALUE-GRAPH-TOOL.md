@@ -62,7 +62,9 @@ existing cells and curve/point snapshots until explicit recalculation/replotting
 Boundary markers remain complete; off-grid points are omitted with a warning,
 and connecting segments/curves are clipped to the plotting rectangle.
 Graph actions have one location in the right-hand inspector: Plot, Add, Curve, Graph options
-and Select object. Add contains numerical/click placement and horizontal lines;
+and Select object. The editor these open is the first card in the inspector (a
+"Selected item" prompt holds that place when nothing is open), above the Table and graph
+card (U20, U21); Close returns focus to the button that opened it. Add contains numerical/click placement and horizontal lines;
 selected point sets choose Points only or Straight line joins. Curve creates or
 selects the same curve editor with its equation and precise start/end x domain.
 Graph options owns grid/axis style and visibility controls. Layout owns composition
