@@ -145,3 +145,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - triangles: triangle-deliberate-error (worked): svg 64cb37f5a3e26b11 -> 3ae8429f3397f0b1
 - triangles: triangle-ssa: svg f90924d64a3a0a68 -> b70863311d864f29
 - triangles: triangle-ssa (worked): svg f90924d64a3a0a68 -> b70863311d864f29
+
+## 2026-11-14: U84: fractions in table-of-values equation headings print stacked (Tim, 14 Nov)
+
+- plotting quadratics: quadratic-fractions: svg 5ae4b7a29459f80a -> cf36101557f9172e
+- plotting quadratics: quadratic-fractions: mm 141x134 -> 141x136
+- plotting quadratics: quadratic-fractions: png600 3331x3165 -> 3331x3213
+- plotting quadratics: quadratic-fractions: pixels 6ac55f7fcb3e143d -> 552d38ee876f26eb
+- plotting quadratics: quadratic-fractions (worked): svg 1477dd03169c49a3 -> 27d8dde9e4449e9c
+- plotting quadratics: quadratic-fractions (worked): mm 141x134 -> 141x136
+- plotting quadratics: quadratic-fractions (worked): png600 3331x3165 -> 3331x3213
+- plotting quadratics: quadratic-fractions (worked): pixels ff0cb26b711403c8 -> 318a7273a4a13565

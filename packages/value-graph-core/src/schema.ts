@@ -15,8 +15,17 @@ export const numeric = z
     }
   });
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/);
+/** y = ax² + bx + c, with optional extra terms (U84): cubic is the x³ coefficient, reciprocal
+ * the k in k/x, and exponential y = coefficient × baseˣ (+ c). Saved quadratics omit them. */
 export const equationSchema = z
-  .object({ a: numeric, b: numeric, c: numeric })
+  .object({
+    a: numeric,
+    b: numeric,
+    c: numeric,
+    cubic: numeric.optional(),
+    reciprocal: numeric.optional(),
+    exponential: z.object({ coefficient: numeric, base: numeric }).strict().optional(),
+  })
   .strict();
 export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("value"), value: numeric }).strict(),
