@@ -583,36 +583,46 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options"]);
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+/** The printed characters in a document part that the worksheet font does not hold, each once. */
+export function missingCharacters(value: unknown): string[] {
+  const known = measuredWidths("regular");
+  const found = new Set<string>();
+  const scan = (v: unknown, key = "") => {
+    if (typeof v === "string") {
+      if (!PRINTED.has(key)) return;
+      for (const c of v) if (!(c in known) && c !== "\n") found.add(c);
+    } else if (Array.isArray(v)) v.forEach((x) => scan(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram" && k !== "working") scan(x, k);
+  };
+  scan(value);
+  return [...found];
+}
+const charName = (c: string) => `"${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")})`;
+/** The issue text for a character the font lacks; `where` names the place, e.g. "Question 3". */
+export const missingCharacterMessage = (where: string, c: string) =>
+  `${where} uses ${charName(c)}, which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words${c >= "\u2150" && c <= "\u215f" ? ", or as a stacked fraction such as {1/3} with maths notation" : ""}).`;
 /**
  * A character the worksheet font does not hold would print as a gap in the PDF and as a
  * substitute font in Word, so it is reported as an issue, once per character and question.
  */
 export function missingGlyphIssues(resource: Resource): Issue[] {
-  const known = measuredWidths("regular");
   const found = new Map<string, Issue>();
   type Where = Omit<Issue, "message">;
-  const scan = (value: unknown, where: Where, key = "") => {
-    if (typeof value === "string") {
-      if (!PRINTED.has(key)) return;
-      for (const c of new Set(value)) {
-        if (c in known || c === "\n") continue;
-        const id = `${c}.${where.side}.${where.question ?? 0}`;
-        if (!found.has(id))
-          found.set(id, { ...where, message: `${where.question ? `Question ${where.question}` : "The header"} uses "${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")}), which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words).` });
-      }
-    } else if (Array.isArray(value)) value.forEach((v) => scan(v, where, key));
-    else if (value && typeof value === "object")
-      for (const [k, v] of Object.entries(value)) if (k !== "diagram" && k !== "working") scan(v, where, k);
+  const report = (value: unknown, where: Where) => {
+    for (const c of missingCharacters(value)) {
+      const id = `${c}.${where.side}.${where.question ?? 0}`;
+      if (!found.has(id)) found.set(id, { ...where, message: missingCharacterMessage(where.question ? `Question ${where.question}` : "The header", c) });
+    }
   };
   const d = resource.document;
-  scan({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
+  report({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
   let question = 0;
   d.sides.forEach((side, s) => {
-    scan({ instruction: side.instruction }, { side: s + 1, column: 0 });
+    report({ instruction: side.instruction }, { side: s + 1, column: 0 });
     side.columns.forEach((col, c) => {
-      scan({ heading: col.heading }, { side: s + 1, column: c + 1 });
-      for (const card of col.cards) scan(card, { side: s + 1, column: c + 1, question: ++question });
+      report({ heading: col.heading }, { side: s + 1, column: c + 1 });
+      for (const card of col.cards) report(card, { side: s + 1, column: c + 1, question: ++question });
     });
   });
   return [...found.values()];
@@ -697,6 +707,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
   notes.push(...ctx.inline!.values());
+  ctx.issues.push(...questionReferenceIssues(resource));
   return { pages, issues: ctx.issues, notes };
 }
 
@@ -706,4 +717,45 @@ export function fileName(resource: Resource, view: View = "pupil"): string {
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
   const parts = [d.code, d.objective].map(safe).filter(Boolean);
   return `${parts.join("_")}${view === "answers" ? "_Answers" : ""}_A3.pdf`;
+}
+
+/** Every string a pupil can read in a card (titles and items, not saved answers or hidden working). */
+function readableText(cd: Card): string[] {
+  const out: string[] = [cd.title];
+  const walk = (v: unknown, key = ""): void => {
+    if (typeof v === "string") {
+      if (!["answer", "working", "type", "state", "kind", "style", "mode"].includes(key)) out.push(v);
+    } else if (Array.isArray(v)) v.forEach((x) => walk(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram") walk(x, k);
+  };
+  walk(cd.items);
+  return out;
+}
+
+/**
+ * "Question N" in a card's text must name a real, different question, except in Edexcel's
+ * "(Total for Question N is M marks)", which must name the card's own number. Reminder cards are not
+ * numbered, so adding or moving one shifts the numbers these references rely on.
+ */
+export function questionReferenceIssues(resource: Resource): Issue[] {
+  const issues: Issue[] = [];
+  const cards: { cd: Card; n: number; side: number; column: number }[] = [];
+  let n = 0;
+  resource.document.sides.forEach((side, s) => side.columns.forEach((col, c) => col.cards.forEach((cd) => {
+    if (!isReminder(cd)) cards.push({ cd, n: ++n, side: s + 1, column: c + 1 });
+  })));
+  for (const { cd, n: own, side, column } of cards) {
+    for (const text of readableText(cd)) {
+      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+        const ref = Number(m[2]);
+        const where = { side, column, question: own };
+        const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";
+        if (m[1]) {
+          if (ref !== own) issues.push({ ...where, message: `Question ${own} says "Total for Question ${ref}"; it is question ${own}. ${tail}` });
+        } else if (ref === own) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, which is itself. ${tail}` });
+        else if (ref < 1 || ref > n) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, but the sheet has ${n} questions. ${tail}` });
+      }
+    }
+  }
+  return issues;
 }

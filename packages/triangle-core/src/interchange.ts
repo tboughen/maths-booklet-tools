@@ -9,6 +9,7 @@ import { owningTriangles } from "./ownership";
 import { teachingExamples, sourceExamples } from "./examples";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { sha256Hex } from "../../envelope-core/src/index";
 
 const id = m.documentSchema.shape.vertices.element.shape.id;
 const ref = z.string().max(43);
@@ -78,9 +79,8 @@ export const createSchema = z.object({
   }).strict().optional(),
 }).strict();
 export const revisionSchema = z.object({ envelope: wireEnvelopeSchema, baseHash: z.string().regex(/^[a-f0-9]{64}$/), operations: z.array(operationSchema).max(30) }).strict();
-export async function hash(e: m.Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(m.canonical(e)));
-  return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, "0")).join("");
+export async function hash(e: m.Envelope): Promise<string> {
+  return sha256Hex(m.canonical(e));
 }
 function found<T extends { id: string }>(list: T[], id: string): T {
   const item = list.find(v => v.id === id);

@@ -112,6 +112,7 @@ export async function makeBooklet(o: MakeOptions, brief: BookletBrief, onProgres
       group: brief.group,
       coverNote: plan.coverNote,
       nameLine: true,
+      notation: "maths",
       intro: plan.intro,
       lessons,
     },
