@@ -130,10 +130,11 @@ export const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
  * editor. Its parts are "normal text" in the sheet's own font (Inter), not Cambria Math, so the
  * digits match the rest of the sheet; letters are italic, as in the SVG pages.
  */
-function fraction(f: { num: string; den: string }, o: RunStyle): string {
+function fraction(f: { num: string; den: string }, o: RunStyle, display = false): string {
   // Word sets an in-line fraction's parts smaller than the text; the parts are enlarged by the
-  // same factor so they print at body size, as the layout measured them.
-  const size = (o.sizeMm ?? S.body) / WORD_INLINE_FRACTION;
+  // same factor so they print at body size, as the layout measured them. An equation alone in its
+  // paragraph is display maths, which Word prints at full size, so it is not enlarged (R25).
+  const size = (o.sizeMm ?? S.body) / (display ? 1 : WORD_INLINE_FRACTION);
   const part = (s: string) =>
     [...s]
       .map((c) => {
@@ -149,10 +150,26 @@ function fraction(f: { num: string; den: string }, o: RunStyle): string {
   return `<m:oMath>${pad}<m:f><m:num>${part(f.num)}</m:num><m:den>${part(f.den)}</m:den></m:f>${pad}</m:oMath>`;
 }
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
-export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false) =>
+export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, display = false) =>
   parseRuns(source, base, maths)
-    .map((r) => (r.frac ? fraction(r.frac, o) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
+    .map((r) => (r.frac ? fraction(r.frac, o, display) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
     .join("");
+/**
+ * Runs that fill a paragraph on their own (an answer-line cell, a table cell). When they are only
+ * fractions, Word treats each equation as display maths and prints its parts at full size, so the
+ * inline enlargement would print them at 15 pt: the "larger answer-line fractions" seen in real Word
+ * (SP7.04, 14 November 2026). Such fractions keep body size; real Word then matches the PDF within
+ * 0.3 mm (R25 check, docs/content/WORD-OUTPUT.md).
+ */
+export function soleRuns(source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false, jc?: "left" | "center"): string {
+  const display = maths && parseRuns(source, base, maths).every((r) => !!r.frac || !r.text.trim());
+  const xml = runs(source, o, base, maths, display);
+  // Display maths ignores the paragraph's alignment and sits at the left; a centred table cell
+  // states its justification so the fraction stays centred (real Word, R25 check).
+  return display && jc
+    ? xml.replace(/<m:oMath>/g, `<m:oMathPara><m:oMathParaPr><m:jc m:val="${jc}"/></m:oMathParaPr><m:oMath>`).replace(/<\/m:oMath>/g, "</m:oMath></m:oMathPara>")
+    : xml;
+}
 
 /**
  * Marked-up text holding stacked fractions as one Word equation: text as normal-text maths runs in
@@ -341,7 +358,7 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
     const text = (s: string, o: RunStyle = {}) =>
       answerHasFraction(s, maths)
         ? // A stacked fraction sits on a small gap so its denominator clears the line (LibreOffice check, 14 Nov 2026).
-          para(runs(shownText(s), o, "regular", maths), { line: FRAC_WRITE_MM - FRAC_WORD_LIFT }) + gap(FRAC_WORD_LIFT)
+          para(soleRuns(shownText(s), o, "regular", maths), { line: FRAC_WRITE_MM - FRAC_WORD_LIFT }) + gap(FRAC_WORD_LIFT)
         : para(runs(shownText(s), o, "regular", maths), { line: lineBox(size) });
     if (pre) {
       grid.push(pre);
@@ -396,7 +413,7 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
     row(
       texts.map((t, j) =>
         cell(
-          para(t.text ? runs(shown(t.text), { bold: t.bold, color: t.color }, "regular", maths) : "", {
+          para(t.text ? soleRuns(shown(t.text), { bold: t.bold, color: t.color }, "regular", maths, j === 0 && !compact ? "left" : "center") : "", {
             align: j === 0 && !compact ? "left" : "center",
             // A stacked fraction needs the whole row as its line.
             ...(answerHasFraction(t.text, maths) ? { line: h - 0.2 } : {}),
