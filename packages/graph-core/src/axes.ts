@@ -99,14 +99,17 @@ export function nameParts(name: string): NameParts {
   return { letter: name[0], prime: name.includes("′"), subscript: name.replace(/^[A-Z]′?/, "") };
 }
 
-/** Bold upright capitals for lines (L), italic capitals for points (A), as papers print them. */
-export function mathsLetter(letter: string, style: "bold" | "italic"): string {
+/** Bold upright capitals for lines (L), italic capitals for points (A) and plain upright
+ * capitals for shapes (A), as papers print them. */
+export function mathsLetter(letter: string, style: NameStyle): string {
+  if (style === "upright") return letter;
   const code = letter.charCodeAt(0) - 65;
   return String.fromCodePoint((style === "bold" ? 0x1d400 : 0x1d434) + code);
 }
 
-export function mathsDigits(digits: string, style: "bold" | "italic"): string {
-  if (style === "italic") return digits;
+export type NameStyle = "bold" | "italic" | "upright";
+export function mathsDigits(digits: string, style: NameStyle): string {
+  if (style !== "bold") return digits;
   return [...digits].map((d) => String.fromCodePoint(0x1d7ce + Number(d))).join("");
 }
 
