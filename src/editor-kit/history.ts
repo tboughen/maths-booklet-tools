@@ -5,6 +5,8 @@
  * `past` and the start of `future`, so the toolbar can say "Undo add row" (item U8). Labels are optional:
  * an unnamed change has the empty string.
  */
+import { isResetStep } from "./labels";
+
 export interface History<T> {
   past: T[];
   present: T;
@@ -13,6 +15,13 @@ export interface History<T> {
   done?: string[];
   /** undone[i] names the change that turns the state before future[i] into future[i]. */
   undone?: string[];
+  /** How many steps have been recorded, so each new step has its own number. */
+  pushes?: number;
+  /**
+   * Set only while the latest event was a newly recorded Reset step (U25): that step's number. Undo, redo and any
+   * other change clear it, so the toolbar's "Resource reset" notice follows the event, not the step's name.
+   */
+  resetStep?: number;
 }
 
 /** One limit for every editor. Older steps fall off the start of the history. */
@@ -21,6 +30,8 @@ export const EDITOR_HISTORY_LIMIT = 100;
 export interface PushOptions<T> {
   /** Name of the change, for "Undo …" (U8). */
   label?: string;
+  /** This step resets the resource. Defaults to `isResetStep(label)`. */
+  reset?: boolean;
   /** Changes equal to the present are not recorded. Defaults to `Object.is`. */
   equals?: (a: T, b: T) => boolean;
   limit?: number;
@@ -46,7 +57,9 @@ export function pushHistory<T>(history: History<T>, next: T, options: PushOption
   const past = [...history.past, history.present];
   const done = [...labels(history.done, history.past.length, "end"), options.label ?? ""];
   const drop = Math.max(0, past.length - limit);
-  return { past: past.slice(drop), present: next, future: [], done: done.slice(drop), undone: [] };
+  const pushes = (history.pushes ?? 0) + 1;
+  const reset = options.reset ?? isResetStep(options.label);
+  return { past: past.slice(drop), present: next, future: [], done: done.slice(drop), undone: [], pushes, resetStep: reset ? pushes : undefined };
 }
 
 export function undoHistory<T>(history: History<T>): History<T> {
@@ -59,6 +72,7 @@ export function undoHistory<T>(history: History<T>): History<T> {
     future: [history.present, ...history.future],
     done: done.slice(0, -1),
     undone: [done[done.length - 1], ...undone],
+    pushes: history.pushes,
   };
 }
 
@@ -72,6 +86,7 @@ export function redoHistory<T>(history: History<T>): History<T> {
     future: history.future.slice(1),
     done: [...done, undone[0]],
     undone: undone.slice(1),
+    pushes: history.pushes,
   };
 }
 

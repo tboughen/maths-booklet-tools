@@ -474,6 +474,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}

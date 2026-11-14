@@ -771,6 +771,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -2347,7 +2348,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
-                setHistory((h) => pushHistory(h, create(), { label: stepName("Start a fresh triangle diagram?") }));
+                setHistory((h) => pushHistory(h, create(), { label: "start afresh" }));
                 setSelected(null);
               } catch (err) {
                 setMessage(errorText(err));

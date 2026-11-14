@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HistoryButtons } from "./HistoryButtons";
-import { isResetStep } from "../editor-kit/labels";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
 let preloaded = false;
@@ -26,6 +25,8 @@ interface EditorToolbarProps {
   undoLabel?: string;
   /** Name of the step Redo would restore. */
   redoLabel?: string;
+  /** `history.resetStep`: set while the latest event is a newly made Reset step (U25). */
+  resetStep?: number;
   onReset: () => void;
   resetLabel?: string;
   resetDisabled?: boolean;
@@ -43,16 +44,22 @@ interface EditorToolbarProps {
 export function EditorToolbar(props: EditorToolbarProps) {
   const bar = useRef<HTMLDivElement>(null);
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
-  // The notice follows events, not names: it opens when a reset step is newly made (a new step clears Redo)
-  // and closes on the next undo, redo or change, or when dismissed.
-  // Redoing a reset is not a new reset: Redo offered that step a moment ago.
-  const [tracked, setTracked] = useState({ undo: props.undoLabel, redo: props.redoLabel });
+  // The history marks a newly recorded reset step with its own number and clears it on the next undo, redo or
+  // change, so the notice opens for each new reset and never for an undo or redo that lands on one.
+  const [trackedReset, setTrackedReset] = useState(props.resetStep);
   const [noticeOpen, setNoticeOpen] = useState(false);
-  if (tracked.undo !== props.undoLabel || tracked.redo !== props.redoLabel) {
-    setTracked({ undo: props.undoLabel, redo: props.redoLabel });
-    if (tracked.undo !== props.undoLabel)
-      setNoticeOpen(isResetStep(props.undoLabel) && !props.canRedo && tracked.redo !== props.undoLabel);
+  if (trackedReset !== props.resetStep) {
+    setTrackedReset(props.resetStep);
+    setNoticeOpen(props.resetStep !== undefined);
   }
+  // A page that is switched away from closes its notice, so it is not waiting there on return.
+  useEffect(() => {
+    const page = bar.current?.closest<HTMLElement>(".site-page");
+    if (!noticeOpen || !page || typeof MutationObserver === "undefined") return;
+    const observer = new MutationObserver(() => page.hidden && setNoticeOpen(false));
+    observer.observe(page, { attributes: true, attributeFilter: ["hidden"] });
+    return () => observer.disconnect();
+  }, [noticeOpen]);
   const focusAfterNotice = useRef(false);
   useEffect(() => {
     if (noticeOpen || !focusAfterNotice.current) return;
@@ -175,10 +182,10 @@ export function EditorToolbar(props: EditorToolbarProps) {
           </button>
         </div>
       </div>
-      {/* Always mounted, so screen readers announce the text when it appears. */}
-      <div className="editor-reset-status" role="status">
+      {/* The live region is always mounted, so screen readers announce the notice when it appears. */}
+      <div className="editor-reset-status" aria-live="polite">
         {noticeOpen && (
-          <div className="editor-reset-notice">
+          <div className="editor-reset-notice" role="status">
             <span>Resource reset.</span>
             <button
               type="button"

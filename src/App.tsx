@@ -430,6 +430,7 @@ export default function App({ active = true }: { active?: boolean }) {
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}

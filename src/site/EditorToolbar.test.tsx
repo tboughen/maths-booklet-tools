@@ -4,14 +4,33 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EditorToolbar } from "./EditorToolbar";
 import { isResetStep, stepName } from "../editor-kit/labels";
+import { createHistory, pushHistory, redoHistory, undoHistory } from "../editor-kit/history";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("isResetStep (U25)", () => {
   it("knows every page's reset step name", () => {
-    for (const question of ["Reset diagram", "Reset this table?", "Reset this resource?", "Start a new model?", "Start a fresh triangle diagram?"])
+    for (const question of ["Reset diagram", "Reset this table?", "Reset this resource?", "Start a new model?"])
       expect(isResetStep(stepName(question))).toBe(true);
-    for (const name of ["", "add row", "use worked version", "restart numbering"]) expect(isResetStep(name)).toBe(false);
+    for (const name of ["", "add row", "use worked version", "restart numbering", "start afresh"]) expect(isResetStep(name)).toBe(false);
+  });
+});
+
+describe("history marks reset steps (U25)", () => {
+  it("numbers each new reset and clears the mark on undo, redo and other changes", () => {
+    let h = pushHistory(createHistory(0), 1, { label: "add row" });
+    expect(h.resetStep).toBeUndefined();
+    h = pushHistory(h, 2, { label: "reset this table" });
+    const first = h.resetStep;
+    expect(first).toBeDefined();
+    expect(undoHistory(h).resetStep).toBeUndefined();
+    expect(redoHistory(undoHistory(h)).resetStep).toBeUndefined();
+    // A reset made again after undoing one is a new event with a new number.
+    const again = pushHistory(undoHistory(h), 3, { label: "reset this table" });
+    expect(again.resetStep).toBeDefined();
+    expect(again.resetStep).not.toBe(first);
+    expect(pushHistory(h, 4, { label: "add row" }).resetStep).toBeUndefined();
+    expect(pushHistory(h, 5, { label: "clear", reset: true }).resetStep).toBeDefined();
   });
 });
 
@@ -22,16 +41,16 @@ describe("reset notice (U25)", () => {
     act(() => root?.unmount());
     host?.remove();
   });
-  const render = (props: { undoLabel: string; canRedo: boolean; redoLabel?: string; onUndo?: () => void }) =>
+  const render = (resetStep: number | undefined, onUndo: () => void = () => {}) =>
     act(() =>
       root!.render(
         <EditorToolbar
           canUndo
-          canRedo={props.canRedo}
-          onUndo={props.onUndo ?? (() => {})}
+          canRedo={false}
+          onUndo={onUndo}
           onRedo={() => {}}
-          undoLabel={props.undoLabel}
-          redoLabel={props.redoLabel}
+          undoLabel="reset this table"
+          resetStep={resetStep}
           onReset={() => {}}
           onCopy={() => {}}
           onCopyClipboard={() => {}}
@@ -41,54 +60,56 @@ describe("reset notice (U25)", () => {
       ),
     );
   const notice = () => host!.querySelector(".editor-reset-notice");
-  const start = () => {
-    host = document.body.appendChild(document.createElement("div"));
+  const start = (page?: HTMLElement) => {
+    host = (page ?? document.body).appendChild(document.createElement("div"));
     root = createRoot(host);
   };
 
-  it("opens on a new reset step, keeps its live region mounted and closes on the next step", () => {
+  it("opens for a new reset, keeps its live region mounted and closes on the next event", () => {
     start();
-    render({ undoLabel: "add row", canRedo: false });
-    expect(host!.querySelector('[role="status"]')).not.toBeNull();
+    render(undefined);
+    expect(host!.querySelector('[aria-live="polite"]')).not.toBeNull();
     expect(notice()).toBeNull();
-    render({ undoLabel: "reset this table", canRedo: false });
+    render(2);
     expect(notice()?.textContent).toContain("Resource reset.");
-    render({ undoLabel: "add row", canRedo: false });
-    expect(notice()).toBeNull();
-  });
-
-  it("stays closed when undo or redo lands on an earlier reset", () => {
-    start();
-    render({ undoLabel: "add row", canRedo: true });
-    render({ undoLabel: "reset this table", canRedo: true });
-    expect(notice()).toBeNull();
-    // Redo of the reset as the last step.
-    render({ undoLabel: "add row", canRedo: true, redoLabel: "reset this table" });
-    render({ undoLabel: "reset this table", canRedo: false });
+    render(undefined);
     expect(notice()).toBeNull();
   });
 
   it("opens again for a later reset after an earlier one was dismissed", () => {
     start();
-    render({ undoLabel: "reset this table", canRedo: false });
-    render({ undoLabel: "add row", canRedo: false });
-    render({ undoLabel: "reset this table", canRedo: false });
+    render(undefined);
+    render(2);
     act(() => (host!.querySelector(".editor-reset-close") as HTMLButtonElement).click());
     expect(notice()).toBeNull();
     expect(document.activeElement?.getAttribute("aria-label")).toBe("Undo");
-    render({ undoLabel: "add row", canRedo: false });
-    render({ undoLabel: "reset this table", canRedo: false });
+    render(3);
     expect(notice()).not.toBeNull();
   });
 
   it("Undo reset undoes once and keeps focus in the toolbar", () => {
     start();
     const onUndo = vi.fn();
-    render({ undoLabel: "add row", canRedo: false, onUndo });
-    render({ undoLabel: "reset this table", canRedo: false, onUndo });
+    render(undefined, onUndo);
+    render(2, onUndo);
     act(() => (host!.querySelector(".editor-reset-undo") as HTMLButtonElement).click());
     expect(onUndo).toHaveBeenCalledTimes(1);
     expect(notice()).toBeNull();
     expect(host!.contains(document.activeElement)).toBe(true);
+  });
+
+  it("closes when its page is switched away from", async () => {
+    const page = document.body.appendChild(document.createElement("div"));
+    page.className = "site-page";
+    start(page);
+    render(undefined);
+    render(2);
+    expect(notice()).not.toBeNull();
+    await act(async () => {
+      page.hidden = true;
+      await Promise.resolve();
+    });
+    expect(notice()).toBeNull();
+    page.remove();
   });
 });
