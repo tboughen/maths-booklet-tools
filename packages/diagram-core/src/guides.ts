@@ -248,4 +248,27 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
 }
 
 /** The short family list diagram_capabilities returns without a kind. */
-export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, answerView: FAMILIES[kind].answerView }));
+/**
+ * M89: KS3 and GCSE topics each family draws, so an assistant picks the right family first time
+ * and can answer "what can MathsDock draw?". Topics name lessons, not schema fields.
+ */
+export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
+  graph: ["coordinates", "straight-line graphs y = mx + c", "gradient and intercept", "parallel and perpendicular lines", "graphical inequalities and regions", "simultaneous equations by graph", "midpoints and line segments", "transformations of shapes", "real-life, conversion and distance-time graphs", "scatter graphs and lines of best fit"],
+  "ratio-table": ["ratio and proportion", "sharing in a ratio", "scaling recipes", "direct proportion", "unit conversions"],
+  "value-graph": ["tables of values", "plotting quadratic graphs", "cubic, reciprocal and exponential graphs", "roots and turning points from a graph"],
+  cuboids: ["volume of cuboids and cubes", "surface area", "counting unit cubes", "areas of faces"],
+  "number-line": ["inequalities on a number line", "integer solutions", "ordering numbers", "negative numbers"],
+  venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
+  "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
+  "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "reading and drawing charts"],
+  "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
+  "frequency-tree": ["frequency trees", "probability from frequencies"],
+  "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
+  triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
+  construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
+  elevations: ["plans and elevations", "isometric drawings of cube solids"],
+};
+/** Common requests no family draws, so an assistant says so instead of improvising. */
+export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "pictograms", "pie charts", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));
