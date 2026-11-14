@@ -1,3 +1,4 @@
+import { downloadBothCopies } from "../export/bothCopies";
 import {
   renderRatioSvg,
   ratioMetrics,
@@ -70,4 +71,13 @@ export async function copyRatioForWord(envelope: RatioEnvelope): Promise<void> {
       "The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.",
     );
   }
+}
+
+/** Pupil and answers copies in one ZIP (U28); the editor's view is not used. */
+export async function downloadRatioBoth(envelope: RatioEnvelope) {
+  const valid = validateRatioEnvelope(envelope);
+  await downloadBothCopies("ratio-table", valid, async (view) => ({
+    svg: await embedPortableFonts(renderRatioSvg(valid.document, view)),
+    png: await ratioPrintPng(valid, view),
+  }));
 }

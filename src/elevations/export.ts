@@ -1,3 +1,4 @@
+import { downloadBothCopies } from "../export/bothCopies";
 import { canonical, exportIssue, layout, renderSvg, type Envelope, type View } from "../../packages/elevation-core/src";
 import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
@@ -44,3 +45,7 @@ export async function copyWord(e: Envelope, view: View) {
   )
     throw Error("The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.");
 }
+
+/** Pupil and answers copies in one ZIP (U28); the editor's view is not used. */
+export const downloadBoth = (e: Envelope) =>
+  downloadBothCopies("elevations", e, async (view) => ({ svg: (await prepareImage(e, view)).svg, png: await printPng(e, view) }));

@@ -62,7 +62,7 @@ import {
   type Label,
 } from "../../packages/probability-tree-core/src";
 import { parseTreeLink, treeEditorLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./probability-tree.css";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
@@ -385,6 +385,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },

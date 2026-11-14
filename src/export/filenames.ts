@@ -34,7 +34,7 @@ export function contentHint(resource: unknown): string {
 
 export function downloadName(
   tool: ToolId,
-  extension: "svg" | "png" | "json" | "pdf" | "docx",
+  extension: "svg" | "png" | "json" | "pdf" | "docx" | "zip",
   options: { resource?: unknown; content?: string; answers?: boolean; recovery?: boolean; date?: Date } = {},
 ): string {
   const content = options.content !== undefined ? slug(options.content) : contentHint(options.resource);
