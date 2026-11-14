@@ -43,7 +43,7 @@ import {
   type Envelope,
 } from "../../packages/two-way-table-core/src";
 import { LINK_PREFIX, parseTwoWayTableLink, twoWayTableLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:two-way-table:v1");
@@ -360,6 +360,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },

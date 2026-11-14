@@ -50,7 +50,7 @@ import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { houseStyled, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from "../../packages/envelope-core/src/house-style";
-import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
+import { printPng, downloadImage, copyWord, downloadEditable, downloadBoth } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
 import { downloadName } from "../export/filenames";
@@ -532,6 +532,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,

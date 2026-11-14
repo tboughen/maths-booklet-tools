@@ -39,7 +39,7 @@ import {
   type ViewKind,
 } from "../../packages/elevation-core/src";
 import { LINK_PREFIX, parseElevationsLink, elevationsLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 import "../probability-tree/probability-tree.css";
@@ -324,6 +324,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(e, "svg", view), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(e, "png", view), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(e, "pdf", view), disabled: blocked || !!issue, success: "PDF download started." },

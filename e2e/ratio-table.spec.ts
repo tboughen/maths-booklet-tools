@@ -9,6 +9,7 @@ import {
 import { createGraph } from "../packages/graph-core/src/interchange";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 import { readFileSync } from "node:fs";
+import { strFromU8, unzipSync } from "fflate";
 import type { RatioEnvelope } from "../packages/ratio-table-core/src/interchange";
 const legacyFixtures = JSON.parse(
   readFileSync(
@@ -1125,6 +1126,15 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     const svg = (await readFile((await result.path())!)).toString();
     expect(svg.includes("ratio-hidden-answer")).toBe(shown);
   }
+  // U28: both copies in one ZIP; only the answers SVG shows the hidden answer.
+  await page.getByRole("button", { name: "File", exact: true }).click();
+  const zipDownload = page.waitForEvent("download");
+  await page.getByRole("menuitem", { name: /^Download pupil and answers \(ZIP\)/ }).click();
+  const zip = unzipSync(new Uint8Array(await readFile((await (await zipDownload).path())!)));
+  const svgs = Object.keys(zip).filter((n) => n.endsWith(".svg"));
+  expect(svgs).toHaveLength(2);
+  for (const n of svgs) expect(strFromU8(zip[n]).includes("ratio-hidden-answer")).toBe(n.includes("-answers-"));
+  expect(Object.keys(zip).filter((n) => n.endsWith(".png"))).toHaveLength(2);
   await page
     .getByRole("button", { name: "Edit headings", exact: true })
     .click();
