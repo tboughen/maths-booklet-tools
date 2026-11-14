@@ -57,28 +57,42 @@ and the page downloads pupil and answers PDFs for the whole booklet or one lesso
   one complete example lesson. It is byte-identical on every request.
 - Providers, keys, prices and the "Spent in this tab" total are shared with the worksheet maker
   (`src/worksheet/ai/useAi.tsx`; see [WORKSHEET-AI.md](WORKSHEET-AI.md)). A unit of 11 lessons is
-  about 160,000 output tokens including thinking, roughly $1.50 to $2 on Sonnet 5.5.
+  about 180,000 output tokens including thinking, roughly $2 to $2.50 on Sonnet 5.5.
 
 ## The lesson standard
 
-Taken from Tim's A07 booklet (10 Nov 2026). Lesson 3 of that booklet, positive gradients, is the
-model; a few strong features of other lessons are added. The prompt asks for:
+A worksheet follows teaching: it is used after the teacher has modelled the method. A booklet is used
+with the teaching and is the one-stop shop, so it also holds the check-in, the worked example and the
+"we do". Tim agreed the split on 14 Nov 2026, after the pedagogy comparison trial on A7.03 and A7.07;
+the model is lesson 3 of his A07 booklet (positive gradients) with the best ideas from its other lessons.
+The prompt asks for, in order:
 
 1. A one or two sentence key idea that names the new vocabulary.
-2. A check in of four or five questions that retrieves exactly this lesson's prerequisites, with
-   one fill-in-the-blank on the new words.
-3. Worked example and Our turn side by side, with the same numbered steps (a four-step method such
-   as table, coordinates, plot, join where it fits). Our turn's step text fades.
-4. Your turn: several near-identical questions with the same pre-drawn diagram or empty table.
-5. Diagnostic questions: multiple choice A to D, each wrong option built on one named
-   misconception.
-6. Practice that fades: support given, then bare, then a harder variant.
-7. Spot the mistake: a named pupil's wrong working to find and correct.
-8. A self-check list where it helps, and an open challenge such as "Is this the only answer?".
-9. Where the idea can be discovered, a short discovery set followed by a boxed generalisation.
+2. A check in first: four or five questions on exactly this lesson's prerequisites, with one
+   fill-in-the-blank on the new words.
+3. Where the idea can be discovered, a short discovery set followed by a boxed generalisation.
+4. Worked example beside Our turn, with the same numbered steps (a four-step method such as table,
+   coordinates, plot, join where it fits). Our turn keeps the step labels and leaves the work blank.
+5. Your turn: near-identical questions with the same pre-drawn diagram or empty table, help fading.
+6. Diagnostic questions for mini whiteboards: multiple choice A to D, each wrong option built on one
+   named misconception.
+7. Practice that fades (support given, then bare, then a changed presentation, then reasoning), with
+   at least three unaided questions for every case the lesson names.
+8. Spot the mistake: one explain-or-correct card on a named pupil's wrong working for each
+   misconception, so every known error is targeted in both forms.
+9. A short "From earlier" strip on earlier lessons or units.
+10. A challenge, such as "Is this the only answer?" or a near case that cannot be judged by eye.
+11. Exam-style questions last, in Edexcel wording, with marks as text ("(Total for Question 2 is 3
+    marks)").
 
-It also rules out what the weaker lessons did: mixed styles, pasted sheets, screenshots and wrong
-lesson numbers.
+Throughout: the school's method, named the same way wherever the skill returns; one new step at a
+time; room for every table, triangle or working asked for; sort, classify and mixed-representation
+sets and self-check tick boxes where they suit. A lesson is about 25 to 35 cards, 5 to 8 pages.
+
+School methods are school information, so they never go in this repository. A scheme file may list
+them as optional `methods` (`topic`, `method`, `layout`); the department scheme in the private bank
+can carry them, and the plan and lesson requests then name them. Without a list, the plan names the
+method and every lesson section uses it.
 
 ## Editing
 

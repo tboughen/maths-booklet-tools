@@ -15,6 +15,7 @@ import { exampleLessonSource } from "../../../packages/resource-core/src/booklet
 import { familiesFor, familyNotes } from "../../worksheet/ai/families";
 import type { DiagramKind } from "../../../packages/diagram-core/src/registry";
 import type { Job } from "../../worksheet/ai/types";
+import type { SchoolMethod } from "../../worksheet/ai/scheme";
 
 /**
  * The booklet maker works in two kinds of request, so each stays small and cheap:
@@ -39,6 +40,14 @@ export interface BookletBrief {
   context: string;
   /** Whether to open with a check-in lesson on prerequisites, as the department's booklets do. */
   checkInLesson: boolean;
+  /** The school's agreed methods, from its scheme file (school information, never in this repository). */
+  methods?: SchoolMethod[];
+}
+
+/** The school's methods as a request block, or nothing when the scheme has none. */
+export function methodsBlock(methods: SchoolMethod[] | undefined): string[] {
+  if (!methods?.length) return [];
+  return ["", "School methods (use the one for this topic, in these words and this layout):", ...methods.map((m) => `- ${m.topic}: ${m.method}${m.layout ? `. ${m.layout}` : ""}`)];
 }
 
 /* ---------------------------------------------------------------- shared house rules */
@@ -47,20 +56,32 @@ const HALF = Math.floor(BOOKLET_WIDTHS.half - 6);
 const FULL = Math.floor(BOOKLET_WIDTHS.full - 6);
 
 const STANDARD = `
+# What a booklet is
+A worksheet follows teaching: pupils use it after the teacher has modelled the method. A booklet is used **with** the teaching: it is the one-stop shop for each lesson, so it holds the check-in, the worked example and the "we do" as well as the practice.
+
 # The standard every lesson meets
-The department's best lesson booklet pages share one shape. Follow it unless the lesson plan gives a reason not to:
+Follow this shape unless the lesson plan gives a reason not to:
 
 1. **Key idea**: one or two sentences that state the big idea and name the new vocabulary in **bold** ("The **gradient** tells us how far up a line goes for every 1 unit it goes right.").
-2. **check-in** (columns 2): 3 to 5 short retrieval questions on exactly the prerequisites this lesson needs, plus a fill-in-the-blanks sentence using the key idea's vocabulary. Not new content.
-3. **discover** (optional, when the insight is best noticed): a small set where only one thing changes ("Draw y = x + 1, y = 2x + 1, y = 3x + 1. What do you notice?") followed by an info item stating the generalisation.
-4. **worked** (columns 2): a "Worked example" card beside an "Our turn" card. Same method, same representation, different numbers. The worked card shows every step with a steps item and the finished representation; the Our turn card keeps the same step labels with shortened text ("Perfect points.", "Triangle.") and leaves the work blank. Use two pairs (4 cards) when the method has a second case (for example a negative gradient).
-5. **practice** titled "Your turn" (columns 2): 4 to 6 cards that mirror the worked example exactly: the same diagram family and size, the same blank table, the same answer line. The first card may carry a checklist item of the method's steps for pupils to tick.
-6. **diagnostic** (columns 2, instruction "Answer on your mini whiteboard."): 4 hinge questions, each a choice item with mode "letters" and 3 or 4 options. Every wrong option comes from a named misconception in the plan. Save the correct answer.
-7. **practice** titled "Practice": 6 to 10 cards that fade support: first with part of the structure given, then bare, then a changed presentation (a different scale, no grid, two points only, a context), then a reasoning item.
-8. **mistake**: one or two cards. A named pupil (vary names) shows plausible wrong working as a claim item, then parts "Explain …'s mistake." with working space and "Find the correct …" with an answer line.
-9. **challenge** (columns 1): one open or rich task that rewards noticing, with room to work.
+2. **check-in** (columns 2), first: 3 to 5 short retrieval questions on exactly the prerequisites this lesson needs, plus a fill-in-the-blanks sentence using the key idea's vocabulary. Not new content.
+3. **discover** (optional, when the insight is best noticed): a small set where only one thing changes ("Draw y = x + 1, y = 2x + 1, y = 3x + 1. What do you notice?") followed by an info item, the boxed generalisation.
+4. **worked** (columns 2): a "Worked example" card beside an "Our turn" card. Same method, same representation, different numbers. The worked card shows every step with a steps item and the finished representation; where it fits, use a short numbered method (for a graph: table, coordinates, plot, join). The Our turn card is for the class to do together: it keeps the step labels only and leaves the work blank for the pupil. Use two pairs (4 cards) when the method has a second case (for example a negative gradient).
+5. **practice** titled "Your turn" (columns 2): 4 to 6 cards that mirror the worked example: the same diagram family and size, the same blank table, the same answer line. Help fades across the set: the first cards give part of the structure, the last are unaided. The first card may carry a checklist item of the method's steps for pupils to tick.
+6. **diagnostic** (columns 2, instruction "Answer on your mini whiteboard."): 4 hinge questions, each a choice item with mode "letters" and 3 or 4 options. Every wrong option comes from exactly one named misconception in the plan. Save the correct answer.
+7. **practice** titled "Practice": 6 to 10 cards that fade support: first with part of the structure given, then bare, then a changed presentation (a different scale, no grid, two points only, a context), then a reasoning item. Include at least three unaided questions for every case the lesson names (for example positive whole-number, fractional and negative gradients each get three).
+8. **mistake**: one card for each misconception in the plan, as well as its hinge question. A named pupil (vary names) shows plausible wrong working as a claim item, then parts "Explain …'s mistake." with working space and "Correct …'s working." or "Find the correct …" with an answer line.
+9. **check-in** titled "From earlier" (columns 2): 2 or 3 short questions on earlier lessons or units, not this lesson's prerequisites, so pupils keep earlier work fresh.
+10. **challenge** (columns 1): one open or rich task that rewards noticing, with room to work, such as "Is this the only answer?" or a near case that cannot be judged by eye (two lines that look parallel but are not).
+11. **practice** titled "Exam-style questions" (columns 1), last: 2 or 3 questions in Edexcel GCSE form. Command words as papers use them (Write down, Work out, Find, Show that, Explain, "On the grid, draw the graph of …"), lettered parts, one fact per line with the question last, and the marks as the card's final text line, "(Total for Question 2 is 3 marks)". Saved answers as usual.
 
-Number of cards: about 20 to 30 per lesson, which prints as 4 to 7 A4 pages. Fewer, well-chosen questions beat many similar ones.
+## Rules for every section
+- **The school's method.** Teach one method for the skill and name it the same way everywhere it returns: worked example, Our turn, Your turn, practice, the mistake corrections and the saved answers. Never swap in another method. When the request lists school methods, use the one for this topic, in its words and layout; otherwise use the method in the lesson plan.
+- **One new step at a time.** A step pupils have not yet practised either has its first line done for them or comes later in the lesson.
+- **Room for what is asked.** When a question asks for a table, triangle, grid or working, the card gives one for each that is asked for, sized for the work.
+- **Variety that teaches.** Where it suits the objective, use a sort or classify set (for example sixteen equations sorted by gradient), a mixed-representation match (equation, table, graph, words), self-check tick boxes, and a discovery set with a boxed generalisation.
+- Every page is the house style: no pasted sheets, screenshots, raster exam questions or mixed styles.
+
+Number of cards: about 25 to 35 per lesson, which prints as 5 to 8 A4 pages. Fewer, well-chosen questions beat many similar ones.
 
 # Layout facts (A4 portrait, nothing ever shrinks)
 - A card in a 2-column section is ${HALF} mm wide inside; a 1-column card is ${FULL} mm. Diagrams keep their real size: a coordinate grid is about 10.3 mm per square plus 12 mm for its axes, so a grid in a 2-column card is at most 7 squares across (for example negativeSquares 1, positiveSquares 5), and up to 15 squares across in a 1-column card. Grids are about as tall as they are wide; keep Your turn grids to 7 or 8 squares tall so two rows fit a page.
@@ -115,7 +136,8 @@ When asked to change a lesson, change only what the request needs and keep every
 ${guide}
 </guide>
 
-# Example of a lesson at the standard (another objective; do not copy its content)
+# Example lesson (another objective; do not copy its content)
+It shows the section shapes, items, diagrams and wording. It is shorter than the standard: a full lesson also has the From earlier strip, an explain-or-correct question for each misconception and the exam-style questions.
 ${JSON.stringify(exampleLessonSource)}
 `.trim();
 
@@ -194,7 +216,7 @@ const lessonPlan = z
       .string()
       .max(3000)
       .describe(
-        "Teacher-facing lesson PLAN: prerequisites the check-in retrieves; the insight; 2 to 4 named misconceptions (they become hinge distractors and the spot-the-mistake); the worked example and our-turn numbers; diagram families and sizes; how support fades through Your turn and Practice; the challenge.",
+        "Teacher-facing lesson PLAN: prerequisites the check-in retrieves; the earlier work the From earlier strip revisits; the insight; the school's method for the skill, named; 2 to 4 named misconceptions (each becomes a hinge distractor and an explain-or-correct question); the worked example and Our turn numbers; the cases practised, each with at least three unaided questions; diagram families and sizes; how support fades through Your turn and Practice, one new step at a time; the challenge; the exam-style questions and their marks.",
       ),
   })
   .strict();
@@ -259,6 +281,7 @@ export function planRequest(b: BookletBrief): string {
     ...b.objectives.map((o) => `- ${o.code ? `${o.code}: ` : ""}${o.text}`),
   ];
   if (b.context.trim()) lines.push("", `Teacher's notes: ${b.context.trim()}`);
+  lines.push(...methodsBlock(b.methods));
   return lines.join("\n");
 }
 
@@ -269,7 +292,7 @@ const kindsFor = (text: string, lesson?: Lesson): DiagramKind[] => {
 };
 
 /** A request for one lesson, with just enough of the unit around it for consistent style. */
-export function lessonRequest(plan: BookletPlan, index: number, brief: Pick<BookletBrief, "group" | "context">): string {
+export function lessonRequest(plan: BookletPlan, index: number, brief: Pick<BookletBrief, "group" | "context" | "methods">): string {
   const l = plan.lessons[index];
   const lines = [
     `Write lesson ${index + 1} of ${plan.lessons.length} of the booklet "${plan.title}".`,
@@ -284,6 +307,7 @@ export function lessonRequest(plan: BookletPlan, index: number, brief: Pick<Book
     `Lesson plan: ${l.plan}`,
   ];
   if (brief.context.trim()) lines.push(`Teacher's notes for the unit: ${brief.context.trim()}`);
+  lines.push(...methodsBlock(brief.methods));
   lines.push("", familyNotes(kindsFor(`${l.title} ${l.objective} ${l.plan}`)));
   return lines.join("\n");
 }
@@ -309,7 +333,7 @@ export function estimateTokens(lessons: number): { input: number; output: number
   return {
     input: planSys + lessons * 1200,
     // Thinking plus a lesson's JSON; the plan is smaller.
-    output: 6000 + lessons * 14000,
+    output: 6000 + lessons * 16000,
     cacheRead: Math.max(0, lessons - 1) * system,
     cacheWrite: system,
   };

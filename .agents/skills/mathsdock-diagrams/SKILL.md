@@ -163,10 +163,14 @@ well, put the fraction in the question text instead. A note naming a question me
 fraction there will not print stacked: fix it and call `create_worksheet` again.
 
 For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the
-whole booklet; `worksheet_capabilities` lists its layout and section kinds. Give every lesson a
-one-sentence key idea, a check in on its prerequisites, worked example and "Our turn" pairs,
-practice that fades, lettered diagnostic questions and a spot-the-mistake card, as its
-description sets out. A whole unit goes in one call: send diagrams as specs, not envelopes, and
+whole booklet; `worksheet_capabilities` lists its layout and section kinds. A booklet is used
+with the teaching (a worksheet follows it), so give every lesson: a one-sentence key idea; a
+check in on its prerequisites first; worked example beside a blank "Our turn"; "Your turn" with
+help fading; lettered mini-whiteboard diagnostic questions AND an explain-or-correct card for
+each named misconception; practice with at least three unaided questions per case; a short
+"From earlier" strip; a challenge; and an exam-style page in Edexcel wording with marks, as its
+description sets out. Use the school's method, named the same way, wherever the skill returns,
+and add one new step at a time. A whole unit goes in one call: send diagrams as specs, not envelopes, and
 do not split the unit. Share the whole-booklet links and the per-lesson PDF links it returns.
 
 Use a `ratio-table` diagram, not a plain `table` item, for ratio, scaling, rate and

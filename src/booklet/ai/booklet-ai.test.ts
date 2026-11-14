@@ -3,6 +3,7 @@ import { a7Booklet } from "../../../packages/resource-core/src/booklet-fixtures"
 import { checkLesson, estimateTokens, lessonChangeRequest, lessonRequest, lessonSystem, planJob, planRequest, planSystem } from "./brief";
 import { isPlaceholder, placeholderLesson, planFromBooklet } from "./make";
 import * as edit from "../edit";
+import { schemeSchema } from "../../worksheet/ai/scheme";
 
 const [plot, gradient] = a7Booklet.document.lessons;
 
@@ -38,6 +39,23 @@ describe("booklet AI prompts", () => {
     const r = lessonChangeRequest(gradient, 1, "Add a negative gradient");
     expect(r).toContain("<current_lesson>");
     expect(r).toContain('kind="graph"');
+  });
+
+  it("asks for the agreed booklet lesson shape", () => {
+    for (const phrase of ["used **with** the teaching", "From earlier", "Exam-style questions", "(Total for Question 2 is 3 marks)", "Answer on your mini whiteboard.", "Explain …'s mistake.", "at least three unaided questions", "One new step at a time", "The school's method"])
+      expect(lessonSystem).toContain(phrase);
+    expect(planSystem).toContain("From earlier");
+  });
+
+  it("names the school's methods only when the scheme has them", () => {
+    const methods = [{ topic: "Gradient of a straight line", method: "Example method", layout: "Two steps." }];
+    const brief = { code: "A7", title: "Visualising", group: "Year 9", objectives: [{ code: "A7.03", text: "Find gradients" }], context: "", checkInLesson: false };
+    expect(planRequest(brief)).not.toContain("School methods");
+    expect(planRequest({ ...brief, methods })).toContain("- Gradient of a straight line: Example method. Two steps.");
+    const plan = planFromBooklet(a7Booklet);
+    expect(lessonRequest(plan, 1, { group: "", context: "" })).not.toContain("School methods");
+    expect(lessonRequest(plan, 1, { group: "", context: "", methods })).toContain("School methods");
+    expect(schemeSchema.safeParse({ schemaVersion: 1, kind: "scheme-of-work", name: "S", units: [{ code: "A7", title: "T", objectives: [] }], methods }).success).toBe(true);
   });
 
   it("gives a rough token budget that grows with the lessons", () => {

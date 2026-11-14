@@ -16,14 +16,19 @@ const unit = z.object({
   years: z.array(z.number().int()).optional(),
   objectives: z.array(objective).max(60),
 });
+/** A method the department teaches for a topic, so every resource shows the same one. */
+const method = z.object({ topic: z.string().min(1).max(160), method: z.string().min(1).max(120), layout: z.string().max(600).optional() });
 export const schemeSchema = z.object({
   schemaVersion: z.literal(1),
   kind: z.literal("scheme-of-work"),
   name: z.string().max(120),
   levels: z.record(z.string(), z.string()).optional(),
   units: z.array(unit).min(1).max(400),
+  /** The school's agreed methods. Optional; booklet requests name them when present. */
+  methods: z.array(method).max(80).optional(),
 });
 export type Scheme = z.infer<typeof schemeSchema>;
+export type SchoolMethod = z.infer<typeof method>;
 export type SchemeObjective = z.infer<typeof objective>;
 
 const IMPORTED = "maths-booklet-tools:worksheet-scheme:v1";
