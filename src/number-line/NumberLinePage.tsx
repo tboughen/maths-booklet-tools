@@ -38,7 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
@@ -214,11 +214,11 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
-  function commit(e: Envelope) {
+  function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    documentHistory.commit(v);
+    documentHistory.commit(v, label);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -235,6 +235,7 @@ export default function NumberLinePage({
               : op,
         ),
       ),
+      operationLabel(ops),
     );
   }
   function safe(ops: Operation[]) {
@@ -722,6 +723,8 @@ export default function NumberLinePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -1048,7 +1051,7 @@ export default function NumberLinePage({
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card">
               <h2>Draw</h2>
@@ -1526,7 +1529,7 @@ export default function NumberLinePage({
               );
             }}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
               setSelection(null);
               window.history.replaceState(

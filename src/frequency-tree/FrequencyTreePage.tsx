@@ -51,7 +51,7 @@ import {
 } from "../../packages/frequency-tree-core/src";
 import { LINK_PREFIX, frequencyTreeLink, parseFrequencyTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
@@ -167,7 +167,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const depth = maxDepth(d);
   const selectedNode = d.nodes.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
-  function commit(next: Envelope | null, failure = "That change is not possible for this tree.") {
+  function commit(next: Envelope | null, failure = "That change is not possible for this tree.", label?: string) {
     if (recovery !== null) return;
     if (!next) {
       setMessage(failure);
@@ -175,7 +175,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     }
     try {
       const valid = validate(next);
-      documentHistory.commit(valid);
+      documentHistory.commit(valid, label);
       setMessage("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -310,6 +310,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -438,7 +440,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, undefined, "use worked version")}
             />
             {selectedNode && (
               <section className="panel-card pt-panel" aria-label="Selected group">
@@ -731,7 +733,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, undefined, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

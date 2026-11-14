@@ -40,7 +40,7 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
-import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
@@ -157,10 +157,10 @@ export default function AlgebraGridPage({
           )
         : Number(zoom),
     px = (scale * 96) / 25.4;
-  function commit(next: Envelope, force = false) {
+  function commit(next: Envelope, force = false, label?: string) {
     if (!force && (recovery !== null || conflict)) return;
     const n = validate(next);
-    documentHistory.commit(n);
+    documentHistory.commit(n, label);
   }
   function change(fn: (n: Envelope) => void) {
     if (blocked) return;
@@ -365,7 +365,7 @@ export default function AlgebraGridPage({
   function openWorked() {
     if (blocked) return;
     try {
-      commit(workedCopy(e));
+      commit(workedCopy(e), false, "use worked version");
       setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
       setMessage(errorText(err));
@@ -465,6 +465,8 @@ export default function AlgebraGridPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={history.past.length > 0 && !blocked}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={history.future.length > 0 && !blocked}
               onUndo={undo}
               onRedo={redo}
@@ -808,7 +810,7 @@ export default function AlgebraGridPage({
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, false, "use worked version")}
             />
             <section className="panel-card ag-panel">
               <h2>Teaching resource</h2>
@@ -1160,7 +1162,7 @@ export default function AlgebraGridPage({
             confirmLabel="Apply replacement"
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, false, stepName(pending.title));
               setPending(null);
               setShowAnswers(false);
             }}
