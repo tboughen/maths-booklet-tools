@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from "../../diagram-core/src/registry";
 
+/** The longest saved answer on an answer line (R27, Tim 14 Nov 2026). */
+export const ANSWER_MAX = 160;
+
 /**
  * A two-sided A3 worksheet, as Tim's finalised question sets describe it: each side has three
  * strand columns, each column holds titled question cards, and each card holds items.
@@ -64,7 +67,7 @@ const answerLine = z
     /** Printed after the line, e.g. "cm". */
     suffix: text(20).default(""),
     /** Saved answer: printed only in the answers view. */
-    answer: text(60).default(""),
+    answer: text(ANSWER_MAX).default(""),
     /** Several short lines side by side on one row (e.g. three totals). */
     inline: z.boolean().default(false),
   })
