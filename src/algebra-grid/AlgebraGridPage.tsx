@@ -490,6 +490,8 @@ export default function AlgebraGridPage({
             <EditorToolbar
               canUndo={history.past.length > 0 && !blocked}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={history.future.length > 0 && !blocked}
               onUndo={undo}

@@ -93,6 +93,9 @@ export default function App({ active = true }: { active?: boolean }) {
   } = useDocumentHistory<DiagramDocumentV1>(startup.document, {
     equals: sameDocument,
   });
+  const [pendingReset, setPendingReset] = useState(false);
+  // Stable, so the dialog's focus effect runs once rather than on every render.
+  const cancelReset = useCallback(() => setPendingReset(false), []);
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -448,16 +451,17 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function resetDiagram() {
     if (locked()) return;
-    const resetDocument = newBrowserGraph();
     const meaningfulDocument = { ...document, selectedObjectId: null };
-    if (
-      !sameDocument(meaningfulDocument, resetDocument) &&
-      !window.confirm(
-        "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
-      )
-    )
-      return;
-    commit(resetDocument, "reset diagram");
+    // The same in-page confirmation as every other editor; nothing to confirm for an untouched graph.
+    if (!sameDocument(meaningfulDocument, newBrowserGraph()))
+      setPendingReset(true);
+    else confirmReset();
+  }
+
+  function confirmReset() {
+    if (locked()) return;
+    setPendingReset(false);
+    commit(newBrowserGraph(), "reset diagram");
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -499,6 +503,8 @@ export default function App({ active = true }: { active?: boolean }) {
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}
@@ -700,6 +706,18 @@ export default function App({ active = true }: { active?: boolean }) {
           </aside>
         </section>
       </main>
+
+      {active && pendingReset && (
+        <RatioDialog
+          title="Reset the diagram?"
+          confirmLabel="Reset diagram"
+          onCancel={cancelReset}
+          disabled={blocked}
+          onConfirm={confirmReset}
+        >
+          This clears the grid settings and all objects. You can undo it.
+        </RatioDialog>
+      )}
 
       {active && pendingExample && (
         <RatioDialog
