@@ -76,7 +76,8 @@ export function metrics(e: ValueEnvelope) {
       withTable ? d.print.tableWidthMm : 0,
       withGraph ? graphWidth + 17 : 0,
     ) + 4;
-  const equationHeight = d.presentation.showEquation ? 9 : 0;
+  // A stacked fraction in the equation (y = 6/x, y = 1/2x²) needs a taller band.
+  const equationHeight = d.presentation.showEquation ? (equationText(d.equation).includes("/") ? 11 : 9) : 0;
   const tableTop = 2 + equationHeight,
     tableHeight = withTable ? d.print.tableRowHeightMm * 2 : 0;
   const graphTop =
@@ -173,13 +174,40 @@ export function renderSvg(raw: ValueEnvelope): string {
     return backing + text(x, y, label, anchor);
   };
   if (d.presentation.showEquation) {
-    const equation = escape(equationText(d.equation)).replace(
-      /[xy]/g,
-      (v) => `<tspan font-style="italic">${v}</tspan>`,
-    );
-    elements.push(
-      `<text x="${m.width / 2}" y="7" font-size="${f}" text-anchor="middle">${equation}</text>`,
-    );
+    // Fractions print stacked (school rule): "6/x" becomes 6 over x, "1/2x²" becomes ½ then x².
+    const source = equationText(d.equation),
+      stacked = source.includes("/"),
+      y = stacked ? 8 : 7,
+      size = f * 0.8;
+    const pieces = source.split(/(\d+(?:\.\d+)?\/(?:\d+(?:\.\d+)?|x))/).filter(Boolean);
+    const runWidth = (t: string) => plainWidth(t);
+    const pieceWidth = (t: string) => {
+      if (!/^\d.*\//.test(t)) return runWidth(t);
+      const [top, bottom] = t.split("/");
+      return Math.max(plainWidth(top, size), plainWidth(bottom, size)) + 0.8 + 0.6;
+    };
+    const run = (x: number, t: string, sz = f) =>
+      `<text x="${x}" y="${y}" font-size="${sz}" text-anchor="start" xml:space="preserve">${escape(t).replace(/[xy]/g, (v) => `<tspan font-style="italic">${v}</tspan>`)}</text>`;
+    let x = m.width / 2 - pieces.reduce((sum, t) => sum + pieceWidth(t), 0) / 2;
+    if (!stacked)
+      elements.push(
+        `<text x="${m.width / 2}" y="${y}" font-size="${f}" text-anchor="middle">${escape(source).replace(/[xy]/g, (v) => `<tspan font-style="italic">${v}</tspan>`)}</text>`,
+      );
+    else for (const t of pieces) {
+      const w = pieceWidth(t);
+      if (/^\d.*\//.test(t)) {
+        // 0.3 mm either side of the bar; the bar sits on the maths axis, about 0.3 em above the baseline.
+        const [top, bottom] = t.split("/"),
+          mid = y - f * 0.3,
+          italic = (v: string) => escape(v).replace(/x/g, '<tspan font-style="italic">x</tspan>');
+        elements.push(
+          `<text x="${x + w / 2}" y="${mid - f * 0.2}" font-size="${size}" text-anchor="middle">${italic(top)}</text>`,
+          `<path d="M${x + 0.3} ${mid}h${w - 0.6}" stroke="black" stroke-width="0.18"/>`,
+          `<text x="${x + w / 2}" y="${mid + f * 0.2 + size * 0.72}" font-size="${size}" text-anchor="middle">${italic(bottom)}</text>`,
+        );
+      } else elements.push(run(x, t));
+      x += w;
+    }
   }
   if (m.withTable) {
     const t = m.table,

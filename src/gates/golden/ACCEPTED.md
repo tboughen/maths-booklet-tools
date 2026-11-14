@@ -55,3 +55,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2021_1F_Q18: svg 7308b829e8734eab -> 48df159e1eaa672b
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 47e75c878ab5371b -> d7c6def019a98198
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 515f66453941fb7e -> 68ad6c047e5303ba
+
+## 2026-11-14: U84: fractions in table-of-values equation headings print stacked (Tim, 14 Nov)
+
+- plotting quadratics: quadratic-fractions: svg 5ae4b7a29459f80a -> cf36101557f9172e
+- plotting quadratics: quadratic-fractions: mm 141x134 -> 141x136
+- plotting quadratics: quadratic-fractions: png600 3331x3165 -> 3331x3213
+- plotting quadratics: quadratic-fractions: pixels 6ac55f7fcb3e143d -> 552d38ee876f26eb
+- plotting quadratics: quadratic-fractions (worked): svg 1477dd03169c49a3 -> 27d8dde9e4449e9c
+- plotting quadratics: quadratic-fractions (worked): mm 141x134 -> 141x136
+- plotting quadratics: quadratic-fractions (worked): png600 3331x3165 -> 3331x3213
+- plotting quadratics: quadratic-fractions (worked): pixels ff0cb26b711403c8 -> 318a7273a4a13565
