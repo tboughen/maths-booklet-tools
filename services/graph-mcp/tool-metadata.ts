@@ -150,15 +150,16 @@ function oneErrorShape(server: McpServer) {
   };
   sdk.createToolError = (message) => {
     try {
+      // Only the input-validation body thrown above passes through; any other text is hidden.
       const body = JSON.parse(message) as Partial<ToolErrorBody>;
-      if (typeof body.code === "string" && typeof body.message === "string") return errorResult(body as ToolErrorBody);
+      if (body.code === "invalid_input" && typeof body.message === "string" && Array.isArray(body.fields)) return errorResult(body as ToolErrorBody);
     } catch {
       // Not one of ours: wrapped below.
     }
     const unknownTool = /Tool [\w-]+ (?:not found|disabled)/.exec(message);
     if (unknownTool) return errorResult({ code: "unknown_tool", message: `${unknownTool[0]}. Call tools/list for the current tools.`, retry: "fix_input" });
-    // Kept in the service log, never sent: an output-schema failure or another SDK diagnostic.
-    console.error(`MathsDock tool error (internal): ${message.slice(0, 2000)}`);
+    // Only the SDK's lead-in ("Output validation error") is logged: the rest can quote a teacher's document.
+    console.error(`MathsDock tool error (internal): ${message.split(":")[0].slice(0, 80)}`);
     return errorResult({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
   };
 }

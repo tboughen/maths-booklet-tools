@@ -55,7 +55,7 @@ const RETRY: Record<string, RetryAdvice> = {
 /** Older codes, kept readable in the cores, mapped to the one current name. */
 const ALIASES: Record<string, string> = { base_hash_mismatch: "stale_hash", stale_document: "stale_hash" };
 /** The wording older cores use for a stale baseHash without a code. */
-const STALE = /^The baseHash does not match|base hash is stale/i;
+const STALE = /^(The baseHash does not match|The base hash is stale)/;
 /** Codes a plain Error may carry as a "code: message" prefix. Any other "word: " stays message text. */
 const PREFIXES = new Set([...Object.keys(RETRY), ...Object.keys(ALIASES), "invalid_input", "invalid_diagram", "invalid_graph", "invalid_ratio", "unsupported"]);
 
@@ -106,8 +106,11 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
     return { code: "invalid_input", message: fieldSentence(fields), fields: fields.slice(0, 20), ...(defaults.fieldHint ? { hint: defaults.fieldHint } : {}), retry: "fix_input" };
   }
   if (!(error instanceof Error)) return { code: defaults.code, message: defaults.message, retry: retryFor(defaults.code) };
+  // A runtime error (fs, network, the SDK) is never a coded MathsDock error: where the tool asks, its text is hidden.
+  if (defaults.opaque && !(error instanceof MathsDockError)) return { code: defaults.code, message: defaults.message, retry: retryFor(defaults.code) };
+  // Only a lower-case snake_case code is ours; Node's ENOENT or ABORT_ERR is not.
   const own = (error as unknown as { code?: unknown }).code;
-  let code: string | undefined = typeof own === "string" ? own : undefined;
+  let code: string | undefined = typeof own === "string" && /^[a-z][a-z0-9_]{2,40}$/.test(own) ? own : undefined;
   let message = error.message || defaults.message;
   const prefixed = /^([a-z][a-z0-9_]{2,40}): (.+)$/s.exec(message);
   if (prefixed && PREFIXES.has(prefixed[1]) && (!code || code === prefixed[1])) {
@@ -116,7 +119,6 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
   }
   code = ALIASES[code ?? ""] ?? code;
   if (!code) code = STALE.test(message) ? "stale_hash" : defaults.code;
-  if (defaults.opaque && code === defaults.code && !(error instanceof MathsDockError)) return { code, message: defaults.message, retry: retryFor(code) };
   const details = error instanceof MathsDockError ? error.details : {};
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {

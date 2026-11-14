@@ -39,7 +39,11 @@ describe("toErrorBody", () => {
     const opaque = { ...defaults, opaque: true };
     expect(toErrorBody(new Error("ENOENT: /srv/cache/x.png"), opaque)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
     expect(toErrorBody(new MathsDockError("too_wide", "The diagram is wider than the page."), opaque).message).toBe("The diagram is wider than the page.");
-    expect(toErrorBody(new Error("stale_hash: use the returned envelope."), opaque).code).toBe("stale_hash");
+    expect(toErrorBody(new Error("stale_hash: use the returned envelope."), opaque).code).toBe("invalid_diagram");
+    const enoent = Object.assign(new Error("ENOENT: no such file, open '/srv/cache/x.png'"), { code: "ENOENT" });
+    expect(toErrorBody(enoent, opaque)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+    expect(toErrorBody(enoent, defaults).code).toBe("invalid_diagram");
+    expect(toErrorBody(new Error("Labels say the base hash is stale."), defaults).code).toBe("invalid_diagram");
   });
   it("marks temporary limits as try_later", () => {
     expect(toErrorBody(new MathsDockError("rate_limited", "Today's allowance has been reached."), defaults).retry).toBe("try_later");

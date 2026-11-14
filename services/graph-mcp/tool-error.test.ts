@@ -112,7 +112,9 @@ describe("one error shape across the connector (M12)", () => {
     try {
       const body = await failure(client, "diagram_capabilities", {});
       expect(body).toEqual({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
-      expect(log.mock.calls.flat().join(" ")).toMatch(/internal/);
+      const logged = log.mock.calls.flat().join(" ");
+      expect(logged).toMatch(/internal/);
+      expect(logged).not.toContain('"x"');
     } finally {
       log.mockRestore();
       await server.close();
