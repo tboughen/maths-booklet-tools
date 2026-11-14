@@ -85,8 +85,8 @@ const MIME = { svg: "image/svg+xml", png: "image/png", json: "application/json" 
 async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Checked", build: ResultBuilder, signal: AbortSignal) {
   const r = await build(source, signal);
   const s = r.structuredContent as { physicalSizeCm: { width: number; height: number }; warnings: string[]; downloads: Partial<Record<keyof typeof MIME, { url: string }>> };
-  const view = "outputView" in source && source.outputView ? source.outputView : "pupil";
-  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, view));
+  // M16: alt text always describes the pupil copy, so it never reveals hidden answers.
+  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"));
   // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
   for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);

@@ -71,7 +71,7 @@ It returns one ZIP with five fixed members:
 - `diagram.svg`: outlined vector artwork.
 - `diagram.png`: verified 600 ppi print PNG.
 - `print-info.json`: native size and print facts.
-- `README.txt`: placement, reopening and refresh instructions.
+- `README.txt`: placement, reopening and refresh instructions, and the pupil-safe alt text to paste into Word or PowerPoint (M16).
 
 The usual response has `download: {url, expiresAt}`, `inline: false`, filenames
 and physical information. Archive bytes are generated on retrieval; download

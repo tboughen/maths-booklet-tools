@@ -10,7 +10,7 @@ import { checkPlacement, placementInputSchema, placementOutputSchema, printGuida
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { ARCHIVE_NAMES } from "./archive";
-import { FAMILIES } from "../../packages/diagram-core/src/registry";
+import { FAMILIES, altText } from "../../packages/diagram-core/src/registry";
 import type { DownloadFormat } from "./downloads";
 import { registerSvgDelivery } from "./svg-delivery";
 import { toolFailure } from "./tool-error";
@@ -33,7 +33,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
       "source.json": Buffer.from(JSON.stringify(source.envelope, null, 2)),
       "diagram.svg": svg.body, "diagram.png": png.body,
       "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(FAMILIES[source.kind].answerView ? {outputView: ("outputView" in source && source.outputView) || "pupil"} : {}), printDpi: 600 }, null, 2)),
-      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${FAMILIES[source.kind].answerView ? `Artwork view: ${("outputView" in source && source.outputView) || "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
+      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nAlt text (for Word or PowerPoint): ${altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"))}\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${FAMILIES[source.kind].answerView ? `Artwork view: ${("outputView" in source && source.outputView) || "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
     };
     return { body: Buffer.from(await raster.pack(members, signal)), type: "application/zip" };
   }
