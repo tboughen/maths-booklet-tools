@@ -27,7 +27,6 @@ import {
   apply,
   canonical,
   decode,
-  defaultEnvelope,
   editorLink,
   metrics,
   number,
@@ -51,7 +50,8 @@ import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { downloadBlob, copyPngToClipboard } from "../export/clipboard";
 import { download, copyForWord, printPng } from "./export";
-import { recovery, save, STORAGE_KEY } from "./persistence";
+import { freshValueGraph, recovery, save, STORAGE_KEY } from "./persistence";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
 import { parseEquation } from "./equation";
@@ -885,6 +885,12 @@ export default function ValueGraphPage({
                   },
                 ]),
             )}
+            {option(
+              "Lines",
+              d.print.lines ?? "normal",
+              LINE_WEIGHTS.map((v) => [v, LINE_WEIGHT_NAMES[v]]),
+              (v) => change([{ op: "set_print", settings: { lines: (v as LineWeight) === "bold" ? "bold" : undefined } }]),
+            )}
             {toggle("showEquation", "Equation heading")}
           </>
         );
@@ -1297,7 +1303,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope(), stepName("Reset this resource?"));
+                    commit(freshValueGraph(), stepName("Reset this resource?"));
                     setSelection(null);
                   },
                 )
@@ -1436,12 +1442,12 @@ export default function ValueGraphPage({
                       return;
                     try {
                       expected.current = save(
-                        defaultEnvelope(),
+                        freshValueGraph(),
                         recoverRaw,
                         storageKey,
                       );
                       setRecoverRaw(null);
-                      commit(defaultEnvelope());
+                      commit(freshValueGraph());
                     } catch (e) {
                       setMessage(errorText(e));
                     }

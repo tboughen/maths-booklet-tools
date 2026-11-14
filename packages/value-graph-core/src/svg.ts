@@ -1,3 +1,4 @@
+import { boldLines } from "../../envelope-core/src/house-style";
 import { curvePathData } from "./families";
 import {
   fractionString,
@@ -382,5 +383,11 @@ export function renderSvg(raw: ValueEnvelope): string {
       `<g data-layer="point-markers" stroke="black" fill="none" stroke-width="${1.2 * PT_MM}">${markers.join("")}</g>`,
     );
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.width}mm" height="${m.height}mm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Table of values and coordinate graph"><rect width="100%" height="100%" fill="white"/><g font-family="'STIX Two Text', serif" fill="black">${elements.join("")}</g></svg>`;
+  // Bold lines (U111) leave the graph grid at its usual weight.
+  const body = elements
+    .join("")
+    .split(/(<g data-layer="grid">[^]*?<\/g>)/)
+    .map((part) => (part.startsWith('<g data-layer="grid">') ? part : boldLines(part, d.print.lines)))
+    .join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.width}mm" height="${m.height}mm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Table of values and coordinate graph"><rect width="100%" height="100%" fill="white"/><g font-family="'STIX Two Text', serif" fill="black">${body}</g></svg>`;
 }

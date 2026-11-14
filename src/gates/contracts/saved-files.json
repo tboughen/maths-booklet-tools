@@ -7970,6 +7970,13 @@
                 "type": "number",
                 "minimum": 4,
                 "maximum": 30
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               }
             },
             "required": [
