@@ -195,7 +195,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => vennIo.createVenn(input),
     revise: (input) => vennIo.reviseVenn(input),
     hash: vennIo.hash,
-    svg: (e, view) => venn.renderSvg(venn.forView(e, view)),
+    svg: (e, view) => venn.renderSvg(venn.forView(e, view, true)),
   }),
   "algebra-grid": family<algebra.Envelope>({
     kind: "algebra-grid",
@@ -252,7 +252,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => chartIo.create(input),
     revise: (input) => chartIo.revise(input),
     hash: chartIo.hash,
-    svg: (e, view) => chart.renderSvg(chart.forView(e, view)),
+    svg: (e, view) => chart.renderSvg(chart.forView(e, view, true)),
   }),
   "probability-tree": family<tree.Envelope>({
     kind: "probability-tree",
