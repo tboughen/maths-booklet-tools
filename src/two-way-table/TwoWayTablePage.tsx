@@ -1,6 +1,10 @@
 import { EditorHint } from "../site/EditorHint";
 import { downloadName } from "../export/filenames";
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -171,7 +175,8 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(forView(e, "answer"));
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const notes = warnings(e);
   const columnIds = [...d.columns.map((c) => c.id), ...(d.totalColumn ? ["total"] : [])];
   const rowIds = [...d.rows.map((r) => r.id), ...(d.totalRow ? ["total"] : [])];
@@ -321,6 +326,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <FieldErrors.Provider value={fieldErrorContext}>
     <div className="app-shell booklet-editor pt-editor twt-editor">
@@ -344,8 +350,8 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
               busy={busy}
-              onCopy={() => void run(() => copyWord(displayed), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")}
-              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed)))}
+              onCopy={() => void run(() => copyWord(displayed, view === "answer"), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")}
+              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="twt-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
@@ -360,10 +366,11 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
-                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },
+                svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
                 save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
                 open: { action: () => file.current?.click(), disabled: blocked, success: "" },
                 link: {
@@ -374,6 +381,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -398,7 +406,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                   data-testid="two-way-table-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {rowIds.map((row, i) =>
                     columnIds.map((column, j) => {
                       const c = cellAt(d, row, column),

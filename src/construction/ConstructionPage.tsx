@@ -1,4 +1,8 @@
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
@@ -225,7 +229,8 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
     g = layout(e, view),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(e, "answer");
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const selectedPoint = d.points.find((p) => p.id === selected) ?? null;
   const groups = [...new Set([...d.points, ...d.objects].map((x) => x.group).filter((x): x is string => !!x))];
   const ownPoints = d.points.filter((p) => !p.group);
@@ -497,6 +502,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
   ];
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor cn-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -535,6 +541,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(e, "svg", view), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(e, "png", view), disabled: blocked || !!issue, success: "PNG download started." },
@@ -545,6 +552,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -576,7 +584,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
                   }}
                   onPointerCancel={() => setDrag(null)}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: renderSvg(e, view) }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(e, view), e, view === "answer") }} />
                   {d.points
                     .filter((p) => !p.group && (view === "answer" || p.role === "given"))
                     .map((p) => {

@@ -1,4 +1,9 @@
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
+import * as barAnswers from "../../packages/bar-model-core/src/versioned";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
@@ -360,8 +365,10 @@ export default function BarModelPage({
     });
   }
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(barAnswers.renderSvg(barAnswers.forView(e, "answer"))), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   const actions = diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
     svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
@@ -528,6 +535,7 @@ export default function BarModelPage({
               onBusyChange={setBusy}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               aria-label="Open bar model file"

@@ -21,15 +21,16 @@ import {
 } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
-export async function prepareImage(e: Envelope) {
+import { answerArt } from "../export/worked";
+export async function prepareImage(e: Envelope, answers = false) {
   const issue = exportIssue(e);
   if (issue) throw Error(issue);
   const g = geometry(e),
-    svg = await embedPortableFonts(renderSvg(e));
+    svg = await embedPortableFonts(answerArt(renderSvg(e), e, answers));
   return { svg, width: g.width / 10, height: g.height / 10 };
 }
-export async function printPng(e: Envelope) {
-  const m = await prepareImage(e),
+export async function printPng(e: Envelope, answers = false) {
+  const m = await prepareImage(e, answers),
     png = await svgToPng(m.svg, m.width, m.height),
     size = printRasterSize(m.width, m.height);
   verifyPrintBytes(
@@ -42,10 +43,10 @@ export async function printPng(e: Envelope) {
 export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf", answers = false) {
   downloadBlob(
     format === "pdf"
-      ? await svgPdf((await prepareImage(e)).svg)
+      ? await svgPdf((await prepareImage(e, answers)).svg)
       : format === "png"
-      ? await printPng(e)
-      : new Blob([(await prepareImage(e)).svg], {
+      ? await printPng(e, answers)
+      : new Blob([(await prepareImage(e, answers)).svg], {
           type: "image/svg+xml;charset=utf-8",
         }),
     downloadName("venn", format, { resource: e, answers }),
@@ -57,9 +58,9 @@ export function downloadEditable(e: Envelope) {
     downloadName("venn", "json", { resource: e }),
   );
 }
-export async function copyWord(e: Envelope) {
-  const m = await prepareImage(e),
-    url = await blobToDataUrl(await printPng(e));
+export async function copyWord(e: Envelope, answers = false) {
+  const m = await prepareImage(e, answers),
+    url = await blobToDataUrl(await printPng(e, answers));
   if (
     !copyWordSizedHtml(
       `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="${svgAlt(m.svg, "Venn diagram")}">`,
@@ -74,5 +75,5 @@ export async function copyWord(e: Envelope) {
 export const downloadBoth = (e: Envelope) =>
   downloadBothCopies("venn", e, async (view) => {
     const copy = viewOf(e, view);
-    return { svg: (await prepareImage(copy)).svg, png: await printPng(copy) };
+    return { svg: (await prepareImage(copy, view === "answer")).svg, png: await printPng(copy, view === "answer") };
   });

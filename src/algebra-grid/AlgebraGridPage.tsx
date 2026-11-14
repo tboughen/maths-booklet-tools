@@ -1,4 +1,8 @@
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
@@ -477,6 +481,7 @@ export default function AlgebraGridPage({
   }
   const dimensionBlocked = !!draft || (blocked && field?.key !== "expression");
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), false, TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(renderSvg(e, true)), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), false, WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor ag-editor">
       <main
@@ -536,6 +541,7 @@ export default function AlgebraGridPage({
               onBusyChange={setBusy}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "svg"),
@@ -570,6 +576,7 @@ export default function AlgebraGridPage({
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               type="file"
               hidden
@@ -650,7 +657,7 @@ export default function AlgebraGridPage({
                   <div
                     className="ag-art"
                     dangerouslySetInnerHTML={{
-                      __html: renderSvg(e, showAnswers),
+                      __html: previewArt(renderSvg(e, showAnswers), e, showAnswers),
                     }}
                   />
                   {g.question && (
