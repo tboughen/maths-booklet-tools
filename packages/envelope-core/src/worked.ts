@@ -193,11 +193,15 @@ function grownRoot(tag: string, page: { width: number; height: number }, vb: num
  * notes drawn. Worksheets and booklets give the pupil copy this page, so both copies take the same
  * space and their artwork lines up. Unchanged when every note sits inside the artwork.
  */
-export function withWorkedPage(svg: string, notes: readonly WorkedNote[]): string {
+export function withWorkedPage(svg: string, notes: readonly WorkedNote[], answerSize?: { width: number; height: number }): string {
   if (!notes.length) return svg;
   const f = frame(svg);
   if (!(f.width > 0 && f.height > 0)) return svg;
-  const page = workedPage(notes, f);
+  // The notes are placed against the answers artwork, which can be larger than the pupil's.
+  const room = answerSize ?? f,
+    grown = workedPage(notes, room);
+  if (grown.x === 0 && grown.y === 0 && grown.width === room.width && grown.height === room.height) return svg;
+  const page = { x: grown.x, y: grown.y, width: Math.max(f.width, grown.width + grown.x) - grown.x, height: Math.max(f.height, grown.height + grown.y) - grown.y };
   if (page.x === 0 && page.y === 0 && page.width === f.width && page.height === f.height) return svg;
   const sx = f.vb[2] / f.width,
     sy = f.vb[3] / f.height;

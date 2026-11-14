@@ -192,7 +192,7 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   if (!(width > 0 && height > 0)) return brokenDiagram("A diagram did not report its physical size.", w, ctx);
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
-  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room, drawn.workedMargin));
+  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room, drawn.artworkWidthMm <= room + 0.01));
   const k = `d${++ctx.diagrams}-`;
   svg = svg
     .replace(/ id="/g, ` id="${k}`)

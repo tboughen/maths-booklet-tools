@@ -437,18 +437,21 @@ export function drawDiagram(kind: DiagramKind, envelope: unknown, view: View) {
   // Embedded artwork starts at its <svg> element: no XML declaration inside a page.
   const bare = (svg: string) => svg.replace(/^\s*<\?xml[^>]*\?>\s*/, "").trimStart();
   const notes = f.answerView ? workedOf(envelope) : [];
-  const plain = f.svg(envelope, "pupil"),
-    pupil = bare(withWorkedPage(plain, notes));
+  const plain = f.svg(envelope, "pupil");
+  // The answers artwork without its notes: the notes are placed against it.
+  const unnoted = notes.length ? svgSizeMm(f.svg({ ...(envelope as object), worked: undefined }, "answer")) : undefined;
+  const pupil = bare(withWorkedPage(plain, notes, unnoted));
   const answer = f.answerView ? bare(f.svg(envelope, "answer")) : pupil;
   const a = svgSizeMm(pupil),
-    b = svgSizeMm(answer);
+    b = svgSizeMm(answer),
+    own = svgSizeMm(plain);
   return {
     svg: view === "answer" ? answer : pupil,
     widthMm: Math.max(a.width, b.width),
     heightMm: Math.max(a.height, b.height),
     altText: altText(kind, pupil),
-    /** Whether worked notes in the margin widened the space this diagram takes. */
-    workedMargin: pupil !== bare(plain),
+    /** The width without worked notes in the margin, to tell when only those notes make it too wide. */
+    artworkWidthMm: Math.max(own.width, unnoted?.width ?? b.width),
   };
 }
 

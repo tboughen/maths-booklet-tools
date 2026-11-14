@@ -60,9 +60,11 @@ describe("worked-solution notes on every answers copy (U116)", () => {
       expect(box(pupil.svg)).toBe(box(answer.svg));
       expect(svgSizeMm(pupil.svg)).toEqual(svgSizeMm(answer.svg));
       expect(pupil.widthMm).toBeGreaterThan(size.width + 25);
-      expect(pupil.workedMargin).toBe(true);
+      expect(pupil.artworkWidthMm).toBeCloseTo(size.width, 1);
       expect(pupil.svg).not.toContain('data-layer="worked"');
-      expect(drawDiagram(kind, plain, "pupil").workedMargin).toBe(false);
+      // A note inside the answers artwork never changes the pupil copy, even where the pupil artwork is smaller.
+      const inside = f.validate({ ...plain, worked: [{ text: "Add", x: 1, y: Math.max(0, size.height - 6), widthMm: 10 }] }, "pupil");
+      expect(drawDiagram(kind, inside, "pupil").svg).toBe(drawDiagram(kind, plain, "pupil").svg);
     });
   }
 
