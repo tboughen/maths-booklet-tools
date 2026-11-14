@@ -1192,6 +1192,50 @@ export default function NumberLinePage({
                         </select>
                       </label>
                     )}
+                    {selectedPoint && s?.kind === "points" && (
+                      <label>
+                        Ray from this point{" "}
+                        <select
+                          aria-label="Ray from this point"
+                          disabled={blocked}
+                          value={
+                            s.rays?.find((ray) => ray.from === selectedPoint.id)
+                              ?.direction ?? "none"
+                          }
+                          onChange={(e) => {
+                            const existing = s.rays?.find(
+                              (ray) => ray.from === selectedPoint.id,
+                            );
+                            const direction = e.target.value as
+                              | "left"
+                              | "right"
+                              | "none";
+                            // One undoable step: remove the old ray, then draw the new one.
+                            safe([
+                              ...(existing
+                                ? [{ op: "remove_point_ray" as const, id: existing.id }]
+                                : []),
+                              ...(direction === "left" || direction === "right"
+                                ? [
+                                    {
+                                      op: "add_point_ray" as const,
+                                      ray: {
+                                        id: `ray-${direction}`,
+                                        from: selectedPoint.id,
+                                        direction,
+                                      },
+                                    },
+                                  ]
+                                : []),
+                            ]);
+                          }}
+                        >
+                          <option value="none">None</option>
+                          <option value="left">← Left, to the end</option>
+                          <option value="right">Right →, to the end</option>
+                        </select>
+                      </label>
+                    )}
                     {selectedPoint && (
                       <button
                         disabled={blocked}
