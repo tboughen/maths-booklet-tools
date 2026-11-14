@@ -168,6 +168,7 @@ export const equationSchema = z.discriminatedUnion("kind", [
     .strict(),
   z.object({ kind: z.literal("vertical"), x: numeric }).strict(),
 ]);
+const coordinatesSchema = z.enum(["show", "blank"]);
 const straightInput = {
   id: identifier.optional(),
   start: inputCoordinate.optional(),
@@ -197,6 +198,11 @@ export const objectInputSchema = z.union([
       namePosition: inputCoordinate
         .optional()
         .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+      coordinates: coordinatesSchema
+        .optional()
+        .describe(
+          'Print the coordinates after the name, as A(2, 3): "show" prints them; "blank" leaves ( ……… , ……… ) for pupils to write ("write down the coordinates of A") and prints them only on the answers copy. Omit for none.',
+        ),
       answerOnly: answerOnlyInput,
     })
     .strict(),
@@ -238,6 +244,7 @@ const objectSchema = z.union([
       position: coordinate,
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      coordinates: coordinatesSchema.optional(),
       answerOnly: z.literal(true).optional(),
     })
     .strict(),
@@ -378,7 +385,7 @@ function makeObject(
     ...(input.answerOnly ? { answerOnly: true as const } : {}),
   };
   if (input.kind === "point")
-    return { id, kind: "point", position: input.position, ...named };
+    return { id, kind: "point", position: input.position, ...named, ...(input.coordinates ? { coordinates: input.coordinates } : {}) };
   // A label off the axes would never print, so a new one must mark a point on them.
   for (const label of input.labels ?? [])
     if (!pointInBounds(label.at, getBounds(document)))
