@@ -1,6 +1,7 @@
 import type { Booklet, Lesson } from "../../../packages/resource-core/src/index";
 import { runJob } from "../../worksheet/ai/run";
 import { MakerError, addUsage, noUsage, type Effort, type Provider, type Stage, type Usage } from "../../worksheet/ai/types";
+import type { SchoolMethod } from "../../worksheet/ai/scheme";
 import { lessonChangeRequest, lessonJob, lessonRequest, planJob, planRequest, type BookletBrief, type BookletPlan } from "./brief";
 
 export type LessonStatus = { title: string; state: "waiting" | "writing" | "checking" | "fixing" | "done" | "failed"; chars?: number; error?: string };
@@ -132,9 +133,16 @@ export function planFromBooklet(b: Booklet): BookletPlan {
 }
 
 /** Rewrites one lesson from its plan (a fresh start) or changes it as asked. */
-export async function remakeLesson(o: MakeOptions & { onStage?: (s: Stage) => void }, booklet: Booklet, index: number, change: string | null, context: string) {
+export async function remakeLesson(
+  o: MakeOptions & { onStage?: (s: Stage) => void },
+  booklet: Booklet,
+  index: number,
+  change: string | null,
+  context: string,
+  methods?: SchoolMethod[],
+) {
   const lesson = booklet.document.lessons[index];
-  const request = change === null ? lessonRequest(planFromBooklet(booklet), index, { group: booklet.document.group, context }) : lessonChangeRequest(lesson, index, change);
+  const request = change === null ? lessonRequest(planFromBooklet(booklet), index, { group: booklet.document.group, context, methods }) : lessonChangeRequest(lesson, index, change);
   const r = await runJob(o.provider, lessonJob, { ...o, request });
   return { lesson: { ...r.value.lesson, teacherNotes: r.value.lesson.teacherNotes.trim() || lesson.teacherNotes }, flags: r.value.flags, usage: r.usage, model: r.model, attempts: r.attempts };
 }

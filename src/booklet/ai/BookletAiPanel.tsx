@@ -93,12 +93,12 @@ export function BookletAiPanel({ current, focusLesson, disabled, onBusyChange, o
   const brief: BookletBrief | null = useMemo(() => {
     if (unit) {
       const objectives = unit.objectives.filter((o) => o.code && ticked.has(o.code)).map((o) => ({ code: o.code, text: o.text }));
-      return objectives.length ? { code: unit.code, title: unit.title, group, objectives, context, checkInLesson: checkIn } : null;
+      return objectives.length ? { code: unit.code, title: unit.title, group, objectives, context, checkInLesson: checkIn, methods: scheme?.methods } : null;
     }
     if (scheme) return null;
     const objectives = parseObjectives(own.objectives);
-    return objectives.length && own.title.trim() ? { code: own.code.trim(), title: own.title.trim(), group, objectives, context, checkInLesson: checkIn } : null;
-  }, [unit, ticked, scheme, own, group, context, checkIn]);
+    return objectives.length && own.title.trim() ? { code: own.code.trim(), title: own.title.trim(), group, objectives, context, checkInLesson: checkIn, methods: school?.methods } : null;
+  }, [unit, ticked, scheme, school, own, group, context, checkIn]);
 
   const lessonCount = brief ? brief.objectives.length + (brief.checkInLesson ? 1 : 0) : 0;
   const tooMany = lessonCount > 12;
@@ -141,7 +141,7 @@ export function BookletAiPanel({ current, focusLesson, disabled, onBusyChange, o
     setBusy("lesson");
     onBusyChange(true);
     try {
-      const r = await remakeLesson({ ...options(c.signal), onStage: setLessonStage }, current, target, rebuild ? null : change, context);
+      const r = await remakeLesson({ ...options(c.signal), onStage: setLessonStage }, current, target, rebuild ? null : change, context, (scheme ?? school)?.methods);
       const lessons = current.document.lessons.map((l, i) => (i === target ? r.lesson : l));
       onApply({ ...current, document: { ...current.document, lessons } }, `Lesson ${target + 1} ${rebuild ? "rebuilt" : "changed"} by ${r.model}.${r.flags.trim() ? ` Check: ${r.flags.trim()}` : ""} Undo brings back the previous version.`);
       if (!rebuild) setChange("");
