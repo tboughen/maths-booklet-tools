@@ -713,15 +713,6 @@
   margin: 0;
 }
 @media (pointer: coarse) {
-  .tr-editor .tr-vertex {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-  }
-  .tr-editor .tr-hit {
-    min-width: 40px;
-    min-height: 40px;
-  }
   .tr-editor .inspector-stack button,
   .tr-editor .tr-structure button,
   .tr-editor .tr-structure select,
