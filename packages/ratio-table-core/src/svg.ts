@@ -2,8 +2,13 @@ import type { RatioDocument, RatioCell } from "./schema";
 import { RatioError, numberParts } from "./numbers";
 import { glyphAdvance } from "./font-metrics";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
+import { boldLines } from "../../envelope-core/src/house-style";
 
 const FONT = (12 / 72) * 2.54 * 100;
+/** Fraction parts and operation labels print at 10 pt, the house minimum (U111). */
+const SMALL = 10 / 12;
+/** Stacked fraction parts: 10 pt, even inside a 10 pt operation label. */
+const part = (size: number) => Math.max(size * SMALL, FONT * SMALL);
 const ROW_HEIGHT = 100;
 const ANSWER_LINE_WIDTH = 60;
 /** Saved answers print in the answers copy only, in the house answer colour. */
@@ -39,14 +44,14 @@ const MIXED_GAP = 4;
 export function numberWidth(value: string, size = FONT): number {
   const { whole, top, bottom } = numberParts(printed(value));
   if (top === undefined || bottom === undefined) return textWidth(whole, size);
-  const fraction = Math.max(textWidth(top, size * 0.8), textWidth(bottom, size * 0.8)) + 10;
+  const fraction = Math.max(textWidth(top, part(size)), textWidth(bottom, part(size))) + 10;
   return whole ? textWidth(whole, size) + MIXED_GAP + fraction : fraction;
 }
 const annotatedLabels = (document: RatioDocument) =>
   document.mode === "annotated" && document.transitions.length > 0 && document.showOperations;
 /** The width an operation label takes beside its arrow. A hidden label reserves a full answer line. */
 function labelSlot(step: RatioDocument["transitions"][number]) {
-  const size = FONT * 0.8,
+  const size = FONT * SMALL,
     total =
       textWidth(step.operation === "multiply" ? "×" : "÷", size) +
       6 +
@@ -63,7 +68,7 @@ export function ratioMetrics(document: RatioDocument) {
       ? Math.max(
           ...document.transitions.map((t) =>
             Math.max(
-              32 + numberWidth(t.factor, FONT * 0.8),
+              32 + numberWidth(t.factor, FONT * SMALL),
               t.hidden ? labelSlot(t) + 6 : 0,
             ),
           ),
@@ -144,7 +149,7 @@ function number(value: string, x: number, y: number, size = FONT, fill = INK): s
       number(`${top}/${bottom}`, left + wholeWidth + MIXED_GAP + fractionWidth / 2, y, size, fill)
     );
   }
-  const small = size * 0.8,
+  const small = part(size),
     bar = Math.max(textWidth(top, small), textWidth(bottom, small)) + 8;
   return (
     text(top, x, y - size * 0.15, small, false, fill) +
@@ -229,7 +234,7 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
           body += `<g class="ratio-scaling-arrow"><path d="M${x} ${y + 12}C${x + side * 28} ${y + 30} ${x + side * 28} ${y + 70} ${x} ${y + 88}" stroke-width="2.6"/><path d="M${x} ${y + 88}l${side * 4} -12l${side * 7} 9Z" fill="#202020" stroke="none"/></g>`;
         }
         if (document.showOperations) {
-          const size = FONT * 0.8,
+          const size = FONT * SMALL,
             factorWidth = numberWidth(step.factor, size),
             opWidth = textWidth(
               step.operation === "multiply" ? "×" : "÷",
@@ -249,5 +254,5 @@ export function renderRatioSvg(document: RatioDocument, view: RatioView = "pupil
         }
       }
     }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/><g font-family="STIX Two Text" fill="none" stroke="#202020">${body.replaceAll("<text ", '<text stroke="none" ')}</g></svg>`;
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="Ratio table"><title>Ratio table</title><desc>Use the accompanying editable file to change this table.</desc><rect width="${m.width}" height="${m.height}" fill="white"/><g font-family="STIX Two Text" fill="none" stroke="#202020">${body.replaceAll("<text ", '<text stroke="none" ')}</g></svg>`, document.lines);
 }

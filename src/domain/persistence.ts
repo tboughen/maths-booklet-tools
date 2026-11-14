@@ -1,18 +1,14 @@
 import { copyStorageKey } from "../site/copyDocument";
 import { cloneDefaultDocument, STORAGE_KEY } from "./diagram";
-import type { DiagramDocumentV1 } from "./types";
 import { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
-import {
-  createEnvelope,
-  documentFromEnvelope,
-  validateEnvelope,
-} from "../../packages/graph-core/src/interchange";
+import { validateEnvelope } from "../../packages/graph-core/src/interchange";
+import { graphDocument, graphEnvelope, type GraphDocument } from "./graphAbout";
 export { isDiagramDocument } from "../../packages/graph-core/src/legacy-validation";
 export const ENVELOPE_STORAGE_KEY = copyStorageKey(
   "maths-booklet-tools:graph-envelope:v1",
 );
-export function loadDiagramRecovery(newDocument = cloneDefaultDocument): {
-  document: DiagramDocumentV1;
+export function loadDiagramRecovery(newDocument: () => GraphDocument = cloneDefaultDocument): {
+  document: GraphDocument;
   conflict: boolean;
 } {
   if (typeof localStorage === "undefined")
@@ -23,9 +19,7 @@ export function loadDiagramRecovery(newDocument = cloneDefaultDocument): {
     if (envelope !== null) {
       try {
         return {
-          document: documentFromEnvelope(
-            validateEnvelope(JSON.parse(envelope)),
-          ),
+          document: graphDocument(validateEnvelope(JSON.parse(envelope))),
           conflict: false,
         };
       } catch {
@@ -42,19 +36,19 @@ export function loadDiagramRecovery(newDocument = cloneDefaultDocument): {
   }
   return { document: newDocument(), conflict };
 }
-export function loadDiagram(): DiagramDocumentV1 {
+export function loadDiagram(): GraphDocument {
   return loadDiagramRecovery().document;
 }
-export function saveDiagram(document: DiagramDocumentV1): void {
+export function saveDiagram(document: GraphDocument): void {
   if (typeof localStorage === "undefined") return;
   if (loadDiagramRecovery().conflict)
     throw Error("Review local graph recovery before saving.");
   localStorage.setItem(
     ENVELOPE_STORAGE_KEY,
-    JSON.stringify(createEnvelope(document, false)),
+    JSON.stringify(graphEnvelope(document, false)),
   );
 }
-export function acknowledgeRecovery(document: DiagramDocumentV1): void {
+export function acknowledgeRecovery(document: GraphDocument): void {
   const raw = localStorage.getItem(ENVELOPE_STORAGE_KEY);
   if (raw !== null)
     localStorage.setItem(
@@ -63,7 +57,7 @@ export function acknowledgeRecovery(document: DiagramDocumentV1): void {
     );
   localStorage.setItem(
     ENVELOPE_STORAGE_KEY,
-    JSON.stringify(createEnvelope(document, false)),
+    JSON.stringify(graphEnvelope(document, false)),
   );
 }
 export function clearSavedDiagram(): void {

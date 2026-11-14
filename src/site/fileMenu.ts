@@ -12,6 +12,8 @@ export function diagramFileMenu(items: {
   pdf?: FileMenuItem;
   /** Teacher copies with hidden answers printed, for tools that offer them. */
   answers?: { svg: FileMenuItem; png: FileMenuItem };
+  /** "Title and note…" (U34): from `useTitleNote`. */
+  about: FileMenuItem;
   save: FileMenuItem;
   open: FileMenuItem;
   link: FileMenuItem;
@@ -26,7 +28,8 @@ export function diagramFileMenu(items: {
           { ...items.answers.png, label: "Download answers PNG (600 ppi)" },
         ]
       : []),
-    { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION, separator: true },
+    { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
+    { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },
     { picker: true, ...items.open, label: "Open editable file" },
     { ...items.link, label: "Copy editable link", description: LINK_DESCRIPTION },
   ];

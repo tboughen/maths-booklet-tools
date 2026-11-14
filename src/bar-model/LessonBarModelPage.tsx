@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as c from "../../packages/bar-model-core/src/versioned";
@@ -575,6 +578,7 @@ export default function LessonBarModelPage({
       </button>
     </section>
   ) : null;
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   if (
     e.schemaVersion === 1 &&
     !alternate &&
@@ -702,6 +706,7 @@ export default function LessonBarModelPage({
               onMessage={setMessage}
               onBusyChange={setBusy}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
@@ -731,6 +736,7 @@ export default function LessonBarModelPage({
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               hidden

@@ -1,5 +1,6 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { canonicalRatioNumber, RatioError } from "./numbers";
 
 export const RATIO_RENDERER_VERSION = "ratio-1";
@@ -66,6 +67,11 @@ export const documentSchema = z
     mode: z.enum(["simple", "annotated"]),
     showArrows: z.boolean(),
     showOperations: z.boolean(),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export type RatioDocument = z.infer<typeof documentSchema>;
@@ -102,6 +108,7 @@ export const ratioSpecSchema = z
     mode: z.enum(["simple", "annotated"]).optional(),
     showArrows: z.boolean().optional(),
     showOperations: z.boolean().optional(),
+    lines: z.enum(LINE_WEIGHTS).optional(),
     /**
      * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
      * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↓");

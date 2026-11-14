@@ -209,6 +209,41 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - plans and elevations: elevations-scale-2cm: added
 - plans and elevations: elevations-scale-2cm (worked): added
 
+## 2026-11-14: U111 ratio tables: fraction parts and operation labels raised to the 10 pt house minimum
+
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: svg 60188f718366b7a4 -> 16f9d94398285bd1
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: mm 60.17x43 -> 60.51x43
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: png600 1421x1016 -> 1429x1016
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12: pixels f16678f297bf3b3f -> 5463f206cc98c6af
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked): svg 38cf7acd1b36509e -> b509105543e20714
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked): mm 60.17x43 -> 60.51x43
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked): png600 1421x1016 -> 1429x1016
+- ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked): pixels 34d4cc8511985507 -> f035e8520288f6be
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: svg 867c06610a133d5f -> d91b53ebcb0ac0e5
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: mm 86.26x33 -> 86.68x33
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: png600 2038x780 -> 2048x780
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17: pixels 4cf7986ccd5bde1f -> f189336aef937301
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked): svg 790c5d268e24a6fc -> 3a1c357b97781231
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked): mm 86.26x33 -> 86.68x33
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked): png600 2038x780 -> 2048x780
+- ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked): pixels 4bf474aabe25a1b9 -> 91fa1f673fc2a5be
+- ratio table: ratio-fraction: svg 0a6b2545d5f9f533 -> d1ad753a6d7d2117
+- ratio table: ratio-fraction: mm 55.15x33 -> 55.29x33
+- ratio table: ratio-fraction: png600 1303x780 -> 1306x780
+- ratio table: ratio-fraction: pixels 82aa8f321b001059 -> 52a0983a18eba1eb
+- ratio table: ratio-fraction (worked): svg 0a6b2545d5f9f533 -> d1ad753a6d7d2117
+- ratio table: ratio-fraction (worked): mm 55.15x33 -> 55.29x33
+- ratio table: ratio-fraction (worked): png600 1303x780 -> 1306x780
+- ratio table: ratio-fraction (worked): pixels 82aa8f321b001059 -> 52a0983a18eba1eb
+- ratio table: ratio-worked: svg 2a5440ac897f0648 -> 76641536d2fa3795
+- ratio table: ratio-worked: mm 55.15x33 -> 55.29x33
+- ratio table: ratio-worked: png600 1303x780 -> 1306x780
+- ratio table: ratio-worked: pixels 2dadb68f4b1fe51e -> b1acdfc11b64232f
+- ratio table: ratio-worked (worked): svg 2a5440ac897f0648 -> 76641536d2fa3795
+- ratio table: ratio-worked (worked): mm 55.15x33 -> 55.29x33
+- ratio table: ratio-worked (worked): png600 1303x780 -> 1306x780
+- ratio table: ratio-worked (worked): pixels 2dadb68f4b1fe51e -> b1acdfc11b64232f
+
 ## 2026-11-14: Cuboids schema 1 removed (no backwards compatibility, Tim 14 Nov): the gallery's cuboid examples now save as schema 2. Saved JSON only; SVG, size and pixels unchanged.
 
 - cuboids: cuboid-1MA1_JUN_2017_3F_Q12: json a6055531febbdf33 -> 5bbeda4788134900

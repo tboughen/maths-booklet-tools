@@ -4,6 +4,7 @@ import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
 import { svgPdf } from "../export/diagram-pdf";
+import { downloadName } from "../export/filenames";
 
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -26,11 +27,11 @@ export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") 
       : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
-    `two-way-table.${format}`,
+    downloadName("two-way-table", format, { resource: e }),
   );
 }
 export function downloadEditable(e: Envelope) {
-  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), "two-way-table.json");
+  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), downloadName("two-way-table", "json", { resource: e }));
 }
 export async function copyWord(e: Envelope) {
   const m = await prepareImage(e),
