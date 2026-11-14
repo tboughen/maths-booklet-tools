@@ -135,12 +135,6 @@ cannot have been rasterised), every font is embedded and has a text map, and eve
 text has selectable text. A failed audit is an error naming the page and the problem, never a
 silent download.
 
-The worksheet and booklet editors can show their pages at actual size (improvement item W31).
-"Actual size" sets each page to its printed width on screen, so type and writing space look as
-pupils will see them. The page list then scrolls sideways. Browsers assume 96 pixels to the inch,
-which few screens match, so "Calibrate…" asks the teacher to match a bar to a bank card (85.6 mm).
-The calibration is stored on that device in device pixels (`src/site/printSizeData.ts`), so it still
-holds after the browser is zoomed. It changes only the screen view, never a download.
 Worksheet and booklet PDFs then get a rendered-page check (`packages/resource-core/src/page-check.ts`,
 improvement item W31). pdf.js reads the written file back, so each run of text is placed where it
 actually landed, measured with the embedded fonts' real glyph widths. Each run is then checked
@@ -157,6 +151,13 @@ question text running into a diagram.
 
 Every worksheet and booklet fixture passes the check in both views
 (`services/graph-mcp/page-check.test.ts`).
+
+The worksheet and booklet editors can show their pages at actual size (improvement item W31).
+"Actual size" sets each page to its printed width on screen, so type and writing space look as
+pupils will see them. The page list then scrolls sideways. Browsers assume 96 pixels to the inch,
+which few screens match, so "Calibrate…" asks the teacher to match a bar to a bank card (85.6 mm).
+The calibration is stored on that device in device pixels (`src/site/printSizeData.ts`), so it still
+holds after the browser is zoomed. It changes only the screen view, never a download.
 
 The question-bank paper builder (`src/bank/export.ts`) checks both of its papers the same way
 before offering them (`auditPaperPdf`, improvement item L23): page count, every page's MediaBox
