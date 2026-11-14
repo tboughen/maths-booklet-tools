@@ -28,6 +28,9 @@ export function equationProblem(e: Equation): string | null {
   if (nonzero(e.reciprocal)) {
     if (nonzero(e.a) || nonzero(e.b) || nonzero(e.cubic))
       return "A reciprocal graph takes only k/x and a constant, such as y = 3/x + 1.";
+    // k = 1/2 would print as 1/2 over x; exam reciprocals use a whole or decimal k.
+    if (parseNumber(e.reciprocal!).d !== 1n && !/^-?\d+(\.\d+)?$/.test(e.reciprocal!.replace("−", "-")))
+      return "Use a whole number or a decimal for k in y = k/x, such as y = 6/x or y = 0.5/x.";
     return null;
   }
   if (!nonzero(e.a) && !nonzero(e.cubic)) return "Use a nonzero coefficient a for a quadratic.";
@@ -51,7 +54,7 @@ export function evaluateExact(e: Equation, x: string): string {
   const v = parseNumber(x);
   const c = parseNumber(e.c);
   if (e.exponential) {
-    if (v.d !== 1n) throw Error(`y = ${e.exponential.base}ˣ has an exact value only at whole-number x; x = ${x} is not one.`);
+    if (v.d !== 1n) throw Error(`An exponential such as y = ${e.exponential.base.includes("/") ? `(${e.exponential.base})` : e.exponential.base}ˣ has an exact value only at whole-number x; x = ${x} is not one.`);
     return fractionString(add(multiply(parseNumber(e.exponential.coefficient), power(parseNumber(e.exponential.base), v.n)), c));
   }
   if (nonzero(e.reciprocal)) {

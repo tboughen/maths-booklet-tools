@@ -56,4 +56,10 @@ describe("cubic, reciprocal and exponential tables (U84)", () => {
     const joined = apply(cubic, [{ op: "plot_series", id: "s", source: "equation", columnIds: cubic.document.columns.map((c) => c.id), connection: "straight-joins" }] as never);
     expect(warnings(joined).join(" ")).toContain("cubic graph's points");
   });
+
+  it("refuses a fractional k in y = k/x, which would print as a fraction over x", () => {
+    expect(equationProblem({ a: "0", b: "0", c: "0", reciprocal: "1/2" })).toMatch(/whole number or a decimal for k/);
+    expect(equationProblem({ a: "0", b: "0", c: "0", reciprocal: "0.5" })).toBeNull();
+    expect(equationProblem({ a: "0", b: "0", c: "0", reciprocal: "-6" })).toBeNull();
+  });
 });
