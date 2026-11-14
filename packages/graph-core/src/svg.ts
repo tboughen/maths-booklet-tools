@@ -44,6 +44,7 @@ import type {
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { regionBoundaries, regionCentroid, regionHalfPlanes, regionPolygon } from "./region";
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -51,6 +52,9 @@ const EXPORT_CONTENT_MARGIN = 18;
 const POINT_MARK_HALF_SIZE = 14;
 /** The answers copy's colour for hidden answers, shared with ratio tables. */
 export const GRAPH_ANSWER_COLOUR = "#b0125b";
+/** Region shading: light grey on the pupil copy, so grid lines and B/W print stay clear. */
+export const REGION_SHADE = "#d4d4d4";
+const REGION_ANSWER_OPACITY = 0.22;
 
 /** The objects one copy draws: the pupil copy leaves out answer-only objects. */
 export function documentForView(document: DiagramDocumentV1, view: GraphView = "pupil"): DiagramDocumentV1 {
@@ -605,6 +609,7 @@ type Named = GraphObject & { name: string };
 function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
   return document.objects.filter((o): o is Named => {
     if (!o.name) return false;
+    if (o.kind === "region") return regionPolygon(regionHalfPlanes(o), layout.bounds).length > 0;
     return o.kind === "point"
       ? o.position.x >= layout.bounds.xMin - 1e-9 &&
           o.position.x <= layout.bounds.xMax + 1e-9 &&
@@ -636,7 +641,9 @@ export function nameBox(name: string, fontSize = AXIS_LABEL_FONT_SIZE) {
 function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): Coordinate {
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   let centre: Coordinate;
-  if (object.kind === "point") {
+  if (object.kind === "region") {
+    centre = coordinateToSvg(regionCentroid(regionPolygon(regionHalfPlanes(object), layout.bounds)), layout);
+  } else if (object.kind === "point") {
     const p = coordinateToSvg(object.position, layout);
     const dx = 0.18 * unitsPerCm + box.width / 2;
     const dy = 0.16 * unitsPerCm + box.height / 2;
@@ -683,7 +690,7 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const names = visibleNames(document, layout);
   if (!names.length) return "";
   const marks = names.map((object) => {
-    const style = object.kind === "point" ? "italic" : "bold";
+    const style = object.kind === "point" ? "italic" : object.kind === "region" ? "upright" : "bold";
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
     const centre = nameCentre(object, layout)!;
@@ -711,6 +718,20 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
     const [straightOut, pointsOut, labelsOut] = object.answerOnly
       ? [answerStraight, answerPoints, answerLabels]
       : [straight, points, labels];
+    if (object.kind === "region") {
+      if (!object.boundaries) continue;
+      for (const b of regionBoundaries(regionHalfPlanes(object), layout.bounds)) {
+        const start = coordinateToSvg(b.start, layout);
+        const end = coordinateToSvg(b.end, layout);
+        const dash = b.strict
+          ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`
+          : "";
+        straightOut.push(
+          `<line class="region-boundary" data-object-id="${escapeXml(object.id)}" x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
+        );
+      }
+      continue;
+    }
     if (object.kind === "point") {
       const point = coordinateToSvg(object.position, layout);
       if (
@@ -767,6 +788,34 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
   return { lines, marks };
 }
 
+/**
+ * Region shading, drawn under the grid so its lines stay visible. "wanted" fills the region;
+ * "unwanted" fills the grid outside it (even-odd), leaving the answer region clear.
+ */
+function regionsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
+  const fills = document.objects.flatMap((object) => {
+    if (object.kind !== "region") return [];
+    const polygon = regionPolygon(regionHalfPlanes(object), layout.bounds).map((p) => coordinateToSvg(p, layout));
+    const ring = (points: Coordinate[]) =>
+      points.length ? `M ${points.map((p) => `${n(p.x)} ${n(p.y)}`).join(" L ")} Z` : "";
+    const plot = ring([
+      { x: layout.plotLeft, y: layout.plotTop },
+      { x: layout.plotRight, y: layout.plotTop },
+      { x: layout.plotRight, y: layout.plotBottom },
+      { x: layout.plotLeft, y: layout.plotBottom },
+    ]);
+    const d = object.shade === "wanted" ? ring(polygon) : `${plot} ${ring(polygon)}`.trim();
+    if (!d) return [];
+    const fill = object.answerOnly
+      ? `fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${REGION_ANSWER_OPACITY}"`
+      : `fill="${REGION_SHADE}"`;
+    return [
+      `<path class="graph-region${object.answerOnly ? " graph-region-answer" : ""}" data-object-id="${escapeXml(object.id)}" d="${d}" fill-rule="evenodd" ${fill}/>`,
+    ];
+  });
+  return fills.length ? `<g class="graph-regions" stroke="none">${fills.join("")}</g>` : "";
+}
+
 /** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
 function answerMarkup(document: DiagramDocumentV1, points: string[], labels: string[], pointLabels: string): string {
   if (!points.length && !labels.length && !pointLabels) return "";
@@ -800,7 +849,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
-  ${gridMarkup(document, layout)}
+  ${regionsMarkup(document, layout)}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
   ${axes.labels}

@@ -24,6 +24,13 @@ import {
   equationForObject,
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import {
+  MAX_INEQUALITY_LENGTH,
+  MAX_REGION_INEQUALITIES,
+  regionHalfPlanes,
+  regionPolygon,
+  regionProblem,
+} from "./region";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 export const RENDERER_VERSION = "graph-1";
@@ -61,6 +68,10 @@ const identifier = z
   .min(1)
   .max(64)
   .regex(/^[a-zA-Z0-9_-]+$/);
+const inequalitiesSchema = z
+  .array(z.string().trim().min(1).max(MAX_INEQUALITY_LENGTH))
+  .min(1)
+  .max(MAX_REGION_INEQUALITIES);
 const nameSchema = z
   .string()
   .regex(OBJECT_NAME_PATTERN, "Use a capital letter with an optional prime and subscript number, such as A, B′, L or L1.");
@@ -219,6 +230,26 @@ export const objectInputSchema = z.union([
       (o) => (o.equation ? !o.start && !o.end : !!o.start && !!o.end),
       "A line needs either an equation or two distinct points, not both.",
     ),
+  z
+    .object({
+      id: identifier.optional(),
+      kind: z.literal("region"),
+      inequalities: inequalitiesSchema.describe(
+        "1 to 4 inequalities in x and y, as printed in the question: \"y > 2x - 1\", \"x <= 3\", \"x + y < 6\" or a range \"-2 < x <= 3\". < and > print dashed boundaries, <= and >= solid.",
+      ),
+      shade: z
+        .enum(["wanted", "unwanted"])
+        .default("wanted")
+        .describe("wanted shades the region that satisfies every inequality; unwanted shades the rest and leaves the answer region clear."),
+      boundaries: z
+        .boolean()
+        .default(true)
+        .describe("Draw each boundary line across the grid. Set false when the lines are already separate line objects."),
+      name: nameInput.optional().describe("Region name printed upright in the middle of the region, usually R."),
+      namePosition: inputCoordinate.optional(),
+      answerOnly: answerOnlyInput,
+    })
+    .strict(),
 ]);
 export const graphSpecSchema = z
   .object({
@@ -261,6 +292,18 @@ const objectSchema = z.union([
         .optional(),
     })
     .strict(),
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("region"),
+      inequalities: inequalitiesSchema,
+      shade: z.enum(["wanted", "unwanted"]),
+      boundaries: z.boolean(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
 ]);
 const documentSchema = z
   .object({
@@ -279,7 +322,10 @@ const documentSchema = z
       if (ids.has(o.id))
         c.addIssue({ code: "custom", message: `Duplicate object ID: ${o.id}` });
       ids.add(o.id);
-      if (
+      if (o.kind === "region") {
+        const problem = regionProblem(o);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      } else if (
         o.kind === "straight" &&
         Math.hypot(o.end.x - o.start.x, o.end.y - o.start.y) < 1e-10
       )
@@ -379,6 +425,18 @@ function makeObject(
   };
   if (input.kind === "point")
     return { id, kind: "point", position: input.position, ...named };
+  if (input.kind === "region") {
+    const problem = regionProblem(input);
+    if (problem) throw new GraphError("invalid_region", `${id}: ${problem}`);
+    return {
+      id,
+      kind: "region",
+      inequalities: input.inequalities,
+      shade: input.shade,
+      boundaries: input.boundaries,
+      ...named,
+    };
+  }
   // A label off the axes would never print, so a new one must mark a point on them.
   for (const label of input.labels ?? [])
     if (!pointInBounds(label.at, getBounds(document)))
@@ -483,7 +541,16 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
   const document = documentFromEnvelope(envelope);
   // Explicit property construction fixes ordering and defaults across all clients.
   document.objects = document.objects.map((o) =>
-    o.kind === "point"
+    o.kind === "region"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          inequalities: [...o.inequalities],
+          shade: o.shade,
+          boundaries: o.boundaries,
+          ...canonicalName(o),
+        }
+      : o.kind === "point"
       ? {
           id: o.id,
           kind: o.kind,
@@ -610,7 +677,7 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
     if (object.kind !== "straight")
       throw new GraphError(
         "invalid_graph",
-        "Points do not have equation labels.",
+        "Only lines have equation labels.",
       );
     if (op.visible !== undefined) object.equationVisible = op.visible;
     if (op.position === null) delete object.equationLabelPosition;
@@ -626,11 +693,17 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
     : [];
   return crowded.concat(envelope.document.objects
     .filter((o) =>
-      o.kind === "point"
+      o.kind === "region"
+        ? !regionPolygon(regionHalfPlanes(o), bounds).length
+        : o.kind === "point"
         ? !pointInBounds(o.position, bounds)
         : !visibleStraightPoints(o, bounds),
     )
-    .map((o) => `${o.id} is outside the visible grid.`));
+    .map((o) =>
+      o.kind === "region"
+        ? `${o.id}: no part of the grid satisfies ${o.inequalities.join(", ")}. Check the inequality signs or widen the axes.`
+        : `${o.id} is outside the visible grid.`,
+    ));
 }
 export function describeGraph(envelope: GraphEnvelope): string {
   const d = envelope.document,
@@ -639,7 +712,9 @@ export function describeGraph(envelope: GraphEnvelope): string {
     `${o.name ? ` named ${readableName(o.name)}` : ""}${o.answerOnly ? " (answer only: hidden on the pupil copy)" : ""}`;
   const objects = d.objects
     .map((o) =>
-      o.kind === "point"
+      o.kind === "region"
+        ? `${o.id}: region ${o.inequalities.join(", ")}${named(o)}, ${o.shade === "wanted" ? "region shaded" : "unwanted side shaded, region left clear"}${o.boundaries ? ", boundaries drawn (dashed for < and >)" : ""}`
+        : o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
         : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}${o.labels ? `, labelled ${o.labels.map((l) => `"${l.text}" at (${l.at.x}, ${l.at.y})`).join(" and ")}` : ""}`,
     )
