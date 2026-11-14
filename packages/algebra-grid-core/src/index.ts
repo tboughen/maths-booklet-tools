@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import * as N from "./numeric";
 
 export const MAX_TERMS = 6;
 export const FONT = (12 * 25.4) / 72;
@@ -116,7 +117,8 @@ const rowSchema = z
   .strict();
 export const documentSchema = z
   .object({
-    mode: z.enum(["expand", "factorise"]),
+    // "multiply" is the numeric grid method (U105): 23 × 47 split by place value.
+    mode: z.enum(["expand", "factorise", "multiply"]),
     columns: z
       .array(columnSchema)
       .min(2)
@@ -176,14 +178,18 @@ export function validate(raw: unknown): Envelope {
       if (!r && !c) {
         if (cell.value !== "×" && cell.value !== null)
           throw Error("Use × or a blank in the top-left cell.");
-      } else if (cell.value !== null) cell.value = normalTerm(cell.value);
+      } else if (cell.value !== null) cell.value = cellText(d.mode, cell.value);
       if (cell.value === null && cell.hidden)
         throw Error("A blank cell cannot contain a hidden answer.");
     }
   }
   if (d.expression)
-    (d.mode === "factorise" ? polynomial : expandedExpression)(d.expression);
-  if (!/^[\w\s()+\-−^²³×=]*$/.test(d.expression + d.answer))
+    (d.mode === "multiply"
+      ? N.numericFactors
+      : d.mode === "factorise"
+        ? polynomial
+        : expandedExpression)(d.expression);
+  if (!/^[\w\s()+\-−^²³×=.,*]*$/.test(d.expression + d.answer))
     throw Error("Use mathematical expressions without markup.");
   return e;
 }
@@ -286,6 +292,16 @@ export function setSize(e: Envelope, size: number) {
   });
   return validate(n);
 }
+type Mode = Envelope["document"]["mode"];
+/** A cell's saved form: signed terms in x, or plain numbers in multiply mode. */
+function cellText(mode: Mode, value: string) {
+  return mode === "multiply" ? N.normalNumber(value) : normalTerm(value);
+}
+function product(mode: Mode, a: string, b: string, plus = false) {
+  return mode === "multiply"
+    ? N.numberText(N.times(N.parseNumber(a), N.parseNumber(b)))
+    : multiply(a, b, plus);
+}
 function multiply(a: string, b: string, plus = false) {
   const x = term(a),
     y = term(b),
@@ -311,13 +327,21 @@ export function fillProducts(e: Envelope) {
           "Enter all row and column headings before filling products. Blank headings are preserved.",
         );
       d.rows[r].cells[c] = {
-        value: multiply(a, b, r !== 1 || c !== 1),
+        value: product(d.mode, a, b, r !== 1 || c !== 1),
         hidden: false,
       };
     }
   return validate(n);
 }
 export function collected(e: Envelope) {
+  if (e.document.mode === "multiply") {
+    const products = e.document.rows
+      .slice(1)
+      .flatMap((row) => row.cells.slice(1).map((cell) => cell.value));
+    if (products.some((v) => v === null))
+      throw Error("Complete every product before adding them.");
+    return N.numberText(N.sum(products as string[]));
+  }
   const p = Array<bigint>(7).fill(0n);
   for (const row of e.document.rows.slice(1))
     for (const cell of row.cells.slice(1)) {
@@ -355,8 +379,8 @@ export function warnings(e: Envelope): string[] {
       if (a !== null && b !== null && v !== null) {
         try {
           if (
-            normalTerm(multiply(a, b)).replace(/^\+/, "") !==
-            normalTerm(v).replace(/^\+/, "")
+            cellText(d.mode, product(d.mode, a, b)).replace(/^\+/, "") !==
+            cellText(d.mode, v).replace(/^\+/, "")
           )
             out.push(
               `Row ${r + 1}, column ${c + 1} does not equal its headings' product.`,
@@ -384,6 +408,22 @@ export function warnings(e: Envelope): string[] {
         );
     } catch {
       /* Incomplete products are intentional pupil scaffolds. */
+    }
+  }
+  if (d.mode === "multiply" && d.expression) {
+    const left = d.rows.slice(1).map((r) => r.cells[0].value),
+      top = d.rows[0].cells.slice(1).map((c) => c.value);
+    if (![...left, ...top].includes(null)) {
+      const [a, b] = N.numericFactors(d.expression),
+        across = N.sum(top as string[]),
+        down = N.sum(left as string[]);
+      if (
+        !(N.same(across, a) && N.same(down, b)) &&
+        !(N.same(across, b) && N.same(down, a))
+      )
+        out.push(
+          `The headings add to ${N.numberText(across)} across and ${N.numberText(down)} down, so they do not split ${N.numericExpressionText(d.expression)}.`,
+        );
     }
   }
   if (d.mode === "expand" && d.questionVisible && d.expression) {
@@ -419,7 +459,7 @@ export function collectAnswer(e: Envelope) {
   if (warnings(n).length)
     throw Error("Correct the grid before calculating its answer.");
   n.document.answer =
-    n.document.mode === "expand" ? collected(n) : factors(fillProducts(n));
+    n.document.mode === "factorise" ? factors(fillProducts(n)) : collected(n);
   n.document.answerVisible = true;
   n.document.answerBasis = answerBasis(n);
   return validate(n);
@@ -444,6 +484,7 @@ function gcd(a: bigint, b: bigint): bigint {
 export function workedCopy(e: Envelope) {
   let n = structuredClone(e);
   const d = n.document;
+  if (d.mode === "multiply") placeValueHeadings(d);
   if (d.mode === "factorise") {
     const p = polynomial(d.expression);
     if (
@@ -512,6 +553,29 @@ export function workedCopy(e: Envelope) {
   n = collectAnswer(n);
   return n;
 }
+/** Fills blank headings of a numeric grid with each factor's place-value parts. */
+function placeValueHeadings(d: Envelope["document"]) {
+  const left = d.rows.slice(1).map((r) => r.cells[0]),
+    top = d.rows[0].cells.slice(1);
+  if (![...left, ...top].some((c) => c.value === null)) return;
+  if (!d.expression)
+    throw Error(
+      "Enter the multiplication, such as 23 × 47, or fill every heading.",
+    );
+  const [a, b] = N.numericFactors(d.expression).map(N.placeValueParts);
+  const [across, down] =
+    a.length === top.length && b.length === left.length
+      ? [a, b]
+      : b.length === top.length && a.length === left.length
+        ? [b, a]
+        : [];
+  if (!across || !down)
+    throw Error(
+      `Split by place value, ${N.numericExpressionText(d.expression)} needs ${a.length} column${a.length === 1 ? "" : "s"} and ${b.length} row${b.length === 1 ? "" : "s"} of products.`,
+    );
+  across.forEach((v, i) => (top[i].value = v));
+  down.forEach((v, i) => (left[i].value = v));
+}
 export function answerBelow(e: Envelope) {
   const n = structuredClone(e);
   n.document.answerVisible = false;
@@ -526,7 +590,13 @@ export function answerBelow(e: Envelope) {
 export function example(name = "double", worked = false): Envelope {
   const data: Record<
     string,
-    { top: string[]; left: string[]; expression: string; factor?: boolean }
+    {
+      top: string[];
+      left: string[];
+      expression: string;
+      factor?: boolean;
+      numbers?: boolean;
+    }
   > = {
     single: { top: ["x", "+4"], left: ["3"], expression: "3(x+4)" },
     double: { top: ["x", "+3"], left: ["x", "+2"], expression: "(x+2)(x+3)" },
@@ -554,6 +624,18 @@ export function example(name = "double", worked = false): Envelope {
       expression: "x^2+4x",
       factor: true,
     },
+    numeric: {
+      top: ["20", "3"],
+      left: ["40", "7"],
+      expression: "23 × 47",
+      numbers: true,
+    },
+    decimal: {
+      top: ["3", "0.4"],
+      left: ["2", "0.6"],
+      expression: "3.4 × 2.6",
+      numbers: true,
+    },
     "source-expand": {
       top: ["2x", "-3"],
       left: ["5x", "+2"],
@@ -570,7 +652,7 @@ export function example(name = "double", worked = false): Envelope {
   if (!info) throw Error("Unknown example.");
   let e = create(info.left.length + 1, info.top.length + 1);
   const d = e.document;
-  d.mode = info.factor ? "factorise" : "expand";
+  d.mode = info.factor ? "factorise" : info.numbers ? "multiply" : "expand";
   d.expression = info.expression;
   d.questionVisible = false;
   d.answerLines = 0;
@@ -631,7 +713,13 @@ export const textWidth = (s: string) =>
   );
 /** Saved answers revealed on an answers copy print in the house answer colour. */
 export const ALGEBRA_ANSWER_COLOUR = "#b0125b";
-function textSvg(s: string, x: number, y: number, anchor = "middle", fill = "#000") {
+function textSvg(
+  s: string,
+  x: number,
+  y: number,
+  anchor = "middle",
+  fill = "#000",
+) {
   return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="STIX Two Text" font-size="${textSize(s)}" fill="${fill}">${mathParts(
     s,
   )
@@ -667,12 +755,17 @@ export function layout(e: Envelope) {
         )
       : firstWidth;
   const columnWidths = d.columns.map((c, i) => (i ? c.widthMm : headingWidth));
-  const rowHeights = d.rows.map((_, i) => (i ? d.cellMm : headingHeight));
+  // Grid method products are short numbers, so working rows are three quarters of the cell size,
+  // giving the question card more vertical space (Tim, 14 Nov). Algebra rows keep the full size.
+  const workingHeight = d.mode === "multiply" ? Math.round(d.cellMm * 0.75 * 100) / 100 : d.cellMm;
+  const rowHeights = d.rows.map((_, i) => (i ? workingHeight : headingHeight));
   const gridWidth = columnWidths.reduce((a, width) => a + width, 0),
     gridHeight = rowHeights.reduce((a, height) => a + height, 0);
   const question =
     d.questionVisible && d.expression
-      ? `${d.mode === "factorise" ? "Factorise " : "Expand "}${d.expression}`
+      ? d.mode === "multiply"
+        ? `Work out ${N.numericExpressionText(d.expression)}`
+        : `${d.mode === "factorise" ? "Factorise " : "Expand "}${d.expression}`
       : "";
   const width = Math.max(
     gridWidth,
@@ -772,7 +865,7 @@ export function renderSvg(e: Envelope, showAnswers = false) {
         )
         .join("")
     : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width}mm" height="${g.height}mm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Algebra multiplication grid"><rect width="${g.width}" height="${g.height}" fill="#fff"/><g stroke="#000" stroke-width="${d.gridLineMm ?? 0.2}" stroke-linecap="butt">${lines.join("")}</g>${values}${g.question ? textSvg(g.question, 3, 6, "start") : ""}${d.answerVisible && d.answer ? textSvg(d.answer, 3, g.answerY, "start") : ""}<g stroke="#000" stroke-width="0.2">${Array.from(
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${g.width}mm" height="${g.height}mm" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="${d.mode === "multiply" ? "Grid method multiplication" : "Algebra multiplication grid"}"><rect width="${g.width}" height="${g.height}" fill="#fff"/><g stroke="#000" stroke-width="${d.gridLineMm ?? 0.2}" stroke-linecap="butt">${lines.join("")}</g>${values}${g.question ? textSvg(g.question, 3, 6, "start") : ""}${d.answerVisible && d.answer ? textSvg(d.answer, 3, g.answerY, "start") : ""}<g stroke="#000" stroke-width="0.2">${Array.from(
     { length: d.answerLines },
     (_, i) => {
       const y = g.answerY + (d.answerVisible && d.answer ? 11 : 0) + i * 9 - 2;

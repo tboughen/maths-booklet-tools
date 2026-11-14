@@ -33,6 +33,8 @@ export const exampleNames = [
   "factor",
   "negative",
   "common",
+  "numeric",
+  "decimal",
   "source-expand",
   "source-factor",
 ] as const;

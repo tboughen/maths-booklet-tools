@@ -217,6 +217,8 @@ const algebraNames = [
   ["factor", "Factorise x²+5x+6"],
   ["negative", "Factorise x²+3x−10"],
   ["common", "Common factor"],
+  ["numeric", "Grid method 23 × 47"],
+  ["decimal", "Grid method 3.4 × 2.6"],
   ["source-expand", "Q26(a): expand"],
   ["source-factor", "Q26(b): factorise"],
 ];
