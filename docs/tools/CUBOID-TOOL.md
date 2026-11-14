@@ -6,7 +6,7 @@ The isolated refinement preview uses a compact Shape / Labels / Shading inspecto
 
 New resources use schema 2 / renderer `cuboids-2`. Neutral face tones and one-face shading are optional, with exact area, answer-line or custom labels. All six existing faces are selectable; there are no internal/angled cuts. Base/back faces remain visible through an unfilled outline with dashed hidden edges. One-face shading uses an assembled diagram; face tones also work on complete cube/layer views. Shading alone never reveals area or volume.
 
-The new exam arrow layout follows Mock set 06 3F Q15: height arrow and label outside the rear-right vertical, mirrored on left-receding diagrams. Width stays below the front; depth remains beside the receding base edge. Unarrowed height labels retain their left/right convention. The original renderer is retained in `packages/cuboid-core/src/legacy.ts`; old schema-1 files keep their original canonical bytes and artwork. Use current exam layout explicitly to upgrade an imported old resource. Three additional editable examples demonstrate the new presentation choices.
+The new exam arrow layout follows Mock set 06 3F Q15: height arrow and label outside the rear-right vertical, mirrored on left-receding diagrams. Width stays below the front; depth remains beside the receding base edge. Unarrowed height labels retain their left/right convention. Only schema 2 is read: schema-1 files and the original renderer were removed on 14 Nov 2026 (no backwards compatibility). Three additional editable examples demonstrate the new presentation choices.
 
 This is a local preview, with no publication or service/client deployment. Evidence is retained in the parent workspace's `reports/mathsdock-cuboids-refinement-preview-2026-10-15` folder. The earlier tool details below still apply unless refined above.
 
@@ -34,7 +34,7 @@ PNG download retains density metadata. Chrome's clipboard read-back strips densi
 
 ## Persistence and examples
 
-Storage key: `maths-booklet-tools:cuboids:v1`. Files use tool `cuboids`, schema 1, renderer `cuboids-1`; stable shape IDs and explicit label states. Valid edits autosave. Corrupt and newer-tab drafts are protected until their recovery data is downloaded. Switching tools retains pending inputs and Undo history; inactive tools do not handle shortcuts or imports.
+Storage key: `maths-booklet-tools:cuboids:v1`. Files use tool `cuboids`, schema 2, renderer `cuboids-2`; stable shape IDs and explicit label states. Valid edits autosave. Corrupt and newer-tab drafts are protected until their recovery data is downloaded. Switching tools retains pending inputs and Undo history; inactive tools do not handle shortcuts or imports.
 
 Four generic examples preserve scaffold/explicit-worked distinctions. Six source examples use verified catalogue IDs; the supplied questions and complete relevant official scheme rows were personally inspected. The six-cube arrangement is one valid arrangement; equal-area and melting resources deliberately support only stated steps of their original questions. No source question, scheme or mapping was changed.
 

@@ -2,7 +2,6 @@ import {
   create,
   newShape,
   validate,
-  upgrade,
   appearance,
   type Envelope,
   type Shape,
@@ -41,7 +40,7 @@ export const examples: Example[] = [
         ? "Three neutral face tones with black outlines. Calculations are only in the worked choice."
         : "One existing face is shaded. The scaffold retains an area answer line; the worked choice supplies the exact area.",
     create: (worked: boolean) => {
-      const e = upgrade(create()),
+      const e = create(),
         s = e.document.shapes[0];
       s.appearance = {
         ...appearance(s),

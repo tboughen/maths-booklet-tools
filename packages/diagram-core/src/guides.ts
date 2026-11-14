@@ -110,8 +110,8 @@ const valueGuide: FamilyGuide = {
 
 const cuboidGuide: FamilyGuide = {
   capabilities: {
-    schemaVersions: [1, 2],
-    rendererVersions: ["cuboids-1", "cuboids-2"],
+    schemaVersions: [2],
+    rendererVersions: ["cuboids-2"],
     defaultRendererVersion: "cuboids-2",
     shapes: { minimum: 1, maximum: 3 },
     widthCm: { minimum: 4, maximum: 18 },
@@ -126,9 +126,9 @@ const cuboidGuide: FamilyGuide = {
     units: ["cm", "mm", "m"],
   },
   create:
-    "One to three cuboids, cubes, cube grids or separated layers; omit spec for one unworked version-2 cuboid. spec.shapes: [{dimensions:{width,depth,height}, unit, labels, presentation}]; omitted fields take unworked defaults. New requests use cuboids-2; older envelopes keep their version. Artwork is cropped at unchanged scale. Large layer and cube combinations may exceed print limits.",
+    "One to three cuboids, cubes, cube grids or separated layers; omit spec for one unworked version-2 cuboid. spec.shapes: [{dimensions:{width,depth,height}, unit, labels, presentation}]; omitted fields take unworked defaults. Only schema 2 (cuboids-2) is read. Artwork is cropped at unchanged scale. Large layer and cube combinations may exceed print limits.",
   revise:
-    "add_shape {afterId?,shape}; remove_shape {id}; replace_shape {id,shape} keeps the ID; set_dimension {id,axis:width|depth|height,value}; set_unit {id,unit} converts dimensions; set_cube {id,enabled,referenceAxis?} needs an explicit reference when enabling; set_cube_side {id,value} in the displayed unit; set_view {id,view}; set_projection {id,direction?,projection?,schematic?,proportions?}; set_label {id,key,label}; set_appearance {id,appearance}; set_presentation {id,settings}; set_print {widthCm?,lines?:normal|bold} (normal lines are not saved); upgrade_document {} (needed before version-2 appearance on legacy files). Worked calculations stay explicit; custom captions are kept.",
+    "add_shape {afterId?,shape}; remove_shape {id}; replace_shape {id,shape} keeps the ID; set_dimension {id,axis:width|depth|height,value}; set_unit {id,unit} converts dimensions; set_cube {id,enabled,referenceAxis?} needs an explicit reference when enabling; set_cube_side {id,value} in the displayed unit; set_view {id,view}; set_projection {id,direction?,projection?,schematic?,proportions?}; set_label {id,key,label}; set_appearance {id,appearance}; set_presentation {id,settings}; set_print {widthCm?,lines?:normal|bold} (normal lines are not saved). Worked calculations stay explicit; custom captions are kept.",
 };
 
 const lineGuide: FamilyGuide = {
