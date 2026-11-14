@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
+/** Fraction parts print at 85% of the label size, so triangle labels stay at 11 pt or more. */
+export const TRIANGLE_MIN_PT = Math.max(MIN_TEXT_PT, 11);
 
 const id = z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/);
 const safeText = (max: number) =>
@@ -100,8 +102,14 @@ export const documentSchema = z
     split: z.object({ point: id, from: id, to: id }).strict().nullable(),
     widthCm: z.number().finite().min(6).max(18),
     notToScale: z.boolean(),
-    /** Label text size in points (U111). Left out means the family's usual 11 pt. */
-    fontPt: z.number().finite().min(MIN_TEXT_PT).max(14).optional(),
+    /** Label text size in points (U111), 11-14. Left out means the usual 11 pt; 11 is never saved. */
+    fontPt: z
+      .number()
+      .int()
+      .min(TRIANGLE_MIN_PT)
+      .max(14)
+      .transform((v) => (v === 11 ? undefined : v))
+      .optional(),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z
       .enum(LINE_WEIGHTS)

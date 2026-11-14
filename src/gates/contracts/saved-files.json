@@ -7053,8 +7053,8 @@
             "type": "boolean"
           },
           "fontPt": {
-            "type": "number",
-            "minimum": 10,
+            "type": "integer",
+            "minimum": 11,
             "maximum": 14
           },
           "lines": {

@@ -31,6 +31,7 @@ import {
   setConstraint,
   textOf,
   transform,
+  TRIANGLE_MIN_PT,
   validate,
   warnings,
   workedCopy,
@@ -62,7 +63,6 @@ import { housePreference, setLines } from "../site/houseStyle";
 import {
   LINE_WEIGHTS,
   LINE_WEIGHT_NAMES,
-  MIN_TEXT_PT,
   startingTextPt,
   type LineWeight,
 } from "../../packages/envelope-core/src/house-style";
@@ -2225,8 +2225,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                       })
                     }
                   >
-                    {[10, 11, 12, 13, 14]
-                      .filter((v) => v >= MIN_TEXT_PT)
+                    {[11, 12, 13, 14]
+                      .filter((v) => v >= TRIANGLE_MIN_PT)
                       .map((v) => (
                         <option key={v} value={v}>
                           {v} pt

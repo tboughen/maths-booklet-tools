@@ -10,7 +10,7 @@ import { teachingExamples, sourceExamples } from "./examples";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex } from "../../envelope-core/src/index";
-import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
 const id = m.documentSchema.shape.vertices.element.shape.id;
 const ref = z.string().max(43);
@@ -60,7 +60,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("remove_caption"), id }).strict(),
   z.object({ op: z.literal("set_shared_label"), id, text: z.string().max(40) }).strict(),
   z.object({ op: z.literal("link_label"), ref, sharedId: id.nullable() }).strict(),
-  z.object({ op: z.literal("set_print"), widthCm: z.number().min(6).max(18).optional(), fontPt: z.number().min(MIN_TEXT_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict()
+  z.object({ op: z.literal("set_print"), widthCm: z.number().min(6).max(18).optional(), fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict()
     .refine(o => o.widthCm !== undefined || o.fontPt !== undefined || o.lines !== undefined, "set_print needs widthCm, fontPt or lines."),
   z.object({ op: z.literal("set_not_to_scale"), visible: z.boolean() }).strict(),
   z.object({ op: z.literal("construct"), triangleId: id, method: z.enum(["SSS", "SAS", "ASA", "AAS", "right"]), inputs }).strict(),
@@ -77,7 +77,7 @@ export const createSchema = z.object({
     shape: z.enum(["right", "scalene", "isosceles", "equilateral"]).optional(),
     example: z.string().max(80).optional(),
     widthCm: z.number().min(6).max(18).optional(), notToScale: z.boolean().optional(),
-    fontPt: z.number().min(MIN_TEXT_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional(),
+    fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional(),
     labels: z.array(labelEdit).max(40).optional(), operations: z.array(operationSchema).max(30).optional(),
   }).strict().optional(),
 }).strict();
@@ -179,7 +179,8 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
       }
       case "set_print":
         if (op.widthCm !== undefined) d.widthCm = op.widthCm;
-        if (op.fontPt !== undefined) d.fontPt = op.fontPt;
+        if (op.fontPt === 11) delete d.fontPt;
+        else if (op.fontPt !== undefined) d.fontPt = op.fontPt;
         if (op.lines === "bold") d.lines = "bold";
         else if (op.lines === "normal") delete d.lines;
         break;
@@ -215,7 +216,7 @@ export function create(input: unknown): m.Envelope {
   let e = example ? example.build() : g.create(s?.shape);
   if (s?.widthCm !== undefined) e.document.widthCm = s.widthCm;
   if (s?.notToScale !== undefined) e.document.notToScale = s.notToScale;
-  if (s?.fontPt !== undefined) e.document.fontPt = s.fontPt;
+  if (s?.fontPt !== undefined && s.fontPt !== 11) e.document.fontPt = s.fontPt;
   if (s?.lines === "bold") e.document.lines = "bold";
   for (const l of s?.labels ?? []) e = m.editLabel(e, l.ref, l.label);
   return applyOperations(m.validate(e), s?.operations ?? []);

@@ -341,7 +341,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       ]);
       if (h.footName) {
         const c = add(foot, { x: 0, y: 5 }),
-          m = mathMetrics(h.footName);
+          m = mathMetrics(h.footName, font);
         boxes.push({ x: c.x - m.w / 2, y: c.y - m.h / 2, w: m.w, h: m.h });
         bounds.push({ x: c.x - m.w / 2, y: c.y + m.h / 2 });
         labels.push(textSvg(h.footName, c, font, true));
@@ -368,10 +368,10 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       const rows: string[] = [];
       let current = "";
       for (const word of s.split(/\s+/)) {
-        if (measure(word) > width - 8)
+        if (measure(word, font) > width - 8)
           issues.push("A caption word is too long for this print width.");
         const next = current ? current + " " + word : word;
-        if (measure(next) > width - 8 && current) {
+        if (measure(next, font) > width - 8 && current) {
           rows.push(current);
           current = word;
         } else current = next;
@@ -388,20 +388,20 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
         ref: `c:${c.id}`,
         x: width / 2 + c.label.dx,
         y: bottom + c.label.dy,
-        w: Math.min(width - 8, Math.max(20, measure(text))),
-        h: 6,
+        w: Math.min(width - 8, Math.max(20, measure(text, font))),
+        h: 6 * (font / FONT),
       });
       for (const row of rows) {
         const p = { x: width / 2 + c.label.dx, y: bottom + c.label.dy };
         labels.push(
-          `<g data-triangle-label="c:${escapeXml(c.id)}">${textSvg(row, p)}</g>`,
+          `<g data-triangle-label="c:${escapeXml(c.id)}">${textSvg(row, p, font)}</g>`,
         );
-        const m = mathMetrics(row);
+        const m = mathMetrics(row, font);
         bounds.push(
           { x: p.x - m.w / 2, y: p.y - m.h / 2 },
           { x: p.x + m.w / 2, y: p.y + m.h / 2 },
         );
-        bottom += 5.5;
+        bottom += 5.5 * (font / FONT);
       }
       if (!rows.length) bounds.push({ x: width / 2, y: start + 2 });
     }
