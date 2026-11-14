@@ -47,7 +47,7 @@ describe("frequency tree connector adapter", () => {
     expect(next.document.nodes.filter((b) => b.category.text === "drink coffee")).toHaveLength(1);
     expect(next.document.nodes).toHaveLength(4);
     expect(next.document.nodes.every((b) => b.count.show === "hidden")).toBe(true);
-    await expect(revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/base_hash_mismatch/);
+    await expect(revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
     await expect(revise({ envelope: e, baseHash, operations: [{ op: "split_group", groupId: "n2" }] })).rejects.toThrow(/at most 2 levels/);
     // The answer view never changes the saved document.
     expect(forView(e, "answer").document.nodes[0].count.show).toBe("show");

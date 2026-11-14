@@ -239,7 +239,7 @@ export async function reviseCuboid(raw: unknown) {
   const v = revisionSchema.parse(raw);
   if ((await hash(v.envelope)) !== v.baseHash)
     throw Error(
-      "The baseHash does not match this definition. Use the last returned envelope and hash.",
+      "stale_hash: The baseHash does not match this definition. Use the last returned envelope and hash.",
     );
   return apply(v.envelope, v.operations);
 }

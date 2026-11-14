@@ -1,0 +1,52 @@
+.twt-grid-wrap {
+  overflow-x: auto;
+  padding: 12px;
+}
+.twt-grid {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.twt-grid th,
+.twt-grid td {
+  border: 1px solid var(--line, #c9d3dd);
+  padding: 4px;
+  vertical-align: middle;
+  text-align: center;
+}
+.twt-grid th {
+  background: var(--blue-soft);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.twt-grid input {
+  width: 92px;
+  min-height: 32px;
+  font: inherit;
+}
+.twt-grid td input {
+  width: 72px;
+  text-align: center;
+}
+.twt-grid input[aria-invalid="true"] {
+  outline: 2px solid #b3261e;
+  background: #fdecea;
+}
+.twt-grid .twt-hidden input {
+  border-style: dashed;
+  border-color: #b5487a;
+  background: #b5487a10;
+}
+.twt-grid .twt-current {
+  outline: 2px solid var(--blue);
+}
+.twt-total-heading {
+  font-weight: 700;
+  padding: 0 8px;
+}
+.twt-remove {
+  margin-left: 4px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 6px;
+  line-height: 1;
+}
