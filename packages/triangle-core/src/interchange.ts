@@ -158,8 +158,6 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
         const t = triangle(e, op.triangleId);
         if (op.label === null) delete t.area;
         else t.area = { ...(t.area ?? m.label("", "blank", "cm²")), ...op.label };
-        e.schemaVersion = d.triangles.some(t => t.area) ? 2 : 1;
-        e.rendererVersion = e.schemaVersion === 2 ? "triangle-2" : "triangle-1";
         break;
       }
       case "add_caption": e = g.caption(e); Object.assign(e.document.captions.at(-1)!.label, op.label); break;

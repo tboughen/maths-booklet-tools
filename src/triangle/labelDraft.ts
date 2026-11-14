@@ -67,8 +67,6 @@ export function applyLabelDraft(e: Envelope, draft: LabelDraft) {
     const t = source.document.triangles.find((t) => `r:${t.id}` === draft.ref);
     if (!t) throw Error("Choose an existing triangle for this area.");
     t.area = label("", "blank", "cm²");
-    source.schemaVersion = 2;
-    source.rendererVersion = "triangle-2";
   }
   const n = editLabel(source, draft.ref, { ...draft.value, text: draft.text }),
     [kind, id] = draft.ref.split(":");

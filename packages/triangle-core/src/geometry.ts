@@ -33,10 +33,8 @@ export function build(
 ): Envelope {
   const e: Envelope = {
     kind: "triangle",
-    schemaVersion: definitions.some((t) => t.area) ? 2 : 1,
-    rendererVersion: definitions.some((t) => t.area)
-      ? "triangle-2"
-      : "triangle-1",
+    schemaVersion: 2,
+    rendererVersion: "triangle-2",
     styleProfile: "exam-v1",
     document: {
       layout,
