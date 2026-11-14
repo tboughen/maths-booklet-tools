@@ -19,7 +19,10 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
 `algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree` and `triangle`. `outputView` applies
-only to families with an answers copy (Venn, charts, probability trees and frequency trees).
+only to families with an answers copy (ratio tables, graphs, Venn, charts, probability trees, frequency trees,
+expanding and factorising grids, and triangles). Since 14 November 2026 the grid and triangle answers copies show
+saved hidden answers, and the two trees colour revealed answers in the house answer colour, as worksheet answers
+copies already did for answer lines, ratio tables and graphs.
 
 A create or revise result starts with a one-line plain summary (`Created a <label>, W × H cm at
 100%.`), then the preview image, then `resource_link` blocks for the SVG, PNG and JSON downloads.

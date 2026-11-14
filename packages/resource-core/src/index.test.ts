@@ -88,7 +88,9 @@ describe("saved worksheets from before the diagram registry", () => {
     "comparativeBarCharts:pupil": ["73e47ecb06f61fd1", "aac8bb59a69b3fc5"],
     "comparativeBarCharts:answers": ["1ad2aee26c9010ad", "dcef0db837c0796d"],
     "treeDiagrams:pupil": ["982c991b21c41848", "2bb88445db745629"],
-    "treeDiagrams:answers": ["73475fba4301c843", "0a271aeb8671efd9"],
+    // Answers copy only: since 14 November 2026 a probability tree's revealed answers print in the
+    // answer colour, as answer lines, ratio tables and graphs already did. The pupil copy is unchanged.
+    "treeDiagrams:answers": ["fd6b479eba982cc6", "5e6e8ef0adf9995a"],
   };
   it.each(Object.keys(before))("%s still opens and prints byte-identically", (key) => {
     const [name, view] = key.split(":") as ["comparativeBarCharts" | "treeDiagrams", "pupil" | "answers"];

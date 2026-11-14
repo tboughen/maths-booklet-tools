@@ -1,9 +1,9 @@
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { answerHasFraction, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { ANSWER_SLOT_GAP, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -320,7 +320,7 @@ type Block = string;
 const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
 
 function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx): { grid: number[]; cells: string[] } {
-  const slot = (w - (lines.length - 1) * 6) / lines.length;
+  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const grid: number[] = [];
   const cells: string[] = [];
   const size = S.body;
@@ -331,8 +331,8 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   const widthOf = (s: string) => (maths ? lineWidth(parseRuns(shownText(s), "regular", true), size) : plainWidth(s, size));
   lines.forEach((l, i) => {
     if (i) {
-      grid.push(6);
-      cells.push(cell(gap(END_MM), { width: 6 }));
+      grid.push(ANSWER_SLOT_GAP);
+      cells.push(cell(gap(END_MM), { width: ANSWER_SLOT_GAP }));
     }
     const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
     const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
@@ -578,7 +578,8 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
     if (it.type === "answerLine" && it.inline) {
       const group = [it];
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
-      blocks.push(answerRow(group, w, indent, ctx));
+      // Rows hold as many lines as fit, as on the SVG page.
+      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) blocks.push(answerRow(rowLines, w, indent, ctx));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const textW = w - S.partIndent;
@@ -586,7 +587,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
       const head = { left: indent + S.partIndent, hanging: S.partIndent };
-      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && stubFits(textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0), only.answer, S.body, !!ctx.maths)) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const post = only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0;

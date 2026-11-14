@@ -61,7 +61,7 @@
           "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
-          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -1730,7 +1730,7 @@
           "additionalProperties": {}
         },
         "outputView": {
-          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -4404,7 +4404,7 @@
           "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
-          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -4627,7 +4627,7 @@
           "description": "The exact envelope a previous call returned, or a saved source.json. Change it with operations, not by hand."
         },
         "outputView": {
-          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",
@@ -4843,7 +4843,7 @@
           "description": "Edits from the family's operationsSchema, applied in order and atomically. An empty array changes nothing and returns fresh links."
         },
         "outputView": {
-          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+          "description": "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
           "type": "string",
           "enum": [
             "pupil",

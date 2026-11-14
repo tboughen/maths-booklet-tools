@@ -133,7 +133,7 @@ describe("generic connector tools", () => {
     expect(error.code).toBe("invalid_input");
     expect(error.message).toMatch(/^spec\.categories: /);
     expect(error.message).toContain('diagram_capabilities {kind:"charts"}');
-    const view = await client.callTool({ name: "create_diagram", arguments: { kind: "triangle", spec: {}, outputView: "answer" } });
+    const view = await client.callTool({ name: "create_diagram", arguments: { kind: "cuboids", spec: {}, outputView: "answer" } });
     expect(view.isError).toBe(true);
     expect(JSON.stringify(view.content)).toContain("outputView applies only to");
     const stale = await client.callTool({ name: "revise_diagram", arguments: { kind: "venn", envelope: FAMILIES.venn.create({}), baseHash: "0".repeat(64), operations: [] } });
