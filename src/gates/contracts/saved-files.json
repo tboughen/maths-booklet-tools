@@ -3083,6 +3083,13 @@
             "type": "integer",
             "minimum": 5,
             "maximum": 20
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
@@ -6465,23 +6472,12 @@
         "const": "triangle"
       },
       "schemaVersion": {
-        "anyOf": [
-          {
-            "type": "number",
-            "const": 1
-          },
-          {
-            "type": "number",
-            "const": 2
-          }
-        ]
+        "type": "number",
+        "const": 2
       },
       "rendererVersion": {
         "type": "string",
-        "enum": [
-          "triangle-1",
-          "triangle-2"
-        ]
+        "const": "triangle-2"
       },
       "styleProfile": {
         "type": "string",
