@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { a7Booklet, exampleLessonSource } from "./booklet-fixtures";
+import savedBeforeNotation from "./fixtures/booklet-saved-before-notation.json";
 import { bookletFileName, renderBooklet, singleLessonBooklet, styles, validateBooklet, type Booklet } from "./index";
 
 const clone = (b: Booklet) => structuredClone(b);
@@ -23,6 +24,28 @@ describe("A4 booklet renderer", () => {
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
     expect(sha(whole.pages)).toBe("f57e28e574a9d511135c2c56c0508004c2fbb4631fdf0ec565bce53d24b10e1e");
+  });
+
+  it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {
+    // The example booklet as main saved it on 14 November 2026 (no notation field, ⅓ and ⅔ typed
+    // as single characters). These are the hashes main pinned for it, so plain booklets are
+    // unchanged; the only difference is that ⅓ and ⅔, which printed as gaps, are now reported.
+    const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
+    const old = validateBooklet(structuredClone(savedBeforeNotation));
+    expect(old.document.notation).toBe("plain");
+    const unit = clone(old);
+    const [a, b] = old.document.lessons;
+    unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
+    const one = singleLessonBooklet(old, 1);
+    const pupil = renderBooklet(old);
+    expect(sha(pupil.pages)).toBe("66f85e9f74a801a38e6e61ab8b05aeb175430fe687cdd7381d07c8cb46fbe890");
+    expect(sha(renderBooklet(old, { view: "answers" }).pages)).toBe("0eb57e6089f0874bdd0e793c2744c04d0670a08885f6329ce04dafb597009ce6");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("2ee20b368fe52a7b35752d437d669aef37dbfae4060b07259dc62337ac318c82");
+    const whole = renderBooklet(unit);
+    expect(whole.pages.length).toBe(56);
+    expect(sha(whole.pages)).toBe("310e2b6bd9a8227e01061b9d520346ac9dae3ee6d3baba242ef5ebee0ceaf452");
+    expect(pupil.issues.length).toBeGreaterThan(0);
+    for (const i of pupil.issues) expect(i.message).toMatch(/^Lesson 2, [A-Za-z ]+, question \d uses "[⅓⅔]" \(U\+215[34]\)/);
   });
 
   it("lays out the example on A4 pages with a cover, an introduction and lessons on fresh pages", () => {
@@ -77,7 +100,7 @@ describe("A4 booklet renderer", () => {
     choice.options[3] = "⅓";
     b.document.lessons[0].keyIdea += " ⅔";
     const issues = renderBooklet(b).issues.map((i) => i.message);
-    expect(issues.some((m) => m.startsWith('Lesson 2, question 1 uses "⅓" (U+2153)') && m.includes("{1/3}"))).toBe(true);
+    expect(issues.some((m) => m.startsWith('Lesson 2, Diagnostic questions, question 1 uses "⅓" (U+2153)') && m.includes("{1/3}"))).toBe(true);
     expect(issues.some((m) => m.startsWith('Lesson 1 uses "⅔"'))).toBe(true);
   });
 

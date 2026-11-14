@@ -225,7 +225,9 @@ page). Booklets do not yet report characters the font lacks, as worksheets do
 Since then booklets have `notation` (as worksheets): with `"maths"` fractions are Word equations
 (`m:f`), and the example booklet uses it, so it is now 12 pages (lesson 2 on its own, 8). In
 LibreOffice its page counts still equal the plan, and text sits within 1 mm across and 2 mm down of
-the PDF; the largest moves are lines that hold a stacked fraction.
+the PDF; the largest moves are lines that hold a stacked fraction. Booklets now also report
+characters the font lacks. Desktop Word has opened worksheet equations of this kind (#219) but not
+yet a stacked-fraction booklet: that check is still outstanding.
 
 Differences from the PDF, by design: rounded corners are square; contents dot leaders are Word's
 dots; the lesson and code tiles are square.

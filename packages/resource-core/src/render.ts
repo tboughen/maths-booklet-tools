@@ -601,7 +601,7 @@ export function missingCharacters(value: unknown): string[] {
 const charName = (c: string) => `"${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")})`;
 /** The issue text for a character the font lacks; `where` names the place, e.g. "Question 3". */
 export const missingCharacterMessage = (where: string, c: string) =>
-  `${where} uses ${charName(c)}, which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words${c >= "\u2150" && c <= "\u215f" ? ", or as a stacked fraction such as {1/3}" : ""}).`;
+  `${where} uses ${charName(c)}, which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words${c >= "\u2150" && c <= "\u215f" ? ", or as a stacked fraction such as {1/3} with maths notation" : ""}).`;
 /**
  * A character the worksheet font does not hold would print as a gap in the PDF and as a
  * substitute font in Word, so it is reported as an issue, once per character and question.

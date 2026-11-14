@@ -41,6 +41,14 @@ test("shows the example booklet with a contents page, edits a lesson title and u
   await expect(page.getByTestId("booklet-pages").locator("svg").first()).toContainText("Gradients of lines");
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.lessons[1].title).toBe(a7Booklet.document.lessons[1].title);
+  // Stacked fractions are a cover setting, undoable like any edit.
+  const stacked = page.getByRole("checkbox", { name: /Stacked fractions/ });
+  await expect(stacked).toBeChecked();
+  await stacked.uncheck();
+  expect((await saved(page)).document.notation).toBe("plain");
+  await expect(page.getByTestId("booklet-pages")).toContainText("{1/3}");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.notation).toBe("maths");
   // Answers appear only in the teacher preview.
   // The check-in's ratio tables hold their answers as hidden cells and hidden ÷ 4 steps.
   const hiddenOnPage5 = page.locator("#bk-page-5 .ratio-hidden-answer");

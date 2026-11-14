@@ -447,7 +447,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
       }
       if (block.kind === "section") {
         out.push(at(sectionHead(lesson.sections[block.section], st, block.continued), A4.marginX, yy));
-        if (!block.continued) glyphs({ title: lesson.sections[block.section].title, instruction: lesson.sections[block.section].instruction }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, section ${block.section + 1}`);
+        if (!block.continued) glyphs({ title: lesson.sections[block.section].title, instruction: lesson.sections[block.section].instruction }, { lesson: p.lesson, section: block.section + 1, page: pageNo }, `Lesson ${p.lesson}, ${sectionTitle(lesson.sections[block.section])} heading`);
         continue;
       }
       const section = lesson.sections[block.section];
@@ -459,7 +459,7 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
       block.cards.forEach((c, k) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
-        glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${c.number ? `question ${c.number}` : `section ${block.section + 1}`}`);
+        glyphs(section.cards[c.index], ctx.where, `Lesson ${p.lesson}, ${sectionTitle(section)}${c.number ? `, question ${c.number}` : ""}`);
         const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
         const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
