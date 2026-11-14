@@ -435,9 +435,10 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       x: a.x + translation.x,
       y: a.y + translation.y,
     }));
+    const label = describe(e, showAnswers);
     // Blank/hidden angle targets remain available in the labelled inspector even
     // when a narrow wedge makes their transparent direct hit area hard to reach.
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}"><title>Triangle diagram</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}" role="img" aria-label="${xml(label)}"><title>${xml(label)}</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
     final = {
       width,
       height,
@@ -456,6 +457,28 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
   return final!;
 }
 export const renderSvg = (e: Envelope, showAnswers = false) => layout(e, showAnswers).svg;
+
+const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const list = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
+const KIND_WORDS = { edge: ["side", "sides"], angle: ["angle", "angles"], height: ["height", "heights"], area: ["area", "areas"], caption: ["note", "notes"] } as const;
+/**
+ * Accessible label for the artwork (U36): what the copy prints, never more. A pupil copy names the
+ * printed labels and counts blanks and answer lines; it never names a hidden or saved answer.
+ */
+export function describe(e: Envelope, showAnswers = false): string {
+  const labels = allLabels(e);
+  const names = labels.filter((x) => x.kind === "vertex").map((x) => shown(e, x.label, showAnswers)).filter(Boolean);
+  const count = e.document.triangles.length;
+  const parts = [`${count === 1 ? "Triangle" : `${count} triangles`}${names.length ? ` with vertices ${list(names)}` : ""}`];
+  for (const kind of Object.keys(KIND_WORDS) as (keyof typeof KIND_WORDS)[]) {
+    const own = labels.filter((x) => x.kind === kind);
+    const printed = own.map((x) => shown(e, x.label, showAnswers)).filter((t) => t && !t.includes("____"));
+    if (printed.length) parts.push(`${KIND_WORDS[kind][printed.length === 1 ? 0 : 1]} ${list(printed)}`);
+  }
+  const lines = labels.filter((x) => x.kind !== "vertex" && shown(e, x.label, showAnswers).includes("____")).length;
+  if (lines) parts.push(`${lines} answer ${lines === 1 ? "line" : "lines"}`);
+  return parts.join("; ");
+}
 export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }

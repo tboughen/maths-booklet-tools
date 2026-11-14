@@ -1,8 +1,8 @@
-<svg height="8.27cm" viewBox="0 0 120 82.7" width="12cm" xmlns="http://www.w3.org/2000/svg">
+<svg aria-label="Triangle with vertices A, B and C" height="8.27cm" role="img" viewBox="0 0 120 82.7" width="12cm" xmlns="http://www.w3.org/2000/svg">
   <style>
     "@font-face{font-family:'STIX Two Text';font-style:normal;src:url(data:…)}@font-face{font-family:'STIX Two Text';font-style:italic;src:url(data:…)}@font-face{font-family:'STIX Two Math';src:url(data:…)}"
   <title>
-    "Triangle diagram"
+    "Triangle with vertices A, B and C"
   <rect fill="white" height="100%" width="100%">
   <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.3" stroke="#111" transform="translate(-0.29 -3.07)">
     <line x1="16" x2="16" y1="78" y2="12">
