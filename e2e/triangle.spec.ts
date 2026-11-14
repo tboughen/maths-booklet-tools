@@ -270,12 +270,12 @@ test("a disabled Use worked version says why", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page);
-  await page.locator("summary", { hasText: "Start a new triangle" }).click();
+  await page.locator("summary", { hasText: "Worked version" }).click();
   const blank = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(blank).toBeDisabled();
   await expect(blank).toHaveAccessibleDescription(hint);
   // U1: the reason is printed beside the button in the settings, not hidden in a tooltip.
-  await expect(page.locator(".tr-section").getByText(hint, { exact: true })).toBeVisible();
+  await expect(blank.locator("xpath=ancestor::details").getByText(hint, { exact: true })).toBeVisible();
 });
 
 test("an enabled Use worked version carries no disabled reason", async ({
@@ -283,7 +283,7 @@ test("an enabled Use worked version carries no disabled reason", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page, example("right-trig"));
-  await page.locator("summary", { hasText: "Start a new triangle" }).click();
+  await page.locator("summary", { hasText: "Worked version" }).click();
   const ready = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(ready).toBeEnabled();
   await expect(ready).toHaveAccessibleDescription("");
@@ -301,7 +301,7 @@ test("worked version replaces immediately and Undo restores the complete pupil s
     "33.6°",
   );
   const pages = page.context().pages().length;
-  await page.locator("summary", { hasText: "Start a new triangle" }).click();
+  await page.locator("summary", { hasText: "Worked version" }).click();
   await page
     .getByRole("button", { name: "Use worked version", exact: true })
     .first()
