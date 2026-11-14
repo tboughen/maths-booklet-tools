@@ -17,6 +17,7 @@ import {
   copyWordSizedHtml,
   blobToDataUrl,
 } from "../export/clipboard";
+import { svgPdf } from "../export/diagram-pdf";
 
 /** Whether the table has an answers copy: hidden cells or hidden operations. */
 export const hasRatioAnswers = (envelope: RatioEnvelope) =>
@@ -37,12 +38,14 @@ export async function ratioPrintPng(envelope: RatioEnvelope, view: RatioView = "
 }
 export async function downloadRatioImage(
   envelope: RatioEnvelope,
-  format: "svg" | "png",
+  format: "svg" | "png" | "pdf",
   view: RatioView = "pupil",
 ): Promise<void> {
   const valid = validateRatioEnvelope(envelope);
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf(renderRatioSvg(valid.document, view))
+      : format === "png"
       ? await ratioPrintPng(valid, view)
       : new Blob([await embedPortableFonts(renderRatioSvg(valid.document, view))], {
           type: "image/svg+xml;charset=utf-8",

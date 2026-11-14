@@ -11,7 +11,7 @@ import { getExportMetrics } from "./export/svg";
 import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ExternalLink, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { PageHeading, Panel } from "./site/PageHeading";
 import { AxisSettings } from "./components/AxisSettings";
 import { EquationPanel } from "./components/EquationPanel";
@@ -27,7 +27,6 @@ import {
   getBounds,
   getObjectById,
   getSelectedObject,
-  HISTORY_LIMIT,
   makeId,
   setAxisScale,
   updateObject,
@@ -50,15 +49,12 @@ import type {
 import {
   copyDiagram,
   copyPngToClipboard,
+  downloadDiagramPdf,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
+import { handleUndoKeys, useDocumentHistory } from "./editor-kit";
 
-interface HistoryState {
-  past: DiagramDocumentV1[];
-  present: DiagramDocumentV1;
-  future: DiagramDocumentV1[];
-}
 
 interface ToastState {
   kind: "success" | "error";
@@ -87,11 +83,15 @@ export default function App({ active = true }: { active?: boolean }) {
     }
   });
   const expectedStorage = useRef(storedAtStart);
-  const [history, setHistory] = useState<HistoryState>(() => ({
-    past: [],
-    present: startup.document,
-    future: [],
-  }));
+  const {
+    history,
+    commit: record,
+    replace: replacePresentDocument,
+    undo: stepBack,
+    redo: stepForward,
+  } = useDocumentHistory<DiagramDocumentV1>(startup.document, {
+    equals: sameDocument,
+  });
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -105,7 +105,6 @@ export default function App({ active = true }: { active?: boolean }) {
   );
   const [objectsExpanded, setObjectsExpanded] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [wordHelpOpen, setWordHelpOpen] = useState(false);
   const [copying, setCopying] = useState(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -135,46 +134,22 @@ export default function App({ active = true }: { active?: boolean }) {
     });
   }, []);
 
-  const commit = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => {
-      if (sameDocument(current.present, next)) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: [],
-      };
-    });
-  }, []);
+  const commit = useCallback(
+    (next: DiagramDocumentV1) => record(next),
+    [record],
+  );
 
-  const replaceWithoutHistory = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => ({ ...current, present: next }));
-  }, []);
+  const replaceWithoutHistory = replacePresentDocument;
 
   const undo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const previous = current.past.at(-1);
-      if (!previous) return current;
-      return {
-        past: current.past.slice(0, -1),
-        present: previous,
-        future: [current.present, ...current.future].slice(0, HISTORY_LIMIT),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepBack();
+  }, [hasPendingDraft, recoveryConflict, stepBack]);
 
   const redo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const next = current.future[0];
-      if (!next) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: current.future.slice(1),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepForward();
+  }, [hasPendingDraft, recoveryConflict, stepForward]);
 
   useEffect(() => {
     if (recoveryConflict) {
@@ -237,24 +212,12 @@ export default function App({ active = true }: { active?: boolean }) {
       if (target?.matches("input, textarea, select, [contenteditable='true']"))
         return;
       if (hasPendingDraft() || recoveryConflict) return;
-      const command = event.ctrlKey || event.metaKey;
-      if (command && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-        return;
-      }
-      if (command && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        redo();
-        return;
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
       if (event.key === "Escape") {
         setTool("select");
         setEquationOpen(false);
         setEditingEquationId(null);
         setExportMenuOpen(false);
-        setWordHelpOpen(false);
         replaceWithoutHistory({ ...document, selectedObjectId: null });
         return;
       }
@@ -426,7 +389,6 @@ export default function App({ active = true }: { active?: boolean }) {
     setEquationOpen(false);
     setEditingEquationId(null);
     setExportMenuOpen(false);
-    setWordHelpOpen(false);
     setObjectsExpanded(false);
   }
 
@@ -504,10 +466,14 @@ export default function App({ active = true }: { active?: boolean }) {
                   success: "PNG download started.",
                 },
                 {
-                  label: "First-time Word setup",
+                  label: "Download PDF (actual size)",
                   disabled: blocked,
-                  action: () => setWordHelpOpen(true),
-                  picker: true,
+                  action: () => {
+                    if (locked())
+                      throw Error("Apply or cancel unfinished input first.");
+                    return downloadDiagramPdf(document);
+                  },
+                  success: "PDF download started.",
                 },
               ]}
             />
@@ -704,81 +670,6 @@ export default function App({ active = true }: { active?: boolean }) {
               }}
             >
               Keep recovery copy and continue
-            </button>
-          </section>
-        </div>
-      )}
-
-      {active && wordHelpOpen && (
-        <div
-          className="word-help-backdrop"
-          onMouseDown={() => setWordHelpOpen(false)}
-        >
-          <section
-            className="word-help-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="word-help-title"
-            aria-describedby="word-help-description"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <header>
-              <div>
-                <p className="eyebrow">ONE-TIME SETUP</p>
-                <h2 id="word-help-title">Keep full image quality in Word</h2>
-              </div>
-              <button
-                className="word-help-dismiss"
-                autoFocus
-                aria-label="Close Word setup"
-                onClick={() => setWordHelpOpen(false)}
-              >
-                <X size={19} />
-              </button>
-            </header>
-            <p id="word-help-description">
-              Set this once in Windows desktop Word so pasted graphs keep all
-              600 pixels per inch.
-            </p>
-            <ol>
-              <li>
-                Open <strong>File › Options › Advanced</strong>.
-              </li>
-              <li>
-                Find <strong>Image Size and Quality</strong> and choose{" "}
-                <strong>All New Documents</strong>.
-              </li>
-              <li>
-                Tick <strong>Do not compress images in file</strong>.
-              </li>
-              <li>
-                Set <strong>Default resolution</strong> to{" "}
-                <strong>High fidelity</strong>.
-              </li>
-            </ol>
-            <div className="word-help-links">
-              <a
-                href="https://support.microsoft.com/en-au/office/change-the-default-resolution-for-inserting-pictures-in-office-f4aca5b4-6332-48c6-9488-bf5e0094a7d2"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: change image resolution{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-              <a
-                href="https://support.microsoft.com/en-au/office/turn-off-picture-compression-81a6b603-0266-4451-b08e-fc1bf58da658"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: turn off compression{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            </div>
-            <button
-              className="word-help-done"
-              onClick={() => setWordHelpOpen(false)}
-            >
-              Done
             </button>
           </section>
         </div>

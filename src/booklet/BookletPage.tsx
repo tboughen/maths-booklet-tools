@@ -32,6 +32,7 @@ import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
+import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
@@ -88,7 +89,8 @@ const pdfName = (b: Booklet, view: "pupil" | "answers", lesson?: number) => (les
 
 export default function BookletPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{ past: Booklet[]; present: Booklet; future: Booklet[] }>({ past: [], present: startup.b, future: [] });
+  const documentHistory = useDocumentHistory<Booklet>(startup.b, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
+  const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -110,7 +112,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     try {
       const valid = validateBooklet(next);
-      setHistory((h) => (JSON.stringify(h.present) === JSON.stringify(valid) ? h : { past: [...h.past, h.present].slice(-60), present: valid, future: [] }));
+      documentHistory.commit(valid);
       setMessage("");
     } catch (e) {
       // Invalid edits are refused with the specific reason; the last valid booklet stays.
@@ -126,8 +128,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     update(next.document);
     commit(next);
   }
-  const undo = () => !blocked && setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h));
-  const redo = () => !blocked && setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h));
+  const undo = () => !blocked && documentHistory.undo();
+  const redo = () => !blocked && documentHistory.redo();
 
   useEffect(() => {
     if (recovery !== null) return;
@@ -142,16 +144,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (!(event.ctrlKey || event.metaKey) || (event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))) return;
-      const k = event.key.toLowerCase();
-      if (k === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-      } else if (k === "y") {
-        event.preventDefault();
-        redo();
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -491,7 +484,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     const next = pending.b;
                     setPending(null);
-                    setHistory((h) => ({ past: [...h.past, h.present].slice(-60), present: next, future: [] }));
+                    setHistory((h) => pushHistory(h, next, { label: "open file" }));
                     setFocus(0);
                     setMessage("");
                   }}
@@ -562,10 +555,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines
               </label>
               <label className="ws-check">
-                <input type="checkbox" checked={d.notation !== "plain"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
-              </label>
-              <label className="ws-check">
-                <input type="checkbox" checked={d.notation === "typeset"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "typeset" : "maths"))} /> Print maths as on a paper: x^2 as x², a true minus, {"<="} as ≤, italic x
+                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Maths printing: stacked {"{3/4}"}, x², a true minus, ≤ and italic x
               </label>
               <details className="ws-side">
                 <summary>Unit introduction</summary>

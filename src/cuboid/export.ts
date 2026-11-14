@@ -14,7 +14,9 @@ import {
   blobToDataUrl,
   copyWordSizedHtml,
   downloadBlob,
+  svgAlt,
 } from "../export/clipboard";
+import { svgPdf } from "../export/diagram-pdf";
 
 export async function prepareImage(e: Envelope) {
   // Measure with the page's own STIX fonts and embed the (subset) fonts only after cropping: a
@@ -107,9 +109,11 @@ async function rasterImage(m: Awaited<ReturnType<typeof prepareImage>>) {
 export async function printPng(e: Envelope): Promise<Blob> {
   return rasterImage(await prepareImage(e));
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") {
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf((await prepareImage(e)).svg)
+      : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
@@ -127,7 +131,7 @@ export async function copyWord(e: Envelope) {
     url = await blobToDataUrl(await rasterImage(m));
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="Cuboid diagrams">`,
+      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="${svgAlt(m.svg, "Cuboid diagrams")}">`,
     )
   )
     throw Error(

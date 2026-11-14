@@ -1,5 +1,6 @@
 import { typesetForPrint } from "./typeset";
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
+import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
@@ -67,7 +68,7 @@ export const fractionBaseline = (size: number) => fractionLine(size) - (lineBox(
 /** Stacked fractions are the rule on worksheets, so a fraction typed inline gets a note. */
 export const fractionMessage = (question: number, found: string, maths: boolean) =>
   found.startsWith("{")
-    ? `Question ${question} has ${found}, which prints with its braces because document.notation is "plain". Set notation "typeset" so it prints as a stacked fraction.`
+    ? `Question ${question} has ${found}, which prints with its braces because document.notation is not "maths". Set notation "maths" so it prints as a stacked fraction.`
     : `Question ${question} writes the fraction ${found} inline. Fractions print stacked: write it as ${/\d/.test(found) ? `{${found.replace(/ /g, "")}}` : "{numerator/denominator}"}${maths ? "" : ' and set document.notation to "maths"'} (a mixed number as 2{1/2}).`;
 
 function noteInline(source: string, ctx: AnyCtx) {
@@ -156,7 +157,10 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
   try {
-    drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
+    const envelope = diagramEnvelope(d);
+    drawn = drawDiagram(d.tool, envelope, ctx.view === "answers" ? "answer" : "pupil");
+    // W90: a pupil copy never shows a saved answer.
+    if (ctx.view !== "answers") for (const leak of answerLeaks(d.tool, envelope, drawn.svg)) issue(ctx, leak.message);
   } catch (error) {
     issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
     return { h: 0, svg: "" };
@@ -709,6 +713,7 @@ export function renderResource(saved: Resource, options: RenderOptions = {}): Re
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
   notes.push(...ctx.inline!.values());
+  ctx.issues.push(...questionReferenceIssues(resource));
   return { pages, issues: ctx.issues, notes };
 }
 
@@ -718,4 +723,45 @@ export function fileName(resource: Resource, view: View = "pupil"): string {
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
   const parts = [d.code, d.objective].map(safe).filter(Boolean);
   return `${parts.join("_")}${view === "answers" ? "_Answers" : ""}_A3.pdf`;
+}
+
+/** Every string a pupil can read in a card (titles and items, not saved answers or hidden working). */
+function readableText(cd: Card): string[] {
+  const out: string[] = [cd.title];
+  const walk = (v: unknown, key = ""): void => {
+    if (typeof v === "string") {
+      if (!["answer", "working", "type", "state", "kind", "style", "mode"].includes(key)) out.push(v);
+    } else if (Array.isArray(v)) v.forEach((x) => walk(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram") walk(x, k);
+  };
+  walk(cd.items);
+  return out;
+}
+
+/**
+ * "Question N" in a card's text must name a real, different question, except in Edexcel's
+ * "(Total for Question N is M marks)", which must name the card's own number. Reminder cards are not
+ * numbered, so adding or moving one shifts the numbers these references rely on.
+ */
+export function questionReferenceIssues(resource: Resource): Issue[] {
+  const issues: Issue[] = [];
+  const cards: { cd: Card; n: number; side: number; column: number }[] = [];
+  let n = 0;
+  resource.document.sides.forEach((side, s) => side.columns.forEach((col, c) => col.cards.forEach((cd) => {
+    if (!isReminder(cd)) cards.push({ cd, n: ++n, side: s + 1, column: c + 1 });
+  })));
+  for (const { cd, n: own, side, column } of cards) {
+    for (const text of readableText(cd)) {
+      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+        const ref = Number(m[2]);
+        const where = { side, column, question: own };
+        const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";
+        if (m[1]) {
+          if (ref !== own) issues.push({ ...where, message: `Question ${own} says "Total for Question ${ref}"; it is question ${own}. ${tail}` });
+        } else if (ref === own) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, which is itself. ${tail}` });
+        else if (ref < 1 || ref > n) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, but the sheet has ${n} questions. ${tail}` });
+      }
+    }
+  }
+  return issues;
 }

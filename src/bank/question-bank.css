@@ -410,7 +410,6 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-annotate-text { min-height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #253e59; font: inherit; font-size: 13px; cursor: pointer; }
 .qb-annotate-text:hover:not(:disabled) { background: #edf4ff; }
 .qb-annotate-text:disabled { opacity: .4; cursor: default; }
-.qb-annotate-fist { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #253e59; white-space: nowrap; }
 @media print { .qb-annotations, .qb-annotate-bar, .qb-display-dock { display: none !important; } }
 @media (max-width: 600px) { .qb-display-dock { left: 12px; right: 12px; justify-content: flex-end; flex-wrap: wrap; } }
 .qb-annotate-spare { visibility: hidden; }

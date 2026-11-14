@@ -10,6 +10,7 @@ import { checkPlacement, placementInputSchema, placementOutputSchema, printGuida
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { ARCHIVE_NAMES } from "./archive";
+import { FAMILIES } from "../../packages/diagram-core/src/registry";
 import type { DownloadFormat } from "./downloads";
 import { registerSvgDelivery } from "./svg-delivery";
 export type Artifact = { body: Buffer; type: string };
@@ -30,8 +31,8 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
     const members = {
       "source.json": Buffer.from(JSON.stringify(source.envelope, null, 2)),
       "diagram.svg": svg.body, "diagram.png": png.body,
-      "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "graph" ? {outputView: source.outputView ?? "pupil"} : source.kind === "charts" ? {outputView: source.outputView ?? "pupil"} : {}), printDpi: 600 }, null, 2)),
-      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" ? `Artwork view: ${source.outputView ?? "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : source.kind === "charts" ? `Artwork view: ${source.outputView ?? "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
+      "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(FAMILIES[source.kind].answerView ? {outputView: ("outputView" in source && source.outputView) || "pupil"} : {}), printDpi: 600 }, null, 2)),
+      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${FAMILIES[source.kind].answerView ? `Artwork view: ${("outputView" in source && source.outputView) || "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
     };
     return { body: Buffer.from(await raster.pack(members, signal)), type: "application/zip" };
   }
@@ -73,7 +74,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
           content.push({ type: "resource", resource: { uri: `mathsdock-bundle://inline/${randomUUID()}/diagram.zip`, mimeType: file.type, blob } });
         }
         content.unshift({ type: "text", text: download ? "ZIP link ready; archive bytes are generated and validated when downloaded. Retrieve it before claiming file success." : "ZIP is included as bounded file content; save it using the client. No server library was created." });
-        return { structuredContent: { kind: source.kind, ...(source.kind === "venn" || source.kind === "probability-tree" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), download, inline: !download, filenames: ARCHIVE_NAMES, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance }, content };
+        return { structuredContent: { kind: source.kind, ...(FAMILIES[source.kind].answerView ? { outputView: ("outputView" in source && source.outputView) || "pupil" } : {}), download, inline: !download, filenames: ARCHIVE_NAMES, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance }, content };
       } catch (error) { return failure(error); }
     });
   }

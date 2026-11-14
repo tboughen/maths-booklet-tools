@@ -9,8 +9,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { copyPngToClipboard } from "../export/clipboard";
@@ -47,12 +47,8 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 
-type History = {
-  past: RatioEnvelope[];
-  present: RatioEnvelope;
-  future: RatioEnvelope[];
-};
 type Pending = {
   title: string;
   envelope?: RatioEnvelope;
@@ -88,11 +84,14 @@ export default function RatioTablePage({
   const [startup] = useState(loadRatioRecovery);
   const [recovery, setRecovery] = useState(startup.recovery),
     [recoveryDownloaded, setRecoveryDownloaded] = useState(false);
-  const [history, setHistory] = useState<History>(() => ({
-    past: [],
-    present: startup.envelope,
-    future: [],
-  }));
+  const {
+    history,
+    commit: record,
+    undo: stepBack,
+    redo: stepForward,
+  } = useDocumentHistory<RatioEnvelope>(startup.envelope, {
+    equals: (a, b) => JSON.stringify(a) === JSON.stringify(b),
+  });
   const [saveState, setSaveState] = useState(startup.error ? "error" : "saved");
   const [message, setMessage] = useState(startup.error ?? "");
   const [exportsOpen, setExportsOpen] = useState(false);
@@ -135,16 +134,8 @@ export default function RatioTablePage({
   const commit = useCallback((next: RatioEnvelope) => {
     if (blocked.current)
       throw Error("Save the recovery copy before replacing the saved table.");
-    setHistory((previous) =>
-      JSON.stringify(previous.present) === JSON.stringify(next)
-        ? previous
-        : {
-            past: [...previous.past, previous.present].slice(-50),
-            present: next,
-            future: [],
-          },
-    );
-  }, []);
+    record(next);
+  }, [record]);
   function operations(ops: RatioOperation[]) {
     commit(applyRatioOperations(current.current, ops));
   }
@@ -161,39 +152,21 @@ export default function RatioTablePage({
     }
   }
   const undo = useCallback(() => {
-    setHistory((previous) => {
-      const next = previous.past.at(-1);
-      return !next
-        ? previous
-        : {
-            past: previous.past.slice(0, -1),
-            present: next,
-            future: [previous.present, ...previous.future].slice(0, 50),
-          };
-    });
+    stepBack();
     setInputVersion((v) => v + 1);
     setPendingInputs(new Set());
     setSelection(null);
     setArrowFrom(null);
     setTool("edit");
-  }, []);
+  }, [stepBack]);
   const redo = useCallback(() => {
-    setHistory((previous) => {
-      const next = previous.future[0];
-      return !next
-        ? previous
-        : {
-            past: [...previous.past, previous.present].slice(-50),
-            present: next,
-            future: previous.future.slice(1),
-          };
-    });
+    stepForward();
     setInputVersion((v) => v + 1);
     setPendingInputs(new Set());
     setSelection(null);
     setArrowFrom(null);
     setTool("edit");
-  }, []);
+  }, [stepForward]);
   useEffect(() => {
     if (recovery) return;
     setSaveState("saving");
@@ -261,14 +234,7 @@ export default function RatioTablePage({
       const target = e.target as HTMLElement | null;
       if (target?.matches("input, select, textarea, [contenteditable='true']"))
         return;
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        ["z", "y"].includes(e.key.toLowerCase())
-      ) {
-        e.preventDefault();
-        if (e.key.toLowerCase() === "y" || e.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(e, { undo, redo })) return;
       if (e.key === "Escape") {
         setExportsOpen(false);
         setTool("edit");
@@ -607,43 +573,43 @@ export default function RatioTablePage({
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"
+              wordHelp
               open={exportsOpen}
               active={active}
               onClose={() => setExportsOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadRatioImage(envelope, "png"),
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
-                ...(hasRatioAnswers(envelope)
-                  ? [
-                      {
-                        label: "Download answers SVG",
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
+                answers: hasRatioAnswers(envelope)
+                  ? {
+                      svg: {
                         action: () => downloadRatioImage(envelope, "svg", "answer"),
                         disabled: exportDisabled,
                         success: "Answers SVG download started.",
-                        description: "Hidden answers printed in the answer colour.",
                       },
-                      {
-                        label: "Download answers PNG (600 ppi)",
+                      png: {
                         action: () => downloadRatioImage(envelope, "png", "answer"),
                         disabled: exportDisabled,
                         success: "Answers PNG download started.",
                       },
-                    ]
-                  : []),
-                {
-                  label: "Save editable file",
+                    }
+                  : undefined,
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([JSON.stringify(envelope, null, 2)], {
@@ -653,26 +619,21 @@ export default function RatioTablePage({
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: exportDisabled,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(ratioEditorLink(envelope, location.href)),
                     ),
                   disabled: exportDisabled,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               ref={file}

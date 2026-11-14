@@ -28,8 +28,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
@@ -40,6 +40,7 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
+import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -100,11 +101,13 @@ export default function AlgebraGridPage({
   active?: boolean;
 }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState({
-      past: startup.previous ? [startup.previous] : ([] as Envelope[]),
-      present: startup.e,
-      future: [] as Envelope[],
-    });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, {
+      equals: (a, b) => canonical(a) === canonical(b),
+      from: startup.previous
+        ? pushHistory(createHistory(startup.previous), startup.e, { label: "open link" })
+        : undefined,
+    }),
+    history = documentHistory.history;
   const e = history.present,
     d = e.document,
     g = layout(e);
@@ -156,11 +159,7 @@ export default function AlgebraGridPage({
   function commit(next: Envelope, force = false) {
     if (!force && (recovery !== null || conflict)) return;
     const n = validate(next);
-    setHistory((h) =>
-      canonical(n) === canonical(h.present)
-        ? h
-        : { past: [...h.past, h.present].slice(-60), present: n, future: [] },
-    );
+    documentHistory.commit(n);
   }
   function change(fn: (n: Envelope) => void) {
     if (blocked) return;
@@ -170,27 +169,11 @@ export default function AlgebraGridPage({
   }
   function undo() {
     if (blockedRef.current) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (blockedRef.current) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function replace(
     next: Envelope,
@@ -226,14 +209,7 @@ export default function AlgebraGridPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
@@ -517,48 +493,46 @@ export default function AlgebraGridPage({
               menuId="algebra-download-menu"
             />
             <EditorDownloadMenu
+              wordHelp
               id="algebra-download-menu"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onMessage={setMessage}
               onBusyChange={setBusy}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "svg"),
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "png"),
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  disabled: pendingInput || !!issue,
+                  action: () => downloadImage(e, "pdf"),
+                  success: "PDF download started.",
+                },
+                save: {
                   disabled: pendingInput,
-                  description: "Includes hidden answers.",
                   action: () => downloadEditable(e),
                   success: "Editable-file download started.",
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   disabled: pendingInput,
                   action: () => file.current?.click(),
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   disabled: pendingInput,
-                  description: LINK_DESCRIPTION,
                   action: async () =>
                     navigator.clipboard.writeText(editorLink(e, location.href)),
                   success:
                     "Editable link copied, including any hidden answers.",
                 },
-              ]}
+              })}
             />
             <input
               type="file"

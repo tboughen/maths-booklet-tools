@@ -8,8 +8,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,6 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -158,11 +159,8 @@ export default function NumberLinePage({
   active?: boolean;
 }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{
-    past: Envelope[];
-    present: Envelope;
-    future: Envelope[];
-  }>({ past: [], present: startup.envelope, future: [] });
+  const documentHistory = useDocumentHistory<Envelope>(startup.envelope, { equals: (a, b) => canonical(a) === canonical(b) }),
+    history = documentHistory.history;
   const [message, setMessage] = useState(startup.error),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [recoverySaved, setRecoverySaved] = useState(false),
@@ -219,11 +217,7 @@ export default function NumberLinePage({
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    setHistory((h) =>
-      canonical(v) === canonical(h.present)
-        ? h
-        : { past: [...h.past, h.present].slice(-60), present: v, future: [] },
-    );
+    documentHistory.commit(v);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -251,28 +245,12 @@ export default function NumberLinePage({
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setSelection(null);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setSelection(null);
   }
   function replacement(envelope: Envelope, title: string) {
@@ -353,23 +331,7 @@ export default function NumberLinePage({
         setFirst(null);
         if (!dirty.size) setSelection(null);
       }
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        !(
-          e.target instanceof HTMLElement &&
-          e.target.closest("input,textarea,select,[contenteditable]")
-        )
-      ) {
-        if (e.key.toLowerCase() === "z") {
-          e.preventDefault();
-          if (e.shiftKey) redo();
-          else undo();
-        }
-        if (e.key.toLowerCase() === "y") {
-          e.preventDefault();
-          redo();
-        }
-      }
+      if (handleUndoKeys(e, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -791,27 +753,30 @@ export default function NumberLinePage({
               </p>
             )}
             <EditorDownloadMenu
+              wordHelp
               id="number-line-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(history.present, "png"),
                   disabled: blocked,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(history.present, "pdf"),
+                  disabled: blocked,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([canonical(history.present)], {
@@ -821,17 +786,13 @@ export default function NumberLinePage({
                     ),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () => {
                     const raw = editorLink(
                       history.present,
@@ -846,9 +807,8 @@ export default function NumberLinePage({
                   },
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />

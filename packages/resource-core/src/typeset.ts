@@ -1,5 +1,5 @@
 /**
- * Maths typesetting for question text (worksheet and booklet `notation: "typeset"`).
+ * Maths typesetting for question text (worksheet and booklet `notation: "maths"`).
  *
  * A teacher or a model types maths with an ordinary keyboard: x^2, -3, <=, sqrt 16, pi, 3 x 4.
  * With typesetting on, that text prints as a maths paper prints it: x², −3, ≤, √16, π, 3 × 4, and
@@ -19,6 +19,9 @@ const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
 /** Letter runs that stay upright inside a maths token: function names, units, ordinals and times. */
 const UPRIGHT = new Set(["sin", "cos", "tan", "log", "ln", "exp", "min", "max", "mm", "cm", "km", "kg", "mg", "ml", "cl", "mph", "st", "nd", "rd", "th", "am", "pm"]);
+
+/** Short English words that can sit beside an operator in prose ("x = 3 or 4") and stay upright. */
+const WORDS = new Set(["an", "as", "at", "be", "by", "do", "if", "in", "is", "it", "of", "on", "or", "so", "to", "up", "we", "and", "are", "but", "can", "for", "has", "its", "not", "the", "was", "who", "why", "how", "all", "any", "one", "two", "six", "ten"]);
 
 /** Character rewrites that are safe anywhere printed text appears, fractions and bold included. */
 export function typesetSymbols(s: string): string {
@@ -62,6 +65,11 @@ function italicLetters(s: string): string {
     const axis = core.match(/^([a-z])-(axis|axes|coordinate|coordinates|value|values|intercept)$/);
     if (axis) {
       out[w.i] = `${lead}*${axis[1]}*-${axis[2]}${tail}`;
+      return;
+    }
+    // A short product of letters beside an operator (mx ± c, ab = 6) is maths; a short word is not.
+    if (/^[a-z]{2,3}$/.test(core) && byOperator && !WORDS.has(core) && !UPRIGHT.has(core)) {
+      out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
     if (/^[a-z]$/.test(core)) {
@@ -115,13 +123,16 @@ function typesetValue(v: unknown, key: string): unknown {
   return v;
 }
 
+/** Printed copies already typeset, so a renderer that calls another does not typeset twice. */
+const printed = new WeakSet<object>();
+
 /**
- * The copy of a worksheet or booklet the renderers print. A typeset document prints as a maths
- * document whose text has been typeset; any other document is returned unchanged (the same
- * object), so saved plain and maths sheets print byte-identically.
+ * The copy of a worksheet or booklet the renderers print: with maths notation, its printed text
+ * typeset. A plain document is returned unchanged. The saved document is never changed.
  */
 export function typesetForPrint<T extends { document: { notation?: string } }>(resource: T): T {
-  if (resource.document.notation !== "typeset") return resource;
-  const document = typesetValue(resource.document, "") as T["document"];
-  return { ...resource, document: { ...document, notation: "maths" } };
+  if (resource.document.notation !== "maths" || printed.has(resource)) return resource;
+  const copy = { ...resource, document: typesetValue(resource.document, "") as T["document"] };
+  printed.add(copy);
+  return copy;
 }

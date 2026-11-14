@@ -1,9 +1,9 @@
 import { pathLink } from "../site/routes";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
   type DownloadAction,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { useEffect, useRef, useState } from "react";
 import {
   createEnvelope,
@@ -143,6 +143,11 @@ export function GraphExchange({
     }
     if (file.current) file.current.value = "";
   }
+  const imageAction = (label: string) => {
+    const item = imageActions.find((action) => action.label === label);
+    if (!item) throw Error(`The graph File menu needs "${label}".`);
+    return item;
+  };
   return (
     <>
       <input
@@ -162,14 +167,13 @@ export function GraphExchange({
         onClose={onClose}
         onBusyChange={onBusyChange}
         onMessage={onMessage}
-        actions={[
-          ...imageActions.filter(
-            (item) => item.label !== "First-time Word setup",
-          ),
-          {
-            label: "Save editable file",
+        wordHelp
+        actions={diagramFileMenu({
+          svg: imageAction("Download SVG"),
+          png: imageAction("Download PNG (600 ppi)"),
+          pdf: imageAction("Download PDF (actual size)"),
+          save: {
             disabled: !enabled,
-            separator: true,
             action: () => {
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
@@ -182,18 +186,14 @@ export function GraphExchange({
             },
             success: "Editable file download started.",
           },
-          {
-            label: "Open editable file",
+          open: {
             disabled: !enabled,
-            picker: true,
             action: () => {
               if (available.current) file.current?.click();
             },
           },
-          {
-            label: "Copy editable link",
+          link: {
             disabled: !enabled,
-            description: LINK_DESCRIPTION,
             action: () => {
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
@@ -203,13 +203,7 @@ export function GraphExchange({
             },
             success: "Editable link copied.",
           },
-          ...imageActions
-            .filter((item) => item.label === "First-time Word setup")
-            .map((item) => ({ ...item, separator: true })),
-        ].filter(
-          (item, index, items) =>
-            items.findIndex((other) => other.label === item.label) === index,
-        )}
+        })}
       />
       {pending && enabled && (
         <div className="word-help-backdrop">

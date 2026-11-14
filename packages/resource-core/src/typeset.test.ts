@@ -22,6 +22,8 @@ describe("typesetting typed maths", () => {
     ["Simplify 5m + 2m", "Simplify 5*m* + 2*m*"],
     ["Point A(2, -1) on the x-axis", "Point A(2, −1) on the *x*-axis"],
     ["Find a number n such that n <= 7", "Find a number *n* such that *n* ≤ 7"],
+    ["the form y = mx ± c", "the form *y* = *mx* ± *c*"],
+    ["x = 3 or y = 4", "*x* = 3 or *y* = 4"],
   ];
   it.each(cases)("%s", (typed, printed) => expect(typesetText(typed)).toBe(printed));
 
@@ -41,34 +43,34 @@ describe("typesetting typed maths", () => {
   });
 });
 
-const sheet = (notation: "plain" | "maths" | "typeset"): Resource => {
+const sheet = (notation: "plain" | "maths"): Resource => {
   const r = structuredClone(comparativeBarCharts);
   r.document.notation = notation;
   r.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "Solve 3x - 2 <= x^2." });
   return validate(r);
 };
 
-describe("the typeset setting", () => {
-  it("prints saved plain and maths sheets exactly as before", () => {
-    for (const n of ["plain", "maths"] as const) {
-      const r = sheet(n);
-      expect(typesetForPrint(r)).toBe(r);
-      expect(renderResource(r).pages.join("")).toContain("Solve 3x - 2 &lt;= x^2.");
-    }
+describe("maths notation typesets printed text", () => {
+  it("prints a plain sheet exactly as typed", () => {
+    const r = sheet("plain");
+    expect(typesetForPrint(r)).toBe(r);
+    expect(renderResource(r).pages.join("")).toContain("Solve 3x - 2 &lt;= x^2.");
   });
 
-  it("prints a typeset sheet with true minus, ≤, x² and italic letters, and leaves the saved file alone", () => {
-    const r = sheet("typeset");
+  it("prints true minus, ≤, x² and italic letters, and leaves the saved file alone", () => {
+    const r = sheet("maths");
     const before = JSON.stringify(r);
     const svg = renderResource(r).pages.join("");
     expect(svg).toContain('Solve 3<tspan font-style="italic">x</tspan> − 2 ≤ <tspan font-style="italic">x</tspan>².');
     expect(JSON.stringify(r)).toBe(before);
-    expect(r.document.notation).toBe("typeset");
+    // A printed copy is never typeset a second time.
+    const printed = typesetForPrint(r);
+    expect(typesetForPrint(printed)).toBe(printed);
   });
 
   it("prints the same typesetting in Word", async () => {
     const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
-    const { bytes } = await writeWorksheetDocx(sheet("typeset"), {
+    const { bytes } = await writeWorksheetDocx(sheet("maths"), {
       view: "pupil",
       fonts: { regular: font(1), semiBold: font(2), italic: font(3) },
       picture: (svg) => ({ svg, png: new Uint8Array([137, 80, 78, 71]) }),
@@ -81,12 +83,11 @@ describe("the typeset setting", () => {
 
   it("typesets booklets too, and only their printed text", () => {
     const b = structuredClone(a7Booklet);
-    b.document.notation = "typeset";
+    b.document.notation = "maths";
     b.document.lessons[0].keyIdea = "The gradient of y = 2x - 1 is 2.";
     b.document.lessons[0].teacherNotes = "x^2 stays as typed in notes";
     const booklet = validateBooklet(b);
     const printed = typesetForPrint(booklet);
-    expect(printed.document.notation).toBe("maths");
     expect(printed.document.lessons[0].keyIdea).toBe("The gradient of *y* = 2*x* − 1 is 2.");
     expect(printed.document.lessons[0].teacherNotes).toBe("x^2 stays as typed in notes");
     expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-style=\"italic\">x</tspan> − 1");

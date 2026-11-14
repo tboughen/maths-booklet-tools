@@ -157,8 +157,8 @@ question. Tell the teacher which column is mostly blank and offer one or two mor
 its stage; add them only if the teacher agrees, then call `create_worksheet` again.
 
 Fractions on worksheets are always stacked. On a new worksheet set `document.notation` to
-`"typeset"` and write every fraction as `{3/4}` (a mixed number as `2{1/2}`, algebra as `{x/2}`) in
-question text, options, steps, bullets, claims and parts; never `1/2` or `½`. With that
+`"maths"` and write every fraction as `{3/4}` (a mixed number as `2{1/2}`, algebra as `{x/2}`) in
+question text, options, steps, bullets, claims and parts; never `1/2` or `½`. With maths
 notation, answer lines (prefix, suffix, saved answer), table cells and table headings, and
 circle-one options stack too: `1/3`, `2 1/2` or `2½` there print stacked. Only card titles and
 column headings cannot stack; keep fractions out of them. An exact fractional value is never a
@@ -181,7 +181,7 @@ each named misconception; practice with at least three unaided questions per cas
 "From earlier" strip; a challenge; and an exam-style page in Edexcel wording with marks, as its
 description sets out. Use the school's method, named the same way, wherever the skill returns,
 and add one new step at a time. A whole unit goes in one call: send diagrams as specs, not envelopes, and
-do not split the unit. Set `document.notation` to `"typeset"` on a new booklet and write fractions as
+do not split the unit. Set `document.notation` to `"maths"` on a new booklet and write fractions as
 on worksheets (`{3/4}`, never `½` or `⅓`). It returns pupil and answers PDF and Word links for the
 whole booklet and for every lesson: give the teacher all of them.
 

@@ -144,7 +144,7 @@ ${JSON.stringify(exampleLessonSource)}
 
 /** One lesson as a booklet of its own, so it can be laid out and checked alone. */
 function soloBooklet(lesson: Lesson): Booklet {
-  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, notation: "typeset", intro: null, lessons: [lesson] } };
+  return { tool: "resource", schemaVersion: 1, document: { kind: "booklet-a4", title: "Check", code: "", group: "", coverNote: "", nameLine: false, notation: "maths", intro: null, lessons: [lesson] } };
 }
 
 const REVEALING = /^(worked[A-Za-z]*|calculate|answerVisible)$/;

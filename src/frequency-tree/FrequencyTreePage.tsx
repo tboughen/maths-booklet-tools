@@ -5,7 +5,10 @@ import { frequencyTreeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu, LINK_DESCRIPTION } from "../site/EditorDownloadMenu";
+import {
+  EditorDownloadMenu,
+} from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
@@ -48,6 +51,7 @@ import {
 } from "../../packages/frequency-tree-core/src";
 import { LINK_PREFIX, frequencyTreeLink, parseFrequencyTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
 type Doc = Envelope["document"];
@@ -138,11 +142,8 @@ function HideBox({ label, value, disabled, onChange }: { label: string; value: L
 
 export default function FrequencyTreePage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{ past: Envelope[]; present: Envelope; future: Envelope[] }>({
-      past: [],
-      present: startup.e,
-      future: [],
-    });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
+    history = documentHistory.history;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
@@ -173,9 +174,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     }
     try {
       const valid = validate(next);
-      setHistory((h) =>
-        canonical(h.present) === canonical(valid) ? h : { past: [...h.past, h.present].slice(-60), present: valid, future: [] },
-      );
+      documentHistory.commit(valid);
       setMessage("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -194,11 +193,11 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     });
   function undo() {
     if (blocked) return;
-    setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h));
+    documentHistory.undo();
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h));
+    documentHistory.redo();
   }
   function replace(next: Envelope, title: string, explanation = "This replaces the current tree. You can undo the replacement.") {
     if (!blocked) setPending({ e: next, title, explanation });
@@ -245,17 +244,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if ((event.ctrlKey || event.metaKey) && !(event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (event.shiftKey) redo();
-          else undo();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redo();
-        }
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -335,25 +324,25 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="ftree-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                { label: "Download SVG", action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                { label: "Download PNG (600 ppi)", action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                { label: "Save editable file", action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started.", separator: true },
-                { label: "Open editable file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
-                {
-                  label: "Copy editable link",
+              actions={diagramFileMenu({
+                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },
+                save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
+                open: { action: () => file.current?.click(), disabled: blocked, success: "" },
+                link: {
                   action: () => navigator.clipboard.writeText(frequencyTreeLink(e, location.href)),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               ref={file}

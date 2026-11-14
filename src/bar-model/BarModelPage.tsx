@@ -10,8 +10,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -26,6 +26,7 @@ import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -98,11 +99,8 @@ export default function BarModelPage({
       ? { e: managed.present, raw: null, recovery: null, message: "" }
       : initial(),
   );
-  const [history, setHistory] = useState({
-    past: [] as c.Envelope[],
-    present: startup.e,
-    future: [] as c.Envelope[],
-  });
+  const documentHistory = useDocumentHistory<c.Envelope>(startup.e, { equals: (a, b) => c.canonical(a) === c.canonical(b) }),
+    history = documentHistory.history;
   const e = managed?.present ?? history.present,
     d = e.document,
     g = c.layout(e);
@@ -153,15 +151,7 @@ export default function BarModelPage({
       managed.onCommit(valid);
       return;
     }
-    setHistory((h) =>
-      c.canonical(h.present) === c.canonical(valid)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid);
   }
   function operation(op: Operation) {
     if (guard.current) return;
@@ -178,15 +168,7 @@ export default function BarModelPage({
       managed.onUndo();
       return;
     }
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (guard.current) return;
@@ -194,15 +176,7 @@ export default function BarModelPage({
       managed.onRedo();
       return;
     }
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function start(n: Draft) {
     if (guard.current) return;
@@ -286,14 +260,7 @@ export default function BarModelPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
@@ -383,41 +350,39 @@ export default function BarModelPage({
       },
     });
   }
-  const actions = [
-    {
-      label: "Download SVG",
+  const actions = diagramFileMenu({
+    svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
       success: "SVG download started",
     },
-    {
-      label: "Download PNG (600 ppi)",
+    png: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "png"),
       success: "PNG download started",
     },
-    {
-      label: "Save editable file",
+    pdf: {
+      disabled: blocked || !!issue,
+      action: () => downloadImage(e, "pdf"),
+      success: "PDF download started",
+    },
+    save: {
       disabled: blocked,
       action: () => downloadEditable(e),
       success: "Editable file download started",
     },
-    {
-      label: "Open editable file",
+    open: {
       disabled: blocked,
       action: () => file.current?.click(),
-      picker: true,
     },
-    {
-      label: "Copy editable link",
+    link: {
       disabled: blocked,
-      description: LINK_DESCRIPTION,
       action: async () => {
         await navigator.clipboard.writeText(pathLink(editorLink(e, location.href)));
       },
       success: "Editable link copied",
     },
-  ];
+  });
   const stateSelect = (l: c.Label, change: (l: c.Label) => void) => (
     <>
       <label>
@@ -539,6 +504,7 @@ export default function BarModelPage({
             />
             <EditorDownloadMenu
               id="bar-model-files"
+              wordHelp
               open={menu}
               active={active}
               onClose={() => setMenu(false)}

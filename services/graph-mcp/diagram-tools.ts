@@ -15,6 +15,7 @@ import { describeGraph } from "../../packages/graph-core/src/interchange";
 import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
 import * as line from "../../packages/number-line-core/src/index";
 import { diagramSource, type DiagramSource } from "./diagram-source";
+import { answerLeaks } from "../../packages/diagram-core/src/answer-leaks";
 
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
 /** Builds the finished result (preview, files, links, print facts) for one validated source. */
@@ -90,6 +91,8 @@ async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   const s = r.structuredContent as { physicalSizeCm: { width: number; height: number }; warnings: string[]; downloads: Partial<Record<keyof typeof MIME, { url: string }>> };
   const view = "outputView" in source && source.outputView ? source.outputView : "pupil";
   const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, view));
+  // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
+  for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);
   // Files as MCP resource links, so clients can offer them directly instead of retyping URLs.
   const links: ContentBlock[] = (Object.keys(MIME) as (keyof typeof MIME)[]).flatMap((format) => {

@@ -19,10 +19,17 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
 `algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree` and `triangle`. `outputView` applies
-only to families with an answers copy (ratio tables, graphs, Venn, charts, probability trees, frequency trees,
-expanding and factorising grids, and triangles). Since 14 November 2026 the grid and triangle answers copies show
+only to families with an answers copy (ratio tables, graphs, number lines, Venn, bar models, charts,
+probability trees, frequency trees, expanding and factorising grids, and triangles). Value graphs and cuboids hold no
+saved answers (a blank value-graph cell or cuboid label has nothing stored), so they stay pupil-only: an answers copy
+there would mean calculating. Since M84 (14 November 2026) number lines print answer-line tick values, a hidden
+solution and a hidden saved answer in pink (hidden tick labels stay hidden), and bar models (v1, v2 and v3) print
+labels saved hidden in pink; blank, question and answer-line bar labels stay as they are. Both copies share one
+layout size, and create/revise/bundle results report `outputView` for every answer-view family. Since 14 November 2026 the grid and triangle answers copies show
 saved hidden answers, and the two trees colour revealed answers in the house answer colour, as worksheet answers
-copies already did for answer lines, ratio tables and graphs.
+copies already did for answer lines, ratio tables and graphs. Venn diagrams (regions and set labels saved hidden or
+as answer lines) and charts (bars and lines whose value was saved hidden) do the same since R24; their solid grey or
+black bar fills turn pink too so the outline still shows. Given values stay black, and pupil copies are unchanged.
 
 A create or revise result starts with a one-line plain summary (`Created a <label>, W × H cm at
 100%.`), then the preview image, then `resource_link` blocks for the SVG, PNG and JSON downloads.
@@ -55,6 +62,40 @@ The AI worksheet maker sends only the spec schemas of the families a request nee
 sheet), in the user turn, so the cached system prompt and tool schema stay byte-identical between
 requests. The page refuses spec settings that would print a worked answer on the pupil copy
 (`worked…`, `calculate`, `answerVisible`), and asks the model to leave answers blank or hidden.
+
+## Answer states (W3, 14 November 2026)
+
+Every fillable or answer-bearing slot reads as one of five states, defined once in
+`packages/envelope-core/src/answer-state.ts`: `supplied`, `zero` (a supplied 0, never blank),
+`blank`, `answerLine` and `hidden`. Families keep their own saved fields (`show`, `visibility`,
+`state`, `kind`, `answerOnly`, `answerVisible` ...); `answerSlots(kind, envelope)` in
+`packages/diagram-core/src/answer-slots.ts` only reads them, and `resourceAnswerSlots` in
+`packages/resource-core/src/answer-slots.ts` does the same for worksheets and booklets, including
+their diagrams. Nothing is derived or changed. Notes per family:
+
+- A label printed with `answerVisible: true` (triangle, number line, algebra grid) is `supplied`.
+- A triangle `blank` label that holds a saved answer is `hidden`: the answers copy prints it.
+- A bar-model `question` label prints "?" and is `supplied`.
+- Cuboid `hidden` means no label at all; cuboids and value graphs store no answers.
+- Graph slots are answer-only objects only. An algebra grid's final answer is a slot only while
+  shown: hidden, it prints on neither copy.
+
+A new family adds its visitor in `answer-slots.ts`; `answer-slots.test.ts` reads the whole corpus.
+
+**Answer-leak check (W90).** `answerLeaks(kind, envelope)` in
+`packages/diagram-core/src/answer-leaks.ts` checks a pupil copy two ways: it never uses the answer
+colour, and swapping every saved answer for a same-length stand-in changes none of its printed
+text (text, title, desc, aria-label, so alt text too). Geometry is not compared, because both
+copies share one layout sized for the answers. The worksheet renderer reports a leak as a layout
+issue, and `create_diagram` / `revise_diagram` add it to their warnings.
+
+## Single-diagram PDF (U32, 14 November 2026)
+
+Every editor's menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
+portrait page (A4 landscape or A3 when it does not fit inside 15 mm margins), centred 15 mm from
+the top and never scaled. `diagramPage` (`packages/resource-core/src/diagram-page.ts`) builds the
+page; the worksheet PDF writer draws it and the W30 audit checks it before it is offered. Print at
+"Actual size" (100 %).
 
 ## Adding a family
 
