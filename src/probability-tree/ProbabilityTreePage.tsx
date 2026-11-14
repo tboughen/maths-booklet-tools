@@ -26,6 +26,7 @@ import {
   fillComplements,
   fillEnd,
   fillFromBag,
+  fitBranchLength,
   forView,
   hasHidden,
   isLeaf,
@@ -450,7 +451,11 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     disabled={blocked || depth >= MAX_DEPTH}
                     aria-label="Add a stage after every path that reaches the last stage"
                     title="Add stage"
-                    onClick={() => commit(addStage(e), "This tree has too many paths for another stage.")}
+                    onClick={() => {
+                      // A tree that fitted the page keeps fitting: the new stage shortens branches if it must (one undo step).
+                      const next = addStage(e);
+                      commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage.");
+                    }}
                   >
                     +
                   </button>

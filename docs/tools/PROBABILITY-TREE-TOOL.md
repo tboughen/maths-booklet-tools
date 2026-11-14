@@ -32,6 +32,10 @@ Nothing is filled or calculated implicitly. Each of these is a button (or MCP op
 
 Sibling probabilities that are numbers but do not total 1 give a teacher note only (deliberate error-spotting trees
 are allowed). A probability below 0 or above 1, overlapping labels, or a tree wider than 18 cm block export.
+The overlap error names the labels that clash (for example the probability on Red, Blue and the
+outcome on Blue); the width error gives the branch length that fits. A new tree from the connector,
+and Add stage on a tree that fitted, take the longest branch length that fits 18 cm (a three-stage
+tree with both end columns gets 31 mm), unless the request set `branchMm`.
 
 ## Examples
 
