@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 /**
  * Probability tree diagrams, drawn left to right.
@@ -918,19 +919,15 @@ export function renderSvg(e: Envelope): string {
 
 /* ---------- Editor links ---------- */
 
-export async function hash(e: Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(e)));
-  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export const MAX_LINK_LENGTH = 16_000;
 export function editorLink(e: Envelope, base: string): string | null {
-  const bytes = new TextEncoder().encode(canonical(e));
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
   const url = new URL(base);
   url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/probability-tree";
   url.search = "";
-  url.hash = "tree=" + btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+  url.hash = "tree=" + toBase64Url(canonical(e));
   return url.href.length <= MAX_LINK_LENGTH ? url.href : null;
 }
 export function decodeLinkHash(hashText: string): Envelope {

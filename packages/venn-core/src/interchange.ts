@@ -20,6 +20,7 @@ import {
   validate,
   type Envelope,
 } from "./index";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 const set = z.enum(["universe", "A", "B", "C"]);
 const mask = z.number().int().min(0).max(7);
 const widthCm = z.number().min(8).max(16),
@@ -151,14 +152,8 @@ export const revisionSchema = z
     outputView: outputViewSchema.optional(),
   })
   .strict();
-export async function hash(e: Envelope) {
-  const bytes = await globalThis.crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(canonical(e)),
-  );
-  return Array.from(new Uint8Array(bytes), (n) =>
-    n.toString(16).padStart(2, "0"),
-  ).join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export function apply(raw: Envelope, operations: unknown): Envelope {
   let next = structuredClone(validate(raw));
@@ -277,15 +272,13 @@ export async function reviseVenn(raw: unknown) {
   return apply(v.envelope, v.operations);
 }
 export function editorLink(e: Envelope, base: string) {
-  const bytes = new TextEncoder().encode(canonical(e));
-  if (bytes.length > 40_000) return null;
-  let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
+  const text = canonical(e);
+  if (new TextEncoder().encode(text).length > 40_000) return null;
   const u = new URL(base);
   // The editor's own page path, such as /tools/venn (old ?tool= links still redirect).
   u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/venn";
   u.search = "";
-  u.hash = `venn=${btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "")}`;
+  u.hash = `venn=${toBase64Url(text)}`;
   return u.href.length <= 16_000 ? u.href : null;
 }
 export function printFacts(raw: Envelope, view: "pupil" | "answer" = "pupil") {

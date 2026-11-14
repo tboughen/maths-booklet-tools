@@ -2,6 +2,7 @@ import { z } from "zod";
 import * as v1 from "./index";
 import * as v2 from "./v2";
 import * as v3 from "./v3";
+import { sha256Hex } from "../../envelope-core/src/index";
 export {
   LIMITS,
   labelSchema,
@@ -36,17 +37,8 @@ export function parseFile(raw: string): Envelope {
     throw Error("Use an editable file up to 32 KiB.");
   return validate(JSON.parse(raw));
 }
-export async function hash(e: Envelope) {
-  return Array.from(
-    new Uint8Array(
-      await crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(canonical(e)),
-      ),
-    ),
-  )
-    .map((v) => v.toString(16).padStart(2, "0"))
-    .join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export const layout = (e: Envelope) =>
   e.schemaVersion === 1

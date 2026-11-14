@@ -47,6 +47,7 @@ for (const directory of [
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",
+  "packages/envelope-core",
   "services/graph-mcp",
   "assets/graph-fonts",
   "assets/resource-fonts",
