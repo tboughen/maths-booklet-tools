@@ -31,5 +31,4 @@ and say in the pull request which files changed and why.
 
 New families should use `canonical: "sorted"`, which does not depend on schema order.
 
-To add newly found saved files to the corpus, run
-`COLLECT_CORPUS=1 npx vitest run packages/diagram-core/src/corpus-collect.test.ts`.
+To add a file to the corpus, save it under `fixtures/corpus/<kind>/` and regenerate the golden file.
