@@ -816,6 +816,11 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!exportMetrics.issues.length,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,

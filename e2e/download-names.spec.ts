@@ -5,7 +5,7 @@ import { toolIds } from "../src/site/routes";
 for (const tool of toolIds) {
   test(`${tool}: downloads say which tool, what and when`, async ({ page }) => {
     await page.goto(`/tools/${tool}`);
-    for (const [label, ext] of [["Download SVG", "svg"], ["Save editable file", "json"]] as const) {
+    for (const [label, ext] of [["Download SVG", "svg"], ["Download PDF (actual size)", "pdf"], ["Save editable file", "json"]] as const) {
       await page.getByRole("button", { name: "File", exact: true }).click();
       const download = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: label, exact: true }).click();

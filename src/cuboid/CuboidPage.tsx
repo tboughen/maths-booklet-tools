@@ -498,6 +498,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,

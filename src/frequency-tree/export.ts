@@ -4,6 +4,7 @@ import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
 
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -19,9 +20,11 @@ export async function printPng(e: Envelope) {
   verifyPrintBytes(new Uint8Array(await png.arrayBuffer()), size.width, size.height);
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg", answers = false) {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf", answers = false) {
   downloadBlob(
-    format === "png"
+    format === "pdf"
+      ? await svgPdf((await prepareImage(e)).svg)
+      : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
     downloadName("frequency-tree", format, { resource: e, answers }),

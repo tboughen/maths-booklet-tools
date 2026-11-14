@@ -772,6 +772,11 @@ export default function NumberLinePage({
                   disabled: blocked,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadImage(history.present, "pdf"),
+                  disabled: blocked,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () =>
                     downloadBlob(

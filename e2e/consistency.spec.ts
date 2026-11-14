@@ -185,9 +185,9 @@ for (const tool of tools) {
       expect(labels.slice(0, 5)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
+        "Download PDF (actual size)",
         "Save editable file",
         "Open editable file",
-        "Copy editable link",
       ]);
       await expect(menu.getByRole("menuitem").first()).toBeFocused();
       await page.keyboard.press("End");
@@ -1012,6 +1012,7 @@ for (const tool of toolIds) {
     expect(common).toEqual([
       ["Download SVG", ""],
       ["Download PNG (600 ppi)", ""],
+      ["Download PDF (actual size)", ""],
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
@@ -1019,7 +1020,7 @@ for (const tool of toolIds) {
     ]);
     // Optional teacher copies sit straight after the pupil images.
     const answers = items.findIndex(([label]) => /^Download answers /.test(label ?? ""));
-    if (answers >= 0) expect(answers).toBe(2);
+    if (answers >= 0) expect(answers).toBe(3);
     await expect(menu.getByRole("separator")).toHaveCount(2);
     await menu.getByRole("menuitem", { name: "First-time Word setup", exact: true }).click();
     const help = page.getByRole("dialog", { name: "Keep full image quality in Word" });

@@ -18,6 +18,7 @@ import {
   svgAlt,
 } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
 export async function printPng(e: ValueEnvelope) {
   const valid = validate(e),
     m = metrics(valid),
@@ -33,11 +34,13 @@ export async function printPng(e: ValueEnvelope) {
 }
 export async function download(
   e: ValueEnvelope,
-  format: "svg" | "png" | "json",
+  format: "svg" | "png" | "pdf" | "json",
 ) {
   const valid = validate(e);
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf(renderSvg(valid))
+      : format === "png"
       ? await printPng(valid)
       : format === "svg"
         ? new Blob([await embedPortableFonts(renderSvg(valid))], {

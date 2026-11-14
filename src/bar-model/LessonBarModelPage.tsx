@@ -697,6 +697,10 @@ export default function LessonBarModelPage({
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                 },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                },
                 save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,

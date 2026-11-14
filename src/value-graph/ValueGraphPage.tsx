@@ -1333,6 +1333,11 @@ export default function ValueGraphPage({
                   disabled: blocked || !!renderError,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => download(envelope, "pdf"),
+                  disabled: blocked || !!renderError,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () => download(envelope, "json"),
                   disabled: blocked,
