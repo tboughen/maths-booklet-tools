@@ -161,3 +161,35 @@ describe("table cells and circle-one options", () => {
     expect(xml).toMatch(/<m:borderBox><m:e><m:r>[^]*?2<\/m:t><\/m:r><m:r>[^]*?\u2009<\/m:t><\/m:r><m:f>/);
   });
 });
+
+describe("Word fraction size when an equation is alone in its paragraph (R25)", () => {
+  const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
+  const word = async (doc: Resource) => {
+    const { bytes } = await writeWorksheetDocx(doc, {
+      view: "answers",
+      fonts: { regular: font(1), semiBold: font(2), italic: font(3) },
+      picture: (svg) => ({ svg, png: new Uint8Array([137, 80, 78, 71]) }),
+    });
+    return strFromU8(unzipSync(bytes)["word/document.xml"]);
+  };
+  /** Half-point sizes of the fraction parts (numerator and denominator runs). */
+  const partSizes = (xml: string) => [...xml.matchAll(/<m:num>[^]*?<w:sz w:val="(\d+)"\/>/g)].map((m) => Number(m[1]));
+  // Body text is 11 pt = 22 half-points; Word prints an in-line fraction's parts at 8/11, so in-line
+  // parts are written at 30 half-points. A lone equation is display maths, printed at full size.
+  it("keeps a fraction alone on an answer line at body size", async () => {
+    expect(partSizes(await word(sheet("maths", "10/36")))).toEqual([22]);
+  });
+  it("still enlarges a fraction that shares its line with text", async () => {
+    expect(partSizes(await word(sheet("maths", "2 1/2")))).toEqual([30]);
+    expect(partSizes(await word(sheet("maths", "6/25 = 12/25")))).toEqual([30, 30]);
+  });
+  it("centres a lone fraction in a centred table cell; a left cell is justified left", async () => {
+    const xml = await word(withItems("maths", [{ type: "table", columns: ["P(first)", "P(both)"], rows: [[{ text: "1/5", state: "supplied" }, { text: "1/25", state: "hidden" }]] }]));
+    expect(xml).toContain('<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr><m:oMath>');
+    expect(xml).toContain('<m:oMathPara><m:oMathParaPr><m:jc m:val="center"/></m:oMathParaPr><m:oMath>');
+    expect(partSizes(xml)).toEqual([22, 22]);
+  });
+  it("leaves plain sheets without equations", async () => {
+    expect(await word(sheet("plain", "10/36"))).not.toContain("<m:f>");
+  });
+});
