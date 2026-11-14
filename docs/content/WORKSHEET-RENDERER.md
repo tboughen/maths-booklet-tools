@@ -125,6 +125,14 @@ rendered SVG at its own millimetre size, text kept as text with subset embedded 
 the sheet, STIX Two for diagrams), no raster images. It needs no browser, so the free Render
 service can run it. The Inter files are TrueType because the PDF writer cannot subset WOFF2.
 
+Every worksheet and booklet PDF, from the connector and from the website, is re-opened and audited
+before it is offered (`packages/resource-core/src/pdf-audit.ts`, improvement item W30): the page
+count and each page's size and orientation match the drawn SVG pages (within 0.1 mm), no page holds
+more raster images than its artwork drew (bank question images are allowed, so text and diagrams
+cannot have been rasterised), every font is embedded and has a text map, and every page that drew
+text has selectable text. A failed audit is an error naming the page and the problem, never a
+silent download.
+
 ## MCP tools
 
 `worksheet_capabilities` lists the layout, item types and limits. `create_worksheet` takes a whole
