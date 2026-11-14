@@ -455,7 +455,7 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   expect((await saved(page)).document.regions[1].text).toBe("4");
 });
 
-test("newline members, keyboard tabs and direct definition edits", async ({
+test("newline members, stacked cards and direct definition edits", async ({
   page,
 }) => {
   await boot(page);

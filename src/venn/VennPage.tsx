@@ -822,267 +822,266 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               </p>
             </section>
             {/* U20: stacked cards, no tabs. Edit mode shows the diagram and its contents; Shade shows shading. */}
-                {mode === "edit" && (
-                  <section className="panel-card vn-inspector" aria-labelledby="vn-card-diagram">
-                    <h2 id="vn-card-diagram">Diagram</h2>
-                    <label>
-                      Outline
-                      <select
-                        aria-label="Outline"
-                        disabled={blocked || d.sets === 3}
-                        value={d.shape}
-                        onChange={(ev) =>
-                          patch((n) => {
-                            n.shape = ev.target.value as "circles" | "ovals";
-                          })
-                        }
-                      >
-                        <option value="circles">Circles</option>
-                        <option value="ovals">Wider ovals</option>
-                      </select>
-                    </label>
-                    {relationship(e) && (
-                      <label>
-                        Relationship caption
-                        <select
-                          aria-label="Relationship caption"
-                          disabled={blocked}
-                          value={
-                            e.schemaVersion === 2 ? e.document.caption : "off"
-                          }
-                          onChange={(ev) => {
-                            const n = upgrade(e);
-                            n.document.caption = ev.target.value as
-                              | "off"
-                              | "relationship"
-                              | "line";
-                            commit(n);
-                          }}
-                        >
-                          <option value="off">No caption</option>
-                          <option value="relationship">
-                            {relationship(e)}
-                          </option>
-                          <option value="line">Pupil answer line</option>
-                        </select>
-                      </label>
-                    )}
-                    <details>
-                      <summary>Labels and definitions</summary>
-                      <p className="vn-note">
-                        Click a label on the diagram or choose it here.
-                      </p>
-                      {d.labels.slice(0, d.sets + 1).map((l, i) => (
-                        <div className="vn-label-row" key={i}>
-                          <button
-                            data-vn-anchor={"panel-label-" + i}
-                            disabled={blocked}
-                            onClick={() => open("label", i, "panel-label-" + i)}
-                          >
-                            {panelName(i)}: {l.text || "(empty)"}
-                            <small>
-                              {l.visibility === "hidden"
-                                ? "Hidden"
-                                : l.visibility === "line"
-                                  ? "Answer line"
-                                  : "Edit label"}
-                            </small>
-                          </button>
-                        </div>
-                      ))}
-                      <label className="vn-check">
-                        <input
-                          type="checkbox"
-                          checked={d.showDefinitions}
-                          disabled={blocked}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.showDefinitions = ev.target.checked;
-                            })
-                          }
-                        />
-                        Show definitions above diagram
-                      </label>
-                      {d.definitions.slice(0, d.sets + 1).map((text, i) => (
-                        <button
-                          className="vn-definition"
-                          key={i}
-                          data-vn-anchor={"definition-" + i}
-                          disabled={blocked}
-                          onClick={() =>
-                            open("definition", i, "definition-" + i)
-                          }
-                        >
-                          {panelName(i)} definition: {text || "Add text"}
-                        </button>
-                      ))}
-                      <p className="vn-note">
-                        Definitions describe your sets; they do not fill or
-                        calculate regions. Geometry is schematic.
-                      </p>
-                    </details>
-                    <details>
-                      <summary>Print size</summary>
-                      <label>
-                        Print width
-                        <select
-                          aria-label="Print width"
-                          disabled={blocked}
-                          value={d.widthCm}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.widthCm = Number(ev.target.value);
-                            })
-                          }
-                        >
-                          {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
-                            <option key={v} value={v}>
-                              {v} cm
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Text size
-                        <select
-                          aria-label="Text size"
-                          value={d.fontPt}
-                          disabled={blocked}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.fontPt = Number(ev.target.value);
-                            })
-                          }
-                        >
-                          {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
-                            <option key={v} value={v}>
-                              {v} pt
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Lines
-                        <select
-                          aria-label="Lines"
-                          value={d.lines ?? "normal"}
-                          disabled={blocked}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              setLines(n, ev.target.value as LineWeight);
-                            })
-                          }
-                        >
-                          {LINE_WEIGHTS.map((v) => (
-                            <option key={v} value={v}>
-                              {LINE_WEIGHT_NAMES[v]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </details>
-                  </section>
-                )}
-                {mode === "edit" && (
-                  <section className="panel-card vn-inspector" aria-labelledby="vn-card-contents">
-                    <h2 id="vn-card-contents">Region contents</h2>
-                    <p className="vn-note">
-                      Click the diagram or choose a region. Lists, frequencies,
-                      fractions, algebra and pupil blanks stay editable.
-                    </p>
-                    <div className="vn-regions">
-                      {activeMasks(e).map((mask) => (
-                        <button
-                          key={mask}
-                          data-vn-anchor={`panel-region-${mask}`}
-                          disabled={blocked}
-                          onClick={() => {
-                            setMode("edit");
-                            open("region", mask, `panel-region-${mask}`);
-                          }}
-                        >
-                          <span>{regionName(mask, e)}</span>
-                          <small>
-                            {d.regions[mask].visibility === "hidden"
-                              ? "Hidden saved content"
-                              : d.regions[mask].visibility === "line"
-                                ? "Answer line"
-                                : d.regions[mask].text ||
-                                  (d.regions[mask].kind === "members"
-                                    ? "Empty member list"
-                                    : "Empty space")}
-                          </small>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                )}
-                {mode === "shade" && (
-                  <section className="panel-card vn-inspector" aria-labelledby="vn-shading-heading">
-                    <h2 id="vn-shading-heading">Region shading</h2>
-                    <label>
-                      Shading style
-                      <select
-                        aria-label="Shading style"
-                        disabled={blocked}
-                        value={shade}
-                        onChange={(ev) =>
-                          setShade(ev.target.value as Region["shade"])
-                        }
-                      >
-                        <option value="grey">Neutral grey</option>
-                        <option value="hatch">Monochrome hatching</option>
-                      </select>
-                    </label>
-                    <button
+            {mode === "edit" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-card-diagram">
+                <h2 id="vn-card-diagram">Diagram</h2>
+                <label>
+                  Outline
+                  <select
+                    aria-label="Outline"
+                    disabled={blocked || d.sets === 3}
+                    value={d.shape}
+                    onChange={(ev) =>
+                      patch((n) => {
+                        n.shape = ev.target.value as "circles" | "ovals";
+                      })
+                    }
+                  >
+                    <option value="circles">Circles</option>
+                    <option value="ovals">Wider ovals</option>
+                  </select>
+                </label>
+                {relationship(e) && (
+                  <label>
+                    Relationship caption
+                    <select
+                      aria-label="Relationship caption"
                       disabled={blocked}
-                      data-vn-anchor="expression"
-                      onClick={() => open("expression", 0, "expression")}
+                      value={
+                        e.schemaVersion === 2 ? e.document.caption : "off"
+                      }
+                      onChange={(ev) => {
+                        const n = upgrade(e);
+                        n.document.caption = ev.target.value as
+                          | "off"
+                          | "relationship"
+                          | "line";
+                        commit(n);
+                      }}
                     >
-                      Shade a set expression
-                    </button>
-                    <p className="vn-note">
-                      Use stable set IDs:{" "}
-                      {d.labels
-                        .slice(1, d.sets + 1)
-                        .map((l, i) => `${"ABC"[i]} = ${l.text || "unnamed"}`)
-                        .join("; ")}
-                      . ∩ means both; ∪ means either; ' means complement.
-                    </p>
+                      <option value="off">No caption</option>
+                      <option value="relationship">
+                        {relationship(e)}
+                      </option>
+                      <option value="line">Pupil answer line</option>
+                    </select>
+                  </label>
+                )}
+                <details>
+                  <summary>Labels and definitions</summary>
+                  <p className="vn-note">
+                    Click a label on the diagram or choose it here.
+                  </p>
+                  {d.labels.slice(0, d.sets + 1).map((l, i) => (
+                    <div className="vn-label-row" key={i}>
+                      <button
+                        data-vn-anchor={"panel-label-" + i}
+                        disabled={blocked}
+                        onClick={() => open("label", i, "panel-label-" + i)}
+                      >
+                        {panelName(i)}: {l.text || "(empty)"}
+                        <small>
+                          {l.visibility === "hidden"
+                            ? "Hidden"
+                            : l.visibility === "line"
+                              ? "Answer line"
+                              : "Edit label"}
+                        </small>
+                      </button>
+                    </div>
+                  ))}
+                  <label className="vn-check">
+                    <input
+                      type="checkbox"
+                      checked={d.showDefinitions}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.showDefinitions = ev.target.checked;
+                        })
+                      }
+                    />
+                    Show definitions above diagram
+                  </label>
+                  {d.definitions.slice(0, d.sets + 1).map((text, i) => (
                     <button
+                      className="vn-definition"
+                      key={i}
+                      data-vn-anchor={"definition-" + i}
                       disabled={blocked}
                       onClick={() =>
-                        patch((n) =>
-                          n.regions.forEach((r) => {
-                            r.shade = "none";
-                          }),
-                        )
+                        open("definition", i, "definition-" + i)
                       }
                     >
-                      Clear all shading
+                      {panelName(i)} definition: {text || "Add text"}
                     </button>
-                    <div className="vn-regions">
-                      {activeMasks(e).map((mask) => (
-                        <button
-                          key={mask}
-                          disabled={blocked}
-                          aria-pressed={d.regions[mask].shade !== "none"}
-                          onClick={() =>
-                            patch((n) => {
-                              n.regions[mask].shade =
-                                n.regions[mask].shade === shade
-                                  ? "none"
-                                  : shade;
-                            })
-                          }
-                        >
-                          {regionName(mask, e)}
-                          <small>{d.regions[mask].shade}</small>
-                        </button>
+                  ))}
+                  <p className="vn-note">
+                    Definitions describe your sets; they do not fill or
+                    calculate regions. Geometry is schematic.
+                  </p>
+                </details>
+                <details>
+                  <summary>Print size</summary>
+                  <label>
+                    Print width
+                    <select
+                      aria-label="Print width"
+                      disabled={blocked}
+                      value={d.widthCm}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.widthCm = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
+                        <option key={v} value={v}>
+                          {v} cm
+                        </option>
                       ))}
-                    </div>
-                  </section>
-                )}
+                    </select>
+                  </label>
+                  <label>
+                    Text size
+                    <select
+                      aria-label="Text size"
+                      value={d.fontPt}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.fontPt = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Lines
+                    <select
+                      aria-label="Lines"
+                      value={d.lines ?? "normal"}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          setLines(n, ev.target.value as LineWeight);
+                        })
+                      }
+                    >
+                      {LINE_WEIGHTS.map((v) => (
+                        <option key={v} value={v}>
+                          {LINE_WEIGHT_NAMES[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </details>
+              </section>
+            )}
+            {mode === "edit" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-card-contents">
+                <h2 id="vn-card-contents">Region contents</h2>
+                <p className="vn-note">
+                  Click the diagram or choose a region. Lists, frequencies,
+                  fractions, algebra and pupil blanks stay editable.
+                </p>
+                <div className="vn-regions">
+                  {activeMasks(e).map((mask) => (
+                    <button
+                      key={mask}
+                      data-vn-anchor={`panel-region-${mask}`}
+                      disabled={blocked}
+                      onClick={() => {
+                        open("region", mask, `panel-region-${mask}`);
+                      }}
+                    >
+                      <span>{regionName(mask, e)}</span>
+                      <small>
+                        {d.regions[mask].visibility === "hidden"
+                          ? "Hidden saved content"
+                          : d.regions[mask].visibility === "line"
+                            ? "Answer line"
+                            : d.regions[mask].text ||
+                              (d.regions[mask].kind === "members"
+                                ? "Empty member list"
+                                : "Empty space")}
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+            {mode === "shade" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-shading-heading">
+                <h2 id="vn-shading-heading">Region shading</h2>
+                <label>
+                  Shading style
+                  <select
+                    aria-label="Shading style"
+                    disabled={blocked}
+                    value={shade}
+                    onChange={(ev) =>
+                      setShade(ev.target.value as Region["shade"])
+                    }
+                  >
+                    <option value="grey">Neutral grey</option>
+                    <option value="hatch">Monochrome hatching</option>
+                  </select>
+                </label>
+                <button
+                  disabled={blocked}
+                  data-vn-anchor="expression"
+                  onClick={() => open("expression", 0, "expression")}
+                >
+                  Shade a set expression
+                </button>
+                <p className="vn-note">
+                  Use stable set IDs:{" "}
+                  {d.labels
+                    .slice(1, d.sets + 1)
+                    .map((l, i) => `${"ABC"[i]} = ${l.text || "unnamed"}`)
+                    .join("; ")}
+                  . ∩ means both; ∪ means either; ' means complement.
+                </p>
+                <button
+                  disabled={blocked}
+                  onClick={() =>
+                    patch((n) =>
+                      n.regions.forEach((r) => {
+                        r.shade = "none";
+                      }),
+                    )
+                  }
+                >
+                  Clear all shading
+                </button>
+                <div className="vn-regions">
+                  {activeMasks(e).map((mask) => (
+                    <button
+                      key={mask}
+                      disabled={blocked}
+                      aria-pressed={d.regions[mask].shade !== "none"}
+                      onClick={() =>
+                        patch((n) => {
+                          n.regions[mask].shade =
+                            n.regions[mask].shade === shade
+                              ? "none"
+                              : shade;
+                        })
+                      }
+                    >
+                      {regionName(mask, e)}
+                      <small>{d.regions[mask].shade}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="panel-card vn-inspector">
               <details>

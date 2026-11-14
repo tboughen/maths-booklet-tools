@@ -186,7 +186,7 @@
   display: grid;
   gap: 5px;
   margin: 10px 0;
-  font-size: 13px;
+  font-size: var(--button-label, 14px);
 }
 .vn-inspector .vn-check {
   display: flex;

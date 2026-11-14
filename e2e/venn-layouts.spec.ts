@@ -722,6 +722,7 @@ for (const width of [320, 1440])
       page.getByRole("button", { name: /Separate/ }),
       page.getByRole("button", { name: /Nested/ }),
       page.locator(".vn-view-note"),
+      page.getByLabel("Outline", { exact: true }),
     ];
     for (const control of controls) {
       await expect(control).toBeVisible();
