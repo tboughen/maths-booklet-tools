@@ -130,7 +130,8 @@ Revise using the returned envelope/hash and:
 Other operations: `set_axis {axis}`; `set_solution {solution}`;
 `add_point {point:{id,value,included?}}`; `set_point {id,value?,included?}`;
 `connect_points {interval:{id,from,to}}`; `remove_interval {id}`;
-`remove_point {id}`; `set_tick_label {value,state}`;
+`remove_point {id}` (also removes its joins and ray);
+`add_point_ray {ray:{id,from,direction}}`; `remove_point_ray {id}`; `set_tick_label {value,state}`;
 `set_presentation {teaching}`; `set_print {widthCm}`. `set_endpoint` also accepts
 `included` and endpoint lower/value as appropriate. Presentation teaching fields
 are solutionVisible, labels, prompt, answer, answerVisible and responseLines.

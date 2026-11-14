@@ -3,6 +3,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
@@ -40,13 +41,24 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
+import { houseStyled, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
+import { downloadName } from "../export/filenames";
+
+
+/** A new Venn diagram at the teacher's house style text size (U111); its own setting overrides it. */
+function freshVenn() {
+  const e = create();
+  houseStyled(e.document, { max: 14 });
+  return e;
+}
 
 const STORAGE = copyStorageKey("maths-booklet-tools:venn:v1");
 const arrangementNames: Record<Arrangement, string> = {
@@ -96,7 +108,7 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: freshVenn(),
           recovery: raw,
           message:
             "Saved Venn data needs recovery. Download the original before starting afresh.",
@@ -105,13 +117,13 @@ function initial() {
     }
   } catch {
     return {
-      e: create(),
+      e: freshVenn(),
       recovery: null,
       message:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: freshVenn(), recovery: null, message: "" };
 }
 type Draft = {
   type: "region" | "label" | "definition" | "expression";
@@ -172,10 +184,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     const name = labelName(index);
     return name[0].toUpperCase() + name.slice(1);
   };
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function patch(update: (n: Envelope["document"]) => void) {
@@ -463,10 +475,14 @@ export default function VennPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset the Venn diagram?")}
+              onReset={() => replacement(freshVenn(), "Reset the Venn diagram?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -497,14 +513,19 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 svg: {
-                  action: () => downloadImage(displayed, "svg"),
+                  action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
                 png: {
-                  action: () => downloadImage(displayed, "png"),
+                  action: () => downloadImage(displayed, "png", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
+                },
+                pdf: {
+                  action: () => downloadImage(displayed, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
                 },
                 save: {
                   action: () => downloadEditable(e),
@@ -546,6 +567,16 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint
+              tool="venn"
+              prompt={
+                mode === "shade"
+                  ? "Shade mode: click a region to shade or clear it."
+                  : undefined
+              }
+            >
+              Click a region or label to edit it.
+            </EditorHint>
             <div
               className="vn-scroll"
               ref={fitted.ref}
@@ -680,7 +711,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card vn-layout-tools">
               <h2>Diagram tools</h2>
@@ -711,12 +742,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     Shade
                   </button>
                 </div>
-                <span>
-                  {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
-                  {mode === "shade"
-                    ? "Click a region to shade or clear it"
-                    : "Click a region or label to edit"}
-                </span>
                 <label>
                   Number of sets
                   <select
@@ -953,9 +978,28 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                             })
                           }
                         >
-                          {[9, 10, 11, 12, 13, 14].map((v) => (
+                          {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
                             <option key={v} value={v}>
                               {v} pt
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Lines
+                        <select
+                          aria-label="Lines"
+                          value={d.lines ?? "normal"}
+                          disabled={blocked}
+                          onChange={(ev) =>
+                            patch((n) => {
+                              setLines(n, ev.target.value as LineWeight);
+                            })
+                          }
+                        >
+                          {LINE_WEIGHTS.map((v) => (
+                            <option key={v} value={v}>
+                              {LINE_WEIGHT_NAMES[v]}
                             </option>
                           ))}
                         </select>
@@ -1092,7 +1136,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "venn-recovery.json",
+                  downloadName("venn", "json", { recovery: true }),
                 );
                 setProtectedCopy(true);
               }}
@@ -1140,7 +1184,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             onConfirm={() => {
               if (busy || recovery !== null || draft !== null) return;
               consumeVennLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

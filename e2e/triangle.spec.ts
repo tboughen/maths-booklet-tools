@@ -2092,3 +2092,19 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
   await page.keyboard.press("Escape");
   expect(canonical(await saved(page))).toBe(canonical(e));
 });
+test("text size and bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  await boot(page);
+  const panel = await section(page, "Print size");
+  await panel.getByLabel("Text size").selectOption("13");
+  await panel.getByLabel("Lines").selectOption("bold");
+  await expect.poll(async () => (await saved(page)).document.lines).toBe("bold");
+  expect((await saved(page)).document.fontPt).toBe(13);
+  const svg = (await download(page, "Download SVG")).toString();
+  expect(svg).toContain('stroke-width="0.45"');
+  await panel.getByLabel("Lines").selectOption("normal");
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page)).document.lines).toBe("bold");
+});

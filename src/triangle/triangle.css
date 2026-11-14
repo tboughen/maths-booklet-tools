@@ -49,13 +49,6 @@
 .tr-preview-bar .resource-size {
   margin-left: auto;
 }
-.tr-guidance {
-  margin: 0;
-  padding: 0 14px 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
-}
 .tr-scroll {
   background: var(--blue-soft);
   overflow: auto;
@@ -711,16 +704,19 @@
   flex: 1 1 220px;
   margin: 0;
 }
+/* U43: on touch screens, vertex handles and label targets are 44 px (TrianglePage's hitSize matches). */
 @media (pointer: coarse) {
   .tr-editor .tr-vertex {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
   }
   .tr-editor .tr-hit {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
   }
+}
+@media (pointer: coarse) {
   .tr-editor .inspector-stack button,
   .tr-editor .tr-structure button,
   .tr-editor .tr-structure select,

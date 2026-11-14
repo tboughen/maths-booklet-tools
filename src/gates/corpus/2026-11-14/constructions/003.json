@@ -1,0 +1,176 @@
+{
+  "tool": "construction",
+  "schemaVersion": 1,
+  "rendererVersion": "construction-1",
+  "document": {
+    "width": 12,
+    "height": 8,
+    "grid": "none",
+    "border": false,
+    "caption": {
+      "text": "",
+      "show": "show"
+    },
+    "points": [
+      {
+        "id": "Q",
+        "x": 1.5,
+        "y": 1.5,
+        "label": {
+          "text": "Q",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "R",
+        "x": 10.5,
+        "y": 1.5,
+        "label": {
+          "text": "R",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "P",
+        "x": 4.569,
+        "y": 7.792,
+        "label": {
+          "text": "P",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "ab1-x",
+        "x": 4.5,
+        "y": 1.5,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      },
+      {
+        "id": "ab1-y",
+        "x": 2.815,
+        "y": 4.196,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      },
+      {
+        "id": "ab1-z",
+        "x": 5.182,
+        "y": 3.801,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      }
+    ],
+    "objects": [
+      {
+        "id": "QR",
+        "role": "given",
+        "type": "segment",
+        "from": "Q",
+        "to": "R",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "QP",
+        "role": "given",
+        "type": "segment",
+        "from": "Q",
+        "to": "P",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "ab1-arc1",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "Q",
+        "radius": 3,
+        "start": -8,
+        "sweep": 80,
+        "dash": false
+      },
+      {
+        "id": "ab1-arc2",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "ab1-x",
+        "radius": 2.4,
+        "start": 56.77,
+        "sweep": 33.42,
+        "dash": false
+      },
+      {
+        "id": "ab1-arc3",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "ab1-y",
+        "radius": 2.4,
+        "start": -26.19,
+        "sweep": 33.42,
+        "dash": false
+      },
+      {
+        "id": "ab1-line",
+        "role": "answer",
+        "group": "ab1",
+        "type": "segment",
+        "from": "Q",
+        "to": "ab1-z",
+        "extend": [
+          0,
+          3.1584201443660422
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      }
+    ]
+  }
+}

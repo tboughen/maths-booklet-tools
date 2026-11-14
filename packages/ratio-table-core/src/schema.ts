@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { canonicalRatioNumber, RatioError } from "./numbers";
 
@@ -79,6 +80,7 @@ export const ratioEnvelopeSchema = z
     ]),
     styleProfile: z.literal(RATIO_STYLE_PROFILE),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type RatioEnvelope = z.infer<typeof ratioEnvelopeSchema>;

@@ -16,6 +16,10 @@ Join existing points: choose Interval and click the two points (or ticks).
 Those clicks join without toggling type; other points and their appearance
 remain. In Point mode, empty ticks add points and existing circles toggle type.
 Select a connecting line and choose Remove interval to retain both endpoints.
+A selected point can also carry a ray to the end of the line ("Ray from this point":
+left or right), for two-part sets such as x < −1 or x ≥ 2: at most one ray each way,
+from the last point that way (optional `rays` on a points solution; connector
+`add_point_ray` / `remove_point_ray`). Removing the ray leaves the file as it was.
 Removing a point also removes its attached intervals; the button states this,
 and Undo restores everything.
 
@@ -38,6 +42,17 @@ minimum, maximum, step, labelEvery, variable, variableBelow and numberFormat
 them as a whole number beside a stacked fraction. A solution is null, an interval, ray or
 discrete points. teaching retains labels, solutionVisible, prompt, answer,
 answerVisible and responseLines. Labels use canonical rational-value keys.
+
+Arrow markers (optional `markers`, up to 6) are down arrows for "What number is
+the arrow pointing to?" questions. Each has a stable id, an exact value (which may
+lie between ticks) and an optional letter of up to 3 characters. Markers cannot share
+a line with a solution set, must sit inside the axis and must not crowd each other at
+the print width. The marker value is the answer, so it never prints; put it in the
+answer text. `axis.minorTicks: true` draws labelled ticks across the axis and the
+others short, as on exam scales (for example 0 to 1, step 0.1, label every 10).
+Both fields are left out of files that do not use them, so older files are unchanged.
+Connector operations: add_marker, set_marker (an empty label removes the letter) and
+remove_marker.
 
 Saved-file recovery protects original corrupt/newer-tab data before a fresh
 start. Use Copy to clipboard for an image or Copy for Word for physical-size

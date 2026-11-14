@@ -5,6 +5,7 @@ import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -54,7 +55,8 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -149,13 +151,13 @@ export default function ValueGraphPage({
       }),
     [],
   );
-  const commit = useCallback((next: ValueEnvelope) => {
+  const commit = useCallback((next: ValueEnvelope, label?: string) => {
     renderSvg(next);
-    record(next);
+    record(next, label);
     setMessage("");
   }, [record]);
   function change(ops: ValueOperation[]) {
-    commit(apply(current.current, ops));
+    commit(apply(current.current, ops), operationLabel(ops));
   }
   function act(action: () => void) {
     if (blocked) return;
@@ -660,7 +662,7 @@ export default function ValueGraphPage({
               true,
             )}
             <p>
-              Use expanded form, for example y = x² − x − 6. Existing values and
+              Use expanded form, for example y = x² − x − 6, y = x³ − 4x, y = 3/x or y = 2ˣ. Existing values and
               plots are retained.
             </p>
           </>
@@ -1269,7 +1271,7 @@ export default function ValueGraphPage({
       >
         <PageHeading
           title="Plotting quadratics"
-          description="Click the equation, table or graph to edit your resource."
+          description="Make tables of values and plot quadratic graphs on exam-style axes."
         >
           <ResourceSaveStatus
             text={saved ? "Saved on this device" : "Not saved on device"}
@@ -1279,6 +1281,10 @@ export default function ValueGraphPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -1287,7 +1293,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope());
+                    commit(defaultEnvelope(), stepName("Reset this resource?"));
                     setSelection(null);
                   },
                 )
@@ -1332,6 +1338,11 @@ export default function ValueGraphPage({
                   action: () => download(envelope, "png"),
                   disabled: blocked || !!renderError,
                   success: "PNG download started.",
+                },
+                pdf: {
+                  action: () => download(envelope, "pdf"),
+                  disabled: blocked || !!renderError,
+                  success: "PDF download started.",
                 },
                 save: {
                   action: () => download(envelope, "json"),
@@ -1382,6 +1393,10 @@ export default function ValueGraphPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
             </div>
+            <EditorHint tool="value-table-graph">
+              Click the equation, table or graph to edit it. Blank cells stay
+              blank until you choose to calculate.
+            </EditorHint>
             {!!message && (
               <p role="status" className="resource-feedback">
                 {message}
@@ -1397,7 +1412,7 @@ export default function ValueGraphPage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recoverRaw], { type: "application/json" }),
-                      "value-graph-recovery.json",
+                      downloadName("value-table-graph", "json", { recovery: true }),
                     );
                     setMessage(
                       "Recovery download prepared. You can now start afresh.",
@@ -1850,7 +1865,7 @@ export default function ValueGraphPage({
                 );
                 setExamplePreview(resource);
               }}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>

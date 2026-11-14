@@ -5,6 +5,7 @@ import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -58,7 +59,8 @@ import {
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import "./probability-tree.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
@@ -181,7 +183,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const paths = leaves(d);
   const selectedBranch = d.branches.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
-  function commit(next: Envelope | null, failure = "That change is not possible for this tree.") {
+  function commit(next: Envelope | null, failure = "That change is not possible for this tree.", label?: string) {
     if (recovery !== null) return;
     if (!next) {
       setMessage(failure);
@@ -189,7 +191,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     }
     try {
       const valid = validate(next);
-      documentHistory.commit(valid);
+      documentHistory.commit(valid, label);
       setMessage("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -341,6 +343,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -366,8 +372,9 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
-                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
+                svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
                 save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
                 open: { action: () => file.current?.click(), disabled: blocked, success: "" },
                 link: {
@@ -397,6 +404,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="probability-tree">
+              Click a label on the tree to edit it. Enter applies; Escape
+              restores.
+            </EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
@@ -480,7 +491,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, undefined, "use worked version")}
             />
             {selectedBranch && (
               <section className="panel-card pt-panel" aria-label="Selected branch">
@@ -797,7 +808,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "probability-tree-recovery.json");
+                downloadBlob(new Blob([recovery], { type: "application/json" }), downloadName("probability-tree", "json", { recovery: true }));
                 setProtectedCopy(true);
               }}
             >
@@ -838,7 +849,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, undefined, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

@@ -3,11 +3,13 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  useSyncExternalStore,
 } from "react";
 import {
   addHeight,
@@ -31,6 +33,7 @@ import {
   setConstraint,
   textOf,
   transform,
+  TRIANGLE_MIN_PT,
   validate,
   warnings,
   workedCopy,
@@ -58,6 +61,21 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { parseTriangleLink, triangleEditorLink } from "./links";
 import { TriangleFloatingEditor } from "./TriangleFloatingEditor";
 import { TriangleLabelFields } from "./TriangleLabelFields";
+import { housePreference, setLines } from "../site/houseStyle";
+import {
+  LINE_WEIGHTS,
+  LINE_WEIGHT_NAMES,
+  startingTextPt,
+  type LineWeight,
+} from "../../packages/envelope-core/src/house-style";
+/** A new triangle starts from the house style (U111); its own settings are saved with it. */
+function fresh(e: Envelope = create()): Envelope {
+  const house = housePreference(),
+    pt = startingTextPt(house.style, 11, { max: 14 });
+  if (pt !== 11) e.document.fontPt = pt;
+  if (house.lines === "bold") e.document.lines = "bold";
+  return e;
+}
 import {
   labelDraft,
   applyLabelDraft,
@@ -78,7 +96,8 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
@@ -125,7 +144,7 @@ function initial() {
         return {
           key,
           copyId,
-          e: create(),
+          e: fresh(),
           raw,
           recovery: raw,
           message:
@@ -137,7 +156,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: starter(),
+      e: fresh(starter()),
       raw,
       recovery: null as string | null,
       message: "",
@@ -147,7 +166,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: starter(),
+      e: fresh(starter()),
       raw: null,
       recovery: null as string | null,
       message:
@@ -172,7 +191,16 @@ type Drag = {
 type Replacement = { e: Envelope; title: string; explanation: string };
 const errorText = (err: unknown) =>
   err instanceof Error ? err.message : String(err);
+/** U43: vertex handles are 44 CSS px on touch screens and 28 px for a mouse; triangle.css sets the boxes. */
+const coarse = typeof matchMedia === "function" ? matchMedia("(pointer:coarse)") : undefined;
+const subscribeCoarse = (onChange: () => void) => {
+  coarse?.addEventListener("change", onChange);
+  return () => coarse?.removeEventListener("change", onChange);
+};
+const useVertexHitSize = () => useSyncExternalStore(subscribeCoarse, () => (coarse?.matches ? 44 : 28), () => 28);
+
 export default function TrianglePage({ active = true }: { active?: boolean }) {
+  const vertexHitSize = useVertexHitSize();
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
     { history, setHistory } = documentHistory;
@@ -283,11 +311,11 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       (ex) => ex.sourceId && ex.sourceId === d.sourceId,
     ),
     notes = warnings(e);
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const n = validate(next);
     committed.current = n;
-    documentHistory.commit(n);
+    documentHistory.commit(n, label);
     setChoices([]);
     if (selected && !objects(n).some((o) => o.ref === selected))
       setSelected(null);
@@ -446,7 +474,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   function fork(next: Envelope) {
     if (blocked) return;
     try {
-      commit(workedCopy(next));
+      commit(workedCopy(next), "use worked version");
       setShowAnswers(false);
       setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
@@ -770,11 +798,15 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
               onReset={() =>
-                replacement(starter(), "Reset the triangle diagram?")
+                replacement(fresh(starter()), "Reset the triangle diagram?")
               }
               resetDisabled={blocked}
               exportDisabled={blocked || !!exportMetrics.issues.length}
@@ -814,6 +846,11 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "PNG download started.",
+                },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!exportMetrics.issues.length,
+                  success: "PDF download started.",
                 },
                 save: {
                   action: () => downloadEditable(e),
@@ -882,10 +919,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 visibility. Use a worked version to export the answers.
               </p>
             )}
-            <p className="tr-guidance">
+            <EditorHint tool="triangle">
               Click a wedge to edit an angle, or a label to edit its text. Drag
               a vertex to reshape. Select a triangle to add its area.
-            </p>
+            </EditorHint>
             <div
               className="tr-scroll"
               ref={scroll}
@@ -1061,8 +1098,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                           style={{
                             left: a.x * px,
                             top: a.y * px,
-                            width: Math.max(28, a.w * px),
-                            height: Math.max(28, a.h * px),
+                            width: a.w * px,
+                            height: a.h * px,
                           }}
                           data-tr-anchor={a.ref}
                           aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
@@ -1165,7 +1202,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                                 ? { x: a.x * px, y: a.y * px }
                                 : undefined;
                             })(),
-                            matchMedia("(pointer:coarse)").matches ? 40 : 28,
+                            vertexHitSize,
                           ),
                         }}
                         aria-label={`Move vertex ${nameOf(display, id)}`}
@@ -1474,7 +1511,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "maths-triangle-recovery.json",
+                      downloadName("triangle", "json", { recovery: true }),
                     );
                     setProtectedCopy(true);
                     setMessage(
@@ -1504,7 +1541,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <div className="tr-label-editor-slot" />
             <section className="panel-card tr-panel specialist-tools">
@@ -2146,7 +2183,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                       disabled={blocked}
                       onClick={() =>
                         replacement(
-                          create(shape),
+                          fresh(create(shape)),
                           `Start a ${title.toLowerCase()} triangle?`,
                         )
                       }
@@ -2184,9 +2221,51 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   />
                 </label>
                 <p className="tr-note">
-                  6–18 cm. Text stays at 11 pt; preview zoom changes only the
-                  view. Actual height follows the complete artwork and captions.
+                  6–18 cm. Text keeps its chosen size; preview zoom changes only
+                  the view. Actual height follows the complete artwork and captions.
                 </p>
+                <label>
+                  Text size
+                  <select
+                    aria-label="Text size"
+                    value={d.fontPt ?? 11}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      change((n) => {
+                        const pt = Number(ev.target.value);
+                        if (pt === 11) delete n.document.fontPt;
+                        else n.document.fontPt = pt;
+                      })
+                    }
+                  >
+                    {[11, 12, 13, 14]
+                      .filter((v) => v >= TRIANGLE_MIN_PT)
+                      .map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      change((n) => {
+                        setLines(n.document, ev.target.value as LineWeight);
+                      })
+                    }
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 {widthDraft !== null && (
                   <div className="tr-two">
                     <button
@@ -2300,7 +2379,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               consumeLink();
             }}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setShowAnswers(false);
@@ -2340,7 +2419,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
-                setHistory((h) => pushHistory(h, create(), { label: "start afresh" }));
+                setHistory((h) => pushHistory(h, fresh(), { label: "start afresh" }));
                 setSelected(null);
               } catch (err) {
                 setMessage(errorText(err));

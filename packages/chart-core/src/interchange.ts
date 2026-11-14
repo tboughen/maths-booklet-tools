@@ -129,7 +129,7 @@ export function create(input: unknown): core.Envelope {
 export async function revise(input: unknown): Promise<core.Envelope> {
   const v = revisionSchema.parse(input);
   if ((await hash(v.envelope)) !== v.baseHash)
-    throw Error("base_hash_mismatch: Use the exact returned envelope and contentHash.");
+    throw Error("stale_hash: Use the exact returned envelope and contentHash.");
   let e = core.validate(structuredClone(v.envelope));
   const need = (ok: boolean, message: string) => {
     if (!ok) throw Error(message);

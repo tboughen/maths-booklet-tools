@@ -52,6 +52,12 @@ import { examples as trees } from "../../packages/probability-tree-core/src/exam
 import { renderSvg as treeSvg } from "../../packages/probability-tree-core/src";
 import { examples as frequencyTrees } from "../../packages/frequency-tree-core/src/examples";
 import { renderSvg as frequencyTreeSvg } from "../../packages/frequency-tree-core/src";
+import { examples as constructions } from "../../packages/construction-core/src/examples";
+import { renderSvg as constructionSvg } from "../../packages/construction-core/src";
+import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
+import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
+import { examples as twoWayTables } from "../../packages/two-way-table-core/src/examples";
+import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -64,7 +70,6 @@ export interface GalleryExample<T> {
   worked?: boolean;
   workedReason?: string;
   workedLabel?: string;
-  openLabel?: string;
 }
 const source = (id: string) =>
   `https://mathsdock.co.uk/question-bank?question=${id}`;
@@ -75,7 +80,6 @@ export const graphGallery = graphExamples.map((example) => ({
   sourceHref: sourceQuestionHref(example.id),
   make: example.create,
   render: renderDiagramSvg,
-  openLabel: "Open blank grid",
 }));
 export const ratioGallery = ratioExamples.map((example) => ({
   id: `ratio-${example.id}`,
@@ -142,8 +146,12 @@ export const ratioTeachingGallery = (
   make: () => ratioTeachingExample(kind),
   render: (resource: ReturnType<typeof ratioTeachingExample>) =>
     renderRatioSvg(resource.document),
-  worked: kind === "worked",
-  openLabel: kind === "worked" ? "Open diagram" : "Open scaffold",
+  // The worked table already shows its step, so it has one button; the others have no worked copy.
+  worked: false,
+  workedReason:
+    kind === "worked"
+      ? "This table already shows its scaling step."
+      : undefined,
 }));
 export const quadraticGallery = [
   ...quadraticSources.map((example) => ({
@@ -217,6 +225,8 @@ const algebraNames = [
   ["factor", "Factorise x²+5x+6"],
   ["negative", "Factorise x²+3x−10"],
   ["common", "Common factor"],
+  ["numeric", "Grid method 23 × 47"],
+  ["decimal", "Grid method 3.4 × 2.6"],
   ["source-expand", "Q26(a): expand"],
   ["source-factor", "Q26(b): factorise"],
 ];
@@ -233,7 +243,33 @@ export const algebraGallery = algebraNames.map(([name, title]) => ({
   render: algebraSvg,
 }));
 
-export const barGallery: GalleryExample<bar.Envelope>[] = bar.exampleNames.map(id=>({id:'bar-'+id,title:id+' '+({BM01:'Known total 64, ratio3:5',BM02:'Known share24, ratio3:5',BM03:'Known difference16',BM04:'Three shares2:3:4',BM05:'Three eighths of400',BM06:'Five units and three units',BM07:'Algebra: three units are x',BM08:'Fractions, zero and hidden answers',BM09:'Maximum parts and useful print size',H07:'Summer2024 1H Q7: jars',H18:'Summer2024 3H Q10: algebra shares','source-sharing':'Mock set7 1H Q1: £60 in3:2:5'}[id]),description:id==='H07'?'Adapted sharing stage only: fifteen units represent150 empty jars, in ratio3:4:8. Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This2024 source is retained locally and is not in the published bank.':id==='H18'?'Adapted bag A only: red x represents the entire three-unit share. The eight-unit bag is8x/3. This2024 source is retained locally and is not in the published bank.':'Editable teaching fixture. Saved answers remain hidden in the scaffold.',sourceHref:id==='source-sharing'?source('1MA1_MOCK_SET_07_1H_Q1'):undefined,make:(worked)=>bar.example(id,worked),render:bar.renderSvg,worked:!['BM06','BM08','BM09'].includes(id)}));
+const barCards: Record<(typeof bar.exampleNames)[number], { title: string; purpose: string }> = {
+  BM01: { title: "Known total 64, ratio 3 : 5", purpose: "Share a known total in a ratio by finding one unit first." },
+  BM02: { title: "Known share 24, ratio 3 : 5", purpose: "Work back from one known share to the other share and the total." },
+  BM03: { title: "Known difference 16", purpose: "Use the difference between two shares to find one unit." },
+  BM04: { title: "Three shares 2 : 3 : 4", purpose: "Share an amount three ways and label each part." },
+  BM05: { title: "Three eighths of 400", purpose: "Find a fraction of an amount by splitting the whole into equal parts." },
+  BM06: { title: "Five units and three units", purpose: "Compare two quantities in units before any numbers are known." },
+  BM07: { title: "Algebra: three units are x", purpose: "A bridge to algebra: three equal units together make x." },
+  BM08: { title: "Fractions, zero and hidden answers", purpose: "Check how fractions, zero and hidden answers print before using them with a class." },
+  BM09: { title: "Maximum parts and useful print size", purpose: "The most parts a bar holds while staying a usable print size." },
+  H07: { title: "Summer 2024 1H Q7: jars", purpose: "The sharing stage only: 15 units stand for 150 jars in 3 : 4 : 8." },
+  H18: { title: "Summer 2024 3H Q10: algebra shares", purpose: "x stands for a whole three-unit share." },
+  "source-sharing": { title: "Mock set 7 1H Q1: £60 in 3 : 2 : 5", purpose: "Share £60 in the ratio 3 : 2 : 5, straight from the exam question." },
+};
+const barDetails: Partial<Record<(typeof bar.exampleNames)[number], string>> = {
+  H07: "Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This 2024 source is retained locally and is not in the published bank.",
+  H18: "Adapted from bag A only. The eight-unit bag is 8x/3. This 2024 source is retained locally and is not in the published bank.",
+};
+export const barGallery: GalleryExample<bar.Envelope>[] = bar.exampleNames.map((id) => ({
+  id: "bar-" + id,
+  title: (id === "source-sharing" ? "" : id + " ") + barCards[id].title,
+  description: `${barCards[id].purpose} ${barDetails[id] ?? (["BM06", "BM08", "BM09"].includes(id) ? "Saved answers stay hidden on the pupil resource." : "Saved answers stay hidden until you choose the worked version.")}`,
+  sourceHref: id === "source-sharing" ? source("1MA1_MOCK_SET_07_1H_Q1") : undefined,
+  make: (worked) => bar.example(id, worked),
+  render: bar.renderSvg,
+  worked: !["BM06", "BM08", "BM09"].includes(id),
+}));
 export const chartGallery = charts.map((example) => ({
   id: `chart-${example.id}`,
   title: example.title,
@@ -252,6 +288,24 @@ export const treeGallery = trees.map((example) => ({
   render: treeSvg,
   worked: example.worked,
 }));
+export const constructionGallery = constructions.map((example) => ({
+  id: `construction-${example.id}`,
+  title: example.title,
+  description: example.note,
+  sourceHref: example.sourceId ? source(example.sourceId) : undefined,
+  make: example.make,
+  render: (e: Parameters<typeof constructionSvg>[0]) => constructionSvg(e),
+  worked: example.worked,
+}));
+export const elevationsGallery = elevationExamples.map((example) => ({
+  id: `elevations-${example.id}`,
+  title: example.title,
+  description: example.note,
+  sourceHref: example.sourceId ? source(example.sourceId) : undefined,
+  make: example.make,
+  render: (e: Parameters<typeof elevationSvg>[0]) => elevationSvg(e),
+  worked: example.worked,
+}));
 export const frequencyTreeGallery = frequencyTrees.map((example) => ({
   id: `ftree-${example.id}`,
   title: example.title,
@@ -260,4 +314,12 @@ export const frequencyTreeGallery = frequencyTrees.map((example) => ({
   make: example.make,
   render: frequencyTreeSvg,
   worked: example.worked,
+}));
+export const twoWayTableGallery = twoWayTables.map((example) => ({
+  id: `twt-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: twoWayTableSvg,
+  worked: true,
 }));

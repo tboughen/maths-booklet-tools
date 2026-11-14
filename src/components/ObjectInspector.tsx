@@ -2,11 +2,147 @@ import { GraphDraftField } from "./GraphDraftField";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
-import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
+import type { Bounds, Coordinate, GraphObject, GradientTriangle, RegionObject, StraightObject } from "../domain/types";
+import { gradientTriangleProblem, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
+import { MAX_REGION_INEQUALITIES, parseInequality, regionProblem } from "../../packages/graph-core/src/region";
+
+/** The first whole-number start and short run where a labelled triangle fits on the grid. */
+function fittingTriangle(object: StraightObject, bounds: Bounds): GradientTriangle | null {
+  for (const run of [2, 3, 4, 1, 5])
+    for (let x = Math.ceil(bounds.xMin); x <= Math.floor(bounds.xMax); x++) {
+      const gradientTriangle = { x, run, labels: "values" as const };
+      if (!gradientTriangleProblem({ ...object, gradientTriangle }, bounds)) return { x, run };
+    }
+  return null;
+}
+
+/** Add, move, resize, label or remove a line's gradient triangle (U76). */
+function GradientTriangleFields({
+  object,
+  bounds,
+  onUpdate,
+  drafts,
+  disabled,
+}: {
+  object: StraightObject;
+  bounds?: Bounds;
+  onUpdate: (object: GraphObject) => void;
+  drafts: GraphDrafts;
+  disabled?: boolean;
+}) {
+  const t = object.gradientTriangle;
+  const flat =
+    Math.abs(object.end.x - object.start.x) < 1e-12 ||
+    Math.abs(object.end.y - object.start.y) < 1e-12;
+  if (!t) {
+    if (flat || !bounds) return null;
+    const fit = fittingTriangle(object, bounds);
+    return (
+      <button
+        disabled={disabled || drafts.pending || !fit}
+        className="secondary-panel-button"
+        title={fit ? undefined : "No gradient triangle fits on the grid for this line."}
+        onClick={() => fit && onUpdate({ ...object, gradientTriangle: fit })}
+      >
+        Add gradient triangle
+      </button>
+    );
+  }
+  const set = (next: GradientTriangle) => {
+    if (next.run === 0) throw Error("The run cannot be zero.");
+    onUpdate({ ...object, gradientTriangle: next });
+  };
+  const problem = bounds ? gradientTriangleProblem(object, bounds) : null;
+  const values = gradientTriangleValues(object);
+  return (
+    <fieldset className="gradient-triangle-fields">
+      <legend>Gradient triangle</legend>
+      <GraphDraftField
+        id={object.id + "-triangle-x"}
+        label="Gradient triangle starts at x"
+        displayLabel="Starts at x"
+        value={formatNumber(t.x)}
+        drafts={drafts}
+        disabled={disabled}
+        onApply={(x) => set({ ...t, x })}
+      />
+      <GraphDraftField
+        id={object.id + "-triangle-run"}
+        label="Gradient triangle run"
+        displayLabel="Run"
+        hint="Negative runs go left"
+        value={formatNumber(t.run)}
+        drafts={drafts}
+        disabled={disabled}
+        onApply={(run) => set({ ...t, run })}
+      />
+      <label>
+        Labels{" "}
+        <select
+          aria-label="Gradient triangle labels"
+          disabled={disabled || drafts.pending}
+          value={t.labels ?? "none"}
+          onChange={(event) => {
+            const next: GradientTriangle = { x: t.x, run: t.run };
+            if (event.target.value !== "none") next.labels = event.target.value as "values" | "blank";
+            onUpdate({ ...object, gradientTriangle: next });
+          }}
+        >
+          <option value="none">No labels</option>
+          <option value="values">Print run and rise{values ? ` (${values.run} and ${values.rise})` : ""}</option>
+          <option value="blank">Blank for pupils, values on the answers copy</option>
+        </select>
+      </label>
+      {problem && <p className="field-warning" role="status">{problem}</p>}
+      <button
+        disabled={disabled || drafts.pending}
+        className="text-action"
+        onClick={() => {
+          const next = { ...object };
+          delete next.gradientTriangle;
+          onUpdate(next);
+        }}
+      >
+        <Trash2 size={14} />
+        Remove gradient triangle
+      </button>
+    </fieldset>
+  );
+}
 import {
   OBJECT_NAME_PATTERN,
+  coordinatesPrintable,
   normaliseObjectName,
 } from "../../packages/graph-core/src/axes";
+import {
+  POLYGON_MAX_VERTICES,
+  POLYGON_MIN_VERTICES,
+  formatVertices,
+  polygonProblem,
+} from "../../packages/graph-core/src/polygon";
+
+/** Reads corners typed as "(1, 1) (4, 1) (1/3, 3)"; minus signs, fractions and spaces are forgiven. */
+const VERTEX_NUMBER = String.raw`-?(?:\d+(?:\.\d+)?|\.\d+)(?:\/\d+)?`;
+const vertexValue = (text: string) => {
+  const [top, bottom] = text.split("/");
+  return bottom === undefined ? Number(top) : Number(top) / Number(bottom);
+};
+function parseVertices(text: string): Coordinate[] {
+  const cleaned = text.replaceAll("−", "-");
+  const pair = String.raw`\(\s*(${VERTEX_NUMBER})\s*,\s*(${VERTEX_NUMBER})\s*\)`;
+  const pairs = [...cleaned.matchAll(new RegExp(pair, "g"))];
+  const leftover = cleaned.replace(new RegExp(pair, "g"), "").replace(/[\s,;]/g, "");
+  if (leftover)
+    throw Error("Type each corner in brackets, such as (1, 1) (4, 1) (1, 3).");
+  if (pairs.length < POLYGON_MIN_VERTICES || pairs.length > POLYGON_MAX_VERTICES)
+    throw Error(`A shape needs ${POLYGON_MIN_VERTICES} to ${POLYGON_MAX_VERTICES} corners.`);
+  if (pairs.some((m) => [m[1], m[2]].some((v) => v.endsWith("/0"))))
+    throw Error("A fraction in a corner can't have 0 below the line.");
+  const vertices = pairs.map((m) => ({ x: vertexValue(m[1]), y: vertexValue(m[2]) }));
+  const problem = polygonProblem(vertices);
+  if (problem) throw Error(`This shape can't be drawn: ${problem}`);
+  return vertices;
+}
 
 /** The exam-style name printed beside the object, and whether it is a hidden answer. */
 function NameAndAnswer({
@@ -20,15 +156,15 @@ function NameAndAnswer({
   drafts: GraphDrafts;
   disabled?: boolean;
 }) {
-  const kind = object.kind === "point" ? "point" : "line";
+  const kind = object.kind === "point" ? "point" : object.kind === "polygon" ? "shape" : object.kind === "region" ? "region" : "line";
   return (
     <div className="object-name-fields">
       <GraphDraftField
         id={object.id + "-name"}
-        label={`Name printed beside the ${kind}`}
+        label={kind === "shape" || kind === "region" ? `Name printed in the ${kind}` : `Name printed beside the ${kind}`}
         displayLabel="Name"
         inputMode="text"
-        hint={kind === "point" ? "For example A, B or P′" : "For example L, L1 or L2"}
+        hint={kind === "line" ? "For example L, L1 or L2" : kind === "region" ? "For example R" : "For example A, B or P′"}
         value={object.name ?? ""}
         drafts={drafts}
         disabled={disabled}
@@ -60,6 +196,32 @@ function NameAndAnswer({
           Reset name position
         </button>
       )}
+      {object.kind === "point" && (
+        <label className="point-coordinates-field">
+          Coordinates
+          <select
+            aria-label="Coordinates printed after the point"
+            disabled={disabled || drafts.pending}
+            value={object.coordinates ?? "none"}
+            onChange={(event) => {
+              const next = { ...object };
+              const value = event.target.value;
+              if (value === "show" || value === "blank") next.coordinates = value;
+              else delete next.coordinates;
+              onUpdate(next);
+            }}
+          >
+            <option value="none">None</option>
+            <option value="show" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "show"}>Show, as A(2, 3)</option>
+            <option value="blank" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "blank"}>Blank for pupils, answer on the answers copy</option>
+          </select>
+          {!coordinatesPrintable(object.position) && (
+            <span className="field-error" role="alert">
+              Coordinates print only for values with at most 3 decimal places. Move the point to an exact position.
+            </span>
+          )}
+        </label>
+      )}
       <button
         disabled={disabled || drafts.pending}
         className={`visibility-button${object.answerOnly ? " active" : ""}`}
@@ -82,6 +244,90 @@ function NameAndAnswer({
   );
 }
 
+/** Inequalities, shading side and boundary lines of a shaded region (U73). */
+function RegionFields({
+  object,
+  onUpdate,
+  onDelete,
+  drafts,
+  disabled,
+}: {
+  object: RegionObject;
+  onUpdate: (object: GraphObject) => void;
+  onDelete: () => void;
+  drafts: GraphDrafts;
+  disabled?: boolean;
+}) {
+  const busy = disabled || drafts.pending;
+  return (
+    <section className="panel-card selection-panel">
+      <div className="panel-heading">
+        <div>
+          <p className="eyebrow">SELECTED OBJECT</p>
+          <h2>Shaded region</h2>
+        </div>
+      </div>
+      <GraphDraftField
+        id={object.id + "-inequalities"}
+        label="Inequalities"
+        inputMode="text"
+        hint="Separate with commas, for example y > 2x − 1, x ≤ 3, y ≥ 0. < and > draw dashed lines."
+        value={object.inequalities.join(", ")}
+        drafts={drafts}
+        disabled={disabled}
+        onApplyText={(text) => {
+          const inequalities = text
+            .split(/[,;\n]/)
+            .map((t) => t.trim())
+            .filter(Boolean);
+          if (!inequalities.length || inequalities.length > MAX_REGION_INEQUALITIES)
+            throw Error(`Enter 1 to ${MAX_REGION_INEQUALITIES} inequalities, separated by commas.`);
+          inequalities.forEach(parseInequality);
+          // A range such as −2 < x ≤ 3 counts as two boundaries; refuse what the renderer cannot draw.
+          const problem = regionProblem({ inequalities });
+          if (problem) throw Error(problem);
+          onUpdate({ ...object, inequalities });
+        }}
+      />
+      <div className="line-style-field">
+        <span>Shading</span>
+        <div className="segmented" role="group" aria-label="Shading">
+          {(
+            [
+              ["wanted", "Shade the region"],
+              ["unwanted", "Shade the rest"],
+            ] as const
+          ).map(([shade, label]) => (
+            <button
+              key={shade}
+              disabled={busy}
+              className={object.shade === shade ? "active" : ""}
+              aria-pressed={object.shade === shade}
+              onClick={() => onUpdate({ ...object, shade })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button
+        disabled={busy}
+        className={`visibility-button${object.boundaries ? " active" : ""}`}
+        aria-pressed={object.boundaries}
+        onClick={() => onUpdate({ ...object, boundaries: !object.boundaries })}
+      >
+        {object.boundaries ? <Eye size={16} /> : <EyeOff size={16} />}
+        <span>{object.boundaries ? "Boundary lines drawn" : "Draw boundary lines"}</span>
+      </button>
+      <NameAndAnswer object={object} onUpdate={onUpdate} drafts={drafts} disabled={disabled} />
+      <button disabled={busy} className="danger-button" onClick={onDelete}>
+        <Trash2 size={16} />
+        Delete region
+      </button>
+    </section>
+  );
+}
+
 interface ObjectInspectorProps {
   object?: GraphObject;
   onUpdate: (object: GraphObject) => void;
@@ -89,6 +335,8 @@ interface ObjectInspectorProps {
   drafts: GraphDrafts;
   disabled?: boolean;
   onEditEquation: (object: StraightObject) => void;
+  /** The visible grid, so a new gradient triangle starts where it fits. */
+  bounds?: Bounds;
 }
 
 function CoordinateFields({
@@ -134,6 +382,7 @@ export function ObjectInspector({
   onEditEquation,
   drafts,
   disabled = false,
+  bounds,
 }: ObjectInspectorProps) {
   if (!object) {
     return (
@@ -181,6 +430,71 @@ export function ObjectInspector({
       </section>
     );
   }
+
+  if (object.kind === "polygon") {
+    return (
+      <section className="panel-card selection-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">SELECTED OBJECT</p>
+            <h2>Shape</h2>
+          </div>
+        </div>
+        <GraphDraftField
+          id={object.id + "-vertices"}
+          label="Shape corners"
+          displayLabel="Corners"
+          inputMode="text"
+          hint="In order, such as (1, 1) (4, 1) (1, 3)"
+          value={formatVertices(object.vertices)}
+          drafts={drafts}
+          disabled={disabled}
+          onApplyText={(text) =>
+            onUpdate({ ...object, vertices: parseVertices(text) })
+          }
+        />
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            disabled={disabled || drafts.pending}
+            checked={!!object.shaded}
+            onChange={(event) => {
+              const next = { ...object };
+              if (event.target.checked) next.shaded = true;
+              else delete next.shaded;
+              onUpdate(next);
+            }}
+          />{" "}
+          Shade the shape
+        </label>
+        <NameAndAnswer
+          object={object}
+          onUpdate={onUpdate}
+          drafts={drafts}
+          disabled={disabled}
+        />
+        <p className="panel-note">Arrow keys move the whole shape.</p>
+        <button
+          disabled={disabled || drafts.pending}
+          className="danger-button"
+          onClick={onDelete}
+        >
+          <Trash2 size={16} />
+          Delete shape
+        </button>
+      </section>
+    );
+  }
+  if (object.kind === "region")
+    return (
+      <RegionFields
+        object={object}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        drafts={drafts}
+        disabled={disabled}
+      />
+    );
 
   const updateEndpoint = (key: "start" | "end", value: Coordinate) =>
     onUpdate({ ...object, [key]: value, equationLabelPosition: undefined });
@@ -278,6 +592,13 @@ export function ObjectInspector({
       )}
       <NameAndAnswer
         object={object}
+        onUpdate={onUpdate}
+        drafts={drafts}
+        disabled={disabled}
+      />
+      <GradientTriangleFields
+        object={object}
+        bounds={bounds}
         onUpdate={onUpdate}
         drafts={drafts}
         disabled={disabled}

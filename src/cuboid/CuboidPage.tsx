@@ -5,6 +5,7 @@ import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -59,7 +60,8 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
-import { createHistory, handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 const newDocument = () => upgrade(create());
 function initial() {
@@ -180,11 +182,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       alive = false;
     };
   }, [active, cropKey, e, issue]);
-  function commit(value: Envelope) {
+  function commit(value: Envelope, label?: string) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
     const valid = validate(value);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function changeShape(update: (shape: Shape) => Shape) {
@@ -453,6 +455,10 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -497,6 +503,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
+                },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
                 },
                 save: {
                   action: () => downloadEditable(e),
@@ -554,8 +565,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               >
                 Show 1 cm³ cubes
               </button>
-              <span>Click a label to edit</span>
             </div>
+            <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
               <p className="cb-export-warning" role="alert">
                 {issue}
@@ -679,7 +690,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "cuboids-recovery.json",
+                      downloadName("cuboids", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}
@@ -736,7 +747,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card cb-settings">
               {d.shapes.length > 1 && (
@@ -1236,7 +1247,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onCancel={() => setPending(null)}
           onConfirm={() => {
-            commit(pending.e);
+            commit(pending.e, stepName(pending.title));
             setSelected(pending.e.document.shapes[0].id);
             setInline(null);
             setPending(null);

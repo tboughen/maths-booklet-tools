@@ -1,0 +1,160 @@
+{
+  "tool": "construction",
+  "schemaVersion": 1,
+  "rendererVersion": "construction-1",
+  "document": {
+    "width": 13,
+    "height": 9,
+    "grid": "none",
+    "border": false,
+    "caption": {
+      "text": "",
+      "show": "show"
+    },
+    "points": [
+      {
+        "id": "A",
+        "x": 1,
+        "y": 4,
+        "label": {
+          "text": "A",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "B",
+        "x": 12,
+        "y": 4,
+        "label": {
+          "text": "B",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "P",
+        "x": 5.5,
+        "y": 7.3,
+        "label": {
+          "text": "P",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "cross",
+        "role": "given"
+      },
+      {
+        "id": "pf1-x",
+        "x": 1.744,
+        "y": 4,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given",
+        "group": "pf1"
+      },
+      {
+        "id": "pf1-y",
+        "x": 9.256,
+        "y": 4,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given",
+        "group": "pf1"
+      },
+      {
+        "id": "pf1-z",
+        "x": 5.5,
+        "y": 0.7,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given",
+        "group": "pf1"
+      }
+    ],
+    "objects": [
+      {
+        "id": "AB",
+        "role": "given",
+        "type": "segment",
+        "from": "A",
+        "to": "B",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "pf1-arc1",
+        "role": "given",
+        "group": "pf1",
+        "type": "arc",
+        "center": "P",
+        "radius": 5,
+        "start": -144.7,
+        "sweep": 109.4,
+        "dash": false
+      },
+      {
+        "id": "pf1-arc2",
+        "role": "given",
+        "group": "pf1",
+        "type": "arc",
+        "center": "pf1-x",
+        "radius": 5,
+        "start": -49.32,
+        "sweep": 16.04,
+        "dash": false
+      },
+      {
+        "id": "pf1-arc3",
+        "role": "given",
+        "group": "pf1",
+        "type": "arc",
+        "center": "pf1-y",
+        "radius": 5,
+        "start": -146.72,
+        "sweep": 16.04,
+        "dash": false
+      },
+      {
+        "id": "pf1-line",
+        "role": "given",
+        "group": "pf1",
+        "type": "segment",
+        "from": "P",
+        "to": "pf1-z",
+        "extend": [
+          0,
+          0.6
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      }
+    ]
+  }
+}

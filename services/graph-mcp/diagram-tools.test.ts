@@ -129,10 +129,12 @@ describe("generic connector tools", () => {
     const client = await start();
     const r = await client.callTool({ name: "create_diagram", arguments: { kind: "charts", spec: { categories: "Mon" } } });
     expect(r.isError).toBe(true);
-    const error = JSON.parse((r.content as { text: string }[])[0].text) as { code: string; message: string };
+    const error = JSON.parse((r.content as { text: string }[])[0].text) as { code: string; message: string; fields: { path: string }[]; hint: string; retry: string };
     expect(error.code).toBe("invalid_input");
     expect(error.message).toMatch(/^spec\.categories: /);
-    expect(error.message).toContain('diagram_capabilities {kind:"charts"}');
+    expect(error.fields[0].path).toBe("spec.categories");
+    expect(error.hint).toContain('diagram_capabilities {kind:"charts"}');
+    expect(error.retry).toBe("fix_input");
     const view = await client.callTool({ name: "create_diagram", arguments: { kind: "cuboids", spec: {}, outputView: "answer" } });
     expect(view.isError).toBe(true);
     expect(JSON.stringify(view.content)).toContain("outputView applies only to");

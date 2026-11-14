@@ -1,4 +1,5 @@
 // @vitest-environment node
+/// <reference types="vite/client" />
 /**
  * Golden corpus: every saved envelope in packages/envelope-core/fixtures/corpus must still read,
  * keep its exact contentHash and draw byte-identical pupil and answer artwork. Teachers hold
@@ -14,6 +15,10 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES, type DiagramKind } from "./registry";
+// Imported only so the affected-only PR checks (`vitest --changed`) run this test when golden.json
+// or a corpus file changes: they follow imports, and the files themselves are read with fs below.
+import "../../envelope-core/fixtures/golden.json";
+import.meta.glob("../../envelope-core/fixtures/corpus/**/*.json", { eager: true });
 
 const corpus = join(__dirname, "../../envelope-core/fixtures/corpus");
 const goldenFile = join(__dirname, "../../envelope-core/fixtures/golden.json");

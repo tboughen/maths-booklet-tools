@@ -16,6 +16,8 @@ import {
   downloadBlob,
   svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
 
 export async function prepareImage(e: Envelope) {
   // Measure with the page's own STIX fonts and embed the (subset) fonts only after cropping: a
@@ -108,19 +110,21 @@ async function rasterImage(m: Awaited<ReturnType<typeof prepareImage>>) {
 export async function printPng(e: Envelope): Promise<Blob> {
   return rasterImage(await prepareImage(e));
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") {
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf((await prepareImage(e)).svg)
+      : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
         });
-  downloadBlob(blob, `maths-cuboids.${format}`);
+  downloadBlob(blob, downloadName("cuboids", format, { resource: e }));
 }
 export function downloadEditable(e: Envelope) {
   downloadBlob(
     new Blob([canonical(validate(e))], { type: "application/json" }),
-    "maths-cuboids.json",
+    downloadName("cuboids", "json", { resource: e }),
   );
 }
 export async function copyWord(e: Envelope) {
