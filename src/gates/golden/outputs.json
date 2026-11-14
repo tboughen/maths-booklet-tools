@@ -1138,45 +1138,45 @@
   },
   "ratio table: ratio-1MA1_NOV_2017_3F_Q12": {
    "json": "d6c85dd42a56129b",
-   "svg": "60188f718366b7a4",
-   "mm": "60.17x43",
-   "png600": "1421x1016",
-   "pixels": "f16678f297bf3b3f"
+   "svg": "16f9d94398285bd1",
+   "mm": "60.51x43",
+   "png600": "1429x1016",
+   "pixels": "5463f206cc98c6af"
   },
   "ratio table: ratio-1MA1_NOV_2017_3F_Q12 (worked)": {
    "json": "3e8113e21671e1bb",
-   "svg": "38cf7acd1b36509e",
-   "mm": "60.17x43",
-   "png600": "1421x1016",
-   "pixels": "34d4cc8511985507"
+   "svg": "b509105543e20714",
+   "mm": "60.51x43",
+   "png600": "1429x1016",
+   "pixels": "f035e8520288f6be"
   },
   "ratio table: ratio-1MA1_NOV_2021_1F_Q17": {
    "json": "74612b6338101635",
-   "svg": "867c06610a133d5f",
-   "mm": "86.26x33",
-   "png600": "2038x780",
-   "pixels": "4cf7986ccd5bde1f"
+   "svg": "d91b53ebcb0ac0e5",
+   "mm": "86.68x33",
+   "png600": "2048x780",
+   "pixels": "f189336aef937301"
   },
   "ratio table: ratio-1MA1_NOV_2021_1F_Q17 (worked)": {
    "json": "0066f4a90cf6bb5d",
-   "svg": "790c5d268e24a6fc",
-   "mm": "86.26x33",
-   "png600": "2038x780",
-   "pixels": "4bf474aabe25a1b9"
+   "svg": "3a1c357b97781231",
+   "mm": "86.68x33",
+   "png600": "2048x780",
+   "pixels": "91fa1f673fc2a5be"
   },
   "ratio table: ratio-fraction": {
    "json": "d3858173690d4d59",
-   "svg": "0a6b2545d5f9f533",
-   "mm": "55.15x33",
-   "png600": "1303x780",
-   "pixels": "82aa8f321b001059"
+   "svg": "d1ad753a6d7d2117",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "52a0983a18eba1eb"
   },
   "ratio table: ratio-fraction (worked)": {
    "json": "d3858173690d4d59",
-   "svg": "0a6b2545d5f9f533",
-   "mm": "55.15x33",
-   "png600": "1303x780",
-   "pixels": "82aa8f321b001059"
+   "svg": "d1ad753a6d7d2117",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "52a0983a18eba1eb"
   },
   "ratio table: ratio-simple": {
    "json": "3560c4e3f60144d3",
@@ -1194,17 +1194,17 @@
   },
   "ratio table: ratio-worked": {
    "json": "e895ae5f535ef595",
-   "svg": "2a5440ac897f0648",
-   "mm": "55.15x33",
-   "png600": "1303x780",
-   "pixels": "2dadb68f4b1fe51e"
+   "svg": "76641536d2fa3795",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "b1acdfc11b64232f"
   },
   "ratio table: ratio-worked (worked)": {
    "json": "e895ae5f535ef595",
-   "svg": "2a5440ac897f0648",
-   "mm": "55.15x33",
-   "png600": "1303x780",
-   "pixels": "2dadb68f4b1fe51e"
+   "svg": "76641536d2fa3795",
+   "mm": "55.29x33",
+   "png600": "1306x780",
+   "pixels": "b1acdfc11b64232f"
   },
   "triangles: triangle-base-height": {
    "json": "f8b0e3121b565ada",

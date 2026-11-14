@@ -6393,6 +6393,13 @@
           },
           "showOperations": {
             "type": "boolean"
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [

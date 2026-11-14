@@ -66,8 +66,8 @@ describe("physical facts and independent placement", () => {
     const scale = {compact: 0.8, standard: 1, large: 1.2}[size];
     expect(facts.answerLineLengthsMm[0]).toBeCloseTo(6 * scale);
     expect(facts.tableRowHeightsMm[0]).toBeCloseTo(10 * scale);
-    expect(facts.textSizesPt).toHaveLength(3);
-    for (const [i, pt] of [7.68, 9.6, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
+    expect(facts.textSizesPt).toHaveLength(2);
+    for (const [i, pt] of [10, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
     const actual = [...renderRatioSvg(e.document).matchAll(/font-size="([\d.]+)"/g)].map((m) => +m[1] / 100 * scale * 72 / 2.54);
     for (const f of actual) expect(facts.textSizesPt.some((pt) => Math.abs(pt - f) < 1e-7)).toBe(true);
   });
