@@ -1,3 +1,4 @@
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
@@ -88,6 +89,11 @@ export const printSchema = z
     tableWidthMm: z.number().min(60).max(180),
     tableRowHeightMm: z.number().min(10).max(16),
     gapMm: z.number().min(4).max(30),
+    /** Bold lines (U111): the table, axes and plots are 1.5 times as heavy; the graph grid keeps its weight. Normal is never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export const documentSchema = z
