@@ -107,6 +107,13 @@ describe("physical facts and independent placement", () => {
     expect(box.wouldDistort).toBe(true); expect(box.proportionalSizeMm.height).toBeCloseTo(n.heightMm / 2);
     expect(box.warnings.map((w) => w.code)).toContain("aspect_ratio_mismatch");
   });
+  it("reports exactly 1 when only the native width or height is asked for", () => {
+    // 8.553 cm wide by 5.684 cm high: deriving the height first gave 0.9999999999999999.
+    const info = { physicalSizeCm: { width: 8.553, height: 5.684 } } as never;
+    const source = { kind: "graph", envelope: createGraph(graphSpec) };
+    expect(checkPlacement({ ...source, widthMm: 8.553 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
+    expect(checkPlacement({ ...source, heightMm: 5.684 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
+  });
   it("rejects invalid dimensions, mismatched kinds and malformed source relationships", () => {
     const source = { kind: "graph", envelope: createGraph(graphSpec) };
     for (const dimensions of [{}, {widthMm: 0}, {heightMm: -1}, {widthMm: Infinity}, {widthMm: NaN}])
