@@ -124,7 +124,10 @@ is tapped. Local history touch releases activate once and consume a matching
 compatibility click; moving/cancelling a touch over history does not undo work.
 Rotate/reflection affects the complete diagram and preserves label identities.
 Right-angle, isosceles and equilateral constraints are geometric. Equal-side
-ticks, angle arcs and dashed sides are independent printed annotations. A
+ticks, parallel arrows, angle arcs and dashed sides are independent printed annotations.
+Parallel arrows (1 to 3 per side, optional `arrows` on an edge) always point rightwards (down
+on a vertical side), so sides given the same number read as parallel; they sit beside any
+equal-side ticks. A side without arrows saves without the field. A
 right-angle square is allowed only on perpendicular rays.
 
 Layouts: single; two separate triangles; two triangles sharing a selected side;
