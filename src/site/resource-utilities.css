@@ -268,3 +268,55 @@
     gap: 8px;
   }
 }
+
+/* U22: one hint line, directly under every editor's preview bar. */
+.editor-hint-slot:focus {
+  outline: none;
+}
+.editor-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 4px 0 12px;
+  min-height: 44px;
+  background: #f3f7fb;
+  border-top: 1px solid #dbe5ee;
+  border-bottom: 1px solid #dbe5ee;
+  color: #34506a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.editor-hint > svg {
+  flex: none;
+  color: #5b7792;
+}
+.editor-hint p {
+  flex: 1;
+  margin: 0;
+  padding: 6px 0;
+}
+.editor-hint--prompt {
+  padding: 6px 12px;
+  color: #19334c;
+  font-weight: 600;
+}
+.editor-hint-dismiss {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #4b6680;
+  cursor: pointer;
+}
+.editor-hint-dismiss:hover {
+  background: #e3ecf5;
+}
+.editor-hint-dismiss:focus-visible {
+  outline: 2px solid #1766ca;
+  outline-offset: -2px;
+}

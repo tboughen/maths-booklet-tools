@@ -271,14 +271,6 @@
 .ratio-export-menu {
   top: 68px;
 }
-.ratio-edit-hint {
-  margin: 0;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
 .ratio-app .ratio-stage {
   display: block;
   overflow: auto;
@@ -522,9 +514,6 @@
   }
   .ratio-action-pair .tool-button span {
     white-space: normal;
-  }
-  .ratio-edit-hint {
-    padding-inline: 10px;
   }
   .booklet-editor.ratio-app .ratio-stage {
     height: auto;

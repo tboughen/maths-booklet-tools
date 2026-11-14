@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -360,6 +361,10 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               <ResourceSize width={g.width / 10} height={g.height / 10} />
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
+            <EditorHint tool="frequency-tree">
+              Click an oval or a name on the tree to edit it. Enter applies;
+              Escape restores.
+            </EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div

@@ -6,6 +6,7 @@ import {
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -669,13 +670,19 @@ export default function RatioTablePage({
                 </label>
               )}
             </div>
-            <p className="ratio-edit-hint">
-              {tool === "arrow"
-                ? arrowFrom
-                  ? "Select the row immediately below."
-                  : "Select a source row, then the row below, or use the arrow settings."
-                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
-            </p>
+            <EditorHint
+              tool="ratio-table"
+              prompt={
+                tool === "arrow"
+                  ? arrowFrom
+                    ? "Select the row immediately below."
+                    : "Select a source row, then the row below, or use the arrow settings."
+                  : undefined
+              }
+            >
+              Click a heading, cell or arrow number and type. Click a curved
+              arrow for its settings.
+            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}

@@ -5,6 +5,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -813,15 +814,6 @@ export default function NumberLinePage({
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
-              <span>
-                {mode === "select"
-                  ? "Click a circle to change its type; drag to move it."
-                  : mode === "interval"
-                    ? first
-                      ? "Choose the other endpoint"
-                      : "Choose the first endpoint"
-                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}`}
-              </span>
               {mode !== "select" && (
                 <button
                   onClick={() => {
@@ -833,6 +825,20 @@ export default function NumberLinePage({
                 </button>
               )}
             </div>
+            <EditorHint
+              tool="number-line"
+              prompt={
+                mode === "select"
+                  ? undefined
+                  : mode === "interval"
+                    ? first
+                      ? "Choose the other endpoint."
+                      : "Choose the first endpoint."
+                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+              }
+            >
+              Click a circle to change its type; drag to move it.
+            </EditorHint>
             <div
               className="nl-scroll"
               ref={fitted.ref}
