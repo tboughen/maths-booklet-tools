@@ -182,7 +182,8 @@ for (const tool of tools) {
         .evaluateAll((items) =>
           items.map((i) => i.querySelector("strong")!.textContent),
         );
-      expect(labels.slice(0, 6)).toEqual([
+      // Optional answers-copy downloads (U28) sit among the images; the shared order is the rest.
+      expect(labels.filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? "")).slice(0, 6)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
         "Download PDF (actual size)",
@@ -1009,7 +1010,7 @@ for (const tool of toolIds) {
     const items = await menu.getByRole("menuitem").evaluateAll((nodes) =>
       nodes.map((n) => [n.getAttribute("aria-label"), n.querySelector("small")?.textContent ?? ""]),
     );
-    const common = items.filter(([label]) => !/^Download answers /.test(label ?? ""));
+    const common = items.filter(([label]) => !/^Download (answers |pupil and answers)/.test(label ?? ""));
     expect(common).toEqual([
       ["Download SVG", ""],
       ["Download PNG (600 ppi)", ""],

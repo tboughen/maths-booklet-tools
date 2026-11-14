@@ -1,7 +1,7 @@
 {
  "tool": "venn",
- "schemaVersion": 1,
- "rendererVersion": "venn-1",
+ "schemaVersion": 2,
+ "rendererVersion": "venn-2",
  "document": {
   "sets": 3,
   "shape": "circles",
@@ -81,6 +81,8 @@
   ],
   "showDefinitions": true,
   "widthCm": 12,
-  "fontPt": 11
+  "fontPt": 11,
+  "arrangement": "overlap",
+  "caption": "off"
  }
 }

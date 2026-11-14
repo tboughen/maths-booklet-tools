@@ -2,21 +2,20 @@ import { describe, expect, it } from "vitest";
 import { activeMasks, canonical, create, forView, renderSvg } from "./index";
 import { apply, createVenn, editorLink, hash, reviseVenn } from "./interchange";
 describe("Venn connector preservation", () => {
-  it("defaults to version2 and preserves imported legacy source/hash/artwork", async () => {
+  it("creates schema 2, keeps an imported envelope exactly, and has no upgrade operation", async () => {
     expect(createVenn().schemaVersion).toBe(2);
-    const old = create(3);
-    expect(createVenn({ envelope: old })).toEqual(old);
+    const saved = create(3);
+    expect(createVenn({ envelope: saved })).toEqual(saved);
     expect(
       await reviseVenn({
-        envelope: old,
-        baseHash: await hash(old),
+        envelope: saved,
+        baseHash: await hash(saved),
         operations: [],
       }),
-    ).toEqual(old);
-    expect(renderSvg(createVenn({ envelope: old }))).toBe(renderSvg(old));
-    expect(() => apply(old, [{ op: "set_layout", sets: 1 }])).toThrow(
-      "upgrade_document",
-    );
+    ).toEqual(saved);
+    expect(renderSvg(createVenn({ envelope: saved }))).toBe(renderSvg(saved));
+    expect(() => apply(saved, [{ op: "upgrade_document" }])).toThrow();
+    expect(() => createVenn({ envelope: { ...saved, schemaVersion: 1, rendererVersion: "venn-1" } })).toThrow();
   });
   it.each([
     [1, "overlap", [0, 1]],

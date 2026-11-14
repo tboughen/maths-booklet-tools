@@ -1,4 +1,3 @@
-import { aboutOf } from "../../envelope-core/src/about";
 import { z } from "zod";
 import {
   activeMasks,
@@ -7,7 +6,7 @@ import {
   canonical,
   changeArrangement,
   changeSets,
-  createExtended,
+  create,
   emptyRegion,
   envelopeSchema,
   exportIssue,
@@ -17,7 +16,6 @@ import {
   labelSchema,
   regionSchema,
   renderSvg,
-  upgrade,
   validate,
   type Envelope,
 } from "./index";
@@ -73,7 +71,7 @@ export function createVenn(raw: unknown = {}): Envelope {
     return e;
   }
   const s = v.spec ?? {},
-    e = createExtended(s.sets ?? 2);
+    e = create(s.sets ?? 2);
   const { labels, definitions, regions, ...settings } = s;
   Object.assign(e.document, settings);
   if (e.document.lines === "normal") delete e.document.lines;
@@ -148,7 +146,6 @@ export const operationSchema = z.discriminatedUnion("op", [
       lines: lines.optional(),
     })
     .strict(),
-  z.object({ op: z.literal("upgrade_document") }).strict(),
 ]);
 export const revisionSchema = z
   .object({
@@ -164,10 +161,6 @@ export async function hash(e: Envelope): Promise<string> {
 export function apply(raw: Envelope, operations: unknown): Envelope {
   let next = structuredClone(validate(raw));
   for (const o of z.array(operationSchema).max(30).parse(operations)) {
-    if (o.op === "upgrade_document") {
-      next = upgrade(next);
-      continue;
-    }
     if (o.op === "set_region") {
       if (!activeMasks(next).includes(o.mask))
         throw Error("This region does not exist in the current layout.");
@@ -187,40 +180,12 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
       next.document.showDefinitions = o.visible;
     if (o.op === "set_layout") {
       const before = structuredClone(next);
-      if (
-        next.schemaVersion === 1 &&
-        (o.sets === 1 || o.arrangement !== undefined || o.caption !== undefined)
-      )
-        throw Error(
-          "Use upgrade_document before selecting version-2 layout features.",
-        );
-      if (o.sets !== undefined && o.sets !== next.document.sets) {
+      if (o.sets !== undefined && o.sets !== next.document.sets)
         next = changeSets(next, o.sets);
-        if (before.schemaVersion === 1 && next.document.sets !== 1) {
-          next = {
-            tool: "venn",
-            schemaVersion: 1,
-            rendererVersion: "venn-1",
-            document: {
-              sets: next.document.sets,
-              shape: next.document.shape,
-              labels: next.document.labels,
-              regions: next.document.regions,
-              definitions: next.document.definitions,
-              showDefinitions: next.document.showDefinitions,
-              widthCm: next.document.widthCm,
-              fontPt: next.document.fontPt,
-              ...(next.document.lines ? { lines: next.document.lines } : {}),
-            },
-            ...aboutOf(next),
-          };
-        }
-      }
       if (o.arrangement !== undefined && o.arrangement !== arrangement(next))
         next = changeArrangement(next, o.arrangement);
       if (o.shape !== undefined) next.document.shape = o.shape;
-      if (o.caption !== undefined && next.schemaVersion === 2)
-        next.document.caption = o.caption;
+      if (o.caption !== undefined) next.document.caption = o.caption;
       const lost = before.document.regions.some(
         (r, i) =>
           hasRegionData(r) &&
@@ -238,9 +203,7 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
           );
         });
       const lostCaption =
-        before.schemaVersion === 2 &&
         before.document.caption !== "off" &&
-        next.schemaVersion === 2 &&
         before.document.caption !== next.document.caption &&
         o.caption === undefined;
       if ((lost || removedSets || lostCaption) && !o.discardIncompatible)

@@ -242,6 +242,6 @@ describe("Venn mathematical and teaching states", () => {
     expect(renderSvg(e)).not.toContain("<script>");
     expect(renderSvg(e)).toContain("&lt;script&gt;");
     expect(() => parseFile(" ".repeat(40001))).toThrow(/large/);
-    expect(() => validate({ ...e, rendererVersion: "venn-2" })).toThrow();
+    expect(() => validate({ ...e, rendererVersion: "venn-1" })).toThrow();
   });
 });

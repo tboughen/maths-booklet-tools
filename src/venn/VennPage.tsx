@@ -33,7 +33,6 @@ import {
   arrangement,
   changeArrangement,
   hasRegionData,
-  upgrade,
   forView,
   relationship,
   type Arrangement,
@@ -857,11 +856,9 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     <select
                       aria-label="Relationship caption"
                       disabled={blocked}
-                      value={
-                        e.schemaVersion === 2 ? e.document.caption : "off"
-                      }
+                      value={e.document.caption}
                       onChange={(ev) => {
-                        const n = upgrade(e);
+                        const n = structuredClone(e);
                         n.document.caption = ev.target.value as
                           | "off"
                           | "relationship"
