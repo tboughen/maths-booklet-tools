@@ -299,7 +299,8 @@ test("printed question edits save, export and undo without changing grid entries
   ).toString("utf8");
   const printed = svg.match(/<text x="3" y="6"[^>]*>([\s\S]*?)<\/text>/)?.[1];
   expect(printed?.replace(/<[^>]*>/g, "")).toBe("Expand (x+3)(x+2)");
-  expect(svg).toContain(`width="${layout(await saved(page)).width}mm"`);
+  // The SVG root rounds its size to four decimals (U38).
+  expect(svg).toContain(`width="${Number(layout(await saved(page)).width.toFixed(4))}mm"`);
   expect(svg).not.toContain("Edit printed question");
   const file = JSON.parse(
     (
