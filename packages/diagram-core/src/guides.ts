@@ -110,7 +110,7 @@ const valueGuide: FamilyGuide = {
 const cuboidGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [1, 2],
-    rendererVersions: ["cuboids-1", "cuboids-2"],
+    rendererVersions: ["cuboids-2"],
     defaultRendererVersion: "cuboids-2",
     shapes: { minimum: 1, maximum: 3 },
     widthCm: { minimum: 4, maximum: 18 },
