@@ -39,6 +39,17 @@ function loadFontSubsetter(): Promise<Subsetter | null> {
   return subsetter;
 }
 
+/**
+ * Starts fetching the print fonts and the subsetter as soon as a teacher shows an intent to export
+ * (pointer over, or focus on, Copy image, Copy for Word or File), so the first copy does not wait
+ * for about 1.5 MB of fonts (improvement item U57). Both stay cached for the page's lifetime; a
+ * failed preload is forgotten and the export itself reports any error.
+ */
+export function preloadPortableFonts(): void {
+  void loadFonts().catch(() => undefined);
+  void loadFontSubsetter();
+}
+
 function base64(bytes: Uint8Array): string {
   let binary = "";
   for (let offset = 0; offset < bytes.length; offset += 8192)
