@@ -19,6 +19,7 @@ import {
   type Rational,
 } from "../../ratio-table-core/src/numbers";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { aboutShape } from "../../envelope-core/src/about";
 
 export const MAX_CATEGORIES = 5;
 export const MAX_HEADING = 24;
@@ -55,6 +56,7 @@ export const envelopeSchema = z
     schemaVersion: z.literal(1),
     rendererVersion: z.literal("two-way-table-1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
