@@ -78,6 +78,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
+import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
@@ -173,11 +174,8 @@ const errorText = (err: unknown) =>
   err instanceof Error ? err.message : String(err);
 export default function TrianglePage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{
-      past: Envelope[];
-      present: Envelope;
-      future: Envelope[];
-    }>({ past: [], present: startup.e, future: [] });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
+    { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [recoveryConfirm, setRecoveryConfirm] = useState(false),
@@ -289,11 +287,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     const n = validate(next);
     committed.current = n;
-    setHistory((h) =>
-      canonical(h.present) === canonical(n)
-        ? h
-        : { past: [...h.past, h.present].slice(-60), present: n, future: [] },
-    );
+    documentHistory.commit(n);
     setChoices([]);
     if (selected && !objects(n).some((o) => o.ref === selected))
       setSelected(null);
@@ -375,29 +369,13 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setSelected(null);
     setShowAnswers(false);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setSelected(null);
     setShowAnswers(false);
   }
@@ -660,17 +638,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         event.target.closest("input,textarea,select,[contenteditable]")
       )
         return;
-      if (event.ctrlKey || event.metaKey) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (event.shiftKey) redo();
-          else undo();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redo();
-        }
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -2379,11 +2347,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
-                setHistory((h) => ({
-                  past: [...h.past, h.present].slice(-60),
-                  present: create(),
-                  future: [],
-                }));
+                setHistory((h) => pushHistory(h, create(), { label: "start afresh" }));
                 setSelected(null);
               } catch (err) {
                 setMessage(errorText(err));
