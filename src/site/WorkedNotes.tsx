@@ -2,8 +2,12 @@ import { useState } from "react";
 import type { WorkedNote } from "../../packages/envelope-core/src/worked";
 import type { FileMenuItem } from "./fileMenu";
 import { WorkedNotesDialog } from "./WorkedNotesDialog";
+import { draftOf, notesFromDrafts } from "./workedNotesData";
 
-const same = (a: readonly WorkedNote[], b: readonly WorkedNote[]) => JSON.stringify(a) === JSON.stringify(b);
+// Both sides pass through the dialog's own reading, so a file saved with default values or other key
+// orders is not changed by a Save that touched nothing.
+const same = (a: readonly WorkedNote[], b: readonly WorkedNote[]) =>
+  JSON.stringify(notesFromDrafts(a.map(draftOf)).notes) === JSON.stringify(notesFromDrafts(b.map(draftOf)).notes);
 
 /**
  * The File menu's "Worked notes…" item and its dialog (U116), the same in every editor with an

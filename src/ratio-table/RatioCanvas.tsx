@@ -1,4 +1,5 @@
 import { speakRatio } from "./speakRatio";
+import { previewArt } from "../export/worked";
 import { useRef } from "react";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import type { CSSProperties } from "react";
@@ -132,7 +133,7 @@ export function RatioCanvas({
             data-testid="ratio-preview"
             role="img"
             aria-label={speakRatio(envelope, view)}
-            dangerouslySetInnerHTML={{ __html: renderRatioSvg(document, view) }}
+            dangerouslySetInnerHTML={{ __html: previewArt(renderRatioSvg(document, view), envelope, view === "answer") }}
           />
           {guides && (
             <svg
