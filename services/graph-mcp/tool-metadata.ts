@@ -6,6 +6,7 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { AnySchema, ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
+import { errorResult, inputErrorBody, type ToolErrorBody } from "./tool-error";
 
 export const TOOL_TITLES: Readonly<Record<string, string>> = {
   diagram_capabilities: "Diagram options",
@@ -93,6 +94,10 @@ export function documentFields(schema: z.ZodType, topLevel = true): void {
  * service is stateless, so it never sends notifications/tools/list_changed).
  */
 export class MathsDockMcpServer extends McpServer {
+  constructor(...args: ConstructorParameters<typeof McpServer>) {
+    super(...args);
+    oneErrorShape(this);
+  }
   override registerTool<OutputArgs extends ZodRawShapeCompat | AnySchema, InputArgs extends undefined | ZodRawShapeCompat | AnySchema = undefined>(
     name: string,
     config: {
@@ -117,4 +122,43 @@ export class MathsDockMcpServer extends McpServer {
 /** serverInfo.version: the package version plus the start of the build ID that /healthz reports. */
 export function serverVersion(packageVersion: string, buildId: string | undefined): string {
   return `${packageVersion}+${(buildId ?? "development").slice(0, 12)}`;
+}
+
+type SdkInternals = {
+  validateToolInput(tool: { inputSchema?: unknown }, args: unknown, name: string): Promise<unknown>;
+  createToolError(message: string): { content: { type: "text"; text: string }[]; isError: true };
+};
+/**
+ * Routes the SDK's own failures through the one error shape (M12). Arguments that fail a tool's
+ * input schema, and any other failure the SDK reports as bare text, come back as the same JSON
+ * body the tools return. Relies on two SDK internals; tool-error.test.ts fails if they move, so
+ * an SDK upgrade must run that test (the SDK is pinned in package.json for this reason).
+ */
+function oneErrorShape(server: McpServer) {
+  const sdk = server as unknown as SdkInternals;
+  const validate = sdk.validateToolInput.bind(server);
+  sdk.validateToolInput = async (tool, args, name) => {
+    try {
+      return await validate(tool, args, name);
+    } catch (error) {
+      if (tool.inputSchema instanceof z.ZodType) {
+        const parsed = await tool.inputSchema.safeParseAsync(args ?? {});
+        if (!parsed.success) throw Error(JSON.stringify(inputErrorBody(name, parsed.error, args)));
+      }
+      throw error;
+    }
+  };
+  sdk.createToolError = (message) => {
+    try {
+      const body = JSON.parse(message) as Partial<ToolErrorBody>;
+      if (typeof body.code === "string" && typeof body.message === "string") return errorResult(body as ToolErrorBody);
+    } catch {
+      // Not one of ours: wrapped below.
+    }
+    const unknownTool = /Tool [\w-]+ (?:not found|disabled)/.exec(message);
+    if (unknownTool) return errorResult({ code: "unknown_tool", message: `${unknownTool[0]}. Call tools/list for the current tools.`, retry: "fix_input" });
+    // Kept in the service log, never sent: an output-schema failure or another SDK diagnostic.
+    console.error(`MathsDock tool error (internal): ${message.slice(0, 2000)}`);
+    return errorResult({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
+  };
 }

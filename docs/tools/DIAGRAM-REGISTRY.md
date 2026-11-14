@@ -36,8 +36,28 @@ A create or revise result starts with a one-line plain summary (`Created a <labe
 `structuredContent` adds `kind`, `summary` and `altText` to the family's own fields (`envelope`,
 `contentHash`, `downloads`, `editorUrl`, warnings and so on).
 
-Errors are JSON `{code, message}`. Invalid input uses `invalid_input` and names the field
-(`spec.categories: ...`) with a pointer to `diagram_capabilities {kind:"..."}`.
+Every connector failure, from any tool and from the SDK's own input checks, has one shape
+(improvement list M12, `services/graph-mcp/tool-error.ts`, body type in
+`packages/envelope-core/src/errors.ts`):
+
+```json
+{ "code": "invalid_input", "message": "spec.categories: Expected array",
+  "fields": [{ "path": "spec.categories", "message": "Expected array" }],
+  "hint": "Check diagram_capabilities {kind:\"charts\"} for the expected fields.",
+  "retry": "fix_input" }
+```
+
+- `fields` and `hint` are optional; `message` always repeats the field problems in words.
+- `retry` is `fix_input`, `refresh_envelope` (a stale `baseHash`: code `stale_hash` in every
+  family; the older `stale_document` and `base_hash_mismatch` spellings are read as it),
+  `try_later` (quota, busy renderer) or `none`.
+- Cores throw `MathsDockError(code, message, { fields, hint })` (GraphError and RatioError extend
+  it). A plain `Error` keeps its message under the tool's default code; a message starting with
+  a known code (`stale_hash: `) is read as that code, and any other `word: ` prefix stays text.
+  The output and SVG tools replace an uncoded `Error`'s text with a fixed sentence, and an SDK
+  failure (such as a result that breaks its output schema) answers `internal` and is logged, so
+  internal detail never reaches the model. The SDK is pinned: upgrading it must pass
+  `services/graph-mcp/tool-error.test.ts`, which guards the two SDK internals this relies on.
 
 Download links carry deflated, base64url tokens (prefix `z`); older `ey...` tokens still open.
 The signature is checked before a token is unpacked.
