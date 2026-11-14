@@ -1,13 +1,15 @@
 /*
  * U63: from 768 px wide every diagram editor keeps two columns, the resource on the left and its
- * settings on the right. The settings column stays in view and scrolls on its own; the resource
- * column scrolls with the page (its preview already scrolls internally when zoomed). Below 768 px
- * the editors stack, with the "Edit settings" / "Return to diagram" jumps. Worksheets and booklets
- * keep their own layout. The :not() raises specificity above each tool's own stacking rule.
+ * settings on the right. Several tools still stack below 900-1180 px in their own CSS, so between
+ * 768 and 1180 px this puts them side by side; the settings column then scrolls on its own exactly
+ * as on a desktop (refinement.css, from 768 px), and the "Edit settings" / "Return to diagram" jumps
+ * stay hidden until a keyboard reaches them (usability.css, from 768 px). Below 768 px the editors
+ * stack. Worksheets and booklets keep their own layout. The :not() raises specificity above each
+ * tool's own stacking rule, and the inspector resets undo those rules' two-column inspector grids.
  */
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1180px) {
   .booklet-editor:not(.ws-editor) .workspace {
-    grid-template-columns: minmax(0, 1fr) clamp(260px, 34vw, 316px);
+    grid-template-columns: minmax(0, 1fr) clamp(260px, 34vw, 340px);
     align-items: start;
     gap: 12px;
     padding-top: 0;
@@ -17,13 +19,6 @@
   }
   .booklet-editor:not(.ws-editor) .inspector-stack {
     grid-template-columns: minmax(0, 1fr);
-    position: sticky;
-    top: 8px;
-    max-height: calc(100dvh - 16px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-    padding: 0 3px 3px 0;
   }
   .booklet-editor:not(.ws-editor) .selection-panel,
   .booklet-editor:not(.ws-editor) .equation-panel {
@@ -34,22 +29,5 @@
   }
   .booklet-editor:not(.ws-editor) .example-launch {
     grid-column: auto;
-  }
-}
-@media (min-width: 768px) and (max-width: 900px) {
-  /* The settings are beside the resource, so the stacked-layout jumps stay hidden until focused. */
-  .booklet-editor:not(.ws-editor) .editor-inspector-link:not(:focus-visible),
-  .booklet-editor:not(.ws-editor) .editor-diagram-link:not(:focus-visible) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    margin: -1px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    overflow: hidden !important;
-    clip-path: inset(50%) !important;
-    white-space: nowrap !important;
   }
 }

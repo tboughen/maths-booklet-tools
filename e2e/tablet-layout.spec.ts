@@ -2,7 +2,7 @@ import { test, expect } from "./release-fixtures";
 import { toolIds } from "../src/site/routes";
 
 /** U63: from 768 px the resource sits left and the settings right, each scrolling on its own. */
-for (const width of [768, 820]) {
+for (const width of [768, 820, 1024, 1440]) {
   for (const tool of toolIds) {
     test(`${tool} at ${width} px: resource left, settings right`, async ({ page }) => {
       await page.setViewportSize({ width, height: 1000 });
@@ -23,7 +23,11 @@ for (const width of [768, 820]) {
       expect(Math.abs(settings!.top - resource.top)).toBeLessThan(80);
       const stack = page.locator(".inspector-stack").filter({ visible: true }).first();
       expect(await stack.evaluate((el) => getComputedStyle(el).overflowY)).toBe("auto");
-      expect(await stack.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
+      // The whole settings column is reachable: it starts below the site navigation and is no taller than the window.
+      const nav = await page.locator(".site-navigation").boundingBox();
+      const box = (await stack.boundingBox())!;
+      expect(box.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
+      expect(box.height).toBeLessThanOrEqual(1000);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(overflow).toBeLessThanOrEqual(1);
     });
