@@ -10,8 +10,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -350,41 +350,39 @@ export default function BarModelPage({
       },
     });
   }
-  const actions = [
-    {
-      label: "Download SVG",
+  const actions = diagramFileMenu({
+    svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
       success: "SVG download started",
     },
-    {
-      label: "Download PNG (600 ppi)",
+    png: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "png"),
       success: "PNG download started",
     },
-    {
-      label: "Save editable file",
+    pdf: {
+      disabled: blocked || !!issue,
+      action: () => downloadImage(e, "pdf"),
+      success: "PDF download started",
+    },
+    save: {
       disabled: blocked,
       action: () => downloadEditable(e),
       success: "Editable file download started",
     },
-    {
-      label: "Open editable file",
+    open: {
       disabled: blocked,
       action: () => file.current?.click(),
-      picker: true,
     },
-    {
-      label: "Copy editable link",
+    link: {
       disabled: blocked,
-      description: LINK_DESCRIPTION,
       action: async () => {
         await navigator.clipboard.writeText(pathLink(editorLink(e, location.href)));
       },
       success: "Editable link copied",
     },
-  ];
+  });
   const stateSelect = (l: c.Label, change: (l: c.Label) => void) => (
     <>
       <label>
@@ -506,6 +504,7 @@ export default function BarModelPage({
             />
             <EditorDownloadMenu
               id="bar-model-files"
+              wordHelp
               open={menu}
               active={active}
               onClose={() => setMenu(false)}

@@ -5,7 +5,10 @@ import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu, LINK_DESCRIPTION } from "../site/EditorDownloadMenu";
+import {
+  EditorDownloadMenu,
+} from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
@@ -354,25 +357,25 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="tree-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                { label: "Download SVG", action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                { label: "Download PNG (600 ppi)", action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                { label: "Save editable file", action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started.", separator: true },
-                { label: "Open editable file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
-                {
-                  label: "Copy editable link",
+              actions={diagramFileMenu({
+                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },
+                save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
+                open: { action: () => file.current?.click(), disabled: blocked, success: "" },
+                link: {
                   action: () => navigator.clipboard.writeText(treeEditorLink(e, location.href)),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               ref={file}

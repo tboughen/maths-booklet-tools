@@ -9,8 +9,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { copyPngToClipboard } from "../export/clipboard";
@@ -573,43 +573,43 @@ export default function RatioTablePage({
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"
+              wordHelp
               open={exportsOpen}
               active={active}
               onClose={() => setExportsOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadRatioImage(envelope, "png"),
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
-                ...(hasRatioAnswers(envelope)
-                  ? [
-                      {
-                        label: "Download answers SVG",
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
+                answers: hasRatioAnswers(envelope)
+                  ? {
+                      svg: {
                         action: () => downloadRatioImage(envelope, "svg", "answer"),
                         disabled: exportDisabled,
                         success: "Answers SVG download started.",
-                        description: "Hidden answers printed in the answer colour.",
                       },
-                      {
-                        label: "Download answers PNG (600 ppi)",
+                      png: {
                         action: () => downloadRatioImage(envelope, "png", "answer"),
                         disabled: exportDisabled,
                         success: "Answers PNG download started.",
                       },
-                    ]
-                  : []),
-                {
-                  label: "Save editable file",
+                    }
+                  : undefined,
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([JSON.stringify(envelope, null, 2)], {
@@ -619,26 +619,21 @@ export default function RatioTablePage({
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: exportDisabled,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(ratioEditorLink(envelope, location.href)),
                     ),
                   disabled: exportDisabled,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               ref={file}
