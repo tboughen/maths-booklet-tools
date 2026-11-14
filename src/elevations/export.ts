@@ -6,13 +6,14 @@ import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
+import { answerArt } from "../export/worked";
 
 /** Exports take the saved drawing and the copy to print, so both copies keep one size. */
 export async function prepareImage(e: Envelope, view: View) {
   const issue = exportIssue(e, view);
   if (issue) throw Error(issue);
   const g = layout(e, view),
-    svg = await embedPortableFonts(renderSvg(e, view));
+    svg = await embedPortableFonts(answerArt(renderSvg(e, view), e, view === "answer"));
   return { svg, width: g.width / 10, height: g.height / 10 };
 }
 export async function printPng(e: Envelope, view: View) {

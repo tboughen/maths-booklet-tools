@@ -1,4 +1,7 @@
 import { useTitleNote } from "../site/TitleNote";
+import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
@@ -176,7 +179,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(forView(e, "answer"));
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const depth = maxDepth(d);
   const selectedNode = d.nodes.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
@@ -314,6 +318,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const letter = (i: number) => String.fromCharCode(97 + i);
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), undefined, WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor ft-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -336,8 +341,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
               busy={busy}
-              onCopy={() => void run(() => copyWord(displayed), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")}
-              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed)))}
+              onCopy={() => void run(() => copyWord(displayed, view === "answer"), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")}
+              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="ftree-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
@@ -352,6 +357,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
@@ -366,6 +372,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -393,7 +400,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   data-testid="frequency-tree-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {g.targets.map((t) => {
                     const id = t.kind === "total" ? "ft-total" : fieldId(t.kind, t.id);
                     const b = d.nodes.find((x) => x.id === t.id);

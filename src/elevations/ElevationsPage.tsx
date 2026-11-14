@@ -1,4 +1,7 @@
 import { useTitleNote } from "../site/TitleNote";
+import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -138,7 +141,8 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     g = layout(e, view),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(e, "answer");
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const rows = d.heights.length,
     cols = d.heights[0].length;
 
@@ -286,6 +290,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
   }
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor ev-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -324,6 +329,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: { action: () => downloadImage(e, "svg", view), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(e, "png", view), disabled: blocked || !!issue, success: "PNG download started." },
@@ -334,6 +340,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -358,7 +365,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                   data-testid="elevations-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: renderSvg(e, view) }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(e, view), e, view === "answer") }} />
                 </div>
               </div>
             </div>

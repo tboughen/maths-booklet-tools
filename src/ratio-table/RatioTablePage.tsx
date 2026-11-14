@@ -1,5 +1,8 @@
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { answerSize } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
 import { houseRatio } from "./house";
@@ -487,6 +490,7 @@ export default function RatioTablePage({
       ? selection.column
       : document.headings.length - 1;
   const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(envelope), size: answerSize(renderRatioSvg(envelope.document, "answer")), disabled: exportDisabled, onSave: (notes) => commit(withWorkedNotes(envelope, notes), WORKED_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
@@ -603,6 +607,7 @@ export default function RatioTablePage({
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
@@ -666,6 +671,7 @@ export default function RatioTablePage({
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               className="sr-only"

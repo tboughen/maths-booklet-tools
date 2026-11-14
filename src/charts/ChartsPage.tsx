@@ -1,6 +1,9 @@
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useTitleNote } from "../site/TitleNote";
+import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
@@ -191,7 +194,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     zoom,
     (w) => (w < 500 ? 72 : 120),
   );
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(forView(e, "answer"));
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline";
 
@@ -345,6 +349,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor ch-editor">
       <main
@@ -376,14 +381,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               busy={busy}
               onCopy={() =>
                 void run(
-                  () => copyWord(displayed),
+                  () => copyWord(displayed, view === "answer"),
                   "Copied for Word at " +
                     formatResourceSize(g.width / 10, g.height / 10) +
                     ". Paste with Ctrl+V.",
                 )
               }
               onCopyClipboard={() =>
-                void run(() => copyPngToClipboard(() => printPng(displayed)))
+                void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))
               }
               menuId="chart-downloads"
               menuOpen={menu}
@@ -399,6 +404,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
@@ -411,7 +417,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   success: "PNG download started.",
                 },
                 pdf: {
-                  action: () => downloadImage(displayed, "pdf"),
+                  action: () => downloadImage(displayed, "pdf", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PDF download started.",
                 },
@@ -436,6 +442,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -472,7 +479,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 >
                   <div
                     className="ch-art"
-                    dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }}
+                    dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }}
                   />
                   {g.targets.map((t) => {
                     const cell = d.series[t.series].values[t.category];
