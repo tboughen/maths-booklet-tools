@@ -590,6 +590,11 @@ export default function RatioTablePage({
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
                 answers: hasRatioAnswers(envelope)
                   ? {
                       svg: {

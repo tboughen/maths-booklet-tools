@@ -171,6 +171,7 @@ export function GraphExchange({
         actions={diagramFileMenu({
           svg: imageAction("Download SVG"),
           png: imageAction("Download PNG (600 ppi)"),
+          pdf: imageAction("Download PDF (actual size)"),
           save: {
             disabled: !enabled,
             action: () => {

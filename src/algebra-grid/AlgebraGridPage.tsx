@@ -511,6 +511,11 @@ export default function AlgebraGridPage({
                   action: () => downloadImage(e, "png"),
                   success: "PNG download started.",
                 },
+                pdf: {
+                  disabled: pendingInput || !!issue,
+                  action: () => downloadImage(e, "pdf"),
+                  success: "PDF download started.",
+                },
                 save: {
                   disabled: pendingInput,
                   action: () => downloadEditable(e),

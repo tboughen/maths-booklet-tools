@@ -118,6 +118,11 @@ export async function downloadDiagramSvg(document: DiagramDocumentV1): Promise<v
   downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "maths-graph.svg");
 }
 
+export async function downloadDiagramPdf(document: DiagramDocumentV1): Promise<void> {
+  const { svgPdf } = await import("./diagram-pdf");
+  downloadBlob(await svgPdf(renderDiagramSvg(document)), "maths-graph.pdf");
+}
+
 export async function downloadDiagramPng(document: DiagramDocumentV1): Promise<void> {
   downloadBlob(await renderDiagramPng(document), "maths-graph.png");
 }
