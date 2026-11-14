@@ -35,8 +35,9 @@ test.beforeEach(async ({ page }) => {
 test("default settings show notation and scale within the inspector with optional sections closed", async ({
   page,
 }) => {
-  await expect(page.getByRole("region", { name: "Selected item" })).toHaveCount(
-    0,
+  // U21: the selection card stays at the top with a short prompt until something is selected.
+  await expect(page.getByRole("region", { name: "Selected item" })).toHaveText(
+    "Selected itemSelect a tick, point or line to edit it here.",
   );
   await expect(page.getByLabel("First tick", { exact: true })).toBeVisible();
   await expect(

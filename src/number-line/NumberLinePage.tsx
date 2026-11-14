@@ -1132,185 +1132,193 @@ export default function NumberLinePage({
               }
               onWorked={(resource) => commit(resource, "use worked version")}
             />
-            {selection && (
-              <section
-                className="panel-card nl-context"
-                aria-label="Selected item"
-              >
-                <h2>
-                  {selectedEndpoint
-                    ? "Endpoint"
-                    : selection === "segment" || connection
-                      ? "Interval"
-                      : "Selected value"}
-                </h2>
-                {selectedEndpoint && (
-                  <>
-                    <div className="nl-endpoint-fields">
-                      {field(
-                        selectedEndpoint.label,
-                        selectedEndpoint.value,
-                        (v) => editEndpoint(selectedEndpoint.key, v),
-                      )}
-                      <label>
-                        Type{" "}
-                        <select
-                          aria-label="Endpoint type"
-                          value={
-                            selectedEndpoint.included ? "included" : "excluded"
-                          }
-                          disabled={blocked}
-                          onChange={(e) =>
-                            editEndpoint(
-                              selectedEndpoint.key,
-                              undefined,
-                              e.target.value === "included",
-                            )
-                          }
-                        >
-                          <option value="included">● Filled</option>
-                          <option value="excluded">○ Hollow</option>
-                        </select>
-                      </label>
-                    </div>
-                    {s?.kind === "ray" && (
-                      <label>
-                        Direction{" "}
-                        <select
-                          aria-label="Ray direction"
-                          disabled={blocked}
-                          value={s.direction}
-                          onChange={(e) =>
-                            safe([
-                              {
-                                op: "set_solution",
-                                solution: {
-                                  ...s,
-                                  direction: e.target.value as "left" | "right",
+            {/* Always mounted, so the cards below stay put as the selection comes and goes (U21). */}
+            <section
+              className="panel-card nl-context"
+              aria-label="Selected item"
+            >
+              {selection ? (
+                <>
+                  <h2>
+                    {selectedEndpoint
+                      ? "Endpoint"
+                      : selection === "segment" || connection
+                        ? "Interval"
+                        : "Selected value"}
+                  </h2>
+                  {selectedEndpoint && (
+                    <>
+                      <div className="nl-endpoint-fields">
+                        {field(
+                          selectedEndpoint.label,
+                          selectedEndpoint.value,
+                          (v) => editEndpoint(selectedEndpoint.key, v),
+                        )}
+                        <label>
+                          Type{" "}
+                          <select
+                            aria-label="Endpoint type"
+                            value={
+                              selectedEndpoint.included ? "included" : "excluded"
+                            }
+                            disabled={blocked}
+                            onChange={(e) =>
+                              editEndpoint(
+                                selectedEndpoint.key,
+                                undefined,
+                                e.target.value === "included",
+                              )
+                            }
+                          >
+                            <option value="included">● Filled</option>
+                            <option value="excluded">○ Hollow</option>
+                          </select>
+                        </label>
+                      </div>
+                      {s?.kind === "ray" && (
+                        <label>
+                          Direction{" "}
+                          <select
+                            aria-label="Ray direction"
+                            disabled={blocked}
+                            value={s.direction}
+                            onChange={(e) =>
+                              safe([
+                                {
+                                  op: "set_solution",
+                                  solution: {
+                                    ...s,
+                                    direction: e.target.value as "left" | "right",
+                                  },
                                 },
-                              },
-                            ])
-                          }
-                        >
-                          <option value="left">← Left</option>
-                          <option value="right">Right →</option>
-                        </select>
-                      </label>
-                    )}
-                    {selectedPoint && s?.kind === "points" && (
-                      <label>
-                        Ray from this point{" "}
-                        <select
-                          aria-label="Ray from this point"
-                          disabled={blocked}
-                          value={
-                            s.rays?.find((ray) => ray.from === selectedPoint.id)
-                              ?.direction ?? "none"
-                          }
-                          onChange={(e) => {
-                            const existing = s.rays?.find(
-                              (ray) => ray.from === selectedPoint.id,
-                            );
-                            const direction = e.target.value as
-                              | "left"
-                              | "right"
-                              | "none";
-                            // One undoable step: remove the old ray, then draw the new one.
-                            safe([
-                              ...(existing
-                                ? [{ op: "remove_point_ray" as const, id: existing.id }]
-                                : []),
-                              ...(direction === "left" || direction === "right"
-                                ? [
-                                    {
-                                      op: "add_point_ray" as const,
-                                      ray: {
-                                        id: `ray-${direction}`,
-                                        from: selectedPoint.id,
-                                        direction,
+                              ])
+                            }
+                          >
+                            <option value="left">← Left</option>
+                            <option value="right">Right →</option>
+                          </select>
+                        </label>
+                      )}
+                      {selectedPoint && s?.kind === "points" && (
+                        <label>
+                          Ray from this point{" "}
+                          <select
+                            aria-label="Ray from this point"
+                            disabled={blocked}
+                            value={
+                              s.rays?.find((ray) => ray.from === selectedPoint.id)
+                                ?.direction ?? "none"
+                            }
+                            onChange={(e) => {
+                              const existing = s.rays?.find(
+                                (ray) => ray.from === selectedPoint.id,
+                              );
+                              const direction = e.target.value as
+                                | "left"
+                                | "right"
+                                | "none";
+                              // One undoable step: remove the old ray, then draw the new one.
+                              safe([
+                                ...(existing
+                                  ? [{ op: "remove_point_ray" as const, id: existing.id }]
+                                  : []),
+                                ...(direction === "left" || direction === "right"
+                                  ? [
+                                      {
+                                        op: "add_point_ray" as const,
+                                        ray: {
+                                          id: `ray-${direction}`,
+                                          from: selectedPoint.id,
+                                          direction,
+                                        },
                                       },
-                                    },
-                                  ]
-                                : []),
-                            ]);
+                                    ]
+                                  : []),
+                              ]);
+                            }}
+                          >
+                            <option value="none">None</option>
+                            <option value="left">← Left, to the end</option>
+                            <option value="right">Right →, to the end</option>
+                          </select>
+                        </label>
+                      )}
+                      {selectedPoint && (
+                        <button
+                          disabled={blocked}
+                          onClick={() => {
+                            safe([{ op: "remove_point", id: selectedPoint.id }]);
+                            setSelection(null);
                           }}
                         >
-                          <option value="none">None</option>
-                          <option value="left">← Left, to the end</option>
-                          <option value="right">Right →, to the end</option>
-                        </select>
-                      </label>
-                    )}
-                    {selectedPoint && (
-                      <button
-                        disabled={blocked}
-                        onClick={() => {
-                          safe([{ op: "remove_point", id: selectedPoint.id }]);
-                          setSelection(null);
-                        }}
-                      >
-                        {s?.kind === "points" &&
-                        s.intervals?.some(
-                          (line) =>
-                            line.from === selectedPoint.id ||
-                            line.to === selectedPoint.id,
-                        )
-                          ? "Remove point and attached intervals"
-                          : "Remove point"}
-                      </button>
-                    )}
-                  </>
-                )}
-                {selection === "variable" &&
-                  field("Variable", d.axis.variable, (v) =>
-                    axis("variable", v),
+                          {s?.kind === "points" &&
+                          s.intervals?.some(
+                            (line) =>
+                              line.from === selectedPoint.id ||
+                              line.to === selectedPoint.id,
+                          )
+                            ? "Remove point and attached intervals"
+                            : "Remove point"}
+                        </button>
+                      )}
+                    </>
                   )}
-                {selection.startsWith("tick:") && (
-                  <label>
-                    Tick {selection.slice(5)}{" "}
-                    <select
-                      aria-label="Tick label state"
-                      value={
-                        d.teaching.labels[labelKey(selection.slice(5))] ??
-                        "value"
-                      }
-                      disabled={blocked}
-                      onChange={(e) =>
-                        safe([
-                          {
-                            op: "set_tick_label",
-                            value: selection.slice(5),
-                            state: e.target.value as
-                              | "value"
-                              | "hidden"
-                              | "answer-line",
-                          },
-                        ])
-                      }
-                    >
-                      <option value="value">Show value</option>
-                      <option value="hidden">Hide value</option>
-                      <option value="answer-line">Pupil answer space</option>
-                    </select>
-                  </label>
-                )}
-                {((selection === "segment" && s?.kind === "interval") ||
-                  connection) && (
-                  <>
-                    <p>
-                      {connection && s?.kind === "points"
-                        ? `${s.points.find((p) => p.id === connection.from)?.value} to ${s.points.find((p) => p.id === connection.to)?.value}`
-                        : s?.kind === "interval"
-                          ? `${s.lower} to ${s.upper}`
-                          : ""}
-                    </p>
-                    <button disabled={blocked} onClick={removeSelectedLine}>
-                      Remove interval
-                    </button>
-                  </>
-                )}
-              </section>
-            )}
+                  {selection === "variable" &&
+                    field("Variable", d.axis.variable, (v) =>
+                      axis("variable", v),
+                    )}
+                  {selection.startsWith("tick:") && (
+                    <label>
+                      Tick {selection.slice(5)}{" "}
+                      <select
+                        aria-label="Tick label state"
+                        value={
+                          d.teaching.labels[labelKey(selection.slice(5))] ??
+                          "value"
+                        }
+                        disabled={blocked}
+                        onChange={(e) =>
+                          safe([
+                            {
+                              op: "set_tick_label",
+                              value: selection.slice(5),
+                              state: e.target.value as
+                                | "value"
+                                | "hidden"
+                                | "answer-line",
+                            },
+                          ])
+                        }
+                      >
+                        <option value="value">Show value</option>
+                        <option value="hidden">Hide value</option>
+                        <option value="answer-line">Pupil answer space</option>
+                      </select>
+                    </label>
+                  )}
+                  {((selection === "segment" && s?.kind === "interval") ||
+                    connection) && (
+                    <>
+                      <p>
+                        {connection && s?.kind === "points"
+                          ? `${s.points.find((p) => p.id === connection.from)?.value} to ${s.points.find((p) => p.id === connection.to)?.value}`
+                          : s?.kind === "interval"
+                            ? `${s.lower} to ${s.upper}`
+                            : ""}
+                      </p>
+                      <button disabled={blocked} onClick={removeSelectedLine}>
+                        Remove interval
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h2>Selected item</h2>
+                  <p className="nl-note">Select a tick, point or line to edit it here.</p>
+                </>
+              )}
+            </section>
             <section className="panel-card">
               <h2>Draw</h2>
               <div className="nl-actions nl-draw-actions">
