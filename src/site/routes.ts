@@ -21,6 +21,7 @@ export const toolIds = [
   "frequency-tree",
   "construction",
   "elevations",
+  "two-way-table",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */
