@@ -62,3 +62,15 @@
 .ws-small { justify-self: start; font-size: 0.85rem; padding: 4px 8px; display: inline-flex; gap: 4px; align-items: center; }
 .ws-field [aria-invalid="true"] { border-color: var(--red, #b3261e); box-shadow: 0 0 0 1px var(--red, #b3261e); }
 .ws-field-refused { color: var(--red, #b3261e); font-weight: 600; }
+
+/* W31: pages at their intended print size. The page keeps its printed width and the list scrolls. */
+.print-size { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.print-size-note { font-size: 0.85rem; color: var(--muted, #5d6470); }
+.ws-actual { overflow-x: auto; }
+.ws-actual .ws-art { max-width: none; }
+.calibrate-bar { box-sizing: border-box; height: 54px; border: 2px solid #173c65; border-radius: 4px; background: repeating-linear-gradient(90deg, #dde7f3 0 10px, #fff 10px 20px); display: flex; align-items: center; justify-content: center; font-weight: 600; color: #173c65; }
+.calibrate-range { display: grid; gap: 4px; font-size: 0.9rem; }
+.print-size button[aria-pressed="true"] { background: #dde7f3; color: #173c65; box-shadow: inset 0 0 0 1px #173c65; }
+/* Booklet pages at actual size: one page per row, drawn in full, and the list scrolls sideways. */
+.bk-pages.ws-actual { grid-template-columns: max-content; }
+.bk-pages.ws-actual .bk-page { content-visibility: visible; }
