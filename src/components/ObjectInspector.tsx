@@ -5,6 +5,7 @@ import { equationForObject, formatNumber } from "../domain/equations";
 import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
 import {
   OBJECT_NAME_PATTERN,
+  coordinatesPrintable,
   normaliseObjectName,
 } from "../../packages/graph-core/src/axes";
 
@@ -59,6 +60,32 @@ function NameAndAnswer({
           <RotateCcw size={14} />
           Reset name position
         </button>
+      )}
+      {object.kind === "point" && (
+        <label className="point-coordinates-field">
+          Coordinates
+          <select
+            aria-label="Coordinates printed after the point"
+            disabled={disabled || drafts.pending}
+            value={object.coordinates ?? "none"}
+            onChange={(event) => {
+              const next = { ...object };
+              const value = event.target.value;
+              if (value === "show" || value === "blank") next.coordinates = value;
+              else delete next.coordinates;
+              onUpdate(next);
+            }}
+          >
+            <option value="none">None</option>
+            <option value="show" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "show"}>Show, as A(2, 3)</option>
+            <option value="blank" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "blank"}>Blank for pupils, answer on the answers copy</option>
+          </select>
+          {!coordinatesPrintable(object.position) && (
+            <span className="field-error" role="alert">
+              Coordinates print only for values with at most 3 decimal places. Move the point to an exact position.
+            </span>
+          )}
+        </label>
       )}
       <button
         disabled={disabled || drafts.pending}

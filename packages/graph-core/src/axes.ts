@@ -148,3 +148,8 @@ export function xNumbersCrowded(document: DiagramDocumentV1): boolean {
     return (axisLabelBoxWidth(tick.label, fontSize) + axisLabelBoxWidth(next.label, fontSize)) / 2 > room - 4;
   });
 }
+
+/** Printed coordinates are exact only for short decimals: (1/3, 2) would print as 0.333333. */
+export function coordinatesPrintable(position: { x: number; y: number }): boolean {
+  return [position.x, position.y].every((v) => Math.abs(v * 1000 - Math.round(v * 1000)) < 1e-6);
+}

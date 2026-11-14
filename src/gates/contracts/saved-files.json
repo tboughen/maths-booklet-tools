@@ -3717,6 +3717,13 @@
                       ],
                       "additionalProperties": false
                     },
+                    "coordinates": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "blank"
+                      ]
+                    },
                     "answerOnly": {
                       "type": "boolean",
                       "const": true
