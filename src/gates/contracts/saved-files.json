@@ -4159,6 +4159,36 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "rays": {
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                            },
+                            "from": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                            },
+                            "direction": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "right"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "from",
+                            "direction"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
@@ -6586,8 +6616,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               }
             },
             "required": [
@@ -6746,8 +6783,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               },
               "arrangement": {
                 "type": "string",

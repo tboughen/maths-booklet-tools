@@ -139,7 +139,7 @@ const lineGuide: FamilyGuide = {
   create:
     "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
   revise:
-    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins); set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
+    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins and ray); add_point_ray {ray:{id,from,direction:left|right}} (a ray from a point to the end of the line, for sets such as x < −1 or x ≥ 2; at most one each way); remove_point_ray {id}; set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
 };
 
 const vennGuide: FamilyGuide = {
@@ -153,7 +153,8 @@ const vennGuide: FamilyGuide = {
     maximumMembers: 40,
     maximumMembersPerRegion: 20,
     widthCm: { minimum: 8, maximum: 16 },
-    fontPt: { minimum: 9, maximum: 14 },
+    fontPt: { minimum: 10, maximum: 14 },
+    lines: ["normal", "bold"],
     maximumRevisionOperations: 30,
     regionMasks: "0=outside; A=bit1, B=bit2, C=bit4; use only active masks for the layout",
     visibility: venn.visibility,
@@ -161,9 +162,9 @@ const vennGuide: FamilyGuide = {
     operations: vi.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "One, two or three set Venn diagrams; omit spec for a blank two-set version-2 overlap. spec: {sets, shape, arrangement, widthCm, fontPt, labels:[{set,label}], definitions:[{set,text}], regions:[{mask,region}], showDefinitions, caption}. Region mask 0 is outside; bits A=1 B=2 C=4. Arrangements overlap, separate, b-inside-a, a-inside-b (non-overlap only with two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView answer must be explicitly requested.",
+    "One, two or three set Venn diagrams; omit spec for a blank two-set version-2 overlap. spec: {sets, shape, arrangement, widthCm, fontPt (10-14), lines (normal|bold; bold prints every stroke 1.5 times as thick), labels:[{set,label}], definitions:[{set,text}], regions:[{mask,region}], showDefinitions, caption}. Region mask 0 is outside; bits A=1 B=2 C=4. Arrangements overlap, separate, b-inside-a, a-inside-b (non-overlap only with two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView answer must be explicitly requested.",
   revise:
-    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?}; upgrade_document {}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need an explicit upgrade for new layouts.",
+    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?,lines?}; upgrade_document {}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need an explicit upgrade for new layouts.",
 };
 
 const fromConfig = (c: { capabilities: Record<string, unknown>; createDescription: string; reviseDescription: string }): FamilyGuide => ({
