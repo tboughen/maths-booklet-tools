@@ -89,6 +89,19 @@ export interface StraightObject extends BaseObject, NamedObject {
   equationVisible: boolean;
   equationLabelPosition?: Coordinate;
   labels?: PointLabel[];
+  /** A right-angled triangle under or over the line that shows its gradient (U76). */
+  gradientTriangle?: GradientTriangle;
+}
+
+/** Where a gradient triangle sits on its line, and what its legs print. */
+export interface GradientTriangle {
+  /** The x where the triangle starts on the line. */
+  x: number;
+  /** The horizontal leg, from x: positive runs right, negative left. */
+  run: number;
+  /** "values" prints the run and rise beside the legs; "blank" prints dotted answer spaces on
+   * the pupil copy and the values in the answer colour on the answers copy. Omitted: no labels. */
+  labels?: "values" | "blank";
 }
 
 /** A closed shape for transformations, such as triangle A or shape P (U72). Its name prints
