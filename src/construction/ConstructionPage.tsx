@@ -11,6 +11,7 @@ import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { EditorToolbar } from "../site/EditorToolbar";
+import { EditorHint } from "../site/EditorHint";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -551,6 +552,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
               <ResourceSize width={g.width / 10} height={g.height / 10} />
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
+            <EditorHint tool="construction">Drag a point to move it, or select it and use the arrow keys. Add constructions and measurements in the settings.</EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
