@@ -84,9 +84,8 @@
 .tr-editor .tr-hit {
   position: absolute;
   transform: translate(-50%, -50%);
-  /* U43: 44 px to touch; the printed label keeps its size. */
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 28px;
+  min-height: 28px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -661,9 +660,9 @@
 }
 .tr-editor .tr-vertex {
   z-index: 3;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
   border: 0;
   background: transparent;
   color: transparent;
@@ -711,6 +710,18 @@
 .tr-structure .tr-note {
   flex: 1 1 220px;
   margin: 0;
+}
+/* U43: on touch screens, vertex handles and label targets are 44 px (TrianglePage's hitSize matches). */
+@media (pointer: coarse) {
+  .tr-editor .tr-vertex {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .tr-editor .tr-hit {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 @media (pointer: coarse) {
   .tr-editor .inspector-stack button,

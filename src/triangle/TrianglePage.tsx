@@ -173,8 +173,8 @@ type Drag = {
 type Replacement = { e: Envelope; title: string; explanation: string };
 const errorText = (err: unknown) =>
   err instanceof Error ? err.message : String(err);
-/** U43: vertex handles and label hits are 44 CSS px for every pointer (triangle.css matches). */
-const VERTEX_HIT_PX = 44;
+/** U43: vertex handles and label targets are 44 CSS px on touch screens and 28 px for a mouse (triangle.css matches). */
+const hitSize = () => (matchMedia("(pointer:coarse)").matches ? 44 : 28);
 
 export default function TrianglePage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
@@ -1072,8 +1072,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                           style={{
                             left: a.x * px,
                             top: a.y * px,
-                            width: Math.max(VERTEX_HIT_PX, a.w * px),
-                            height: Math.max(VERTEX_HIT_PX, a.h * px),
+                            width: Math.max(hitSize(), a.w * px),
+                            height: Math.max(hitSize(), a.h * px),
                           }}
                           data-tr-anchor={a.ref}
                           aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
@@ -1176,7 +1176,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                                 ? { x: a.x * px, y: a.y * px }
                                 : undefined;
                             })(),
-                            VERTEX_HIT_PX,
+                            hitSize(),
                           ),
                         }}
                         aria-label={`Move vertex ${nameOf(display, id)}`}

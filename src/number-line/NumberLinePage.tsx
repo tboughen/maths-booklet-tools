@@ -548,7 +548,8 @@ export default function NumberLinePage({
         style={{
           left: position(d, v) * unit,
           top: m.solutionY * unit,
-          width: Math.min(HIT_PX, spacing, tickHitWidth),
+          // Half the gap to the next point at most, so part of an interval's line stays selectable.
+          width: Math.min(HIT_PX, spacing / 2, tickHitWidth),
           height: rowHitHeight,
         }}
         aria-label={`Endpoint ${v}, ${included ? "filled, included" : "hollow, excluded"}. Click to make ${included ? "hollow" : "filled"}.`}
@@ -907,10 +908,16 @@ export default function NumberLinePage({
                       className="nl-hit"
                       aria-label="Edit variable"
                       style={{
-                        left: (m.right + 6) * unit,
+                        // Centred on the variable, or moved just right of the last tick's target when that is closer.
+                        left: Math.max(
+                          (m.right + 6) * unit,
+                          tickValues.length
+                            ? position(d, tickValues[tickValues.length - 1]) * unit + tickHitWidth / 2 + rowHitHeight / 2
+                            : 0,
+                        ),
                         top: (m.axisY + 2) * unit,
-                        // Clear of the last tick's target, which ends half a tick hit to the right of it.
-                        width: Math.max(20, Math.min(HIT_PX, 2 * (6 * unit - tickHitWidth / 2))),
+                        width: rowHitHeight,
+                        height: rowHitHeight,
                       }}
                       onClick={() => {
                         if (!blocked) setSelection("variable");
