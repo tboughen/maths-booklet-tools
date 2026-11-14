@@ -59,7 +59,7 @@ describe("construction connector adapter", () => {
     expect(out.document.objects.find((o) => o.id === "AB")).toMatchObject({ label: { text: "7 cm" } });
     expect(out.document.objects.filter((o) => o.group === "pb1").every((o) => o.role === "given")).toBe(true);
     expect(out.document.objects.some((o) => o.group === "lp1")).toBe(false);
-    await expect(io.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/base_hash_mismatch/);
+    await expect(io.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
     await expect(io.revise({ envelope: e, baseHash, operations: [{ op: "set_object", id: "AB", fields: { radius: 2 } }] })).rejects.toThrow(/does not apply/);
   });
 });

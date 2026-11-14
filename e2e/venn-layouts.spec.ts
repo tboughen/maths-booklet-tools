@@ -507,7 +507,7 @@ test("actual 40-member nested exports fit around both labels in circles and oval
 }) => {
   const e = upgrade(changeArrangement(create(), "b-inside-a"));
   e.document.widthCm = 16;
-  e.document.fontPt = 9;
+  e.document.fontPt = 10;
   e.document.definitions = [
     "ξ = {integers from 1 to 40}",
     "A = {integers from 17 to 40}",
