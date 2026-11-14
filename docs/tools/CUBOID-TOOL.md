@@ -34,7 +34,7 @@ PNG download retains density metadata. Chrome's clipboard read-back strips densi
 
 ## Persistence and examples
 
-Storage key: `maths-booklet-tools:cuboids:v1`. Files use tool `cuboids`, schema 1, renderer `cuboids-1`; stable shape IDs and explicit label states. Valid edits autosave. Corrupt and newer-tab drafts are protected until their recovery data is downloaded. Switching tools retains pending inputs and Undo history; inactive tools do not handle shortcuts or imports.
+Storage key: `maths-booklet-tools:cuboids:v1`. Files use tool `cuboids`, schema 2, renderer `cuboids-2`; stable shape IDs and explicit label states. Valid edits autosave. Corrupt and newer-tab drafts are protected until their recovery data is downloaded. Switching tools retains pending inputs and Undo history; inactive tools do not handle shortcuts or imports.
 
 Four generic examples preserve scaffold/explicit-worked distinctions. Six source examples use verified catalogue IDs; the supplied questions and complete relevant official scheme rows were personally inspected. The six-cube arrangement is one valid arrangement; equal-area and melting resources deliberately support only stated steps of their original questions. No source question, scheme or mapping was changed.
 

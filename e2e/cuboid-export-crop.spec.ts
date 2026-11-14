@@ -29,7 +29,6 @@ test.beforeEach(async ({ page }) => {
 function cases() {
   const result: [string, Envelope][] = [
     ["default", create()],
-    ["legacy", create()],
   ];
   for (const direction of ["right", "left"] as const) {
     const e = create(),
