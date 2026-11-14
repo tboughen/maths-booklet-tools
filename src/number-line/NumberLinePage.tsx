@@ -364,8 +364,12 @@ export default function NumberLinePage({
       if (objectKeyCommand(e)?.kind === "delete" && !blocked) {
         if (selectedPoint) {
           e.preventDefault();
-          safe([{ op: "remove_point", id: selectedPoint.id }]);
-          setSelection(null);
+          try {
+            change([{ op: "remove_point", id: selectedPoint.id }]);
+            setSelection(null);
+          } catch (err) {
+            setMessage(err instanceof Error ? err.message : String(err));
+          }
         } else if (
           connection ||
           (selection === "segment" && s?.kind === "interval")

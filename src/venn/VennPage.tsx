@@ -190,11 +190,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     documentHistory.commit(valid, label);
     setMessage("");
   }
-  function patch(update: (n: Envelope["document"]) => void) {
+  function patch(update: (n: Envelope["document"]) => void, label?: string) {
     if (blocked) return;
     const n = structuredClone(e);
     update(n.document);
-    commit(n);
+    commit(n, label);
   }
   function undo() {
     if (blocked) return;
@@ -408,7 +408,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         const mask = selected;
         patch((n) => {
           n.regions[mask].shade = "none";
-        });
+        }, "clear shading");
       }
     };
     window.addEventListener("keydown", key);

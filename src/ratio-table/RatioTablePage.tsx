@@ -237,19 +237,21 @@ export default function RatioTablePage({
       if (target?.matches("input, select, textarea, [contenteditable='true']"))
         return;
       if (handleUndoKeys(e, { undo, redo })) return;
-      const command = objectKeyCommand(e);
-      if (command?.kind === "deselect") {
+      if (e.key === "Escape") {
         setExportsOpen(false);
         setTool("edit");
         setArrowFrom(null);
-        if (!pendingInputs.size) setSelection(null);
       }
+      const command = objectKeyCommand(e);
+      if (command?.kind === "deselect" && !pendingInputs.size) setSelection(null);
       // U9: Delete removes the selected arrow, never a row or column.
       if (command?.kind === "delete" && selection?.kind === "step" && !pendingInputs.size && !recovery) {
         e.preventDefault();
         const from = selection.from;
-        attempt(() => operations([{ op: "remove_transition", from }]));
-        setSelection(null);
+        attempt(() => {
+          operations([{ op: "remove_transition", from }]);
+          setSelection(null);
+        });
       }
     }
     window.addEventListener("keydown", keyboard);
