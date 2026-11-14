@@ -5368,6 +5368,11 @@
                   "minimum": 0,
                   "maximum": 3
                 },
+                "arrows": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3
+                },
                 "dashed": {
                   "type": "boolean"
                 },
