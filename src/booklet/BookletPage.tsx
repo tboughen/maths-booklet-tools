@@ -109,25 +109,27 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const shown = useMemo(() => renderBooklet(b, { view: answers ? "answers" : "pupil" }), [b, answers]);
   const issues = shown.issues;
 
-  function commit(next: Booklet) {
-    if (recovery !== null) return;
+  function commit(next: Booklet): boolean {
+    if (recovery !== null) return false;
     try {
       const valid = validateBooklet(next);
       documentHistory.commit(valid);
       setMessage("");
+      return true;
     } catch (e) {
       // Invalid edits are refused with the specific reason; the last valid booklet stays.
       setMessage(e instanceof Error ? e.message : String(e));
+      return false;
     }
   }
   function apply(f: (b: Booklet) => Booklet) {
     if (!blocked) commit(f(b));
   }
   function patch(update: (doc: BookletDoc) => void) {
-    if (blocked) return;
+    if (blocked) return false;
     const next = structuredClone(b);
     update(next.document);
-    commit(next);
+    return commit(next);
   }
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();

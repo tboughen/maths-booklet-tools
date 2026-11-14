@@ -84,6 +84,12 @@ function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number;
   const size = opts.size ?? S.body;
   const lines = wrap(source, size, width, opts.base, ctx.maths);
   const lh = lineBox(size);
+  // W12: with maths notation on, fraction markup that did not parse is reported even when the text
+  // has no stacked fraction: an unmatched brace, or braces round a slash that is not a fraction.
+  // Set notation such as {1, 2, 3}, {1/2, 1/4} or {x : x/2 > 1} stays allowed in text without fractions.
+  const loose = lines.map((l) => l.filter((r) => !r.frac).map((r) => r.text).join("")).join(" ");
+  const unparsed = (loose.match(/\{/g)?.length ?? 0) !== (loose.match(/\}/g)?.length ?? 0) || /\{[^{}:,]*\/[^{}:,]*\}/.test(loose);
+  if (ctx.maths && !lines.some(hasFraction) && unparsed) issue(ctx, "A brace is not part of a fraction. Write a stacked fraction as {3/4}.");
   if (!lines.some(hasFraction)) {
     const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * lh + baseline(size), size, opts.fill ?? ctx.st.ink)).join("");
     return { h: lines.length * lh, svg };
@@ -153,6 +159,21 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
   return { h: y, svg: out.join("") };
 }
 
+/**
+ * W12: a diagram that cannot be drawn stays on the page as a dashed box holding its specific
+ * problem, so the teacher sees where it is and what to fix. The issue blocks every export.
+ */
+function brokenDiagram(message: string, w: number, ctx: AnyCtx): Frag {
+  issue(ctx, message);
+  const pad = 3;
+  const text = para(`${message} Fix it in its editor, or replace it.`, w - 2 * pad, ctx, { size: S.body, x: pad });
+  const h = Math.max(24, text.h + 2 * pad);
+  return {
+    h,
+    svg: `<g data-broken-diagram="true"><rect x="0.3" y="0.3" width="${n(w - 0.6)}" height="${n(h - 0.6)}" fill="none" stroke="${ctx.st.ink}" stroke-width="0.6" stroke-dasharray="2 1.5"/><g transform="translate(0 ${n(pad)})">${text.svg}</g></g>`,
+  };
+}
+
 function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
@@ -162,17 +183,13 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
     // W90: a pupil copy never shows a saved answer.
     if (ctx.view !== "answers") for (const leak of answerLeaks(d.tool, envelope, drawn.svg)) issue(ctx, leak.message);
   } catch (error) {
-    issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
-    return { h: 0, svg: "" };
+    return brokenDiagram(`A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`, w, ctx);
   }
   let svg = drawn.svg;
   const open = svg.match(/^<svg[^>]*>/)?.[0] ?? "";
   const { widthMm: width, heightMm: height } = drawn;
   const own = svgSizeMm(svg);
-  if (!(width > 0 && height > 0)) {
-    issue(ctx, "A diagram did not report its physical size.");
-    return { h: 0, svg: "" };
-  }
+  if (!(width > 0 && height > 0)) return brokenDiagram("A diagram did not report its physical size.", w, ctx);
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
   if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room));

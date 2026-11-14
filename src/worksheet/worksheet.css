@@ -60,3 +60,5 @@
 .ws-working[open] > summary { margin-bottom: 2px; }
 .ws-working textarea { font-family: inherit; }
 .ws-small { justify-self: start; font-size: 0.85rem; padding: 4px 8px; display: inline-flex; gap: 4px; align-items: center; }
+.ws-field [aria-invalid="true"] { border-color: var(--red, #b3261e); box-shadow: 0 0 0 1px var(--red, #b3261e); }
+.ws-field-refused { color: var(--red, #b3261e); font-weight: 600; }
