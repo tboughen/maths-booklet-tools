@@ -36,8 +36,8 @@ export const specSchema = z
     totalRow: z.array(cellInput).max(core.MAX_CATEGORIES + 1).optional(),
     cellMm: core.documentSchema.shape.cellMm.optional(),
     intentionalError: z.boolean().optional(),
-    /** Explicitly fill blank totals whose parts are all given. */
-    completeTotals: z.boolean().optional(),
+    /** Explicitly fill blank totals whose parts are all given; they are hidden answers unless hidden is false. */
+    completeTotals: z.union([z.boolean(), z.object({ hidden: z.boolean().optional() }).strict()]).optional(),
   })
   .strict();
 export const createSchema = z
@@ -67,8 +67,11 @@ export const revisionSchema = z
   })
   .strict();
 
-const toCell = (c: z.infer<typeof cellInput>): core.Cell =>
-  typeof c === "string" ? core.cell(c) : core.cell(c.text, c.hidden && c.text.trim() ? "hidden" : "show");
+const toCell = (c: z.infer<typeof cellInput>): core.Cell => {
+  if (typeof c === "string") return core.cell(c);
+  if (c.hidden && !c.text.trim()) throw Error("A blank cell cannot hold a hidden answer. Give its text, then hide it.");
+  return core.cell(c.text, c.hidden ? "hidden" : "show");
+};
 function fill(cells: core.Cell[], given: z.infer<typeof cellInput>[] | undefined, what: string) {
   if (!given) return;
   if (given.length > cells.length) throw Error(`${what} has ${given.length} cells; this table has room for ${cells.length}.`);
@@ -97,7 +100,7 @@ export function create(input: unknown): core.Envelope {
   }
   if (s.cellMm !== undefined || s.intentionalError !== undefined)
     e = core.validate({ ...e, document: { ...e.document, ...(s.cellMm !== undefined ? { cellMm: s.cellMm } : {}), ...(s.intentionalError !== undefined ? { intentionalError: s.intentionalError } : {}) } });
-  if (s.completeTotals) e = core.completeTotals(e).envelope;
+  if (s.completeTotals) e = core.completeTotals(e, typeof s.completeTotals === "object" ? (s.completeTotals.hidden ?? true) : true).envelope;
   if (s.worked) e = core.forView(e, "answer");
   return e;
 }
@@ -132,7 +135,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
         e = core.setTotals(e, op);
         break;
       case "complete_totals":
-        e = core.completeTotals(e, op.hidden).envelope;
+        e = core.completeTotals(e, op.hidden ?? true).envelope;
         break;
       case "set_settings":
         e = core.validate({ ...e, document: { ...e.document, ...op.settings } });

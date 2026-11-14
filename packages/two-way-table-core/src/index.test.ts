@@ -73,4 +73,15 @@ describe("two-way tables (U97)", () => {
     expect(t.cellAt(revised.document, "total", "c1")).toEqual({ text: "27", show: "hidden" });
     await expect(revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/base_hash/);
   });
+
+  it("keeps fractions as typed, refuses a hidden blank, and hides totals it fills unless told not to", () => {
+    let e = t.create(["A", "B"], ["X"], true);
+    e = t.setCell(e, "r1", "c1", "6/50");
+    expect(t.cellAt(e.document, "r1", "c1").text).toBe("6/50");
+    expect(() => t.setCell(e, "r1", "c2", "", "hidden")).toThrow(/blank cell cannot hold a hidden answer/);
+    expect(() => create({ spec: { columns: ["A"], rows: [{ heading: "X", cells: [{ text: "", hidden: true }] }] } })).toThrow(/blank cell/);
+    const filled = create({ spec: { columns: ["A", "B"], rows: [{ heading: "X", cells: ["1", "2", ""] }], completeTotals: true } });
+    expect(t.cellAt(filled.document, "r1", "total")).toEqual({ text: "3", show: "hidden" });
+  });
 });
+

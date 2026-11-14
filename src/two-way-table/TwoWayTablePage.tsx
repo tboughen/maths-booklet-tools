@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { twoWayTableGallery } from "../examples/galleryCatalogue";
@@ -62,6 +62,11 @@ function initial() {
   return { e: create(), recovery: null, message: "" };
 }
 
+/** Lets each refused draft keep its reason on screen until that field is fixed or restored. */
+const FieldErrors = createContext<{ lastError: () => string; report: (field: string, error: string | null) => void }>({
+  lastError: () => "",
+  report: () => undefined,
+});
 /**
  * Keeps its draft while typing; Enter or leaving applies, Escape restores. A draft the table
  * refuses stays in the box, marked invalid, with the reason beside the table.
@@ -90,13 +95,19 @@ function DraftField({
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
   const [invalid, setInvalid] = useState(false);
+  const errors = useContext(FieldErrors);
   useEffect(() => {
     if (!editing && !invalid) setDraft(value);
   }, [value, editing, invalid]);
   const commit = () => {
     setEditing(false);
-    if (draft === value) return setInvalid(false);
-    setInvalid(!onCommit(draft));
+    if (draft === value) {
+      errors.report(label, null);
+      return setInvalid(false);
+    }
+    const ok = onCommit(draft);
+    setInvalid(!ok);
+    errors.report(label, ok ? null : `${label}: ${errors.lastError()}`);
   };
   return (
     <input
@@ -125,6 +136,7 @@ function DraftField({
           setDraft(value);
           setEditing(false);
           setInvalid(false);
+          errors.report(label, null);
         }
       }}
     />
@@ -160,6 +172,20 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const rowIds = [...d.rows.map((r) => r.id), ...(d.totalRow ? ["total"] : [])];
   const selectedCell = selected && rowIds.includes(selected.row) && columnIds.includes(selected.column) ? cellAt(d, selected.row, selected.column) : null;
 
+  const lastError = useRef("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const fieldErrorContext = useRef({
+    lastError: () => lastError.current,
+    report: (field: string, error: string | null) =>
+      setFieldErrors((all) => {
+        if ((all[field] ?? null) === error) return all;
+        const next = { ...all };
+        if (error) next[field] = error;
+        else delete next[field];
+        return next;
+      }),
+  }).current;
+  const shownMessage = message || Object.values(fieldErrors)[0] || "";
   function commit(next: Envelope | (() => Envelope)): boolean {
     if (recovery !== null) return false;
     try {
@@ -168,7 +194,8 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
       setMessage("");
       return true;
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err));
+      lastError.current = err instanceof Error ? err.message : String(err);
+      setMessage(lastError.current);
       return false;
     }
   }
@@ -289,6 +316,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
   return (
+    <FieldErrors.Provider value={fieldErrorContext}>
     <div className="app-shell booklet-editor pt-editor twt-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
         <PageHeading title="Two-way tables" description="Draw exam-style two-way tables with totals, and cells left blank or hidden for pupils.">
@@ -378,11 +406,11 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 </div>
               </div>
             </div>
-            {(message || issue || notes.length > 0) && (
+            {(shownMessage || issue || notes.length > 0) && (
               <div className="pt-status" aria-live="polite">
-                {message && (
+                {shownMessage && (
                   <p className="resource-feedback" role="status">
-                    {message}
+                    {shownMessage}
                   </p>
                 )}
                 {g.issues.map((x) => (
@@ -664,5 +692,6 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
         )}
       </main>
     </div>
+    </FieldErrors.Provider>
   );
 }

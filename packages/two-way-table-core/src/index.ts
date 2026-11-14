@@ -10,8 +10,8 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import {
-  canonicalRatioNumber,
   numberParts,
+  canonicalRatioNumber,
   parseRatioNumber,
   rational,
   fractionString,
@@ -91,7 +91,10 @@ export function validate(input: unknown): Envelope {
   for (const c of allCells(d)) {
     if (c.text.trim()) {
       try {
-        c.text = canonicalRatioNumber(c.text);
+        // Check the number but keep it as typed: 6/50 stays 6/50, so a common denominator survives.
+        // Fraction glyphs such as ½ become 1/2 so they print stacked; they are already in lowest terms.
+        parseRatioNumber(c.text);
+        c.text = /[\u00BC-\u00BE\u2150-\u215E]/.test(c.text) ? canonicalRatioNumber(c.text) : c.text.trim().replace(/−/g, "-").replace(/\s+/g, " ");
       } catch (error) {
         throw Error(`"${c.text}": ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -149,6 +152,7 @@ export function setCell(e: Envelope, rowId: string, columnId: string, text: stri
   const n = clone(e),
     c = cellAt(n.document, rowId, columnId);
   c.text = text.trim();
+  if (!c.text && visibility === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
   c.show = c.text ? (visibility ?? c.show) : "show";
   return validate(n);
 }
