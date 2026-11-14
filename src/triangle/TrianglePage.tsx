@@ -45,8 +45,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
@@ -797,51 +797,44 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="triangle-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!exportMetrics.issues.length,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
-                  picker: true,
                   success: "",
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       triangleEditorLink(e, location.href),
                     ),
-                  description: LINK_DESCRIPTION,
                   disabled: blocked,
                   success:
                     "Editable link copied, including any hidden answers.",
                 },
-              ]}
+              })}
             />
             <input
               className="tr-file"
