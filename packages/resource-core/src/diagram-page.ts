@@ -4,6 +4,7 @@
  * the diagram is centred across the page, 15 mm from the top, and is never scaled. Print it at
  * "Actual size" (100 %) and a ruler on the paper matches the diagram's printed measurements.
  */
+import { round4 } from "../../envelope-core/src/svg-root";
 import { svgSizeMm } from "../../diagram-core/src/registry";
 
 const MARGIN = 15;
@@ -14,7 +15,7 @@ const SHEETS = [
   { name: "A3 landscape", width: 420, height: 297 },
 ] as const;
 
-const n = (v: number) => String(Math.round(v * 1e4) / 1e4);
+const n = (v: number) => String(round4(v));
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** The smallest sheet that holds a diagram of this size inside the margins. */

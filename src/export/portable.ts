@@ -4,6 +4,7 @@ import mathUrl from "../../assets/graph-fonts/STIXTwoMath-Regular.otf?url";
 import subsetterUrl from "harfbuzzjs/dist/harfbuzz-subset.wasm?url";
 import fontLicense from "../../assets/graph-fonts/OFL.txt?raw";
 import { loadSubsetter, subsetFont, svgCodepoints } from "./font-subset";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 type Subsetter = Awaited<ReturnType<typeof loadSubsetter>>;
 let fonts: Promise<Uint8Array[]> | undefined;
@@ -76,5 +77,5 @@ export async function embedPortableFonts(svg: string): Promise<string> {
     "<!-- Bundled STIX fonts, subset to the characters in this file: " +
     fontLicense.replaceAll("--", "—") +
     " -->";
-  return svg.replace(/(<svg\b[^>]*>)/, `$1${notice}${style}`);
+  return tidySvgRoot(svg).replace(/(<svg\b[^>]*>)/, `$1${notice}${style}`);
 }

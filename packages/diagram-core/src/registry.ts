@@ -11,6 +11,7 @@
  * missing one), its guide in guides.ts and its result adapter in services/graph-mcp/families.ts.
  */
 import { z } from "zod";
+import { tidySvgRoot } from "../../envelope-core/src/svg-root";
 import * as graph from "../../graph-core/src/interchange";
 import { renderDiagramSvg } from "../../graph-core/src/svg";
 import * as ratio from "../../ratio-table-core/src/interchange";
@@ -76,7 +77,8 @@ export interface DiagramFamily<E = unknown> {
   svg(envelope: E, view: View): string;
 }
 
-const family = <E>(f: DiagramFamily<E>) => f as DiagramFamily<unknown>;
+// Every family's artwork leaves with tidy root numbers (U38): same print size, readable bytes.
+const family = <E>(f: DiagramFamily<E>) => ({ ...f, svg: (e: E, view: View) => tidySvgRoot(f.svg(e, view)) }) as DiagramFamily<unknown>;
 /** Families whose create input is the flat spec itself rather than { spec, envelope }. */
 const flatCreate = (create: (spec: unknown) => unknown, validate: (raw: unknown) => unknown) =>
   (input: { spec?: unknown; envelope?: unknown }) => {
