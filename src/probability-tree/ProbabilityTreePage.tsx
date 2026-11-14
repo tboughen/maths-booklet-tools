@@ -1,4 +1,6 @@
 import { useTitleNote } from "../site/TitleNote";
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -69,6 +71,12 @@ const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
 type LabelKey = "outcome" | "probability" | "endOutcome" | "endProbability";
 
+/** A new tree starts from the house style's lines (U111). */
+function fresh() {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+}
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -77,16 +85,16 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: fresh(),
           recovery: raw,
           message: "Saved tree data needs recovery. Download the original before starting afresh.",
         };
       }
     }
   } catch {
-    return { e: create(), recovery: null, message: "Device storage is unavailable. Save an editable file to keep your work." };
+    return { e: fresh(), recovery: null, message: "Device storage is unavailable. Save an editable file to keep your work." };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: fresh(), recovery: null, message: "" };
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
@@ -354,7 +362,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(create(), "Reset the tree?")}
+              onReset={() => replace(fresh(), "Reset the tree?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -771,6 +779,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   <select aria-label="Pupil spaces" value={d.blankStyle} disabled={blocked} onChange={(ev) => patch((n) => void (n.blankStyle = ev.target.value as Doc["blankStyle"]))}>
                     <option value="dots">Dotted lines</option>
                     <option value="box">Boxes</option>
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label>

@@ -5854,6 +5854,13 @@
             "type": "integer",
             "minimum": 14,
             "maximum": 30
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
@@ -6136,6 +6143,13 @@
             "type": "integer",
             "minimum": 10,
             "maximum": 24
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [

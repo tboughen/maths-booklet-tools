@@ -51,3 +51,7 @@ condition paths, and three coins.
 is the only way to compute an answer). `outputView: "answer"` draws hidden answers; the returned envelope and hash
 keep pupil visibility. Revision operations are listed in the capabilities and tool descriptions.
 The service is not redeployed by merging; a Render deploy needs Tim's go-ahead.
+
+## Line weight (U111)
+
+Lines are normal or bold (the Lines control beside Branch length): bold multiplies every stroke by 1.5 and is saved as `lines: "bold"`; normal is never saved. A new tree starts with the house style's lines. The connector takes `lines` in `settings` (create spec and `set_settings`).
