@@ -89,7 +89,8 @@ export function notationSummary(solution: Solution | null, variable = "x") {
     solution.kind === "points" &&
     solution.points.length === 1 &&
     solution.points[0].included !== false &&
-    !solution.intervals?.length
+    !solution.intervals?.length &&
+    !solution.rays?.length
   )
     return `${v} = ${solution.points[0].value}`;
   return "Custom drawing";
