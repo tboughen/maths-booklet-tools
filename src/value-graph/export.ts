@@ -15,6 +15,7 @@ import {
   downloadBlob,
   blobToDataUrl,
   copyWordSizedHtml,
+  svgAlt,
 } from "../export/clipboard";
 export async function printPng(e: ValueEnvelope) {
   const valid = validate(e),
@@ -50,7 +51,7 @@ export async function copyForWord(e: ValueEnvelope) {
     url = await blobToDataUrl(png);
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.widthCm}cm" height="${m.heightCm}cm" style="width:${m.widthCm}cm;height:${m.heightCm}cm" alt="Table of values and graph">`,
+      `<img src="${url}" width="${m.widthCm}cm" height="${m.heightCm}cm" style="width:${m.widthCm}cm;height:${m.heightCm}cm" alt="${svgAlt(renderSvg(validate(e)), "Table of values and graph")}">`,
     )
   )
     throw Error(

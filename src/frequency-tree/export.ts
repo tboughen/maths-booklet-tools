@@ -2,7 +2,7 @@ import { canonical, exportIssue, layout, renderSvg, type Envelope } from "../../
 import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
-import { blobToDataUrl, copyWordSizedHtml, downloadBlob } from "../export/clipboard";
+import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
 
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -34,7 +34,7 @@ export async function copyWord(e: Envelope) {
     url = await blobToDataUrl(await printPng(e));
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="Frequency tree">`,
+      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="${svgAlt(m.svg, "Frequency tree")}">`,
     )
   )
     throw Error("The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.");
