@@ -38,7 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -213,11 +213,11 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
-  function commit(e: Envelope) {
+  function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    documentHistory.commit(v);
+    documentHistory.commit(v, label);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -234,6 +234,7 @@ export default function NumberLinePage({
               : op,
         ),
       ),
+      operationLabel(ops),
     );
   }
   function safe(ops: Operation[]) {
@@ -721,6 +722,8 @@ export default function NumberLinePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -1047,7 +1050,7 @@ export default function NumberLinePage({
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card">
               <h2>Draw</h2>
@@ -1189,6 +1192,50 @@ export default function NumberLinePage({
                         >
                           <option value="left">← Left</option>
                           <option value="right">Right →</option>
+                        </select>
+                      </label>
+                    )}
+                    {selectedPoint && s?.kind === "points" && (
+                      <label>
+                        Ray from this point{" "}
+                        <select
+                          aria-label="Ray from this point"
+                          disabled={blocked}
+                          value={
+                            s.rays?.find((ray) => ray.from === selectedPoint.id)
+                              ?.direction ?? "none"
+                          }
+                          onChange={(e) => {
+                            const existing = s.rays?.find(
+                              (ray) => ray.from === selectedPoint.id,
+                            );
+                            const direction = e.target.value as
+                              | "left"
+                              | "right"
+                              | "none";
+                            // One undoable step: remove the old ray, then draw the new one.
+                            safe([
+                              ...(existing
+                                ? [{ op: "remove_point_ray" as const, id: existing.id }]
+                                : []),
+                              ...(direction === "left" || direction === "right"
+                                ? [
+                                    {
+                                      op: "add_point_ray" as const,
+                                      ray: {
+                                        id: `ray-${direction}`,
+                                        from: selectedPoint.id,
+                                        direction,
+                                      },
+                                    },
+                                  ]
+                                : []),
+                            ]);
+                          }}
+                        >
+                          <option value="none">None</option>
+                          <option value="left">← Left, to the end</option>
+                          <option value="right">Right →, to the end</option>
                         </select>
                       </label>
                     )}
@@ -1525,7 +1572,7 @@ export default function NumberLinePage({
               );
             }}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
               setSelection(null);
               window.history.replaceState(

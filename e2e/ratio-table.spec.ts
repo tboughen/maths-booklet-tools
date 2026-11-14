@@ -94,8 +94,11 @@ test("ratio link protects a draft; confirming opens once and undo restores it", 
     .getByRole("button", { name: "Open this table", exact: true })
     .click();
   await expect.poll(() => stored(page)).toEqual(scaffold);
+  // Undo names the step it will reverse (U8).
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", "Undo open this ratio table (Ctrl+Z)");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => stored(page)).toEqual(simple);
+  await expect(page.getByRole("button", { name: "Redo", exact: true })).toHaveAttribute("title", "Redo open this ratio table (Ctrl+Y)");
 });
 test("pupil blank stays blank; explicit fill confirms existing values and undo restores the scaffold", async ({
   page,

@@ -44,6 +44,7 @@ import { BundleDownloads } from "./bundle-downloads";
 import { diagramOutputTools } from "./diagram-output-tools";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** What every client reads first; family detail lives in diagram_capabilities. */
 export const SERVER_INSTRUCTIONS =
@@ -158,7 +159,7 @@ export function graphService(options: ServiceOptions) {
     return {
       body:
         format === "svg"
-          ? Buffer.from(rendered.svg!)
+          ? Buffer.from(tidySvgRoot(rendered.svg!))
           : Buffer.from(rendered.png!),
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };

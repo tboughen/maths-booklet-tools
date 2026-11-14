@@ -53,7 +53,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel } from "../editor-kit";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -148,13 +148,13 @@ export default function ValueGraphPage({
       }),
     [],
   );
-  const commit = useCallback((next: ValueEnvelope) => {
+  const commit = useCallback((next: ValueEnvelope, label?: string) => {
     renderSvg(next);
-    record(next);
+    record(next, label);
     setMessage("");
   }, [record]);
   function change(ops: ValueOperation[]) {
-    commit(apply(current.current, ops));
+    commit(apply(current.current, ops), operationLabel(ops));
   }
   function act(action: () => void) {
     if (blocked) return;
@@ -1278,6 +1278,8 @@ export default function ValueGraphPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -1858,7 +1860,7 @@ export default function ValueGraphPage({
                 );
                 setExamplePreview(resource);
               }}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>

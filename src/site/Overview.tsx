@@ -2,6 +2,8 @@ import { ArrowRight } from "lucide-react";
 import { PageHeading } from "./PageHeading";
 import { bookletTools, pageHref, siteSections } from "./registry";
 import { useState } from "react";
+import { setHousePreference, useHousePreference } from "./houseStyle";
+import { HOUSE_STYLES, HOUSE_STYLE_NAMES, LINE_WEIGHTS, LINE_WEIGHT_NAMES, type HouseStyle, type LineWeight } from "../../packages/envelope-core/src/house-style";
 
 const searchTerms: Record<string, string> = {
   "bar-model": "ratio sharing fractions amount comparison part whole",
@@ -22,6 +24,7 @@ const searchTerms: Record<string, string> = {
 
 export function Overview({ home = false }: { home?: boolean }) {
   const [search, setSearch] = useState("");
+  const house = useHousePreference();
   const words = search.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const matching = bookletTools.filter((tool) =>
     words.every((word) =>
@@ -64,6 +67,26 @@ export function Overview({ home = false }: { home?: boolean }) {
               <button onClick={() => setSearch("")}>Clear search</button>
             )}
           </div>
+          <fieldset className="house-style">
+            <legend>House style for new diagrams</legend>
+            <label>
+              Text
+              <select value={house.style} onChange={(event) => setHousePreference({ ...house, style: event.target.value as HouseStyle })}>
+                {HOUSE_STYLES.map((s) => (
+                  <option key={s} value={s}>{s === "large" ? `${HOUSE_STYLE_NAMES[s]} (12 pt)` : `${HOUSE_STYLE_NAMES[s]} (11 pt)`}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Lines
+              <select value={house.lines} onChange={(event) => setHousePreference({ ...house, lines: event.target.value as LineWeight })}>
+                {LINE_WEIGHTS.map((w) => (
+                  <option key={w} value={w}>{LINE_WEIGHT_NAMES[w]}</option>
+                ))}
+              </select>
+            </label>
+            <p>Each diagram keeps its own settings, which you can still change in its editor. Saved files do not change.</p>
+          </fieldset>
           {search && (
             <p className="tool-search-status" role="status">
               {matching.length

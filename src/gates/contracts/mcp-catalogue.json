@@ -634,7 +634,7 @@
                                             "answer": {
                                               "default": "",
                                               "type": "string",
-                                              "maxLength": 60
+                                              "maxLength": 160
                                             },
                                             "inline": {
                                               "default": false,
@@ -1080,7 +1080,7 @@
                                                       "answer": {
                                                         "default": "",
                                                         "type": "string",
-                                                        "maxLength": 60
+                                                        "maxLength": 160
                                                       },
                                                       "inline": {
                                                         "default": false,
@@ -2256,7 +2256,7 @@
                                             "answer": {
                                               "default": "",
                                               "type": "string",
-                                              "maxLength": 60
+                                              "maxLength": 160
                                             },
                                             "inline": {
                                               "default": false,
@@ -2702,7 +2702,7 @@
                                                       "answer": {
                                                         "default": "",
                                                         "type": "string",
-                                                        "maxLength": 60
+                                                        "maxLength": 160
                                                       },
                                                       "inline": {
                                                         "default": false,
@@ -3332,7 +3332,7 @@
                                             "answer": {
                                               "default": "",
                                               "type": "string",
-                                              "maxLength": 60
+                                              "maxLength": 160
                                             },
                                             "inline": {
                                               "default": false,
@@ -3786,7 +3786,7 @@
                                                       "answer": {
                                                         "default": "",
                                                         "type": "string",
-                                                        "maxLength": 60
+                                                        "maxLength": 160
                                                       },
                                                       "inline": {
                                                         "default": false,
