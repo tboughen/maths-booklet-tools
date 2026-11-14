@@ -2186,8 +2186,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 onError={setMessage}
               />
             )}
-            <details className="tr-section tr-worked">
-              <summary>Worked version</summary>
+            <section className="tr-section tr-card tr-worked" aria-labelledby="tr-card-worked">
+              <h2 id="tr-card-worked" className="tr-card-title">Worked version</h2>
               <div className="tr-section-body">
                 <p className="tr-note">
                   Replace this triangle with its worked version, with every saved
@@ -2208,9 +2208,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   </p>
                 )}
               </div>
-            </details>
-            <details className="tr-section">
-              <summary>Start a new triangle</summary>
+            </section>
+            <section className="tr-section tr-card" aria-labelledby="tr-card-start">
+              <h2 id="tr-card-start" className="tr-card-title">Start a new triangle</h2>
               <div className="tr-section-body">
                 <p className="tr-note">Start a new blank triangle:</p>
                 <div className="tr-two">
@@ -2237,9 +2237,9 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   ))}
                 </div>
               </div>
-            </details>{" "}
-            <details className="tr-section">
-              <summary>Print size</summary>
+            </section>{" "}
+            <section className="tr-section tr-card" aria-labelledby="tr-card-print">
+              <h2 id="tr-card-print" className="tr-card-title">Print size</h2>
               <div className="tr-section-body">
                 <label>
                   Print width (cm)
@@ -2343,7 +2343,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   </p>
                 )}
               </div>
-            </details>
+            </section>
             <details className="tr-section tr-more-tools">
               <summary>More tools</summary>
               <div className="tr-section-body">

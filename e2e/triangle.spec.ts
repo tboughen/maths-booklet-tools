@@ -105,6 +105,9 @@ async function edit(page: Page, ref: string, text: string, state?: string) {
 async function section(page: Page, title: string) {
   if (["Calculate a value", "Construct from measurements"].includes(title))
     await section(page, "More tools");
+  // U20: common settings are open cards with a heading; rarer ones stay folded.
+  const card = page.locator(`section.tr-card:has(> h2:text-is("${title}"))`);
+  if (await card.count()) return card;
   const item = page.locator(
     `details.tr-section:has(> summary:text-is("${title}"))`,
   );
@@ -270,12 +273,11 @@ test("a disabled Use worked version says why", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page);
-  await page.locator("summary", { hasText: "Worked version" }).click();
   const blank = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(blank).toBeDisabled();
   await expect(blank).toHaveAccessibleDescription(hint);
   // U1: the reason is printed beside the button in the settings, not hidden in a tooltip.
-  await expect(blank.locator("xpath=ancestor::details").getByText(hint, { exact: true })).toBeVisible();
+  await expect(blank.locator("xpath=ancestor::section[1]").getByText(hint, { exact: true })).toBeVisible();
 });
 
 test("an enabled Use worked version carries no disabled reason", async ({
@@ -283,7 +285,6 @@ test("an enabled Use worked version carries no disabled reason", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page, example("right-trig"));
-  await page.locator("summary", { hasText: "Worked version" }).click();
   const ready = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(ready).toBeEnabled();
   await expect(ready).toHaveAccessibleDescription("");
@@ -301,7 +302,6 @@ test("worked version replaces immediately and Undo restores the complete pupil s
     "33.6°",
   );
   const pages = page.context().pages().length;
-  await page.locator("summary", { hasText: "Worked version" }).click();
   await page
     .getByRole("button", { name: "Use worked version", exact: true })
     .first()
@@ -760,9 +760,10 @@ test("contextual inspector, keyboard selection and local attachment preserve the
   await expect(
     page.getByRole("group", { name: "Triangle editing mode", exact: true }),
   ).toHaveCount(0);
+  // U20: Start a new triangle is an open card; rarer tools stay folded.
   await expect(
-    page.locator('details:has(> summary:text-is("Start a new triangle"))'),
-  ).not.toHaveAttribute("open");
+    page.getByRole("heading", { name: "Start a new triangle", exact: true }),
+  ).toBeVisible();
   await expect(
     page.locator('details:has(> summary:text-is("More tools"))'),
   ).not.toHaveAttribute("open");
@@ -894,10 +895,6 @@ test("precise position and new-diagram replacement preserve pending edits and Un
     .getByRole("button", { name: "Cancel position", exact: true })
     .click();
   expect(canonical(await saved(page))).toBe(original);
-  await page
-    .locator("summary")
-    .getByText("Start a new triangle", { exact: true })
-    .click();
   await page.getByRole("button", { name: "Equilateral", exact: true }).click();
   await page
     .getByRole("dialog")

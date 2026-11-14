@@ -126,6 +126,13 @@
   font-weight: 650;
   cursor: pointer;
 }
+/* U20: the common settings are open cards with a heading; rare ones stay folded. */
+.tr-card-title {
+  margin: 0;
+  padding: 13px 14px 9px;
+  font-size: 14px;
+  font-weight: 650;
+}
 .tr-section-body {
   padding: 0 14px 14px;
   display: grid;

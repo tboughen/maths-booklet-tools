@@ -82,8 +82,10 @@ Add separate triangle remains direct. After adding, show the named added
 triangle's removal, or Remove split to restore the outer triangle. Keep these
 actions in blue space beneath the complete white resource, without dead Add
 controls. The current limit remains two component triangles.
-Preview zoom, temporary saved-answer visibility, actual size and worked copy
-share a responsive view strip. Fit reserves room for the structure controls.
+Preview zoom, temporary saved-answer visibility and actual size share a
+responsive view strip. In the settings, Selected object, Worked version, Start
+a new triangle and Print size are open cards with headings; More tools and
+Editing help stay folded (U20). Fit reserves room for the structure controls.
 Simple label editors show the common state/text/unit fields first; saved
 answers, presentation/marks and offsets expand without changing stored data.
 An error remains outside the collapsed groups. Native print/export artwork,
