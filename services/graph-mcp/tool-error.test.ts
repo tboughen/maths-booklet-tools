@@ -7,7 +7,7 @@ import { createServer } from "node:net";
 import type { Server } from "node:http";
 import { graphService } from "./server";
 import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
-import type { ToolErrorBody } from "./tool-error";
+import { fieldHintFor, type ToolErrorBody } from "./tool-error";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { z } from "zod";
 import { vi } from "vitest";
@@ -49,6 +49,11 @@ async function failure(client: Client, name: string, args: Record<string, unknow
 }
 
 describe("one error shape across the connector (M12)", () => {
+  it("points an unknown family at the family list, not at a capabilities call that fails", () => {
+    expect(fieldHintFor("create_diagram", { kind: "venn" })).toContain('{kind:"venn"}');
+    expect(fieldHintFor("create_diagram", { kind: "pie-chart" })).not.toContain("pie-chart");
+  });
+
   it("names the failing field when arguments fail a tool's own input schema", async () => {
     const client = await start();
     const badKind = await failure(client, "create_diagram", { kind: "pie-chart" });
@@ -113,7 +118,7 @@ describe("one error shape across the connector (M12)", () => {
       const body = await failure(client, "diagram_capabilities", {});
       expect(body).toEqual({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
       const logged = log.mock.calls.flat().join(" ");
-      expect(logged).toMatch(/internal/);
+      expect(logged).toMatch(/internal\): Output validation error/);
       expect(logged).not.toContain('"x"');
     } finally {
       log.mockRestore();

@@ -49,7 +49,7 @@ const RETRY: Record<string, RetryAdvice> = {
   rate_limited: "try_later",
   busy: "try_later",
   render_timeout: "try_later",
-  render_failed: "none",
+  render_failed: "try_later",
   internal: "none",
 };
 /** Older codes, kept readable in the cores, mapped to the one current name. */

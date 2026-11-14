@@ -50,7 +50,7 @@ Every connector failure, from any tool and from the SDK's own input checks, has 
 - `fields` and `hint` are optional; `message` always repeats the field problems in words.
 - `retry` is `fix_input`, `refresh_envelope` (a stale `baseHash`: code `stale_hash` in every
   family; the older `stale_document` and `base_hash_mismatch` spellings are read as it),
-  `try_later` (quota, busy renderer) or `none`.
+  `try_later` (quota, busy, stopped or timed-out renderer) or `none`.
 - Cores throw `MathsDockError(code, message, { fields, hint })` (GraphError and RatioError extend
   it). A plain `Error` keeps its message under the tool's default code; a message starting with
   a known code (`stale_hash: `) is read as that code, and any other `word: ` prefix stays text.

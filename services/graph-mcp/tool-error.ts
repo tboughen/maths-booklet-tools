@@ -10,6 +10,7 @@
  * The body shape lives in packages/envelope-core/src/errors.ts so cores throw the same errors.
  */
 import { z } from "zod";
+import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
 import { toErrorBody, zodFields, fieldSentence, type ErrorDefaults, type ToolErrorBody } from "../../packages/envelope-core/src/errors";
 
 export type { ToolErrorBody } from "../../packages/envelope-core/src/errors";
@@ -38,7 +39,8 @@ export function toolFailure(error: unknown, defaults: ErrorDefaults) {
 export function fieldHintFor(tool: string, args: unknown): string | undefined {
   const kind = typeof args === "object" && args !== null && typeof (args as { kind?: unknown }).kind === "string" ? (args as { kind: string }).kind : undefined;
   if (tool === "create_worksheet" || tool === "create_booklet") return "Check worksheet_capabilities for the layouts, item types and limits.";
-  if (kind && tool !== "diagram_capabilities") return `Check diagram_capabilities {kind:"${kind}"} for the expected fields.`;
+  if (kind && (DIAGRAM_KINDS as readonly string[]).includes(kind) && tool !== "diagram_capabilities") return `Check diagram_capabilities {kind:"${kind}"} for the expected fields.`;
+  if (kind) return "Call diagram_capabilities for the list of families, then for the chosen kind's fields.";
   return "Check the tool's input schema for the expected fields.";
 }
 

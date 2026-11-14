@@ -159,7 +159,7 @@ function oneErrorShape(server: McpServer) {
     const unknownTool = /Tool [\w-]+ (?:not found|disabled)/.exec(message);
     if (unknownTool) return errorResult({ code: "unknown_tool", message: `${unknownTool[0]}. Call tools/list for the current tools.`, retry: "fix_input" });
     // Only the SDK's lead-in ("Output validation error") is logged: the rest can quote a teacher's document.
-    console.error(`MathsDock tool error (internal): ${message.split(":")[0].slice(0, 80)}`);
+    console.error(`MathsDock tool error (internal): ${message.replace(/^MCP error -?\d+: /, "").split(":")[0].slice(0, 80)}`);
     return errorResult({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
   };
 }
