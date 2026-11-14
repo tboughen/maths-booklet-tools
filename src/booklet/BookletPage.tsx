@@ -7,6 +7,7 @@ import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import {
+  A4,
   bookletFileName,
   lessonFileName,
   lessonPagesOf,
@@ -33,6 +34,7 @@ import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
+import { usePrintSize } from "../site/usePrintSize";
 import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
@@ -96,6 +98,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
+  const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -455,6 +458,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <span className="resource-size">
                 A4 portrait, {shown.pages.length} pages
               </span>
+              {printSize.controls}
               <span className="bk-jump">
                 <select
                   aria-label="Go to a page"
@@ -518,11 +522,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             )}
-            <div className="bk-pages" data-testid="booklet-pages" ref={pagesRef}>
+            <div className={`bk-pages${printSize.actual ? " ws-actual" : ""}`} data-testid="booklet-pages" ref={pagesRef}>
               {shown.pages.map((svg, i) => (
                 <figure key={i} className="ws-page bk-page" id={`bk-page-${i + 1}`}>
                   <figcaption>Page {i + 1}</figcaption>
-                  <div className="ws-art" dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
+                  <div className="ws-art" style={{ width: printSize.width(A4.page.width) }} dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
                 </figure>
               ))}
             </div>

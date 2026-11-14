@@ -6,7 +6,7 @@ import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
-import { LAYOUTS, columnBoxes, isReminder, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
+import { LAYOUTS, SIZE, columnBoxes, isReminder, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
@@ -14,6 +14,7 @@ import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } 
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
+import { usePrintSize } from "../site/usePrintSize";
 import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
@@ -49,6 +50,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
+  const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -259,6 +261,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
             <div className="ws-preview-bar">
               <span className="resource-size">A3 landscape, 2 sides</span>
               <AnswerPreviewToggle checked={answers} disabled={recovery !== null} onChange={setAnswers} />
+              {printSize.controls}
             </div>
             {message && (
               <p className="ws-message" role="status">
@@ -301,12 +304,13 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             )}
-            <div className="ws-pages" data-testid="worksheet-pages">
+            <div className={`ws-pages${printSize.actual ? " ws-actual" : ""}`} data-testid="worksheet-pages">
               {shown.pages.map((svg, i) => (
                 <figure key={i} className="ws-page">
                   <figcaption>Side {i + 1}</figcaption>
                   <div
                     className="ws-art"
+                    style={{ width: printSize.width(SIZE.page.width) }}
                     dangerouslySetInnerHTML={{
                       __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"'),
                     }}
