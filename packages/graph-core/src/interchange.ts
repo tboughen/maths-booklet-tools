@@ -12,6 +12,7 @@ import {
   LABEL_SIDES,
   MAX_LABEL_TEXT_LENGTH,
   OBJECT_NAME_PATTERN,
+  coordinatesPrintable,
   formatAxisValue,
   normaliseLabelText,
   normaliseObjectName,
@@ -359,6 +360,12 @@ export function validateEnvelope(
   network = false,
 ): GraphEnvelope {
   const envelope = parse(envelopeSchema, value);
+  for (const o of envelope.document.objects)
+    if (o.kind === "point" && o.coordinates && !coordinatesPrintable(o.position))
+      throw new GraphError(
+        "invalid_input",
+        `Point ${o.id} is at (${o.position.x}, ${o.position.y}); printed coordinates need values with at most 3 decimal places, so move it to an exact position or leave its coordinates off.`,
+      );
   if (
     network &&
     (envelope.document.objects.length > 50 ||
@@ -494,6 +501,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           kind: o.kind,
           position: { x: o.position.x, y: o.position.y },
           ...canonicalName(o),
+          ...(o.coordinates ? { coordinates: o.coordinates } : {}),
         }
       : {
           id: o.id,

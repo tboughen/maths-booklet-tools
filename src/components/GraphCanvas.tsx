@@ -876,7 +876,7 @@ export function GraphCanvas({
                   : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;
-              const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE)!;
+              const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE, document.axes)!;
               const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE);
               const parts = nameParts(object.name);
               const style = object.kind === "point" ? "italic" : "bold";
@@ -920,7 +920,7 @@ export function GraphCanvas({
           <g className="point-coordinates" fontFamily={fontFamily}>
             {visibleDocument.objects.map((object) => {
               if (object.kind !== "point" || !object.coordinates || !pointInBounds(object.position, layout.bounds)) return null;
-              const at = coordinatesAnchor(object, layout, EDITOR_UNITS_PER_CENTIMETRE)!;
+              const at = coordinatesAnchor(object, layout, EDITOR_UNITS_PER_CENTIMETRE, document.axes)!;
               const text = coordinatesText(visibleDocument, object, "pupil");
               return ["text-halo", undefined].map((halo) => (
                 <text

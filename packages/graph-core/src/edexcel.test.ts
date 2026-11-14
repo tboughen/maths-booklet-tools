@@ -10,6 +10,7 @@ import {
   createGraph,
   decodeEnvelope,
   documentFromEnvelope,
+  encodeEnvelope,
   editorLink,
   graphHash,
   parseGraphFile,
@@ -310,6 +311,18 @@ describe("point coordinates", () => {
     expect("coordinates" in d.objects[2]).toBe(false);
     expect(isDiagramDocument(d)).toBe(true);
     expect(isDiagramDocument({ ...d, objects: [{ ...d.objects[0], coordinates: "maybe" }] })).toBe(false);
+  });
+  it("keep coordinates through links and the content hash", async () => {
+    const e = createGraph(spec);
+    expect(documentFromEnvelope(decodeEnvelope(encodeEnvelope(e))).objects[1]).toMatchObject({ coordinates: "blank" });
+    const shown = createGraph({ objects: spec.objects.map((o) => (o.id === "b" ? { ...o, coordinates: "show" } : o)) });
+    expect(await graphHash(shown)).not.toBe(await graphHash(e));
+  });
+  it("refuse coordinates that would print as a rounded decimal", () => {
+    expect(() => createGraph({ objects: [{ kind: "point", id: "a", position: { x: 1 / 3, y: 2 }, coordinates: "show" }] })).toThrow(
+      "at most 3 decimal places",
+    );
+    expect(() => createGraph({ objects: [{ kind: "point", id: "a", position: { x: 0.25, y: 2 }, coordinates: "show" }] })).not.toThrow();
   });
   it("keep a graph without coordinates byte for byte", () => {
     const without = { objects: spec.objects.map((o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== "coordinates"))) };

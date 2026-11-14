@@ -5,6 +5,7 @@ import { equationForObject, formatNumber } from "../domain/equations";
 import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
 import {
   OBJECT_NAME_PATTERN,
+  coordinatesPrintable,
   normaliseObjectName,
 } from "../../packages/graph-core/src/axes";
 
@@ -76,9 +77,14 @@ function NameAndAnswer({
             }}
           >
             <option value="none">None</option>
-            <option value="show">Show, as A(2, 3)</option>
-            <option value="blank">Blank for pupils, answer on the answers copy</option>
+            <option value="show" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "show"}>Show, as A(2, 3)</option>
+            <option value="blank" disabled={!coordinatesPrintable(object.position) && object.coordinates !== "blank"}>Blank for pupils, answer on the answers copy</option>
           </select>
+          {!coordinatesPrintable(object.position) && (
+            <span className="field-error" role="alert">
+              Coordinates print only for values with at most 3 decimal places. Move the point to an exact position.
+            </span>
+          )}
         </label>
       )}
       <button
