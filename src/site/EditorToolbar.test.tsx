@@ -22,7 +22,7 @@ describe("reset notice (U25)", () => {
     act(() => root?.unmount());
     host?.remove();
   });
-  const render = (props: { undoLabel: string; canRedo: boolean; onUndo?: () => void }) =>
+  const render = (props: { undoLabel: string; canRedo: boolean; redoLabel?: string; onUndo?: () => void }) =>
     act(() =>
       root!.render(
         <EditorToolbar
@@ -31,6 +31,7 @@ describe("reset notice (U25)", () => {
           onUndo={props.onUndo ?? (() => {})}
           onRedo={() => {}}
           undoLabel={props.undoLabel}
+          redoLabel={props.redoLabel}
           onReset={() => {}}
           onCopy={() => {}}
           onCopyClipboard={() => {}}
@@ -60,6 +61,10 @@ describe("reset notice (U25)", () => {
     start();
     render({ undoLabel: "add row", canRedo: true });
     render({ undoLabel: "reset this table", canRedo: true });
+    expect(notice()).toBeNull();
+    // Redo of the reset as the last step.
+    render({ undoLabel: "add row", canRedo: true, redoLabel: "reset this table" });
+    render({ undoLabel: "reset this table", canRedo: false });
     expect(notice()).toBeNull();
   });
 

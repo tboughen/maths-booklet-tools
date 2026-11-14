@@ -35,7 +35,10 @@ for (const tool of toolIds) {
     await bar.getByRole("button", { name: /^(Reset|Reset diagram|New model)$/ }).click();
     const confirm = page.getByRole("dialog").last();
     await expect(confirm).toBeVisible();
-    await confirm.getByRole("button", { name: /^(Reset|Start a new|Start fresh|New model)\b/ }).click();
+    // Every confirmation asks a reset question; its confirm button is the dialog's last action, after Cancel.
+    await expect(confirm.getByRole("heading").first()).toHaveText(/^(Reset|Start a (new|fresh))\b/);
+    await expect(confirm.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
+    await confirm.getByRole("button").last().click();
     const notice = page.getByRole("status").filter({ hasText: "Resource reset." });
     await expect(notice).toBeVisible();
     await expect(bar.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", /^Undo (reset|start a new)/);

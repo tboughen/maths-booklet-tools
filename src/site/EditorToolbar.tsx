@@ -45,11 +45,13 @@ export function EditorToolbar(props: EditorToolbarProps) {
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
   // The notice follows events, not names: it opens when a reset step is newly made (a new step clears Redo)
   // and closes on the next undo, redo or change, or when dismissed.
-  const [trackedStep, setTrackedStep] = useState(props.undoLabel);
+  // Redoing a reset is not a new reset: Redo offered that step a moment ago.
+  const [tracked, setTracked] = useState({ undo: props.undoLabel, redo: props.redoLabel });
   const [noticeOpen, setNoticeOpen] = useState(false);
-  if (trackedStep !== props.undoLabel) {
-    setTrackedStep(props.undoLabel);
-    setNoticeOpen(isResetStep(props.undoLabel) && !props.canRedo);
+  if (tracked.undo !== props.undoLabel || tracked.redo !== props.redoLabel) {
+    setTracked({ undo: props.undoLabel, redo: props.redoLabel });
+    if (tracked.undo !== props.undoLabel)
+      setNoticeOpen(isResetStep(props.undoLabel) && !props.canRedo && tracked.redo !== props.undoLabel);
   }
   const focusAfterNotice = useRef(false);
   useEffect(() => {
