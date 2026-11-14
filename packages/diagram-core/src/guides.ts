@@ -137,7 +137,7 @@ const lineGuide: FamilyGuide = {
     operations: line.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
+    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
   revise:
     "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins); set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
 };

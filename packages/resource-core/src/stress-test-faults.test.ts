@@ -58,6 +58,18 @@ describe("worksheet stress-test faults", () => {
     expect(svg).not.toMatch(/<g font-size="[\d.]+"><text[^>]*>−/);
   });
 
+  it("reads mixed numbers on a number line and prints them mixed with a stacked fraction", () => {
+    const e = createNumberLine({
+      axis: { minimum: "-2", maximum: "3", step: "1/2", numberFormat: "mixed" },
+      solution: { kind: "interval", id: "i1", lower: "-1 1/2", upper: "2½", lowerIncluded: false, upperIncluded: true },
+    }) as { document: { solution: { lower: string; upper: string } } };
+    expect(e.document.solution).toMatchObject({ lower: "-3/2", upper: "5/2" });
+    const shown = texts(numberLineSvg(e as never));
+    // 2½ prints as the whole number beside a stacked half; no slash or improper 5 is printed.
+    expect(shown).toEqual(expect.arrayContaining(["2", "1", "2", "−1", "3"]));
+    expect(shown.join(" ")).not.toMatch(/\/|5/);
+  });
+
   it("fits a two-level frequency tree in a three-column card at the branch length the issue suggests", () => {
     const e = FAMILIES["frequency-tree"].create({
       spec: { total: "60", groups: [
@@ -79,15 +91,16 @@ describe("worksheet stress-test faults", () => {
     expect(familyCapabilities("probability-tree").branchesPerPoint).toMatchObject({ minimum: 1, firstStageMinimum: 2 });
   });
 
-  it("prints inequality signs and open and filled circles, and reports characters the font lacks", () => {
+  it("prints inequality signs, open and filled circles and set notation, and reports characters the font lacks", () => {
     const sheet = sheetWith([
       { type: "info", text: "An open circle ○ means < or >. A filled circle ● means ≤ or ≥." },
-      { type: "text", text: "List A ∩ B." },
+      { type: "text", text: "List A ∩ B, then all x ∈ ℝ." },
     ]);
     const issues = missingGlyphIssues(sheet);
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ side: 1, column: 1, question: 1 });
-    expect(issues[0].message).toMatch(/"∩" \(U\+2229\)/);
+    expect(issues[0].message).toMatch(/"ℝ" \(U\+211D\)/);
+    expect(issues[0].message).not.toMatch(/∩|∈/);
     expect(renderResource(sheet).issues.map((i) => i.message)).toContain(issues[0].message);
     // Hidden worked solutions are never printed, so they are not checked.
     expect(missingGlyphIssues(sheetWith([{ type: "text", text: "x < 3" }]))).toEqual([]);

@@ -33,7 +33,9 @@ Editable envelope: schemaVersion 1, rendererVersion number-line-1, styleProfile
 examination-v1, kind number-line, document. Document contains axis, solution,
 teaching and widthCm. Numeric mathematical inputs are exact strings. axis has
 minimum, maximum, step, labelEvery, variable, variableBelow and numberFormat
-(decimal where exact or fraction). A solution is null, an interval, ray or
+(decimal where exact, fraction, or mixed). Mixed numbers typed as
+"1 1/2" or "1½" are saved as the improper fraction 3/2; numberFormat mixed prints
+them as a whole number beside a stacked fraction. A solution is null, an interval, ray or
 discrete points. teaching retains labels, solutionVisible, prompt, answer,
 answerVisible and responseLines. Labels use canonical rational-value keys.
 

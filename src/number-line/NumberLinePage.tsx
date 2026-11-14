@@ -1337,7 +1337,8 @@ export default function NumberLinePage({
                                 axis: {
                                   numberFormat: e.target.value as
                                     | "decimal"
-                                    | "fraction",
+                                    | "fraction"
+                                    | "mixed",
                                 },
                               },
                             ])
@@ -1345,6 +1346,7 @@ export default function NumberLinePage({
                         >
                           <option value="decimal">Decimals where exact</option>
                           <option value="fraction">Fractions</option>
+                          <option value="mixed">Mixed numbers</option>
                         </select>
                       </label>
                       <label>

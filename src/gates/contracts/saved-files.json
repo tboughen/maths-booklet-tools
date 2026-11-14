@@ -3994,7 +3994,8 @@
                 "type": "string",
                 "enum": [
                   "decimal",
-                  "fraction"
+                  "fraction",
+                  "mixed"
                 ]
               },
               "variableBelow": {
