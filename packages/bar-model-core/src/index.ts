@@ -186,6 +186,13 @@ export async function hash(e: Envelope): Promise<string> {
 export function fresh(): Envelope {
   return example("BM01");
 }
+/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
+export const BAR_ANSWER_COLOUR = "#b0125b";
+/** Labels an answers copy shows only because they were saved hidden: drawn in the answer colour. */
+export const REVEALED_LABELS = new WeakSet<Label>();
+/** A label's artwork, recoloured when it is a revealed saved answer. */
+export const inkRevealed = (l: Label, svg: string) =>
+  REVEALED_LABELS.has(l) ? svg.replaceAll('"#000"', `"${BAR_ANSWER_COLOUR}"`) : svg;
 export const visible = (l: Label) =>
   l.state === "value" ? l.text : l.state === "question" ? "?" : "";
 const esc = (s: string) =>
@@ -341,6 +348,15 @@ export function warnings(e: Envelope) {
     : [];
 }
 function textSvg(
+  l: Label,
+  x: number,
+  y: number,
+  font: number,
+  anchor = "middle",
+) {
+  return inkRevealed(l, labelSvg(l, x, y, font, anchor));
+}
+function labelSvg(
   l: Label,
   x: number,
   y: number,
