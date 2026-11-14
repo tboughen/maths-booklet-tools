@@ -39,6 +39,17 @@ them as a whole number beside a stacked fraction. A solution is null, an interva
 discrete points. teaching retains labels, solutionVisible, prompt, answer,
 answerVisible and responseLines. Labels use canonical rational-value keys.
 
+Arrow markers (optional `markers`, up to 6) are down arrows for "What number is
+the arrow pointing to?" questions. Each has a stable id, an exact value (which may
+lie between ticks) and an optional letter of up to 3 characters. Markers cannot share
+a line with a solution set, must sit inside the axis and must not crowd each other at
+the print width. The marker value is the answer, so it never prints; put it in the
+answer text. `axis.minorTicks: true` draws labelled ticks across the axis and the
+others short, as on exam scales (for example 0 to 1, step 0.1, label every 10).
+Both fields are left out of files that do not use them, so older files are unchanged.
+Connector operations: add_marker, set_marker (an empty label removes the letter) and
+remove_marker.
+
 Saved-file recovery protects original corrupt/newer-tab data before a fresh
 start. Use Copy to clipboard for an image or Copy for Word for physical-size
 HTML. Actual browser downloads provide SVG with embedded portable fonts,

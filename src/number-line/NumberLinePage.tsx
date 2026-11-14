@@ -1327,6 +1327,97 @@ export default function NumberLinePage({
                         />{" "}
                         Variable below arrow
                       </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={!!d.axis.minorTicks}
+                          onChange={(e) =>
+                            safe([
+                              {
+                                op: "set_axis",
+                                axis: { minorTicks: e.target.checked },
+                              },
+                            ])
+                          }
+                        />{" "}
+                        Short ticks between labels
+                      </label>
+                    </div>
+                  </details>
+                  <details onToggle={keepDraftVisible}>
+                    <summary>Arrow markers</summary>
+                    <div className="nl-settings-body">
+                      <p>
+                        Arrows point down at values for &ldquo;What number is
+                        the arrow pointing to?&rdquo; Put the values in the
+                        answer text, not on the line.
+                      </p>
+                      {(d.markers ?? []).map((k, i) => (
+                        <div
+                          key={k.id}
+                          className="nl-marker-row"
+                          data-testid={`marker-${k.id}`}
+                        >
+                          {field(`Arrow ${i + 1} value`, k.value, (v) =>
+                            change([{ op: "set_marker", id: k.id, value: v }]),
+                          )}
+                          {field(`Arrow ${i + 1} letter`, k.label ?? "", (v) =>
+                            change([
+                              { op: "set_marker", id: k.id, label: v.trim() },
+                            ]),
+                          )}
+                          <button
+                            type="button"
+                            disabled={blocked}
+                            onClick={() =>
+                              safe([{ op: "remove_marker", id: k.id }])
+                            }
+                          >
+                            Remove arrow {i + 1}
+                          </button>
+                        </div>
+                      ))}
+                      {(d.markers?.length ?? 0) < 6 && (
+                        <button
+                          type="button"
+                          disabled={blocked}
+                          onClick={() => {
+                            const used = new Set(
+                              (d.markers ?? []).map((k) => k.id),
+                            );
+                            let n = 1;
+                            while (used.has(`m${n}`)) n++;
+                            const letters = new Set(
+                              (d.markers ?? []).map((k) => k.label),
+                            );
+                            const label = [..."ABCDEF"].find(
+                              (c) => !letters.has(c),
+                            );
+                            const add = (value: string): Operation => ({
+                              op: "add_marker",
+                              marker: {
+                                id: `m${n}`,
+                                value,
+                                ...(label ? { label } : {}),
+                              },
+                            });
+                            // Start the new arrow at the first tick where it fits beside the others.
+                            const value =
+                              ticks(d).find((v) => {
+                                try {
+                                  apply(current.current, [add(v)]);
+                                  return true;
+                                } catch {
+                                  return false;
+                                }
+                              }) ?? d.axis.minimum;
+                            safe([add(value)]);
+                          }}
+                        >
+                          Add arrow
+                        </button>
+                      )}
                     </div>
                   </details>
                   <details onToggle={keepDraftVisible}>

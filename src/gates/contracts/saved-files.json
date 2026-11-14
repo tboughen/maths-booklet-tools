@@ -4001,6 +4001,9 @@
               "variableBelow": {
                 "default": false,
                 "type": "boolean"
+              },
+              "minorTicks": {
+                "type": "boolean"
               }
             },
             "additionalProperties": false
@@ -4233,6 +4236,33 @@
             "type": "number",
             "minimum": 8,
             "maximum": 18
+          },
+          "markers": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "label": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9]{1,3}$"
+                }
+              },
+              "required": [
+                "id",
+                "value"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "additionalProperties": false
