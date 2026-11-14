@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
-import { FAMILY_LIST, familyCapabilities } from "../../packages/diagram-core/src/guides";
+import { FAMILY_LIST, NOT_DRAWN, familyCapabilities } from "../../packages/diagram-core/src/guides";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { describeGraph } from "../../packages/graph-core/src/interchange";
 import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
@@ -79,7 +79,8 @@ export const diagramOutput = z
  */
 const capabilitiesOutput = z
   .object({
-    families: z.array(z.object({ kind: diagramKindSchema, summary: z.string(), answerView: z.boolean() }).strict()).optional(),
+    families: z.array(z.object({ kind: diagramKindSchema, summary: z.string(), topics: z.array(z.string()), answerView: z.boolean() }).strict()).optional(),
+    notDrawn: z.array(z.string()).optional(),
     next: z.string().optional(),
     kind: diagramKindSchema.optional(),
     label: z.string().optional(),
@@ -134,13 +135,19 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
     server.registerTool(
       "diagram_capabilities",
       {
-        description: `List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: ${DIAGRAM_KINDS.join(", ")}.`,
+        description: `List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: ${DIAGRAM_KINDS.join(", ")}.`,
         inputSchema: capabilitiesInput,
         outputSchema: capabilitiesOutput,
         annotations,
       },
       async (input) => {
-        const value = input.kind ? familyCapabilities(input.kind) : { families: FAMILY_LIST, next: "Call diagram_capabilities with one kind for its spec and operations." };
+        const value = input.kind
+          ? familyCapabilities(input.kind)
+          : {
+              families: FAMILY_LIST,
+              notDrawn: NOT_DRAWN,
+              next: "Pick the family whose topics match the lesson, then call diagram_capabilities with that kind for its spec and operations. For a whole A3 worksheet or unit booklet, call worksheet_capabilities. Say so plainly when a request is in notDrawn.",
+            };
         return { structuredContent: value, content: [{ type: "text" as const, text: JSON.stringify(value) }] };
       },
     );

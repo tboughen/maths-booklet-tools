@@ -84,7 +84,12 @@ describe("generic connector tools", () => {
   it("lists the families and gives each one's options, guides and schemas on request", async () => {
     const client = await start();
     const list = await client.callTool({ name: "diagram_capabilities", arguments: {} });
-    expect((list.structuredContent as { families: { kind: string }[] }).families.map((f) => f.kind)).toEqual([...DIAGRAM_KINDS]);
+    const listed = list.structuredContent as { families: { kind: string; topics: string[] }[]; notDrawn: string[] };
+    expect(listed.families.map((f) => f.kind)).toEqual([...DIAGRAM_KINDS]);
+    // M89: every family names the lessons it serves, and the list says what none draws.
+    for (const f of listed.families) expect(f.topics.length, f.kind).toBeGreaterThan(0);
+    expect(listed.families.find((f) => f.kind === "number-line")!.topics).toContain("inequalities on a number line");
+    expect(listed.notDrawn).toContain("histograms");
     for (const kind of DIAGRAM_KINDS) {
       const r = await client.callTool({ name: "diagram_capabilities", arguments: { kind } });
       expect(r.isError, kind).not.toBe(true);
