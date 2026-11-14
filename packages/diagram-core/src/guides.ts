@@ -156,7 +156,7 @@ const lineGuide: FamilyGuide = {
 
 const vennGuide: FamilyGuide = {
   capabilities: {
-    schemaVersions: [1, 2],
+    schemaVersions: [2],
     rendererVersions: ["venn-2"],
     defaultRendererVersion: "venn-2",
     setCounts: [1, 2, 3],

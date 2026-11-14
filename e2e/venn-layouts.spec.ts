@@ -458,7 +458,7 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
   ).toBeChecked();
   expect(await saved(page)).toEqual(e);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  expect((await saved(page)).schemaVersion).toBe(2);
+  expect(await saved(page)).toEqual(create());
 });
 
 test("answer-view label overflow is retained and correctable without exposing pupil answers", async ({
@@ -621,7 +621,7 @@ test("combined Examples has teaching first, all six verified source links and no
     .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  expect((await saved(page)).schemaVersion).toBe(2);
+  expect(await saved(page)).toEqual(create());
   await showExamples(page);
   await card
     .getByRole("button", { name: "Use this example", exact: true })
