@@ -1,0 +1,55 @@
+/*
+ * U63: from 768 px wide every diagram editor keeps two columns, the resource on the left and its
+ * settings on the right. The settings column stays in view and scrolls on its own; the resource
+ * column scrolls with the page (its preview already scrolls internally when zoomed). Below 768 px
+ * the editors stack, with the "Edit settings" / "Return to diagram" jumps. Worksheets and booklets
+ * keep their own layout. The :not() raises specificity above each tool's own stacking rule.
+ */
+@media (min-width: 768px) {
+  .booklet-editor:not(.ws-editor) .workspace {
+    grid-template-columns: minmax(0, 1fr) clamp(260px, 34vw, 316px);
+    align-items: start;
+    gap: 12px;
+    padding-top: 0;
+  }
+  .booklet-editor:not(.ws-editor) .workspace > * {
+    min-width: 0;
+  }
+  .booklet-editor:not(.ws-editor) .inspector-stack {
+    grid-template-columns: minmax(0, 1fr);
+    position: sticky;
+    top: 8px;
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 0 3px 3px 0;
+  }
+  .booklet-editor:not(.ws-editor) .selection-panel,
+  .booklet-editor:not(.ws-editor) .equation-panel {
+    grid-row: auto;
+  }
+  .booklet-editor:not(.ws-editor) .example-launch-button {
+    position: static;
+  }
+  .booklet-editor:not(.ws-editor) .example-launch {
+    grid-column: auto;
+  }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+  /* The settings are beside the resource, so the stacked-layout jumps stay hidden until focused. */
+  .booklet-editor:not(.ws-editor) .editor-inspector-link:not(:focus-visible),
+  .booklet-editor:not(.ws-editor) .editor-diagram-link:not(:focus-visible) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+  }
+}
