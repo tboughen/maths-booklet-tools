@@ -1,4 +1,5 @@
 import { copyStorageKey } from "../site/copyDocument";
+import { houseRatio } from "./house";
 import {
   emptyRatioTable,
   starterRatioTable,
@@ -18,12 +19,12 @@ export function loadRatioRecovery(): {
   try {
     const raw = localStorage.getItem(RATIO_STORAGE_KEY);
     if (!raw)
-      return { envelope: starterRatioTable(), recovery: null, error: null };
+      return { envelope: houseRatio(starterRatioTable()), recovery: null, error: null };
     try {
       return { envelope: parseRatioFile(raw), recovery: null, error: null };
     } catch {
       return {
-        envelope: emptyRatioTable(),
+        envelope: houseRatio(emptyRatioTable()),
         recovery: raw,
         error:
           "The saved table needs recovery. Its original file has been preserved.",
@@ -31,7 +32,7 @@ export function loadRatioRecovery(): {
     }
   } catch {
     return {
-      envelope: emptyRatioTable(),
+      envelope: houseRatio(emptyRatioTable()),
       recovery: null,
       error:
         "Device storage is unavailable. Save an editable file to keep your work.",

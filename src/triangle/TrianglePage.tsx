@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
@@ -740,6 +743,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     window.addEventListener("blur", cancel);
     return () => window.removeEventListener("blur", cancel);
   }, []);
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div
       className="app-shell booklet-editor tr-editor"
@@ -864,6 +868,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!exportMetrics.issues.length,
@@ -900,6 +905,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               className="tr-file"
               ref={file}

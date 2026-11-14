@@ -99,6 +99,7 @@ set_transition: transition (from, to, operation, factor)
 remove_transition: from
 set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
 set_size: size compact/standard/large
+set_lines: lines normal/bold (U111; bold multiplies every stroke by 1.5, normal is never saved; spec.lines also accepted)
 set_annotation_visibility: optional mode, showArrows, showOperations
 fill_next_row: from, optional overwrite
 ```

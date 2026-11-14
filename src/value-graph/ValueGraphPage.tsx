@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -1262,6 +1265,7 @@ export default function ValueGraphPage({
     selection &&
     ["equation", "axis", "bound", "cell", "point"].includes(selection.kind);
 
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: blocked, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vg-editor">
       <main
@@ -1329,6 +1333,7 @@ export default function ValueGraphPage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => download(envelope, "svg"),
                   disabled: blocked || !!renderError,
@@ -1364,6 +1369,7 @@ export default function ValueGraphPage({
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               type="file"
               accept=".json,application/json"

@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -438,6 +441,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       {label}
     </label>
   );
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor cb-editor">
       <main
@@ -494,6 +498,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
@@ -529,6 +534,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize

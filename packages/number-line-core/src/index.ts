@@ -4,6 +4,7 @@ import { canonicalNumber, fractionString, isMixedNumber, mixedString, parseNumbe
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { patchSchema } from "../../graph-core/src/patch-schema";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 const textWidth = (text: string, size: number) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * size;
 /** Numeric fields where a typed mixed number ("1 1/2" or "1½") is read as its improper fraction ("3/2"). */
 const NUMERIC_KEYS = new Set(["minimum", "maximum", "step", "value", "lower", "upper", "stop"]);
@@ -49,12 +50,14 @@ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(tr
  */
 export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9/\s]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
 export type Secondary = z.infer<typeof secondarySchema>;
-export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional() }).strict();
+export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z.enum(LINE_WEIGHTS).transform(v => v === "bold" ? v : undefined).optional() }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
-export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional(), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional() }).strict();
+export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional(), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict();
 export const FONT = 11 * 25.4 / 72;
 export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
 export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
@@ -216,7 +219,7 @@ export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("remove_point"), id }).strict(),
     z.object({ op: z.literal("set_tick_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict(),
     z.object({ op: z.literal("set_presentation"), teaching: teachingPatch }).strict(),
-    z.object({ op: z.literal("set_print"), widthCm: z.number().min(8).max(18) }).strict(),
+    z.object({ op: z.literal("set_print"), widthCm: z.number().min(8).max(18).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict().refine(o => o.widthCm !== undefined || o.lines !== undefined, "set_print needs widthCm or lines."),
     z.object({ op: z.literal("add_marker"), marker: markerSchema }).strict(),
     z.object({ op: z.literal("set_marker"), id, value: num.optional(), label: z.string().regex(/^[A-Za-z0-9]{0,3}$/).optional() }).strict(),
     z.object({ op: z.literal("remove_marker"), id }).strict(),
@@ -316,8 +319,11 @@ export function apply(e: Envelope, raw: unknown): Envelope {
             d.teaching.labels[labelKey(o.value)] = o.state;
         if (o.op === "set_presentation")
             d.teaching = { ...d.teaching, ...o.teaching };
-        if (o.op === "set_print")
-            d.widthCm = o.widthCm;
+        if (o.op === "set_print") {
+            if (o.widthCm !== undefined) d.widthCm = o.widthCm;
+            if (o.lines === "bold") d.lines = "bold";
+            else if (o.lines === "normal") delete d.lines;
+        }
         if (o.op === "set_secondary") {
             if (o.secondary) d.secondary = o.secondary;
             else delete d.secondary;
@@ -457,5 +463,5 @@ export function renderSvg(e: Envelope, showAnswers = false) {
         art += ink(`<text x="7" y="${m.answerY}">${esc(d.teaching.answer)}</text>`, revealed.answer);
     for (let i = 0; i < d.teaching.responseLines; i++)
         art += `<path d="M7 ${m.answerY + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + i * 8}H${m.width - 7}" stroke-dasharray=".4 .8"/>`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="${esc(describe(e))}"><style>text{stroke:none}</style><rect width="${m.width}" height="${m.height}" fill="white"/><g fill="#111" stroke="#111" stroke-width=".2" font-family="STIX Two Text" font-size="${FONT}">${art}</g></svg>`;
+    return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.widthCm}cm" height="${m.heightCm}cm" viewBox="0 0 ${m.width} ${m.height}" role="img" aria-label="${esc(describe(e))}"><style>text{stroke:none}</style><rect width="${m.width}" height="${m.height}" fill="white"/><g fill="#111" stroke="#111" stroke-width=".2" font-family="STIX Two Text" font-size="${FONT}">${art}</g></svg>`, d.lines);
 }

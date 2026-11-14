@@ -5619,6 +5619,13 @@
               "maximum"
             ],
             "additionalProperties": false
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "additionalProperties": false
@@ -6393,6 +6400,13 @@
           },
           "showOperations": {
             "type": "boolean"
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
