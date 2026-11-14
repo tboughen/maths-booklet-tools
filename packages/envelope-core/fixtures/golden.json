@@ -1148,121 +1148,121 @@
  "triangle/default": {
   "schemaVersion": 1,
   "contentHash": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
-  "pupilSvg": "1139741561f7048c72b53c3102512159db97a7a095c0a6dc76a9937d12eed8bb",
-  "answerSvg": "1139741561f7048c72b53c3102512159db97a7a095c0a6dc76a9937d12eed8bb"
+  "pupilSvg": "6e33f1187d9e8b63b93e28af7f3f85f7d37fb8e357eeb97b92ae7367538709ee",
+  "answerSvg": "6e33f1187d9e8b63b93e28af7f3f85f7d37fb8e357eeb97b92ae7367538709ee"
  },
  "triangle/example-base-height": {
   "schemaVersion": 1,
   "contentHash": "f8b0e3121b565adacc1c35dc3dd03513d26d7e0707b089687d15bf95371d0fde",
-  "pupilSvg": "817ce5dd173ba0a0177d665e4cd54d4b7a42aad08825b6e0707997eead147081",
-  "answerSvg": "1b0ca219104d1ac42bb56bf57b8cf22643d2e89faacc58a072a42423a82b2fcd"
+  "pupilSvg": "07ab0d5d9a0a71102a6905da8a844f318c968a3dfa85f4a07f97c37ff4a68de0",
+  "answerSvg": "d20b8b10256820baa5c25e5928a30050bc92a0e9af1c7f4ec324928e38457542"
  },
  "triangle/example-bisector": {
   "schemaVersion": 1,
   "contentHash": "284ab73126f0a2c5a3be82e91e5fb2d0faf9625aa5ce4ee9011a7ec6b87cd2f7",
-  "pupilSvg": "0cc8121d5ebcbd9b89cc76fd65c986111e818f5cd746f2fda48c32a78c720e37",
-  "answerSvg": "0cc8121d5ebcbd9b89cc76fd65c986111e818f5cd746f2fda48c32a78c720e37"
+  "pupilSvg": "61054d91206c95d1042b2c00e312aeeffc0bde61cb04a08823d40f923d5a8dba",
+  "answerSvg": "61054d91206c95d1042b2c00e312aeeffc0bde61cb04a08823d40f923d5a8dba"
  },
  "triangle/example-cosine-acute": {
   "schemaVersion": 1,
   "contentHash": "e1ea50125684988ef2f2d11352f241b631181257ba24b67593d14b521a29e7a0",
-  "pupilSvg": "bf8b6a627caf2f72a70bc77e082c9804bc2d2895eab7c51f0e907ea820ad033f",
-  "answerSvg": "862a2f4cf81a1f7859a92d24a6accfec98f48286c1768f8d9ae0c7c1c965f61c"
+  "pupilSvg": "33b3b4d4f499f0c42b5a1cfeb2dd80716bf4f6660165e6750e8b02c7c8540d46",
+  "answerSvg": "dbf4552b6f6b7cf0e517b255a47e17b7bfdb1cfc8274e7b9d572bde1de0cf980"
  },
  "triangle/example-cosine-obtuse": {
   "schemaVersion": 1,
   "contentHash": "3690739189fb5ee8df7dbdb4511947ac0a8b8690df7c18b2c36769ec2d2820dd",
-  "pupilSvg": "92612973fb44999ce8f73eb52231b69bd35978df9d78b54296a092ca1eacb778",
-  "answerSvg": "de7d683717f542c0d6d1c81bcb74d011f3479b0c8d1f0a6876701e16d2a0d64f"
+  "pupilSvg": "9fcc28ff232b408d7457c0a7e576852973202cf6665ac5558d41586dcea5d532",
+  "answerSvg": "02acb521d34f4bd1a7be2028e693f9c9a7047607508e15515a799d974cae146f"
  },
  "triangle/example-deliberate-error": {
   "schemaVersion": 1,
   "contentHash": "0225cee28ded60bf372c0deffff2ef277276fb7ac75cc1c5004a5a3e09e454da",
-  "pupilSvg": "8b326037585a47f73cdbd3964f7eefef2a6d1ef55049922d7dd813dd19674717",
-  "answerSvg": "8b326037585a47f73cdbd3964f7eefef2a6d1ef55049922d7dd813dd19674717"
+  "pupilSvg": "64cb37f5a3e26b111773a40c9de19e88c5e59f037764aed259ad2ad7494f8c80",
+  "answerSvg": "64cb37f5a3e26b111773a40c9de19e88c5e59f037764aed259ad2ad7494f8c80"
  },
  "triangle/example-external-height": {
   "schemaVersion": 1,
   "contentHash": "b84761e0becafae29462db872747fcd4f4a6842e6c88ec89e7112c9d710fb3a5",
-  "pupilSvg": "a1aa2c99f806f03f46075856f97a0d5e7112670288a0665a24f54c60720c0bc3",
-  "answerSvg": "a1aa2c99f806f03f46075856f97a0d5e7112670288a0665a24f54c60720c0bc3"
+  "pupilSvg": "39ba75312b6efebbc2785821316a6c1be337ed7e798eab4941ec8ccd566e1e89",
+  "answerSvg": "39ba75312b6efebbc2785821316a6c1be337ed7e798eab4941ec8ccd566e1e89"
  },
  "triangle/example-fractions": {
   "schemaVersion": 1,
   "contentHash": "5ffd42ae2494e60a12c749cd816c758f6394a764e9228d68af9fd0a21a12ee5a",
-  "pupilSvg": "8c4a711bc5f30f084c84b59e8e016b2982fd1e395f38b800f4fb7dcd3666ea30",
-  "answerSvg": "a3a1846c7214109df81c64ec97415f26fd49ce7678898e09383234884547db1b"
+  "pupilSvg": "54d92eeaffeba0a0705e78730a1095c89d7ce85361e06e5537b2d3689128fed6",
+  "answerSvg": "0944a1dcb8877469cd368c14594b258e5618f2796c6d6446fef3a0e1071b5ce0"
  },
  "triangle/example-inverse-area": {
   "schemaVersion": 1,
   "contentHash": "5b4d473a032a9eb2a02fbdc43bbf81ff94bf51db9e2f692946ec05ec633facff",
-  "pupilSvg": "047101d9972f040ea724d14cbd39e16d0998e7f0de4e54291baef4ef734e2418",
-  "answerSvg": "95859fff14513475b98e84ccfd6c2150d8979b9147aa6ac6fa11a03e5bd3d930"
+  "pupilSvg": "56c391b2261a772be6205736b764d90f5e8afa45a64a041e0e0c1fa0775a3e71",
+  "answerSvg": "1bb1f51995bb731561f54d12e3813e6bbdb725b4b9a5ce0af5f0de48fad2b64d"
  },
  "triangle/example-joined-rules": {
   "schemaVersion": 1,
   "contentHash": "0e4da79fb0e46d24ecfd186e01020a64b5d543fc878e2247c9afee8352b86d2a",
-  "pupilSvg": "d314a332c46a75e155f5e32801ae24c8f068f865171b3fd59e93c963487abe33",
-  "answerSvg": "bc8fa5726b41c1b0a472f9003ef1fd826ec26ba34c423a238a8e975118fed1e9"
+  "pupilSvg": "1f5f422ebac503f13149e1409059ca32bdc3e9b2afec095e710ba647943b9937",
+  "answerSvg": "b143568d689a795ea6c0b1be48386e9d1e0d3cc79cbbe9b103a1b77dc9a4a755"
  },
  "triangle/example-missing-side": {
   "schemaVersion": 1,
   "contentHash": "a3499072d574f5082bde65bf2ed8a290d178043b88f79af9a079f09825e8ea86",
-  "pupilSvg": "1bcf12413aef0b14ee10d960a721bd7afd4abc4882b31beaa35f152b348bda31",
-  "answerSvg": "2a957bd67d0323f040db6278b554ed34b86e17360c216a1e0fe3220902500bf4"
+  "pupilSvg": "3c30eea8e2382fc879d2eb1acbfa0678c28394f6896e14872f4459cd2528ac86",
+  "answerSvg": "885df308630f9af9f5fb2c9de55426c25f7de16507757f40c5176a08158029c3"
  },
  "triangle/example-pythagoras-error": {
   "schemaVersion": 1,
   "contentHash": "7b712500bad7b1d40ed15f3933574568e34ab84be684a633e17f87c240c82aaa",
-  "pupilSvg": "da03b58d47a4901a914b2fddab9ae4579e77fd011b91bcb8203876eeecf90e1d",
-  "answerSvg": "7f7c986817d95c15349265bc6f18d789a01e57baadd79fa3e2c9638f483084e3"
+  "pupilSvg": "b2031e9c55827a0d92e063c4566cde522d0ad3e4e750c509d6875e394633c131",
+  "answerSvg": "aeca496da7f43e3487731faade3c45544151c6d1887b272a5983d45e8aee4a82"
  },
  "triangle/example-right-trig": {
   "schemaVersion": 1,
   "contentHash": "02a0420a8d3b2ee22e778c13419de23ef923e232dbd5c523a960169db5cea626",
-  "pupilSvg": "6ba6bd2db6ce8329d491a0c31be3c62f980ce0f9c88ab61cda4380c9600e0bf5",
-  "answerSvg": "b871d8d8dff044a2eec1a5bc6d3a8f6b9b0fbfd07c9b285f92ed9f49418fec2e"
+  "pupilSvg": "6133d6605b0ddec3c79b0a1d87729a88d3091f134da254eea1be825773fe8789",
+  "answerSvg": "c41e4eab9c26b1d9497702525f5f119be9e9071501bcf7f1b79666d25b7e5241"
  },
  "triangle/example-sine-angle": {
   "schemaVersion": 1,
   "contentHash": "e4f8dcc112ae6b6a25ae47b38c034d8bad71a6aae348b528b7556a978cba8edb",
-  "pupilSvg": "e64063b6a2f8a2748520fe4d9ca8cf9943bda96ba0170b297929a734e5da57a3",
-  "answerSvg": "5b40f5ab9732f7f816de3465b467086a45359769246fd2e298b7ed1f4ac30f7c"
+  "pupilSvg": "12548f4a0fc17170b2a7d8c8c5753d839f5f47381eefc62ad1a6bf1d194ac5e8",
+  "answerSvg": "ab81e928bd1c08cccdc8dd4c69559c81853eec29b57c769c4208a11dbc5eda2a"
  },
  "triangle/example-sine-side": {
   "schemaVersion": 1,
   "contentHash": "d530efbb15f98dab58453353ba13a9401a1f4d4afa970fad54b2a855e3199632",
-  "pupilSvg": "07609f727607091a29cc5ec8922b6254c8f6bbaa6bfc4884e249a55696ed6932",
-  "answerSvg": "2cf9805f1827d2380736cee85a52d7c63ff257d38f4275bfabddc3c9640e2a3c"
+  "pupilSvg": "f013b21958e2018c12d3aa3eb90018517476346aa9771d6357b7df53155e0fb0",
+  "answerSvg": "6e1d5f76d74994f562914903139ba1c0d068b781f45a9a44b45cf1919e1b78b6"
  },
  "triangle/example-ssa": {
   "schemaVersion": 1,
   "contentHash": "d90aa08547abd19d4acd9990ef07298e5481249a8c8837ad11ce4f28d1ea2ac0",
-  "pupilSvg": "390583d7e01c2f3c10557f2b64fe304f4ae5105f0e1f01d6b6115e168bf273a9",
-  "answerSvg": "390583d7e01c2f3c10557f2b64fe304f4ae5105f0e1f01d6b6115e168bf273a9"
+  "pupilSvg": "f90924d64a3a0a6855f3fba67447ec83c32ecf931454589b935c44b3937f6f87",
+  "answerSvg": "f90924d64a3a0a6855f3fba67447ec83c32ecf931454589b935c44b3937f6f87"
  },
  "triangle/file-fixtures-triangle-area-v2": {
   "schemaVersion": 2,
   "contentHash": "a1ab3b49f6b05277e9ff6c2716f62daa82f718b54c5da35813f0cbcea796c35f",
-  "pupilSvg": "4a31e4195ec75866a2b04f3b60e7a7aff6793ada75c20d0f0cd99e50b76a02e2",
-  "answerSvg": "715f2d7afd8ce1dc3662cc0866c7cd1e380616afb12e8fd7875d3f4b709db9b8"
+  "pupilSvg": "97848bce855c9cb45b680f143adca1933945150f0ec764f024fb742ab6f62a80",
+  "answerSvg": "173f8e1caa71ce742033df159eb54755115962c124eb000318c42a8c494bda05"
  },
  "triangle/file-fixtures-triangle-hidden-answer": {
   "schemaVersion": 1,
   "contentHash": "41898b143c2cf5541adcf3a577b5a6b850bf6ff7b5f2da58df1b4a898937b903",
-  "pupilSvg": "84cc0334c5b2eeca865c70db75e4d7d722f23fb0de74e9ce3592cda5923e4150",
-  "answerSvg": "7042a813b789a38a11d8bc370b396734b6dadbcf1633411852b81f78ed10af1e"
+  "pupilSvg": "b5c297a397c5e227b83b627403a3a56b936234a706948f3ef9cba899fe29a27b",
+  "answerSvg": "34480295516a7c9824c0c57c1aa458b22741a7282f2ed50482e6e7845028de09"
  },
  "triangle/file-fixtures-triangle-scaffold": {
   "schemaVersion": 1,
   "contentHash": "34cb996920a5809b7d57ad26b2ad653474d63c7843623832d15739150d620cdb",
-  "pupilSvg": "84cc0334c5b2eeca865c70db75e4d7d722f23fb0de74e9ce3592cda5923e4150",
-  "answerSvg": "84cc0334c5b2eeca865c70db75e4d7d722f23fb0de74e9ce3592cda5923e4150"
+  "pupilSvg": "b5c297a397c5e227b83b627403a3a56b936234a706948f3ef9cba899fe29a27b",
+  "answerSvg": "b5c297a397c5e227b83b627403a3a56b936234a706948f3ef9cba899fe29a27b"
  },
  "triangle/file-fixtures-triangle-split": {
   "schemaVersion": 1,
   "contentHash": "ed822830827e18dd467e5b58cbb76f585a588c711758603ccc7a5d614e2bd037",
-  "pupilSvg": "9b2fe7383e637cba4bcf7e413e8da96b59448e9a597bfcabf01805a511692636",
-  "answerSvg": "9b2fe7383e637cba4bcf7e413e8da96b59448e9a597bfcabf01805a511692636"
+  "pupilSvg": "e461e7ab46101fb6d045d7a7c4756cab7c61903b1b27d870a9553c5c60094804",
+  "answerSvg": "e461e7ab46101fb6d045d7a7c4756cab7c61903b1b27d870a9553c5c60094804"
  }
 }
