@@ -27,6 +27,7 @@ import {
 } from "../../packages/resource-core/src/index";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
+import { renderedProblems } from "./page-check";
 import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
 import { toolFailure } from "./tool-error";
@@ -336,6 +337,15 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const pupil = renderBooklet(booklet, { view: "pupil" });
     const hash = worksheetHash(booklet);
     const doc = booklet.document;
+    // W31: a booklet that fits is written and read back; text near the edge or crossing a card or
+    // diagram is an issue like any other, named by lesson and page.
+    if (!pupil.issues.length) {
+      const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderBooklet(booklet, { view: "answers" }).pages }];
+      for (const p of await renderedProblems(raster, copies, doc.title, signal)) {
+        const lesson = pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
+        pupil.issues.push({ lesson, page: p.page + 1, message: p.message });
+      }
+    }
     const printReady = pupil.issues.length === 0;
     const content: ContentBlock[] = [
       {
@@ -483,6 +493,16 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const hash = worksheetHash(resource);
     const height = Math.round((PREVIEW_WIDTH * SIZE.page.height) / SIZE.page.width);
     const content: ContentBlock[] = [];
+    // W31: a sheet that fits is written and read back; text near the edge or crossing a card or
+    // diagram is an issue like any other, named by side and column.
+    if (!pupil.issues.length) {
+      const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderResource(resource, { view: "answers" }).pages }];
+      for (const p of await renderedProblems(raster, copies, resource.document.title, signal)) {
+        const boxes = columnBoxes(resource.document.sides[p.page]);
+        const column = boxes.reduce((found, box, i) => (box.x <= p.x + 0.5 ? i + 1 : found), 1);
+        pupil.issues.push({ side: p.page + 1, column, message: p.message });
+      }
+    }
     const printReady = pupil.issues.length === 0;
     const notes = printReady ? pupil.notes : [];
     const space = notes.filter((i) => i.question === undefined);
