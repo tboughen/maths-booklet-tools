@@ -60,6 +60,27 @@ function NameAndAnswer({
           Reset name position
         </button>
       )}
+      {object.kind === "point" && (
+        <label className="point-coordinates-field">
+          Coordinates
+          <select
+            aria-label="Coordinates printed after the point"
+            disabled={disabled || drafts.pending}
+            value={object.coordinates ?? "none"}
+            onChange={(event) => {
+              const next = { ...object };
+              const value = event.target.value;
+              if (value === "show" || value === "blank") next.coordinates = value;
+              else delete next.coordinates;
+              onUpdate(next);
+            }}
+          >
+            <option value="none">None</option>
+            <option value="show">Show, as A(2, 3)</option>
+            <option value="blank">Blank for pupils, answer on the answers copy</option>
+          </select>
+        </label>
+      )}
       <button
         disabled={disabled || drafts.pending}
         className={`visibility-button${object.answerOnly ? " active" : ""}`}
