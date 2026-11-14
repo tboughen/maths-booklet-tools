@@ -139,3 +139,85 @@ export async function assertVectorPdf(bytes: Uint8Array, pages: string[]): Promi
   if (audit.problems.length) throw Error(`The PDF failed its print check: ${audit.problems[0]}`);
   return audit;
 }
+
+/** The standard 14 PDF fonts: every reader has them, so they need neither embedding nor a text map. */
+const STANDARD_FONTS = new Set(
+  ["Times-Roman", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique", "Courier", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Symbol", "ZapfDingbats"].map((n) => PDFName.of(n)),
+);
+const standardFont = (font: PDFDict) => font.get(PDFName.of("Subtype")) === PDFName.of("Type1") && STANDARD_FONTS.has(font.get(PDFName.of("BaseFont")) as PDFName);
+
+/** The text a content stream shows, from its literal and hex strings, in drawing order. */
+export function shownText(content: string): string {
+  const parts: string[] = [];
+  for (const m of content.matchAll(/<([0-9A-Fa-f\s]*)>\s*Tj|\((.*?)(?<!\\)\)\s*Tj/g)) {
+    if (m[1] !== undefined) {
+      const hex = m[1].replace(/\s/g, "");
+      parts.push(Array.from({ length: hex.length / 2 }, (_, i) => String.fromCharCode(parseInt(hex.slice(i * 2, i * 2 + 2), 16))).join(""));
+    } else parts.push(m[2].replace(/\\([()\\])/g, "$1"));
+  }
+  return parts.join("\n");
+}
+
+export interface PaperAuditExpectation {
+  pages: number;
+  widthMm: number;
+  heightMm: number;
+  /** The question headings drawn, in order; each must be in the text layer, in this order. */
+  headings: string[];
+}
+
+/**
+ * PDF content checks for question-bank papers (L23). The paper builder places each source
+ * question or mark scheme page as a vector form and writes its own headings and footers as text.
+ * After saving, the paper is read again and checked: page count, every page's MediaBox and
+ * orientation, no raster image drawn directly on a page (source pages keep their own artwork
+ * inside their forms), every font the paper itself writes with embedded or one of the standard 14,
+ * and the question headings
+ * present in the text layer in order.
+ */
+export async function auditPaperPdf(bytes: Uint8Array, want: PaperAuditExpectation): Promise<string[]> {
+  const problems: string[] = [];
+  const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  const pages = doc.getPages();
+  if (pages.length !== want.pages) problems.push(`The PDF has ${pages.length} page${pages.length === 1 ? "" : "s"}; ${want.pages} ${want.pages === 1 ? "was" : "were"} drawn.`);
+  const fonts: PDFDict[] = [];
+  let text = "";
+  pages.forEach((page, i) => {
+    const { width, height } = page.getMediaBox();
+    const w = width / MM,
+      h = height / MM;
+    if (Math.abs(w - want.widthMm) > PAGE_SIZE_TOLERANCE_MM || Math.abs(h - want.heightMm) > PAGE_SIZE_TOLERANCE_MM)
+      problems.push(`Page ${i + 1} is ${w.toFixed(1)} × ${h.toFixed(1)} mm; it should be ${want.widthMm} × ${want.heightMm} mm.`);
+    const rotate = page.node.get(PDFName.of("Rotate"));
+    if (rotate instanceof PDFNumber && rotate.asNumber() % 360 !== 0) problems.push(`Page ${i + 1} is rotated ${rotate.asNumber()}°; the orientation must come from its size.`);
+    const res = lookup(doc, page.node.get(PDFName.of("Resources")));
+    const xobjects = res instanceof PDFDict ? lookup(doc, res.get(PDFName.of("XObject"))) : undefined;
+    if (xobjects instanceof PDFDict)
+      for (const [, ref] of xobjects.entries()) {
+        const x = lookup(doc, ref);
+        if (x instanceof PDFRawStream && x.dict.get(PDFName.of("Subtype")) === PDFName.of("Image"))
+          problems.push(`Page ${i + 1} has a raster image drawn on it; questions and schemes must stay vector pages.`);
+      }
+    // The paper's own lettering: fonts on the page itself. Source pages keep their own fonts
+    // inside their forms; the paper builder cannot change those.
+    const own = res instanceof PDFDict ? lookup(doc, res.get(PDFName.of("Font"))) : undefined;
+    if (own instanceof PDFDict)
+      for (const [, ref] of own.entries()) {
+        const f = lookup(doc, ref);
+        if (f instanceof PDFDict && !fonts.includes(f)) fonts.push(f);
+      }
+    text += shownText(contentText(doc, page.node.get(PDFName.of("Contents")))) + "\n";
+  });
+  for (const font of fonts)
+    if (!standardFont(font) && !embedded(doc, font)) problems.push(`The font ${fontName(font)} is not embedded, so the page may print in another font.`);
+  let at = 0;
+  for (const heading of want.headings) {
+    const next = text.indexOf(heading, at);
+    if (next < 0) {
+      problems.push(`The heading "${heading}" is missing from the selectable text, or out of order.`);
+      break;
+    }
+    at = next + heading.length;
+  }
+  return problems;
+}

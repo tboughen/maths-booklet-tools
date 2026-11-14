@@ -4,6 +4,7 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, PDFArray, PDFRawStream, decodePDFRawStream } from "pdf-lib";
 import { makePapers } from "./export";
+import { auditPaperPdf } from "../../packages/resource-core/src/pdf-audit";
 import { exportSelection, verifyCatalogue } from "./model";
 vi.mock("./pdf",()=>({assetUrl:(p:string)=>p}));
 const root=path.resolve(process.cwd());
@@ -70,6 +71,21 @@ describe("native PDF export and reviewed assets",()=>{
     vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,arrayBuffer:async()=>new Uint8Array(bytes).buffer})));
     const question={...catalogue.questions[0],scaleSensitive:true};
     await expect(makePapers([question],catalogue.version,"compact",()=>undefined)).rejects.toThrow("does not fit A4");
+  });
+  it("checks both papers after saving: pages, sizes, vector pages and headings in order (L23)",async()=>{
+    const source=await PDFDocument.create();source.addPage([400,300]).drawRectangle({x:10,y:10,width:50,height:50});
+    const bytes=await source.save();
+    vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,arrayBuffer:async()=>new Uint8Array(bytes).buffer})));
+    const questions=catalogue.questions.filter(q=>!q.scaleSensitive).slice(0,3);
+    const result=await makePapers(questions,catalogue.version,"compact",()=>undefined);
+    const read=async(blob:Blob)=>new Uint8Array(await blob.arrayBuffer());
+    const q=await read(result.questions),m=await read(result.schemes);
+    const marks=(n:number)=>`${n} mark${n===1?"":"s"}`;
+    const headings=questions.map((x,i)=>`${i+1}. ${x.source.replace(/[–—]/g,"-").replace(/·/g,"|").replace(/[^\x20-\x7E]/g," ")}`);
+    expect(await auditPaperPdf(q,{pages:(await PDFDocument.load(q)).getPageCount(),widthMm:210,heightMm:297,headings:headings.map((h,i)=>`${h} | ${marks(questions[i].marks)}`)})).toEqual([]);
+    expect(await auditPaperPdf(m,{pages:3,widthMm:297,heightMm:210,headings:headings.map((h,i)=>`${h} | Mark scheme | ${marks(questions[i].marks)}`)})).toEqual([]);
+    // The papers are checked against each other's headings too: a mark-scheme heading is not on the questions PDF.
+    expect(await auditPaperPdf(q,{pages:(await PDFDocument.load(q)).getPageCount(),widthMm:210,heightMm:297,headings:[`${headings[0]} | Mark scheme`]})).toHaveLength(1);
   });
   it("puts a replacement scheme's source note in the teacher PDF only",async()=>{
     const note="The original scheme omits this question. This is the verified common-question scheme.";

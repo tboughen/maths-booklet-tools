@@ -135,6 +135,14 @@ cannot have been rasterised), every font is embedded and has a text map, and eve
 text has selectable text. A failed audit is an error naming the page and the problem, never a
 silent download.
 
+The question-bank paper builder (`src/bank/export.ts`) checks both of its papers the same way
+before offering them (`auditPaperPdf`, improvement item L23): page count, every page's MediaBox
+(A4 portrait questions, A4 landscape mark schemes) with no page rotation, no raster image drawn
+directly on a page (each source question or scheme page stays a vector form with its own
+artwork), every font the paper writes with embedded or one of the standard 14, and every
+question heading present in the text layer, in order. A failure stops the export with the
+problem named; no incomplete paper is produced.
+
 ## MCP tools
 
 `worksheet_capabilities` lists the layout, item types and limits. `create_worksheet` takes a whole
