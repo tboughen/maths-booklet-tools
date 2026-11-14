@@ -23,7 +23,7 @@ import { describeAlgebraGrid, describeCuboids, describeValueGraph } from "../../
 function summaryOf(source: DiagramSource): string | null {
   if (source.kind === "value-graph") return describeValueGraph(source.envelope);
   if (source.kind === "cuboids") return describeCuboids(source.envelope);
-  if (source.kind === "algebra-grid") return describeAlgebraGrid(source.envelope);
+  if (source.kind === "algebra-grid") return describeAlgebraGrid(source.envelope, "outputView" in source && source.outputView === "answer" ? "answer" : "pupil");
   return null;
 }
 
