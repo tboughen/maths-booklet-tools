@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import * as legacy from "./index";
 import fontMetrics from "./v2-font-metrics.json" with { type: "json" };
 import { mathematicalLine, WRITING } from "./math-text";
@@ -63,6 +64,7 @@ export const presentationSchema = z
     unitMm: z.number().min(4).max(16),
     barHeightMm: z.number().min(8).max(24),
     fontPt: z.number().min(10).max(14),
+    lines: z.enum(LINE_WEIGHTS).optional(),
     titlePt: z.number().min(12).max(18),
     nameWidthMm: z.number().min(8).max(60).optional(),
     output: z.enum(["grey", "colour"]),
@@ -1024,6 +1026,9 @@ function alignedX(
   return alignment === "left" ? 4.2 : width - 4.2;
 }
 export function renderSvg(e: Envelope) {
+  return boldLines(drawSvg(e), e.document.presentation.lines);
+}
+function drawSvg(e: Envelope) {
   validate(e);
   const g = layout(e),
     p = e.document.presentation;

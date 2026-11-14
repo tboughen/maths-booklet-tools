@@ -1,5 +1,11 @@
 import * as c from "../../packages/bar-model-core/src/versioned";
 import * as v from "../../packages/bar-model-core/src/v3";
+import { houseStyled } from "../site/houseStyle";
+const houseFresh = () => {
+  const e = v.fresh();
+  houseStyled(e.document.presentation, { max: 14 });
+  return e;
+};
 export interface StorageRecord {
   storageVersion: 1;
   envelope: c.Envelope;
@@ -70,7 +76,7 @@ export async function readStorage(
       };
     }
     return {
-      envelope: old ?? v.fresh(),
+      envelope: old ?? houseFresh(),
       expected: raw,
       legacyRaw,
       legacySourceHash: oldHash,
@@ -79,7 +85,7 @@ export async function readStorage(
     };
   } catch (err) {
     return {
-      envelope: v.fresh(),
+      envelope: houseFresh(),
       expected: raw,
       legacyRaw,
       ...(raw !== null || legacyRaw !== null
