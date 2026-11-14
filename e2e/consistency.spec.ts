@@ -682,7 +682,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
     await expect(card.getByRole("link")).toHaveAttribute("target", "_blank");
     await card
       .getByRole("button", {
-        name: "Open scaffold",
+        name: "Use this example",
         exact: true,
       })
       .click();

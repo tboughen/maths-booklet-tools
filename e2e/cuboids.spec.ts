@@ -280,7 +280,7 @@ test("examples require confirmation and cancellation preserves work", async ({
     .filter({
       has: page.getByRole("heading", { name: "One layer", exact: true }),
     })
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(

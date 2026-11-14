@@ -171,7 +171,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
       .toBe(true);
     await card
       .getByRole("button", {
-        name: /Open scaffold|Open blank grid|Open diagram/,
+        name: "Use this example",
       })
       .click();
     await page
@@ -182,7 +182,7 @@ for (const [tool, key, resource, stage, confirm] of tools) {
     await launch.click();
     await card
       .getByRole("button", {
-        name: /Open scaffold|Open blank grid|Open diagram/,
+        name: "Use this example",
       })
       .click();
     await page
