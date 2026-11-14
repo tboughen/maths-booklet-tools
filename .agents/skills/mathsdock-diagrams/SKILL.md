@@ -156,8 +156,9 @@ its stage; add them only if the teacher agrees, then call `create_worksheet` aga
 
 Fractions on worksheets are always stacked. On a new worksheet set `document.notation` to
 `"maths"` and write every fraction as `{3/4}` (a mixed number as `2{1/2}`, algebra as `{x/2}`) in
-question text, options, steps, bullets, claims and parts; never `1/2` or `½`. Table cells,
-answer-line prefixes, suffixes and saved answers, circle-one options and headings cannot stack: an
+question text, options, steps, bullets, claims and parts; never `1/2` or `½`. With maths
+notation an answer line's prefix, suffix and saved answer stack too (`1/3`, `2 1/2` or `2½`
+there print stacked). Table cells, circle-one options and headings cannot stack: an
 exact fractional value there stays a fraction typed as `3/4`, never a decimal, and where it reads as
 well, put the fraction in the question text instead. A note naming a question means a
 fraction there will not print stacked: fix it and call `create_worksheet` again.
@@ -177,7 +178,8 @@ Use a `ratio-table` diagram, not a plain `table` item, for ratio, scaling, rate 
 x → / y ↑ gradient tables, so the curved scaling arrows show the method. Write it in the
 compact form, which keeps a booklet with many tables small:
 `{"tool":"ratio-table","spec":{"columns":["x →","y ↑"],"table":[["2","4"],["1","[2]"]],"steps":["÷ 2"]}}`.
-A cell is `"4"` (printed), `""` (blank), `"_"` (answer line), `"[2]"` (hidden answer, answers
+A cell is `"4"` (printed), `"2 1/2"` or `"2½"` (a mixed number, printed as 2 beside a
+stacked half), `""` (blank), `"_"` (answer line), `"[2]"` (hidden answer, answers
 copy only) or `"[2]_"`; a step is `"× 3"` or `"÷ 2"`, and `"[÷ 2]"` leaves pupils an answer
 line beside the arrow. Keep plain tables for tables of values and other non-ratio tables.
 

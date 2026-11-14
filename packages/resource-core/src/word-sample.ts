@@ -42,8 +42,8 @@ export const wordSample: Resource = validate({
                 items: [
                   { type: "info", text: "Gradient = {rise/run}. Count squares up for the rise and squares across for the run." },
                   graph([1, 6], [1, 5], [line([1, 1], [5, 3]), point([1, 1]), point([5, 3]), seg([1, 1], [5, 1]), seg([5, 1], [5, 3])]),
-                  part("Write the rise.", answer("2")),
-                  part("Write the run.", answer("4")),
+                  // One row for both (14 Nov 2026): stacked fraction answers below need a little more height.
+                  part("Write the rise and the run.", inline("Rise:", "2"), inline("Run:", "4")),
                   part("Write the gradient as a fraction.", answer("2/4 = 1/2")),
                 ],
               },

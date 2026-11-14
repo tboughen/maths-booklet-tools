@@ -1,5 +1,5 @@
 import type { RatioDocument, RatioCell } from "./schema";
-import { RatioError } from "./numbers";
+import { RatioError, numberParts } from "./numbers";
 import { glyphAdvance } from "./font-metrics";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 
@@ -34,11 +34,13 @@ export function textWidth(text: string, size = FONT, italic = false): number {
 function printed(value: string) {
   return value.replaceAll("-", "−");
 }
+/** The gap between a mixed number's whole part and its stacked fraction. */
+const MIXED_GAP = 4;
 export function numberWidth(value: string, size = FONT): number {
-  const [top, bottom] = printed(value).split("/");
-  return bottom
-    ? Math.max(textWidth(top, size * 0.8), textWidth(bottom, size * 0.8)) + 10
-    : textWidth(top, size);
+  const { whole, top, bottom } = numberParts(printed(value));
+  if (top === undefined || bottom === undefined) return textWidth(whole, size);
+  const fraction = Math.max(textWidth(top, size * 0.8), textWidth(bottom, size * 0.8)) + 10;
+  return whole ? textWidth(whole, size) + MIXED_GAP + fraction : fraction;
 }
 const annotatedLabels = (document: RatioDocument) =>
   document.mode === "annotated" && document.transitions.length > 0 && document.showOperations;
@@ -129,9 +131,19 @@ function text(
 ) {
   return `<text fill="${fill}" x="${x}" y="${baseline}" font-size="${size}" text-anchor="middle"${italic ? ' font-style="italic"' : ""}>${escape(value)}</text>`;
 }
-function number(value: string, x: number, y: number, size = FONT, fill = INK) {
-  const [top, bottom] = printed(value).split("/");
-  if (!bottom) return text(top, x, y + size * 0.31, size, false, fill);
+function number(value: string, x: number, y: number, size = FONT, fill = INK): string {
+  const { whole, top, bottom } = numberParts(printed(value));
+  if (top === undefined || bottom === undefined) return text(whole, x, y + size * 0.31, size, false, fill);
+  if (whole) {
+    // A mixed number: the whole number at full size beside a stacked fraction, centred as one.
+    const left = x - numberWidth(value, size) / 2,
+      wholeWidth = textWidth(whole, size),
+      fractionWidth = numberWidth(`${top}/${bottom}`, size);
+    return (
+      text(whole, left + wholeWidth / 2, y + size * 0.31, size, false, fill) +
+      number(`${top}/${bottom}`, left + wholeWidth + MIXED_GAP + fractionWidth / 2, y, size, fill)
+    );
+  }
   const small = size * 0.8,
     bar = Math.max(textWidth(top, small), textWidth(bottom, small)) + 8;
   return (

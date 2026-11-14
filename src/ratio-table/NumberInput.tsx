@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import { canonicalNumber } from "../../packages/ratio-table-core/src/numbers";
+import { canonicalRatioNumber } from "../../packages/ratio-table-core/src/numbers";
 
 export function NumberInput({
   value,
@@ -35,7 +35,7 @@ export function NumberInput({
   function accept() {
     try {
       const canonical =
-        allowEmpty && !draft.trim() ? "" : canonicalNumber(draft);
+        allowEmpty && !draft.trim() ? "" : canonicalRatioNumber(draft);
       onCommit(canonical);
       setDraft(canonical);
       setError("");
@@ -64,7 +64,7 @@ export function NumberInput({
           onPending(inputKey, e.target.value !== value);
           try {
             if (!allowEmpty || e.target.value.trim())
-              canonicalNumber(e.target.value);
+              canonicalRatioNumber(e.target.value);
             setError("");
           } catch (failure) {
             setError(

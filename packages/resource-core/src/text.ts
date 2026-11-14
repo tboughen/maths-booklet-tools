@@ -33,6 +33,32 @@ export function inlineFraction(source: string, maths: boolean): string | null {
   return m ? m[0] : null;
 }
 
+const VULGAR_PARTS: Record<string, string> = {
+  "½": "1/2", "⅓": "1/3", "⅔": "2/3", "¼": "1/4", "¾": "3/4", "⅕": "1/5", "⅖": "2/5", "⅗": "3/5", "⅘": "4/5",
+  "⅙": "1/6", "⅚": "5/6", "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8", "⅑": "1/9", "⅒": "1/10",
+};
+/**
+ * Answer-line text with maths notation on: a fraction typed inline (1/3, 2 1/2, 2½, ½) is written
+ * as {1/3} or 2{1/2}, so it prints stacked like every other fraction. Text that is not a number
+ * fraction (m/s, 1/2/2026, 0.5) is left as typed.
+ */
+export function stackAnswerText(source: string): string {
+  return source
+    .replace(/(?<![\w./{])(\d+) ?\/ ?(\d+)(?![\w/}]|\.\d)/g, "{$1/$2}")
+    .replace(new RegExp(VULGAR.source, "gu"), (c) => `{${VULGAR_PARTS[c]}}`)
+    .replace(/(\d) +\{/g, "$1{");
+}
+/** True when answer-line text prints a stacked fraction (maths notation only). */
+export const answerHasFraction = (source: string, maths: boolean) =>
+  maths && !!source && parseRuns(stackAnswerText(source), "regular", true).some((r) => r.frac);
+/**
+ * An answer row holding a stacked fraction is this much taller (mm), in both copies, so a raised
+ * fraction answer stays inside its row with its denominator clear of the line.
+ */
+export const FRAC_ANSWER_EXTRA = 1.8;
+/** A saved fraction answer's baseline sits this far above an ordinary answer's (mm), clear of the line. */
+export const FRAC_ANSWER_RAISE = 1.8;
+
 function plainRuns(source: string, base: FontStyle): Run[] {
   const runs: Run[] = [];
   const re = /\*\*(.+?)\*\*|\*(.+?)\*/g;

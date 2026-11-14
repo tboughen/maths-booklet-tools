@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { canonicalNumber, RatioError } from "./numbers";
+import { canonicalRatioNumber, RatioError } from "./numbers";
 
 export const RATIO_RENDERER_VERSION = "ratio-1";
 export const RATIO_THREE_COLUMN_RENDERER_VERSION = "ratio-2";
@@ -38,7 +38,8 @@ export const headingSchema = z
       .string()
       .min(1)
       .max(12)
-      .regex(/^[A-Za-z0-9 _-]+$/),
+      // "/" for units such as m/s (Tim's queue, 11 Nov 2026).
+      .regex(/^[A-Za-z0-9 _/-]+$/),
     italic: z.boolean(),
     direction: z.enum(["right", "up", "down", "none"]),
   })
@@ -102,7 +103,7 @@ export const ratioSpecSchema = z
     /**
      * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
      * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↓");
-     * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2",
+     * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"
      * (also "x2", "*2", "/2"); "[÷ 2]" hides the operation in the pupil copy. Any step turns on
@@ -139,7 +140,7 @@ export function normalizeDocument(input: unknown): RatioDocument {
   for (const row of document.rows)
     for (const cell of row.cells)
       if (cell.kind === "number" || cell.kind === "hidden") {
-        cell.value = canonicalNumber(cell.value);
+        cell.value = canonicalRatioNumber(cell.value);
         // One saved form per state: line: false is the default, so it is left out.
         if (cell.kind === "hidden" && !cell.line) delete cell.line;
       }
@@ -152,7 +153,7 @@ export function normalizeDocument(input: unknown): RatioDocument {
         "Each scaling step must connect two adjacent rows, with one step per pair.",
       );
     fromIds.add(step.from);
-    step.factor = canonicalNumber(step.factor);
+    step.factor = canonicalRatioNumber(step.factor);
     if (!step.hidden) delete step.hidden;
     if (step.operation === "divide" && step.factor === "0")
       throw new RatioError("invalid_operation", "Cannot divide by zero.");
