@@ -17,6 +17,15 @@ import { diagramSource, type DiagramSource } from "./diagram-source";
 import { toolFailure } from "./tool-error";
 import { prefixFields } from "../../packages/envelope-core/src/errors";
 import { answerLeaks } from "../../packages/diagram-core/src/answer-leaks";
+import { describeAlgebraGrid, describeCuboids, describeValueGraph } from "../../packages/diagram-core/src/summaries";
+
+/** M15: a content summary where the artwork's own label names only the family. */
+function summaryOf(source: DiagramSource): string | null {
+  if (source.kind === "value-graph") return describeValueGraph(source.envelope);
+  if (source.kind === "cuboids") return describeCuboids(source.envelope);
+  if (source.kind === "algebra-grid") return describeAlgebraGrid(source.envelope, "outputView" in source && source.outputView === "answer" ? "answer" : "pupil");
+  return null;
+}
 
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
 /** Builds the finished result (preview, files, links, print facts) for one validated source. */
@@ -91,7 +100,7 @@ export function diagramFailure(error: unknown, kindName?: string) {
 function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Checked", size: { width: number; height: number }, alt: string, warnings: string[]) {
   const f = FAMILIES[source.kind];
   const what =
-    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : alt;
+    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : summaryOf(source) ?? alt;
   const viewNote = f.answerView ? ` Artwork view: ${("outputView" in source && source.outputView) || "pupil"}.` : "";
   const notes = warnings.length ? ` ${warnings.length} note${warnings.length === 1 ? "" : "s"}: ${warnings.join(" ")}` : "";
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;
