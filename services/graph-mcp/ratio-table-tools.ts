@@ -16,6 +16,7 @@ import type { DownloadFormat } from "./downloads";
 import { RatioDownloads } from "./ratio-downloads";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 export function ratioTools(
   raster: RasterQueue,
@@ -54,7 +55,7 @@ export function ratioTools(
     );
     return {
       body:
-        format === "svg" ? Buffer.from(result.svg!) : Buffer.from(result.png!),
+        format === "svg" ? Buffer.from(tidySvgRoot(result.svg!)) : Buffer.from(result.png!),
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };
   }

@@ -11,3 +11,14 @@ describe("tidySvgRoot (U38)", () => {
     expect(tidySvgRoot(svg)).toBe(svg);
   });
 });
+
+describe("tidySvgRoot edge cases", () => {
+  it("keeps a tiny non-zero size, handles single quotes, a prolog and > inside a value", async () => {
+    const { tidySvgRoot } = await import("./svg-root");
+    expect(tidySvgRoot('<svg width="0.00004mm">')).toBe('<svg width="0.00004mm">');
+    expect(tidySvgRoot("<svg width='12.000000001cm'>")).toBe("<svg width='12cm'>");
+    expect(tidySvgRoot('<?xml version="1.0"?>\n<!-- <svg width="1.123456"> --><svg aria-label="x > y" width="1.123456cm"><svg width="2.123456"/></svg>')).toBe(
+      '<?xml version="1.0"?>\n<!-- <svg width="1.123456"> --><svg aria-label="x > y" width="1.1235cm"><svg width="2.123456"/></svg>',
+    );
+  });
+});

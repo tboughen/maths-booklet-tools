@@ -23,6 +23,7 @@ import type { TrafficLimits } from "./limits";
 import type { ResourceDownloads } from "./resource-downloads";
 import type { DownloadFormat } from "./downloads";
 import { PRINT_INSTRUCTIONS } from "./placement";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** Families served by the shared /resource/download route and this result builder. */
 export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "triangle"] as const;
@@ -84,7 +85,7 @@ export function resourceTools(
     const { width: w, height: h } = info.physicalSizeCm;
     const size = format === "png" ? printRasterSize(w, h) : { width: 1200, height: Math.max(1, Math.round((1200 * h) / w)) };
     const r = await raster.render(artwork(source, info, format), size.width, size.height, format === "png", format === "svg", signal, source.kind);
-    return { body: Buffer.from(format === "svg" ? r.svg! : r.png!), type: format === "svg" ? "image/svg+xml" : "image/png" };
+    return { body: Buffer.from(format === "svg" ? tidySvgRoot(r.svg!) : r.png!), type: format === "svg" ? "image/svg+xml" : "image/png" };
   }
   async function result(source: NewSource, signal: AbortSignal) {
     const info = await prepareDiagram(source, raster, signal);
