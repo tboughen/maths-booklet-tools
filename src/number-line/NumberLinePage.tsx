@@ -48,6 +48,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
+import { nearestTick } from "./hitTest";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
@@ -910,8 +911,17 @@ export default function NumberLinePage({
                     height: m.height * unit,
                   }}
                   onClick={(e) => {
-                    if (e.target instanceof SVGElement && !blocked)
-                      setSelection(null);
+                    if (!(e.target instanceof SVGElement) || blocked) return;
+                    // U43: a tap on the axis band picks the nearest tick within a 44 px target, so a
+                    // finger need not land on the small tick button. Endpoints and lines sit above.
+                    const box = e.currentTarget.getBoundingClientRect();
+                    const near = nearestTick(
+                      ticks(d).map((v) => ({ v, x: position(d, v) * unit })),
+                      e.clientX - box.left,
+                      e.clientY - box.top - (m.axisY + 5) * unit,
+                    );
+                    if (near !== null) tick(near);
+                    else setSelection(null);
                   }}
                 >
                   <div
