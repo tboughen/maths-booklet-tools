@@ -6,6 +6,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { createServer } from "node:net";
 import type { Server } from "node:http";
 import { graphService } from "./server";
+import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
 import { TOOL_TITLES, serverVersion } from "./tool-metadata";
 import servicePackage from "./package.json" with { type: "json" };
 
@@ -59,7 +60,7 @@ describe("MCP tool metadata (M4, M10, M17, M18)", () => {
     const client = await start();
     const tools = (await client.listTools()).tools;
     expect(tools.filter((t) => !t.outputSchema).map((t) => t.name)).toEqual([]);
-    for (const args of [{}, { kind: "graph" }]) {
+    for (const args of [{}, ...DIAGRAM_KINDS.map((kind) => ({ kind }))]) {
       const caps = await client.callTool({ name: "diagram_capabilities", arguments: args });
       expect(caps.isError).toBeFalsy();
       expect(caps.structuredContent).toEqual(JSON.parse((caps.content as { text: string }[])[0].text));
