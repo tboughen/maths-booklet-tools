@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Item } from "../../packages/resource-core/src/index";
+import { ANSWER_MAX } from "../../packages/resource-core/src/schema";
 import { FAMILIES } from "../../packages/diagram-core/src/registry";
 
 /** Editing controls shared by the worksheet and booklet editors. */
@@ -139,7 +140,7 @@ export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf
           <div className="ws-line-edit" role="group" aria-label={`${label} answer line`}>
             <Field label="Before the line" value={item.prefix} max={40} disabled={blocked} onCommit={(prefix) => set({ ...item, prefix })} />
             <Field label="After the line" value={item.suffix} max={20} disabled={blocked} onCommit={(suffix) => set({ ...item, suffix })} />
-            <Field label="Saved answer (answers PDF only)" value={item.answer} max={60} disabled={blocked} onCommit={(answer) => set({ ...item, answer })} />
+            <Field label="Saved answer (answers PDF only)" value={item.answer} max={ANSWER_MAX} disabled={blocked} onCommit={(answer) => set({ ...item, answer })} />
           </div>
         );
       case "space":

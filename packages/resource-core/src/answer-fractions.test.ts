@@ -198,7 +198,7 @@ describe("long saved answers (R27, Tim 14 Nov 2026: limit 160 characters)", () =
   const outcomes = "HHH, HHT, HTH, HTT, THH, THT, TTH, TTT, and the same eight again with a fourth coin flip shown";
   it("saves an answer up to 160 characters and refuses a longer one", () => {
     expect(() => sheet("plain", "x".repeat(160))).not.toThrow();
-    expect(() => sheet("plain", "x".repeat(161))).toThrow();
+    expect(() => sheet("plain", "x".repeat(161))).toThrow(/160/);
   });
   it("still reports an answer wider than its line instead of letting it run past", () => {
     const issues = renderResource(sheet("plain", outcomes), { view: "answers" }).issues.map((i) => i.message);
