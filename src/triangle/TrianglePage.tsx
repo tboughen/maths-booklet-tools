@@ -78,7 +78,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
   COPY_CONTEXT = STORAGE + ":copy-context";
@@ -638,7 +638,29 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
         event.target.closest("input,textarea,select,[contenteditable]")
       )
         return;
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      // U9: Escape deselects; Delete removes a selected height; arrows nudge a selected label 1 mm (Shift 5 mm).
+      const command = objectKeyCommand(event);
+      if (!command || !selected || blocked) return;
+      if (command.kind === "deselect") {
+        setSelected(null);
+      } else if (command.kind === "delete" && selected.startsWith("h:")) {
+        event.preventDefault();
+        change((n) => {
+          n.document.heights = n.document.heights.filter(
+            (h) => `h:${h.id}` !== selected,
+          );
+        });
+      } else if (command.kind === "nudge" && chosen) {
+        event.preventDefault();
+        const { ref, label } = chosen;
+        operation(() =>
+          editLabel(e, ref, {
+            dx: label.dx + command.dx,
+            dy: label.dy + command.dy,
+          }),
+        );
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);

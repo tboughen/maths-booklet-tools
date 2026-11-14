@@ -38,7 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -332,6 +332,20 @@ export default function NumberLinePage({
         if (!dirty.size) setSelection(null);
       }
       if (handleUndoKeys(e, { undo, redo })) return;
+      // U9: Delete removes the selected point or line, never the axis.
+      if (objectKeyCommand(e)?.kind === "delete" && !blocked) {
+        if (selectedPoint) {
+          e.preventDefault();
+          safe([{ op: "remove_point", id: selectedPoint.id }]);
+          setSelection(null);
+        } else if (
+          connection ||
+          (selection === "segment" && s?.kind === "interval")
+        ) {
+          e.preventDefault();
+          removeSelectedLine();
+        }
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
