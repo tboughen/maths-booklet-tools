@@ -1,4 +1,4 @@
-import { MousePointer2, Plus, Slash, X } from "lucide-react";
+import { MousePointer2, Plus, Slash, Triangle, X } from "lucide-react";
 import type { DrawingTool } from "../domain/types";
 
 const tools: Array<{
@@ -26,10 +26,12 @@ export function GraphTools({
   tool,
   onToolChange,
   onEquation,
+  onShape,
 }: {
   tool: DrawingTool;
   onToolChange: (tool: DrawingTool) => void;
   onEquation: () => void;
+  onShape?: () => void;
 }) {
   return (
     <section className="panel-card specialist-tools">
@@ -55,6 +57,12 @@ export function GraphTools({
         <Plus size={16} aria-hidden="true" />
         <span>Line by equation</span>
       </button>
+      {onShape && (
+        <button className="secondary-panel-button" onClick={onShape}>
+          <Triangle size={16} aria-hidden="true" />
+          <span>Add shape</span>
+        </button>
+      )}
       <p className="panel-note">
         Choose a tool, then click or drag on the grid. Adjust its size at the
         axis ends.

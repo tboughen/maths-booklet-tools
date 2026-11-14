@@ -44,6 +44,17 @@ import type {
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { polygonCentroid, polygonVisible } from "./polygon";
+
+/** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
+export const POLYGON_SHADE = "#d4d4d4";
+/** Shading opacity for a hidden-answer shape, in the answer colour. */
+export const POLYGON_ANSWER_SHADE_OPACITY = 0.18;
+
+/** Exam papers print shape names upright, point names italic and line names bold. */
+export function nameStyle(object: GraphObject): "bold" | "italic" | "upright" {
+  return object.kind === "point" ? "italic" : object.kind === "polygon" ? "upright" : "bold";
+}
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -610,7 +621,9 @@ function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
           o.position.x <= layout.bounds.xMax + 1e-9 &&
           o.position.y >= layout.bounds.yMin - 1e-9 &&
           o.position.y <= layout.bounds.yMax + 1e-9
-      : visibleStraightPoints(o, layout.bounds) !== null;
+      : o.kind === "polygon"
+        ? polygonVisible(o, layout.bounds)
+        : visibleStraightPoints(o, layout.bounds) !== null;
   });
 }
 
@@ -643,6 +656,8 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): C
     const right = p.x + dx + box.width / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
     centre = { x: right ? p.x + dx : p.x - dx, y: up ? p.y - dy : p.y + dy };
+  } else if (object.kind === "polygon") {
+    centre = coordinateToSvg(polygonCentroid(object.vertices), layout);
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -683,7 +698,7 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const names = visibleNames(document, layout);
   if (!names.length) return "";
   const marks = names.map((object) => {
-    const style = object.kind === "point" ? "italic" : "bold";
+    const style = nameStyle(object);
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
     const centre = nameCentre(object, layout)!;
@@ -724,6 +739,17 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       pointsOut.push(
         `<path d="M ${n(point.x - size)} ${n(point.y - size)} L ${n(point.x + size)} ${n(point.y + size)} M ${n(point.x - size)} ${n(point.y + size)} L ${n(point.x + size)} ${n(point.y - size)}"/>`,
       );
+      continue;
+    }
+    if (object.kind === "polygon") {
+      if (!polygonVisible(object, layout.bounds)) continue;
+      const points = object.vertices.map((p) => coordinateToSvg(p, layout)).map((p) => `${n(p.x)},${n(p.y)}`).join(" ");
+      const fill = !object.shaded
+        ? ""
+        : object.answerOnly
+          ? ` fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${POLYGON_ANSWER_SHADE_OPACITY}"`
+          : ` fill="${POLYGON_SHADE}"`;
+      straightOut.push(`<polygon class="graph-polygon" data-object-id="${escapeXml(object.id)}" points="${points}" stroke-linejoin="round"${fill}/>`);
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);

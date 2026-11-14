@@ -24,6 +24,7 @@ import {
   equationForObject,
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import { POLYGON_MAX_VERTICES, POLYGON_MIN_VERTICES, formatVertices, polygonInBounds, polygonProblem } from "./polygon";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 export const RENDERER_VERSION = "graph-1";
@@ -191,6 +192,23 @@ export const objectInputSchema = z.union([
   z
     .object({
       id: identifier.optional(),
+      kind: z.literal("polygon"),
+      vertices: z
+        .array(inputCoordinate)
+        .min(POLYGON_MIN_VERTICES)
+        .max(POLYGON_MAX_VERTICES)
+        .describe("3 to 12 corners in order, such as a triangle (1, 1), (4, 1), (1, 3). The shape closes itself."),
+      shaded: z.boolean().optional().describe("true shades the shape grey. Default unshaded."),
+      name: nameInput.optional(),
+      namePosition: inputCoordinate
+        .optional()
+        .describe("Centre of the printed name in graph coordinates. Omit to print it in the middle of the shape."),
+      answerOnly: answerOnlyInput,
+    })
+    .strict(),
+  z
+    .object({
+      id: identifier.optional(),
       kind: z.literal("point"),
       position: inputCoordinate,
       name: nameInput.optional(),
@@ -231,6 +249,17 @@ export const graphSpecSchema = z
   })
   .strict();
 const objectSchema = z.union([
+  z
+    .object({
+      id: identifier,
+      kind: z.literal("polygon"),
+      vertices: z.array(coordinate).min(POLYGON_MIN_VERTICES).max(POLYGON_MAX_VERTICES),
+      shaded: z.literal(true).optional(),
+      name: nameSchema.optional(),
+      namePosition: coordinate.optional(),
+      answerOnly: z.literal(true).optional(),
+    })
+    .strict(),
   z
     .object({
       id: identifier,
@@ -287,6 +316,10 @@ const documentSchema = z
           code: "custom",
           message: `${o.id} needs two distinct points.`,
         });
+      if (o.kind === "polygon") {
+        const problem = polygonProblem(o.vertices);
+        if (problem) c.addIssue({ code: "custom", message: `${o.id}: ${problem}` });
+      }
     }
     if (d.selectedObjectId !== null && !ids.has(d.selectedObjectId))
       c.addIssue({
@@ -379,6 +412,14 @@ function makeObject(
   };
   if (input.kind === "point")
     return { id, kind: "point", position: input.position, ...named };
+  if (input.kind === "polygon")
+    return {
+      id,
+      kind: "polygon",
+      vertices: input.vertices.map((p) => ({ x: p.x, y: p.y })),
+      ...(input.shaded ? { shaded: true as const } : {}),
+      ...named,
+    };
   // A label off the axes would never print, so a new one must mark a point on them.
   for (const label of input.labels ?? [])
     if (!pointInBounds(label.at, getBounds(document)))
@@ -488,6 +529,14 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           id: o.id,
           kind: o.kind,
           position: { x: o.position.x, y: o.position.y },
+          ...canonicalName(o),
+        }
+      : o.kind === "polygon"
+      ? {
+          id: o.id,
+          kind: o.kind,
+          vertices: o.vertices.map((p) => ({ x: p.x, y: p.y })),
+          ...(o.shaded ? { shaded: true as const } : {}),
           ...canonicalName(o),
         }
       : {
@@ -628,7 +677,9 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
     .filter((o) =>
       o.kind === "point"
         ? !pointInBounds(o.position, bounds)
-        : !visibleStraightPoints(o, bounds),
+        : o.kind === "polygon"
+          ? !polygonInBounds(o, bounds)
+          : !visibleStraightPoints(o, bounds),
     )
     .map((o) => `${o.id} is outside the visible grid.`));
 }
@@ -641,6 +692,8 @@ export function describeGraph(envelope: GraphEnvelope): string {
     .map((o) =>
       o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
+        : o.kind === "polygon"
+        ? `${o.id}: ${o.shaded ? "shaded " : ""}shape with corners ${formatVertices(o.vertices)}${named(o)}`
         : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}${o.labels ? `, labelled ${o.labels.map((l) => `"${l.text}" at (${l.at.x}, ${l.at.y})`).join(" and ")}` : ""}`,
     )
     .join("; ");
