@@ -2,6 +2,7 @@ import { z } from "zod";
 import * as core from "./index";
 import { examples } from "./examples";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 /** Connector adapter: the same schema, layout and renderer as the browser editor. */
 export const exampleNames = examples.map((x) => x.id) as [string, ...string[]];
@@ -91,9 +92,8 @@ export const revisionSchema = z
   })
   .strict();
 
-export async function hash(e: core.Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(core.canonical(e)));
-  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+export async function hash(e: core.Envelope): Promise<string> {
+  return sha256Hex(core.canonical(e));
 }
 const cell = (v: string | null, hidden: boolean): core.Cell => ({ value: v ?? "", show: hidden ? "hidden" : "show" });
 
@@ -190,16 +190,12 @@ export async function revise(input: unknown): Promise<core.Envelope> {
 }
 
 export function editorLink(e: core.Envelope, base: string) {
-  const bytes = new TextEncoder().encode(core.canonical(e));
   const u = new URL(base);
   u.pathname = u.pathname.replace(/\/?$/, "/") + "tools/charts";
   u.search = "";
   u.hash =
     "chart=" +
-    btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))
-      .replaceAll("+", "-")
-      .replaceAll("/", "_")
-      .replace(/=+$/, "");
+    toBase64Url(core.canonical(e));
   return u.href.length <= 16000 ? u.href : null;
 }
 

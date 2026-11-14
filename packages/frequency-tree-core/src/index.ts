@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 /**
  * Frequency trees, drawn left to right as in GCSE papers: the total in the
@@ -733,17 +734,13 @@ export function renderSvg(e: Envelope): string {
 
 /* ---------- Editor links ---------- */
 
-export async function hash(e: Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(e)));
-  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#ftree=";
 export function linkHash(e: Envelope): string {
-  const bytes = new TextEncoder().encode(canonical(e));
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return LINK_PREFIX + btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+  return LINK_PREFIX + toBase64Url(canonical(e));
 }
 export function editorLink(e: Envelope, base: string): string | null {
   const url = new URL(base);
