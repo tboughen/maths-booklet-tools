@@ -409,7 +409,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                   })}
                 </div>
                 <StructureStepper
-                  className="pt-structure"
+                 
                   vertical
                   name="Levels"
                   caption=""

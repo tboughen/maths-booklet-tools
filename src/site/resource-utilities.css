@@ -311,6 +311,8 @@
   opacity: 0.45;
   cursor: not-allowed;
   box-shadow: none;
+}
+
 /* U22: one hint line, directly under every editor's preview bar. Theme tokens, so it follows dark mode. */
 .editor-hint-live {
   margin: 0;

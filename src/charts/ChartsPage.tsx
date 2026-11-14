@@ -506,8 +506,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   ))}
                 </div>
                 <StructureStepper
-                  className="ch-structure"
-                  vertical
+                                    vertical
                   name="Categories"
                   caption=""
                   add={{

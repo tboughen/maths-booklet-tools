@@ -95,16 +95,6 @@
   align-items: center;
   gap: 5px;
 }
-.cb-structure button {
-  min-width: 44px;
-  min-height: 44px;
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  background: white;
-  color: #213c59;
-  box-shadow: 0 2px 2px #15335118;
-  font-weight: 600;
-}
 .cb-field {
   display: grid;
   gap: 5px;

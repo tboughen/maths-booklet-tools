@@ -288,11 +288,6 @@
 .ratio-app .ratio-paper {
   max-width: none;
 }
-.ratio-action-pair {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .ratio-column-actions {
   grid-column: 2;
   grid-row: 1;
@@ -496,7 +491,6 @@
     position: sticky;
     left: 0;
     max-width: calc(100vw - 70px);
-    gap: 6px;
   }
   .booklet-editor.ratio-app .ratio-stage {
     height: auto;

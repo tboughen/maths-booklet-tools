@@ -444,7 +444,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   })}
                 </div>
                 <StructureStepper
-                  className="pt-structure"
+                 
                   vertical
                   name="Stages"
                   caption=""
