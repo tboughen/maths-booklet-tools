@@ -49,6 +49,7 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from ".
 import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
+import { downloadName } from "../export/filenames";
 
 
 /** A new Venn diagram at the teacher's house style text size (U111); its own setting overrides it. */
@@ -474,6 +475,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
@@ -509,12 +512,12 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 svg: {
-                  action: () => downloadImage(displayed, "svg"),
+                  action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
                 png: {
-                  action: () => downloadImage(displayed, "png"),
+                  action: () => downloadImage(displayed, "png", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
@@ -1128,7 +1131,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "venn-recovery.json",
+                  downloadName("venn", "json", { recovery: true }),
                 );
                 setProtectedCopy(true);
               }}

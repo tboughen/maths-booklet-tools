@@ -18,6 +18,8 @@ const searchTerms: Record<string, string> = {
   "probability-tree":
     "probability tree diagram branches replacement independent dependent conditional given that",
   "frequency-tree": "frequency tree probability counts groups two-way statistics",
+  construction: "constructions loci locus perpendicular bisector angle bisector compasses ruler scale drawing map bearings north GM8",
+  elevations: "plans elevations plan front side isometric cubes 3D solids views GM8",
   "expanding-factorising":
     "algebra brackets multiplication factorise factorize",
 };

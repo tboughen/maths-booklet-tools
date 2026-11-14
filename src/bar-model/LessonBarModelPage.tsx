@@ -31,6 +31,7 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages
 import { houseModel } from "./house";
 import "./bar-model.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
   | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
@@ -565,7 +566,7 @@ export default function LessonBarModelPage({
         onClick={() =>
           downloadBlob(
             new Blob([startup.legacyRecovery!], { type: "application/json" }),
-            "bar-model-older-recovery.json",
+            downloadName("bar-model", "json", { content: "older", recovery: true }),
           )
         }
       >
@@ -599,6 +600,7 @@ export default function LessonBarModelPage({
             canRedo: !!history.future.length,
             undoLabel: undoStepName(history),
             redoLabel: redoStepName(history),
+            resetStep: history.resetStep,
           }}
           onNewModel={() =>
             setPending({
@@ -667,6 +669,8 @@ export default function LessonBarModelPage({
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
@@ -987,7 +991,7 @@ export default function LessonBarModelPage({
                         new Blob([recovery ?? expected.current ?? ""], {
                           type: "application/json",
                         }),
-                        "bar-model-saved-recovery.json",
+                        downloadName("bar-model", "json", { content: "saved", recovery: true }),
                       )
                     }
                   >
@@ -1044,7 +1048,7 @@ export default function LessonBarModelPage({
                             ],
                             { type: "application/json" },
                           ),
-                          "bar-model-original-data.json",
+                          downloadName("bar-model", "json", { content: "original", recovery: true }),
                         );
                         expected.current = localStorage.getItem(storageKey);
                         setRecovery(undefined);

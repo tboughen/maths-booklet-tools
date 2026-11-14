@@ -1,0 +1,38 @@
+.cn-editor .pt-hit.cn-point {
+  cursor: grab;
+  border-radius: 50%;
+  touch-action: none;
+}
+.cn-editor .pt-hit.cn-point:active {
+  cursor: grabbing;
+}
+.cn-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.cn-editor .cn-chip {
+  min-width: 2.2em;
+  font-size: 13px;
+}
+.cn-editor .cn-chip.cn-current {
+  background: #e2efff;
+  border-color: #517a9e;
+}
+.cn-item {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--line, #dbe3ec);
+  padding: 6px 0;
+  font-size: 13px;
+}
+.cn-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.cn-scale {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

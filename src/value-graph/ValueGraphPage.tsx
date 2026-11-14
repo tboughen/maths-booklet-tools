@@ -53,7 +53,8 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -659,7 +660,7 @@ export default function ValueGraphPage({
               true,
             )}
             <p>
-              Use expanded form, for example y = x² − x − 6. Existing values and
+              Use expanded form, for example y = x² − x − 6, y = x³ − 4x, y = 3/x or y = 2ˣ. Existing values and
               plots are retained.
             </p>
           </>
@@ -1279,6 +1280,8 @@ export default function ValueGraphPage({
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
@@ -1288,7 +1291,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope());
+                    commit(defaultEnvelope(), stepName("Reset this resource?"));
                     setSelection(null);
                   },
                 )
@@ -1403,7 +1406,7 @@ export default function ValueGraphPage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recoverRaw], { type: "application/json" }),
-                      "value-graph-recovery.json",
+                      downloadName("value-table-graph", "json", { recovery: true }),
                     );
                     setMessage(
                       "Recovery download prepared. You can now start afresh.",

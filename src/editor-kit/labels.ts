@@ -35,3 +35,11 @@ export function operationLabel(operations: readonly { op?: unknown }[] | { op?: 
 
 /** The toolbar text for Undo or Redo with an optional step name. */
 export const historyActionText = (action: "Undo" | "Redo", label?: string) => (label ? `${action} ${label}` : action);
+
+/**
+ * Whether a step name is a Reset or "start a new …" step, which gets a visible "Resource reset. Undo reset" notice (U25).
+ * Pages name these steps with `stepName` of their confirmation question, so the names are "reset diagram",
+ * "reset this table", "reset this resource" and "start a new model". A step can also say so outright with
+ * `pushHistory(..., { reset: true | false })`. Recovery from damaged saved data ("start afresh") is not a Reset.
+ */
+export const isResetStep = (label?: string) => !!label && /^(reset|start a new)\b/.test(label);

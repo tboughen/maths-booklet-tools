@@ -28,6 +28,7 @@ import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -77,6 +78,7 @@ export interface ManagedLegacy {
   canRedo: boolean;
   undoLabel?: string;
   redoLabel?: string;
+  resetStep?: number;
 }
 export default function BarModelPage({
   active = true,
@@ -481,6 +483,8 @@ export default function BarModelPage({
             <EditorToolbar
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
               undoLabel={managed ? managed.undoLabel : undoStepName(history)}
+              resetStep={managed ? managed.resetStep : history.resetStep}
+              active={active}
               redoLabel={managed ? managed.redoLabel : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)
@@ -715,7 +719,7 @@ export default function BarModelPage({
                       new Blob([recovery ?? c.canonical(e)], {
                         type: "application/json",
                       }),
-                      "bar-model-recovery.json",
+                      downloadName("bar-model", "json", { recovery: true }),
                     )
                   }
                 >

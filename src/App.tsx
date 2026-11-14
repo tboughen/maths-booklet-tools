@@ -23,6 +23,7 @@ import { EditorToolbar } from "./site/EditorToolbar";
 import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
+  cleanNumber,
   deleteSelectedObject,
   getBounds,
   getObjectById,
@@ -92,6 +93,9 @@ export default function App({ active = true }: { active?: boolean }) {
   } = useDocumentHistory<DiagramDocumentV1>(startup.document, {
     equals: sameDocument,
   });
+  const [pendingReset, setPendingReset] = useState(false);
+  // Stable, so the dialog's focus effect runs once rather than on every render.
+  const cancelReset = useCallback(() => setPendingReset(false), []);
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -249,8 +253,26 @@ export default function App({ active = true }: { active?: boolean }) {
           : event.key === "ArrowUp"
             ? document.axes.y.unitsPerSquare / 2
             : 0;
+      // A region follows its inequalities, so arrow keys leave it where it is.
+      if (selectedObject.kind === "region") return;
       const moved: GraphObject =
-        selectedObject.kind === "point"
+        selectedObject.kind === "polygon"
+          ? {
+              ...selectedObject,
+              vertices: selectedObject.vertices.map((p) => ({
+                x: cleanNumber(p.x + dx),
+                y: cleanNumber(p.y + dy),
+              })),
+              ...(selectedObject.namePosition
+                ? {
+                    namePosition: {
+                      x: cleanNumber(selectedObject.namePosition.x + dx),
+                      y: cleanNumber(selectedObject.namePosition.y + dy),
+                    },
+                  }
+                : {}),
+            }
+          : selectedObject.kind === "point"
           ? {
               ...selectedObject,
               position: {
@@ -298,6 +320,60 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function updateSelected(object: GraphObject) {
     commit(updateObject(document, object));
+  }
+
+  /** Adds a right-angled triangle, named with the next free letter, for the user to edit. */
+  function addShape() {
+    if (locked()) return;
+    const b = getBounds(document),
+      ux = document.axes.x.unitsPerSquare,
+      uy = document.axes.y.unitsPerSquare;
+    const corner = (min: number, max: number, unit: number) =>
+      cleanNumber(Math.max(min + unit, Math.min(unit, max - 4 * unit)));
+    const x = corner(b.xMin, b.xMax, ux),
+      y = corner(b.yMin, b.yMax, uy);
+    const used = new Set(document.objects.map((o) => o.name));
+    const name = [..."ABCDEFGHPQRST"].find((letter) => !used.has(letter));
+    const shape: GraphObject = {
+      id: makeId("polygon"),
+      kind: "polygon",
+      vertices: [
+        { x, y },
+        { x: cleanNumber(x + 3 * ux), y },
+        { x, y: cleanNumber(y + 2 * uy) },
+      ],
+      ...(name ? { name } : {}),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, shape],
+      selectedObjectId: shape.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds an inequality region for the teacher to edit: y ≥ 1, x ≤ 3 and y < x + 1, named R. */
+  function addRegion() {
+    if (locked()) return;
+    const used = new Set(document.objects.map((o) => o.name));
+    const region: GraphObject = {
+      id: makeId("region"),
+      kind: "region",
+      inequalities: ["y >= 1", "x <= 3", "y < x + 1"],
+      shade: "wanted",
+      boundaries: true,
+      ...(used.has("R") ? {} : { name: "R" }),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, region],
+      selectedObjectId: region.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
   }
 
   function openEquationEditor(object?: StraightObject) {
@@ -375,16 +451,17 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function resetDiagram() {
     if (locked()) return;
-    const resetDocument = newBrowserGraph();
     const meaningfulDocument = { ...document, selectedObjectId: null };
-    if (
-      !sameDocument(meaningfulDocument, resetDocument) &&
-      !window.confirm(
-        "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
-      )
-    )
-      return;
-    commit(resetDocument, "reset diagram");
+    // The same in-page confirmation as every other editor; nothing to confirm for an untouched graph.
+    if (!sameDocument(meaningfulDocument, newBrowserGraph()))
+      setPendingReset(true);
+    else confirmReset();
+  }
+
+  function confirmReset() {
+    if (locked()) return;
+    setPendingReset(false);
+    commit(newBrowserGraph(), "reset diagram");
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
@@ -426,6 +503,8 @@ export default function App({ active = true }: { active?: boolean }) {
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}
@@ -555,6 +634,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 onUpdate={updateSelected}
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
+                bounds={getBounds(document)}
               />
             ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>
@@ -567,6 +647,8 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEditingEquationId(null);
                 }}
                 onEquation={() => openEquationEditor()}
+                onShape={addShape}
+                onRegion={addRegion}
               />
             </fieldset>
             <AxisSettings
@@ -624,6 +706,18 @@ export default function App({ active = true }: { active?: boolean }) {
           </aside>
         </section>
       </main>
+
+      {active && pendingReset && (
+        <RatioDialog
+          title="Reset the diagram?"
+          confirmLabel="Reset diagram"
+          onCancel={cancelReset}
+          disabled={blocked}
+          onConfirm={confirmReset}
+        >
+          This clears the grid settings and all objects. You can undo it.
+        </RatioDialog>
+      )}
 
       {active && pendingExample && (
         <RatioDialog

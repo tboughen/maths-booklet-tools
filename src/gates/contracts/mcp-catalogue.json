@@ -20,7 +20,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -289,7 +291,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new booklet): {3/4} in question text, options, steps, bullets, parts, answer lines and table cells prints as a stacked fraction. plain (older saved booklets): text prints as typed.",
+                  "description": "maths (every new booklet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper (x^2 as x², a true minus, <= as ≤, sqrt as √, pi as π, letters used as maths in italic). plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",
@@ -707,7 +709,9 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
-                                                    "triangle"
+                                                    "triangle",
+                                                    "construction",
+                                                    "elevations"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -1151,7 +1155,9 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
-                                                              "triangle"
+                                                              "triangle",
+                                                              "construction",
+                                                              "elevations"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -1730,7 +1736,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
         },
@@ -1782,7 +1790,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -1982,7 +1992,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed.",
+                  "description": "maths (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",
@@ -2321,7 +2331,9 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
-                                                    "triangle"
+                                                    "triangle",
+                                                    "construction",
+                                                    "elevations"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -2765,7 +2777,9 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
-                                                              "triangle"
+                                                              "triangle",
+                                                              "construction",
+                                                              "elevations"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -3053,7 +3067,7 @@
                 },
                 "notation": {
                   "default": "plain",
-                  "description": "maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed.",
+                  "description": "maths (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. plain: text prints as typed.",
                   "type": "string",
                   "enum": [
                     "plain",
@@ -3397,7 +3411,9 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
-                                                    "triangle"
+                                                    "triangle",
+                                                    "construction",
+                                                    "elevations"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
                                                 },
@@ -3849,7 +3865,9 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
-                                                              "triangle"
+                                                              "triangle",
+                                                              "construction",
+                                                              "elevations"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
                                                           },
@@ -4327,7 +4345,7 @@
   {
     "name": "diagram_capabilities",
     "title": "Diagram options",
-    "description": "List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, triangle.",
+    "description": "List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, triangle, construction, elevations.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4346,7 +4364,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ]
         }
       },
@@ -4384,7 +4404,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -4469,7 +4491,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -4601,7 +4625,7 @@
   {
     "name": "get_diagram_svg",
     "title": "Get a diagram's SVG",
-    "description": "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/triangle and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree and frequency-tree outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
+    "description": "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/triangle/construction/elevations and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree, frequency-tree, construction and elevations outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4619,7 +4643,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -4718,7 +4744,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
@@ -4858,7 +4886,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
         },
@@ -4922,7 +4952,9 @@
             "charts",
             "probability-tree",
             "frequency-tree",
-            "triangle"
+            "triangle",
+            "construction",
+            "elevations"
           ],
           "description": "The diagram family the envelope belongs to."
         },
