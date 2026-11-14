@@ -289,6 +289,22 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
         shape.push(drawLine(a, b));
         bounds.push(a, b);
       }
+      // Parallel arrows point the same way on every side (rightwards, or down when vertical),
+      // so two parallel sides always agree. They sit beside any equal-side ticks.
+      const arrows = edge.arrows ?? 0;
+      if (arrows) {
+        const dir = u.x > 1e-6 || (Math.abs(u.x) <= 1e-6 && u.y > 0) ? u : mul(u, -1),
+          side = { x: -dir.y, y: dir.x },
+          centre = edge.ticks ? add(mid, mul(dir, (edge.ticks - 1) * 0.65 + 2 + arrows * 0.9)) : mid;
+        for (let i = 0; i < arrows; i++) {
+          const tip = add(centre, mul(dir, (i - (arrows - 1) / 2) * 1.7 + 0.65)),
+            back = add(tip, mul(dir, -1.3)),
+            wingA = add(back, mul(side, 1.1)),
+            wingB = add(back, mul(side, -1.1));
+          shape.push(drawLine(wingA, tip), drawLine(tip, wingB));
+          bounds.push(wingA, tip, wingB);
+        }
+      }
     }
     for (const h of d.heights) {
       const projection_ = heightFoot(e, h.id),

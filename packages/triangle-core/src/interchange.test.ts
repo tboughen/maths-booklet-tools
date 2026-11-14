@@ -150,3 +150,21 @@ describe("Triangle interchange", () => {
     expect([...units.keys()]).not.toContain("c");
   });
 });
+
+describe("Parallel arrows", () => {
+  const sides = (e: core.Envelope) => e.document.edges;
+  it("draws arrows that point the same way on parallel sides and removes them cleanly", () => {
+    const e0 = scaffold();
+    const [a, b] = sides(e0);
+    const before = JSON.stringify(e0);
+    const e1 = ti.applyOperations(e0, [{ op: "set_edge_style", id: a.id, arrows: 2 }, { op: "set_edge_style", id: b.id, arrows: 1, ticks: 1 }]);
+    expect(sides(e1)[0].arrows).toBe(2);
+    expect(core.validate(e1)).toEqual(e1);
+    const plain = core.layout(e0).svg.match(/<line /g)!.length;
+    // Each arrowhead is two strokes; the tick adds one more.
+    expect(core.layout(e1).svg.match(/<line /g)!.length).toBe(plain + 2 * 3 + 1);
+    expect(core.layout(e1).issues).toEqual([]);
+    const e2 = ti.applyOperations(e1, [{ op: "set_edge_style", id: a.id, arrows: 0 }, { op: "set_edge_style", id: b.id, arrows: 0, ticks: 0 }]);
+    expect(JSON.stringify(e2)).toBe(before);
+  });
+});

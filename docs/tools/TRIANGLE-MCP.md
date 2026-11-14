@@ -53,7 +53,7 @@ copy stored in another chat.
 | --- | --- |
 | set_label | ref, patch (fields listed above) |
 | set_angle_mark | id, mark:none/arc/double/triple/right |
-| set_edge_style | id, optional ticks:0..3 and dashed:boolean |
+| set_edge_style | id, optional ticks:0..3 (equal sides), arrows:0..3 (parallel sides; 0 removes) and dashed:boolean |
 | move_vertex | id, x, y (finite coordinates within +/-10000) |
 | transform | kind:left/right/reflect/vertical |
 | set_constraint | triangleId, type:right/equal/equilateral/none, vertex |
