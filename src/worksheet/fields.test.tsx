@@ -19,4 +19,15 @@ describe("worksheet fields keep a refused draft visible (W12)", () => {
     fireEvent.blur(box);
     expect(box.getAttribute("aria-invalid")).toBeNull();
   });
+
+  it("gives way to a new saved value, such as after Undo", () => {
+    const { rerender } = render(<Field label="Title" value="Saved" max={80} onCommit={() => false} />);
+    const box = screen.getByRole("textbox", { name: "Title" }) as HTMLInputElement;
+    fireEvent.change(box, { target: { value: "Bad {draft" } });
+    fireEvent.blur(box);
+    expect(screen.getByText(/Not applied/)).toBeTruthy();
+    rerender(<Field label="Title" value="Earlier" max={80} onCommit={() => false} />);
+    expect(box.value).toBe("Earlier");
+    expect(box.getAttribute("aria-invalid")).toBeNull();
+  });
 });

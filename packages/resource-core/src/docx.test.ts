@@ -282,7 +282,7 @@ describe("stacked fractions in the SVG pages", () => {
     doc.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "Simplify {oops" });
     expect(renderResource(doc).issues.some((i) => /brace is not part of a fraction/.test(i.message))).toBe(true);
     const sets = structuredClone(wordSample);
-    sets.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "ξ = {1, 2, 3, 4}" });
+    sets.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "ξ = {1, 2, 3, 4} and A = {x : x > 2}" });
     expect(renderResource(sets).issues.some((i) => /brace is not part of a fraction/.test(i.message))).toBe(false);
   });
 

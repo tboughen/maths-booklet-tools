@@ -86,9 +86,9 @@ function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number;
   const lh = lineBox(size);
   // W12: with maths notation on, fraction markup that did not parse is reported even when the text
   // has no stacked fraction: an unmatched brace, or braces round a slash that is not a fraction.
-  // Set notation such as {1, 2, 3} stays allowed in text without fractions.
+  // Set notation such as {1, 2, 3}, {1/2, 1/4} or {x : x/2 > 1} stays allowed in text without fractions.
   const loose = lines.map((l) => l.filter((r) => !r.frac).map((r) => r.text).join("")).join(" ");
-  const unparsed = (loose.match(/\{/g)?.length ?? 0) !== (loose.match(/\}/g)?.length ?? 0) || /\{[^{}]*\/[^{}]*\}/.test(loose);
+  const unparsed = (loose.match(/\{/g)?.length ?? 0) !== (loose.match(/\}/g)?.length ?? 0) || /\{[^{}:,]*\/[^{}:,]*\}/.test(loose);
   if (ctx.maths && !lines.some(hasFraction) && unparsed) issue(ctx, "A brace is not part of a fraction. Write a stacked fraction as {3/4}.");
   if (!lines.some(hasFraction)) {
     const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * lh + baseline(size), size, opts.fill ?? ctx.st.ink)).join("");

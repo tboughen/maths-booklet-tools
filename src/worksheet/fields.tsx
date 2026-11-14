@@ -23,6 +23,17 @@ function Field({ label, value, onCommit, max, multiline, lines, disabled }: { la
   useEffect(() => {
     if (!editing) setDraft(value);
   }, [value, editing]);
+  // A refused draft belongs to the value it was typed over: when that value changes (undo, redo, an
+  // item moving into this place), the stale draft gives way to the new saved text.
+  const [typedOver, setTypedOver] = useState(value);
+  if (typedOver !== value) {
+    setTypedOver(value);
+    if (refused) {
+      setRefused(false);
+      setEditing(false);
+      setDraft(value);
+    }
+  }
   const commit = () => {
     // Saved text is one line (line breaks become spaces), except where lines are kept.
     const clean = lines ? draft.replace(/\r\n?/g, "\n").replace(/\t/g, " ") : draft.replace(/[\r\n\t]+/g, " ");
@@ -59,6 +70,7 @@ function Field({ label, value, onCommit, max, multiline, lines, disabled }: { la
     <label className="ws-field">
       <span>{label}</span>
       {multiline || lines ? <textarea rows={Math.min(lines ? 8 : 5, Math.max(2, Math.ceil(value.length / 48), lines ? value.split("\n").length : 0))} {...common} /> : <input {...common} />}
+      {refused && <small className="ws-field-refused">Not applied: the change was refused (see the message above). Fix it, or press Escape to restore.</small>}
     </label>
   );
 }
