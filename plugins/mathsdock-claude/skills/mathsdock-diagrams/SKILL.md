@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles, constructions, loci and bearings, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles, constructions, loci and bearings, plans and elevations, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 <!-- Generated from .agents/skills/mathsdock-diagrams/SKILL.md by scripts/plugins/claude-plugin.mjs. Edit the source, then rerun it. -->
@@ -38,6 +38,7 @@ Current connector builds have three diagram tools that work for every family:
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 | Constructions, loci, scale drawing, map, bearings | `construction` |
+| Plans and elevations, isometric drawings of cube solids | `elevations` |
 
 Older builds have per-family tools instead (`graph_capabilities`, `create_graph`,
 `revise_graph`, `venn_capabilities` and so on). Use whichever set this conversation
@@ -143,6 +144,8 @@ expected: fix that field and try once more rather than guessing a different payl
   big enough to construct in. Use the `constructions` helpers (bisectors, perpendiculars, loci,
   point-by-bearing); they are hidden answers by default, so pupils see only the starting lines.
   Shade loci with a `region`. Write lengths or bearings only via `measure`. No editor link yet.
+- **Plans and elevations.** Cube solids only: `heights[row][column]`, row 0 at the front. A view
+  the pupil draws is a panel with `state: "answer"` (empty grid or dot paper for pupils).
 
 ## Worksheets
 

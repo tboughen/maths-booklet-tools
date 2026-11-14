@@ -21,6 +21,8 @@ import * as ftree from "../../packages/frequency-tree-core/src/index";
 import { printFacts as ftreePrintFacts } from "../../packages/frequency-tree-core/src/interchange";
 import * as construction from "../../packages/construction-core/src/index";
 import { printFacts as constructionPrintFacts } from "../../packages/construction-core/src/interchange";
+import * as elevations from "../../packages/elevation-core/src/index";
+import { printFacts as elevationsPrintFacts } from "../../packages/elevation-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
@@ -50,6 +52,7 @@ export type DiagramSource =
   | { kind: "probability-tree"; envelope: tree.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "frequency-tree"; envelope: ftree.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "construction"; envelope: construction.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "elevations"; envelope: elevations.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
@@ -78,6 +81,10 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "construction") {
     const view = source.outputView ?? "pupil", g = construction.layout(construction.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: constructionPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "elevations") {
+    const view = source.outputView ?? "pupil", g = elevations.layout(elevations.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: elevationsPrintFacts(source.envelope, view) };
   }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");

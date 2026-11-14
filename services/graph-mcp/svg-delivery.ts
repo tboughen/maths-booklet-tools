@@ -12,6 +12,7 @@ import { hash as barHash } from "../../packages/bar-model-core/src/versioned";
 import { hash as treeHash } from "../../packages/probability-tree-core/src/index";
 import { hash as frequencyTreeHash } from "../../packages/frequency-tree-core/src/index";
 import { hash as constructionHash } from "../../packages/construction-core/src/index";
+import { hash as elevationsHash } from "../../packages/elevation-core/src/index";
 import { hash as triangleHash } from "../../packages/triangle-core/src/interchange";
 import { hash as algebraHash } from "../../packages/algebra-grid-core/src/interchange";
 import { hash as chartHash } from "../../packages/chart-core/src/interchange";
@@ -82,6 +83,7 @@ async function sourceHash(source: DiagramSource) {
     case "probability-tree": return treeHash(source.envelope);
     case "frequency-tree": return frequencyTreeHash(source.envelope);
     case "construction": return constructionHash(source.envelope);
+    case "elevations": return elevationsHash(source.envelope);
   }
 }
 
@@ -97,7 +99,7 @@ export function svgDeliveryResult(data: SvgDelivery) {
 export function registerSvgDelivery(server: McpServer, connection: AbortSignal, raster: RasterQueue,
   limits: TrafficLimits, artifacts: (source: DiagramSource, format: "svg", signal?: AbortSignal) => Promise<Artifact>) {
   server.registerTool("get_diagram_svg", {
-    description: "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/triangle/construction and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree, frequency-tree and construction outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
+    description: "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/triangle/construction/elevations and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree, frequency-tree, construction and elevations outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
     inputSchema: svgDeliveryInput, outputSchema: svgDeliveryOutput,
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async (input, extra) => {
@@ -112,7 +114,7 @@ export function registerSvgDelivery(server: McpServer, connection: AbortSignal, 
       const info = await prepareDiagram(source, raster, signal);
       const data: SvgDelivery = { kind: source.kind, filename: "diagram.svg", mimeType: "image/svg+xml", encoding: "utf-8",
         rendererVersion: source.envelope.rendererVersion, sourceContentHash: await sourceHash(source),
-        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
+        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
       // Mirror the exact JSON for clients that do not expose structuredContent.
       const { result, responseBytes } = svgDeliveryResult(data);
       limits.output(responseBytes);

@@ -19,6 +19,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   charts: /bar chart|line chart|vertical line|dual bar|comparative bar|composite bar|frequency|\bdata\b|statistic|pictogram|tally/,
   "probability-tree": /tree diagram|probabilit|combined event|independent|dependent|conditional/,
   "frequency-tree": /frequency tree|two-way|two way/,
+  elevations: /plans? and elevation|elevation|plan view|isometric|\bplan\b/,
   construction: /construct|bisect|perpendicular|locus|loci|bearing|scale drawing|map scale|compass/,
   triangle: /triangle|pythagoras|trigonometr|\bsine\b|cosine|tangent|soh ?cah|angle|hypotenuse/,
 };
