@@ -41,17 +41,17 @@ describe("EditorHint (U22)", () => {
         Click a circle.
       </EditorHint>,
     );
-    expect(screen.getByRole("status").textContent).toBe("Choose the first endpoint.");
+    expect(screen.getByTestId("editor-hint").querySelector('[aria-live="polite"]')!.textContent).toBe("Choose the first endpoint.");
     expect(screen.queryByText("Click a circle.")).toBeNull();
     expect(screen.queryByRole("button", { name: "Hide this tip" })).toBeNull();
   });
 
   it("keeps the status region mounted between prompts, so each new prompt is announced", () => {
     const { rerender } = render(<EditorHint tool="venn">Click a region.</EditorHint>);
-    const status = screen.getByRole("status");
+    const status = screen.getByTestId("editor-hint").querySelector('[aria-live="polite"]')!;
     expect(status.textContent).toBe("");
     rerender(<EditorHint tool="venn" prompt="Click a region to shade it.">Click a region.</EditorHint>);
-    expect(screen.getByRole("status")).toBe(status);
+    expect(screen.getByTestId("editor-hint").querySelector('[aria-live="polite"]')).toBe(status);
     expect(status.textContent).toBe("Click a region to shade it.");
   });
 

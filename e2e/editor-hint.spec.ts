@@ -27,6 +27,6 @@ test("number-line: a drawing prompt takes the hint line and cannot be hidden, ev
   const hint = page.getByTestId("editor-hint").filter({ visible: true });
   await hint.getByRole("button", { name: "Hide this tip" }).click();
   await page.getByRole("button", { name: "Interval", exact: true }).filter({ visible: true }).first().click();
-  await expect(hint.getByRole("status")).toHaveText("Choose the first endpoint.");
+  await expect(hint.locator('[aria-live="polite"]')).toHaveText("Choose the first endpoint.");
   await expect(hint.getByRole("button", { name: "Hide this tip" })).toHaveCount(0);
 });

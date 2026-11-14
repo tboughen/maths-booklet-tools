@@ -56,7 +56,7 @@ export function EditorHint({
   const showTip = !prompt && !!children && !dismissed;
   return (
     <div ref={slot} className="editor-hint-slot" data-testid="editor-hint">
-      <p className={prompt ? "editor-hint editor-hint--prompt" : "editor-hint-live"} role="status">
+      <p className={`editor-hint-live${prompt ? " editor-hint editor-hint--prompt" : ""}`} aria-live="polite">
         {prompt}
       </p>
       {showTip && (
