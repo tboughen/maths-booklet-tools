@@ -58,11 +58,3 @@ export function setLines<P extends { lines?: LineWeight }>(presentation: P, line
   if (lines === "bold") presentation.lines = "bold";
   else delete presentation.lines;
 }
-
-/** A new diagram's text size and lines from the house style, within the family's text limits. */
-export function houseStyled<P extends { fontPt: number; lines?: LineWeight }>(presentation: P, limits: { max?: number } = {}): P {
-  const house = housePreference();
-  presentation.fontPt = startingTextPt(house.style, presentation.fontPt, limits);
-  if (house.lines === "bold") presentation.lines = "bold";
-  return presentation;
-}
