@@ -408,7 +408,9 @@ export function tooWideMessage(tool: string, width: number, room: number): strin
     ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`
     : tool === "probability-tree" || tool === "frequency-tree"
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
-      : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
+      : tool === "construction"
+        ? " Constructions print at true size: reduce the drawing's widthCm (and move points inside it), or use a wider column layout."
+        : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }
 

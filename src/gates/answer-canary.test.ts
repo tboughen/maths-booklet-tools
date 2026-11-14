@@ -18,6 +18,8 @@ import * as tree from "../../packages/probability-tree-core/src/index";
 import { examples as treeExamples } from "../../packages/probability-tree-core/src/examples";
 import * as frequencyTree from "../../packages/frequency-tree-core/src/index";
 import { examples as frequencyTreeExamples } from "../../packages/frequency-tree-core/src/examples";
+import * as construction from "../../packages/construction-core/src/index";
+import { examples as constructionExamples } from "../../packages/construction-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
 import { examples as vennExamples, teachingExamples as vennTeaching } from "../../packages/venn-core/src/examples";
 
@@ -65,6 +67,7 @@ const tools: Tool[] = [
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, pupilSvg: cuboid.renderSvg },
   { name: "probability trees", envelopes: () => treeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: tree.validate, pupilSvg: tree.renderSvg },
   { name: "frequency trees", envelopes: () => frequencyTreeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: frequencyTree.validate, pupilSvg: frequencyTree.renderSvg },
+  { name: "constructions", envelopes: () => constructionExamples.flatMap(x => [x.make(false), x.make(true)]), validate: construction.validate, pupilSvg: construction.renderSvg },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, pupilSvg: numberLine.renderSvg },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, pupilSvg: triangle.renderSvg },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, pupilSvg: venn.renderSvg },

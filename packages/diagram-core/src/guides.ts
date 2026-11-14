@@ -17,6 +17,7 @@ import { chartConfig } from "./guides/chart";
 import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { triangleConfig } from "./guides/triangle";
+import { constructionConfig } from "./guides/construction";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -196,6 +197,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
     ...fromConfig(triangleConfig),
     create: "Triangle keeps explicit labels, topology and saved answers; calculate only when the user asks, and never measure drawn proportions. " + triangleConfig.createDescription,
   },
+  construction: fromConfig(constructionConfig),
 };
 
 const jsonSchema = (schema: z.ZodType) => {

@@ -1,0 +1,125 @@
+{
+  "tool": "construction",
+  "schemaVersion": 1,
+  "rendererVersion": "construction-1",
+  "document": {
+    "width": 12,
+    "height": 10.5,
+    "grid": "none",
+    "border": false,
+    "caption": {
+      "text": "Scale: 1 cm represents 4 km.",
+      "show": "show"
+    },
+    "points": [
+      {
+        "id": "P",
+        "x": 2,
+        "y": 5,
+        "label": {
+          "text": "P",
+          "show": "show"
+        },
+        "labelAt": "s",
+        "mark": "cross",
+        "role": "given"
+      },
+      {
+        "id": "L",
+        "x": 9.2,
+        "y": 2.4,
+        "label": {
+          "text": "L",
+          "show": "show"
+        },
+        "labelAt": "s",
+        "mark": "cross",
+        "role": "given"
+      },
+      {
+        "id": "Q",
+        "x": 6.229,
+        "y": 6.539,
+        "label": {
+          "text": "Q",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "cross",
+        "role": "given"
+      }
+    ],
+    "objects": [
+      {
+        "id": "northP",
+        "role": "given",
+        "type": "north",
+        "at": "P",
+        "length": 4.4
+      },
+      {
+        "id": "northL",
+        "role": "given",
+        "type": "north",
+        "at": "L",
+        "length": 4.4
+      },
+      {
+        "id": "bearingPQ",
+        "role": "given",
+        "type": "bearing",
+        "from": "P",
+        "to": "Q",
+        "northLine": false,
+        "label": {
+          "text": "070°",
+          "show": "show"
+        }
+      },
+      {
+        "id": "PQ",
+        "role": "given",
+        "type": "segment",
+        "from": "P",
+        "to": "Q",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "LQ",
+        "role": "given",
+        "type": "segment",
+        "from": "L",
+        "to": "Q",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": true,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "bearingLQ",
+        "role": "given",
+        "type": "bearing",
+        "from": "L",
+        "to": "Q",
+        "northLine": false,
+        "label": {
+          "text": "324°",
+          "show": "show"
+        }
+      }
+    ]
+  }
+}

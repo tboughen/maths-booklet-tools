@@ -20,6 +20,7 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   "bar-model": undefined,
   charts: { example: undefined, kind: "bar", categories: ["A", "B", "C"], series: [{ name: "Pupils", values: ["3", "5", null] }] },
   "probability-tree": undefined,
+  construction: { widthCm: 9, heightCm: 7, points: [{ id: "A", x: 1.5, y: 3.5 }, { id: "B", x: 7.5, y: 3.5 }], objects: [{ type: "segment", from: "A", to: "B" }], constructions: [{ type: "perpendicular-bisector", a: "A", b: "B" }] },
   "frequency-tree": { total: "60", groups: [{ name: "boys", count: "32", children: [{ name: "school lunch", count: "24" }, { name: "packed lunch", count: "8", countHidden: true }] }, { name: "girls", count: "28", countHidden: true }] },
   triangle: { widthCm: 8 },
 };

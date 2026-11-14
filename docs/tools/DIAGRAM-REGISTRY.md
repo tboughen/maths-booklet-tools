@@ -18,8 +18,9 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 | `create_booklet` | A4 unit booklets (see [BOOKLET-MAKER.md](BOOKLET-MAKER.md)); same items and families as worksheets. Added 11 Nov 2026, the ninth tool. |
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
-`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree` and `triangle`. `outputView` applies
-only to families with an answers copy (Venn, charts, probability trees and frequency trees).
+`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree`, `triangle` and `construction`
+([constructions, loci and bearings](CONSTRUCTION-TOOL.md), 14 Nov 2026). `outputView` applies
+only to families with an answers copy (Venn, charts, probability trees, frequency trees and constructions).
 
 A create or revise result starts with a one-line plain summary (`Created a <label>, W × H cm at
 100%.`), then the preview image, then `resource_link` blocks for the SVG, PNG and JSON downloads.

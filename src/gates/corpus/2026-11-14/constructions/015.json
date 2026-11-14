@@ -1,0 +1,247 @@
+{
+  "tool": "construction",
+  "schemaVersion": 1,
+  "rendererVersion": "construction-1",
+  "document": {
+    "width": 12,
+    "height": 8,
+    "grid": "none",
+    "border": false,
+    "caption": {
+      "text": "Scale: 1 cm represents 1 m",
+      "show": "show"
+    },
+    "points": [
+      {
+        "id": "A",
+        "x": 1,
+        "y": 1,
+        "label": {
+          "text": "A",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "B",
+        "x": 11,
+        "y": 1,
+        "label": {
+          "text": "B",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "C",
+        "x": 11,
+        "y": 7,
+        "label": {
+          "text": "C",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "D",
+        "x": 1,
+        "y": 7,
+        "label": {
+          "text": "D",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "given"
+      },
+      {
+        "id": "P",
+        "x": 7,
+        "y": 4.5,
+        "label": {
+          "text": "P",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "cross",
+        "role": "given"
+      },
+      {
+        "id": "ab1-x",
+        "x": 3,
+        "y": 1,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      },
+      {
+        "id": "ab1-y",
+        "x": 1,
+        "y": 3,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      },
+      {
+        "id": "ab1-z",
+        "x": 3.098,
+        "y": 3.098,
+        "label": {
+          "text": "",
+          "show": "show"
+        },
+        "labelAt": "auto",
+        "mark": "none",
+        "role": "answer",
+        "group": "ab1"
+      }
+    ],
+    "objects": [
+      {
+        "id": "garden",
+        "role": "given",
+        "type": "polygon",
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "dash": false
+      },
+      {
+        "id": "AB",
+        "role": "given",
+        "type": "segment",
+        "from": "A",
+        "to": "B",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "AD",
+        "role": "given",
+        "type": "segment",
+        "from": "A",
+        "to": "D",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "lp1-circle",
+        "role": "answer",
+        "group": "lp1",
+        "type": "arc",
+        "center": "P",
+        "radius": 3,
+        "start": 90,
+        "sweep": 360,
+        "dash": false
+      },
+      {
+        "id": "ab1-arc1",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "A",
+        "radius": 2,
+        "start": -8,
+        "sweep": 106,
+        "dash": false
+      },
+      {
+        "id": "ab1-arc2",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "ab1-x",
+        "radius": 2.1,
+        "start": 68.23,
+        "sweep": 38.2,
+        "dash": false
+      },
+      {
+        "id": "ab1-arc3",
+        "role": "answer",
+        "group": "ab1",
+        "type": "arc",
+        "center": "ab1-y",
+        "radius": 2.1,
+        "start": -16.43,
+        "sweep": 38.2,
+        "dash": false
+      },
+      {
+        "id": "ab1-line",
+        "role": "answer",
+        "group": "ab1",
+        "type": "segment",
+        "from": "A",
+        "to": "ab1-z",
+        "extend": [
+          0,
+          4.5
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
+        "id": "region",
+        "role": "answer",
+        "type": "region",
+        "rules": [
+          {
+            "kind": "distance",
+            "from": "P",
+            "distance": 3,
+            "side": "within"
+          },
+          {
+            "kind": "closer",
+            "to": "AB",
+            "than": "AD"
+          },
+          {
+            "kind": "inside",
+            "shape": "garden",
+            "side": "within"
+          }
+        ],
+        "pattern": "hatch"
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: mathsdock-diagrams
-description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
+description: Use whenever a teacher asks for a maths diagram, worksheet or other teaching resource and MathsDock tools (diagram_capabilities, create_diagram, create_worksheet, create_booklet) are connected. Covers coordinate graphs and straight lines, ratio tables, quadratic value graphs, cuboids, number lines and inequalities, Venn diagrams, expanding or factorising grids, bar models, statistical charts (not histograms or time series), probability trees, triangles, constructions, loci and bearings, worksheets and unit booklets. Load it before the first MathsDock call, so pupil blanks and hidden answers are kept, answer versions are made only on request, and real print files and editor links are returned. Not for developing the tools.
 ---
 
 # MathsDock diagrams
@@ -35,6 +35,7 @@ Current connector builds have three diagram tools that work for every family:
 | Bar, dual, composite or vertical line chart | `charts` |
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
+| Constructions, loci, scale drawing, map, bearings | `construction` |
 
 Older builds have per-family tools instead (`graph_capabilities`, `create_graph`,
 `revise_graph`, `venn_capabilities` and so on). Use whichever set this conversation
@@ -136,6 +137,10 @@ expected: fix that field and try once more rather than guessing a different payl
 - **Triangles.** Keep explicit labels, topology and saved answers. Use the returned
   `calculationContexts` for target mappings. Never measure drawn proportions. See
   [Triangle MCP](../../../docs/tools/TRIANGLE-MCP.md).
+- **Constructions (GM8).** True size in cm (y up): a 7 cm line prints 7 cm, so make the drawing
+  big enough to construct in. Use the `constructions` helpers (bisectors, perpendiculars, loci,
+  point-by-bearing); they are hidden answers by default, so pupils see only the starting lines.
+  Shade loci with a `region`. Write lengths or bearings only via `measure`. No editor link yet.
 
 ## Worksheets
 

@@ -32,6 +32,8 @@ import * as ftree from "../../frequency-tree-core/src/index";
 import * as ftreeIo from "../../frequency-tree-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
+import * as construction from "../../construction-core/src/index";
+import * as constructionIo from "../../construction-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -46,6 +48,7 @@ export const DIAGRAM_KINDS = [
   "probability-tree",
   "frequency-tree",
   "triangle",
+  "construction",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -310,6 +313,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => triangleIo.revise(input),
     hash: triangleIo.hash,
     svg: (e) => triangle.renderSvg(e),
+  }),
+  construction: family<construction.Envelope>({
+    kind: "construction",
+    label: "construction drawing",
+    summary: "True-size constructions, loci, scale drawings, maps and bearings: points, lines, compass arcs, bisectors, shaded regions and north lines; constructions saved as hidden answers.",
+    route: "/tools/construction",
+    answerView: true,
+    envelopeSchema: construction.envelopeSchema,
+    createSchema: constructionIo.createSchema,
+    revisionSchema: constructionIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = construction.validate(raw);
+      check(construction.exportIssue(construction.forView(e, view)));
+      return e;
+    },
+    create: (input) => constructionIo.create(input),
+    revise: (input) => constructionIo.revise(input),
+    hash: construction.hash,
+    svg: (e, view) => construction.renderSvg(construction.forView(e, view)),
   }),
 };
 
