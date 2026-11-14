@@ -32,6 +32,10 @@ Nothing is filled or calculated implicitly. Each of these is a button (or MCP op
 
 Sibling probabilities that are numbers but do not total 1 give a teacher note only (deliberate error-spotting trees
 are allowed). A probability below 0 or above 1, overlapping labels, or a tree wider than 18 cm block export.
+The overlap error names the labels that clash (for example the probability on Red, Blue and the
+outcome on Blue); the width error gives the branch length that fits. A new tree from the connector,
+and Add stage on a tree that fitted, take the longest branch length that fits 18 cm (a three-stage
+tree with both end columns gets 31 mm), unless the request set `branchMm`.
 
 ## Examples
 
@@ -47,3 +51,7 @@ condition paths, and three coins.
 is the only way to compute an answer). `outputView: "answer"` draws hidden answers; the returned envelope and hash
 keep pupil visibility. Revision operations are listed in the capabilities and tool descriptions.
 The service is not redeployed by merging; a Render deploy needs Tim's go-ahead.
+
+## Line weight (U111)
+
+Lines are normal or bold (the Lines control beside Branch length): bold multiplies every stroke by 1.5 and is saved as `lines: "bold"`; normal is never saved. A new tree starts with the house style's lines. The connector takes `lines` in `settings` (create spec and `set_settings`).

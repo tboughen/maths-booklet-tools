@@ -1,51 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import {
   appearance,
   canonical,
-  create,
   faceNames,
   renderSvg,
-  validate,
 } from "./index";
-import { apply, createCuboid, hash, reviseCuboid } from "./interchange";
+import { apply, createCuboid, reviseCuboid } from "./interchange";
 describe("cuboid connector preserves mathematical and teaching state", () => {
-  it("preserves every retained legacy fixture's canonical source and artwork", async () => {
-    const fixtures = JSON.parse(
-      readFileSync("packages/cuboid-core/src/fixtures/v1.json", "utf8"),
-    ) as Array<{ id: string; envelope: unknown }>;
-    expect(fixtures.length).toBe(20);
-    for (const fixture of fixtures) {
-      const old = validate(fixture.envelope),
-        before = canonical(old),
-        svg = renderSvg(old);
-      const copy = createCuboid({ envelope: old });
-      expect(canonical(copy), fixture.id).toBe(before);
-      expect(renderSvg(copy), fixture.id).toBe(svg);
-      const refreshed = await reviseCuboid({
-        envelope: copy,
-        baseHash: await hash(copy),
-        operations: [],
-      });
-      expect(canonical(refreshed), fixture.id).toBe(before);
-    }
-  });
-  it("uses current defaults while retaining version-1 files and empty revisions", async () => {
-    expect(createCuboid().rendererVersion).toBe("cuboids-2");
-    const old = validate(
-      JSON.parse(
-        readFileSync("packages/cuboid-core/src/fixtures/v1.json", "utf8"),
-      )[0].envelope,
-    );
-    expect(canonical(createCuboid({ envelope: old }))).toBe(canonical(old));
-    expect(
-      await reviseCuboid({
-        envelope: old,
-        baseHash: await hash(old),
-        operations: [],
-      }),
-    ).toEqual(old);
-    expect(renderSvg(createCuboid({ envelope: old }))).toBe(renderSvg(old));
+  it("creates version 2 and rejects a version-1 file", () => {
+    const e = createCuboid();
+    expect(e.rendererVersion).toBe("cuboids-2");
+    expect(() => createCuboid({ envelope: { ...e, schemaVersion: 1, rendererVersion: "cuboids-1" } })).toThrow();
   });
   it("converts dimensions and cube side in displayed units without revealing answers", () => {
     const e = createCuboid({
@@ -77,7 +42,7 @@ describe("cuboid connector preserves mathematical and teaching state", () => {
         .shapes[0].dimensions,
     ).toEqual(e.document.shapes[0].dimensions);
   });
-  it("requires referenceAxis for cube lock and explicit upgrade for new appearance", () => {
+  it("requires referenceAxis for cube lock", () => {
     const e = createCuboid();
     expect(() =>
       apply(e, [{ op: "set_cube", id: "cuboid-1", enabled: true }]),
@@ -92,17 +57,6 @@ describe("cuboid connector preserves mathematical and teaching state", () => {
         },
       ]).document.shapes[0].dimensions,
     ).toEqual({ width: "3", depth: "3", height: "3" });
-    const old = create();
-    expect(() =>
-      apply(old, [
-        {
-          op: "set_appearance",
-          id: "cuboid-1",
-          appearance: appearance(old.document.shapes[0]),
-        },
-      ]),
-    ).toThrow("upgrade_document");
-    expect(apply(old, [{ op: "upgrade_document" }]).schemaVersion).toBe(2);
   });
   it.each(faceNames)(
     "retains highlight %s with blank area and exact data",

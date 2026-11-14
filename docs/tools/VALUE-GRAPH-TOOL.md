@@ -83,6 +83,11 @@ Both ranges include zero and align with fine-grid spacing. Labels are independen
 spaced and zero-anchored. 1/2, 1, 2, 2.5, 5 and 10 units/cm are available, and
 valid imported scales remain visible/editable. Fine paper can be 1, 2 or 5 mm.
 
+Lines are normal or bold (U111, the Lines control under Layout). Bold makes the table,
+answer lines, axes, curves, joins and point crosses 1.5 times as heavy; the graph grid
+keeps its weight. Bold is saved as `print.lines: "bold"`; normal is never saved. A new
+resource starts with the house style's lines; the connector sets it with `set_print`.
+
 Copy to clipboard writes an image-only print PNG through the browser clipboard;
 unsupported or denied access offers Copy for Word or PNG download instead.
 Copy for Word uses the existing HTML image route with physical dimensions and

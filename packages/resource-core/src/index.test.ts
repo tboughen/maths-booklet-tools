@@ -86,7 +86,9 @@ describe("saved worksheets from before the diagram registry", () => {
   // SHA-256 prefixes of each printed page as rendered on main before wave 4 (commit 2fc5ff7).
   const before: Record<string, [string, string]> = {
     "comparativeBarCharts:pupil": ["73e47ecb06f61fd1", "aac8bb59a69b3fc5"],
-    "comparativeBarCharts:answers": ["1ad2aee26c9010ad", "dcef0db837c0796d"],
+    // Answers copy only: since R24 (14 November 2026) bars drawn only because their value was saved
+    // hidden print with an answer-colour outline. Only those stroke colours changed.
+    "comparativeBarCharts:answers": ["ae9430e0c6968251", "2630037830793ef1"],
     "treeDiagrams:pupil": ["982c991b21c41848", "2bb88445db745629"],
     // Answers copy only: since 14 November 2026 a probability tree's revealed answers print in the
     // answer colour, as answer lines, ratio tables and graphs already did. The pupil copy is unchanged.

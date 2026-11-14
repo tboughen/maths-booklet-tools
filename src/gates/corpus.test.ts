@@ -8,6 +8,9 @@
 // corpus/UPGRADES.json, file by file, with the reason and Tim's approval. A listed file must still
 // load and then save stably, but may differ from what was saved.
 //
+// When a saved-file version is removed outright (Tim, 14 Nov 2026: no backwards compatibility),
+// its files are deleted from every dated folder in the same change, e.g. cuboids, triangle and ratio-table schema 1.
+//
 // Freeze today's examples as a new dated corpus with WRITE_CORPUS=YYYY-MM-DD npx vitest run
 // src/gates/corpus.test.ts. It refuses to overwrite a date that exists.
 import {

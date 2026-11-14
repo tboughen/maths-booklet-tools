@@ -66,8 +66,8 @@ describe("physical facts and independent placement", () => {
     const scale = {compact: 0.8, standard: 1, large: 1.2}[size];
     expect(facts.answerLineLengthsMm[0]).toBeCloseTo(6 * scale);
     expect(facts.tableRowHeightsMm[0]).toBeCloseTo(10 * scale);
-    expect(facts.textSizesPt).toHaveLength(3);
-    for (const [i, pt] of [7.68, 9.6, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
+    expect(facts.textSizesPt).toHaveLength(2);
+    for (const [i, pt] of [10, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
     const actual = [...renderRatioSvg(e.document).matchAll(/font-size="([\d.]+)"/g)].map((m) => +m[1] / 100 * scale * 72 / 2.54);
     for (const f of actual) expect(facts.textSizesPt.some((pt) => Math.abs(pt - f) < 1e-7)).toBe(true);
   });
@@ -113,6 +113,16 @@ describe("physical facts and independent placement", () => {
     const source = { kind: "graph", envelope: createGraph(graphSpec) };
     expect(checkPlacement({ ...source, widthMm: 8.553 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
     expect(checkPlacement({ ...source, heightMm: 5.684 * 10 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) }).uniformScale).toBe(1);
+  });
+  it("reports placement numbers without floating-point noise", () => {
+    const info = { physicalSizeCm: { width: 11.12, height: 7.3 } } as never;
+    const source = { kind: "graph", envelope: createGraph(graphSpec) };
+    const r = checkPlacement({ ...source, widthMm: 100 }, { ...diagramPrintInfo(diagramSource(source)), ...(info as object) });
+    const decimals = (v: number) => (String(v).split(".")[1] ?? "").length;
+    for (const v of [r.nativeSizeMm.width, r.nativeSizeMm.height, r.requestedSizeMm.height, r.proportionalSizeMm.width, r.proportionalSizeMm.height, r.effectivePngDpi, ...Object.values(r.scaledReferenceFeatures).flat()])
+      expect(decimals(v)).toBeLessThanOrEqual(2);
+    expect(decimals(r.uniformScale)).toBeLessThanOrEqual(4);
+    expect(r.nativeSizeMm).toEqual({ width: 111.2, height: 73 });
   });
   it("rejects invalid dimensions, mismatched kinds and malformed source relationships", () => {
     const source = { kind: "graph", envelope: createGraph(graphSpec) };
@@ -188,6 +198,8 @@ describe("real MCP output workflows", () => {
     verifyPrintBytes(files["diagram.png"], pngSize.width, pngSize.height);
     expect(Buffer.from(files["diagram.svg"]).toString()).toBe(await (await fetch(moved.downloads.svg.url)).text());
     expect(Buffer.from(files["README.txt"]).toString()).not.toMatch(/signature=|token=/);
+    // M16: the bundle carries the pupil-safe alt text for Word and PowerPoint.
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("Alt text (for Word or PowerPoint): Coordinate graph\n");
     const broken = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: moved.envelope}});
     expect(broken.isError).toBe(true);
     expect((await client.callTool({name: "create_graph", arguments: graphSpec})).isError).not.toBe(true);

@@ -178,7 +178,7 @@ test("actual PNG, SVG and editable downloads", async ({ page }) => {
   await page.getByRole("button", { name: "File", exact: true }).first().click();
   const dl = page.waitForEvent("download");
   await clickResourceAction(page, "Download PNG (600 ppi)");
-  expect((await dl).suggestedFilename()).toBe("maths-number-line.png");
+  expect((await dl).suggestedFilename()).toMatch(/^mathsdock-number-line-(.+-)?\d{4}-\d{2}-\d{2}\.png$/);
 });
 for (const width of [320, 375, 768, 1024, 1440])
   test(`clean snip area and usable layout at ${width}`, async ({ page }) => {
@@ -288,4 +288,21 @@ test("maximum structure, fractions and all preview zooms preserve clean resource
   }
   await page.getByLabel("First tick", { exact: true }).focus();
   await expect(page.getByLabel("First tick", { exact: true })).toBeFocused();
+});
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  const saved = async () =>
+    (await page.evaluate(() =>
+      localStorage.getItem("maths-booklet-tools:number-line:v1"),
+    )) ?? "";
+  await page.locator("summary").filter({ hasText: /^More settings$/ }).click();
+  await page.locator("summary").filter({ hasText: /^Print size$/ }).click();
+  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+  expect(await page.getByTestId("number-line-resource").innerHTML()).toContain('stroke-width="0.3"');
+  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
+  await expect.poll(saved).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
 });

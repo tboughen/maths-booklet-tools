@@ -2,7 +2,7 @@ import { speakRatio } from "./speakRatio";
 import { useRef } from "react";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import type { CSSProperties } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { StructureStepper } from "../site/StructureStepper";
 import {
   ratioMetrics,
   renderRatioSvg,
@@ -305,7 +305,7 @@ export function RatioCanvas({
                       }));
                 return lanes.flatMap(({ edge, side }, index) => {
                   // Match the printed label's geometry without changing the SVG or saved format.
-                  const font = (12 / 72) * 2.54 * 100 * 0.8,
+                  const font = (10 / 72) * 2.54 * 100, // operation labels print at 10 pt (U111)
                     factorWidth = numberWidth(step.factor, font),
                     total =
                       textWidth(
@@ -406,62 +406,45 @@ export function RatioCanvas({
               })}
           </fieldset>
         </div>
-        <div
+        <StructureStepper
           className="ratio-action-pair ratio-column-actions"
-          role="group"
-          aria-label="Columns"
-        >
-          <button
-            className="tool-button ratio-add-column"
-            disabled={structureDisabled || document.headings.length >= 3}
-            onClick={onAddColumn}
-            title={
+          vertical
+          name="Columns"
+          add={{
+            label: "Add column",
+            title:
               document.headings.length >= 3
                 ? "Maximum of three columns"
-                : "Extend the table to the right"
-            }
-          >
-            <Plus size={16} />
-            <span>Add column</span>
-          </button>
-          <button
-            className="tool-button ratio-danger"
-            disabled={structureDisabled || document.headings.length <= 1}
-            onClick={onRemoveColumn}
-            title={`Remove column ${removalColumnIndex + 1}`}
-          >
-            <Trash2 size={16} />
-            <span>Remove column</span>
-          </button>
-        </div>
-        <div
+                : "Extend the table to the right",
+            disabled: structureDisabled || document.headings.length >= 3,
+            onClick: onAddColumn,
+          }}
+          remove={{
+            label: "Remove column",
+            title: `Remove column ${removalColumnIndex + 1}`,
+            disabled: structureDisabled || document.headings.length <= 1,
+            onClick: onRemoveColumn,
+          }}
+        />
+        <StructureStepper
           className="ratio-action-pair ratio-row-actions"
-          role="group"
-          aria-label="Rows"
-        >
-          <button
-            className="tool-button ratio-add-row"
-            disabled={structureDisabled || document.rows.length >= 6}
-            onClick={onAddRow}
-            title={
+          name="Rows"
+          add={{
+            label: "Add row",
+            title:
               document.rows.length >= 6
                 ? "Maximum of six rows"
-                : "Extend the table downwards"
-            }
-          >
-            <Plus size={16} />
-            <span>Add row</span>
-          </button>
-          <button
-            className="tool-button ratio-danger"
-            disabled={structureDisabled || document.rows.length <= 1}
-            onClick={onRemoveRow}
-            title={`Remove row ${removalRowIndex + 1}`}
-          >
-            <Trash2 size={16} />
-            <span>Remove row</span>
-          </button>
-        </div>
+                : "Extend the table downwards",
+            disabled: structureDisabled || document.rows.length >= 6,
+            onClick: onAddRow,
+          }}
+          remove={{
+            label: "Remove row",
+            title: `Remove row ${removalRowIndex + 1}`,
+            disabled: structureDisabled || document.rows.length <= 1,
+            onClick: onRemoveRow,
+          }}
+        />
       </div>
     </div>
   );

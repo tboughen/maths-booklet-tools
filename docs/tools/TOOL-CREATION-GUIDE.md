@@ -95,7 +95,7 @@ Choose arithmetic and notation suitable for the subject. Ratio tables uses exact
 
 ## Make editing reversible and validation honest
 
-Treat each meaningful edit as one undoable action, including a drag, a structural change and a confirmed file replacement. Undo/Redo should restore related annotations and values together.
+Treat each meaningful edit as one undoable action, including a drag, a structural change and a confirmed file replacement. Record it through the shared `useDocumentHistory` hook in `src/editor-kit/` (see [Booklet consistency](BOOKLET-CONSISTENCY.md#shared-editor-kit)). Undo/Redo should restore related annotations and values together.
 
 Routine row and column removal in Ratio tables became immediate and undoable after review. Use that pattern for comparable local edits. Reserve confirmations for changes that replace substantial work or overwrite existing answers, such as opening another document or explicitly filling an occupied target row. State exactly what a removal affects and keep the minimum valid structure intact.
 

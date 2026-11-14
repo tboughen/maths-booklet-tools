@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPoint, annotationReducer, hasInk, isFistTouch, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
+import { addPoint, annotationReducer, hasInk, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
 
 const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, points });
 
@@ -51,18 +51,15 @@ describe("screen-only annotations", () => {
     expect(addPoint(points, [0.2, 0.2], 0.5)).toBe(points);
     expect(addPoint(points, [1, 0], 0.5)).toEqual([[0, 0], [1, 0]]);
   });
-  it("treats a fist-sized touch or a stylus eraser as erasing, but not a fingertip or a board that reports no size", () => {
-    expect(isFistTouch({ pointerType: "touch", width: 80, height: 60 })).toBe(true);
-    expect(isFistTouch({ pointerType: "touch", width: 24, height: 24 })).toBe(false);
-    expect(isFistTouch({ pointerType: "touch", width: 1, height: 1 })).toBe(false);
-    expect(isFistTouch({ pointerType: "pen", width: 80, height: 80 })).toBe(false);
+  it("treats a stylus eraser end as erasing, but not the pen tip or a mouse", () => {
     expect(isStylusEraser({ pointerType: "pen", buttons: 32, button: -1 })).toBe(true);
     expect(isStylusEraser({ pointerType: "pen", buttons: 1, button: 0 })).toBe(false);
     expect(isStylusEraser({ pointerType: "mouse", buttons: 32, button: 0 })).toBe(false);
   });
   it("remembers tool choices safely", () => {
     localStorage.setItem("qb-annotate", JSON.stringify({ tool: "laser", penColour: "#e8343a", size: "huge", fistEraser: false }));
-    expect(readAnnotationPreferences()).toMatchObject({ tool: "laser", penColour: "#e8343a", size: "medium", fistEraser: false });
+    expect(readAnnotationPreferences()).toMatchObject({ tool: "laser", penColour: "#e8343a", size: "medium" });
+    expect(readAnnotationPreferences()).not.toHaveProperty("fistEraser");
     localStorage.setItem("qb-annotate", "not json");
     expect(readAnnotationPreferences().tool).toBe("pen");
     localStorage.removeItem("qb-annotate");

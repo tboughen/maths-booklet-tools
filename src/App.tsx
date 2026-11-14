@@ -1,8 +1,11 @@
 import { ExampleGallery } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
 import { PreviewControls } from "./site/PreviewControls";
+import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
-import { createEnvelope } from "../packages/graph-core/src/interchange";
+import { graphEnvelope, withGraphAbout, type GraphDocument } from "./domain/graphAbout";
+import { useTitleNote } from "./site/TitleNote";
+import { TITLE_NOTE_STEP } from "./site/titleNoteData";
 import { useGraphDrafts } from "./components/useGraphDrafts";
 import { newBrowserGraph } from "./domain/browserGraph";
 import { ResourceSize } from "./site/ResourceSize";
@@ -11,7 +14,7 @@ import { getExportMetrics } from "./export/svg";
 import { RatioDialog } from "./ratio-table/RatioDialog";
 import { renderDiagramPng } from "./export/png";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ExternalLink, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { PageHeading, Panel } from "./site/PageHeading";
 import { AxisSettings } from "./components/AxisSettings";
 import { EquationPanel } from "./components/EquationPanel";
@@ -23,11 +26,11 @@ import { EditorToolbar } from "./site/EditorToolbar";
 import { GraphExchange } from "./components/GraphExchange";
 import {
   adjustAxis,
+  cleanNumber,
   deleteSelectedObject,
   getBounds,
   getObjectById,
   getSelectedObject,
-  HISTORY_LIMIT,
   makeId,
   setAxisScale,
   updateObject,
@@ -50,15 +53,12 @@ import type {
 import {
   copyDiagram,
   copyPngToClipboard,
+  downloadDiagramPdf,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "./editor-kit";
 
-interface HistoryState {
-  past: DiagramDocumentV1[];
-  present: DiagramDocumentV1;
-  future: DiagramDocumentV1[];
-}
 
 interface ToastState {
   kind: "success" | "error";
@@ -67,8 +67,8 @@ interface ToastState {
 }
 
 function sameDocument(
-  first: DiagramDocumentV1,
-  second: DiagramDocumentV1,
+  first: GraphDocument,
+  second: GraphDocument,
 ): boolean {
   return JSON.stringify(first) === JSON.stringify(second);
 }
@@ -87,11 +87,18 @@ export default function App({ active = true }: { active?: boolean }) {
     }
   });
   const expectedStorage = useRef(storedAtStart);
-  const [history, setHistory] = useState<HistoryState>(() => ({
-    past: [],
-    present: startup.document,
-    future: [],
-  }));
+  const {
+    history,
+    commit: record,
+    replace: replacePresentDocument,
+    undo: stepBack,
+    redo: stepForward,
+  } = useDocumentHistory<GraphDocument>(startup.document, {
+    equals: sameDocument,
+  });
+  const [pendingReset, setPendingReset] = useState(false);
+  // Stable, so the dialog's focus effect runs once rather than on every render.
+  const cancelReset = useCallback(() => setPendingReset(false), []);
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -105,7 +112,6 @@ export default function App({ active = true }: { active?: boolean }) {
   );
   const [objectsExpanded, setObjectsExpanded] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [wordHelpOpen, setWordHelpOpen] = useState(false);
   const [copying, setCopying] = useState(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -135,46 +141,22 @@ export default function App({ active = true }: { active?: boolean }) {
     });
   }, []);
 
-  const commit = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => {
-      if (sameDocument(current.present, next)) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: [],
-      };
-    });
-  }, []);
+  const commit = useCallback(
+    (next: GraphDocument, label?: string) => record(next, label),
+    [record],
+  );
 
-  const replaceWithoutHistory = useCallback((next: DiagramDocumentV1) => {
-    setHistory((current) => ({ ...current, present: next }));
-  }, []);
+  const replaceWithoutHistory = replacePresentDocument;
 
   const undo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const previous = current.past.at(-1);
-      if (!previous) return current;
-      return {
-        past: current.past.slice(0, -1),
-        present: previous,
-        future: [current.present, ...current.future].slice(0, HISTORY_LIMIT),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepBack();
+  }, [hasPendingDraft, recoveryConflict, stepBack]);
 
   const redo = useCallback(() => {
     if (hasPendingDraft() || recoveryConflict) return;
-    setHistory((current) => {
-      const next = current.future[0];
-      if (!next) return current;
-      return {
-        past: [...current.past, current.present].slice(-HISTORY_LIMIT),
-        present: next,
-        future: current.future.slice(1),
-      };
-    });
-  }, [hasPendingDraft, recoveryConflict]);
+    stepForward();
+  }, [hasPendingDraft, recoveryConflict, stepForward]);
 
   useEffect(() => {
     if (recoveryConflict) {
@@ -185,7 +167,7 @@ export default function App({ active = true }: { active?: boolean }) {
     const timeout = window.setTimeout(() => {
       try {
         const raw = localStorage.getItem(ENVELOPE_STORAGE_KEY),
-          next = JSON.stringify(createEnvelope(document, false));
+          next = JSON.stringify(graphEnvelope(document, false));
         if (raw !== expectedStorage.current && raw !== next) {
           setRecoveryReason(
             "The saved graph changed in another tab. Keep a recovery copy before replacing it with this graph.",
@@ -237,24 +219,12 @@ export default function App({ active = true }: { active?: boolean }) {
       if (target?.matches("input, textarea, select, [contenteditable='true']"))
         return;
       if (hasPendingDraft() || recoveryConflict) return;
-      const command = event.ctrlKey || event.metaKey;
-      if (command && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-        return;
-      }
-      if (command && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        redo();
-        return;
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
       if (event.key === "Escape") {
         setTool("select");
         setEquationOpen(false);
         setEditingEquationId(null);
         setExportMenuOpen(false);
-        setWordHelpOpen(false);
         replaceWithoutHistory({ ...document, selectedObjectId: null });
         return;
       }
@@ -286,8 +256,26 @@ export default function App({ active = true }: { active?: boolean }) {
           : event.key === "ArrowUp"
             ? document.axes.y.unitsPerSquare / 2
             : 0;
+      // A region follows its inequalities, so arrow keys leave it where it is.
+      if (selectedObject.kind === "region") return;
       const moved: GraphObject =
-        selectedObject.kind === "point"
+        selectedObject.kind === "polygon"
+          ? {
+              ...selectedObject,
+              vertices: selectedObject.vertices.map((p) => ({
+                x: cleanNumber(p.x + dx),
+                y: cleanNumber(p.y + dy),
+              })),
+              ...(selectedObject.namePosition
+                ? {
+                    namePosition: {
+                      x: cleanNumber(selectedObject.namePosition.x + dx),
+                      y: cleanNumber(selectedObject.namePosition.y + dy),
+                    },
+                  }
+                : {}),
+            }
+          : selectedObject.kind === "point"
           ? {
               ...selectedObject,
               position: {
@@ -335,6 +323,60 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function updateSelected(object: GraphObject) {
     commit(updateObject(document, object));
+  }
+
+  /** Adds a right-angled triangle, named with the next free letter, for the user to edit. */
+  function addShape() {
+    if (locked()) return;
+    const b = getBounds(document),
+      ux = document.axes.x.unitsPerSquare,
+      uy = document.axes.y.unitsPerSquare;
+    const corner = (min: number, max: number, unit: number) =>
+      cleanNumber(Math.max(min + unit, Math.min(unit, max - 4 * unit)));
+    const x = corner(b.xMin, b.xMax, ux),
+      y = corner(b.yMin, b.yMax, uy);
+    const used = new Set(document.objects.map((o) => o.name));
+    const name = [..."ABCDEFGHPQRST"].find((letter) => !used.has(letter));
+    const shape: GraphObject = {
+      id: makeId("polygon"),
+      kind: "polygon",
+      vertices: [
+        { x, y },
+        { x: cleanNumber(x + 3 * ux), y },
+        { x, y: cleanNumber(y + 2 * uy) },
+      ],
+      ...(name ? { name } : {}),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, shape],
+      selectedObjectId: shape.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
+  }
+
+  /** Adds an inequality region for the teacher to edit: y ≥ 1, x ≤ 3 and y < x + 1, named R. */
+  function addRegion() {
+    if (locked()) return;
+    const used = new Set(document.objects.map((o) => o.name));
+    const region: GraphObject = {
+      id: makeId("region"),
+      kind: "region",
+      inequalities: ["y >= 1", "x <= 3", "y < x + 1"],
+      shade: "wanted",
+      boundaries: true,
+      ...(used.has("R") ? {} : { name: "R" }),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, region],
+      selectedObjectId: region.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
   }
 
   function openEquationEditor(object?: StraightObject) {
@@ -412,21 +454,21 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function resetDiagram() {
     if (locked()) return;
-    const resetDocument = newBrowserGraph();
     const meaningfulDocument = { ...document, selectedObjectId: null };
-    if (
-      !sameDocument(meaningfulDocument, resetDocument) &&
-      !window.confirm(
-        "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
-      )
-    )
-      return;
-    commit(resetDocument);
+    // The same in-page confirmation as every other editor; nothing to confirm for an untouched graph.
+    if (!sameDocument(meaningfulDocument, newBrowserGraph()))
+      setPendingReset(true);
+    else confirmReset();
+  }
+
+  function confirmReset() {
+    if (locked()) return;
+    setPendingReset(false);
+    commit(newBrowserGraph(), "reset diagram");
     setTool("select");
     setEquationOpen(false);
     setEditingEquationId(null);
     setExportMenuOpen(false);
-    setWordHelpOpen(false);
     setObjectsExpanded(false);
   }
 
@@ -436,6 +478,13 @@ export default function App({ active = true }: { active?: boolean }) {
     return "Saved on this device";
   }, [saveState]);
 
+  // U34: the title and note ride on the document as `about` and are saved at the envelope's top level.
+  const titleNote = useTitleNote({
+    active,
+    about: document.about ?? {},
+    disabled: blocked,
+    onSave: (about) => commit(withGraphAbout(document, about), TITLE_NOTE_STEP),
+  });
   return (
     <div className="app-shell booklet-editor graph-editor">
       <main
@@ -463,6 +512,10 @@ export default function App({ active = true }: { active?: boolean }) {
               onReset={resetDiagram}
               resetLabel="Reset diagram"
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               resetDisabled={blocked}
               exportDisabled={blocked}
@@ -475,6 +528,7 @@ export default function App({ active = true }: { active?: boolean }) {
             />
             <GraphExchange
               document={document}
+              about={titleNote.item}
               onImport={(next) => act(() => commit(next))}
               onClose={() => setExportMenuOpen(false)}
               onMessage={exchangeMessage}
@@ -504,13 +558,18 @@ export default function App({ active = true }: { active?: boolean }) {
                   success: "PNG download started.",
                 },
                 {
-                  label: "First-time Word setup",
+                  label: "Download PDF (actual size)",
                   disabled: blocked,
-                  action: () => setWordHelpOpen(true),
-                  picker: true,
+                  action: () => {
+                    if (locked())
+                      throw Error("Apply or cancel unfinished input first.");
+                    return downloadDiagramPdf(document);
+                  },
+                  success: "PDF download started.",
                 },
               ]}
             />
+            {titleNote.dialog}
             {drafts.pending && (
               <p className="graph-pending-note" role="status">
                 Unapplied changes. Apply or cancel the unfinished field before
@@ -524,6 +583,11 @@ export default function App({ active = true }: { active?: boolean }) {
                 height={exportMetrics.heightCm}
               />
             </div>
+            <EditorHint tool="graph">
+              Choose a tool, then click or drag on the grid. Click a line,
+              segment or cross to change it. Blue handles are editing guides
+              and are never copied.
+            </EditorHint>
             <GraphCanvas
               zoom={previewZoom}
               disabled={blocked}
@@ -547,7 +611,7 @@ export default function App({ active = true }: { active?: boolean }) {
               active={active}
               disabled={blocked}
               onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
@@ -587,6 +651,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 onUpdate={updateSelected}
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
+                bounds={getBounds(document)}
               />
             ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>
@@ -599,6 +664,8 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEditingEquationId(null);
                 }}
                 onEquation={() => openEquationEditor()}
+                onShape={addShape}
+                onRegion={addRegion}
               />
             </fieldset>
             <AxisSettings
@@ -657,6 +724,18 @@ export default function App({ active = true }: { active?: boolean }) {
         </section>
       </main>
 
+      {active && pendingReset && (
+        <RatioDialog
+          title="Reset the diagram?"
+          confirmLabel="Reset diagram"
+          onCancel={cancelReset}
+          disabled={blocked}
+          onConfirm={confirmReset}
+        >
+          This clears the grid settings and all objects. You can undo it.
+        </RatioDialog>
+      )}
+
       {active && pendingExample && (
         <RatioDialog
           title="Replace with this graph example?"
@@ -665,7 +744,7 @@ export default function App({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onConfirm={() => {
             if (locked()) return;
-            commit(pendingExample);
+            commit(pendingExample, "replace with example");
             setPendingExample(null);
             setTool("select");
             setEquationOpen(false);
@@ -704,81 +783,6 @@ export default function App({ active = true }: { active?: boolean }) {
               }}
             >
               Keep recovery copy and continue
-            </button>
-          </section>
-        </div>
-      )}
-
-      {active && wordHelpOpen && (
-        <div
-          className="word-help-backdrop"
-          onMouseDown={() => setWordHelpOpen(false)}
-        >
-          <section
-            className="word-help-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="word-help-title"
-            aria-describedby="word-help-description"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <header>
-              <div>
-                <p className="eyebrow">ONE-TIME SETUP</p>
-                <h2 id="word-help-title">Keep full image quality in Word</h2>
-              </div>
-              <button
-                className="word-help-dismiss"
-                autoFocus
-                aria-label="Close Word setup"
-                onClick={() => setWordHelpOpen(false)}
-              >
-                <X size={19} />
-              </button>
-            </header>
-            <p id="word-help-description">
-              Set this once in Windows desktop Word so pasted graphs keep all
-              600 pixels per inch.
-            </p>
-            <ol>
-              <li>
-                Open <strong>File › Options › Advanced</strong>.
-              </li>
-              <li>
-                Find <strong>Image Size and Quality</strong> and choose{" "}
-                <strong>All New Documents</strong>.
-              </li>
-              <li>
-                Tick <strong>Do not compress images in file</strong>.
-              </li>
-              <li>
-                Set <strong>Default resolution</strong> to{" "}
-                <strong>High fidelity</strong>.
-              </li>
-            </ol>
-            <div className="word-help-links">
-              <a
-                href="https://support.microsoft.com/en-au/office/change-the-default-resolution-for-inserting-pictures-in-office-f4aca5b4-6332-48c6-9488-bf5e0094a7d2"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: change image resolution{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-              <a
-                href="https://support.microsoft.com/en-au/office/turn-off-picture-compression-81a6b603-0266-4451-b08e-fc1bf58da658"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Microsoft: turn off compression{" "}
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            </div>
-            <button
-              className="word-help-done"
-              onClick={() => setWordHelpOpen(false)}
-            >
-              Done
             </button>
           </section>
         </div>

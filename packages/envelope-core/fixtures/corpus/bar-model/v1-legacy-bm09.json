@@ -1,0 +1,998 @@
+{
+ "kind": "bar-model",
+ "schemaVersion": 1,
+ "rendererVersion": "bar-model-1",
+ "styleProfile": "lesson-v1",
+ "document": {
+  "bars": [
+   {
+    "id": "b1",
+    "name": {
+     "text": "Quantity 1",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b1p1",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p2",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p3",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p4",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p5",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p6",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p7",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p8",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p9",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p10",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p11",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p12",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p13",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p14",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p15",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p16",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p17",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p18",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p19",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p20",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p21",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p22",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p23",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p24",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     }
+    ]
+   },
+   {
+    "id": "b2",
+    "name": {
+     "text": "Quantity 2",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b2p1",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p2",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p3",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p4",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p5",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p6",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p7",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p8",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p9",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p10",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p11",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p12",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p13",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p14",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p15",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p16",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p17",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p18",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p19",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p20",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p21",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p22",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p23",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b2p24",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     }
+    ]
+   },
+   {
+    "id": "b3",
+    "name": {
+     "text": "Quantity 3",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b3p1",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p2",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p3",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p4",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p5",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p6",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p7",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p8",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p9",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p10",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p11",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p12",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p13",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p14",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p15",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p16",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p17",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p18",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p19",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p20",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p21",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p22",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p23",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b3p24",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     }
+    ]
+   },
+   {
+    "id": "b4",
+    "name": {
+     "text": "Quantity 4",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b4p1",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p2",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p3",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p4",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p5",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p6",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p7",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p8",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p9",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p10",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p11",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p12",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p13",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p14",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p15",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p16",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p17",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p18",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p19",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p20",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p21",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p22",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p23",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b4p24",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     }
+    ]
+   }
+  ],
+  "spans": [
+   {
+    "id": "s1",
+    "from": {
+     "barId": "b1",
+     "partId": "b1p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b1",
+     "partId": "b1p24",
+     "edge": "end"
+    },
+    "label": {
+     "text": "Whole quantity",
+     "state": "value"
+    },
+    "side": "above",
+    "style": "brace"
+   },
+   {
+    "id": "s2",
+    "from": {
+     "barId": "b2",
+     "partId": "b2p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b2",
+     "partId": "b2p24",
+     "edge": "end"
+    },
+    "label": {
+     "text": "Whole quantity",
+     "state": "value"
+    },
+    "side": "above",
+    "style": "brace"
+   },
+   {
+    "id": "s3",
+    "from": {
+     "barId": "b3",
+     "partId": "b3p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b3",
+     "partId": "b3p24",
+     "edge": "end"
+    },
+    "label": {
+     "text": "Whole quantity",
+     "state": "value"
+    },
+    "side": "above",
+    "style": "brace"
+   },
+   {
+    "id": "s4",
+    "from": {
+     "barId": "b4",
+     "partId": "b4p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b4",
+     "partId": "b4p24",
+     "edge": "end"
+    },
+    "label": {
+     "text": "Whole quantity",
+     "state": "value"
+    },
+    "side": "above",
+    "style": "brace"
+   }
+  ],
+  "presentation": {
+   "unitMm": 8,
+   "barHeightMm": 10,
+   "fontPt": 12,
+   "nameWidthMm": 60
+  }
+ }
+}

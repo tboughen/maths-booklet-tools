@@ -1,4 +1,6 @@
+import { aboutOf, type About } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   DEFAULT_HEADINGS,
   documentSchema,
@@ -11,7 +13,6 @@ import {
   readSchema,
   normalizeDocument,
   RATIO_RENDERER_VERSION,
-  RATIO_THREE_COLUMN_RENDERER_VERSION,
   RATIO_STYLE_PROFILE,
   RATIO_MAX_ENVELOPE_BYTES,
   RATIO_MAX_FILE_BYTES,
@@ -40,18 +41,17 @@ function bounded(value: unknown, maximum: number, name: string) {
   if (bytes > maximum)
     throw new RatioError("size_limit", `${name} is too large.`);
 }
-export function ratioEnvelope(input: unknown): RatioEnvelope {
+/** The envelope for a document; a saved title and note (U34) ride along unchanged. */
+export function ratioEnvelope(input: unknown, about: About = {}): RatioEnvelope {
   const document = normalizeDocument(input);
   ratioMetrics(document);
-  const legacy = document.headings.length === 2 && document.rows.length >= 2;
   const envelope: RatioEnvelope = {
     kind: "ratio-table",
-    schemaVersion: legacy ? 1 : 2,
-    rendererVersion: legacy
-      ? RATIO_RENDERER_VERSION
-      : RATIO_THREE_COLUMN_RENDERER_VERSION,
+    schemaVersion: 2,
+    rendererVersion: RATIO_RENDERER_VERSION,
     styleProfile: RATIO_STYLE_PROFILE,
     document,
+    ...about,
   };
   bounded(envelope, RATIO_MAX_ENVELOPE_BYTES, "The ratio table");
   return envelope;
@@ -69,23 +69,7 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
       "This file is not a ratio table. Open graph files in the Graph builder.",
     );
   const envelope = readSchema(ratioEnvelopeSchema, input);
-  const version =
-    envelope.document.headings.length === 2 &&
-    envelope.document.rows.length >= 2
-      ? 1
-      : 2;
-  if (
-    envelope.schemaVersion !== version ||
-    envelope.rendererVersion !==
-      (version === 1
-        ? RATIO_RENDERER_VERSION
-        : RATIO_THREE_COLUMN_RENDERER_VERSION)
-  )
-    throw new RatioError(
-      "invalid_ratio_table",
-      "The saved format must match the row and column counts.",
-    );
-  return ratioEnvelope(envelope.document);
+  return ratioEnvelope(envelope.document, aboutOf(envelope));
 }
 type RatioSpec = z.infer<typeof ratioSpecSchema>;
 type SpecRow = NonNullable<RatioSpec["rows"]>[number];
@@ -172,14 +156,6 @@ export function createRatioTable(input: unknown): RatioEnvelope {
   ];
   const spec = { ...given, rows },
     used = new Set(spec.rows.flatMap((r) => (r.id ? [r.id] : [])));
-  if (
-    spec.schemaVersion === 1 &&
-    (spec.rows[0].cells.length !== 2 || spec.rows.length < 2)
-  )
-    throw new RatioError(
-      "invalid_ratio_table",
-      "Use schemaVersion 2 for one row, one column or three columns.",
-    );
   return ratioEnvelope({
     headings:
       spec.headings ??
@@ -204,6 +180,7 @@ export function createRatioTable(input: unknown): RatioEnvelope {
     mode: spec.mode ?? "simple",
     showArrows: spec.showArrows ?? true,
     showOperations: spec.showOperations ?? true,
+    ...(spec.lines === "bold" ? { lines: "bold" as const } : {}),
   });
 }
 export function emptyRatioTable(): RatioEnvelope {
@@ -213,7 +190,6 @@ export function emptyRatioTable(): RatioEnvelope {
 // finds the value for 5. The answer cell is an answer line, never a calculated value.
 export function starterRatioTable(): RatioEnvelope {
   return createRatioTable({
-    schemaVersion: 1,
     rows: [
       {
         cells: [
@@ -261,6 +237,9 @@ export const ratioOperationSchema = z.discriminatedUnion("op", [
     .strict(),
   z
     .object({ op: z.literal("set_size"), size: documentSchema.shape.size })
+    .strict(),
+  z
+    .object({ op: z.literal("set_lines"), lines: z.enum(LINE_WEIGHTS) })
     .strict(),
   z
     .object({
@@ -374,6 +353,10 @@ export function applyRatioOperations(
       case "set_size":
         document.size = op.size;
         break;
+      case "set_lines":
+        if (op.lines === "bold") document.lines = "bold";
+        else delete document.lines;
+        break;
       case "set_annotation_visibility": {
         if (op.mode !== undefined) document.mode = op.mode;
         if (op.showArrows !== undefined) document.showArrows = op.showArrows;
@@ -420,7 +403,7 @@ export function applyRatioOperations(
     // Enforce every operation's invariants, so temporary dangling references cannot hide in a batch.
     document = ratioEnvelope(document).document;
   }
-  return ratioEnvelope(document);
+  return ratioEnvelope(document, aboutOf(input));
 }
 function stable(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stable);
@@ -444,7 +427,7 @@ export async function reviseRatioTable(input: unknown): Promise<RatioEnvelope> {
     envelope = validateRatioEnvelope(revision.envelope);
   if ((await ratioHash(envelope)) !== revision.baseHash)
     throw new RatioError(
-      "stale_document",
+      "stale_hash",
       "Use the contentHash from the exact ratio table being revised.",
     );
   return applyRatioOperations(envelope, revision.operations);

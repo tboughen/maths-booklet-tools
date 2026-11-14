@@ -1,4 +1,6 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
@@ -66,6 +68,11 @@ export const documentSchema = z
     blankStyle: z.enum(["dots", "box"]),
     branchMm: z.number().int().min(20).max(50),
     gapMm: z.number().int().min(10).max(24),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export const envelopeSchema = z
@@ -74,6 +81,7 @@ export const envelopeSchema = z
     schemaVersion: z.literal(1),
     rendererVersion: z.literal("probability-tree-1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
@@ -607,7 +615,8 @@ export type Target = {
   width: number;
   height: number;
 };
-export type Placed = { label: Label; kind: "probability" | "text"; cx: number; cy: number; align: "middle" | "start" };
+/** `name` says in words which label this is, for layout errors ("probability on Red, Blue"). */
+export type Placed = { label: Label; kind: "probability" | "text"; cx: number; cy: number; align: "middle" | "start"; name?: string };
 export type Layout = ReturnType<typeof layout>;
 
 type Box = { x1: number; x2: number; y1: number; y2: number };
@@ -699,7 +708,7 @@ export function layout(e: Envelope) {
     lines.push(line);
     // Outcome name just after the branch end.
     const ob = labelBox(b.outcome, d.blankStyle, "text");
-    const outcome: Placed = { label: b.outcome, kind: "text", cx: line.x2 + 1.5, cy: line.y2, align: "start" };
+    const outcome: Placed = { label: b.outcome, kind: "text", cx: line.x2 + 1.5, cy: line.y2, align: "start", name: `outcome on ${pathName(d, b.id)}` };
     placed.push(outcome);
     return { b, line, outcome, outcomeTarget: { kind: "outcome", id: b.id, x: line.x2 + 1, y: line.y2 - 3, width: Math.max(ob.width, 8) + 1, height: 6 } as Target };
   });
@@ -721,7 +730,7 @@ export function layout(e: Envelope) {
     // The usual place is the middle of the branch. Where that would touch another branch or
     // label (the middle branch of a three-way split), slide along the branch, then try the other side.
     let spot = at(0.5, preferBelow);
-    const probability: Placed = { label: b.probability, kind: "probability", cx: spot.mx, cy: spot.cy, align: "middle" };
+    const probability: Placed = { label: b.probability, kind: "probability", cx: spot.mx, cy: spot.cy, align: "middle", name: `probability on ${pathName(d, b.id)}` };
     if (drawnLabel(probability.label)) {
       const others = placed.filter((p) => drawnLabel(p.label)).map((p) => boxOf(p, d.blankStyle));
       const clear = (c: { mx: number; cy: number }) => {
@@ -757,10 +766,10 @@ export function layout(e: Envelope) {
     const pw = Math.max(textWidth(d.endHeadings[1]), ...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").width), 8);
     for (const b of all) {
       const y = nodeY.get(b.id)!;
-      placed.push({ label: b.endOutcome, kind: "text", cx: endX, cy: y, align: "start" });
+      placed.push({ label: b.endOutcome, kind: "text", cx: endX, cy: y, align: "start", name: `end outcome for ${pathName(d, b.id)}` });
       targets.push({ kind: "endOutcome", id: b.id, x: endX - 0.5, y: y - 3, width: ow + 1, height: 6 });
       if (d.endColumn === "both") {
-        placed.push({ label: b.endProbability, kind: "probability", cx: pX + pw / 2, cy: y, align: "middle" });
+        placed.push({ label: b.endProbability, kind: "probability", cx: pX + pw / 2, cy: y, align: "middle", name: `end probability for ${pathName(d, b.id)}` });
         targets.push({ kind: "endProbability", id: b.id, x: pX - 0.5, y: y - 4.5, width: pw + 1, height: 9 });
       }
     }
@@ -770,7 +779,10 @@ export function layout(e: Envelope) {
     right = d.endColumn === "both" ? pX + pw : endX + ow;
     // Only a drawn probability column can crowd: with endColumn "outcome" its saved text is not printed.
     const tight = d.endColumn === "both" && all.some((b) => labelBox(b.endProbability, d.blankStyle, "probability").height > d.gapMm - 1);
-    if (tight) issues.push("End-column fractions overlap. Increase the path spacing.");
+    if (tight) {
+      const need = Math.ceil(Math.max(...all.map((b) => labelBox(b.endProbability, d.blankStyle, "probability").height)) + 1);
+      issues.push(`End-column fractions overlap. Increase the path spacing to at least ${Math.min(24, Math.max(need, d.gapMm + 1))} mm.`);
+    }
   }
   // Bounding box of the tree.
   const boxes = placed
@@ -802,7 +814,7 @@ export function layout(e: Envelope) {
     const y = qy + rowH / 2;
     const answerX = 8 + textWidth(q.text) + 3;
     questionRows.push({ q, letter, y, answerX });
-    placed.push({ label: q.answer, kind: "probability", cx: answerX + Math.max(answerBox.width, 8) / 2, cy: y, align: "middle" });
+    placed.push({ label: q.answer, kind: "probability", cx: answerX + Math.max(answerBox.width, 8) / 2, cy: y, align: "middle", name: `answer to question ${letter}` });
     targets.push({ kind: "answer", id: q.id, x: answerX - 0.5, y: y - rowH / 2, width: Math.max(answerBox.width, 8) + 1, height: rowH });
     right = Math.max(right, answerX + Math.max(answerBox.width, 8));
     qy += rowH + 2;
@@ -816,9 +828,20 @@ export function layout(e: Envelope) {
     shiftY = (v: number) => v + dy;
 
   // Printed labels must not overlap one another.
-  const drawn = placed.filter((p) => drawnLabel(p.label)).map((p) => boxOf(p, d.blankStyle));
-  const clash = drawn.some((a, i) => drawn.slice(i + 1).some((b) => boxesOverlap(a, b)));
-  if (clash) issues.push("Some labels overlap. Increase the path spacing or branch length, or shorten labels.");
+  const shown = placed.filter((p) => drawnLabel(p.label));
+  const drawn = shown.map((p) => boxOf(p, d.blankStyle));
+  // Name the labels that clash, so the teacher (or the AI) knows exactly what to move or shorten.
+  const clashes: string[] = [];
+  drawn.forEach((a, i) =>
+    drawn.forEach((b, j) => {
+      if (j > i && boxesOverlap(a, b)) clashes.push(`the ${describe(shown[i])} and the ${describe(shown[j])}`);
+    }),
+  );
+  const clash = clashes.length > 0;
+  if (clash)
+    issues.push(
+      `Labels overlap: ${clashes.slice(0, 3).join("; ")}${clashes.length > 3 ? ` (and ${clashes.length - 3} more)` : ""}. Increase the path spacing or branch length, or shorten labels.`,
+    );
   // ... nor cross a branch line. A note rather than an issue, so saved trees still export as before.
   else if (drawn.some((box) => lines.some((l) => lineCrossesBox(l, box))))
     notes.push("A label or pupil space crosses a branch. Increase the path spacing or branch length, or shorten labels.");
@@ -844,7 +867,12 @@ export function layout(e: Envelope) {
 
   const width = Math.ceil((right - left + 2 * MARGIN) * 10) / 10,
     height = Math.ceil((bottom - top + 2 * MARGIN) * 10) / 10;
-  if (width > 180) issues.push("The tree is wider than 18 cm. Use shorter branches, shorter labels or fewer stages.");
+  if (width > 180) {
+    // Every stage's branch shortens by the same amount, so say which length would fit.
+    const fit = Math.floor(d.branchMm - (width - 180) / depthCount - 0.05);
+    const advice = fit >= 20 && fit < d.branchMm ? ` A branch length of ${fit} mm fits.` : " Use shorter labels or fewer stages.";
+    issues.push(`The tree is ${width} mm wide, more than 18 cm.${advice}`);
+  }
   if (height > 250) issues.push("The tree is taller than 25 cm. Reduce the path spacing or the number of paths.");
   return {
     width,
@@ -860,6 +888,19 @@ export function layout(e: Envelope) {
   };
 }
 export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
+function describe(p: Placed) {
+  const text = p.label.show === "hidden" ? "pupil space" : `"${p.label.text.trim()}"`;
+  return p.name ? `${p.name} (${text})` : text;
+}
+/** The longest branch length (20 mm at least) at which the tree fits the 18 cm width, or the tree unchanged. */
+export function fitBranchLength(e: Envelope): Envelope {
+  if (layout(e).width <= 180) return e;
+  for (let mm = e.document.branchMm - 1; mm >= 20; mm--) {
+    const n = { ...e, document: { ...e.document, branchMm: mm } };
+    if (layout(n).width <= 180) return n;
+  }
+  return e;
+}
 export function warnings(e: Envelope) {
   const g = layout(e);
   return [...g.issues, ...g.notes];
@@ -914,7 +955,7 @@ export function renderSvg(e: Envelope): string {
     out.push(text(r.q.text, r.textX + 8, r.y + FONT * 0.33, "start"));
   }
   const label = `Probability tree diagram with ${maxDepth(d)} stage${maxDepth(d) === 1 ? "" : "s"}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`;
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`, d.lines);
 }
 
 /* ---------- Editor links ---------- */

@@ -7,14 +7,15 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
-import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, describeIssues, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
+import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import { FAMILY_LIST, familyCapabilities } from "../../packages/diagram-core/src/guides";
 import { GraphError } from "../../packages/graph-core/src/interchange";
-import { RatioError } from "../../packages/ratio-table-core/src/interchange";
 import { describeGraph } from "../../packages/graph-core/src/interchange";
 import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
 import * as line from "../../packages/number-line-core/src/index";
 import { diagramSource, type DiagramSource } from "./diagram-source";
+import { toolFailure } from "./tool-error";
+import { answerLeaks } from "../../packages/diagram-core/src/answer-leaks";
 
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
 /** Builds the finished result (preview, files, links, print facts) for one validated source. */
@@ -62,17 +63,13 @@ export const diagramOutput = z
   })
   .passthrough();
 
-/** An error a model can act on: a stable code, the message and, for schema problems, the fields. */
+/** An error a model can act on, in the connector's one error shape (see tool-error.ts). */
 export function diagramFailure(error: unknown, kindName?: string) {
-  const fields = describeIssues(error);
-  const code = error instanceof GraphError || error instanceof RatioError ? error.code : fields ? "invalid_input" : "invalid_diagram";
-  let message = fields ?? (error instanceof Error ? error.message : "The diagram could not be processed.");
-  if (code === "render_failed" || (!(error instanceof Error) && !fields)) message = "The diagram could not be rendered. Try again or simplify it.";
-  const hint = kindName ? ` Check diagram_capabilities {kind:"${kindName}"} for the expected fields.` : "";
-  return {
-    isError: true,
-    content: [{ type: "text" as const, text: JSON.stringify({ code, message: message + (fields ? hint : "") }) }],
-  };
+  return toolFailure(error, {
+    code: "invalid_diagram",
+    message: "The diagram could not be processed.",
+    fieldHint: kindName ? `Check diagram_capabilities {kind:"${kindName}"} for the expected fields.` : undefined,
+  });
 }
 
 function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Checked", size: { width: number; height: number }, alt: string, warnings: string[]) {
@@ -88,8 +85,10 @@ const MIME = { svg: "image/svg+xml", png: "image/png", json: "application/json" 
 async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Checked", build: ResultBuilder, signal: AbortSignal) {
   const r = await build(source, signal);
   const s = r.structuredContent as { physicalSizeCm: { width: number; height: number }; warnings: string[]; downloads: Partial<Record<keyof typeof MIME, { url: string }>> };
-  const view = "outputView" in source && source.outputView ? source.outputView : "pupil";
-  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, view));
+  // M16: alt text always describes the pupil copy, so it never reveals hidden answers.
+  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"));
+  // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
+  for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);
   // Files as MCP resource links, so clients can offer them directly instead of retyping URLs.
   const links: ContentBlock[] = (Object.keys(MIME) as (keyof typeof MIME)[]).flatMap((format) => {

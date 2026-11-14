@@ -5,7 +5,6 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   create,
-  upgrade,
   canonical,
   encode,
   layout,
@@ -99,6 +98,8 @@ test("1 cm cubes and separated layers keep a missing height blank", async ({
   await page
     .getByLabel("Label appearance", { exact: true })
     .selectOption("blank");
+  // U1: View and the cube shortcut are document settings, on the Shape tab.
+  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await page
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
@@ -280,7 +281,7 @@ test("examples require confirmation and cancellation preserves work", async ({
     .filter({
       has: page.getByRole("heading", { name: "One layer", exact: true }),
     })
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(
@@ -555,7 +556,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
   page,
 }) => {
   test.setTimeout(90000);
-  const e = upgrade(create());
+  const e = create();
   e.document.shapes[0].appearance!.mode = "faces";
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
@@ -643,4 +644,21 @@ test("the printed full-height label edits the separated layers directly", async 
   await field(page, "Edit height", "3");
   await expect(resource(page).locator("g[data-layer]")).toHaveCount(3);
   await expect(resource(page)).toContainText("Full height: 3 cm");
+});
+test("bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  const saved = async () =>
+    (await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((k) => k.includes("cuboid"));
+      return key ? localStorage.getItem(key) : null;
+    })) ?? "";
+  await page.locator("summary").filter({ hasText: /^Print settings$/ }).click();
+  await page.getByLabel("Lines", { exact: true }).selectOption("bold");
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
+  expect(await resource(page).innerHTML()).toContain('stroke-width="0.375"');
+  await page.getByLabel("Lines", { exact: true }).selectOption("normal");
+  await expect.poll(saved).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => JSON.parse(await saved()).document.lines).toBe("bold");
 });

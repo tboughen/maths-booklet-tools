@@ -35,7 +35,7 @@
 }
 /* Beside the resource the settings are already in view, so these jumps stay out of sight until a
    keyboard reaches them: Tab lands on "Edit settings" before the diagram's many hit targets. */
-@media (min-width: 901px) {
+@media (min-width: 768px) {
   .booklet-editor .editor-inspector-link:not(:focus-visible),
   .booklet-editor .editor-diagram-link:not(:focus-visible) {
     /* Visually hidden; !important so a tool's own button sizing cannot reveal a sliver. */
@@ -560,4 +560,32 @@
     color: inherit !important;
     background-color: transparent !important;
   }
+}
+.house-style {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 16px;
+  max-width: 760px;
+  margin: 0 0 22px;
+  padding: 10px 14px 12px;
+  border: 1px solid var(--line, #c9ced8);
+  border-radius: 8px;
+}
+.house-style legend {
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.house-style label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.house-style p {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
 }

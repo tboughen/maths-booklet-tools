@@ -1,5 +1,7 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
@@ -80,8 +82,14 @@ export const envelopeSchema = z
         key: z.boolean(),
         heightMm: z.number().int().min(40).max(140),
         barMm: z.number().int().min(5).max(20),
+        /** Bold lines (U111) multiply the chart's black strokes by 1.5; the grid keeps its weight. Normal is never saved. */
+        lines: z
+          .enum(LINE_WEIGHTS)
+          .transform((v) => (v === "bold" ? v : undefined))
+          .optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
@@ -158,14 +166,25 @@ export function parseFile(text: string) {
   return validate(JSON.parse(text));
 }
 
-/** Pupil view leaves hidden values undrawn; the answer view draws them. */
-export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
+/**
+ * Pupil view leaves hidden values undrawn; the answer view draws them. With `mark`, bars and lines
+ * drawn only because their value was saved hidden print in the house answer colour (worksheet
+ * answers copies and outputView answer).
+ */
+export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
   for (const s of n.document.series)
-    for (const c of s.values) c.show = "show";
+    for (const c of s.values) {
+      if (mark && c.show === "hidden" && c.value.trim()) REVEALED.add(c);
+      c.show = "show";
+    }
   return n;
 }
+/** Cells an answer view draws only because they were saved hidden. */
+const REVEALED = new WeakSet<Cell>();
+/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
+export const CHART_ANSWER_COLOUR = "#b0125b";
 export const hasHidden = (e: Envelope) =>
   drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
 
@@ -209,7 +228,7 @@ export type Target = {
   width: number;
   height: number;
 };
-export type Bar = Target & { fill: Fill; drawn: boolean };
+export type Bar = Target & { fill: Fill; drawn: boolean; revealed?: boolean };
 export type Layout = ReturnType<typeof layout>;
 
 /** All positions and teacher-facing issues; issues block export. */
@@ -314,7 +333,7 @@ export function layout(e: Envelope) {
         // A vertical line chart draws a single thick line; width 0 marks it.
         const top = y(clamp(Math.max(0, v ?? 0)));
         if (v !== null)
-          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn });
+          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
         targets.push({ series: si, category: ci, x: centre - 2.5, y: Math.min(top, y0 + H - 4), width: 5, height: Math.max(y0 + H - top, 4) });
         return;
       }
@@ -326,7 +345,7 @@ export function layout(e: Envelope) {
       const by = y(clamp(top)),
         bh = y(clamp(base)) - by;
       if (v !== null)
-        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn });
+        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
       targets.push({
         series: si,
         category: ci,
@@ -421,14 +440,21 @@ export function renderSvg(e: Envelope): string {
     out.push(
       `<path d="${g.ticks.slice(1).map((t) => `M${n(p.x)},${n(t.y)}H${n(right)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
     );
-  for (const b of g.bars)
+  // The grid stays at its usual weight; bold lines apply to everything drawn after it.
+  const gridEnd = out.length;
+  for (const b of g.bars) {
+    // A bar drawn only for the answers copy prints in the answer colour; solid grey or black
+    // fills turn pink too, so the outline still shows.
+    const ink = b.revealed ? CHART_ANSWER_COLOUR : "black",
+      fill = b.revealed && (b.fill === "grey" || b.fill === "black") ? CHART_ANSWER_COLOUR : fillRef(b.fill);
     if (b.drawn && b.width === 0) {
       if (b.height > 0)
-        out.push(`<line x1="${n(b.x)}" y1="${n(b.y)}" x2="${n(b.x)}" y2="${n(b.y + b.height)}" stroke="black" stroke-width="0.6"/>`);
+        out.push(`<line x1="${n(b.x)}" y1="${n(b.y)}" x2="${n(b.x)}" y2="${n(b.y + b.height)}" stroke="${ink}" stroke-width="0.6"/>`);
     } else if (b.drawn)
       out.push(
-        `<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.width)}" height="${n(b.height)}" fill="${fillRef(b.fill)}" stroke="black" stroke-width="0.3"/>`,
+        `<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.width)}" height="${n(b.height)}" fill="${fill}" stroke="${ink}" stroke-width="0.3"/>`,
       );
+  }
   // Axes and the numerical scale.
   out.push(
     `<path d="M${n(p.x)},${n(p.y)}V${n(bottom)}H${n(right)}" stroke="black" stroke-width="0.35" fill="none"/>`,
@@ -456,7 +482,7 @@ export function renderSvg(e: Envelope): string {
     }
   }
   const label = `${kindNames[d.kind]}${d.yTitle ? ` of ${d.yTitle}` : ""}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.slice(0, gridEnd).join("")}${boldLines(out.slice(gridEnd).join(""), d.lines)}</svg>`;
 }
 
 /** Structural edits. Each returns a new valid envelope. */

@@ -102,6 +102,24 @@ character of the test lines is within 0.2 mm of its PDF position, the answer-lin
 0.55 mm clear of the line, and every file is still two pages. Word still draws the fraction bar a
 little thinner than the PDF.
 
+### A fraction alone in its paragraph (R25, 14 November 2026)
+
+Tim's own Word export of SP7.04 showed answer-line fractions larger in Word than in the PDF. A
+character comparison found the cause: when an answer line holds only a fraction (`10/36`), its
+equation is alone in its paragraph, and Word treats a lone equation as display maths, printing its
+parts at full size. The inline enlargement (11/8) then made them 15 pt (5.3 mm high glyph boxes
+against 3.9 mm in the PDF), and the denominator sat 1.6 mm lower. A fraction that shares its line
+with text (`6/25 = 12/25`, `2 1/2`) is inline maths and was already right.
+
+`soleRuns` (answer-line cells and table cells) now writes a paragraph that holds only fractions at
+body size. Four variants were printed by Word 16 on Tim's PC (`C:\dev\mathsdock-word-check-r25`);
+the chosen one prints every answer-line fraction at 11 pt, within 0.3 mm of the PDF horizontally and
+within 0.3 mm vertically once Word's 0.4 mm whole-page offset is allowed for. Display maths ignores the
+paragraph's alignment, so a lone fraction in a centred table cell was also printing at the left of
+its cell; table cells now state their justification (`m:oMathPara` with `m:jc`), and real Word then
+centres it within 0.4 mm. Still open: fractions in table rows print about 1.9 mm lower than in the
+PDF in Word (they did before this change too).
+
 ## Rendering test (11 November 2026)
 
 `packages/resource-core/src/word-sample.ts` is a two-sided A3 sheet that uses every worksheet block,

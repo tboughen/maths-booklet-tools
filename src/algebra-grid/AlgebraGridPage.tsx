@@ -1,8 +1,12 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceViewport, fitResource } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { algebraGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useEffect, useRef, useState } from "react";
 import {
   answerBelow,
@@ -26,10 +30,8 @@ import {
   type Envelope,
 } from "../../packages/algebra-grid-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import {
-  EditorDownloadMenu,
-  LINK_DESCRIPTION,
-} from "../site/EditorDownloadMenu";
+import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
@@ -40,6 +42,8 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
+import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -100,11 +104,15 @@ export default function AlgebraGridPage({
   active?: boolean;
 }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState({
-      past: startup.previous ? [startup.previous] : ([] as Envelope[]),
-      present: startup.e,
-      future: [] as Envelope[],
-    });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, {
+      equals: (a, b) => canonical(a) === canonical(b),
+      from: startup.previous
+        ? pushHistory(createHistory(startup.previous), startup.e, {
+            label: "open link",
+          })
+        : undefined,
+    }),
+    history = documentHistory.history;
   const e = history.present,
     d = e.document,
     g = layout(e);
@@ -153,14 +161,10 @@ export default function AlgebraGridPage({
           )
         : Number(zoom),
     px = (scale * 96) / 25.4;
-  function commit(next: Envelope, force = false) {
+  function commit(next: Envelope, force = false, label?: string) {
     if (!force && (recovery !== null || conflict)) return;
     const n = validate(next);
-    setHistory((h) =>
-      canonical(n) === canonical(h.present)
-        ? h
-        : { past: [...h.past, h.present].slice(-60), present: n, future: [] },
-    );
+    documentHistory.commit(n, label);
   }
   function change(fn: (n: Envelope) => void) {
     if (blocked) return;
@@ -170,27 +174,11 @@ export default function AlgebraGridPage({
   }
   function undo() {
     if (blockedRef.current) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (blockedRef.current) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function replace(
     next: Envelope,
@@ -226,14 +214,7 @@ export default function AlgebraGridPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
@@ -363,6 +344,30 @@ export default function AlgebraGridPage({
       setMessage(errorText(err));
     }
   }
+  function switchMode(mode: Envelope["document"]["mode"]) {
+    if (blocked) return;
+    const next = structuredClone(e);
+    next.document.mode = mode;
+    next.document.expression = "";
+    next.document.sourceId = null;
+    try {
+      commit(next);
+    } catch {
+      // Algebra terms are not numbers (and the reverse), so the entries go.
+      next.document.rows.forEach((row, r) =>
+        row.cells.forEach((cell, c) => {
+          if (r || c) Object.assign(cell, { value: null, hidden: false });
+        }),
+      );
+      replace(
+        next,
+        mode === "multiply"
+          ? "Switch to multiplying numbers?"
+          : "Switch to algebra?",
+        "The current entries do not fit this task, so the grid cells will be cleared. You can undo this.",
+      );
+    }
+  }
   function collect() {
     if (blocked) return;
     try {
@@ -388,7 +393,7 @@ export default function AlgebraGridPage({
   function openWorked() {
     if (blocked) return;
     try {
-      commit(workedCopy(e));
+      commit(workedCopy(e), false, "use worked version");
       setMessage("Worked version applied. Undo restores your pupil resource.");
     } catch (err) {
       setMessage(errorText(err));
@@ -471,6 +476,7 @@ export default function AlgebraGridPage({
     );
   }
   const dimensionBlocked = !!draft || (blocked && field?.key !== "expression");
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), false, TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor ag-editor">
       <main
@@ -488,6 +494,10 @@ export default function AlgebraGridPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={history.past.length > 0 && !blocked}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={history.future.length > 0 && !blocked}
               onUndo={undo}
               onRedo={redo}
@@ -517,49 +527,49 @@ export default function AlgebraGridPage({
               menuId="algebra-download-menu"
             />
             <EditorDownloadMenu
+              wordHelp
               id="algebra-download-menu"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onMessage={setMessage}
               onBusyChange={setBusy}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                svg: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "svg"),
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "png"),
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  disabled: pendingInput || !!issue,
+                  action: () => downloadImage(e, "pdf"),
+                  success: "PDF download started.",
+                },
+                save: {
                   disabled: pendingInput,
-                  description: "Includes hidden answers.",
                   action: () => downloadEditable(e),
                   success: "Editable-file download started.",
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   disabled: pendingInput,
                   action: () => file.current?.click(),
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   disabled: pendingInput,
-                  description: LINK_DESCRIPTION,
                   action: async () =>
                     navigator.clipboard.writeText(editorLink(e, location.href)),
                   success:
                     "Editable link copied, including any hidden answers.",
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
             <input
               type="file"
               hidden
@@ -585,12 +595,15 @@ export default function AlgebraGridPage({
                 onZoom={(value) => setZoom(value ? String(value) : "fit")}
               />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                onChange={setShowAnswers}
+              />
             </div>
-            <p className="ag-guidance">
+            <EditorHint tool="expanding-factorising">
               Click a cell or the printed question to edit. Blank cells stay
               blank until you choose to fill them.
-            </p>
+            </EditorHint>
             <div
               className="ag-scroll"
               ref={scroll}
@@ -789,7 +802,7 @@ export default function AlgebraGridPage({
                       new Blob([recovery ?? canonical(e)], {
                         type: "application/json",
                       }),
-                      "algebra-grid-recovery.json",
+                      downloadName("expanding-factorising", "json", { recovery: true }),
                     )
                   }
                 >
@@ -833,7 +846,7 @@ export default function AlgebraGridPage({
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, false, "use worked version")}
             />
             <section className="panel-card ag-panel">
               <h2>Teaching resource</h2>
@@ -843,21 +856,22 @@ export default function AlgebraGridPage({
                   value={d.mode}
                   disabled={blocked}
                   onChange={(ev) =>
-                    change((n) => {
-                      n.document.mode = ev.target.value as typeof d.mode;
-                      n.document.expression = "";
-                      n.document.sourceId = null;
-                    })
+                    switchMode(ev.target.value as typeof d.mode)
                   }
                 >
                   <option value="expand">Expanding</option>
                   <option value="factorise">Factorising</option>
+                  <option value="multiply">
+                    Multiplying numbers (grid method)
+                  </option>
                 </select>
               </label>
               <label>
                 {d.mode === "factorise"
                   ? "Expression to factorise"
-                  : "Question expression"}
+                  : d.mode === "multiply"
+                    ? "Multiplication, such as 23 × 47"
+                    : "Question expression"}
                 <input
                   aria-label="Question expression"
                   aria-invalid={field?.key === "expression" && !!inputError}
@@ -940,7 +954,9 @@ export default function AlgebraGridPage({
                 <button disabled={blocked} onClick={collect}>
                   {d.mode === "factorise"
                     ? "Read factors"
-                    : "Collect like terms"}
+                    : d.mode === "multiply"
+                      ? "Add the products"
+                      : "Collect like terms"}
                 </button>
                 <button
                   disabled={blocked}
@@ -1090,6 +1106,12 @@ export default function AlgebraGridPage({
                 rows and columns begin blank.
               </p>
               <p>
+                Multiplying numbers uses the same grid for the grid method:
+                enter plain numbers such as 20, 3 or 0.4. The worked version
+                splits each number by place value, so 23 × 47 needs two columns
+                and two rows of products.
+              </p>
+              <p>
                 Factorising uses trial and improvement. Check that the whole
                 expression matches. Automatic worked copies support monic
                 integer quadratics in a 3 × 3 grid, and a common factor in one
@@ -1113,7 +1135,9 @@ export default function AlgebraGridPage({
             <label>
               {d.mode === "factorise"
                 ? "Expression to factorise"
-                : "Expression to expand"}
+                : d.mode === "multiply"
+                  ? "Multiplication to work out"
+                  : "Expression to expand"}
               <input
                 aria-label="Printed question expression"
                 aria-invalid={!!inputError}
@@ -1185,7 +1209,7 @@ export default function AlgebraGridPage({
             confirmLabel="Apply replacement"
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, false, stepName(pending.title));
               setPending(null);
               setShowAnswers(false);
             }}

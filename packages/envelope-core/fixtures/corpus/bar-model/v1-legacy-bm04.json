@@ -1,0 +1,185 @@
+{
+ "kind": "bar-model",
+ "schemaVersion": 1,
+ "rendererVersion": "bar-model-1",
+ "styleProfile": "lesson-v1",
+ "document": {
+  "bars": [
+   {
+    "id": "b1",
+    "name": {
+     "text": "2 : 3 : 4",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b1p1",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": true
+     },
+     {
+      "id": "b1p2",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": true
+     },
+     {
+      "id": "b1p3",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p4",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p5",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p6",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p7",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p8",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     },
+     {
+      "id": "b1p9",
+      "weight": "1",
+      "label": {
+       "text": "",
+       "state": "blank"
+      },
+      "shade": false
+     }
+    ]
+   }
+  ],
+  "spans": [
+   {
+    "id": "whole",
+    "from": {
+     "barId": "b1",
+     "partId": "b1p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b1",
+     "partId": "b1p9",
+     "edge": "end"
+    },
+    "label": {
+     "text": "72",
+     "state": "value"
+    },
+    "side": "above",
+    "style": "brace"
+   },
+   {
+    "id": "first",
+    "from": {
+     "barId": "b1",
+     "partId": "b1p1",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b1",
+     "partId": "b1p2",
+     "edge": "end"
+    },
+    "label": {
+     "text": "16",
+     "state": "hidden"
+    },
+    "side": "below",
+    "style": "brace"
+   },
+   {
+    "id": "second",
+    "from": {
+     "barId": "b1",
+     "partId": "b1p3",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b1",
+     "partId": "b1p5",
+     "edge": "end"
+    },
+    "label": {
+     "text": "24",
+     "state": "hidden"
+    },
+    "side": "below",
+    "style": "brace"
+   },
+   {
+    "id": "third",
+    "from": {
+     "barId": "b1",
+     "partId": "b1p6",
+     "edge": "start"
+    },
+    "to": {
+     "barId": "b1",
+     "partId": "b1p9",
+     "edge": "end"
+    },
+    "label": {
+     "text": "32",
+     "state": "hidden"
+    },
+    "side": "below",
+    "style": "brace"
+   }
+  ],
+  "presentation": {
+   "unitMm": 10,
+   "barHeightMm": 10,
+   "fontPt": 12,
+   "nameWidthMm": 28
+  }
+ }
+}

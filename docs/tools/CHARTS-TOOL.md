@@ -36,6 +36,10 @@ tool later rather than a mode here.
   Vertical line charts draw 0.6 mm black lines with a grid line through every category.
 - **Limits:** 1–12 categories, 1–4 data sets, at most 40 axis steps.
 
+## Line weight (U111)
+
+Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
+
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, pictograms, time series graphs,
@@ -54,7 +58,8 @@ frequency polygons and histograms. Each would be a separate, reviewed extension 
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled.
-- `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only. The
+- `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
+  answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain
   hidden answers.
 - Responses carry the preview, outlined SVG, verified 600 ppi PNG, JSON, physical size, print

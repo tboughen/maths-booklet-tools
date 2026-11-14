@@ -30,7 +30,9 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - Columns hold titled question cards. Numbers are computed, running across both sides.
 - Card items: `text`, `info` (pale card), `claim` (a pupil's statement), `bullets`, `table`
   (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
-  suffix, inline groups), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
+  suffix, inline groups, and a saved answer of up to 160 characters, printed only on the answers copy;
+  raised from 60 on 14 November 2026 at Tim's choice, R27. An answer wider than its line is still
+  reported, so the maker shortens it or gives it a longer line rather than letting it run past), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
   size, optionally with blank axes: arrows, *x*, *y* and *O* but no numbers, so pupils choose the
   scale), `diagram` (a full editable Charts or Probability tree envelope) and `part` (a, b, c… holding further items).
 - Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
@@ -124,6 +126,14 @@ moving questions; at 11 pt they fit with small wording trims. Dyslexia guidance 
 rendered SVG at its own millimetre size, text kept as text with subset embedded fonts (Inter for
 the sheet, STIX Two for diagrams), no raster images. It needs no browser, so the free Render
 service can run it. The Inter files are TrueType because the PDF writer cannot subset WOFF2.
+
+Every worksheet and booklet PDF, from the connector and from the website, is re-opened and audited
+before it is offered (`packages/resource-core/src/pdf-audit.ts`, improvement item W30): the page
+count and each page's size and orientation match the drawn SVG pages (within 0.1 mm), no page holds
+more raster images than its artwork drew (bank question images are allowed, so text and diagrams
+cannot have been rasterised), every font is embedded and has a text map, and every page that drew
+text has selectable text. A failed audit is an error naming the page and the problem, never a
+silent download.
 
 ## MCP tools
 

@@ -1,4 +1,6 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
@@ -65,6 +67,11 @@ export const documentSchema = z
     questions: z.array(questionSchema).max(MAX_QUESTIONS),
     branchMm: z.number().int().min(24).max(60),
     gapMm: z.number().int().min(14).max(30),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export const envelopeSchema = z
@@ -73,6 +80,7 @@ export const envelopeSchema = z
     schemaVersion: z.literal(1),
     rendererVersion: z.literal("frequency-tree-1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
@@ -729,7 +737,7 @@ export function renderSvg(e: Envelope): string {
   const groups = d.nodes.length;
   const total = d.total.show === "show" && d.total.text.trim() ? ` with a total of ${typeset(d.total.text)}` : "";
   const label = `Frequency tree${total} and ${groups} groups over ${maxDepth(d)} level${maxDepth(d) === 1 ? "" : "s"}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`;
+  return boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}">${out.join("")}</svg>`, d.lines);
 }
 
 /* ---------- Editor links ---------- */

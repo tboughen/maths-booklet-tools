@@ -1,5 +1,9 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
+import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
+/** Fraction parts print at 85% of the label size, so triangle labels stay at 11 pt or more. */
+export const TRIANGLE_MIN_PT = Math.max(MIN_TEXT_PT, 11);
 
 const id = z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/);
 const safeText = (max: number) =>
@@ -49,6 +53,8 @@ const edgeSchema = z
     to: id,
     label: labelSchema,
     ticks: z.number().int().min(0).max(3),
+    /** Parallel-side arrowheads (1 to 3); absent means none, so older files are unchanged. */
+    arrows: z.number().int().min(1).max(3).optional(),
     dashed: z.boolean(),
     draw: z.boolean(),
   })
@@ -97,6 +103,19 @@ export const documentSchema = z
     split: z.object({ point: id, from: id, to: id }).strict().nullable(),
     widthCm: z.number().finite().min(6).max(18),
     notToScale: z.boolean(),
+    /** Label text size in points (U111), 11-14. Left out means the usual 11 pt; 11 is never saved. */
+    fontPt: z
+      .number()
+      .int()
+      .min(TRIANGLE_MIN_PT)
+      .max(14)
+      .transform((v) => (v === 11 ? undefined : v))
+      .optional(),
+    /** Bold lines (U111). Normal lines are the default and are never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
     sourceId: z
       .string()
       .regex(/^1MA1_[A-Z0-9_]+$/)
@@ -106,10 +125,11 @@ export const documentSchema = z
 export const envelopeSchema = z
   .object({
     kind: z.literal("triangle"),
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    rendererVersion: z.enum(["triangle-1", "triangle-2"]),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal("triangle-2"),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
@@ -267,13 +287,6 @@ export function numeric(text: string): number {
 export function validate(raw: unknown): Envelope {
   const e = envelopeSchema.parse(raw),
     d = e.document;
-  if (
-    (e.schemaVersion === 1 &&
-      (e.rendererVersion !== "triangle-1" ||
-        d.triangles.some((t) => t.area))) ||
-    (e.schemaVersion === 2 && e.rendererVersion !== "triangle-2")
-  )
-    throw Error("Triangle area labels need schema 2 and renderer triangle-2.");
   const unique = (ids: string[]) => new Set(ids).size === ids.length;
   for (const list of [
     d.vertices,

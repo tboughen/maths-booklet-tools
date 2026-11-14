@@ -12,6 +12,7 @@ import {
   fillComplements,
   fillEnd,
   fillFromBag,
+  fitBranchLength,
   forView,
   formatFraction,
   fromNested,
@@ -189,6 +190,28 @@ describe("probability tree core", () => {
     expect(lineCrossesBox({ x1: 0, y1: 0, x2: 10, y2: 0 }, { x1: 4, x2: 6, y1: 1, y2: 3 })).toBe(false);
   });
 
+  it("names the labels that overlap", () => {
+    const e = uniform([{ outcomes: ["A", "B", "C", "D"], probabilities: ["1/10", "1/10", "1/10", "7/10"] }], { branchMm: 20, gapMm: 10 });
+    expect(layout(e).issues.join(" ")).toContain('Labels overlap: the probability on A ("1/10") and the probability on B ("1/10")');
+  });
+
+  it("says which branch length fits a tree that is too wide, and fits a new three-stage tree", () => {
+    const two = uniform(
+      [
+        { outcomes: ["Red", "Blue"], probabilities: ["1/2", "1/2"] },
+        { outcomes: ["Red", "Blue"], probabilities: ["1/2", "1/2"] },
+      ],
+      { endColumn: "both", stageTitles: [] },
+    );
+    expect(layout(two).issues).toEqual([]);
+    const three = addStage(two);
+    expect(layout(three).issues.join(" ")).toMatch(/^The tree is [\d.]+ mm wide, more than 18 cm\. A branch length of 31 mm fits\.$/);
+    const fitted = fitBranchLength(three);
+    expect(fitted.document.branchMm).toBe(31);
+    expect(layout(fitted).issues).toEqual([]);
+    expect(fitBranchLength(two)).toBe(two);
+  });
+
   it("allows one branch at a later point, for draw-the-missing-branches questions", () => {
     const e = fromNested([
       { outcome: "Red", probability: "3/8", children: [{ outcome: "Red", probability: "3/8" }] },
@@ -227,5 +250,17 @@ describe("probability tree core", () => {
     const href = editorLink(e, "https://mathsdock.co.uk/")!;
     expect(href).toMatch(/^https:\/\/mathsdock\.co\.uk\/tools\/probability-tree#tree=/);
     expect(decodeLinkHash(new URL(href).hash)).toEqual(e);
+  });
+});
+
+describe("connector create", () => {
+  it("fits a three-stage tree with both end columns unless a branch length was asked for", async () => {
+    const { create: createTree } = await import("./interchange");
+    const stages = [0, 1, 2].map(() => ({ outcomes: ["Red", "Blue"], probabilities: ["3/10", "7/10"] }));
+    const fitted = createTree({ spec: { stages, settings: { endColumn: "both" } } });
+    expect(fitted.document.branchMm).toBeLessThan(32);
+    expect(layout(fitted).issues).toEqual([]);
+    const asked = createTree({ spec: { stages, settings: { endColumn: "both", branchMm: 32 } } });
+    expect(asked.document.branchMm).toBe(32);
   });
 });

@@ -71,7 +71,7 @@ it.each([undefined,"external-height","ssa","fractions","joined-rules","bisector"
   const json = await artifact(r,"json"), svg = await artifact(r,"svg"), png = await artifact(r,"png");
   expect(JSON.parse(json.toString("utf8"))).toEqual(e);
   expect(svg.toString()).not.toMatch(/<(?:text|image|script|foreignObject)\b/);
-  expect(svg.toString()).toContain("Triangle diagram");
+  expect(svg.toString()).toMatch(/<title>(?:Triangle|\d+ triangles) with vertices [^<]+<\/title>/);
   verifyPrintBytes(png,r.data.printRaster.width,r.data.printRaster.height);
   const g = core.layout(e);
   expect(r.data.physicalSizeCm).toEqual({width:g.width/10,height:g.height/10});
@@ -87,7 +87,7 @@ it("revises a scaffold, saves only explicit answers and rejects stale hash", asy
   expect(core.getLabel(edited.data.envelope,"e:BC")).toMatchObject({state:"answer-line",answer:"10",answerVisible:false});
   const wrong = await c.callTool({name:"revise_triangle",arguments:{envelope:r.data.envelope,baseHash:"0".repeat(64),operations:[]}});
   expect(wrong.isError).toBe(true);
-  expect(JSON.stringify(wrong.content)).toContain("base_hash_mismatch");
+  expect(JSON.stringify(wrong.content)).toContain("stale_hash");
   const before = core.canonical(r.data.envelope);
   const invalid = await c.callTool({name:"revise_triangle",arguments:{envelope:r.data.envelope,baseHash:r.data.contentHash,operations:[{op:"set_print",widthCm:14},{op:"move_vertex",id:"missing",x:0,y:0}]}});
   expect(invalid.isError).toBe(true); expect(core.canonical(r.data.envelope)).toBe(before);

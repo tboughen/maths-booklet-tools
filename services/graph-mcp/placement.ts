@@ -54,7 +54,20 @@ export function checkPlacement(raw: unknown, preparedInfo?: ReturnType<typeof di
     warnings.push({ code: "reduced_print_size", message: `Reduction to ${Number((uniformScale * 100).toFixed(2))}% reduces text, grids and writing space. ${[changes(f.textSizesPt, "pt"), changes(f.gridPitchMm, "mm grid pitch"), changes(f.answerLineLengthsMm, "mm answer line"), changes(f.tableRowHeightsMm, "mm row height")].filter(Boolean).join("; ")}. Check the destination print; no universal minimum size is assumed.` });
   }
   if (uniformScale > 1.001) warnings.push({ code: "png_enlargement", message: `Only for the 600 ppi PNG: proportional enlargement yields ${Number((600 / uniformScale).toFixed(2))} ppi. SVG remains vector.` });
-  const result = { nativeSizeMm, requestedSizeMm, proportionalSizeMm, uniformScale, wouldDistort, scaledReferenceFeatures, effectivePngDpi: 600 / uniformScale, warnings };
+  // Reported values are rounded (0.01 mm, 0.01 pt/ppi, 4 dp scale) so models and teachers do not
+  // see floating-point noise such as 111.19999999999999; all checks above use the exact values.
+  const round = (v: number, dp: number) => Number(v.toFixed(dp));
+  const mm = (s: { width: number; height: number }) => ({ width: round(s.width, 2), height: round(s.height, 2) });
+  const list = (values: number[]) => values.map((v) => round(v, 2));
+  const result = {
+    nativeSizeMm: mm(nativeSizeMm), requestedSizeMm: mm(requestedSizeMm), proportionalSizeMm: mm(proportionalSizeMm),
+    uniformScale: round(uniformScale, 4), wouldDistort,
+    scaledReferenceFeatures: {
+      textSizesPt: list(scaledReferenceFeatures.textSizesPt), gridPitchMm: list(scaledReferenceFeatures.gridPitchMm),
+      answerLineLengthsMm: list(scaledReferenceFeatures.answerLineLengthsMm), tableRowHeightsMm: list(scaledReferenceFeatures.tableRowHeightsMm),
+    },
+    effectivePngDpi: round(600 / uniformScale, 2), warnings,
+  };
   if (!placementOutputSchema.safeParse(result).success) throw new GraphError("invalid_placement", "These dimensions exceed supported numeric precision. Use ordinary physical dimensions in millimetres.");
   return result;
 }

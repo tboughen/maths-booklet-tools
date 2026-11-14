@@ -1,4 +1,6 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { MIN_TEXT_PT, LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { renderSvg as renderLegacySvg } from "./legacy";
@@ -37,9 +39,11 @@ const legacySchema = z
         definitions: z.array(z.string().max(120)).length(4),
         showDefinitions: z.boolean(),
         widthCm: z.number().min(8).max(16),
-        fontPt: z.number().min(9).max(14),
+        fontPt: z.number().min(MIN_TEXT_PT).max(14),
+        lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export const arrangements = [
@@ -140,17 +144,33 @@ export function changeArrangement(e: Envelope, value: Arrangement) {
   return validate(n);
 }
 /** A view is temporary presentation; never save this copy over the pupil document. */
-export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
+/**
+ * The answer view shows every saved region and label. With `mark`, the ones shown only because they
+ * were saved hidden print in the house answer colour (worksheet answers copies and outputView answer).
+ */
+export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
   n.document.regions.forEach((r) => {
-    if (r.kind !== "empty" && r.text.trim()) r.visibility = "show";
+    if (r.kind !== "empty" && r.text.trim()) {
+      if (mark && r.visibility !== "show") REVEALED.add(r);
+      r.visibility = "show";
+    }
   });
   n.document.labels.forEach((l) => {
-    if (l.text.trim()) l.visibility = "show";
+    if (l.text.trim()) {
+      if (mark && l.visibility !== "show") REVEALED.add(l);
+      l.visibility = "show";
+    }
   });
   return n;
 }
+/** Regions and labels an answer view shows only because they were saved hidden or as answer lines. */
+const REVEALED = new WeakSet<object>();
+/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
+export const VENN_ANSWER_COLOUR = "#b0125b";
+const inkAnswer = (svg: string, item: object) =>
+  REVEALED.has(item) ? svg.replace(/(fill|stroke)="black"/g, `$1="${VENN_ANSWER_COLOUR}"`) : svg;
 export function relationship(e: Envelope) {
   const a = e.document.labels[1].text || "A",
     b = e.document.labels[2].text || "B";
@@ -179,7 +199,7 @@ export function validate(input: unknown): Envelope {
     if (path.includes("widthCm"))
       throw Error("Choose a print width from 8 to 16 cm.");
     if (path.includes("fontPt"))
-      throw Error("Choose a text size from 9 to 14 pt.");
+      throw Error("Choose a text size from 10 to 14 pt.");
     if (path.includes("regions"))
       throw Error(
         "A region has unsupported content or display settings. Keep member lists within 660 characters.",
@@ -670,7 +690,7 @@ function content(
         x += w + f * 0.6;
       }
     }
-    if (used === tokens.length) return { svg: chunks.join("") };
+    if (used === tokens.length) return { svg: inkAnswer(chunks.join(""), r) };
   }
   return {
     svg: "",
@@ -744,7 +764,9 @@ export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }
 export function renderSvg(e: Envelope) {
-  if (e.schemaVersion === 1) return renderLegacySvg(e);
+  return boldLines(e.schemaVersion === 1 ? renderLegacySvg(e) : renderExtended(e), e.document.lines);
+}
+function renderExtended(e: ExtendedEnvelope) {
   const d = e.document,
     g = layout(e),
     b = g.box;
@@ -785,7 +807,7 @@ export function renderSvg(e: Envelope) {
         `<rect x="${p.x - w / 2}" y="${p.y - font * 0.7}" width="${w}" height="${font * 1.3}" fill="white"/>` +
         (l.visibility === "line"
           ? `<path d="M${p.x - 4.5},${p.y + font * 0.3}h9" stroke="black" stroke-width=".22"/>`
-          : textSvg(l.text, p.x, p.y + font * 0.3, font, i > 0))
+          : inkAnswer(textSvg(l.text, p.x, p.y + font * 0.3, font, i > 0), l))
       );
     })
     .join("");

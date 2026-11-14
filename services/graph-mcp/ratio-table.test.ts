@@ -57,7 +57,7 @@ async function start(options = {}) {
   return { base, client };
 }
 const spec = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   rows: [
     {
       id: "start",
@@ -96,7 +96,7 @@ describe("ratio tools on the shared real MCP service", () => {
     expect(caps.structuredContent).toMatchObject({
       columns: 2,
       supportedColumns: [1, 2, 3],
-      rendererVersions: ["ratio-1", "ratio-2"],
+      rendererVersions: ["ratio-2"],
     });
     const reply = await client.callTool({
       name: "create_ratio_table",
@@ -316,7 +316,7 @@ describe("ratio tools on the shared real MCP service", () => {
     expect(graph.isError).not.toBe(true);
     expect(await (await fetch(base + "/healthz")).json()).toMatchObject({
       rendererVersion: "graph-1",
-      ratioRendererVersion: "ratio-1",
+      ratioRendererVersion: "ratio-2",
     });
   }, 30000);
   it("retains intentional mistakes and returns warnings without printing corrected answers", async () => {

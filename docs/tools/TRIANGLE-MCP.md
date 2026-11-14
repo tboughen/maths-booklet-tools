@@ -53,7 +53,7 @@ copy stored in another chat.
 | --- | --- |
 | set_label | ref, patch (fields listed above) |
 | set_angle_mark | id, mark:none/arc/double/triple/right |
-| set_edge_style | id, optional ticks:0..3 and dashed:boolean |
+| set_edge_style | id, optional ticks:0..3 (equal sides), arrows:0..3 (parallel sides; 0 removes) and dashed:boolean |
 | move_vertex | id, x, y (finite coordinates within +/-10000) |
 | transform | kind:left/right/reflect/vertical |
 | set_constraint | triangleId, type:right/equal/equilateral/none, vertex |
@@ -66,7 +66,7 @@ copy stored in another chat.
 | remove_caption | id |
 | set_shared_label | id, text; adds or updates bounded shared text |
 | link_label | ref, sharedId:string or null; unlink retains displayed text |
-| set_print | widthCm:6..18 |
+| set_print | widthCm?:6..18, fontPt?:11..14, lines?:normal\|bold (at least one; normal is not saved) |
 | set_not_to_scale | visible:boolean |
 | construct | triangleId, method:SSS/SAS/ASA/AAS/right, inputs:named strings |
 | calculate_and_store | ref, triangleId, method, optional inputs/branch, rounding:{kind:dp/sf/exact,digits:0..10}, overwrite:false default |
@@ -136,9 +136,8 @@ not physical scale. Retained joined/split constraints still apply.
 
 ## Versions, print and transport
 
-Retain kind `triangle`, style `exam-v1`, schema1/triangle-1 and schema2/triangle-2.
-Per-triangle area labels use version 2. Adding/removing the last area follows the
-browser version rules; a no-op/import does not silently migrate a valid version.
+Kind `triangle`, style `exam-v1`, schema 2 / triangle-2 only (schema 1 is no longer
+read). Per-triangle area labels need no version change.
 The MCP wire schema uses a homogeneous exactly-three-entry vertex array while
 the saved format/internal tuple remains unchanged. Audit both input and output
 schemas; a valid internal Zod type alone does not prove client import acceptance.
@@ -146,7 +145,7 @@ schemas; a valid internal Zod type alone does not prove client import acceptance
 Limits: two component triangles; three records for split including outer; six
 vertices; seven edges; nine angles; two heights (one per triangle); two captions.
 Single default width 12 cm, paired 16 cm; width 6–18 cm. Actual full artwork
-determines height; 11 pt typography, margins and pupil writing spaces are retained.
+determines height; 11 pt typography by default (`fontPt` 11–14; fraction parts print at 85%, so never below 11), margins and pupil writing spaces are retained.
 
 Returns preview, envelope/hash, outlined SVG, verified 600 ppi PNG, editable JSON,
 physicalSizeCm, printGuidance, warnings and bounded editor link. Ordinary artwork

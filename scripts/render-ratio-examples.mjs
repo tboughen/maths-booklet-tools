@@ -129,7 +129,7 @@ const fixtures = {
 };
 const receipt = [];
 for (const [name, spec] of Object.entries(fixtures)) {
-  const envelope = core.createRatioTable({ schemaVersion: 1, ...spec }),
+  const envelope = core.createRatioTable(spec),
     svg = core.renderRatioSvg(envelope.document),
     metrics = core.ratioMetrics(envelope.document);
   const size = pngBytes.printRasterSize(metrics.widthCm, metrics.heightCm);

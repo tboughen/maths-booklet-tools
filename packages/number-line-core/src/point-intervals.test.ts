@@ -1,4 +1,4 @@
-import { it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { create, apply, renderSvg, canonical, parseFile, encode, decode } from "./index";
 const points=()=>create({solution:{kind:"points",id:"points",points:[{id:"a",value:"-2"},{id:"b",value:"3"},{id:"c",value:"4"}]}});
 it("joins existing points and retains hollow endpoint and other points",()=>{
@@ -24,4 +24,22 @@ it("rejects dangling, duplicate and same-point intervals atomically",()=>{
 it("retains legacy point envelope shape and filled rendering without a migration",()=>{
  const e=points(),text=canonical(e);expect(e.document.solution).not.toHaveProperty("intervals");expect(e.document.solution?.kind==="points"?e.document.solution.points[0]:null).not.toHaveProperty("included");
  expect(canonical(parseFile(text))).toBe(text);expect(renderSvg(e)).not.toContain('fill="white" stroke="#111"');
+});
+
+describe("rays from points (x < −1 or x ≥ 2)", () => {
+  const two = () => create({ axis: { minimum: "-5", maximum: "5" }, solution: { kind: "points", id: "points", points: [{ id: "a", value: "-1", included: false }, { id: "b", value: "2", included: true }] } });
+  it("draws one ray each way from the outer points, with arrows, and removes it cleanly", () => {
+    const before = canonical(two());
+    const e = apply(two(), [{ op: "add_point_ray", ray: { id: "l", from: "a", direction: "left" } }, { op: "add_point_ray", ray: { id: "r", from: "b", direction: "right" } }]);
+    const svg = renderSvg(e);
+    expect(svg.match(/data-ray=/g)).toHaveLength(2);
+    const back = apply(e, [{ op: "remove_point_ray", id: "l" }, { op: "remove_point_ray", id: "r" }]);
+    expect(canonical(back)).toBe(before);
+    expect(canonical(apply(e, [{ op: "remove_point", id: "a" }]))).not.toContain('"l"');
+  });
+  it("refuses a ray through another point, a second ray the same way or a missing point", () => {
+    expect(() => apply(two(), [{ op: "add_point_ray", ray: { id: "x", from: "a", direction: "right" } }])).toThrow(/through another point/);
+    expect(() => apply(two(), [{ op: "add_point_ray", ray: { id: "x", from: "b", direction: "right" } }, { op: "add_point_ray", ray: { id: "y", from: "b", direction: "right" } }])).toThrow(/one ray each way/);
+    expect(() => apply(two(), [{ op: "add_point_ray", ray: { id: "x", from: "zz", direction: "left" } }])).toThrow(/existing point/);
+  });
 });

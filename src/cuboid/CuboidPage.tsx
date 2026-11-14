@@ -1,20 +1,26 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appearance,
-  upgrade,
   faceNames,
   faceAreaLabel,
   type Appearance,
@@ -58,8 +64,15 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
+import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
-const newDocument = () => upgrade(create());
+/** A new drawing starts from the house style's lines (U111); its text is always 11 pt. */
+const newDocument = () => {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+};
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -87,11 +100,8 @@ function initial() {
 }
 export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
-    [history, setHistory] = useState<{
-      past: Envelope[];
-      present: Envelope;
-      future: Envelope[];
-    }>({ past: [], present: startup.e, future: [] });
+    documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
+    { history, setHistory } = documentHistory;
   const [message, setMessage] = useState(startup.error),
     [saveState, setSaveState] = useState("Saved on this device"),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
@@ -181,19 +191,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       alive = false;
     };
   }, [active, cropKey, e, issue]);
-  function commit(value: Envelope) {
+  function commit(value: Envelope, label?: string) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
     const valid = validate(value);
-    setHistory((h) =>
-      canonical(valid) === canonical(h.present)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function changeShape(update: (shape: Shape) => Shape) {
@@ -207,11 +209,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
         ),
       },
     };
-    commit(
-      prev.schemaVersion === 1 && next.document.shapes.some((x) => x.appearance)
-        ? upgrade(next)
-        : next,
-    );
+    commit(next);
   }
   function paint(p: Partial<Appearance>) {
     changeShape((x) => ({ ...x, appearance: { ...appearance(x), ...p } }));
@@ -242,28 +240,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setInline(null);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setInline(null);
   }
   function replacement(next: Envelope, title: string) {
@@ -333,23 +315,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
       if (event.key === "Escape" && !dirty.size) setInline(null);
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        !(
-          event.target instanceof HTMLElement &&
-          event.target.closest("input,textarea,select,[contenteditable]")
-        )
-      ) {
-        if (event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (event.shiftKey) redo();
-          else undo();
-        }
-        if (event.key.toLowerCase() === "y") {
-          event.preventDefault();
-          redo();
-        }
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -477,6 +443,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       {label}
     </label>
   );
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor cb-editor">
       <main
@@ -494,6 +461,10 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -521,51 +492,51 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="cuboids-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(e, location.origin + location.pathname)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize
@@ -578,32 +549,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 }
                 error={!!issue || cropSize.error}
               />
-              <label>
-                View{" "}
-                <select
-                  aria-label="View"
-                  value={s.view}
-                  disabled={blocked}
-                  onChange={(ev) => view(ev.target.value as Shape["view"])}
-                >
-                  <option value="plain">Exam diagram</option>
-                  <option value="cubes">Show cubes</option>
-                  <option value="layers" disabled={a.mode === "one"}>
-                    Separate layers
-                  </option>
-                </select>
-              </label>
-              <button
-                className="cb-quick-cubes"
-                disabled={blocked}
-                onClick={() =>
-                  safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
-                }
-              >
-                Show 1 cm³ cubes
-              </button>
-              <span>Click a label to edit</span>
             </div>
+            <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
               <p className="cb-export-warning" role="alert">
                 {issue}
@@ -674,45 +621,39 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               )}
             </div>
             <div className="cb-structure" aria-label="Cuboid structure">
-              <div className="cb-structure-group">
-                <button
-                  disabled={blocked || d.shapes.length >= 3}
-                  onClick={addShape}
-                  aria-label="Add cuboid"
-                >
-                  + Cuboid
-                </button>
-                <button
-                  disabled={blocked || d.shapes.length <= 1}
-                  onClick={removeShape}
-                  aria-label="Remove selected cuboid"
-                >
-                  − Cuboid
-                </button>
-              </div>
+              <StructureStepper
+                className="cb-structure-group"
+                name="Cuboids"
+                add={{
+                  label: "Add cuboid",
+                  disabled: blocked || d.shapes.length >= 3,
+                  onClick: addShape,
+                }}
+                remove={{
+                  label: "Remove selected cuboid",
+                  disabled: blocked || d.shapes.length <= 1,
+                  onClick: removeShape,
+                }}
+              />
               {s.view !== "plain" &&
                 axes.map((a) => (
-                  <div className="cb-structure-group" key={a}>
-                    <span>{a[0].toUpperCase() + a.slice(1)}</span>
-                    <button
-                      aria-label={`Remove one cube from ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, -1)))
-                      }
-                    >
-                      −
-                    </button>
-                    <button
-                      aria-label={`Add one cube to ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, 1)))
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
+                  <StructureStepper
+                    key={a}
+                    className="cb-structure-group"
+                    name={a[0].toUpperCase() + a.slice(1)}
+                    add={{
+                      label: `Add one cube to ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, 1))),
+                    }}
+                    remove={{
+                      label: `Remove one cube from ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, -1))),
+                    }}
+                  />
                 ))}
             </div>
             {dirty.size > 0 && (
@@ -733,7 +674,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "cuboids-recovery.json",
+                      downloadName("cuboids", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}
@@ -745,11 +686,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     expected.current = null;
                     setRecovery(null);
-                    setHistory({
-                      past: [],
-                      present: newDocument(),
-                      future: [],
-                    });
+                    setHistory(createHistory(newDocument()));
                     setSelected("cuboid-1");
                     setInline(null);
                     setDirty(new Set());
@@ -794,7 +731,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card cb-settings">
               {d.shapes.length > 1 && (
@@ -902,6 +839,32 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     }),
                   )}
                 </div>
+                <div className="cb-units-row">
+                  <label>
+                    View{" "}
+                    <select
+                      aria-label="View"
+                      value={s.view}
+                      disabled={blocked}
+                      onChange={(ev) => view(ev.target.value as Shape["view"])}
+                    >
+                      <option value="plain">Exam diagram</option>
+                      <option value="cubes">Show cubes</option>
+                      <option value="layers" disabled={a.mode === "one"}>
+                        Separate layers
+                      </option>
+                    </select>
+                  </label>
+                  <button
+                    className="cb-quick-cubes"
+                    disabled={blocked}
+                    onClick={() =>
+                      safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
+                    }
+                  >
+                    Show 1 cm³ cubes
+                  </button>
+                </div>
                 {
                   <details>
                     <summary>Cube size and counts</summary>
@@ -965,20 +928,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   )}
                   {check("Dimension arrows (exam view)", s.arrows, (v) =>
                     patch({ arrows: v }),
-                  )}
-                  {e.schemaVersion === 1 && (
-                    <>
-                      <p className="cb-note">
-                        Original saved layout is retained.
-                      </p>
-                      <button
-                        className="cb-action"
-                        disabled={blocked}
-                        onClick={() => safe(() => commit(upgrade(e)))}
-                      >
-                        Use current exam layout
-                      </button>
-                    </>
                   )}
                   {check(
                     "Schematic proportions (exam view)",
@@ -1247,6 +1196,24 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 {field("Print width (cm)", d.widthCm, (v) =>
                   commit({ ...e, document: { ...d, widthCm: Number(v) } }),
                 )}
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    onChange={(ev) => {
+                      const next = { ...d };
+                      setLines(next, ev.target.value as LineWeight);
+                      commit({ ...e, document: next });
+                    }}
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <p className="cb-note">
                   Width before trimming. Images keep their scale and trim unused
                   outer space. Preview zoom does not change printing.
@@ -1294,7 +1261,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onCancel={() => setPending(null)}
           onConfirm={() => {
-            commit(pending.e);
+            commit(pending.e, stepName(pending.title));
             setSelected(pending.e.document.shapes[0].id);
             setInline(null);
             setPending(null);

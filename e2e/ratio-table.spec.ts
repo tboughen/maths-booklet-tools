@@ -22,7 +22,6 @@ const legacyFixtures = JSON.parse(
 const key = "maths-booklet-tools:ratio-table-envelope:v1";
 const graphKey = "maths-booklet-tools:graph-envelope:v1";
 const simple = createRatioTable({
-  schemaVersion: 1,
   rows: [
     {
       cells: [
@@ -34,7 +33,6 @@ const simple = createRatioTable({
   ],
 });
 const scaffold = createRatioTable({
-  schemaVersion: 1,
   mode: "annotated",
   rows: [
     {
@@ -94,8 +92,11 @@ test("ratio link protects a draft; confirming opens once and undo restores it", 
     .getByRole("button", { name: "Open this table", exact: true })
     .click();
   await expect.poll(() => stored(page)).toEqual(scaffold);
+  // Undo names the step it will reverse (U8).
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", "Undo open this ratio table (Ctrl+Z)");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => stored(page)).toEqual(simple);
+  await expect(page.getByRole("button", { name: "Redo", exact: true })).toHaveAttribute("title", "Redo open this ratio table (Ctrl+Y)");
 });
 test("pupil blank stays blank; explicit fill confirms existing values and undo restores the scaffold", async ({
   page,
@@ -224,7 +225,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
     const result = await download;
-    expect(result.suggestedFilename()).toBe(`maths-ratio-table.${format}`);
+    expect(result.suggestedFilename()).toMatch(new RegExp(`^mathsdock-ratio-table-(.+-)?\\d{4}-\\d{2}-\\d{2}\\.${format}$`));
     const bytes = await readFile((await result.path())!);
     if (format === "png")
       verifyPrintBytes(
@@ -236,7 +237,8 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
       const svg = bytes.toString();
       expect(svg.includes("data:font/otf;base64,")).toBe(true);
       expect(svg.includes("ratio-guides")).toBe(false);
-      expect(svg.includes(`width="${metrics.widthCm}cm"`)).toBe(true);
+      // The SVG root keeps four decimal places of its unit (U38).
+      expect(svg.includes(`width="${Number(metrics.widthCm.toFixed(4))}cm"`)).toBe(true);
       const pupilCell = svg.match(
         /<g class="ratio-cell" data-row="target" data-column="1"[^]*?<\/g>/,
       )![0];
@@ -391,7 +393,7 @@ test("clipboard includes the verified PNG and centimetre dimensions; blocked cop
   ).toBeVisible();
 });
 
-test("direct editing, three clear scaling arrows, explicit fill and legacy undo work together", async ({
+test("direct editing, three clear scaling arrows, explicit fill and undo work together", async ({
   page,
 }, testInfo) => {
   await seed(page, JSON.stringify(legacyFixtures[1].envelope));
@@ -414,7 +416,7 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
   );
   await expect(page.locator(".ratio-preview .ratio-operation")).toHaveCount(3);
   await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
-  expect((await stored(page)).document.rows[1].cells).toEqual([
+  await expect.poll(async () => (await stored(page)).document.rows[1].cells).toEqual([
     { kind: "number", value: "1" },
     { kind: "answer-line" },
     { kind: "empty" },
@@ -476,7 +478,7 @@ test("direct editing, three clear scaling arrows, explicit fill and legacy undo 
     .getByRole("button", { name: "Remove column", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(2);
   await expect
     .poll(async () => (await stored(page)).document)
     .toEqual(legacyFixtures[1].envelope.document);
@@ -852,12 +854,9 @@ test("visible remove controls shrink to one row/column, retain values and restor
     await expect(
       pair.getByRole("button", { name: remove, exact: true }),
     ).toBeVisible();
-    const [addBounds, removeBounds] = await pair.evaluate((element) =>
-      Array.from(element.querySelectorAll("button")).map((button) => {
-        const { x, y, width, height } = button.getBoundingClientRect();
-        return { x, y, width, height };
-      }),
-    );
+    // U6 steppers: vertical ones put + above −; horizontal ones read − then +.
+    const addBounds = await pair.getByRole("button", { name: add, exact: true }).boundingBox();
+    const removeBounds = await pair.getByRole("button", { name: remove, exact: true }).boundingBox();
     expect(addBounds).not.toBeNull();
     expect(removeBounds).not.toBeNull();
     if (group === "Columns") {
@@ -865,7 +864,7 @@ test("visible remove controls shrink to one row/column, retain values and restor
       expect(removeBounds!.y).toBeGreaterThan(addBounds!.y + addBounds!.height);
     } else {
       expect(removeBounds!.y).toBe(addBounds!.y);
-      expect(removeBounds!.x).toBeGreaterThan(addBounds!.x + addBounds!.width);
+      expect(addBounds!.x).toBeGreaterThan(removeBounds!.x + removeBounds!.width);
     }
   }
   await page.getByLabel("Row 1 x value", { exact: true }).click();
@@ -920,9 +919,9 @@ test("visible remove controls shrink to one row/column, retain values and restor
     page.getByLabel("Edit column 2 heading", { exact: true }),
   ).toHaveValue("y ↑");
   await structure.getByRole("button", { name: "Add row", exact: true }).click();
-  await expect.poll(async () => (await stored(page)).schemaVersion).toBe(1);
+  await expect.poll(async () => (await stored(page)).document.rows.length).toBe(2);
   await expect
-    .poll(async () => (await stored(page)).document.rows[1].cells)
+    .poll(async () => (await stored(page)).document.rows[1]?.cells)
     .toEqual([{ kind: "empty" }, { kind: "empty" }]);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -1115,14 +1114,14 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     .check();
   await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(1);
   for (const [name, file, shown] of [
-    ["Download SVG", "maths-ratio-table.svg", false],
-    ["Download answers SVG", "maths-ratio-table-answers.svg", true],
+    ["Download SVG", /^mathsdock-ratio-table-(?!.*answers)(.+-)?\d{4}-\d{2}-\d{2}\.svg$/, false],
+    ["Download answers SVG", /^mathsdock-ratio-table-(.+-)?answers-\d{4}-\d{2}-\d{2}\.svg$/, true],
   ] as const) {
     await page.getByRole("button", { name: "File", exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
     const result = await download;
-    expect(result.suggestedFilename()).toBe(file);
+    expect(result.suggestedFilename()).toMatch(file);
     const svg = (await readFile((await result.path())!)).toString();
     expect(svg.includes("ratio-hidden-answer")).toBe(shown);
   }

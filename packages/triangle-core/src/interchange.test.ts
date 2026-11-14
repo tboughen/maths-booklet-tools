@@ -28,7 +28,7 @@ describe("Triangle interchange", () => {
   it("does not infer answers; revisions are atomic and hash bound", async () => {
     const e = scaffold(), before = core.canonical(e);
     expect(core.getLabel(e, "e:BC").answer).toBe("");
-    await expect(ti.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow("base_hash_mismatch");
+    await expect(ti.revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow("stale_hash");
     await expect(edit(e, [{ op: "set_label", ref: "e:AB", patch: { text: "6" } }, { op: "set_label", ref: "e:no", patch: { text: "2" } }])).rejects.toThrow();
     expect(core.canonical(e)).toBe(before);
   });
@@ -75,16 +75,16 @@ describe("Triangle interchange", () => {
     const labelled = await edit(mark, [{ op: "set_label", ref: "a:T1-B", patch: { text: "x", state: "symbol" } }]);
     expect(labelled.document.angles[1].mark).toBe("none");
   });
-  it("upgrades only when adding an area, preserves no-op v2 and restores version on removal", async () => {
+  it("keeps schema 2 when adding or removing an area and rejects a version-1 file", async () => {
     const e = scaffold();
+    expect(e.schemaVersion).toBe(2);
+    expect(e.rendererVersion).toBe("triangle-2");
     const area = await edit(e, [{ op: "set_area", triangleId: "T1", label: { state: "answer-line", prefix: "Area = " } }]);
     expect(area.schemaVersion).toBe(2);
-    expect(area.rendererVersion).toBe("triangle-2");
     expect((await edit(area, [])).schemaVersion).toBe(2);
-    expect((await edit(area, [{ op: "set_area", triangleId: "T1", label: null }])).schemaVersion).toBe(1);
-    const oldV2 = { ...e, schemaVersion: 2, rendererVersion: "triangle-2" };
-    expect(ti.create({ envelope: oldV2 })).toEqual(oldV2);
-    expect(() => ti.create({ envelope: { ...area, schemaVersion: 1 } })).toThrow();
+    expect((await edit(area, [{ op: "set_area", triangleId: "T1", label: null }])).schemaVersion).toBe(2);
+    expect(ti.create({ envelope: e })).toEqual(e);
+    expect(() => ti.create({ envelope: { ...e, schemaVersion: 1, rendererVersion: "triangle-1" } })).toThrow();
   });
   it("edits shared text, unlinks without losing it and retains hidden answers", async () => {
     const e = await edit(scaffold(), [
@@ -148,5 +148,23 @@ describe("Triangle interchange", () => {
     expect(units.get("r")).toBe(`${ti.contexts(e)[0].lengthUnit}²`);
     expect(units.get("e")).toBe(ti.contexts(e)[0].lengthUnit);
     expect([...units.keys()]).not.toContain("c");
+  });
+});
+
+describe("Parallel arrows", () => {
+  const sides = (e: core.Envelope) => e.document.edges;
+  it("draws arrows that point the same way on parallel sides and removes them cleanly", () => {
+    const e0 = scaffold();
+    const [a, b] = sides(e0);
+    const before = JSON.stringify(e0);
+    const e1 = ti.applyOperations(e0, [{ op: "set_edge_style", id: a.id, arrows: 2 }, { op: "set_edge_style", id: b.id, arrows: 1, ticks: 1 }]);
+    expect(sides(e1)[0].arrows).toBe(2);
+    expect(core.validate(e1)).toEqual(e1);
+    const plain = core.layout(e0).svg.match(/<line /g)!.length;
+    // Each arrowhead is two strokes; the tick adds one more.
+    expect(core.layout(e1).svg.match(/<line /g)!.length).toBe(plain + 2 * 3 + 1);
+    expect(core.layout(e1).issues).toEqual([]);
+    const e2 = ti.applyOperations(e1, [{ op: "set_edge_style", id: a.id, arrows: 0 }, { op: "set_edge_style", id: b.id, arrows: 0, ticks: 0 }]);
+    expect(JSON.stringify(e2)).toBe(before);
   });
 });

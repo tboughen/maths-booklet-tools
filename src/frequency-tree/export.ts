@@ -2,7 +2,9 @@ import { canonical, exportIssue, layout, renderSvg, type Envelope } from "../../
 import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
-import { blobToDataUrl, copyWordSizedHtml, downloadBlob } from "../export/clipboard";
+import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
 
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -18,23 +20,25 @@ export async function printPng(e: Envelope) {
   verifyPrintBytes(new Uint8Array(await png.arrayBuffer()), size.width, size.height);
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf", answers = false) {
   downloadBlob(
-    format === "png"
+    format === "pdf"
+      ? await svgPdf((await prepareImage(e)).svg)
+      : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
-    `frequency-tree.${format}`,
+    downloadName("frequency-tree", format, { resource: e, answers }),
   );
 }
 export function downloadEditable(e: Envelope) {
-  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), "frequency-tree.json");
+  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), downloadName("frequency-tree", "json", { resource: e }));
 }
 export async function copyWord(e: Envelope) {
   const m = await prepareImage(e),
     url = await blobToDataUrl(await printPng(e));
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="Frequency tree">`,
+      `<img src="${url}" width="${m.width}cm" height="${m.height}cm" style="width:${m.width}cm;height:${m.height}cm" alt="${svgAlt(m.svg, "Frequency tree")}">`,
     )
   )
     throw Error("The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.");

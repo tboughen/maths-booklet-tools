@@ -1,3 +1,5 @@
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 
@@ -15,8 +17,17 @@ export const numeric = z
     }
   });
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/);
+/** y = ax² + bx + c, with optional extra terms (U84): cubic is the x³ coefficient, reciprocal
+ * the k in k/x, and exponential y = coefficient × baseˣ (+ c). Saved quadratics omit them. */
 export const equationSchema = z
-  .object({ a: numeric, b: numeric, c: numeric })
+  .object({
+    a: numeric,
+    b: numeric,
+    c: numeric,
+    cubic: numeric.optional(),
+    reciprocal: numeric.optional(),
+    exponential: z.object({ coefficient: numeric, base: numeric }).strict().optional(),
+  })
   .strict();
 export const cellSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("value"), value: numeric }).strict(),
@@ -78,6 +89,11 @@ export const printSchema = z
     tableWidthMm: z.number().min(60).max(180),
     tableRowHeightMm: z.number().min(10).max(16),
     gapMm: z.number().min(4).max(30),
+    /** Bold lines (U111): the table, axes and plots are 1.5 times as heavy; the graph grid keeps its weight. Normal is never saved. */
+    lines: z
+      .enum(LINE_WEIGHTS)
+      .transform((v) => (v === "bold" ? v : undefined))
+      .optional(),
   })
   .strict();
 export const documentSchema = z
@@ -95,6 +111,7 @@ export const envelopeSchema = z
     rendererVersion: z.literal("value-graph-1"),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Equation = z.infer<typeof equationSchema>;

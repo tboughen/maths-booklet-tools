@@ -48,9 +48,15 @@ export interface NamedObject {
   namePosition?: Coordinate;
 }
 
+/** Coordinates printed after a point's name, as exam papers write A(2, 3). "show" prints them;
+ * "blank" leaves ( ……… , ……… ) for the pupil on the pupil copy, and prints the point's own
+ * coordinates in the answer colour on the answers copy. Omitted prints none. */
+export type PointCoordinates = "show" | "blank";
+
 export interface PointObject extends BaseObject, NamedObject {
   kind: "point";
   position: Coordinate;
+  coordinates?: PointCoordinates;
 }
 
 /** Where a short label sits beside the point it labels. */
@@ -83,9 +89,45 @@ export interface StraightObject extends BaseObject, NamedObject {
   equationVisible: boolean;
   equationLabelPosition?: Coordinate;
   labels?: PointLabel[];
+  /** A right-angled triangle under or over the line that shows its gradient (U76). */
+  gradientTriangle?: GradientTriangle;
 }
 
-export type GraphObject = PointObject | StraightObject;
+/** Where a gradient triangle sits on its line, and what its legs print. */
+export interface GradientTriangle {
+  /** The x where the triangle starts on the line. */
+  x: number;
+  /** The horizontal leg, from x: positive runs right, negative left. */
+  run: number;
+  /** "values" prints the run and rise beside the legs; "blank" prints dotted answer spaces on
+   * the pupil copy and the values in the answer colour on the answers copy. Omitted: no labels. */
+  labels?: "values" | "blank";
+}
+
+/** A closed shape for transformations, such as triangle A or shape P (U72). Its name prints
+ * upright in the middle of the shape, as exam papers label shapes. */
+export interface PolygonObject extends BaseObject, NamedObject {
+  kind: "polygon";
+  /** 3 to 12 corners in order, in graph coordinates. */
+  vertices: Coordinate[];
+  /** Grey shading inside the shape. Omitted means unshaded. */
+  shaded?: true;
+}
+
+
+/** A region shaded by inequalities, such as y > 2x − 1, x ≤ 3 (U73). The inequalities are saved
+ * as typed. "wanted" shades the region that satisfies them all; "unwanted" shades everything
+ * else, leaving the answer region clear, as some papers ask. With boundaries, each boundary line
+ * is drawn across the grid, dashed for < and >, solid for ≤ and ≥. A name, such as R, prints
+ * upright in the middle of the region. Hidden answers (answerOnly) shade only the answers copy. */
+export interface RegionObject extends BaseObject, NamedObject {
+  kind: "region";
+  inequalities: string[];
+  shade: "wanted" | "unwanted";
+  boundaries: boolean;
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject | RegionObject;
 
 export interface DiagramDocumentV1 {
   version: 1;
@@ -99,6 +141,8 @@ export interface DiagramDocumentV1 {
   grid?: GridSize;
   /** "O" prints an italic O at the origin, as exam papers do. Omitted prints 0. */
   originLabel?: "0" | "O";
+  /** Bold lines (U111): the axes and everything plotted are 1.5 times as heavy; the grid keeps its weight. Omitted is normal. */
+  lines?: "bold";
   objects: GraphObject[];
   selectedObjectId: string | null;
 }

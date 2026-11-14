@@ -1,0 +1,27 @@
+.ev-heights {
+  border-collapse: collapse;
+  margin: 4px 0 0;
+}
+.ev-heights td {
+  border: 1px solid var(--line, #dbe3ec);
+  padding: 2px;
+}
+.ev-heights select {
+  width: 3em;
+  text-align: center;
+}
+.ev-heights select.ev-filled {
+  background: #e2efff;
+  font-weight: 600;
+}
+.ev-front {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: var(--muted, #556270);
+}
+.ev-panel {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--line, #dbe3ec);
+  padding: 8px 0;
+}

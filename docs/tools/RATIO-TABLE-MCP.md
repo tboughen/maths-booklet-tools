@@ -13,17 +13,16 @@ revise_diagram {kind:"ratio-table", envelope, baseHash, operations}
 Browser and server use packages/ratio-table-core for the same schema, exact
 mathematics, layout and SVG. Graph signatures/envelopes and signed token v1 stay
 compatible. The native renderer queue, request/output limits and signing keys
-are shared. The graph-1 health field stays unchanged; ratioRendererVersion adds
-ratio-1. The build manifest includes both cores and the same bundled fonts.
+are shared. The graph-1 health field stays unchanged; ratioRendererVersion reports
+ratio-2. The build manifest includes both cores and the same bundled fonts.
 There are no new dependencies, paid services, model API calls or stored documents.
 
 ## Tool-schema compatibility
 
 Cells and headings use homogeneous array item schemas with minItems 1/maxItems 3.
 Do not replace these with positional tuples: the draft-07 tuple items array was
-rejected by ChatGPT's custom-server import for `create_diagram` (kind `ratio-table`). The document
-format still requires two entries for v1. Server validation requires every row
-to match its headings and rejects unsupported shapes or inconsistent versions.
+rejected by ChatGPT's custom-server import for `create_diagram` (kind `ratio-table`). Server validation requires every row
+to match its headings and rejects unsupported shapes or versions other than 2.
 The real MCP discovery regression scans all input/output array schemas; service
 tests also check invalid cell/heading lengths on creation and revision. SDK call
 success alone does not establish actual ChatGPT account import/acceptance.
@@ -32,7 +31,6 @@ Creation example: pupil scaffold
 
 ```json
 {
-  "schemaVersion": 1,
   "mode": "annotated",
   "rows": [
     { "id": "start", "cells": [
@@ -54,25 +52,19 @@ Numeric values and factors are strings. The blank answer remains an answer line
 despite being calculable. Rows without IDs receive unused row-1/row-2/... IDs;
 use explicit IDs when supplying transitions. Headings, size, mode and annotation
 visibility have human-editor defaults. `create_diagram {kind:"ratio-table"}` (no rows) returns the
-blank starter: two columns with two empty rows. Use schemaVersion 1 and exactly two cells
-per row for legacy diagrams. Use schemaVersion 2 for one row, one column or three columns; every row must match the number of headings. Capabilities
-retain columns: 2 as the default and add supportedColumns: [1, 2, 3] and both renderer
-versions. add_column appends a heading and empty cells; remove_column uses a
+blank starter: two columns with two empty rows. Every table is schemaVersion 2 / ratio-2
+(spec.schemaVersion may be omitted; 1 is rejected); every row must match the number of headings. Capabilities
+give columns: 2 as the default, supportedColumns: [1, 2, 3] and rendererVersions ["ratio-2"]. add_column appends a heading and empty cells; remove_column uses a
 zero-based column index. All scaling operations and explicit fills cover every
-column. Extended tables use ratio-2; existing ratio-1 outputs and hashes
-remain unchanged.
+column.
 
-columns: 2 and rendererVersion: ratio-1 are legacy defaults, not support limits.
-Use supportedColumns and rendererVersions to determine full support. Creation
-and revisions normalize returned envelopes to schemaVersion 1/ratio-1 for
-exactly two columns and at least two rows; all other supported shapes use
-schemaVersion 2/ratio-2. Removing a column from a three-column table can therefore
-return schemaVersion 1. Always reuse that returned envelope and contentHash.
+columns: 2 is a default, not a support limit. Use supportedColumns to determine
+full support. Always reuse the returned envelope and contentHash.
 
 ## Returned output
 
 Inline PNG preview, visible-value description, envelope, contentHash, warnings,
-ratio-1 or ratio-2 renderer version, physical dimensions, verified print raster size/DPI,
+ratio-2 renderer version, physical dimensions, verified print raster size/DPI,
 SVG/PNG/JSON downloads and editable website link. A warning never changes values.
 If a download/editor URL would exceed 8192 characters, use the returned bounded
 embedded file resource or saved JSON. Never guess or fabricate download links.
@@ -99,6 +91,7 @@ set_transition: transition (from, to, operation, factor)
 remove_transition: from
 set_headings: headings (one to three {text, italic, direction: right/up/none} objects)
 set_size: size compact/standard/large
+set_lines: lines normal/bold (U111; bold multiplies every stroke by 1.5, normal is never saved; spec.lines also accepted)
 set_annotation_visibility: optional mode, showArrows, showOperations
 fill_next_row: from, optional overwrite
 ```

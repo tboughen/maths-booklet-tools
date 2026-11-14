@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { addPoint, isFistTouch, isStylusEraser, strokePath, touchesStroke, type AnnotationTool, type Stroke, type StrokeKind } from "./annotations";
+import { addPoint, isStylusEraser, strokePath, touchesStroke, type AnnotationTool, type Stroke, type StrokeKind } from "./annotations";
 
 export interface AnnotationSettings {
   tool: AnnotationTool;
@@ -8,7 +8,6 @@ export interface AnnotationSettings {
   penSize: number;
   highlighterSize: number;
   straight: boolean;
-  fistEraser: boolean;
 }
 
 interface Props {
@@ -68,12 +67,11 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
       const { settings: s } = live.current;
       if (event.pointerType === "pen") device.stylus = true;
       const stylusEraser = isStylusEraser(event);
-      const fist = s.fistEraser && isFistTouch(event);
       if (event.pointerType === "mouse" && event.button !== 0) return;
       if (device.space && event.pointerType === "mouse") return;
-      const tool = stylusEraser || fist ? "eraser" : s.tool;
+      const tool = stylusEraser ? "eraser" : s.tool;
       if (tool === "hand") return;
-      if (event.pointerType === "touch" && !fist) {
+      if (event.pointerType === "touch") {
         // Palm rejection: once a stylus is in use, fingers pan and pinch.
         if (device.stylus) return;
         // A second finger means a pinch: drop the stroke and let the stage zoom.
@@ -85,8 +83,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
       try { el.setPointerCapture(event.pointerId); } catch { /* Capture is optional. */ }
       const point = at(event);
       if (tool === "eraser") {
-        const radius = fist ? Math.max(event.width, event.height) / 2 / (live.current.scale || 1) : ERASER_RADIUS;
-        const draft: Draft = { tool: "erase", id: event.pointerId, type: event.pointerType, radius, erased: new Set() };
+        const draft: Draft = { tool: "erase", id: event.pointerId, type: event.pointerType, radius: ERASER_RADIUS, erased: new Set() };
         set(draft); eraseAt(draft, point);
       } else if (tool === "laser") {
         set({ tool: "laser", id: event.pointerId, type: event.pointerType });

@@ -1,0 +1,73 @@
+{
+ "kind": "two-way-table",
+ "schemaVersion": 1,
+ "rendererVersion": "two-way-table-1",
+ "document": {
+  "corner": "",
+  "columns": [
+   {
+    "id": "c1",
+    "heading": "Red"
+   },
+   {
+    "id": "c2",
+    "heading": "Blue"
+   }
+  ],
+  "rows": [
+   {
+    "id": "r1",
+    "heading": "Spinner A",
+    "cells": [
+     {
+      "text": "3/20",
+      "show": "show"
+     },
+     {
+      "text": "7/20",
+      "show": "show"
+     },
+     {
+      "text": "1/2",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r2",
+    "heading": "Spinner B",
+    "cells": [
+     {
+      "text": "1/5",
+      "show": "show"
+     },
+     {
+      "text": "3/10",
+      "show": "show"
+     },
+     {
+      "text": "1/2",
+      "show": "show"
+     }
+    ]
+   }
+  ],
+  "totalColumn": true,
+  "totalRow": [
+   {
+    "text": "7/20",
+    "show": "show"
+   },
+   {
+    "text": "13/20",
+    "show": "show"
+   },
+   {
+    "text": "1",
+    "show": "show"
+   }
+  ],
+  "cellMm": 22,
+  "intentionalError": false
+ }
+}

@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useRef, useState } from "react";
 import * as c from "../../packages/bar-model-core/src";
@@ -10,12 +13,13 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -23,9 +27,12 @@ import { barGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
+import { houseModel } from "./house";
 import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -34,14 +41,14 @@ function initial() {
   try {
     raw = localStorage.getItem(STORAGE);
     return {
-      e: raw ? c.parseFile(raw) : c.fresh(),
+      e: raw ? c.parseFile(raw) : houseModel(c.fresh(), { lines: false }),
       raw,
       recovery: null as string | null,
       message: "",
     };
   } catch {
     return {
-      e: c.fresh(),
+      e: houseModel(c.fresh(), { lines: false }),
       raw,
       recovery: raw,
       message: raw
@@ -68,11 +75,14 @@ type Draft =
     };
 export interface ManagedLegacy {
   present: c.Envelope;
-  onCommit: (e: c.Envelope) => void;
+  onCommit: (e: c.Envelope, label?: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  undoLabel?: string;
+  redoLabel?: string;
+  resetStep?: number;
 }
 export default function BarModelPage({
   active = true,
@@ -98,11 +108,8 @@ export default function BarModelPage({
       ? { e: managed.present, raw: null, recovery: null, message: "" }
       : initial(),
   );
-  const [history, setHistory] = useState({
-    past: [] as c.Envelope[],
-    present: startup.e,
-    future: [] as c.Envelope[],
-  });
+  const documentHistory = useDocumentHistory<c.Envelope>(startup.e, { equals: (a, b) => c.canonical(a) === c.canonical(b) }),
+    history = documentHistory.history;
   const e = managed?.present ?? history.present,
     d = e.document,
     g = c.layout(e);
@@ -147,26 +154,18 @@ export default function BarModelPage({
       panel?.querySelector<HTMLInputElement>("input,select")?.focus();
     }
   }, [drafting, active]);
-  function commit(n: c.Envelope) {
+  function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     if (managed) {
-      managed.onCommit(valid);
+      managed.onCommit(valid, label);
       return;
     }
-    setHistory((h) =>
-      c.canonical(h.present) === c.canonical(valid)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid, label);
   }
   function operation(op: Operation) {
     if (guard.current) return;
     try {
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
       setMessage("");
     } catch (err) {
       setMessage(errorText(err));
@@ -178,15 +177,7 @@ export default function BarModelPage({
       managed.onUndo();
       return;
     }
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (guard.current) return;
@@ -194,15 +185,7 @@ export default function BarModelPage({
       managed.onRedo();
       return;
     }
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function start(n: Draft) {
     if (guard.current) return;
@@ -242,7 +225,7 @@ export default function BarModelPage({
             Object.entries(draft.values).map(([k, v]) => [k, Number(v)]),
           ),
         };
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
       cancelDraft();
     } catch (err) {
       setInputError(errorText(err));
@@ -286,14 +269,7 @@ export default function BarModelPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
@@ -362,7 +338,7 @@ export default function BarModelPage({
   function remove(op: Operation) {
     if (guard.current) return;
     try {
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
     } catch (err) {
       if (errorText(err).includes("discardSpans")) setRemoval(op);
       else setMessage(errorText(err));
@@ -383,41 +359,41 @@ export default function BarModelPage({
       },
     });
   }
-  const actions = [
-    {
-      label: "Download SVG",
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const actions = diagramFileMenu({
+                about: titleNote.item,
+    svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
       success: "SVG download started",
     },
-    {
-      label: "Download PNG (600 ppi)",
+    png: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "png"),
       success: "PNG download started",
     },
-    {
-      label: "Save editable file",
+    pdf: {
+      disabled: blocked || !!issue,
+      action: () => downloadImage(e, "pdf"),
+      success: "PDF download started",
+    },
+    save: {
       disabled: blocked,
       action: () => downloadEditable(e),
       success: "Editable file download started",
     },
-    {
-      label: "Open editable file",
+    open: {
       disabled: blocked,
       action: () => file.current?.click(),
-      picker: true,
     },
-    {
-      label: "Copy editable link",
+    link: {
       disabled: blocked,
-      description: LINK_DESCRIPTION,
       action: async () => {
         await navigator.clipboard.writeText(pathLink(editorLink(e, location.href)));
       },
       success: "Editable link copied",
     },
-  ];
+  });
   const stateSelect = (l: c.Label, change: (l: c.Label) => void) => (
     <>
       <label>
@@ -512,6 +488,10 @@ export default function BarModelPage({
             )}
             <EditorToolbar
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
+              undoLabel={managed ? managed.undoLabel : undoStepName(history)}
+              resetStep={managed ? managed.resetStep : history.resetStep}
+              active={active}
+              redoLabel={managed ? managed.redoLabel : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)
               }
@@ -520,7 +500,7 @@ export default function BarModelPage({
               onReset={() => {
                 if (!guard.current && onNewModel) onNewModel();
                 else if (!guard.current)
-                  setPending({ e: c.fresh(), title: "Reset bar model?" });
+                  setPending({ e: houseModel(c.fresh(), { lines: false }), title: "Reset bar model?" });
               }}
               resetLabel={onNewModel ? "New model" : undefined}
               resetDisabled={blocked}
@@ -539,6 +519,7 @@ export default function BarModelPage({
             />
             <EditorDownloadMenu
               id="bar-model-files"
+              wordHelp
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
@@ -546,6 +527,7 @@ export default function BarModelPage({
               onMessage={setMessage}
               onBusyChange={setBusy}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               aria-label="Open bar model file"
@@ -581,6 +563,9 @@ export default function BarModelPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
+            <EditorHint tool="bar-model-classic">
+              Click a bar name, part label or brace on the model to edit it.
+            </EditorHint>
             <div ref={fit.ref} className="bm-scroll">
               <div
                 className="bm-stage"
@@ -744,7 +729,7 @@ export default function BarModelPage({
                       new Blob([recovery ?? c.canonical(e)], {
                         type: "application/json",
                       }),
-                      "bar-model-recovery.json",
+                      downloadName("bar-model", "json", { recovery: true }),
                     )
                   }
                 >
@@ -756,7 +741,7 @@ export default function BarModelPage({
                       expected.current = localStorage.getItem(STORAGE);
                       setConflict(false);
                       setRecovery(null);
-                      commit(c.fresh());
+                      commit(houseModel(c.fresh(), { lines: false }));
                     } catch {
                       setMessage(
                         "Storage remains unavailable. Keep an editable file.",
@@ -782,7 +767,7 @@ export default function BarModelPage({
                   setPending({ e: n, title: `Open ${title}?` });
               }}
               onWorked={(n) => {
-                if (!guard.current) commit(n);
+                if (!guard.current) commit(n, "use worked version");
               }}
             />
             <section className="panel-card bm-settings">
@@ -914,7 +899,7 @@ export default function BarModelPage({
                   start({
                     type: "print",
                     values: Object.fromEntries(
-                      Object.entries(d.presentation).map(([k, v]) => [
+                      Object.entries(d.presentation).filter(([k]) => k !== "lines").map(([k, v]) => [
                         k,
                         String(v),
                       ]),
@@ -1152,7 +1137,7 @@ export default function BarModelPage({
             title={pending.title}
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
             }}
             confirmLabel="Open bar model"

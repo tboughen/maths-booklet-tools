@@ -1,6 +1,18 @@
+import { regionProblem } from "./region";
 import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
+
+function isGradientTriangle(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const t = value as Record<string, unknown>;
+  return (
+    Object.keys(t).every((key) => key === "x" || key === "run" || key === "labels") &&
+    typeof t.x === "number" && Number.isFinite(t.x) &&
+    typeof t.run === "number" && Number.isFinite(t.run) && t.run !== 0 &&
+    (t.labels === undefined || t.labels === "values" || t.labels === "blank")
+  );
+}
 
 function isCoordinate(value: unknown): value is Coordinate {
   if (!value || typeof value !== "object") return false;
@@ -37,7 +49,28 @@ function isGraphObject(value: unknown): value is GraphObject {
     (candidate.answerOnly !== undefined && candidate.answerOnly !== true)
   )
     return false;
-  if (candidate.kind === "point") return isCoordinate(candidate.position);
+  if (candidate.kind === "point")
+    return (
+      isCoordinate(candidate.position) &&
+      (candidate.coordinates === undefined || candidate.coordinates === "show" || candidate.coordinates === "blank")
+    );
+  if (candidate.kind === "polygon")
+    return (
+      Object.keys(candidate).every((key) => ["id", "kind", "vertices", "shaded", "name", "namePosition", "answerOnly"].includes(key)) &&
+      Array.isArray(candidate.vertices) &&
+      candidate.vertices.length >= 3 &&
+      candidate.vertices.length <= 12 &&
+      candidate.vertices.every(isCoordinate) &&
+      (candidate.shaded === undefined || candidate.shaded === true)
+    );
+  if (candidate.kind === "region")
+    return (
+      Array.isArray(candidate.inequalities) &&
+      candidate.inequalities.every((t) => typeof t === "string") &&
+      (candidate.shade === "wanted" || candidate.shade === "unwanted") &&
+      typeof candidate.boundaries === "boolean" &&
+      regionProblem({ inequalities: candidate.inequalities }) === null
+    );
   if (candidate.kind !== "straight") return false;
   return (
     (candidate.display === "segment" || candidate.display === "line") &&
@@ -50,7 +83,8 @@ function isGraphObject(value: unknown): value is GraphObject {
     (candidate.equationLabelPosition === undefined ||
       isCoordinate(candidate.equationLabelPosition)) &&
     (candidate.labels === undefined ||
-      (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel)))
+      (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel))) &&
+    (candidate.gradientTriangle === undefined || isGradientTriangle(candidate.gradientTriangle))
   );
 }
 
@@ -70,6 +104,7 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     (candidate.originLabel !== undefined &&
       candidate.originLabel !== "0" &&
       candidate.originLabel !== "O") ||
+    (candidate.lines !== undefined && candidate.lines !== "bold") ||
     !candidate.axes ||
     !Array.isArray(candidate.objects)
   )

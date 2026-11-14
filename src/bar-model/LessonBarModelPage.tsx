@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as c from "../../packages/bar-model-core/src/versioned";
@@ -13,12 +16,13 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
@@ -27,12 +31,12 @@ import LegacyPage from "./BarModelPage";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { houseModel } from "./house";
 import "./bar-model.css";
-export interface History {
-  past: c.Envelope[];
-  present: c.Envelope;
-  future: c.Envelope[];
-}
+import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
+export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
   | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
   | { kind: "name"; barId: string }
@@ -62,6 +66,7 @@ type Draft =
         string
       >;
       autoName: boolean;
+      lines: LineWeight;
     }
   | {
       kind: "move";
@@ -135,9 +140,11 @@ export default function LessonBarModelPage({
   storageKey: string;
   initialHistory?: History;
 }) {
-  const [history, setHistory] = useState<History>(
-      initialHistory ?? { past: [], present: startup.envelope, future: [] },
-    ),
+  const documentHistory = useDocumentHistory<c.Envelope>(startup.envelope, {
+      ...{ equals: (a, b) => c.canonical(a) === c.canonical(b) },
+      from: initialHistory,
+    }),
+    { history, setHistory } = documentHistory,
     e = history.present;
   const profile = e.schemaVersion === 2 ? v : v3;
   const lesson = e.schemaVersion === 2 ? legacyLessonExample : lessonExample;
@@ -248,24 +255,16 @@ export default function LessonBarModelPage({
         {pendingIssue && <p role="alert">{pendingIssue}</p>}
       </>
     ) : null;
-  function commit(n: c.Envelope) {
+  function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     dirty.current = true;
-    setHistory((h) =>
-      c.canonical(h.present) === c.canonical(valid)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function operation(ops: api.Operation[]) {
     if (guard.current) return;
     try {
-      commit(api.apply(e, ops));
+      commit(api.apply(e, ops), operationLabel(ops));
     } catch (err) {
       setMessage(error(err));
     }
@@ -273,28 +272,12 @@ export default function LessonBarModelPage({
   function undo() {
     if (guard.current) return;
     dirty.current = true;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past.at(-1)!,
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (guard.current) return;
     dirty.current = true;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function start(n: Draft) {
     if (guard.current) return;
@@ -408,6 +391,8 @@ export default function LessonBarModelPage({
               ]),
             );
           if (draft.autoName) delete presentation.nameWidthMm;
+          // Undefined clears a saved bold setting: normal lines are never written.
+          presentation.lines = draft.lines === "bold" ? "bold" : undefined;
           ops = [
             { op: "set_presentation", presentation, autoName: draft.autoName },
           ];
@@ -473,14 +458,7 @@ export default function LessonBarModelPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
@@ -533,7 +511,7 @@ export default function LessonBarModelPage({
   }
   function replace(envelope: c.Envelope, title: string, worked = false) {
     if (guard.current) return;
-    if (worked) commit(envelope);
+    if (worked) commit(envelope, "use worked version");
     else setPending({ envelope, title });
   }
   function endpointControl(
@@ -592,7 +570,7 @@ export default function LessonBarModelPage({
         onClick={() =>
           downloadBlob(
             new Blob([startup.legacyRecovery!], { type: "application/json" }),
-            "bar-model-older-recovery.json",
+            downloadName("bar-model", "json", { content: "older", recovery: true }),
           )
         }
       >
@@ -600,6 +578,7 @@ export default function LessonBarModelPage({
       </button>
     </section>
   ) : null;
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   if (
     e.schemaVersion === 1 &&
     !alternate &&
@@ -624,14 +603,17 @@ export default function LessonBarModelPage({
             onRedo: redo,
             canUndo: !!history.past.length,
             canRedo: !!history.future.length,
+            undoLabel: undoStepName(history),
+            redoLabel: redoStepName(history),
+            resetStep: history.resetStep,
           }}
           onNewModel={() =>
             setPending({
-              envelope: profile.fresh(),
+              envelope: houseModel(profile.fresh()),
               title: "Start a new model?",
             })
           }
-          onUpgrade={() => commit(v.upgrade(e))}
+          onUpgrade={() => commit(v.upgrade(e), "upgrade this model")}
           onUpgradeWriting={() =>
             setPending({
               envelope: v3.upgrade(e),
@@ -649,7 +631,7 @@ export default function LessonBarModelPage({
             title={pending.title}
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
             }}
             confirmLabel="Open bar model"
@@ -691,10 +673,14 @@ export default function LessonBarModelPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(profile.fresh(), "Start a new model?")}
+              onReset={() => replace(houseModel(profile.fresh()), "Start a new model?")}
               resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
@@ -712,45 +698,45 @@ export default function LessonBarModelPage({
               menuId="bar-model-v2-files"
             />
             <EditorDownloadMenu
+              wordHelp
               id="bar-model-v2-files"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onMessage={setMessage}
               onBusyChange={setBusy}
-              actions={[
-                {
-                  label: "Download PNG (600 ppi)",
-                  action: () => downloadImage(e, "png"),
-                  disabled: blocked || !!issue,
-                },
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                 },
-                {
-                  label: "Save editable file",
+                png: {
+                  action: () => downloadImage(e, "png"),
+                  disabled: blocked || !!issue,
+                },
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                 },
-                {
-                  label: "Copy editable link",
-                  description: LINK_DESCRIPTION,
+                open: {
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                },
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(api.editorLink(e, location.origin)),
                     ),
                   disabled: blocked || !!issue,
                 },
-                {
-                  label: "Open editable file",
-                  action: () => file.current?.click(),
-                  picker: true,
-                  disabled: blocked,
-                },
-              ]}
+              })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               hidden
@@ -779,6 +765,9 @@ export default function LessonBarModelPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
+            <EditorHint tool="bar-model">
+              Click a bar name, section label or note on the model to edit it.
+            </EditorHint>
             <div ref={fit.ref} className="bm-scroll">
               <div
                 className="bm-stage"
@@ -1012,7 +1001,7 @@ export default function LessonBarModelPage({
                         new Blob([recovery ?? expected.current ?? ""], {
                           type: "application/json",
                         }),
-                        "bar-model-saved-recovery.json",
+                        downloadName("bar-model", "json", { content: "saved", recovery: true }),
                       )
                     }
                   >
@@ -1069,7 +1058,7 @@ export default function LessonBarModelPage({
                             ],
                             { type: "application/json" },
                           ),
-                          "bar-model-original-data.json",
+                          downloadName("bar-model", "json", { content: "original", recovery: true }),
                         );
                         expected.current = localStorage.getItem(storageKey);
                         setRecovery(undefined);
@@ -1096,7 +1085,7 @@ export default function LessonBarModelPage({
                     : "Use this model"
                 }
                 onConfirm={() => {
-                  commit(pending.envelope);
+                  commit(pending.envelope, stepName(pending.title));
                   setSelectedBar(pending.envelope.document.bars[0].id);
                   setSelectedParts([]);
                   setPending(null);
@@ -1464,6 +1453,24 @@ export default function LessonBarModelPage({
                         />
                         Automatic name gutter
                       </label>
+                      <label>
+                        Lines
+                        <select
+                          value={draft.lines}
+                          onChange={(ev) =>
+                            setDraft({
+                              ...draft,
+                              lines: ev.target.value as LineWeight,
+                            })
+                          }
+                        >
+                          {LINE_WEIGHTS.map((w) => (
+                            <option key={w} value={w}>
+                              {LINE_WEIGHT_NAMES[w]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       {!draft.autoName && (
                         <label>
                           Name width (mm)
@@ -1671,12 +1678,14 @@ export default function LessonBarModelPage({
                       onClick={() => {
                         try {
                           replace(
-                            profile.fresh(
-                              starter,
-                              Number(count),
-                              ratio.split(":").map(Number),
-                              partitioned,
-                              comparisonLengths.map(Number),
+                            houseModel(
+                              profile.fresh(
+                                starter,
+                                Number(count),
+                                ratio.split(":").map(Number),
+                                partitioned,
+                                comparisonLengths.map(Number),
+                              ),
                             ),
                             `Start ${starter.replaceAll("-", " ")}?`,
                           );
@@ -2116,6 +2125,7 @@ export default function LessonBarModelPage({
                           nameWidthMm: String(d.presentation.nameWidthMm ?? 28),
                         },
                         autoName: d.presentation.nameWidthMm === undefined,
+                        lines: d.presentation.lines ?? "normal",
                       })
                     }
                   >
