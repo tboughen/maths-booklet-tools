@@ -57,7 +57,7 @@ export async function revise(raw: unknown) {
   const current = validate(input.envelope);
   if ((await contentHash(current)) !== input.baseHash)
     throw Error(
-      "The base hash is stale. Use the latest returned envelope and hash.",
+      "stale_hash: The base hash is stale. Use the latest returned envelope and hash.",
     );
   return apply(current, input.operations as ValueOperation[]);
 }

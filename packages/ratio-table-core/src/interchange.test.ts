@@ -114,7 +114,7 @@ describe("exact ratio-table documents and revisions", () => {
     expect(envelope).toEqual(scaffold());
     await expect(
       reviseRatioTable({ envelope, baseHash: "0".repeat(64), operations: [] }),
-    ).rejects.toMatchObject({ code: "stale_document" });
+    ).rejects.toMatchObject({ code: "stale_hash" });
     await expect(
       reviseRatioTable({
         envelope,

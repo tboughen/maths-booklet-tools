@@ -165,7 +165,7 @@ it("rejects stale hashes,partial transactions,unknown IDs and implicit overwrite
     before = canonical(e);
   await expect(
     revise({ envelope: e, baseHash: "0".repeat(64), operations: [] }),
-  ).rejects.toThrow("base_hash_mismatch");
+  ).rejects.toThrow("stale_hash");
   await expect(
     revise({
       envelope: e,
