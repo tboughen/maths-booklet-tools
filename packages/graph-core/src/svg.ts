@@ -5,6 +5,7 @@ import {
   getBounds,
   gridDivisions,
   isSketch,
+  pointInBounds,
   visibleStraightPoints,
 } from "./diagram";
 import {
@@ -44,6 +45,7 @@ import type {
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { gradientTriangleCorners, gradientTriangleValues } from "./gradient-triangle";
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -700,8 +702,72 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
-function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; marks: string } {
+/** The dotted space a blank gradient label prints on the pupil copy. Both copies place labels as
+ * if they held it, so the answers copy shows each value where the pupil writes it. */
+export const GRADIENT_BLANK = "………";
+
+/** Where a gradient triangle's run and rise print: outside the triangle, unless that would leave
+ * the grid, when the label moves inside. Shared by the export and the editor. */
+export function gradientLabelPlacement(
+  a: Coordinate,
+  b: Coordinate,
+  e: Coordinate,
+  layout: SvgLayout,
+  font: number,
+  runText: string,
+  riseText: string,
+) {
+  const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * font;
+  const gap = font * 0.45;
+  const climbs = e.y < b.y;
+  let runBelow = climbs;
+  if (runBelow && b.y + gap + font * 0.95 > layout.plotBottom) runBelow = false;
+  else if (!runBelow && b.y - gap - font * 0.75 < layout.plotTop) runBelow = true;
+  const right = b.x > a.x;
+  let outside = true;
+  if (right ? b.x + gap + width(riseText) > layout.plotRight : b.x - gap - width(riseText) < layout.plotLeft) outside = false;
+  const riseRight = right === outside;
+  return {
+    run: { x: (a.x + b.x) / 2, y: runBelow ? b.y + gap + font * 0.72 : b.y - gap, anchor: "middle" as const },
+    rise: {
+      x: b.x + (riseRight ? gap : -gap),
+      y: (b.y + e.y) / 2 + font * 0.34,
+      anchor: riseRight ? ("start" as const) : ("end" as const),
+    },
+    runWidth: width(runText),
+  };
+}
+
+/** The legs and labels of a line's gradient triangle (U76), or nothing when it cannot be drawn. */
+export function gradientTriangleMarkup(document: DiagramDocumentV1, object: StraightObject, layout: SvgLayout, view: GraphView): { legs: string; labels: string; answerLabels: string } {
+  const none = { legs: "", labels: "", answerLabels: "" };
+  const c = gradientTriangleCorners(object);
+  if (!c || Math.abs(c.end.y - c.corner.y) < 1e-12) return none;
+  const [a, b, e] = [c.start, c.corner, c.end].map((p) => coordinateToSvg(p, layout));
+  const dash = ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`;
+  const legs = `<path class="gradient-triangle" data-object-id="${escapeXml(object.id)}" d="M ${n(a.x)} ${n(a.y)} H ${n(b.x)} V ${n(e.y)}"${dash}/>`;
+  const mode = object.gradientTriangle?.labels;
+  const inside = [c.start, c.corner, c.end].every((p) => pointInBounds(p, layout.bounds));
+  if (!mode || !inside) return { ...none, legs };
+  const values = gradientTriangleValues(object)!;
+  const text = (x: number, y: number, anchor: string, value: string) =>
+    halo(`<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}">${value}</text>`);
+  // Blank spaces are placed as if they held the longer value, so the answers copy matches.
+  const labels = (run: string, rise: string) => {
+    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, run, mode === "blank" ? GRADIENT_BLANK : rise);
+    return `<g class="gradient-triangle-labels" data-object-id="${escapeXml(object.id)}">${text(place.run.x, place.run.y, place.run.anchor, run)}${text(place.rise.x, place.rise.y, place.rise.anchor, rise)}</g>`;
+  };
+  if (mode === "values") return { legs, labels: labels(values.run, values.rise), answerLabels: "" };
+  // Blank: dotted spaces for the pupil; the answers copy prints the values in the answer colour.
+  return view === "answer"
+    ? { legs, labels: "", answerLabels: labels(values.run, values.rise) }
+    : { legs, labels: labels(GRADIENT_BLANK, GRADIENT_BLANK), answerLabels: "" };
+}
+
+function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: GraphView = "pupil"): { lines: string; marks: string } {
   const straight: string[] = [];
+  const triangleLabels: string[] = [];
+  const answerTriangleLabels: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
   const answerStraight: string[] = [];
@@ -738,6 +804,12 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
         `<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
       );
     }
+    if (object.gradientTriangle) {
+      const triangle = gradientTriangleMarkup(document, object, layout, view);
+      straightOut.push(triangle.legs);
+      (object.answerOnly ? answerTriangleLabels : triangleLabels).push(triangle.labels);
+      answerTriangleLabels.push(triangle.answerLabels);
+    }
     if (object.equationVisible && visible) {
       const position = object.equationLabelPosition
         ? coordinateToSvg(object.equationLabelPosition, layout)
@@ -762,6 +834,16 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       pupilLabels
         ? `
     <g class="point-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pupilLabels}</g>`
+        : ""
+    }${
+      triangleLabels.join("")
+        ? `
+    <g class="gradient-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${triangleLabels.join("")}</g>`
+        : ""
+    }${
+      answerTriangleLabels.join("")
+        ? `
+    <g class="gradient-labels gradient-labels-answer" fill="${GRAPH_ANSWER_COLOUR}" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${answerTriangleLabels.join("")}</g>`
         : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
   return { lines, marks };
@@ -793,7 +875,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   const metrics = getExportMetrics(document);
   const { layout } = metrics;
   const axes = axesMarkup(document, layout);
-  const objects = objectsMarkup(document, layout);
+  const objects = objectsMarkup(document, layout, view);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${n(metrics.widthCm)}cm" height="${n(metrics.heightCm)}cm" viewBox="0 0 ${n(metrics.width)} ${n(metrics.height)}" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">Coordinate graph</title>

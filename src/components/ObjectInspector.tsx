@@ -2,7 +2,112 @@ import { GraphDraftField } from "./GraphDraftField";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
-import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
+import type { Bounds, Coordinate, GraphObject, GradientTriangle, StraightObject } from "../domain/types";
+import { gradientTriangleProblem, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
+
+/** The first whole-number start and short run where a labelled triangle fits on the grid. */
+function fittingTriangle(object: StraightObject, bounds: Bounds): GradientTriangle | null {
+  for (const run of [2, 3, 4, 1, 5])
+    for (let x = Math.ceil(bounds.xMin); x <= Math.floor(bounds.xMax); x++) {
+      const gradientTriangle = { x, run, labels: "values" as const };
+      if (!gradientTriangleProblem({ ...object, gradientTriangle }, bounds)) return { x, run };
+    }
+  return null;
+}
+
+/** Add, move, resize, label or remove a line's gradient triangle (U76). */
+function GradientTriangleFields({
+  object,
+  bounds,
+  onUpdate,
+  drafts,
+  disabled,
+}: {
+  object: StraightObject;
+  bounds?: Bounds;
+  onUpdate: (object: GraphObject) => void;
+  drafts: GraphDrafts;
+  disabled?: boolean;
+}) {
+  const t = object.gradientTriangle;
+  const flat =
+    Math.abs(object.end.x - object.start.x) < 1e-12 ||
+    Math.abs(object.end.y - object.start.y) < 1e-12;
+  if (!t) {
+    if (flat || !bounds) return null;
+    const fit = fittingTriangle(object, bounds);
+    return (
+      <button
+        disabled={disabled || drafts.pending || !fit}
+        className="secondary-panel-button"
+        title={fit ? undefined : "No gradient triangle fits on the grid for this line."}
+        onClick={() => fit && onUpdate({ ...object, gradientTriangle: fit })}
+      >
+        Add gradient triangle
+      </button>
+    );
+  }
+  const set = (next: GradientTriangle) => {
+    if (next.run === 0) throw Error("The run cannot be zero.");
+    onUpdate({ ...object, gradientTriangle: next });
+  };
+  const problem = bounds ? gradientTriangleProblem(object, bounds) : null;
+  const values = gradientTriangleValues(object);
+  return (
+    <fieldset className="gradient-triangle-fields">
+      <legend>Gradient triangle</legend>
+      <GraphDraftField
+        id={object.id + "-triangle-x"}
+        label="Gradient triangle starts at x"
+        displayLabel="Starts at x"
+        value={formatNumber(t.x)}
+        drafts={drafts}
+        disabled={disabled}
+        onApply={(x) => set({ ...t, x })}
+      />
+      <GraphDraftField
+        id={object.id + "-triangle-run"}
+        label="Gradient triangle run"
+        displayLabel="Run"
+        hint="Negative runs go left"
+        value={formatNumber(t.run)}
+        drafts={drafts}
+        disabled={disabled}
+        onApply={(run) => set({ ...t, run })}
+      />
+      <label>
+        Labels{" "}
+        <select
+          aria-label="Gradient triangle labels"
+          disabled={disabled || drafts.pending}
+          value={t.labels ?? "none"}
+          onChange={(event) => {
+            const next: GradientTriangle = { x: t.x, run: t.run };
+            if (event.target.value !== "none") next.labels = event.target.value as "values" | "blank";
+            onUpdate({ ...object, gradientTriangle: next });
+          }}
+        >
+          <option value="none">No labels</option>
+          <option value="values">Print run and rise{values ? ` (${values.run} and ${values.rise})` : ""}</option>
+          <option value="blank">Blank for pupils, values on the answers copy</option>
+        </select>
+      </label>
+      {problem && <p className="field-warning" role="status">{problem}</p>}
+      <button
+        disabled={disabled || drafts.pending}
+        className="text-action"
+        onClick={() => {
+          const next = { ...object };
+          delete next.gradientTriangle;
+          onUpdate(next);
+        }}
+      >
+        <Trash2 size={14} />
+        Remove gradient triangle
+      </button>
+    </fieldset>
+  );
+}
 import {
   OBJECT_NAME_PATTERN,
   normaliseObjectName,
@@ -89,6 +194,8 @@ interface ObjectInspectorProps {
   drafts: GraphDrafts;
   disabled?: boolean;
   onEditEquation: (object: StraightObject) => void;
+  /** The visible grid, so a new gradient triangle starts where it fits. */
+  bounds?: Bounds;
 }
 
 function CoordinateFields({
@@ -134,6 +241,7 @@ export function ObjectInspector({
   onEditEquation,
   drafts,
   disabled = false,
+  bounds,
 }: ObjectInspectorProps) {
   if (!object) {
     return (
@@ -278,6 +386,13 @@ export function ObjectInspector({
       )}
       <NameAndAnswer
         object={object}
+        onUpdate={onUpdate}
+        drafts={drafts}
+        disabled={disabled}
+      />
+      <GradientTriangleFields
+        object={object}
+        bounds={bounds}
         onUpdate={onUpdate}
         drafts={drafts}
         disabled={disabled}

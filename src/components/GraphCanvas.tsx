@@ -4,6 +4,8 @@ import {
   axisTextPlacement,
   getExportMetrics,
   nameBox,
+  GRADIENT_BLANK,
+  gradientLabelPlacement,
   nameCentre,
   pointLabelPlacement,
 } from "../export/svg";
@@ -36,6 +38,7 @@ import {
   visibleStraightPoints,
 } from "../domain/diagram";
 import { equationForObject } from "../domain/equations";
+import { gradientTriangleCorners, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
 import {
   AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
@@ -837,6 +840,35 @@ export function GraphCanvas({
                   </text>
                 );
               })}
+          </g>
+          <g className="gradient-triangles">
+            {visibleDocument.objects.flatMap((object) => {
+              if (object.kind !== "straight" || !object.gradientTriangle) return [];
+              const corners = gradientTriangleCorners(object);
+              if (!corners || Math.abs(corners.end.y - corners.corner.y) < 1e-12) return [];
+              const [a, b, e] = [corners.start, corners.corner, corners.end].map((p) => coordinateToSvg(p, layout));
+              const values = gradientTriangleValues(object)!;
+              const mode = object.gradientTriangle.labels;
+              const inside = [corners.start, corners.corner, corners.end].every((p) => pointInBounds(p, layout.bounds));
+              const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, values.run, mode === "blank" ? GRADIENT_BLANK : values.rise);
+              // The editor shows blank labels' values in the answer colour, as it shows hidden answers.
+              const answer = object.answerOnly || mode === "blank";
+              return [
+                <g key={object.id} className={`gradient-triangle${object.answerOnly ? " gradient-triangle--answer" : ""}`} data-object-id={object.id}>
+                  <path clipPath="url(#editor-plot-clip)" d={`M ${a.x} ${a.y} H ${b.x} V ${e.y}`} strokeDasharray={STRAIGHT_DASH_ARRAY} />
+                  {mode && inside && (
+                    <g className={`point-label${answer ? " point-label--answer" : ""}`} fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
+                      {["text-halo", undefined].map((halo) => (
+                        <g key={halo ?? "text"} aria-hidden={halo ? true : undefined}>
+                          <text className={halo} x={place.run.x} y={place.run.y} textAnchor={place.run.anchor}>{values.run}</text>
+                          <text className={halo} x={place.rise.x} y={place.rise.y} textAnchor={place.rise.anchor}>{values.rise}</text>
+                        </g>
+                      ))}
+                    </g>
+                  )}
+                </g>,
+              ];
+            })}
           </g>
           <g className="point-labels" fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
             {visibleDocument.objects.flatMap((object) =>

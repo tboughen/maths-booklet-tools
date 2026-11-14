@@ -551,6 +551,7 @@ export default function App({ active = true }: { active?: boolean }) {
                 onUpdate={updateSelected}
                 onDelete={() => commit(deleteSelectedObject(document))}
                 onEditEquation={openEquationEditor}
+                bounds={getBounds(document)}
               />
             ) : null}
             <fieldset className="graph-control-group" disabled={blocked}>
