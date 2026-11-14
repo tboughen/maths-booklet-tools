@@ -453,7 +453,7 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
  * otherwise (saved sheets from before) the last card reaches the foot. Shared by the SVG and
  * Word writers.
  */
-export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
+export function planColumn(cards: Card[], numbers: (number | null)[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0, inline: undefined };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
   const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
@@ -674,13 +674,13 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       ctx.where = { side: s + 1, column: c + 1, question: 0 };
       // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
       out.push(stageSvg(letters.columns[s][c], col.heading, x, colTop, st));
-      const numbers = col.cards.map(() => ++number);
+      const numbers = col.cards.map((cd) => (isReminder(cd) ? null : ++number));
       const { spare, extra, stretch } = planColumn(col.cards, numbers, colW, avail, ctx, doc.spareSpace === "share");
       if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
       if (spare / avail > SPARSE_COLUMN) notes.push({ side: s + 1, column: c + 1, message: sparseMessage(s, c, spare / avail) });
       let y = cardsTop;
       col.cards.forEach((cd, i) => {
-        ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
+        ctx.where = { side: s + 1, column: c + 1, question: numbers[i] ?? undefined };
         const letter = letters.cards[s][c][i];
         if (i === 0 && cd.stage) issue(ctx, "The first card in a column sits under the column heading, so its stage is not printed. Put the stage in the column heading.");
         if (letter) {
