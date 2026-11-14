@@ -22,6 +22,8 @@ process.once(
     /** Worksheet text fonts (assets/resource-fonts), loaded beside the diagram fonts. */
     textFontRoot?: string;
     pdf?: { pages: string[]; title: string };
+    /** W31: write each copy's PDF and read it back with pdf.js; only the problems are returned. */
+    pdfCheck?: { copies: string[][]; title: string };
     /** A validated worksheet and the view to write as a Word file. */
     docx?: { resource: unknown; view: "pupil" | "answers" };
     /** A validated booklet (or one lesson of it, with its numbering) to write as a Word file. */
@@ -43,6 +45,21 @@ process.once(
           (pdf) => process.send?.({ pdf }, () => process.exit(0)),
           () => process.send?.({ code: "render_failed", error: "The PDF could not be made." }, () => process.exit(1)),
         );
+        return;
+      }
+      if (job.pdfCheck) {
+        if (!job.textFontRoot) throw Error("Worksheet fonts are missing.");
+        const { copies, title } = job.pdfCheck, roots = { text: job.textFontRoot, diagrams: job.fontRoot };
+        Promise.all([import("./worksheet-pdf"), import("../../packages/resource-core/src/page-check"), import("pdfjs-dist/legacy/build/pdf.mjs")])
+          .then(async ([{ worksheetPdf }, { checkRenderedPages }, pdfjs]) => {
+            const problems = [];
+            for (const pages of copies) problems.push(await checkRenderedPages(pdfjs.getDocument as never, await worksheetPdf(pages, title, roots), pages));
+            return problems;
+          })
+          .then(
+            (problems) => process.send?.({ problems }, () => process.exit(0)),
+            () => process.send?.({ code: "render_failed", error: "The page check could not be made." }, () => process.exit(1)),
+          );
         return;
       }
       if (job.docx) {

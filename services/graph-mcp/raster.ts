@@ -3,7 +3,8 @@ import { resolve } from "node:path";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { validateArchiveMembers } from "./archive";
 export type Crop = { svg: string; widthCm: number; heightCm: number };
-type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop; pdf?: Uint8Array; docx?: Uint8Array };
+import type { PageProblem } from "../../packages/resource-core/src/page-check";
+type WorkerResult = { png?: Uint8Array; svg?: string; zip?: Uint8Array; crop?: Crop; pdf?: Uint8Array; docx?: Uint8Array; problems?: PageProblem[][] };
 export class RasterQueue {
   private active = false;
   private waiting: Array<() => void> = [];
@@ -29,6 +30,15 @@ export class RasterQueue {
     const result = await this.run({ pdf: { pages, title }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
     if (!result.pdf) throw new GraphError("render_failed", "No PDF was generated.");
     return result.pdf;
+  }
+  /**
+   * W31: write each copy's PDF and read it back, in one worker so PDFKit and pdf.js load once.
+   * Returns each copy's problems; the PDFs themselves are not kept.
+   */
+  async checkPages(copies: string[][], title: string, signal?: AbortSignal): Promise<PageProblem[][]> {
+    const result = await this.run({ pdfCheck: { copies, title }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
+    if (!result.problems) throw new GraphError("render_failed", "The page check did not finish.");
+    return result.problems;
   }
   /** Word file of one view of a worksheet: fonts embedded, diagrams as outlined SVG with a PNG fallback. */
   async worksheetDocx(resource: unknown, view: "pupil" | "answers", signal?: AbortSignal): Promise<Uint8Array> {

@@ -141,6 +141,22 @@ pupils will see them. The page list then scrolls sideways. Browsers assume 96 pi
 which few screens match, so "Calibrate…" asks the teacher to match a bar to a bank card (85.6 mm).
 The calibration is stored on that device in device pixels (`src/site/printSizeData.ts`), so it still
 holds after the browser is zoomed. It changes only the screen view, never a download.
+Worksheet and booklet PDFs then get a rendered-page check (`packages/resource-core/src/page-check.ts`,
+improvement item W31). pdf.js reads the written file back, so each run of text is placed where it
+actually landed, measured with the embedded fonts' real glyph widths. Each run is then checked
+against the page's trim and against the boxes the page SVG draws: every card frame and every
+diagram box. Text within 5 mm of the paper's edge (`SAFE_EDGE_MM`, what printers leave unprinted) is
+named, and so is text that crosses a card's frame or a diagram's box instead of sitting wholly
+inside or outside it: a word running out of its card, a diagram label cut off at its edge, or
+question text running into a diagram.
+- **Website:** a failed check refuses the download with the first problems, naming the side or
+  page (`pagesPdf(pages, title, "Side" | "Page")`).
+- **Connector:** `create_worksheet` and `create_booklet` write both copies of a sheet that
+  otherwise fits and return each problem as a layout issue, by side and column or by lesson and page
+  (`services/graph-mcp/page-check.ts`). The sheet is then not print-ready.
+
+Every worksheet and booklet fixture passes the check in both views
+(`services/graph-mcp/page-check.test.ts`).
 
 The question-bank paper builder (`src/bank/export.ts`) checks both of its papers the same way
 before offering them (`auditPaperPdf`, improvement item L23): page count, every page's MediaBox

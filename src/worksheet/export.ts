@@ -22,13 +22,29 @@ function loadFonts() {
   return fonts;
 }
 
-/** A vector PDF of rendered pages (any millimetre size), written in the browser. */
-export async function pagesPdf(pages: string[], title: string): Promise<Blob> {
+/**
+ * A vector PDF of rendered pages (any millimetre size), written in the browser. Worksheet sides and
+ * booklet pages name their kind of page in `check`, which also reads the written file back (W31)
+ * and refuses it, with the specific problem, when text lands near the paper's edge or crosses a
+ * card or diagram.
+ */
+export async function pagesPdf(pages: string[], title: string, check?: "Side" | "Page"): Promise<Blob> {
   const [{ default: PDFDocument }, { default: SVGtoPDF }, f] = await Promise.all([import("pdfkit"), import("svg-to-pdfkit"), loadFonts()]);
   const bytes = await writeWorksheetPdf(PDFDocument as never, SVGtoPDF as never, pages, title, f);
   // Post-export vector audit (W30): the file is re-opened and checked before it is offered.
   const { assertVectorPdf } = await import("../../packages/resource-core/src/pdf-audit");
   await assertVectorPdf(bytes, pages);
+  if (check) {
+    const [{ checkRenderedPages }, { readPdf }] = await Promise.all([import("../../packages/resource-core/src/page-check"), import("../export/pdfjs")]);
+    const problems = await checkRenderedPages(readPdf, bytes, pages);
+    if (problems.length)
+      throw Error(
+        `The PDF did not pass the page check, so it was not downloaded. ${problems
+          .slice(0, 3)
+          .map((p) => `${check} ${p.page + 1}: ${p.message}`)
+          .join(" ")}${problems.length > 3 ? ` (${problems.length - 3} more.)` : ""}`,
+      );
+  }
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
 
@@ -36,7 +52,7 @@ export async function pagesPdf(pages: string[], title: string): Promise<Blob> {
 export async function worksheetPdf(resource: Resource, view: View): Promise<Blob> {
   const { pages, issues } = renderResource(resource, { view });
   if (issues.length) throw Error("Fix the layout checks before downloading: the worksheet does not fit two sides yet.");
-  return pagesPdf(pages, resource.document.title);
+  return pagesPdf(pages, resource.document.title, "Side");
 }
 
 export async function downloadPdf(resource: Resource, view: View) {

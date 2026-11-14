@@ -96,7 +96,7 @@ describe("worksheet tools", () => {
     // The editable JSON is the sheet exactly as sent: an older sheet without spareSpace stays without it.
     expect(json).toEqual(treeDiagrams);
     expect((reply.resource as { document: Record<string, unknown> }).document).not.toHaveProperty("spareSpace");
-  });
+  }, 30_000);
 
   it("keeps an explicit spareSpace and notes columns that are mostly blank", async () => {
     const { client } = await start();
@@ -110,7 +110,7 @@ describe("worksheet tools", () => {
     expect(reply.printReady).toBe(true);
     expect(reply.notes.some((n) => n.side === 2 && n.column === 3 && /blank/.test(n.message))).toBe(true);
     expect((r.content as { type: string; text?: string }[])[0].text).toContain("ask the teacher before adding questions");
-  });
+  }, 30_000);
 
   it("returns a fraction note for a fraction typed inline and prints {3/4} stacked", async () => {
     const { client } = await start();
@@ -126,7 +126,7 @@ describe("worksheet tools", () => {
     const fixed = await client.callTool({ name: "create_worksheet", arguments: { resource: sheet } });
     const ok = fixed.structuredContent as unknown as Reply & { notes: { question?: number }[] };
     expect(ok.notes.filter((n) => n.question !== undefined)).toEqual([]);
-  });
+  }, 30_000);
 
   it("gives pupil and answers Word files with the PDF layout", async () => {
     const { client } = await start();
@@ -153,7 +153,7 @@ describe("worksheet tools", () => {
     // Saved answers print only in the answers file.
     expect(pupil.xml).not.toContain(">Walk<");
     expect(answers.xml).toContain(">Walk<");
-  });
+  }, 30_000);
 
   it("signs Word links for booklets too", async () => {
     const downloads = new WorksheetDownloads("http://127.0.0.1", { test: key }, "test");
