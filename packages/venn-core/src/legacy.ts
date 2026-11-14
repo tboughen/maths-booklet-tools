@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MIN_TEXT_PT, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 
@@ -36,7 +37,8 @@ const schema = z
         definitions: z.array(z.string().max(120)).length(4),
         showDefinitions: z.boolean(),
         widthCm: z.number().min(8).max(16),
-        fontPt: z.number().min(9).max(14),
+        fontPt: z.number().min(MIN_TEXT_PT).max(14),
+        lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),
   })
@@ -89,7 +91,7 @@ export function validate(input: unknown): Envelope {
     if (path.includes("widthCm"))
       throw Error("Choose a print width from 8 to 16 cm.");
     if (path.includes("fontPt"))
-      throw Error("Choose a text size from 9 to 14 pt.");
+      throw Error("Choose a text size from 10 to 14 pt.");
     if (path.includes("regions"))
       throw Error(
         "A region has unsupported content or display settings. Keep member lists within 660 characters.",
