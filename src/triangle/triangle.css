@@ -84,8 +84,9 @@
 .tr-editor .tr-hit {
   position: absolute;
   transform: translate(-50%, -50%);
-  min-width: 28px;
-  min-height: 28px;
+  /* U43: 44 px to touch; the printed label keeps its size. */
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -660,9 +661,9 @@
 }
 .tr-editor .tr-vertex {
   z-index: 3;
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   border: 0;
   background: transparent;
   color: transparent;

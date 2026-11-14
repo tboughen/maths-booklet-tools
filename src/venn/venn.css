@@ -33,15 +33,22 @@
 .vn-hit {
   position: absolute;
   transform: translate(-50%, -50%);
-  min-width: 28px;
-  width: 28px;
-  min-height: 28px;
-  height: 28px;
+  /* U43: 44 px to touch; the printed marks underneath keep their size. */
+  min-width: 44px;
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
   border: 0;
   padding: 0;
   background: transparent;
   cursor: text;
   border-radius: 3px;
+}
+/* Printed definition rows sit closer together than 44 px, so they keep
+   their row height and stretch across the diagram instead. */
+.vn-definition-hit {
+  min-height: 28px;
+  height: 28px;
 }
 .vn-hit:hover {
   outline: 1px dashed var(--blue);
