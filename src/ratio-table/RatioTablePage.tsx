@@ -47,7 +47,7 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 
 type Pending = {
   title: string;
@@ -131,13 +131,13 @@ export default function RatioTablePage({
       }),
     [],
   );
-  const commit = useCallback((next: RatioEnvelope) => {
+  const commit = useCallback((next: RatioEnvelope, label?: string) => {
     if (blocked.current)
       throw Error("Save the recovery copy before replacing the saved table.");
-    record(next);
+    record(next, label);
   }, [record]);
   function operations(ops: RatioOperation[]) {
-    commit(applyRatioOperations(current.current, ops));
+    commit(applyRatioOperations(current.current, ops), operationLabel(ops));
   }
   function attempt(action: () => void) {
     try {
@@ -546,6 +546,8 @@ export default function RatioTablePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!recovery && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -717,7 +719,7 @@ export default function RatioTablePage({
               active={active}
               disabled={exportDisabled || !!pending}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
               <section className="panel-card specialist-tools">
@@ -820,7 +822,7 @@ export default function RatioTablePage({
           onConfirm={() => {
             attempt(() => {
               if (pending.envelope) {
-                commit(pending.envelope);
+                commit(pending.envelope, stepName(pending.title));
                 setInputVersion((v) => v + 1);
                 setSelection(null);
                 setTool("edit");

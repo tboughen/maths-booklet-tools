@@ -30,7 +30,7 @@ const undoRegistry: Record<string, string> = {
   booklets: "booklet/BookletPage.tsx",
 };
 /** Undo that is not a document history: the shared toolbar itself and the question viewer's ink layers. */
-const notEditors = new Set(["site/EditorToolbar.tsx", "bank/QuestionBank.tsx", "bank/AnnotationBar.tsx"]);
+const notEditors = new Set(["site/EditorToolbar.tsx", "site/HistoryButtons.tsx", "bank/QuestionBank.tsx", "bank/AnnotationBar.tsx"]);
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -45,7 +45,7 @@ describe("undo coverage", () => {
   it("lists every page that shows Undo", () => {
     const withUndo = files(root)
       .map((path) => relative(root, path).replaceAll("\\", "/"))
-      .filter((file) => /<EditorToolbar\b|aria-label="Undo"/.test(source(file)) && !notEditors.has(file));
+      .filter((file) => /<EditorToolbar\b|<HistoryButtons\b|aria-label="Undo"/.test(source(file)) && !notEditors.has(file));
     expect(withUndo.sort()).toEqual(Object.values(undoRegistry).sort());
   });
 
