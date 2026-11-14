@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from "../../diagram-core/src/registry";
+import { withFields } from "../../envelope-core/src/errors";
 
 /** The longest saved answer on an answer line (R27, Tim 14 Nov 2026). */
 export const ANSWER_MAX = 160;
@@ -267,7 +268,7 @@ export function validate(input: unknown): Resource {
   const r = resourceSchema.safeParse(input);
   if (!r.success) {
     const issue = r.error.issues[0];
-    throw Error(`${issue.path.join(".") || "document"}: ${issue.message}`);
+    throw withFields(Error(`${issue.path.join(".") || "document"}: ${issue.message}`), r.error);
   }
   return resolveDiagrams(r.data);
 }

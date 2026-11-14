@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { MathsDockError, toErrorBody } from "./errors";
+import { MathsDockError, prefixFields, toErrorBody } from "./errors";
 
 const defaults = { code: "invalid_diagram", message: "The diagram could not be processed.", fieldHint: "Check the schema." };
 
@@ -47,5 +47,45 @@ describe("toErrorBody", () => {
   it("marks temporary limits as try_later", () => {
     expect(toErrorBody(new MathsDockError("rate_limited", "Today's allowance has been reached."), defaults).retry).toBe("try_later");
     expect(toErrorBody(new MathsDockError("busy", "The renderer is busy."), defaults).retry).toBe("try_later");
+  });
+});
+
+describe("union errors name the failing branch (M11)", () => {
+  const point = z.object({ kind: z.literal("point"), x: z.number() }).strict();
+  const line = z.object({ kind: z.literal("line"), slope: z.string().regex(/^-?\d+(\/\d+)?$/, "Use an integer or fraction such as 1/2.") }).strict();
+  const spec = z.object({ objects: z.array(z.union([point, line])) });
+  it("reports only the branch whose kind matched, at the full path", () => {
+    const r = spec.safeParse({ objects: [{ kind: "line", slope: "a/b" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.slope", message: "Use an integer or fraction such as 1/2." }]);
+  });
+  it("lists the accepted kinds when none matched", () => {
+    const r = spec.safeParse({ objects: [{ kind: "curve" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.kind", message: 'Use one of: "point", "line".' }]);
+  });
+  it("picks the version branch for a versioned union with an optional legacy version", () => {
+    const v1 = z.object({ bars: z.array(z.string()) }).strict();
+    const v3 = z.object({ schemaVersion: z.literal(3), bars: z.array(z.string()) }).strict();
+    const r = z.union([v1, v3]).safeParse({ schemaVersion: 3, bars: "x" });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "bars", message: expect.stringContaining("expected array") }]);
+  });
+  it("names every accepted value of a literal union, not only the first", () => {
+    const r = z.object({ sets: z.union([z.literal(1), z.literal(2), z.literal(3)]) }).safeParse({ sets: 4 });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "sets", message: "Use one of: 1, 2, 3." }]);
+    const mixed = z.object({ cell: z.union([z.string(), z.object({ v: z.string() })]) }).safeParse({ cell: 4 });
+    expect(toErrorBody(mixed.error, defaults).fields).toEqual([{ path: "cell", message: "Invalid input" }]);
+  });
+  it("treats an enum field that shares a discriminator name as an ordinary field", () => {
+    const a = z.object({ kind: z.literal("a"), op: z.enum(["x", "y"]) }).strict();
+    const b = z.object({ kind: z.literal("b") }).strict();
+    const r = z.union([a, b]).safeParse({ kind: "a", op: "z" });
+    expect(toErrorBody(r.error, defaults).fields?.map((f) => f.path)).toEqual(["op"]);
+  });
+  it("prefixes attached fields with the tool argument and caps them at 20", () => {
+    const many = new MathsDockError("invalid_graph", "Bad.", { fields: Array.from({ length: 30 }, (_, i) => ({ path: `objects.${i}`, message: "x" })) });
+    const body = toErrorBody(prefixFields(many, "spec"), defaults);
+    expect(body.fields?.length).toBe(20);
+    expect(body.fields?.[0].path).toBe("spec.objects.0");
+    const internal = prefixFields(new MathsDockError("invalid_input", "Bad.", { fields: [{ path: "document.sets", message: "x" }, { path: "rows", message: "y" }] }), "spec", (p) => !p.startsWith("document"));
+    expect(toErrorBody(internal, defaults).fields).toEqual([{ path: "spec.rows", message: "y" }]);
   });
 });
