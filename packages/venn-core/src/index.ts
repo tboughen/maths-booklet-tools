@@ -764,7 +764,12 @@ export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }
 export function renderSvg(e: Envelope) {
-  return boldLines(e.schemaVersion === 1 ? renderLegacySvg(e) : renderExtended(e), e.document.lines);
+  if (e.schemaVersion !== 1) return boldLines(renderExtended(e), e.document.lines);
+  // The title and note (U34) are never printed; the version 1 renderer checks its own, older shape without them.
+  const { title: _title, note: _note, ...drawing } = e;
+  void _title;
+  void _note;
+  return boldLines(renderLegacySvg(drawing), e.document.lines);
 }
 function renderExtended(e: ExtendedEnvelope) {
   const d = e.document,

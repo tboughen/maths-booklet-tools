@@ -1,3 +1,7 @@
+import { downloadName } from "../export/filenames";
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -39,7 +43,7 @@ import {
 } from "../../packages/two-way-table-core/src";
 import { LINK_PREFIX, parseTwoWayTableLink, twoWayTableLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:two-way-table:v1");
 type Doc = Envelope["document"];
@@ -186,11 +190,11 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
       }),
   }).current;
   const shownMessage = message || Object.values(fieldErrors)[0] || "";
-  function commit(next: Envelope | (() => Envelope)): boolean {
+  function commit(next: Envelope | (() => Envelope), label?: string): boolean {
     if (recovery !== null) return false;
     try {
       const valid = validate(typeof next === "function" ? next() : next);
-      documentHistory.commit(valid);
+      documentHistory.commit(valid, label);
       setMessage("");
       return true;
     } catch (err) {
@@ -315,6 +319,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <FieldErrors.Provider value={fieldErrorContext}>
     <div className="app-shell booklet-editor pt-editor twt-editor">
@@ -329,6 +334,10 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               onReset={() => replace(create(), "Reset the table?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
@@ -349,6 +358,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(displayed, "pdf"), disabled: blocked || !!issue, success: "PDF download started." },
@@ -361,6 +371,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
@@ -530,7 +541,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card pt-panel" aria-label="Selected cell">
               <h2>{selectedCell && selected ? `Cell: ${rowName(selected.row)}, ${columnName(selected.column)}` : "Selected cell"}</h2>
@@ -639,7 +650,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "two-way-table-recovery.json");
+                downloadBlob(new Blob([recovery], { type: "application/json" }), downloadName("two-way-table", "json", { recovery: true }));
                 setProtectedCopy(true);
               }}
             >
@@ -680,7 +691,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

@@ -115,6 +115,14 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-import-preview { overflow: auto; max-height: 55vh; }
 .graph-import-preview svg { width: 100%; height: auto; display: block; }
 .graph-import-actions { display: flex; align-items: center; gap: 16px; }
+/* U34: the File menu's "Title and note…" dialog. */
+.title-note-dialog form { display: grid; gap: 16px; }
+.title-note-help { margin: 4px 0 16px; color: var(--muted); }
+.title-note-field { display: grid; gap: 6px; font-weight: 600; }
+.title-note-field input, .title-note-field textarea { width: 100%; min-height: 44px; padding: 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; font-weight: 400; }
+.title-note-field textarea { resize: vertical; }
+.title-note-field small { color: var(--muted); font-weight: 400; font-size: var(--supporting-text); }
+.title-note-dialog .primary-panel-button { width: auto; }
 /* WOFF2 for the page (S42); exports embed the OTF subsets (src/export/portable.ts). font-display stays
    block: STIX only draws diagram text, where a fallback font would show the wrong shapes and widths. */
 @font-face { font-family: "STIX Two Text"; font-style: normal; font-weight: 400; font-display: block; src: url("./assets/fonts/STIXTwoText-Regular.woff2") format("woff2"), url("../assets/graph-fonts/STIXTwoText-Regular.otf") format("opentype"); }

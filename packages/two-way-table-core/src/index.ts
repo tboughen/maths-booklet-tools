@@ -7,6 +7,7 @@
  * colour. Zero is a value, never a blank. Numbers stay exact: integers, decimals, fractions and
  * mixed numbers, printed with stacked fractions. Totals are filled only by completeTotals.
  */
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import {
@@ -55,6 +56,7 @@ export const envelopeSchema = z
     schemaVersion: z.literal(1),
     rendererVersion: z.literal("two-way-table-1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;

@@ -182,10 +182,11 @@ for (const tool of tools) {
         .evaluateAll((items) =>
           items.map((i) => i.querySelector("strong")!.textContent),
         );
-      expect(labels.slice(0, 5)).toEqual([
+      expect(labels.slice(0, 6)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
         "Download PDF (actual size)",
+        "Title and note…",
         "Save editable file",
         "Open editable file",
       ]);
@@ -1013,6 +1014,7 @@ for (const tool of toolIds) {
       ["Download SVG", ""],
       ["Download PNG (600 ppi)", ""],
       ["Download PDF (actual size)", ""],
+      ["Title and note…", "Saved in the file, never printed."],
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],

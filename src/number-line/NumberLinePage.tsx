@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
@@ -731,6 +734,7 @@ export default function NumberLinePage({
       ]);
     setSelection(null);
   }
+  const titleNote = useTitleNote({ about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor nl-editor">
       <main
@@ -792,6 +796,7 @@ export default function NumberLinePage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
@@ -841,6 +846,7 @@ export default function NumberLinePage({
                 },
               })}
             />
+            {titleNote.dialog}
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />

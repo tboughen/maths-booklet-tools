@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -328,6 +331,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
+  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -370,6 +374,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
@@ -382,6 +387,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"

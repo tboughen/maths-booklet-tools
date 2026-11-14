@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
 import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -470,6 +473,7 @@ export default function RatioTablePage({
     selection?.kind === "cell" || selection?.kind === "heading"
       ? selection.column
       : document.headings.length - 1;
+  const titleNote = useTitleNote({ about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
@@ -585,6 +589,7 @@ export default function RatioTablePage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
@@ -640,6 +645,7 @@ export default function RatioTablePage({
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               className="sr-only"

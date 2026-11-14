@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
@@ -457,6 +460,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
+  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main
@@ -511,6 +515,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
@@ -546,6 +551,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"
