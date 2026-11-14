@@ -36,7 +36,7 @@ describe("content summaries (M15)", () => {
     const cell = raw.document.rows[2].cells.find((c: { value: string }) => c.value === "+8x");
     cell.hidden = true;
     raw.document.answerVisible = false;
-    const e = FAMILIES["algebra-grid"].validate(raw, "pupil");
+    const e = FAMILIES["algebra-grid"].validate(raw, "pupil") as Parameters<typeof describeAlgebraGrid>[0];
     expect(answerSlots("algebra-grid", e).filter(holdsAnswer).map((s) => s.text)).toContain("+8x");
     const pupil = describeAlgebraGrid(e);
     for (const secret of ["+8x", "8x", "x^3+6x^2+11x+12", "x³"]) expect(pupil).not.toContain(secret);
