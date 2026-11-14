@@ -50,6 +50,20 @@ describe("worked-solution notes on every answers copy (U116)", () => {
       const far = [{ text: "Too far", x: size.width + WORKED_MARGIN_MM, y: 1 }];
       expect(() => f.validate({ ...plain, worked: far }, "pupil")).toThrow(/Worked note 1 runs .* past the 70 mm margin right of the diagram/);
     });
+    it(`${kind}: in a worksheet both copies take the margin's space, with their artwork lined up`, () => {
+      const plain = f.validate(saved(kind), "pupil") as Record<string, unknown>;
+      const size = svgSizeMm(f.svg(plain, "answer"));
+      const beside = f.validate({ ...plain, worked: [{ text: "Add 3", x: -25, y: 1, widthMm: 20 }] }, "pupil");
+      const pupil = drawDiagram(kind, beside, "pupil"),
+        answer = drawDiagram(kind, beside, "answer");
+      const box = (svg: string) => svg.match(/<svg\b[^>]*\sviewBox="([^"]+)"/)![1];
+      expect(box(pupil.svg)).toBe(box(answer.svg));
+      expect(svgSizeMm(pupil.svg)).toEqual(svgSizeMm(answer.svg));
+      expect(pupil.widthMm).toBeGreaterThan(size.width + 25);
+      expect(pupil.workedMargin).toBe(true);
+      expect(pupil.svg).not.toContain('data-layer="worked"');
+      expect(drawDiagram(kind, plain, "pupil").workedMargin).toBe(false);
+    });
   }
 
   it("a Venn diagram keeps its notes, title and note when a revision changes the number of sets", async () => {

@@ -12,7 +12,7 @@
  */
 import { z } from "zod";
 import { tidySvgRoot } from "../../envelope-core/src/svg-root";
-import { artworkSizeMm, withWorked, workedIssues, workedOf } from "../../envelope-core/src/worked";
+import { artworkSizeMm, withWorked, withWorkedPage, workedIssues, workedOf } from "../../envelope-core/src/worked";
 import * as graph from "../../graph-core/src/interchange";
 import { renderDiagramSvg } from "../../graph-core/src/svg";
 import * as ratio from "../../ratio-table-core/src/interchange";
@@ -428,13 +428,17 @@ export function altText(kind: DiagramKind, svg: string): string {
 
 /**
  * Artwork for a worksheet or booklet: the family's own SVG at its printed size, with the larger
- * of the pupil and answer sizes so both copies share one layout.
+ * of the pupil and answer sizes so both copies share one layout. When worked notes sit in the
+ * margin, the pupil copy takes the answers copy's grown page with the margin left blank, so the two
+ * copies take the same space and their artwork lines up.
  */
 export function drawDiagram(kind: DiagramKind, envelope: unknown, view: View) {
   const f = FAMILIES[kind];
   // Embedded artwork starts at its <svg> element: no XML declaration inside a page.
   const bare = (svg: string) => svg.replace(/^\s*<\?xml[^>]*\?>\s*/, "").trimStart();
-  const pupil = bare(f.svg(envelope, "pupil"));
+  const notes = f.answerView ? workedOf(envelope) : [];
+  const plain = f.svg(envelope, "pupil"),
+    pupil = bare(withWorkedPage(plain, notes));
   const answer = f.answerView ? bare(f.svg(envelope, "answer")) : pupil;
   const a = svgSizeMm(pupil),
     b = svgSizeMm(answer);
@@ -443,6 +447,8 @@ export function drawDiagram(kind: DiagramKind, envelope: unknown, view: View) {
     widthMm: Math.max(a.width, b.width),
     heightMm: Math.max(a.height, b.height),
     altText: altText(kind, pupil),
+    /** Whether worked notes in the margin widened the space this diagram takes. */
+    workedMargin: pupil !== bare(plain),
   };
 }
 

@@ -192,7 +192,7 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   if (!(width > 0 && height > 0)) return brokenDiagram("A diagram did not report its physical size.", w, ctx);
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
-  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room));
+  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room, drawn.workedMargin));
   const k = `d${++ctx.diagrams}-`;
   svg = svg
     .replace(/ id="/g, ` id="${k}`)
@@ -432,7 +432,9 @@ export const countSpaces = (list: Item[]): number =>
 /** Families whose printed width is set by spec.widthCm. */
 const WIDTH_CM = new Set(["number-line", "venn", "triangle"]);
 /** The issue for a diagram wider than its card, with the change that makes it fit. */
-export function tooWideMessage(tool: string, width: number, room: number): string {
+export function tooWideMessage(tool: string, width: number, room: number, workedMargin = false): string {
+  if (workedMargin)
+    return `A diagram with its worked notes in the margin beside it is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit. Move the notes inside the diagram or closer to it, or use a wider column layout.`;
   const fit = Math.floor(room / 5) / 2;
   const hint = WIDTH_CM.has(tool)
     ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`

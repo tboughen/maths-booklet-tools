@@ -189,6 +189,24 @@ function grownRoot(tag: string, page: { width: number; height: number }, vb: num
 }
 
 /**
+ * The artwork on the same page its answers copy uses when worked notes sit in the margin, with no
+ * notes drawn. Worksheets and booklets give the pupil copy this page, so both copies take the same
+ * space and their artwork lines up. Unchanged when every note sits inside the artwork.
+ */
+export function withWorkedPage(svg: string, notes: readonly WorkedNote[]): string {
+  if (!notes.length) return svg;
+  const f = frame(svg);
+  if (!(f.width > 0 && f.height > 0)) return svg;
+  const page = workedPage(notes, f);
+  if (page.x === 0 && page.y === 0 && page.width === f.width && page.height === f.height) return svg;
+  const sx = f.vb[2] / f.width,
+    sy = f.vb[3] / f.height;
+  const start = svg.indexOf(f.tag);
+  const root = grownRoot(f.tag, page, [f.vb[0] + page.x * sx, f.vb[1] + page.y * sy, page.width * sx, page.height * sy]);
+  return `${svg.slice(0, start)}${root}${svg.slice(start + f.tag.length)}`;
+}
+
+/**
  * The artwork with its worked notes drawn on top in dark pink, as the last layer. With no notes the
  * SVG is returned unchanged. A note in the margin grows the SVG's page to hold it, keeping the
  * artwork at its printed size and place. Notes that do not fit throw the first specific issue, so a

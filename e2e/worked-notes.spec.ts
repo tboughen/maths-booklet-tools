@@ -76,4 +76,11 @@ test("ratio-table: a note in the margin widens only the answers copy", async ({ 
   expect(answers.height).toBeCloseTo(pupil.height, 1);
   expect(svg(true)).toContain(">Multiply by 3</text>");
   expect(svg(false)).not.toContain('data-layer="worked"');
+  // The 600 ppi PNGs follow each copy's own page, so the answers artwork stays at actual size.
+  const png = (answers: boolean) => {
+    const bytes = Object.entries(files).find(([n]) => n.endsWith(".png") && n.includes("-answers-") === answers)![1];
+    return new DataView(bytes.buffer, bytes.byteOffset).getUint32(16);
+  };
+  expect(png(true) - png(false)).toBeGreaterThan(Math.round((30 * 600) / 25.4));
+  expect(Math.abs(png(true) - Math.round((answers.width * 600) / 25.4))).toBeLessThanOrEqual(1);
 });
