@@ -166,6 +166,19 @@ describe("probability tree core", () => {
     expect(layout(spaces(14)).issues).toEqual([]);
     expect(layout(spaces(14)).notes.join(" ")).toContain("crosses a branch");
     expect([...layout(spaces(16)).issues, ...layout(spaces(16)).notes]).toEqual([]);
+    const longer = fromNested(["A", "B", "C"].map((outcome) => ({ outcome, probability: "1/3", hidden: ["probability" as const] })), { branchMm: 38 });
+    expect([...layout(longer).issues, ...layout(longer).notes]).toEqual([]);
+  });
+
+  it("leaves every probability that was already clear at the middle of its branch, as saved trees printed before", () => {
+    // Only a label that touched a branch or another label moves; the example trees all keep the old place.
+    for (const example of examples)
+      for (const worked of [false, true])
+        for (const view of ["pupil", "answer"] as const) {
+          const g = layout(forView(example.make(worked), view));
+          const probabilities = g.placed.filter((p) => p.kind === "probability").slice(0, g.lines.length);
+          probabilities.forEach((p, i) => expect(p.cx, `${example.id} ${i}`).toBeCloseTo((g.lines[i].x1 + g.lines[i].x2) / 2, 6));
+        }
   });
 
   it("reports a label that crosses a branch when no clear place exists", () => {
@@ -197,6 +210,16 @@ describe("probability tree core", () => {
     expect(childrenOf(u.document, u.document.branches[1].id)).toHaveLength(1);
     expect(removeLastSibling(u, null)).toBe(u);
     expect(() => fromNested([{ outcome: "Only", children: [{ outcome: "Next" }] }])).toThrow(/first stage needs 2/);
+    // Other actions on a part-drawn tree: no implicit 1, no bag fill on the wrong shape, exact end values.
+    expect(fillFromBag(blank, [3, 5], false)).toBeNull();
+    const ends = fillEnd(fillEnd(e, "outcome"), "probability");
+    expect(leaves(ends.document).map((b) => [b.endOutcome.text, b.endProbability.text])).toEqual([
+      ["Red, Red", "9/64"],
+      ["Blue", "5/8"],
+    ]);
+    expect(fillEnd(blank, "probability").document.branches.every((b) => b.endProbability.text === "" || b.endProbability.text === "5/8")).toBe(true);
+    expect(maxDepth(addStage(e).document)).toBe(3);
+    expect(childrenOf(removeStage(e).document, red)).toHaveLength(0);
   });
 
   it("round-trips editor links", () => {

@@ -1,23 +1,25 @@
 // @vitest-environment node
 // The worksheet text fonts hold every character the measuring table knows, including the
-// empty box (□) used in missing-number questions, so PDF and Word never print a missing glyph.
+// empty box (□) used in missing-number questions, so PDF and Word never print a missing glyph,
+// and the fonts' own advance widths match the table, so line breaks match what was measured.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { advance } from "./metrics";
+import { advance, measuredWidths, type FontStyle } from "./metrics";
 
-/** Code points mapped by a TrueType font's format 4 (BMP) cmap subtable. */
-function mappedCodePoints(file: string): Set<number> {
-  const b = readFileSync(file);
-  const tables = b.readUInt16BE(4);
-  let cmap = -1;
-  for (let i = 0; i < tables; i++) {
+function table(b: Buffer, tag: string): number {
+  for (let i = 0; i < b.readUInt16BE(4); i++) {
     const r = 12 + i * 16;
-    if (b.toString("latin1", r, r + 4) === "cmap") cmap = b.readUInt32BE(r + 8);
+    if (b.toString("latin1", r, r + 4) === tag) return b.readUInt32BE(r + 8);
   }
-  if (cmap < 0) throw Error(`${file} has no cmap`);
-  const out = new Set<number>();
-  for (let i = 0; i < b.readUInt16BE(cmap + 2); i++) {
-    const sub = cmap + b.readUInt32BE(cmap + 4 + i * 8 + 4);
+  throw Error(`no ${tag} table`);
+}
+
+/** Code point to glyph from the font's format 4 (BMP) cmap subtable. */
+function cmap(b: Buffer): Map<number, number> {
+  const base = table(b, "cmap");
+  const out = new Map<number, number>();
+  for (let i = 0; i < b.readUInt16BE(base + 2); i++) {
+    const sub = base + b.readUInt32BE(base + 4 + i * 8 + 4);
     if (b.readUInt16BE(sub) !== 4) continue;
     const segs = b.readUInt16BE(sub + 6) / 2;
     const ends = sub + 14;
@@ -30,14 +32,20 @@ function mappedCodePoints(file: string): Set<number> {
       const delta = b.readUInt16BE(deltas + s * 2);
       const rangeOffset = b.readUInt16BE(offsets + s * 2);
       for (let c = start; c <= end && c !== 0xffff; c++) {
-        const glyph = rangeOffset
-          ? b.readUInt16BE(offsets + s * 2 + rangeOffset + (c - start) * 2)
-          : (c + delta) & 0xffff;
-        if (glyph) out.add(c);
+        const glyph = rangeOffset ? b.readUInt16BE(offsets + s * 2 + rangeOffset + (c - start) * 2) : (c + delta) & 0xffff;
+        if (glyph) out.set(c, glyph);
       }
     }
   }
   return out;
+}
+
+/** Advance width in em of a glyph, from hmtx. */
+function advanceOf(b: Buffer, glyph: number): number {
+  const unitsPerEm = b.readUInt16BE(table(b, "head") + 18);
+  const metrics = b.readUInt16BE(table(b, "hhea") + 34);
+  const hmtx = table(b, "hmtx");
+  return b.readUInt16BE(hmtx + Math.min(glyph, metrics - 1) * 4) / unitsPerEm;
 }
 
 describe("worksheet text fonts", () => {
@@ -45,14 +53,25 @@ describe("worksheet text fonts", () => {
     ["Inter-Regular.ttf", "regular"],
     ["Inter-SemiBold.ttf", "bold"],
     ["Inter-Italic.ttf", "italic"],
-  ] as const) {
-    it(`${file} holds the empty box and the worksheet maths symbols, and the table measures them`, () => {
-      const mapped = mappedCodePoints(`assets/resource-fonts/${file}`);
-      for (const c of "□−×÷²³°θπ≤≥≠√½→↑") {
-        expect(mapped.has(c.codePointAt(0)!), `${file} U+${c.codePointAt(0)!.toString(16)}`).toBe(true);
-      }
+  ] as [string, FontStyle][]) {
+    it(`${file} holds the empty box and the worksheet maths symbols`, () => {
+      const map = cmap(readFileSync(`assets/resource-fonts/${file}`));
+      for (const c of "□−×÷²³°θπ≤≥≠√½→↑")
+        expect(map.has(c.codePointAt(0)!), `${file} U+${c.codePointAt(0)!.toString(16)}`).toBe(true);
       // The empty box has its own measured width, not the wide unknown-character fallback.
-      expect(advance("□", style)).toBeCloseTo(0.9141, 4);
+      expect(advance("□", style)).not.toBe(0.66);
+    });
+    it(`${file} advance widths match the measuring table for every character`, () => {
+      const font = readFileSync(`assets/resource-fonts/${file}`);
+      const map = cmap(font);
+      const widths = measuredWidths(style);
+      expect(Object.keys(widths).length).toBeGreaterThan(200);
+      for (const [c, width] of Object.entries(widths)) {
+        const glyph = map.get(c.codePointAt(0)!);
+        expect(glyph, `${file} has ${c}`).toBeDefined();
+        // The table is rounded to 4 decimal places.
+        expect(Math.abs(advanceOf(font, glyph!) - width), `${file} ${c}`).toBeLessThan(0.00006);
+      }
     });
   }
 });

@@ -7,6 +7,8 @@ const italic: Record<string, number> = {" ": 0.2812, "!": 0.2876, "\"": 0.4658, 
 
 export type FontStyle = "regular" | "bold" | "italic";
 const tables: Record<FontStyle, Record<string, number>> = { regular, bold, italic };
+/** Every measured character and its width, for checking against the font files. */
+export const measuredWidths = (style: FontStyle): Readonly<Record<string, number>> => tables[style];
 /** Advance width of one character in em. Unknown characters use a wide fallback so text never under-measures. */
 export const advance = (c: string, style: FontStyle = "regular") => tables[style][c] ?? 0.66;
 export const ASCENT = 0.969;
