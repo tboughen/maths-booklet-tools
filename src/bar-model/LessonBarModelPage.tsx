@@ -601,6 +601,7 @@ export default function LessonBarModelPage({
             canRedo: !!history.future.length,
             undoLabel: undoStepName(history),
             redoLabel: redoStepName(history),
+            resetStep: history.resetStep,
           }}
           onNewModel={() =>
             setPending({
@@ -669,6 +670,8 @@ export default function LessonBarModelPage({
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}

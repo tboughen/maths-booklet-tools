@@ -83,6 +83,14 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else if (state === "answer-line") out.push(slot(at, "answerLine", value));
       else out.push(slot(at, "supplied", value));
     }
+    // A second scale's hidden and answer-line labels are answers too (U109).
+    const secondary = isNode(doc.secondary) && isNode(doc.secondary.labels) ? doc.secondary.labels : {};
+    for (const [value, state] of Object.entries(secondary)) {
+      const at = `document.secondary.labels.${value}`;
+      if (state === "hidden") out.push(slot(at, "hidden", value));
+      else if (state === "answer-line") out.push(slot(at, "answerLine", value));
+      else out.push(slot(at, "supplied", value));
+    }
     if (doc.solution) out.push({ path: "document.solution", state: t.solutionVisible === false ? "hidden" : "supplied", text: str((doc.solution as Node).kind) });
     const answer = str(t.answer);
     if (answer && t.answerVisible === true) out.push(slot("document.teaching.answer", "supplied", answer));

@@ -79,6 +79,7 @@ export interface ManagedLegacy {
   canRedo: boolean;
   undoLabel?: string;
   redoLabel?: string;
+  resetStep?: number;
 }
 export default function BarModelPage({
   active = true,
@@ -483,6 +484,8 @@ export default function BarModelPage({
             <EditorToolbar
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
               undoLabel={managed ? managed.undoLabel : undoStepName(history)}
+              resetStep={managed ? managed.resetStep : history.resetStep}
+              active={active}
               redoLabel={managed ? managed.redoLabel : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)

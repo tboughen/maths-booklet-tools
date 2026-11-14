@@ -30,6 +30,20 @@
    "png600": "1276x1181",
    "pixels": "2753a773c61479e4"
   },
+  "algebra grid: algebra-decimal": {
+   "json": "20fbae154a624f57",
+   "svg": "018682f38cc791e7",
+   "mm": "39x31.5",
+   "png600": "921x744",
+   "pixels": "f7a793cbac86c465"
+  },
+  "algebra grid: algebra-decimal (worked)": {
+   "json": "fc4064851c5c36af",
+   "svg": "61aeb195d4c75711",
+   "mm": "39x42.5",
+   "png600": "921x1004",
+   "pixels": "af1741c5109bd28d"
+  },
   "algebra grid: algebra-double": {
    "json": "73528044ff6dbf2b",
    "svg": "0562faab6c33ac7f",
@@ -71,6 +85,20 @@
    "mm": "39x50",
    "png600": "921x1181",
    "pixels": "f815075ae3d52b09"
+  },
+  "algebra grid: algebra-numeric": {
+   "json": "6c3c9a64149e1e9a",
+   "svg": "73f02511b9c8f630",
+   "mm": "39x31.5",
+   "png600": "921x744",
+   "pixels": "9baff6f16819fbd1"
+  },
+  "algebra grid: algebra-numeric (worked)": {
+   "json": "fc031c04fff48457",
+   "svg": "e8377cee0a7073c4",
+   "mm": "39x42.5",
+   "png600": "921x1004",
+   "pixels": "b202353bba390da8"
   },
   "algebra grid: algebra-signed": {
    "json": "596bbbdc6c863b69",
@@ -351,6 +379,118 @@
    "mm": "82.2x77.6",
    "png600": "1942x1833",
    "pixels": "c877fbf859027729"
+  },
+  "constructions: construction-angle-bisector": {
+   "json": "a607fd3d613e6ca8",
+   "svg": "77dd459281b1b2fd",
+   "mm": "123x83.5",
+   "png600": "2906x1972",
+   "pixels": "faa69705b0ac2d2c"
+  },
+  "constructions: construction-angle-bisector (worked)": {
+   "json": "adb02ace39ca7822",
+   "svg": "a0d1bdf4149b8d9f",
+   "mm": "123x83.5",
+   "png600": "2906x1972",
+   "pixels": "96841ab202d88d7c"
+  },
+  "constructions: construction-bearings-port": {
+   "json": "a82fa82a565d3ff9",
+   "svg": "5f4e134abc74b409",
+   "mm": "123x118.9",
+   "png600": "2906x2809",
+   "pixels": "a9e160a75a305b47"
+  },
+  "constructions: construction-bearings-port (worked)": {
+   "json": "9a75a39adee1fb8e",
+   "svg": "6507524b29846654",
+   "mm": "123x118.9",
+   "png600": "2906x2809",
+   "pixels": "75be7e760a3cb6ae"
+  },
+  "constructions: construction-loci-garden": {
+   "json": "5f641e675dba7cb7",
+   "svg": "ee87b982fd7a0953",
+   "mm": "123x93.9",
+   "png600": "2906x2218",
+   "pixels": "c5c2cf5be889a6c1"
+  },
+  "constructions: construction-loci-garden (worked)": {
+   "json": "658df886a1210d26",
+   "svg": "17497ca9601d70ea",
+   "mm": "123x93.9",
+   "png600": "2906x2218",
+   "pixels": "9c01fa3ac7b82e5d"
+  },
+  "constructions: construction-locus-segment": {
+   "json": "1928b2f8528d991a",
+   "svg": "949194f854547836",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "31a640b42d873d4b"
+  },
+  "constructions: construction-locus-segment (worked)": {
+   "json": "8db1699e8e09c104",
+   "svg": "e3133835fd7632ce",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "5084431376bb20be"
+  },
+  "constructions: construction-map-equidistant": {
+   "json": "ce4e7ec5a7778fd5",
+   "svg": "1e1775f13b420776",
+   "mm": "144.9x113.9",
+   "png600": "3423x2691",
+   "pixels": "2a055063db0ee240"
+  },
+  "constructions: construction-map-equidistant (worked)": {
+   "json": "33c39b3ebb040a76",
+   "svg": "58506c974bfb834f",
+   "mm": "144.9x113.9",
+   "png600": "3423x2691",
+   "pixels": "568e0f0e0d50b2cd"
+  },
+  "constructions: construction-perpendicular-at-point": {
+   "json": "b0d5d8198609e092",
+   "svg": "065294ff8b6fc315",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "27bf257356395f6d"
+  },
+  "constructions: construction-perpendicular-at-point (worked)": {
+   "json": "ba16ab2f81697f4b",
+   "svg": "06c2e785a0a4755c",
+   "mm": "133x73",
+   "png600": "3142x1724",
+   "pixels": "9ef338691b749fd7"
+  },
+  "constructions: construction-perpendicular-bisector": {
+   "json": "4842deaa40530f79",
+   "svg": "be4b2f272e1d1705",
+   "mm": "133x95.2",
+   "png600": "3142x2249",
+   "pixels": "94df5b3fe9e04fc3"
+  },
+  "constructions: construction-perpendicular-bisector (worked)": {
+   "json": "92c04b5eb8936e15",
+   "svg": "252d02cd3559577e",
+   "mm": "133x95.2",
+   "png600": "3142x2249",
+   "pixels": "edfde0f820557435"
+  },
+  "constructions: construction-perpendicular-from-point": {
+   "json": "3f11ed201881e0ef",
+   "svg": "0804b33acd62b301",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "1ab27aefba667d6b"
+  },
+  "constructions: construction-perpendicular-from-point (worked)": {
+   "json": "02cb9516a620104d",
+   "svg": "c9c605e65fdf86dc",
+   "mm": "133x93",
+   "png600": "3142x2197",
+   "pixels": "53ed9262258b6fd2"
   },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12": {
    "json": "a6055531febbdf33",
@@ -771,6 +911,62 @@
    "mm": "140x41",
    "png600": "3307x969",
    "pixels": "6899e66d26ddfeca"
+  },
+  "plans and elevations: elevations-draw-solid": {
+   "json": "18466b2dbad26c01",
+   "svg": "f6f88264beff9e7d",
+   "mm": "193x152.9",
+   "png600": "4559x3612",
+   "pixels": "65798a9a5907e745"
+  },
+  "plans and elevations: elevations-draw-solid (worked)": {
+   "json": "a7439d5e994cbad5",
+   "svg": "e498d9ab3450bfe0",
+   "mm": "193x152.9",
+   "png600": "4559x3612",
+   "pixels": "56f317dd23d8990c"
+  },
+  "plans and elevations: elevations-draw-views": {
+   "json": "9c27a7412b7eaeae",
+   "svg": "0c7dec06f5b5ab0e",
+   "mm": "260.4x76",
+   "png600": "6151x1795",
+   "pixels": "2dfd660f8ed94e1d"
+  },
+  "plans and elevations: elevations-draw-views (worked)": {
+   "json": "70a86a47aaf0751c",
+   "svg": "34c8efda342a5d6f",
+   "mm": "260.4x76",
+   "png600": "6151x1795",
+   "pixels": "e9f4fda2a07dffa5"
+  },
+  "plans and elevations: elevations-scale-2cm": {
+   "json": "c943c26b8dfb6660",
+   "svg": "e5804258968990b9",
+   "mm": "261.7x89.9",
+   "png600": "6182x2124",
+   "pixels": "b4659bc65bb9d4ed"
+  },
+  "plans and elevations: elevations-scale-2cm (worked)": {
+   "json": "452a38d6006ad791",
+   "svg": "2e084ed604cd58a9",
+   "mm": "261.7x89.9",
+   "png600": "6182x2124",
+   "pixels": "b2747dd64f6780e9"
+  },
+  "plans and elevations: elevations-steps": {
+   "json": "01bf9290fce8bf4d",
+   "svg": "29df4aedfb336f83",
+   "mm": "260.4x86",
+   "png600": "6151x2031",
+   "pixels": "7b4123497879504c"
+  },
+  "plans and elevations: elevations-steps (worked)": {
+   "json": "5429c1435ed3db7c",
+   "svg": "80a2323266c44440",
+   "mm": "260.4x86",
+   "png600": "6151x2031",
+   "pixels": "e8b10384232473d8"
   },
   "plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5": {
    "json": "563a238dc445b726",

@@ -549,6 +549,8 @@ export default function RatioTablePage({
             <EditorToolbar
               canUndo={!recovery && !!history.past.length}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}

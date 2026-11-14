@@ -102,7 +102,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
 
 export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil") {
   return guidance({
-    textSizesPt: renderedTextSizesPt(core.renderSvg(core.forView(e, view)), 72 / 25.4),
+    textSizesPt: renderedTextSizesPt(core.renderSvg(e, view), 72 / 25.4),
     gridPitchMm: [e.document.unitCm * 10],
     tableRowHeightsMm: [],
     answerLineLengthsMm: [],

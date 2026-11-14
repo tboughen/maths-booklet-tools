@@ -19,6 +19,8 @@ export const toolIds = [
   "charts",
   "probability-tree",
   "frequency-tree",
+  "construction",
+  "elevations",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */

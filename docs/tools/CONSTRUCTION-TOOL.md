@@ -8,8 +8,10 @@ separate family that comes later.
 Code: `packages/construction-core` (schema, geometry, explicit construction helpers, layout, SVG, examples) and
 `packages/construction-core/src/interchange.ts` (connector adapter). MCP access is the `construction` kind of the
 generic connector tools (see [the diagram registry](DIAGRAM-REGISTRY.md)); drawings can be placed in worksheets and
-booklets. **The website editor (`/tools/construction`) is the next step**: until it ships, `EDITOR_RELEASED` is
-false, the connector returns no editor link, and drawings reopen from their JSON envelope.
+booklets. The website editor is `src/construction/ConstructionPage.tsx` at `/tools/construction`: drag or nudge
+points (moving waits until saved constructions are removed, so their arcs stay true), add lines and marks, add the
+seven ruler-and-compass constructions (saved as answers by default), shaded regions, measure on request, and choose
+the drawing size, grid, border and caption. The connector returns an editor link to it.
 
 ## Physical size
 

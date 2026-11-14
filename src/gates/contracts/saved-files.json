@@ -26,7 +26,8 @@
             "type": "string",
             "enum": [
               "expand",
-              "factorise"
+              "factorise",
+              "multiply"
             ]
           },
           "columns": {
@@ -4885,6 +4886,33 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "gradientTriangle": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "run": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "labels": {
+                          "type": "string",
+                          "enum": [
+                            "values",
+                            "blank"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "run"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -4894,6 +4922,77 @@
                     "start",
                     "end",
                     "equationVisible"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "region"
+                    },
+                    "inequalities": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      }
+                    },
+                    "shade": {
+                      "type": "string",
+                      "enum": [
+                        "wanted",
+                        "unwanted"
+                      ]
+                    },
+                    "boundaries": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "inequalities",
+                    "shade",
+                    "boundaries"
                   ],
                   "additionalProperties": false
                 }
@@ -5321,6 +5420,61 @@
               ],
               "additionalProperties": false
             }
+          },
+          "secondary": {
+            "type": "object",
+            "properties": {
+              "minimum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "maximum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "unit": {
+                "default": "",
+                "type": "string",
+                "maxLength": 4,
+                "pattern": "^[^<>&\"0-9/\\s]*$"
+              },
+              "unitPlace": {
+                "default": "after",
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              "style": {
+                "default": "line",
+                "type": "string",
+                "enum": [
+                  "line",
+                  "bar"
+                ]
+              },
+              "labels": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "value",
+                    "hidden",
+                    "answer-line"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "minimum",
+              "maximum"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -7051,6 +7205,18 @@
           },
           "notToScale": {
             "type": "boolean"
+          },
+          "fontPt": {
+            "type": "integer",
+            "minimum": 11,
+            "maximum": 14
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           },
           "sourceId": {
             "anyOf": [
