@@ -627,8 +627,9 @@ export default function ValueGraphPage({
   );
   const close = () => {
     if (!blocked) {
-      anchor?.focus();
       setSelection(null);
+      // The editor card sits above its opener (U21), so focus the opener after the card has gone.
+      requestAnimationFrame(() => anchor?.focus());
     }
   };
   const removeSelectedPoint = () => {
@@ -1890,9 +1891,11 @@ export default function ValueGraphPage({
                 <div key={JSON.stringify(selection)}>{contextContent()}</div>
               </InspectorEditor>
             ) : (
-              <p className="inspector-hint">
-                Click a value or object to edit it.
-              </p>
+              <section className="panel-card vg-selected-empty" aria-label="Selected item">
+                <p className="inspector-hint">
+                  Click a value or object to edit it, or choose a tool below.
+                </p>
+              </section>
             )}
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>
