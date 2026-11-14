@@ -175,8 +175,12 @@ refuse invalid numerical requests. Helpers do not solve arbitrary symbolic text.
 
 ## Print and files
 
-Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt
-and independent of view zoom. Actual export height follows complete artwork,
+Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt by
+default (11–14 pt, saved as `fontPt` only when not 11; never below 11 because fraction
+parts print at 85%) and independent of view zoom.
+Lines are normal or bold (U111): bold multiplies every stroke by 1.5 and is saved as
+`lines: "bold"`; normal is never saved. A new triangle starts from the house style chosen
+on the overview page (Large print starts at 12 pt). Actual export height follows complete artwork,
 labels and captions with white allowance; an invalid collision/oversized layout
 blocks image export and keeps editable save available. Fit shows the full width
 on narrow screens. Explicit zoom permits scrolling without changing export size.
