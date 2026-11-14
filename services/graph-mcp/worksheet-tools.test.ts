@@ -7,7 +7,7 @@ import type { Server } from "node:http";
 import { PDFDocument } from "pdf-lib";
 import { graphService } from "./server";
 import { WorksheetDownloads } from "./worksheet-tools";
-import { memoryDocumentStore } from "./document-store";
+import { memoryDocumentStore, type DocumentStore } from "./document-store";
 import { inflateSync, strFromU8, unzipSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
@@ -26,13 +26,13 @@ afterEach(async () => {
   await Promise.all(clients.splice(0).map((c) => c.close()));
   await Promise.all(servers.splice(0).map((s) => new Promise<void>((r) => s.close(() => r()))));
 });
-async function start() {
+async function start(documentStore?: DocumentStore) {
   const reservation = createServer();
   await new Promise<void>((r) => reservation.listen(0, "127.0.0.1", r));
   const port = (reservation.address() as { port: number }).port;
   await new Promise<void>((r) => reservation.close(() => r()));
   const base = `http://127.0.0.1:${port}`,
-    server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: key }, activeKey: "test" });
+    server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: key }, activeKey: "test", documentStore });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
   const client = new Client({ name: "worksheet-acceptance", version: "1" });
@@ -233,7 +233,7 @@ describe("booklet tool", () => {
     expect(content.filter((c) => c.type === "image")).toHaveLength(3);
     const bookletText = (r.content as { type: string; text?: string }[]).filter((c) => c.type === "text").map((c) => c.text).join("\n");
     for (const link of Object.values(reply.downloads)) expect(bookletText).toContain((link as { url: string }).url);
-    for (const lesson of reply.lessons) if (lesson.pupilPdf) expect(bookletText).toContain(lesson.pupilPdf.url);
+    for (const lesson of reply.lessons) for (const link of [lesson.pupilPdf, lesson.answersPdf, lesson.pupilDocx, lesson.answersDocx]) if (link) expect(bookletText).toContain(link.url);
 
     // The whole booklet is either a link or an included file, for each of the five outputs.
     const included = content.filter((c) => c.type === "resource").map((c) => c.resource!);
@@ -375,6 +375,24 @@ describe("booklet tool", () => {
     expect(inline.href.length).toBeGreaterThan(400);
     await expect(fallback.verify(inline, 1_000_000)).resolves.toMatchObject({ format: "pdf" });
   });
+
+  it("gives short booklet and lesson links from a durable store, saving the booklet once", async () => {
+    const store = memoryDocumentStore();
+    let puts = 0;
+    const { client } = await start({ ...store, durable: true, put: (id: string, text: string, ttl: number) => (puts++, store.put(id, text, ttl)) });
+    const r = await client.callTool({ name: "create_booklet", arguments: { booklet: a7Booklet } }, undefined, { timeout: 120_000 });
+    expect(r.isError, JSON.stringify(r.content).slice(0, 400)).not.toBe(true);
+    const reply = r.structuredContent as unknown as BookletReply;
+    expect(puts).toBe(1);
+    const all = [...Object.values(reply.downloads), ...reply.lessons.flatMap((l) => [l.pupilPdf, l.answersPdf, l.pupilDocx, l.answersDocx])] as { url: string }[];
+    expect(all).toHaveLength(13);
+    expect(Math.max(...all.map((l) => l.url.length))).toBeLessThan(600);
+    const second = reply.lessons[1];
+    const word = await bookletWord(second.pupilDocx!.url);
+    expect(word.start).toBe(second.firstPage);
+    const pdf = await PDFDocument.load(new Uint8Array(await (await fetch(second.answersPdf!.url)).arrayBuffer()));
+    expect(pdf.getPageCount()).toBe(word.pages);
+  }, 180_000);
 
   it("refuses a stored-document link that was tampered with or has gone", async () => {
     const store = memoryDocumentStore();

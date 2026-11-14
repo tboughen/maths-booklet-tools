@@ -374,22 +374,36 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         ["answersDocx", "docx", "answers"],
         ["json", "json", "pupil"],
       ] as const;
+      const save = async (format: WorksheetFormat, view: View) => {
+        const l = await downloads.storedLink(booklet, format, view);
+        stored = true;
+        return l;
+      };
       for (const [slot, format, view] of wanted) {
+        // A store that survives restarts gives short links, which chats pass on without breaking.
+        if (downloads.durableStore) {
+          try {
+            links[slot] = await save(format, view);
+            continue;
+          } catch (error) {
+            console.warn(`Document store write failed; using a self-contained link. ${error instanceof Error ? error.message : String(error)}`);
+          }
+        }
         try {
           links[slot] = downloads.link(booklet, format, view);
         } catch (error) {
           if (!(error instanceof GraphError) || error.code !== "size_limit") throw error;
           // Too big to carry in a link (a whole unit usually is): keep it for a week and link to it.
           try {
-            links[slot] = await downloads.storedLink(booklet, format, view);
-            stored = true;
+            links[slot] = await save(format, view);
           } catch {
             storeFailed = true;
           }
         }
       }
-      // Each lesson on its own: small links that work even when the whole booklet is too big for one.
-      // Word links name the stored booklet when there is one, which keeps the reply short.
+      // Each lesson on its own. With the booklet stored, a lesson link names it and the lesson, so it
+      // stays short; otherwise the lesson travels in the link, which works even when the whole
+      // booklet is too big for one.
       for (const [i] of doc.lessons.entries()) {
         const one = singleLessonBooklet(booklet, i);
         for (const [slot, format, view] of [
@@ -398,13 +412,18 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           ["pupilDocx", "docx", "pupil"],
           ["answersDocx", "docx", "answers"],
         ] as const) {
-          try {
-            lessons[i][slot] = stored && format === "docx" ? await downloads.storedLink(booklet, format, view, Date.now(), i) : downloads.link(one.booklet, format, view, Date.now(), one.numbering);
-          } catch (error) {
-            if (!(error instanceof GraphError) || error.code !== "size_limit") {
-              if (stored && format === "docx") continue;
-              throw error;
+          if (stored) {
+            try {
+              lessons[i][slot] = await downloads.storedLink(booklet, format, view, Date.now(), i);
+              continue;
+            } catch {
+              // Fall back to a self-contained lesson link.
             }
+          }
+          try {
+            lessons[i][slot] = downloads.link(one.booklet, format, view, Date.now(), one.numbering);
+          } catch (error) {
+            if (!(error instanceof GraphError) || error.code !== "size_limit") throw error;
           }
         }
       }
@@ -422,7 +441,17 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     if (lessonRows.length)
       content.push({
         type: "text",
-        text: `Lesson PDF links:\n${lessonRows.map((l) => `- Lesson ${l.lesson} (${l.title}): pupil ${l.pupilPdf?.url ?? "not available"}${l.answersPdf ? ` | answers ${l.answersPdf.url}` : ""}`).join("\n")}`,
+        text: `Lesson links:\n${lessonRows
+          .map((l) => {
+            const parts = [
+              ["pupil PDF", l.pupilPdf],
+              ["answers PDF", l.answersPdf],
+              ["pupil Word", l.pupilDocx],
+              ["answers Word", l.answersDocx],
+            ] as const;
+            return `- Lesson ${l.lesson} (${l.title}): ${parts.map(([name, link]) => `${name} ${link?.url ?? "not available"}`).join(" | ")}`;
+          })
+          .join("\n")}`,
       });
     content.push({
       type: "text",
