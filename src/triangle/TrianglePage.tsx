@@ -2508,10 +2508,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                         delete n.document.triangles.find(
                           (t) => "r:" + t.id === draft.ref,
                         )!.area;
-                        if (!n.document.triangles.some((t) => t.area)) {
-                          n.schemaVersion = 1;
-                          n.rendererVersion = "triangle-1";
-                        }
                         commit(n);
                         closeDraft();
                         setSelected(null);

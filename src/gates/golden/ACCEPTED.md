@@ -266,3 +266,36 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - cuboids: cuboid-layers-3 (worked): json e0288fa7d42ce6e2 -> 81e8162ec17e1bea
 - cuboids: cuboid-missing-height: json cbf28198701d6592 -> 9ac2d096435ae454
 - cuboids: cuboid-missing-height (worked): json adadcd0214671c7c -> 597993e021c91285
+
+## 2026-11-14: Triangle schema 1 removed (no backwards compatibility): every triangle file is schema 2 / triangle-2; artwork unchanged, only saved JSON version fields differ.
+
+- triangles: triangle-base-height: json f8b0e3121b565ada -> 1e5b05de2d412810
+- triangles: triangle-base-height (worked): json 4f7833ceeef29e23 -> 6fa56e5e7948d1d7
+- triangles: triangle-bisector: json 284ab73126f0a2c5 -> 34ce82fbabf5852e
+- triangles: triangle-bisector (worked): json 284ab73126f0a2c5 -> 34ce82fbabf5852e
+- triangles: triangle-cosine-acute: json e1ea50125684988e -> 2d827f969b4bfcfb
+- triangles: triangle-cosine-acute (worked): json 94a5c0fe2c8a791f -> f103a81ae566947d
+- triangles: triangle-cosine-obtuse: json 3690739189fb5ee8 -> 380d7218941ea6e5
+- triangles: triangle-cosine-obtuse (worked): json d3b9d87745e723b7 -> 0c4fe839bca1efa6
+- triangles: triangle-deliberate-error: json 0225cee28ded60bf -> faed0a79a1bebb28
+- triangles: triangle-deliberate-error (worked): json 0225cee28ded60bf -> faed0a79a1bebb28
+- triangles: triangle-external-height: json b84761e0becafae2 -> cb63c50b2dd29dae
+- triangles: triangle-external-height (worked): json b84761e0becafae2 -> cb63c50b2dd29dae
+- triangles: triangle-fractions: json 5ffd42ae2494e60a -> 4c712865079bd6bb
+- triangles: triangle-fractions (worked): json 91fa8170c2505499 -> 681fb555a18652e1
+- triangles: triangle-inverse-area: json 5b4d473a032a9eb2 -> 15e3b496d525422c
+- triangles: triangle-inverse-area (worked): json 3bcbc0e3d35a5517 -> 095047e2a2394b09
+- triangles: triangle-joined-rules: json 0e4da79fb0e46d24 -> d77b656b11d7cb3b
+- triangles: triangle-joined-rules (worked): json 9ace52eb9c67e398 -> c7bc7e676f6ec527
+- triangles: triangle-missing-side: json a3499072d574f508 -> f89de5a0fc0f7591
+- triangles: triangle-missing-side (worked): json c7c3cba19daad58e -> c5e37b49423e426c
+- triangles: triangle-pythagoras-error: json 7b712500bad7b1d4 -> 053e22926f6505f9
+- triangles: triangle-pythagoras-error (worked): json ac0ee8b8acb8cfed -> 62c34c4027bfdee1
+- triangles: triangle-right-trig: json 02a0420a8d3b2ee2 -> 300051273b64c38a
+- triangles: triangle-right-trig (worked): json f59ec4c6309ba540 -> e4b785b101f7d8a5
+- triangles: triangle-sine-angle: json e4f8dcc112ae6b6a -> a1b0bc9f10b5b6bf
+- triangles: triangle-sine-angle (worked): json 5c80a68c49601f93 -> b24a2c4a1b01ee7a
+- triangles: triangle-sine-side: json d530efbb15f98dab -> 37ceaae78ac797ea
+- triangles: triangle-sine-side (worked): json d3fca6ef29f9c8a7 -> 349d92930e7a9286
+- triangles: triangle-ssa: json d90aa08547abd19d -> 090c06f8a3053640
+- triangles: triangle-ssa (worked): json d90aa08547abd19d -> 090c06f8a3053640

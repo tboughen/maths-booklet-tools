@@ -1928,7 +1928,7 @@ test("centre area entry cancels cleanly then applies as one undoable edit with r
   await page
     .getByRole("button", { name: "Remove area label", exact: true })
     .click();
-  expect((await saved(page)).schemaVersion).toBe(1);
+  expect((await saved(page)).schemaVersion).toBe(2);
   await expect(page.locator(".tr-art")).not.toContainText("24 cm²");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.locator(".tr-art")).toContainText("24 cm²");
