@@ -51,7 +51,7 @@ for (const [tool, examples, key, confirm] of [
       const before = await stored();
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
+          name: "Use this example",
           exact: true,
         })
         .click();
@@ -65,7 +65,7 @@ for (const [tool, examples, key, confirm] of [
       await showExamples(page);
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
+          name: "Use this example",
           exact: true,
         })
         .click();
