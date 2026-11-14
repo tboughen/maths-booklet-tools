@@ -1,4 +1,8 @@
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
@@ -579,6 +583,7 @@ export default function LessonBarModelPage({
     </section>
   ) : null;
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(c.renderSvg(c.forView(e, "answer"))), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   if (
     e.schemaVersion === 1 &&
     !alternate &&
@@ -707,6 +712,7 @@ export default function LessonBarModelPage({
               onBusyChange={setBusy}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
@@ -737,6 +743,7 @@ export default function LessonBarModelPage({
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               hidden

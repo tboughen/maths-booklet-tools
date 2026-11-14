@@ -31,11 +31,14 @@ export function GraphExchange({
   active = true,
   onBusyChange,
   about,
+  worked,
 }: {
   document: GraphDocument;
   onImport: (d: GraphDocument) => void;
   /** "Title and note…" (U34), from `useTitleNote`. */
   about: FileMenuItem;
+  /** "Worked notes…" (U116). */
+  worked?: FileMenuItem;
   onClose: () => void;
   onMessage: (message: string, error?: boolean) => void;
   visible: boolean;
@@ -173,6 +176,7 @@ export function GraphExchange({
         wordHelp
         actions={diagramFileMenu({
           about,
+          worked,
           svg: imageAction("Download SVG"),
           png: imageAction("Download PNG (600 ppi)"),
           pdf: imageAction("Download PDF (actual size)"),

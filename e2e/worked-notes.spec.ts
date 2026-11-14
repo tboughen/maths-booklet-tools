@@ -25,3 +25,21 @@ for (const tool of ["ratio-table", "venn", "charts", "probability-tree", "freque
     expect(svg(false)).not.toContain('data-layer="worked"');
   });
 }
+
+// Editors whose answers show only in worksheets, booklets and the connector: the note is saved in the file.
+for (const route of ["graph", "number-line", "expanding-factorising", "triangle", "bar-model"]) {
+  test(`${route}: a worked note is saved in the editable file`, async ({ page }, info) => {
+    await page.goto(`/tools/${route}`);
+    await clickResourceAction(page, "Worked notes…");
+    const dialog = page.getByRole("dialog", { name: "Worked notes" });
+    await dialog.getByRole("button", { name: "Add a worked note" }).click();
+    await dialog.getByRole("textbox", { name: "Guidance" }).fill("Add 3");
+    await dialog.getByRole("button", { name: "Save worked notes" }).click();
+    await expect(dialog).toHaveCount(0);
+    const pending = page.waitForEvent("download");
+    await clickResourceAction(page, "Save editable file");
+    const path = info.outputPath(`${route}.json`);
+    await (await pending).saveAs(path);
+    expect(JSON.parse(readFileSync(path, "utf8")).worked).toEqual([{ text: "Add 3", x: 2, y: 2 }]);
+  });
+}

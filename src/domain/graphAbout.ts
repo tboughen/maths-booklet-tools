@@ -7,6 +7,7 @@
 import { aboutOf, type About } from "../../packages/envelope-core/src/about";
 import { createEnvelope, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import type { DiagramDocumentV1 } from "../../packages/graph-core/src/types";
+import type { WorkedNote } from "../../packages/envelope-core/src/worked";
 
 export type GraphDocument = DiagramDocumentV1 & { about?: About };
 
@@ -26,5 +27,12 @@ export function graphDocument(envelope: GraphEnvelope): GraphDocument {
 export function withGraphAbout(document: GraphDocument, about: About): GraphDocument {
   const { about: old, ...drawing } = document;
   const next = aboutOf({ title: about.title, note: about.note, worked: old?.worked });
+  return Object.keys(next).length ? { ...drawing, about: next } : drawing;
+}
+
+/** `document` with its worked notes (U116) replaced; an empty list removes them. */
+export function withGraphWorked(document: GraphDocument, notes: readonly WorkedNote[]): GraphDocument {
+  const { about: old, ...drawing } = document;
+  const next = aboutOf({ title: old?.title, note: old?.note, worked: notes.length ? notes.map((n) => ({ ...n })) : undefined });
   return Object.keys(next).length ? { ...drawing, about: next } : drawing;
 }

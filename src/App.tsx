@@ -3,8 +3,12 @@ import { graphGallery } from "./examples/galleryCatalogue";
 import { PreviewControls } from "./site/PreviewControls";
 import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
-import { graphEnvelope, withGraphAbout, type GraphDocument } from "./domain/graphAbout";
+import { graphEnvelope, withGraphAbout, withGraphWorked, type GraphDocument } from "./domain/graphAbout";
 import { useTitleNote } from "./site/TitleNote";
+import { renderDiagramSvg } from "./export/svg";
+import { useWorkedNotes } from "./site/WorkedNotes";
+import { WORKED_STEP } from "./site/workedNotesData";
+import { answerSize } from "./export/worked";
 import { TITLE_NOTE_STEP } from "./site/titleNoteData";
 import { useGraphDrafts } from "./components/useGraphDrafts";
 import { newBrowserGraph } from "./domain/browserGraph";
@@ -485,6 +489,14 @@ export default function App({ active = true }: { active?: boolean }) {
     disabled: blocked,
     onSave: (about) => commit(withGraphAbout(document, about), TITLE_NOTE_STEP),
   });
+  // U116: worked notes ride the same way and print on the answers copy only.
+  const worked = useWorkedNotes({
+    active,
+    notes: document.about?.worked ?? [],
+    size: answerSize(renderDiagramSvg(document, "answer")),
+    disabled: blocked,
+    onSave: (notes) => commit(withGraphWorked(document, notes), WORKED_STEP),
+  });
   return (
     <div className="app-shell booklet-editor graph-editor">
       <main
@@ -529,6 +541,7 @@ export default function App({ active = true }: { active?: boolean }) {
             <GraphExchange
               document={document}
               about={titleNote.item}
+              worked={worked.item}
               onImport={(next) => act(() => commit(next))}
               onClose={() => setExportMenuOpen(false)}
               onMessage={exchangeMessage}
@@ -570,6 +583,7 @@ export default function App({ active = true }: { active?: boolean }) {
               ]}
             />
             {titleNote.dialog}
+            {worked.dialog}
             {drafts.pending && (
               <p className="graph-pending-note" role="status">
                 Unapplied changes. Apply or cancel the unfinished field before
