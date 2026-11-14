@@ -258,8 +258,8 @@ test("teacher route creates seven-four comparison and between difference without
       .map((a) => a.label.text)
       .sort(),
   ).toEqual(["4", "7"]);
-  // The handwriting layout reserves 12 mm above / 3 mm below answer lines, so the old
-  // 65 mm compact target no longer applies; 70 mm still catches runaway lanes.
+  // The v3 layout is 1–4 mm taller than the old compact v2 target of 65 mm (Maths caption
+  // lines); 70 mm still catches runaway lanes.
   expect(v.layout(e).height).toBeLessThanOrEqual(70);
 });
 test("teacher route creates the unequal part-whole model with literal captions", async ({
@@ -363,8 +363,8 @@ test("teacher route creates inline ratio shares and a nested difference with key
   expect(
     g.annotations.find((a) => a.annotation.label.text === "6")!.lane,
   ).not.toBe(shares[1].lane);
-  // The handwriting layout reserves 12 mm above / 3 mm below answer lines, so the old
-  // 65 mm compact target no longer applies; 70 mm still catches runaway lanes.
+  // The v3 layout is 1–4 mm taller than the old compact v2 target of 65 mm (Maths caption
+  // lines); 70 mm still catches runaway lanes.
   expect(g.height).toBeLessThanOrEqual(70);
   await info.attach("operator-R5.json", {
     body: JSON.stringify({

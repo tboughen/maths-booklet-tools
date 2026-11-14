@@ -23,7 +23,7 @@ equal sections; `ratio:[3,5]` or `[2,3,4]` creates grouped units. Comparison acc
 Structural lengths never become printed answers. Custom `bars`, `annotations`, `captions`,
 `title` and partial `presentation` use the saved schemas; `bars` and `starter` are exclusive.
 
-`spec.example` selects BM01–BM09, H07, H18, source-sharing or a lesson example, and must come
+`spec.example` selects BM01–BM09, H07, H18 or source-sharing, and must come
 on its own. `worked:true` requires an explicit example. An exact envelope retains saved label
 states and stable IDs. `spec.schemaVersion` is optional and can only be 3.
 

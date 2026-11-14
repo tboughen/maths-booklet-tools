@@ -3,7 +3,7 @@
 There is one bar-model format: schemaVersion **3**, rendererVersion **bar-model-3**,
 styleProfile **lesson-v3**. Versions 1 and 2 were removed on 14 November 2026 (Tim's
 decision: no backwards compatibility). Their files are no longer read: storage keeps the
-original bytes in recovery and offers a download. The past-paper examples (BM01–BM09, H07,
+original bytes (including anything under the old `bar-model:v1` key) and offers a download. The past-paper examples (BM01–BM09, H07,
 H18, source sharing) and the lesson examples R1–R5 were converted to this format and now use
 its handwriting layout. Source capability does not establish production service or
 intended-client adoption.
@@ -84,7 +84,8 @@ routes, JSON, original-SVG chunks, bundle and native vector consumption. Print a
 Actual size / 100%; document resizing changes the physical handwriting space.
 
 Limits: 6 bars, 24 parts/bar, 96 parts, 18 annotations, three captions, 30 operations,
-32 KiB requests/definitions, 16,000-character links, 280 × 260 mm, minimum 4 mm parts and
+32 KiB requests/definitions, 16,000-character browser editor links (MCP editor links
+stop at 7,500 characters and fall back to the editable file), 280 × 260 mm, minimum 4 mm parts and
 32 million 600 ppi pixels. Not every maximum can coexist. The dense fixture
 (`stress-fixture.json`) has 96 inside answer lines at 20 mm actual bar height. Excess fails
 explicitly without compressed handwriting, font shrinking or hidden scaling.

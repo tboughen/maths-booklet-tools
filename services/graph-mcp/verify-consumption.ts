@@ -196,7 +196,7 @@ try {
   if (full) { const algebraMaximum=await call("create_algebra_grid",{spec:{rowCount:7,columnCount:7}});await save("algebra-maximum",algebraMaximum); }
   const bar=await call("create_bar_model",{spec:{example:"BM08"}});await save("bar-model",bar);
   const barRevised=await call("revise_bar_model",{envelope:bar.envelope,baseHash:bar.contentHash,operations:[{op:"set_fill",barId:"b1",partIds:["b1p1"],fill:"neutral"}]});await save("bar-model-revised",barRevised);
-  assert.deepEqual((barRevised.envelope.document as {spans:unknown}).spans,(bar.envelope.document as {spans:unknown}).spans);
+  assert.deepEqual((barRevised.envelope.document as {annotations:unknown}).annotations,(bar.envelope.document as {annotations:unknown}).annotations);assert.ok((bar.envelope.document as {annotations:unknown[]}).annotations.length>0);
   if(full){const h07=await call("create_bar_model",{spec:{example:"H07",worked:true}});await save("bar-h07",h07);const algebraBar=await call("create_bar_model",{spec:{example:"H18",worked:true}});await save("bar-h18",algebraBar);const maximum=await call("create_bar_model",{spec:{example:"BM09"}});await save("bar-maximum",maximum);await saveDirect("bar-maximum","bar-model",maximum);}
   if(full){
     const v3 = await call("create_bar_model", { envelope: lessonV3("R4", true) }); await save("bar-v3-reference", v3); await saveDirect("bar-v3-reference", "bar-model", v3);
