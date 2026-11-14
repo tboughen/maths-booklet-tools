@@ -26,7 +26,7 @@ Optional `printGuidance` is response metadata outside the envelope/hash:
 `recommendedScale: 1`, `preserveAspectRatio: true`, and `referenceFeatures`
 containing `textSizesPt`, `gridPitchMm`, `answerLineLengthsMm` and
 `tableRowHeightsMm`. Arrays give distinct visible nominal measurements at this
-resource's native size; hidden features are excluded. A compact ratio table's
+resource's native size; hidden features are excluded. A ratio table's
 measurements already include its chosen size. They do not imply a universal
 readability threshold.
 
