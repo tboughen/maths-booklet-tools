@@ -6586,8 +6586,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               }
             },
             "required": [
@@ -6746,8 +6753,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               },
               "arrangement": {
                 "type": "string",
