@@ -285,3 +285,35 @@ describe("axis numbers over lines", () => {
     expect(name).toContain('stroke="#ffffff"');
   });
 });
+
+describe("point coordinates", () => {
+  const spec = {
+    objects: [
+      { kind: "point", id: "a", position: { x: 2, y: -3 }, name: "A", coordinates: "show" },
+      { kind: "point", id: "b", position: { x: -1, y: 4 }, name: "B", coordinates: "blank" },
+      { kind: "point", id: "c", position: { x: 1, y: 1 } },
+    ],
+  };
+  it("print A(2, −3), leave a blank for pupils and show the saved point only on the answers copy", () => {
+    const d = documentFromEnvelope(createGraph(spec));
+    const pupil = renderDiagramSvg(d);
+    const answer = renderDiagramSvg(d, "answer");
+    expect(pupil).toContain("(2, −3)");
+    expect(pupil).toContain("( ……… , ……… )");
+    expect(pupil).not.toContain("(−1, 4)");
+    expect(answer).toContain("(−1, 4)");
+    expect(answer).toContain('point-coordinates-answer" fill="#b0125b"');
+    expect(answer).not.toContain("……");
+    const size = (svg: string) => svg.match(/width="[\d.]+cm" height="[\d.]+cm"/)![0];
+    expect(size(answer)).toBe(size(pupil));
+    // The point without coordinates saves without the field.
+    expect("coordinates" in d.objects[2]).toBe(false);
+    expect(isDiagramDocument(d)).toBe(true);
+    expect(isDiagramDocument({ ...d, objects: [{ ...d.objects[0], coordinates: "maybe" }] })).toBe(false);
+  });
+  it("keep a graph without coordinates byte for byte", () => {
+    const without = { objects: spec.objects.map((o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== "coordinates"))) };
+    const d = documentFromEnvelope(createGraph(without));
+    expect(renderDiagramSvg(d)).not.toContain("point-coordinates");
+  });
+});
