@@ -1,9 +1,13 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
 import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
@@ -437,6 +441,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       {label}
     </label>
   );
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor cb-editor">
       <main
@@ -493,6 +498,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
@@ -528,6 +534,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize
@@ -636,45 +643,39 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               )}
             </div>
             <div className="cb-structure" aria-label="Cuboid structure">
-              <div className="cb-structure-group">
-                <button
-                  disabled={blocked || d.shapes.length >= 3}
-                  onClick={addShape}
-                  aria-label="Add cuboid"
-                >
-                  + Cuboid
-                </button>
-                <button
-                  disabled={blocked || d.shapes.length <= 1}
-                  onClick={removeShape}
-                  aria-label="Remove selected cuboid"
-                >
-                  − Cuboid
-                </button>
-              </div>
+              <StructureStepper
+                className="cb-structure-group"
+                name="Cuboids"
+                add={{
+                  label: "Add cuboid",
+                  disabled: blocked || d.shapes.length >= 3,
+                  onClick: addShape,
+                }}
+                remove={{
+                  label: "Remove selected cuboid",
+                  disabled: blocked || d.shapes.length <= 1,
+                  onClick: removeShape,
+                }}
+              />
               {s.view !== "plain" &&
                 axes.map((a) => (
-                  <div className="cb-structure-group" key={a}>
-                    <span>{a[0].toUpperCase() + a.slice(1)}</span>
-                    <button
-                      aria-label={`Remove one cube from ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, -1)))
-                      }
-                    >
-                      −
-                    </button>
-                    <button
-                      aria-label={`Add one cube to ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, 1)))
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
+                  <StructureStepper
+                    key={a}
+                    className="cb-structure-group"
+                    name={a[0].toUpperCase() + a.slice(1)}
+                    add={{
+                      label: `Add one cube to ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, 1))),
+                    }}
+                    remove={{
+                      label: `Remove one cube from ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, -1))),
+                    }}
+                  />
                 ))}
             </div>
             {dirty.size > 0 && (

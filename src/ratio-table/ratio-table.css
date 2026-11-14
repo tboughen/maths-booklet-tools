@@ -288,22 +288,9 @@
 .ratio-app .ratio-paper {
   max-width: none;
 }
-.ratio-action-pair {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ratio-action-pair .tool-button {
-  border: 1px solid var(--line-strong);
-  background: white;
-  justify-content: center;
-  white-space: nowrap;
-}
 .ratio-column-actions {
   grid-column: 2;
   grid-row: 1;
-  flex-direction: column;
-  align-items: stretch;
 }
 .ratio-row-actions {
   grid-column: 1;
@@ -393,7 +380,7 @@
   z-index: 5;
 }
 .ratio-app .ratio-inline-factor input {
-  font-size: calc(var(--ratio-edit-font) * 0.8);
+  font-size: calc(var(--ratio-edit-font) * 10 / 12); /* 10 pt, as printed (U111) */
 }
 .ratio-inline-factor {
   --ratio-factor-edit-width: 48px;
@@ -423,7 +410,7 @@
   transform: translateY(-50%);
   background: white;
   font-family: "STIX Two Text", serif;
-  font-size: calc(var(--ratio-edit-font) * 0.8);
+  font-size: calc(var(--ratio-edit-font) * 10 / 12); /* 10 pt, as printed (U111) */
 }
 .ratio-edit-layer .field-error {
   position: absolute;
@@ -504,16 +491,6 @@
     position: sticky;
     left: 0;
     max-width: calc(100vw - 70px);
-    gap: 6px;
-  }
-  .ratio-app .ratio-action-pair .tool-button {
-    min-width: 0;
-    padding-inline: 6px;
-    gap: 6px;
-    font-size: 12px;
-  }
-  .ratio-action-pair .tool-button span {
-    white-space: normal;
   }
   .booklet-editor.ratio-app .ratio-stage {
     height: auto;
