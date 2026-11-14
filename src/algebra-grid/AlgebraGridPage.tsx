@@ -3,6 +3,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { algebraGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useEffect, useRef, useState } from "react";
 import {
   answerBelow,
@@ -593,10 +594,10 @@ export default function AlgebraGridPage({
                 onChange={setShowAnswers}
               />
             </div>
-            <p className="ag-guidance">
+            <EditorHint tool="expanding-factorising">
               Click a cell or the printed question to edit. Blank cells stay
               blank until you choose to fill them.
-            </p>
+            </EditorHint>
             <div
               className="ag-scroll"
               ref={scroll}
