@@ -6,12 +6,20 @@ import {
   coordinatesText,
   getExportMetrics,
   nameBox,
+  GRADIENT_BLANK,
+  axisNumberBands,
+  gradientLabelPlacement,
   nameCentre,
   nameStyle,
   pointLabelPlacement,
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  regionBoundaries,
+  regionHalfPlanes,
+  regionPolygon,
+} from "../../packages/graph-core/src/region";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
   axisTicks,
@@ -40,6 +48,7 @@ import {
   visibleStraightPoints,
 } from "../domain/diagram";
 import { equationForObject } from "../domain/equations";
+import { gradientTriangleCorners, gradientTriangleValues } from "../../packages/graph-core/src/gradient-triangle";
 import {
   AXIS_ARROW_EXTRA_SHAFT_CENTIMETRES,
   AXIS_LABEL_FONT_POINTS,
@@ -205,6 +214,17 @@ function objectHitIds(
         if (a.y > pointer.y !== b.y > pointer.y && pointer.x < ((b.x - a.x) * (pointer.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
       }
       if (edge <= 13 || inside) hits.push({ id: object.id, distance: inside ? Math.min(edge, 13) : edge, priority: 2 });
+      continue;
+    }
+    if (object.kind === "region") {
+      // Anywhere inside the region picks it; lines and points on top still win.
+      const corners = regionPolygon(regionHalfPlanes(object), layout.bounds).map((p) => coordinateToSvg(p, layout));
+      let inside = false;
+      for (let i = 0, j = corners.length - 1; i < corners.length; j = i++) {
+        const a = corners[i], b = corners[j];
+        if (a.y > pointer.y !== b.y > pointer.y && pointer.x < ((b.x - a.x) * (pointer.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+      }
+      if (inside) hits.push({ id: object.id, distance: 13, priority: 3 });
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);
@@ -656,6 +676,28 @@ export function GraphCanvas({
               )}
             </g>
           )}
+          <g className="graph-regions" clipPath="url(#editor-plot-clip)">
+            {visibleDocument.objects.map((object) => {
+              if (object.kind !== "region") return null;
+              const ring = (points: Coordinate[]) =>
+                points.length ? `M ${points.map((p) => `${p.x} ${p.y}`).join(" L ")} Z` : "";
+              const polygon = ring(
+                regionPolygon(regionHalfPlanes(object), layout.bounds).map((p) => coordinateToSvg(p, layout)),
+              );
+              const plot = `M ${layout.plotLeft} ${layout.plotTop} L ${layout.plotRight} ${layout.plotTop} L ${layout.plotRight} ${layout.plotBottom} L ${layout.plotLeft} ${layout.plotBottom} Z`;
+              const d = object.shade === "wanted" ? polygon : `${plot} ${polygon}`.trim();
+              if (!d) return null;
+              return (
+                <path
+                  key={object.id}
+                  data-object-id={object.id}
+                  className={`graph-region${object.answerOnly ? " graph-region--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-region--selected" : ""}`}
+                  d={d}
+                  fillRule="evenodd"
+                />
+              );
+            })}
+          </g>
           {!isSketch(document) && (
           <g className="grid-lines">
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
@@ -695,6 +737,25 @@ export function GraphCanvas({
             />
           </g>
           <g clipPath="url(#editor-plot-clip)">
+            {visibleDocument.objects.flatMap((object) =>
+              object.kind === "region" && object.boundaries
+                ? regionBoundaries(regionHalfPlanes(object), layout.bounds).map((b, i) => {
+                    const start = coordinateToSvg(b.start, layout);
+                    const end = coordinateToSvg(b.end, layout);
+                    return (
+                      <line
+                        key={`${object.id}-${i}`}
+                        className={`graph-straight graph-region-boundary${object.answerOnly ? " graph-straight--answer" : ""}${object.id === visibleDocument.selectedObjectId ? " graph-straight--selected" : ""}`}
+                        x1={start.x}
+                        y1={start.y}
+                        x2={end.x}
+                        y2={end.y}
+                        strokeDasharray={b.strict ? STRAIGHT_DASH_ARRAY : undefined}
+                      />
+                    );
+                  })
+                : [],
+            )}
             {visibleDocument.objects
               .filter(
                 (object): object is PolygonObject =>
@@ -872,6 +933,35 @@ export function GraphCanvas({
                 );
               })}
           </g>
+          <g className="gradient-triangles">
+            {visibleDocument.objects.flatMap((object) => {
+              if (object.kind !== "straight" || !object.gradientTriangle) return [];
+              const corners = gradientTriangleCorners(object);
+              if (!corners || Math.abs(corners.end.y - corners.corner.y) < 1e-12) return [];
+              const [a, b, e] = [corners.start, corners.corner, corners.end].map((p) => coordinateToSvg(p, layout));
+              const values = gradientTriangleValues(object)!;
+              const mode = object.gradientTriangle.labels;
+              const inside = [corners.start, corners.corner, corners.end].every((p) => pointInBounds(p, layout.bounds));
+              const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, values.run, mode === "blank" ? GRADIENT_BLANK : values.rise, axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE));
+              // The editor shows blank labels' values in the answer colour, as it shows hidden answers.
+              const answer = object.answerOnly || mode === "blank";
+              return [
+                <g key={object.id} className={`gradient-triangle${object.answerOnly ? " gradient-triangle--answer" : ""}`} data-object-id={object.id}>
+                  <path clipPath="url(#editor-plot-clip)" d={`M ${a.x} ${a.y} H ${b.x} V ${e.y}`} strokeDasharray={STRAIGHT_DASH_ARRAY} />
+                  {mode && inside && (
+                    <g className={`point-label${answer ? " point-label--answer" : ""}`} fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
+                      {["text-halo", undefined].map((halo) => (
+                        <g key={halo ?? "text"} aria-hidden={halo ? true : undefined}>
+                          <text className={halo} x={place.run.x} y={place.run.y} textAnchor={place.run.anchor}>{values.run}</text>
+                          <text className={halo} x={place.rise.x} y={place.rise.y} textAnchor={place.rise.anchor}>{values.rise}</text>
+                        </g>
+                      ))}
+                    </g>
+                  )}
+                </g>,
+              ];
+            })}
+          </g>
           <g className="point-labels" fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
             {visibleDocument.objects.flatMap((object) =>
               object.kind !== "straight" || !object.labels
@@ -907,6 +997,8 @@ export function GraphCanvas({
                   ? !pointInBounds(object.position, layout.bounds)
                   : object.kind === "polygon"
                     ? !polygonVisible(object, layout.bounds)
+                  : object.kind === "region"
+                    ? !regionPolygon(regionHalfPlanes(object), layout.bounds).length
                     : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;

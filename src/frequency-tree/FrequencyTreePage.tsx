@@ -311,6 +311,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}

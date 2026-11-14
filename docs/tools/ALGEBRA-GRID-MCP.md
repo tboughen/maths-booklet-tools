@@ -20,17 +20,19 @@ Omitting both creates a blank 3 by 3 grid. Counts include the heading row/column
 ```
 
 `spec` fields: example (single,double,signed,cubic,factor,negative,common,
-source-expand,source-factor); rowCount/columnCount (2..7,exclusive with example);
+numeric,decimal,source-expand,source-factor); rowCount/columnCount (2..7,exclusive with example);
 cellMm (12..18); settings; cells. Initial IDs are r0/r1/etc and c0/c1/etc.
-`cells` use rowId,columnId,value (integer term string or null),optional hidden.
+`cells` use rowId,columnId,value (integer term string, or in multiply mode a plain number such as 20 or 0.4, or null),optional hidden.
 Null is an intentional blank; zero is a value. All entries are retained, never
 filled implicitly. Hidden values remain in editable JSON and editor links.
 
-Settings: mode expand/factorise; expression string; questionVisible/gridVisible;
+Settings: mode expand/factorise/multiply (multiply is the numeric grid method, expression like 23 × 47); expression string; questionVisible/gridVisible;
 answerLines0..3; compactHeadings; gridLineMm0.35/0.5/0.79375 (legacy0.2 retained);
 paper A4/A3; orientation portrait/landscape; intentionalError for deliberately
 inconsistent error-spotting artwork. Invalid syntax and crowded output reject.
-Product cells remain square12..18mm independently of paper and preview scaling.
+Product cells remain square12..18mm independently of paper and preview scaling, except that
+multiply mode's working rows are 3/4 of the cell height (Tim, 14 Nov). A multiply worked copy
+splits blank headings by place value and keeps any heading already given.
 Each edge has1..6 terms; coefficients bounded to +/-999999999999,powers0..6.
 No fraction or multivariable syntax. Multiplication18pt,algebra12pt,internal rules.
 

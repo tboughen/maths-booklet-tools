@@ -141,7 +141,7 @@ expected: fix that field and try once more rather than guessing a different payl
 - **Constructions (GM8).** True size in cm (y up): a 7 cm line prints 7 cm, so make the drawing
   big enough to construct in. Use the `constructions` helpers (bisectors, perpendiculars, loci,
   point-by-bearing); they are hidden answers by default, so pupils see only the starting lines.
-  Shade loci with a `region`. Write lengths or bearings only via `measure`. No editor link yet.
+  Shade loci with a `region`. Write lengths or bearings only via `measure`.
 - **Plans and elevations.** Cube solids only: `heights[row][column]`, row 0 at the front. A view
   the pupil draws is a panel with `state: "answer"` (empty grid, or plain sketching space for an isometric panel).
 

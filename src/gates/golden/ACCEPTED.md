@@ -156,3 +156,55 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - plotting quadratics: quadratic-fractions (worked): mm 141x134 -> 141x136
 - plotting quadratics: quadratic-fractions (worked): png600 3331x3165 -> 3331x3213
 - plotting quadratics: quadratic-fractions (worked): pixels ff0cb26b711403c8 -> 318a7273a4a13565
+
+## 2026-11-14: U105 numeric grid method examples
+
+- algebra grid: algebra-numeric: added
+- algebra grid: algebra-numeric (worked): added
+- algebra grid: algebra-decimal: added
+- algebra grid: algebra-decimal (worked): added
+
+## 2026-11-14: U105: grid-method working rows at three quarters of the cell size (Tim, 14 Nov)
+
+- algebra grid: algebra-decimal: svg 598e36aef4fea9f4 -> 018682f38cc791e7
+- algebra grid: algebra-decimal: mm 39x39 -> 39x31.5
+- algebra grid: algebra-decimal: png600 921x921 -> 921x744
+- algebra grid: algebra-decimal: pixels cfa32e638ff96393 -> f7a793cbac86c465
+- algebra grid: algebra-decimal (worked): svg fda4d7736f154696 -> 61aeb195d4c75711
+- algebra grid: algebra-decimal (worked): mm 39x50 -> 39x42.5
+- algebra grid: algebra-decimal (worked): png600 921x1181 -> 921x1004
+- algebra grid: algebra-decimal (worked): pixels 426475d13f4d69bd -> af1741c5109bd28d
+- algebra grid: algebra-numeric: svg 2593502be3e80f12 -> 73f02511b9c8f630
+- algebra grid: algebra-numeric: mm 39x39 -> 39x31.5
+- algebra grid: algebra-numeric: png600 921x921 -> 921x744
+- algebra grid: algebra-numeric: pixels e73c6823809611c9 -> 9baff6f16819fbd1
+- algebra grid: algebra-numeric (worked): svg 9296a92abd973de6 -> e8377cee0a7073c4
+- algebra grid: algebra-numeric (worked): mm 39x50 -> 39x42.5
+- algebra grid: algebra-numeric (worked): png600 921x1181 -> 921x1004
+- algebra grid: algebra-numeric (worked): pixels 8cf8d9ec64b8727f -> b202353bba390da8
+## 2026-11-14: Add the constructions and plans-and-elevations editor galleries (new outputs only)
+
+- constructions: construction-perpendicular-bisector: added
+- constructions: construction-perpendicular-bisector (worked): added
+- constructions: construction-angle-bisector: added
+- constructions: construction-angle-bisector (worked): added
+- constructions: construction-perpendicular-from-point: added
+- constructions: construction-perpendicular-from-point (worked): added
+- constructions: construction-perpendicular-at-point: added
+- constructions: construction-perpendicular-at-point (worked): added
+- constructions: construction-locus-segment: added
+- constructions: construction-locus-segment (worked): added
+- constructions: construction-map-equidistant: added
+- constructions: construction-map-equidistant (worked): added
+- constructions: construction-bearings-port: added
+- constructions: construction-bearings-port (worked): added
+- constructions: construction-loci-garden: added
+- constructions: construction-loci-garden (worked): added
+- plans and elevations: elevations-draw-views: added
+- plans and elevations: elevations-draw-views (worked): added
+- plans and elevations: elevations-draw-solid: added
+- plans and elevations: elevations-draw-solid (worked): added
+- plans and elevations: elevations-steps: added
+- plans and elevations: elevations-steps (worked): added
+- plans and elevations: elevations-scale-2cm: added
+- plans and elevations: elevations-scale-2cm (worked): added

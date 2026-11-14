@@ -6,8 +6,9 @@ elevations) and GM8.09 (construct a shape from its plans and elevations, includi
 
 Code: `packages/elevation-core` (height map, views, isometric projection, layout, SVG, examples) and its
 `interchange.ts` connector adapter. MCP access is the `elevations` kind of the generic tools; drawings can be placed
-in worksheets and booklets. The website editor (`/tools/elevations`) is a later step: until then `EDITOR_RELEASED`
-is false and there is no editor link.
+in worksheets and booklets. The website editor is `src/elevations/ElevationsPage.tsx` at `/tools/elevations`: a
+height grid (front at the bottom, rows added at the back), the panel list (view, drawn/blank/answer, label, grid
+size, order) and print settings. The connector returns an editor link to it.
 
 ## Document
 

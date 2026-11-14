@@ -80,11 +80,11 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
   }
   if (source.kind === "construction") {
     const view = source.outputView ?? "pupil", g = construction.layout(source.envelope, view);
-    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: constructionPrintFacts(source.envelope, view) };
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: constructionPrintFacts(source.envelope, view) };
   }
   if (source.kind === "elevations") {
-    const view = source.outputView ?? "pupil", g = elevations.layout(elevations.forView(source.envelope, view));
-    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: elevationsPrintFacts(source.envelope, view) };
+    const view = source.outputView ?? "pupil", g = elevations.layout(source.envelope, view);
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: elevationsPrintFacts(source.envelope, view) };
   }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");
