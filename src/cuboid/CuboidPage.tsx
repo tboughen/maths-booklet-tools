@@ -2,6 +2,8 @@ import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
@@ -65,7 +67,12 @@ import "./cuboid.css";
 import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
-const newDocument = () => create();
+/** A new drawing starts from the house style's lines (U111); its text is always 11 pt. */
+const newDocument = () => {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+};
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -1187,6 +1194,24 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 {field("Print width (cm)", d.widthCm, (v) =>
                   commit({ ...e, document: { ...d, widthCm: Number(v) } }),
                 )}
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    onChange={(ev) => {
+                      const next = { ...d };
+                      setLines(next, ev.target.value as LineWeight);
+                      commit({ ...e, document: next });
+                    }}
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <p className="cb-note">
                   Width before trimming. Images keep their scale and trim unused
                   outer space. Preview zoom does not change printing.
