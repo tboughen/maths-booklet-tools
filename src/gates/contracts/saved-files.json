@@ -5608,6 +5608,13 @@
               "maximum"
             ],
             "additionalProperties": false
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "additionalProperties": false
