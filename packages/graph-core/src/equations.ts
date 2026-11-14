@@ -80,6 +80,8 @@ function formatSlopeTerm(slope: number): string {
 export function formatEquation(equation: LineEquation | null): string {
   if (!equation) return "Undefined";
   if (equation.kind === "vertical") return `x = ${formatNumber(equation.x)}`;
+  // A horizontal line reads "y = 3" (or "y = 0"), never "y = 0x + 3".
+  if (equation.slope === 0) return `y = ${formatNumber(equation.intercept)}`;
   const slopeTerm = formatSlopeTerm(equation.slope);
   if (equation.intercept === 0) return `y = ${slopeTerm}`;
   const operator = equation.intercept > 0 ? "+" : "−";

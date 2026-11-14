@@ -11,7 +11,7 @@ Code: `packages/probability-tree-core` (schema, exact arithmetic, layout, SVG, e
 
 - One flat list of branches. `parent: null` is a first-stage branch; sibling order is list order and every parent is
   listed before its children. A branch with no children ends its path, so unequal trees need no special case.
-- 2 to 4 branches at each point, up to 4 stages, 60 branches and 24 paths.
+- 2 to 4 branches in the first stage and 1 to 4 at each later point (a lone branch suits "draw the missing branches" questions), up to 4 stages, 60 branches and 24 paths. A probability that would touch another branch or label (the middle branch of a three-way split) slides along its branch, then tries the other side. Shown fractions on a three-way split fit at the default 32 mm / 14 mm; three pupil spaces need gapMm 16 or branchMm 38. A label or space that still crosses a branch gives a note (not a blocking issue, so saved trees export as before).
 - Every printed value is a label `{ text, show }`. `show` prints it; `hidden` keeps it as a saved answer and leaves a
   dotted line or box for pupils; an empty shown label prints nothing. Blank, zero and hidden stay distinct.
 - Probabilities are text: `a/b` prints as a stacked fraction; decimals, percentages and algebra (`x`, `1 − x`) print as typed.

@@ -14,8 +14,11 @@ import {
   fillFromBag,
   forView,
   formatFraction,
+  fromNested,
+  labelBox,
   layout,
   leaves,
+  lineCrossesBox,
   maxDepth,
   parseFile,
   pathName,
@@ -136,6 +139,64 @@ describe("probability tree core", () => {
     expect(layout(e).issues).toEqual([]);
     const bad = uniform([{ outcomes: ["A", "B"], probabilities: ["1.3", "0.6"] }]);
     expect(layout(bad).issues.join(" ")).toContain("above 1");
+  });
+
+  it("keeps three-way probabilities clear of the other branches at the default sizes", () => {
+    for (const [branchMm, gapMm] of [[32, 14], [25, 12], [46, 15], [40, 18]]) {
+      const e = uniform(
+        [
+          { outcomes: ["A", "B"], probabilities: ["1/3", "2/3"] },
+          { outcomes: ["X", "Y", "Z"], probabilities: ["1/4", "1/2", "1/4"] },
+        ],
+        { branchMm, gapMm },
+      );
+      const g = layout(e);
+      expect(g.issues, `${branchMm}/${gapMm}`).toEqual([]);
+      // No probability touches any branch line.
+      for (const p of g.placed.filter((x) => x.kind === "probability")) {
+        const size = labelBox(p.label, "dots", "probability");
+        const b = { x1: p.cx - size.width / 2, x2: p.cx + size.width / 2, y1: p.cy - size.height / 2, y2: p.cy + size.height / 2 };
+        expect(g.lines.some((l) => lineCrossesBox(l, b)), `${branchMm}/${gapMm} ${p.label.text}`).toBe(false);
+      }
+    }
+    // Three pupil spaces (hidden probabilities) need a little more room: at 32/14 the middle space
+    // would cross a branch, which is a note (saved trees still export), and 32/16 is clear.
+    const spaces = (gapMm: number) =>
+      fromNested(["A", "B", "C"].map((outcome) => ({ outcome, probability: "1/3", hidden: ["probability" as const] })), { gapMm });
+    expect(layout(spaces(14)).issues).toEqual([]);
+    expect(layout(spaces(14)).notes.join(" ")).toContain("crosses a branch");
+    expect([...layout(spaces(16)).issues, ...layout(spaces(16)).notes]).toEqual([]);
+  });
+
+  it("reports a label that crosses a branch when no clear place exists", () => {
+    const e = uniform([{ outcomes: ["A", "B", "C", "D"], probabilities: ["1/10", "1/10", "1/10", "7/10"] }], { branchMm: 20, gapMm: 10 });
+    const g = layout(e);
+    expect([...g.issues, ...g.notes].join(" ")).toMatch(/overlap|crosses a branch/);
+    expect(lineCrossesBox({ x1: 0, y1: 0, x2: 10, y2: 10 }, { x1: 4, x2: 6, y1: 4, y2: 6 })).toBe(true);
+    expect(lineCrossesBox({ x1: 0, y1: 0, x2: 10, y2: 0 }, { x1: 4, x2: 6, y1: 1, y2: 3 })).toBe(false);
+  });
+
+  it("allows one branch at a later point, for draw-the-missing-branches questions", () => {
+    const e = fromNested([
+      { outcome: "Red", probability: "3/8", children: [{ outcome: "Red", probability: "3/8" }] },
+      { outcome: "Blue", probability: "5/8" },
+    ]);
+    const red = e.document.branches[0].id;
+    expect(childrenOf(e.document, red)).toHaveLength(1);
+    expect(layout(e).issues).toEqual([]);
+    // A lone branch is part of a tree, not a certain event: no total note, and no 1 written.
+    expect(layout(e).notes.join(" ")).not.toContain("add up to 3/8");
+    const blank = fromNested([{ outcome: "Red", probability: "3/8", children: [{ outcome: "Red" }] }, { outcome: "Blue", probability: "5/8" }]);
+    expect(fillComplements(blank).filled).toBe(0);
+    // Single branches can be made and removed down to one, but the first stage keeps two.
+    let u = uniform([{ outcomes: ["Pass", "Fail"] }]);
+    u = extendBranch(u, u.document.branches[1].id, 1);
+    expect(childrenOf(u.document, u.document.branches[1].id)).toHaveLength(1);
+    u = addSibling(u, u.document.branches[1].id);
+    u = removeLastSibling(u, u.document.branches[1].id);
+    expect(childrenOf(u.document, u.document.branches[1].id)).toHaveLength(1);
+    expect(removeLastSibling(u, null)).toBe(u);
+    expect(() => fromNested([{ outcome: "Only", children: [{ outcome: "Next" }] }])).toThrow(/first stage needs 2/);
   });
 
   it("round-trips editor links", () => {

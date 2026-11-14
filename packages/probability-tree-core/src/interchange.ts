@@ -81,7 +81,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_label"), branchId: id, part, text: z.string().max(24).optional(), show: show.optional() }).strict(),
   z.object({ op: z.literal("set_outcome_name"), branchId: id, text: z.string().max(24) }).strict(),
   z.object({ op: z.literal("set_bold"), branchId: id, bold: z.boolean() }).strict(),
-  z.object({ op: z.literal("extend_branch"), branchId: id, count: z.number().int().min(2).max(core.MAX_CHILDREN).optional() }).strict(),
+  z.object({ op: z.literal("extend_branch"), branchId: id, count: z.number().int().min(1).max(core.MAX_CHILDREN).optional() }).strict(),
   z.object({ op: z.literal("end_path"), branchId: id }).strict(),
   z.object({ op: z.literal("add_branch"), parentId: id.nullable() }).strict(),
   z.object({ op: z.literal("remove_last_branch"), parentId: id.nullable() }).strict(),
@@ -239,7 +239,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
         e = unchanged(e, core.addSibling(e, op.parentId), `Each point allows at most ${core.MAX_CHILDREN} branches.`);
         break;
       case "remove_last_branch":
-        e = unchanged(e, core.removeLastSibling(e, op.parentId), "Each point needs at least 2 branches.");
+        e = unchanged(e, core.removeLastSibling(e, op.parentId), "The first stage keeps at least 2 branches and each later point at least 1.");
         break;
       case "add_stage":
         e = unchanged(e, core.addStage(e), `Use at most ${core.MAX_DEPTH} stages.`);
