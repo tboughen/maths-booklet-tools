@@ -58,6 +58,25 @@ sheet), in the user turn, so the cached system prompt and tool schema stay byte-
 requests. The page refuses spec settings that would print a worked answer on the pupil copy
 (`worked…`, `calculate`, `answerVisible`), and asks the model to leave answers blank or hidden.
 
+## Answer states (W3, 14 November 2026)
+
+Every fillable or answer-bearing slot reads as one of five states, defined once in
+`packages/envelope-core/src/answer-state.ts`: `supplied`, `zero` (a supplied 0, never blank),
+`blank`, `answerLine` and `hidden`. Families keep their own saved fields (`show`, `visibility`,
+`state`, `kind`, `answerOnly`, `answerVisible` ...); `answerSlots(kind, envelope)` in
+`packages/diagram-core/src/answer-slots.ts` only reads them, and `resourceAnswerSlots` in
+`packages/resource-core/src/answer-slots.ts` does the same for worksheets and booklets, including
+their diagrams. Nothing is derived or changed. Notes per family:
+
+- A label printed with `answerVisible: true` (triangle, number line, algebra grid) is `supplied`.
+- A triangle `blank` label that holds a saved answer is `hidden`: the answers copy prints it.
+- A bar-model `question` label prints "?" and is `supplied`.
+- Cuboid `hidden` means no label at all; cuboids and value graphs store no answers.
+- Graph slots are answer-only objects only. An algebra grid's final answer is a slot only while
+  shown: hidden, it prints on neither copy.
+
+A new family adds its visitor in `answer-slots.ts`; `answer-slots.test.ts` reads the whole corpus.
+
 ## Adding a family
 
 1. Build the family's core package as usual (`docs/tools/ADDING-BOOKLET-TOOLS.md`).
