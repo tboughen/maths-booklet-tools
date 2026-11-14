@@ -23,7 +23,7 @@ export function galleryCard(page: Page, title: string) {
 export async function chooseExample(page: Page, title: string) {
   await showExamples(page);
   await galleryCard(page, title)
-    .getByRole("button", { name: /^Open (scaffold|blank grid|diagram)$/ })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
 }
 export async function closeExamples(page: Page) {
