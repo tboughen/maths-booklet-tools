@@ -27,6 +27,8 @@ interface EditorToolbarProps {
   redoLabel?: string;
   /** `history.resetStep`: set while the latest event is a newly made Reset step (U25). */
   resetStep?: number;
+  /** False while the page is switched away from; the reset notice closes then. */
+  active?: boolean;
   onReset: () => void;
   resetLabel?: string;
   resetDisabled?: boolean;
@@ -46,20 +48,16 @@ export function EditorToolbar(props: EditorToolbarProps) {
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
   // The history marks a newly recorded reset step with its own number and clears it on the next undo, redo or
   // change, so the notice opens for each new reset and never for an undo or redo that lands on one.
-  const [trackedReset, setTrackedReset] = useState(props.resetStep);
+  // Seeded with no reset, so a toolbar that mounts just after one (a page swapping its editor) still shows it.
+  const [trackedReset, setTrackedReset] = useState<number | undefined>();
   const [noticeOpen, setNoticeOpen] = useState(false);
   if (trackedReset !== props.resetStep) {
     setTrackedReset(props.resetStep);
     setNoticeOpen(props.resetStep !== undefined);
   }
   // A page that is switched away from closes its notice, so it is not waiting there on return.
-  useEffect(() => {
-    const page = bar.current?.closest<HTMLElement>(".site-page");
-    if (!noticeOpen || !page || typeof MutationObserver === "undefined") return;
-    const observer = new MutationObserver(() => page.hidden && setNoticeOpen(false));
-    observer.observe(page, { attributes: true, attributeFilter: ["hidden"] });
-    return () => observer.disconnect();
-  }, [noticeOpen]);
+  if (noticeOpen && props.active === false) setNoticeOpen(false);
+  // Set when the notice closes with focus inside it (by its buttons, a key, a later step or a page switch).
   const focusAfterNotice = useRef(false);
   useEffect(() => {
     if (noticeOpen || !focusAfterNotice.current) return;
@@ -68,10 +66,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
     const undo = bar.current?.querySelector<HTMLButtonElement>('button[aria-label="Undo"]:not(:disabled)');
     (undo ?? bar.current?.querySelector<HTMLButtonElement>(".reset-button"))?.focus();
   }, [noticeOpen]);
-  const closeNotice = () => {
-    focusAfterNotice.current = true;
-    setNoticeOpen(false);
-  };
+  const closeNotice = () => setNoticeOpen(false);
   useLayoutEffect(() => {
     const element = bar.current;
     const parent = element?.parentElement;
@@ -185,30 +180,42 @@ export function EditorToolbar(props: EditorToolbarProps) {
       {/* The live region is always mounted, so screen readers announce the notice when it appears. */}
       <div className="editor-reset-status" aria-live="polite">
         {noticeOpen && (
-          <div className="editor-reset-notice" role="status">
-            <span>Resource reset.</span>
-            <button
-              type="button"
-              className="editor-reset-undo"
-              disabled={!props.canUndo}
-              onClick={() => {
-                closeNotice();
-                props.onUndo();
-              }}
-            >
-              Undo reset
-            </button>
-            <button
-              type="button"
-              className="editor-reset-close"
-              aria-label="Dismiss reset notice"
-              onClick={closeNotice}
-            >
-              <X size={15} aria-hidden="true" />
-            </button>
-          </div>
+          <ResetNotice
+            canUndo={props.canUndo}
+            onUndo={() => {
+              closeNotice();
+              props.onUndo();
+            }}
+            onDismiss={closeNotice}
+            onCloseWithFocus={() => (focusAfterNotice.current = true)}
+          />
         )}
       </div>
+    </div>
+  );
+}
+
+/** "Resource reset. Undo reset" (U25). Says, as it closes, whether focus was inside it. */
+function ResetNotice(props: { canUndo: boolean; onUndo: () => void; onDismiss: () => void; onCloseWithFocus: () => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  const latest = useRef(props.onCloseWithFocus);
+  latest.current = props.onCloseWithFocus;
+  // Runs before React removes the buttons, while the focused one is still in the document.
+  useLayoutEffect(() => {
+    const element = box.current;
+    return () => {
+      if (element?.contains(document.activeElement)) latest.current();
+    };
+  }, []);
+  return (
+    <div ref={box} className="editor-reset-notice">
+      <span>Resource reset.</span>
+      <button type="button" className="editor-reset-undo" disabled={!props.canUndo} onClick={props.onUndo}>
+        Undo reset
+      </button>
+      <button type="button" className="editor-reset-close" aria-label="Dismiss reset notice" onClick={props.onDismiss}>
+        <X size={15} aria-hidden="true" />
+      </button>
     </div>
   );
 }

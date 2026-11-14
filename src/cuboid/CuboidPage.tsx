@@ -454,6 +454,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               canUndo={!blocked && history.past.length > 0}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}

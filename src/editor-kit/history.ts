@@ -19,7 +19,7 @@ export interface History<T> {
   pushes?: number;
   /**
    * Set only while the latest event was a newly recorded Reset step (U25): that step's number. Undo, redo and any
-   * other change clear it, so the toolbar's "Resource reset" notice follows the event, not the step's name.
+   * other recorded step clear it (selection and other `replacePresent` changes keep it), so the toolbar's "Resource reset" notice follows the event, not the step's name.
    */
   resetStep?: number;
 }

@@ -80,7 +80,11 @@ describe("reset notice (U25)", () => {
     start();
     render(undefined);
     render(2);
-    act(() => (host!.querySelector(".editor-reset-close") as HTMLButtonElement).click());
+    act(() => {
+      const close = host!.querySelector(".editor-reset-close") as HTMLButtonElement;
+      close.focus();
+      close.click();
+    });
     expect(notice()).toBeNull();
     expect(document.activeElement?.getAttribute("aria-label")).toBe("Undo");
     render(3);
@@ -92,24 +96,43 @@ describe("reset notice (U25)", () => {
     const onUndo = vi.fn();
     render(undefined, onUndo);
     render(2, onUndo);
-    act(() => (host!.querySelector(".editor-reset-undo") as HTMLButtonElement).click());
+    act(() => {
+      const undo = host!.querySelector(".editor-reset-undo") as HTMLButtonElement;
+      undo.focus();
+      undo.click();
+    });
     expect(onUndo).toHaveBeenCalledTimes(1);
     expect(notice()).toBeNull();
     expect(host!.contains(document.activeElement)).toBe(true);
   });
 
-  it("closes when its page is switched away from", async () => {
-    const page = document.body.appendChild(document.createElement("div"));
-    page.className = "site-page";
-    start(page);
+  it("closes when its page is switched away from", () => {
+    start();
     render(undefined);
     render(2);
     expect(notice()).not.toBeNull();
-    await act(async () => {
-      page.hidden = true;
-      await Promise.resolve();
-    });
+    act(() =>
+      root!.render(
+        <EditorToolbar canUndo canRedo={false} onUndo={() => {}} onRedo={() => {}} resetStep={2} active={false}
+          onReset={() => {}} onCopy={() => {}} onCopyClipboard={() => {}} menuOpen={false} onToggleMenu={() => {}} />,
+      ),
+    );
     expect(notice()).toBeNull();
-    page.remove();
+  });
+
+  it("shows a reset that happened just before the toolbar mounted", () => {
+    start();
+    render(4);
+    expect(notice()).not.toBeNull();
+  });
+
+  it("keeps focus in the toolbar when the notice closes by Ctrl+Z while focused", () => {
+    start();
+    render(undefined);
+    render(2);
+    (host!.querySelector(".editor-reset-close") as HTMLButtonElement).focus();
+    render(undefined);
+    expect(notice()).toBeNull();
+    expect(host!.contains(document.activeElement)).toBe(true);
   });
 });

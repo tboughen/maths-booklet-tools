@@ -482,6 +482,7 @@ export default function BarModelPage({
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
               undoLabel={managed ? managed.undoLabel : undoStepName(history)}
               resetStep={managed ? managed.resetStep : history.resetStep}
+              active={active}
               redoLabel={managed ? managed.redoLabel : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)

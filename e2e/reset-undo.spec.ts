@@ -39,7 +39,8 @@ for (const tool of toolIds) {
     await expect(confirm.getByRole("heading").first()).toHaveText(/^(Reset|Start a (new|fresh))\b/);
     await expect(confirm.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await confirm.getByRole("button").last().click();
-    const notice = page.getByRole("status").filter({ hasText: "Resource reset." });
+    // The notice sits in an always-mounted polite live region.
+    const notice = page.locator('[aria-live="polite"] .editor-reset-notice').filter({ hasText: "Resource reset." });
     await expect(notice).toBeVisible();
     await expect(bar.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", /^Undo (reset|start a new)/);
     await expect.poll(() => saved(page)).not.toBe(before);

@@ -1280,6 +1280,7 @@ export default function ValueGraphPage({
               canUndo={!blocked && !!history.past.length}
               undoLabel={undoStepName(history)}
               resetStep={history.resetStep}
+              active={active}
               redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
