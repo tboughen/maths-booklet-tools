@@ -214,7 +214,8 @@ export function printFacts(e: core.Envelope) {
     d = e.document;
   return guidance({
     textSizesPt: renderedTextSizesPt(core.renderSvg(e), 72 / 25.4),
-    gridPitchMm: d.gridVisible ? [d.cellMm] : [],
+    // Multiply mode's working rows are 3/4 of the cell, so it has no square pitch; row heights cover it.
+    gridPitchMm: d.gridVisible && d.mode !== "multiply" ? [d.cellMm] : [],
     tableRowHeightsMm: d.gridVisible ? g.rowHeights : [],
     answerLineLengthsMm: d.answerLines ? [g.width - 6] : [],
   });

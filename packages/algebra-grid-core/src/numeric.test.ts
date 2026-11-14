@@ -20,6 +20,7 @@ describe("numeric grid method (U105)", () => {
     expect(numberText(parseNumber("1,200.50"))).toBe("1200.5");
     expect(numberText(parseNumber(".5"))).toBe("0.5");
     expect(placeValueParts(parseNumber("47"))).toEqual(["40", "7"]);
+    expect(placeValueParts(parseNumber("0"))).toEqual(["0"]);
     expect(placeValueParts(parseNumber("2.05"))).toEqual(["2", "0.05"]);
     expect(placeValueParts(parseNumber("306"))).toEqual(["300", "6"]);
     expect(() => parseNumber("2x")).toThrow(/number/);

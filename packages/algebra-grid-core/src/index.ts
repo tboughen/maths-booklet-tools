@@ -414,16 +414,20 @@ export function warnings(e: Envelope): string[] {
     const left = d.rows.slice(1).map((r) => r.cells[0].value),
       top = d.rows[0].cells.slice(1).map((c) => c.value);
     if (![...left, ...top].includes(null)) {
-      const [a, b] = N.numericFactors(d.expression),
-        across = N.sum(top as string[]),
-        down = N.sum(left as string[]);
-      if (
-        !(N.same(across, a) && N.same(down, b)) &&
-        !(N.same(across, b) && N.same(down, a))
-      )
-        out.push(
-          `The headings add to ${N.numberText(across)} across and ${N.numberText(down)} down, so they do not split ${N.numericExpressionText(d.expression)}.`,
-        );
+      try {
+        const [a, b] = N.numericFactors(d.expression),
+          across = N.sum(top as string[]),
+          down = N.sum(left as string[]);
+        if (
+          !(N.same(across, a) && N.same(down, b)) &&
+          !(N.same(across, b) && N.same(down, a))
+        )
+          out.push(
+            `The headings add to ${N.numberText(across)} across and ${N.numberText(down)} down, so they do not split ${N.numericExpressionText(d.expression)}.`,
+          );
+      } catch (error) {
+        out.push(error instanceof Error ? error.message : String(error));
+      }
     }
   }
   if (d.mode === "expand" && d.questionVisible && d.expression) {
@@ -553,7 +557,8 @@ export function workedCopy(e: Envelope) {
   n = collectAnswer(n);
   return n;
 }
-/** Fills blank headings of a numeric grid with each factor's place-value parts. */
+/** Fills blank headings of a numeric grid with each factor's place-value parts. Headings the
+ * teacher typed are kept; a split that doesn't add up is reported by the heading-sum warning. */
 function placeValueHeadings(d: Envelope["document"]) {
   const left = d.rows.slice(1).map((r) => r.cells[0]),
     top = d.rows[0].cells.slice(1);
@@ -573,8 +578,8 @@ function placeValueHeadings(d: Envelope["document"]) {
     throw Error(
       `Split by place value, ${N.numericExpressionText(d.expression)} needs ${a.length} column${a.length === 1 ? "" : "s"} and ${b.length} row${b.length === 1 ? "" : "s"} of products.`,
     );
-  across.forEach((v, i) => (top[i].value = v));
-  down.forEach((v, i) => (left[i].value = v));
+  across.forEach((v, i) => (top[i].value ??= v));
+  down.forEach((v, i) => (left[i].value ??= v));
 }
 export function answerBelow(e: Envelope) {
   const n = structuredClone(e);

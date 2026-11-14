@@ -89,6 +89,7 @@ export function numericExpressionText(raw: string) {
 
 /** Splits a number by place value: 47 → 40, 7; 2.35 → 2, 0.3, 0.05. */
 export function placeValueParts(d: Decimal): string[] {
+  if (tidy(d).units === 0n) return ["0"];
   const t = tidy(d),
     negative = t.units < 0n,
     digits = String(negative ? -t.units : t.units);
