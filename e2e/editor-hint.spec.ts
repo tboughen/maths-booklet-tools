@@ -21,3 +21,12 @@ for (const tool of toolIds) {
     await expect(page.locator(".editor-hint:visible")).toHaveCount(0);
   });
 }
+
+test("number-line: a drawing prompt takes the hint line and cannot be hidden, even after the tip was hidden", async ({ page }) => {
+  await page.goto("/tools/number-line");
+  const hint = page.getByTestId("editor-hint").filter({ visible: true });
+  await hint.getByRole("button", { name: "Hide this tip" }).click();
+  await page.getByRole("button", { name: "Interval", exact: true }).filter({ visible: true }).first().click();
+  await expect(hint.getByRole("status")).toHaveText("Choose the first endpoint.");
+  await expect(hint.getByRole("button", { name: "Hide this tip" })).toHaveCount(0);
+});

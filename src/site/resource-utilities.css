@@ -269,9 +269,9 @@
   }
 }
 
-/* U22: one hint line, directly under every editor's preview bar. */
-.editor-hint-slot:focus {
-  outline: none;
+/* U22: one hint line, directly under every editor's preview bar. Theme tokens, so it follows dark mode. */
+.editor-hint-live {
+  margin: 0;
 }
 .editor-hint {
   display: flex;
@@ -280,16 +280,16 @@
   margin: 0;
   padding: 0 4px 0 12px;
   min-height: 44px;
-  background: #f3f7fb;
-  border-top: 1px solid #dbe5ee;
-  border-bottom: 1px solid #dbe5ee;
-  color: #34506a;
+  background: var(--blue-soft);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
   font-size: 13px;
   line-height: 1.4;
 }
 .editor-hint > svg {
   flex: none;
-  color: #5b7792;
+  color: var(--blue);
 }
 .editor-hint p {
   flex: 1;
@@ -298,7 +298,7 @@
 }
 .editor-hint--prompt {
   padding: 6px 12px;
-  color: #19334c;
+  color: var(--blue-dark);
   font-weight: 600;
 }
 .editor-hint-dismiss {
@@ -310,13 +310,13 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #4b6680;
+  color: var(--muted);
   cursor: pointer;
 }
 .editor-hint-dismiss:hover {
-  background: #e3ecf5;
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
 }
 .editor-hint-dismiss:focus-visible {
-  outline: 2px solid #1766ca;
+  outline: 2px solid var(--blue);
   outline-offset: -2px;
 }

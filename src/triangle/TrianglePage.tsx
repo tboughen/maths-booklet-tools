@@ -885,16 +885,16 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 </span>
               )}
             </div>
-            <EditorHint tool="triangle">
-              Click a wedge to edit an angle, or a label to edit its text. Drag
-              a vertex to reshape. Select a triangle to add its area.
-            </EditorHint>
             {showAnswers && (
               <p className="tr-banner">
                 Answer preview only. Copy and image downloads use saved pupil
                 visibility. Use a worked version to export the answers.
               </p>
             )}
+            <EditorHint tool="triangle">
+              Click a wedge to edit an angle, or a label to edit its text. Drag
+              a vertex to reshape. Select a triangle to add its area.
+            </EditorHint>
             <div
               className="tr-scroll"
               ref={scroll}

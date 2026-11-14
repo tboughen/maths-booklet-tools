@@ -554,7 +554,7 @@ export default function BarModelPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
-            <EditorHint tool="bar-model">
+            <EditorHint tool="bar-model-classic">
               Click a bar name, part label or brace on the model to edit it.
             </EditorHint>
             <div ref={fit.ref} className="bm-scroll">
