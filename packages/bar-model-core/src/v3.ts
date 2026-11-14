@@ -64,7 +64,8 @@ export const presentationSchema = z
     unitMm: z.number().min(4).max(16),
     barHeightMm: z.number().min(8).max(24),
     fontPt: z.number().min(10).max(14),
-    lines: z.enum(LINE_WEIGHTS).optional(),
+    // Normal is the default and is never kept, so one picture has one saved form.
+    lines: z.enum(LINE_WEIGHTS).transform((v) => (v === "bold" ? v : undefined)).optional(),
     titlePt: z.number().min(12).max(18),
     nameWidthMm: z.number().min(8).max(60).optional(),
     output: z.enum(["grey", "colour"]),

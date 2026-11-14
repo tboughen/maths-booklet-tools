@@ -67,7 +67,7 @@ partial result or server state mutation. Keep the newly returned envelope/hash.
 | set_span | span (complete schema,existing id) |
 | remove_span | spanId |
 | set_alignment | barId,offset (exact numeric string) |
-| set_print | presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?} |
+| set_print | presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?,lines?:normal\|bold} (bold prints every stroke 1.5 times as thick; normal is never kept) |
 | reveal_saved_answers | no additional fields;explicit request only |
 
 set_label supplies saved text and state together: retain the existing text when

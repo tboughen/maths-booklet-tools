@@ -24,6 +24,11 @@ describe("set_presentation lines", () => {
     const bold = api.apply(fresh(), [{ op: "set_presentation", presentation: { lines: "bold" } }]);
     expect(bold.document.presentation.lines).toBe("bold");
     const normal = api.apply(bold, [{ op: "set_presentation", presentation: { lines: "normal" } }]);
-    expect("lines" in normal.document.presentation).toBe(false);
+    expect(normal.document.presentation.lines).toBeUndefined();
+    const { sortedJson } = await import("../../envelope-core/src/index");
+    expect(sortedJson(normal)).not.toContain("lines");
+    // Normal on input is never kept.
+    const viaSchema = v3.validate({ ...bold, document: { ...bold.document, presentation: { ...bold.document.presentation, lines: "normal" } } });
+    expect(sortedJson(viaSchema)).toBe(sortedJson(normal));
   });
 });

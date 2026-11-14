@@ -37,7 +37,6 @@ label occupancy is checked; a crossing guide fails explicitly.
 
 `presentation.barHeightMm` becomes a **requested minimum**, bounded 8..24 mm.
 
-`presentation.lines` (optional, every schema version): `"normal"` (absent) or `"bold"`, which prints every stroke 1.5 times as thick. New models start from the house style chosen on the booklet tools page (U111); `set_presentation` changes it.
 Inside answer lines require uniform actual bars of at least **20 mm**, covering
 the footprint plus at least 2 mm internal clearance on each side. Outside lines
 enlarge their own lanes. The editor shows minimum and actual height;
@@ -91,3 +90,10 @@ New sources are in `bar-model-examples/lesson-v3/`; frozen v2 sources remain in
 `bar-model-examples/lesson-v2/`. Reproduce native output with
 `node scripts/bar-model-v3-review.mjs NEW_OUTPUT_DIRECTORY`; use
 `--write-examples` only for deliberate website asset refreshes.
+
+## Line weight (U111, 14 November 2026)
+
+`presentation.lines` (optional, every schema version) is `"bold"` or absent. Bold prints every
+stroke 1.5 times as thick; `"normal"` is accepted on input and never kept, so one picture has one
+saved form. New models in the lesson editor start from the house style chosen on the booklet tools
+page; the legacy editor takes only the house text size. `set_presentation` changes it.

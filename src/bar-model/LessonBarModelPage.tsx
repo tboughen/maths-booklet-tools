@@ -28,7 +28,7 @@ import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
-import { houseStyled } from "../site/houseStyle";
+import { houseModel } from "./house";
 import "./bar-model.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 export type History = DocumentHistory<c.Envelope>;
@@ -70,11 +70,6 @@ type Draft =
       mode: "copy" | "move";
       overwrite: boolean;
     };
-/** A new model starts from the house style (U111); its own print settings override it. */
-function houseModel<E extends { document: { presentation: { fontPt: number; lines?: LineWeight } } }>(e: E): E {
-  houseStyled(e.document.presentation, { max: 14 });
-  return e;
-}
 const error = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const stateNames = {
   value: "Print label",
@@ -391,7 +386,8 @@ export default function LessonBarModelPage({
               ]),
             );
           if (draft.autoName) delete presentation.nameWidthMm;
-          presentation.lines = draft.lines;
+          // Undefined clears a saved bold setting: normal lines are never written.
+          presentation.lines = draft.lines === "bold" ? "bold" : undefined;
           ops = [
             { op: "set_presentation", presentation, autoName: draft.autoName },
           ];

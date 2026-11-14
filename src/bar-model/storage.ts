@@ -1,11 +1,7 @@
 import * as c from "../../packages/bar-model-core/src/versioned";
 import * as v from "../../packages/bar-model-core/src/v3";
-import { houseStyled } from "../site/houseStyle";
-const houseFresh = () => {
-  const e = v.fresh();
-  houseStyled(e.document.presentation, { max: 14 });
-  return e;
-};
+import { houseModel } from "./house";
+const houseFresh = () => houseModel(v.fresh());
 export interface StorageRecord {
   storageVersion: 1;
   envelope: c.Envelope;
