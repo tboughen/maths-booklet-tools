@@ -501,7 +501,7 @@ export default function LessonBarModelPage({
   }
   function replace(envelope: c.Envelope, title: string, worked = false) {
     if (guard.current) return;
-    if (worked) commit(envelope);
+    if (worked) commit(envelope, "use worked version");
     else setPending({ envelope, title });
   }
   function endpointControl(
@@ -592,6 +592,8 @@ export default function LessonBarModelPage({
             onRedo: redo,
             canUndo: !!history.past.length,
             canRedo: !!history.future.length,
+            undoLabel: undoStepName(history),
+            redoLabel: redoStepName(history),
           }}
           onNewModel={() =>
             setPending({
@@ -599,7 +601,7 @@ export default function LessonBarModelPage({
               title: "Start a new model?",
             })
           }
-          onUpgrade={() => commit(v.upgrade(e))}
+          onUpgrade={() => commit(v.upgrade(e), "upgrade this model")}
           onUpgradeWriting={() =>
             setPending({
               envelope: v3.upgrade(e),

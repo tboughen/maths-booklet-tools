@@ -27,3 +27,13 @@ describe("undo step names", () => {
     expect(redo).toHaveAttribute("title", "Redo (Ctrl+Y)");
   });
 });
+
+describe("review fixes", () => {
+  it("names only the first sentence and lower-cases a one-letter first word", async () => {
+    const { stepName, operationLabel } = await import("./labels");
+    expect(stepName("Use horizontal fractions and larger answer spaces? Fixed endpoints are retained.")).toBe("use horizontal fractions and larger answer spaces");
+    expect(stepName("A blank grid?")).toBe("a blank grid");
+    expect(stepName("SVG export?")).toBe("SVG export");
+    expect(operationLabel([{ op: "put_series" }])).toBe("change graph");
+  });
+});

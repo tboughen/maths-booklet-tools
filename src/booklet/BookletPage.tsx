@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LoaderCircle, Plus, Redo2, RotateCcw, Trash2, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LoaderCircle, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
@@ -32,7 +32,8 @@ import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory, historyActionText, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
+import { HistoryButtons } from "../site/HistoryButtons";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
@@ -396,12 +397,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <div className="editor-toolbar" role="group" aria-label="Resource utilities">
               <div className="tool-group" role="group" aria-label="History and reset">
-                <button className="icon-button" disabled={blocked || !history.past.length} aria-label="Undo" title={`${historyActionText("Undo", undoStepName(history))} (Ctrl+Z)`} onClick={undo}>
-                  <Undo2 size={18} aria-hidden="true" />
-                </button>
-                <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title={`${historyActionText("Redo", redoStepName(history))} (Ctrl+Y)`} onClick={redo}>
-                  <Redo2 size={18} aria-hidden="true" />
-                </button>
+                <HistoryButtons
+                  canUndo={!blocked && !!history.past.length}
+                  canRedo={!blocked && !!history.future.length}
+                  onUndo={undo}
+                  onRedo={redo}
+                  undoLabel={undoStepName(history)}
+                  redoLabel={redoStepName(history)}
+                />
                 <button className="tool-button reset-button" disabled={blocked} aria-label="Open the example booklet" onClick={() => setPending({ b: a7Booklet, title: "Open the example booklet? It replaces the current one. You can undo it." })}>
                   <RotateCcw size={17} aria-hidden="true" />
                   <span>Example</span>

@@ -69,11 +69,13 @@ type Draft =
     };
 export interface ManagedLegacy {
   present: c.Envelope;
-  onCommit: (e: c.Envelope) => void;
+  onCommit: (e: c.Envelope, label?: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  undoLabel?: string;
+  redoLabel?: string;
 }
 export default function BarModelPage({
   active = true,
@@ -148,7 +150,7 @@ export default function BarModelPage({
   function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     if (managed) {
-      managed.onCommit(valid);
+      managed.onCommit(valid, label);
       return;
     }
     documentHistory.commit(valid, label);
@@ -472,8 +474,8 @@ export default function BarModelPage({
             )}
             <EditorToolbar
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
-              undoLabel={managed ? undefined : undoStepName(history)}
-              redoLabel={managed ? undefined : redoStepName(history)}
+              undoLabel={managed ? managed.undoLabel : undoStepName(history)}
+              redoLabel={managed ? managed.redoLabel : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)
               }
