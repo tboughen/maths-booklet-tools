@@ -36,11 +36,24 @@ describe("second scale and percentage bar (U109)", () => {
     let e = create({ axis: { minimum: "0", maximum: "10", step: "1", variable: "" } });
     e = apply(e, [{ op: "set_secondary", secondary: { minimum: "0", maximum: "50", unit: "kg", unitPlace: "after", style: "line", labels: {} } }, { op: "set_secondary_label", value: "25", state: "answer-line" }]);
     expect(e.document.secondary?.labels).toEqual({ "25": "answer-line" });
-    expect(() => apply(e, [{ op: "set_secondary_label", value: "26", state: "hidden" }])).toThrow(/exact values at the ticks/);
+    expect(() => apply(e, [{ op: "set_secondary_label", value: "26", state: "hidden" }])).toThrow(/26 no longer falls on a tick/);
     expect(() => apply(e, [{ op: "set_solution", solution: { kind: "ray", id: "r", value: "2", included: true, direction: "right", intentional: false, stop: null } }])).toThrow(/can't be combined/);
     expect(() => apply(e, [{ op: "set_secondary", secondary: { minimum: "0", maximum: "5000", unit: "kg", unitPlace: "after", style: "line", labels: {} } }])).toThrow(/overlap/);
     e = apply(e, [{ op: "set_secondary", secondary: null }]);
     expect(e.document.secondary).toBeUndefined();
     expect(validate(e)).toEqual(e);
+  });
+
+  it("refuses fraction values beside a unit and keeps fraction labels clear of the ticks", () => {
+    const axis = { minimum: "0", maximum: "3", step: "1", variable: "" };
+    expect(() => create({ axis, secondary: { minimum: "0", maximum: "100", unit: "%", unitPlace: "after", style: "bar", labels: {} } })).toThrow(/whole numbers or decimals/);
+    expect(() => create({ axis, secondary: { minimum: "0", maximum: "3", unit: "m/s", unitPlace: "after", style: "line", labels: {} } })).toThrow();
+    const thirds = create({ axis, secondary: { minimum: "0", maximum: "1", unit: "", unitPlace: "after", style: "line", labels: {} } });
+    expect(renderSvg(thirds)).toContain("<svg");
+  });
+
+  it("names the label to reset when a tick change moves the second scale", () => {
+    const e = bar({ "30": "answer-line" });
+    expect(() => apply(e, [{ op: "set_axis", axis: { ...e.document.axis, step: "8" } }])).toThrow(/30 no longer falls on a tick/);
   });
 });

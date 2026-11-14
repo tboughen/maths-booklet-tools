@@ -5436,7 +5436,7 @@
                 "default": "",
                 "type": "string",
                 "maxLength": 4,
-                "pattern": "^[^<>&\"0-9]*$"
+                "pattern": "^[^<>&\"0-9/\\s]*$"
               },
               "unitPlace": {
                 "default": "after",

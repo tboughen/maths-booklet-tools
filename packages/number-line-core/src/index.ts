@@ -46,7 +46,7 @@ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(tr
  * "bar". Its values run evenly from minimum to maximum, exactly, one per tick of the main scale; its
  * labels print above the line. Units print with each label, such as "£" before or "%" after.
  */
-export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
+export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9/\s]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
 export type Secondary = z.infer<typeof secondarySchema>;
 export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional() }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema }).strict();
@@ -85,7 +85,8 @@ export function secondaryText(d: LineDocument, v: string) {
 function secondaryRoom(d: LineDocument) {
     if (!d.secondary) return 0;
     const fraction = secondaryTicks(d).some(v => secondaryText(d, v).includes("/"));
-    return (d.secondary.style === "bar" ? BAR_HEIGHT : 0) + (fraction ? 10 : 7);
+    const bar = d.secondary.style === "bar";
+    return (bar ? BAR_HEIGHT : 0) + (fraction ? (bar ? 10 : 12) : 7);
 }
 /** Height of a percentage bar (mm). */
 export const BAR_HEIGHT = 8;
@@ -172,7 +173,9 @@ export function validate(raw: unknown): Envelope {
         const values = secondaryTicks(d);
         for (const key of Object.keys(sec.labels))
             if (labelKey(key) !== key || !values.includes(key))
-                throw Error("Second-scale label states use the exact values at the ticks.");
+                throw Error(`The second-scale label at ${key} no longer falls on a tick. Changing the number of ticks moves the second scale's values, so set that label back to Show first.`);
+        if (sec.unit && values.some(v => secondaryText(d, v).includes("/")))
+            throw Error("With a unit, second-scale values must be whole numbers or decimals. Change its first or last value, or remove the unit.");
         let before: { x: number; w: number } | undefined;
         values.forEach((v, i) => {
             const state = sec.labels[v] ?? "value";
@@ -418,7 +421,7 @@ export function renderSvg(e: Envelope, showAnswers = false) {
         art += `<g data-marker="${esc(k.id)}"><path d="M${x} ${m.axisY - 8.4}V${m.axisY - 2.6}"/><path d="M${x} ${m.axisY - .5}l-1.1 -2.5h2.2Z" fill="#111" stroke="none"/>${k.label ? `<text x="${x}" y="${m.axisY - 9.6}" text-anchor="middle">${esc(k.label)}</text>` : ""}</g>`;
     }
     if (d.secondary) {
-        const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? 4.2 : 3.2);
+        const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? (bar ? 4.2 : 6.1) : 3.2);
         secondaryTicks(d).forEach((v, i) => {
             if (!labelled(d, ticks(d)[i])) return;
             const x = position(d, ticks(d)[i]), state = sec.labels[v] ?? "value";
