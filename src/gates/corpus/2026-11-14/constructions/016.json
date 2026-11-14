@@ -158,6 +158,22 @@
         }
       },
       {
+        "id": "DC",
+        "role": "given",
+        "type": "segment",
+        "from": "D",
+        "to": "C",
+        "extend": [
+          0,
+          0
+        ],
+        "dash": false,
+        "label": {
+          "text": "",
+          "show": "show"
+        }
+      },
+      {
         "id": "lp1-circle",
         "role": "given",
         "group": "lp1",
@@ -210,7 +226,7 @@
         "to": "ab1-z",
         "extend": [
           0,
-          4.5
+          5.519
         ],
         "dash": false,
         "label": {

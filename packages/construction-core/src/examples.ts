@@ -145,10 +145,10 @@ export const examples: {
         newPoint("D", 1, 7, "D", { mark: "none" }),
         newPoint("P", 7, 4.5),
       );
-      d.objects.push({ id: "garden", type: "polygon", points: ["A", "B", "C", "D"], dash: false, role: "given" }, segment("AB", "A", "B"), segment("AD", "A", "D"));
+      d.objects.push({ id: "garden", type: "polygon", points: ["A", "B", "C", "D"], dash: false, role: "given" }, segment("AB", "A", "B"), segment("AD", "A", "D"), segment("DC", "D", "C"));
       d.caption = label("Scale: 1 cm represents 1 m");
       let n = locusFromPoint(e, { point: "P", distance: 3 });
-      n = angleBisector(n, { at: "A", from: "B", to: "D", radius: 2, extend: 4.5 });
+      n = angleBisector(n, { at: "A", from: "B", to: "D", radius: 2, reach: "DC" });
       n.document.objects.push({
         id: "region",
         type: "region",

@@ -72,8 +72,8 @@ export const objectInput = z.discriminatedUnion("type", [
 ]);
 const helper = { group: id.optional(), answer: z.boolean().optional() };
 export const constructionInput = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("perpendicular-bisector"), ...helper, a: id, b: id, radius: num.optional(), extend: num.min(0).max(30).optional() }).strict(),
-  z.object({ type: z.literal("angle-bisector"), ...helper, at: id, from: id, to: id, radius: num.optional(), extend: num.min(0).max(30).optional() }).strict(),
+  z.object({ type: z.literal("perpendicular-bisector"), ...helper, a: id, b: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
+  z.object({ type: z.literal("angle-bisector"), ...helper, at: id, from: id, to: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
   z.object({ type: z.literal("perpendicular-from-point"), ...helper, point: id, a: id, b: id, radius: num.optional() }).strict(),
   z
     .object({ type: z.literal("perpendicular-at-point"), ...helper, point: id, a: id, b: id, radius: num.optional(), side: z.enum(["left", "right"]).optional() })
@@ -230,9 +230,9 @@ function construct(e: core.Envelope, c: ConstructionInput): core.Envelope {
   const base = { group: "group" in c ? c.group : undefined, role: role(c.answer, "answer") };
   switch (c.type) {
     case "perpendicular-bisector":
-      return core.perpendicularBisector(e, { ...base, a: c.a, b: c.b, radius: c.radius, extend: c.extend });
+      return core.perpendicularBisector(e, { ...base, a: c.a, b: c.b, radius: c.radius, extend: c.extend, reach: c.reach });
     case "angle-bisector":
-      return core.angleBisector(e, { ...base, at: c.at, from: c.from, to: c.to, radius: c.radius, extend: c.extend });
+      return core.angleBisector(e, { ...base, at: c.at, from: c.from, to: c.to, radius: c.radius, extend: c.extend, reach: c.reach });
     case "perpendicular-from-point":
       return core.perpendicularFromPoint(e, { ...base, point: c.point, a: c.a, b: c.b, radius: c.radius });
     case "perpendicular-at-point":

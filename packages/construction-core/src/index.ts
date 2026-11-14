@@ -428,8 +428,23 @@ const finish = (dr: Draft) => {
 };
 
 /** Ruler-and-compasses perpendicular bisector of AB: four arcs and the bisector line. */
-/** `extend` is how far (cm) the bisector runs past each pair of crossing arcs (default 0.8). */
-export function perpendicularBisector(e: Envelope, o: HelperOptions & { a: string; b: string; radius?: number; extend?: number }): Envelope {
+/** Extra length (cm) that takes a line from `from` through `through` on to meet segment `reach`'s line, if that is ahead. */
+function reachExtend(d: ConstructionDocument, from: Vec, through: Vec, reach: string | undefined): number | undefined {
+  if (!reach) return undefined;
+  const s = requireSegment(d, reach);
+  const a = requirePoint(d, s.from),
+    b = requirePoint(d, s.to);
+  const u = sub(through, from),
+    v = sub(b, a);
+  const den = u.x * v.y - u.y * v.x;
+  if (Math.abs(den) < 1e-9) throw Error(`The line never meets ${reach}; it is parallel.`);
+  const t = ((a.x - from.x) * v.y - (a.y - from.y) * v.x) / den;
+  if (t <= 1) throw Error(`The line already reaches ${reach} before its arcs; leave out reach.`);
+  return round((t - 1) * len(u), 3);
+}
+
+/** `extend` is how far (cm) the bisector runs past each pair of crossing arcs (default 0.8); `reach` runs it on to meet a segment's line. */
+export function perpendicularBisector(e: Envelope, o: HelperOptions & { a: string; b: string; radius?: number; extend?: number; reach?: string }): Envelope {
   const dr = draft(e, "pb", o);
   const A = requirePoint(dr.d, o.a),
     B = requirePoint(dr.d, o.b);
@@ -448,13 +463,29 @@ export function perpendicularBisector(e: Envelope, o: HelperOptions & { a: strin
   }
   const P = hiddenPoint(dr, "p", p),
     Q = hiddenPoint(dr, "q", q);
-  dr.d.objects.push(segment(`${dr.group}-line`, P, Q, { extend: [o.extend ?? 0.8, o.extend ?? 0.8], role: dr.role, group: dr.group }));
+  const ext = o.extend ?? 0.8;
+  let ends: [number, number] = [ext, ext];
+  if (o.reach) {
+    // Run on through whichever crossing faces the segment.
+    const tryReach = (from: Vec, through: Vec) => {
+      try {
+        return reachExtend(dr.d, from, through, o.reach);
+      } catch {
+        return undefined;
+      }
+    };
+    const pastQ = tryReach(p, q),
+      pastP = tryReach(q, p);
+    if (pastQ === undefined && pastP === undefined) reachExtend(dr.d, p, q, o.reach); // throws the reason
+    ends = [pastP ?? ext, pastQ ?? ext];
+  }
+  dr.d.objects.push(segment(`${dr.group}-line`, P, Q, { extend: ends, role: dr.role, group: dr.group }));
   return finish(dr);
 }
 
 /** Ruler-and-compasses bisector of angle PVQ: an arc across both arms, two crossing arcs and the bisector. */
 /** `extend` is how far (cm) the bisector runs past its crossing arcs (default: to the shorter arm's length). */
-export function angleBisector(e: Envelope, o: HelperOptions & { at: string; from: string; to: string; radius?: number; extend?: number }): Envelope {
+export function angleBisector(e: Envelope, o: HelperOptions & { at: string; from: string; to: string; radius?: number; extend?: number; reach?: string }): Envelope {
   const dr = draft(e, "ab", o);
   const V = requirePoint(dr.d, o.at),
     P = requirePoint(dr.d, o.from),
@@ -479,7 +510,7 @@ export function angleBisector(e: Envelope, o: HelperOptions & { at: string; from
   crossingArc(dr, "arc2", { ...X, id: Xp }, r2, Z);
   crossingArc(dr, "arc3", { ...Y, id: Yp }, r2, Z);
   const Zp = hiddenPoint(dr, "z", Z);
-  dr.d.objects.push(segment(`${dr.group}-line`, V.id, Zp, { extend: [0, o.extend ?? Math.max(1, arm - dist(V, Z) + 0.5)], role: dr.role, group: dr.group }));
+  dr.d.objects.push(segment(`${dr.group}-line`, V.id, Zp, { extend: [0, reachExtend(dr.d, V, Z, o.reach) ?? o.extend ?? Math.max(1, arm - dist(V, Z) + 0.5)], role: dr.role, group: dr.group }));
   return finish(dr);
 }
 
@@ -835,12 +866,16 @@ export function layout(e: Envelope) {
           touch(o.from, add(a, { x: 0, y: 1 }));
         }
         const c = P(a);
-        arcPath(c, r, 90, -bearing, THIN);
-        // A small arrowhead at the end of the arc shows the clockwise turn.
-        const endAng = 90 - bearing;
-        const tip = { x: c.x + r * Math.cos(rad(endAng)), y: c.y - r * Math.sin(rad(endAng)) };
-        const tangent = dir(endAng - 90); // clockwise direction of travel
-        arrowhead(tip, { x: tangent.x, y: -tangent.y }, 1.6);
+        // The arc stops short so a small arrowhead's flat base sits on its end and the tip touches the
+        // line to the other point, showing the clockwise turn.
+        const head = 2.4,
+          endAng = 90 - bearing,
+          stop = Math.min(bearing / 2, deg(head / r));
+        arcPath(c, r, 90, -(bearing - stop), THIN);
+        const at = (t: number) => ({ x: c.x + r * Math.cos(rad(t)), y: c.y - r * Math.sin(rad(t)) });
+        const tip = at(endAng),
+          base = at(endAng + stop);
+        arrowhead(tip, unit(sub(tip, base)), dist(tip, base) / 1.6);
         if (o.label.text.trim() && o.label.show === "show") {
           const mid = 90 - bearing / 2,
             w = textWidth(typeset(o.label.text));
@@ -867,7 +902,8 @@ export function layout(e: Envelope) {
   }
   function north(c: Vec, lmm: number) {
     const top = { x: c.x, y: c.y - lmm };
-    line(c, top, STROKE);
+    // The line runs a little way into the arrowhead, not to its tip.
+    line(c, { x: top.x, y: top.y + 1.8 * 1.6 - 0.6 }, STROKE);
     arrowhead(top, { x: 0, y: -1 }, 1.8);
     placeText("N", top.x, top.y - 2.2, false, false);
   }
@@ -896,7 +932,7 @@ export function layout(e: Envelope) {
       ).a;
     }
     const w = textWidth(typeset(p.label.text), true);
-    const off = offsetFor(w, ang, 1.4);
+    const off = offsetFor(w, ang, p.mark === "cross" ? 2.1 : p.mark === "dot" ? 1.6 : 1.2);
     placeText(p.label.text, c.x + off.dx, c.y + off.dy + FONT * 0.34, true, false);
     texts[texts.length - 1].italic = true;
   }
@@ -1055,7 +1091,9 @@ export function renderSvg(e: Envelope): string {
     if (m.mark === "dot") out.push(`<circle cx="${n(m.x)}" cy="${n(m.y)}" r="0.6" fill="black"/>`);
     else {
       const s = 1.1;
-      out.push(`<path d="M${n(m.x - s)} ${n(m.y - s)}L${n(m.x + s)} ${n(m.y + s)}M${n(m.x - s)} ${n(m.y + s)}L${n(m.x + s)} ${n(m.y - s)}" stroke="black" stroke-width="${THIN}" stroke-linecap="round"/>`);
+      const d = `M${n(m.x - s)} ${n(m.y - s)}L${n(m.x + s)} ${n(m.y + s)}M${n(m.x - s)} ${n(m.y + s)}L${n(m.x + s)} ${n(m.y - s)}`;
+      // A thin white edge keeps the cross readable on hatching or a grid.
+      out.push(`<path d="${d}" stroke="white" stroke-width="0.9" stroke-linecap="round"/><path d="${d}" stroke="black" stroke-width="${THIN}" stroke-linecap="round"/>`);
     }
   }
   for (const t of g.texts)

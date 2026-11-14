@@ -158,3 +158,33 @@ describe("construction drawings", () => {
     expect(dLine).toBeLessThan(2.5);
   });
 });
+
+describe("drawing details Tim checked", () => {
+  it("runs a bisector on to meet a named segment", () => {
+    const e0 = c.blank(12, 8);
+    e0.document.points.push(c.newPoint("A", 1, 1), c.newPoint("B", 11, 1), c.newPoint("D", 1, 7), c.newPoint("C", 11, 7));
+    e0.document.objects.push(c.segment("DC", "D", "C"));
+    const e = c.angleBisector(c.validate(e0), { at: "A", from: "B", to: "D", reach: "DC" });
+    const line = e.document.objects.find((o) => o.id === "ab1-line") as Extract<c.Obj, { type: "segment" }>;
+    const z = c.pointById(e.document, "ab1-z")!,
+      a = c.pointById(e.document, "A")!;
+    const l = Math.hypot(z.x - a.x, z.y - a.y) + line.extend[1];
+    expect(a.y + (l * (z.y - a.y)) / Math.hypot(z.x - a.x, z.y - a.y)).toBeCloseTo(7, 2);
+    const f = c.perpendicularBisector(c.validate(e0), { a: "A", b: "B", reach: "DC" });
+    const pb = f.document.objects.find((o) => o.id === "pb1-line") as Extract<c.Obj, { type: "segment" }>;
+    const top = Math.max(c.pointById(f.document, "pb1-p")!.y + pb.extend[0], c.pointById(f.document, "pb1-q")!.y + pb.extend[1]);
+    expect(top).toBeCloseTo(7, 2);
+  });
+
+  it("starts the north line's arrowhead past the end of the line", () => {
+    const e = c.blank(6, 6);
+    e.document.points.push(c.newPoint("P", 3, 1));
+    e.document.objects.push({ id: "n", type: "north", at: "P", length: 4, role: "given" });
+    const g = c.layout(c.validate(e));
+    const shaft = g.paths.find((p) => !p.fill && /^M[\d.]+ [\d.]+L/.test(p.d))!;
+    const head = g.paths.find((p) => p.fill)!;
+    const shaftTop = Number(shaft.d.split(/[ L]/)[3]);
+    const tip = Number(head.d.slice(1).split(/[ L]/)[1]);
+    expect(shaftTop - tip).toBeGreaterThan(2); // the line stops inside the head, well short of its tip
+  });
+});
