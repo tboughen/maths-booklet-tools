@@ -47,7 +47,7 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory } from "../editor-kit";
 
 type Pending = {
   title: string;
@@ -235,15 +235,24 @@ export default function RatioTablePage({
       if (target?.matches("input, select, textarea, [contenteditable='true']"))
         return;
       if (handleUndoKeys(e, { undo, redo })) return;
-      if (e.key === "Escape") {
+      const command = objectKeyCommand(e);
+      if (command?.kind === "deselect") {
         setExportsOpen(false);
         setTool("edit");
         setArrowFrom(null);
+        if (!pendingInputs.size) setSelection(null);
+      }
+      // U9: Delete removes the selected arrow, never a row or column.
+      if (command?.kind === "delete" && selection?.kind === "step" && !pendingInputs.size && !recovery) {
+        e.preventDefault();
+        const from = selection.from;
+        attempt(() => operations([{ op: "remove_transition", from }]));
+        setSelection(null);
       }
     }
     window.addEventListener("keydown", keyboard);
     return () => window.removeEventListener("keydown", keyboard);
-  }, [active, undo, redo]);
+  });
   async function runExport(action: () => Promise<void>, success = "") {
     if (exportDisabled) return;
     setBusy(true);
