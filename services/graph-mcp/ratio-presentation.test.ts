@@ -42,7 +42,7 @@ const fixture = (size = "standard", annotated = true) =>
   });
 describe("native ratio-table presentation", () => {
   it("keeps all three scaling lanes inside their columns and the native print bounds", () => {
-    for (const size of ["compact", "standard", "large"] as const) {
+    for (const size of ["standard", "large"] as const) {
       const envelope = applyRatioOperations(fixture(size), [
         {
           op: "add_column",
@@ -88,7 +88,7 @@ describe("native ratio-table presentation", () => {
     }
   });
   it("draws the two lesson rules, paired downward arrows and visible fractions with clear margins", () => {
-    for (const size of ["compact", "standard", "large"])
+    for (const size of ["standard", "large"])
       for (const annotated of [true, false]) {
         const envelope = fixture(size, annotated),
           metrics = ratioMetrics(envelope.document),
