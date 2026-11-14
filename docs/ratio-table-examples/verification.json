@@ -3,7 +3,7 @@
   "fixtures": [
     {
       "name": "simple",
-      "hash": "e3bded9e3f59fb3726fcf802ba74ef2eb9d70cfd8ac12305eb0d05cc4c9c077f",
+      "hash": "60deebbc8e65d1d4c69c50a89f5864aa90a661030b84fc633ff7a569e37788b1",
       "physicalSizeCm": {
         "width": 3.3,
         "height": 3.3
@@ -17,7 +17,7 @@
     },
     {
       "name": "worked",
-      "hash": "bbadec67c4da090ff8150be3c37f3e4bf6a12ea4856a3d8c6227ba04d9afedca",
+      "hash": "be4fe45633f12d77076ff9761276b4ab48c59b4161000abcf53439ea8c30edc8",
       "physicalSizeCm": {
         "width": 5.515280000000001,
         "height": 3.3
@@ -31,7 +31,7 @@
     },
     {
       "name": "fraction-scaffold",
-      "hash": "30b464adcb6cbc9f67d3c60e28c3892b845c5c790275238ae0455ead79754ef1",
+      "hash": "3a0ec2318ac8da2d70da550aca1241ce8fab7435e8df59ce5c8d003a524a8ceb",
       "physicalSizeCm": {
         "width": 5.515280000000001,
         "height": 3.3
@@ -45,7 +45,7 @@
     },
     {
       "name": "fraction-complete",
-      "hash": "0d0d115401366179261756947ff651831bad92db7862ddddbedf5eb0e3edec94",
+      "hash": "4de2f070c6bc0e41fa1cdc5479718c41ac22b71e4c33fc06454c9597a63ed62e",
       "physicalSizeCm": {
         "width": 5.515280000000001,
         "height": 3.3
@@ -59,7 +59,7 @@
     },
     {
       "name": "negative",
-      "hash": "f2c2d9fb1b07afdcae6b112c0958aa8196ed5da9de549afcd75b2c24fd0daf57",
+      "hash": "89381c8348b4594ee32808824dfe7a94b9ab003bf210f9c6b526495bd4dcc871",
       "physicalSizeCm": {
         "width": 5.515280000000001,
         "height": 3.3
@@ -73,7 +73,7 @@
     },
     {
       "name": "empty",
-      "hash": "a460e2fd24bfacc1c2b9db243cb6364838f0c1b234c3b319e04c6543e9d73c61",
+      "hash": "a7196316baf4fbece3b7031161027f0c4af2a66e03402ba047c442645ed19a1b",
       "physicalSizeCm": {
         "width": 3.3,
         "height": 3.3
@@ -87,7 +87,7 @@
     },
     {
       "name": "six-rows",
-      "hash": "00cf2a49338fee221d058b33c1c633d00f927f6bf57e47f7ba6af4e7e9b7aa44",
+      "hash": "20220a867c71045f27519c946db4730c055f43f0679c1fe6503d7d0dfb834133",
       "physicalSizeCm": {
         "width": 5.515280000000001,
         "height": 7.3

@@ -21,9 +21,8 @@ There are no new dependencies, paid services, model API calls or stored document
 
 Cells and headings use homogeneous array item schemas with minItems 1/maxItems 3.
 Do not replace these with positional tuples: the draft-07 tuple items array was
-rejected by ChatGPT's custom-server import for `create_diagram` (kind `ratio-table`). The document
-format still requires two entries for v1. Server validation requires every row
-to match its headings and rejects unsupported shapes or inconsistent versions.
+rejected by ChatGPT's custom-server import for `create_diagram` (kind `ratio-table`). Server validation requires every row
+to match its headings and rejects unsupported shapes or versions other than 2.
 The real MCP discovery regression scans all input/output array schemas; service
 tests also check invalid cell/heading lengths on creation and revision. SDK call
 success alone does not establish actual ChatGPT account import/acceptance.
@@ -32,7 +31,6 @@ Creation example: pupil scaffold
 
 ```json
 {
-  "schemaVersion": 1,
   "mode": "annotated",
   "rows": [
     { "id": "start", "cells": [
