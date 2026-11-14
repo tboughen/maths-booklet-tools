@@ -40,7 +40,7 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -172,10 +172,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     const name = labelName(index);
     return name[0].toUpperCase() + name.slice(1);
   };
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function patch(update: (n: Envelope["document"]) => void) {
@@ -463,6 +463,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -687,7 +689,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card vn-layout-tools">
               <h2>Diagram tools</h2>
@@ -1147,7 +1149,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             onConfirm={() => {
               if (busy || recovery !== null || draft !== null) return;
               consumeVennLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

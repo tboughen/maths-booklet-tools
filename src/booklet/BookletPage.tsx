@@ -32,7 +32,7 @@ import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, historyActionText, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
@@ -396,10 +396,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <div className="editor-toolbar" role="group" aria-label="Resource utilities">
               <div className="tool-group" role="group" aria-label="History and reset">
-                <button className="icon-button" disabled={blocked || !history.past.length} aria-label="Undo" title="Undo (Ctrl+Z)" onClick={undo}>
+                <button className="icon-button" disabled={blocked || !history.past.length} aria-label="Undo" title={`${historyActionText("Undo", undoStepName(history))} (Ctrl+Z)`} onClick={undo}>
                   <Undo2 size={18} aria-hidden="true" />
                 </button>
-                <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title="Redo (Ctrl+Y)" onClick={redo}>
+                <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title={`${historyActionText("Redo", redoStepName(history))} (Ctrl+Y)`} onClick={redo}>
                   <Redo2 size={18} aria-hidden="true" />
                 </button>
                 <button className="tool-button reset-button" disabled={blocked} aria-label="Open the example booklet" onClick={() => setPending({ b: a7Booklet, title: "Open the example booklet? It replaces the current one. You can undo it." })}>

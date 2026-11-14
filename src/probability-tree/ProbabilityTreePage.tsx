@@ -54,7 +54,7 @@ import {
 import { parseTreeLink, treeEditorLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import "./probability-tree.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
@@ -177,7 +177,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const paths = leaves(d);
   const selectedBranch = d.branches.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
-  function commit(next: Envelope | null, failure = "That change is not possible for this tree.") {
+  function commit(next: Envelope | null, failure = "That change is not possible for this tree.", label?: string) {
     if (recovery !== null) return;
     if (!next) {
       setMessage(failure);
@@ -185,7 +185,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     }
     try {
       const valid = validate(next);
-      documentHistory.commit(valid);
+      documentHistory.commit(valid, label);
       setMessage("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -337,6 +337,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -479,7 +481,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, undefined, "use worked version")}
             />
             {selectedBranch && (
               <section className="panel-card pt-panel" aria-label="Selected branch">
@@ -837,7 +839,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, undefined, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

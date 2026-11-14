@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
+import { historyActionText } from "../editor-kit/labels";
 import {
   ChevronDown,
   Copy,
@@ -13,6 +14,10 @@ interface EditorToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  /** Name of the step Undo would reverse, such as "add row" (U8). */
+  undoLabel?: string;
+  /** Name of the step Redo would restore. */
+  redoLabel?: string;
   onReset: () => void;
   resetLabel?: string;
   resetDisabled?: boolean;
@@ -29,6 +34,9 @@ interface EditorToolbarProps {
 /** Common document actions; specialist editing controls belong to the inspector. */
 export function EditorToolbar(props: EditorToolbarProps) {
   const bar = useRef<HTMLDivElement>(null);
+  const ids = useId();
+  const undoText = historyActionText("Undo", props.canUndo ? props.undoLabel : undefined),
+    redoText = historyActionText("Redo", props.canRedo ? props.redoLabel : undefined);
   useLayoutEffect(() => {
     const element = bar.current;
     const parent = element?.parentElement;
@@ -71,19 +79,31 @@ export function EditorToolbar(props: EditorToolbarProps) {
           className="icon-button"
           disabled={!props.canUndo}
           aria-label="Undo"
-          title="Undo (Ctrl+Z)"
+          aria-describedby={undoText !== "Undo" ? `${ids}-undo` : undefined}
+          title={`${undoText} (Ctrl+Z)`}
           onClick={props.onUndo}
         >
           <Undo2 size={18} aria-hidden="true" />
+          {undoText !== "Undo" && (
+            <span id={`${ids}-undo`} className="sr-only" data-history-step="undo">
+              {undoText}
+            </span>
+          )}
         </button>
         <button
           className="icon-button"
           disabled={!props.canRedo}
           aria-label="Redo"
-          title="Redo (Ctrl+Y)"
+          aria-describedby={redoText !== "Redo" ? `${ids}-redo` : undefined}
+          title={`${redoText} (Ctrl+Y)`}
           onClick={props.onRedo}
         >
           <Redo2 size={18} aria-hidden="true" />
+          {redoText !== "Redo" && (
+            <span id={`${ids}-redo`} className="sr-only" data-history-step="redo">
+              {redoText}
+            </span>
+          )}
         </button>
         <button
           className="tool-button reset-button"

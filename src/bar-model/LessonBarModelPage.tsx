@@ -28,7 +28,7 @@ import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import "./bar-model.css";
-import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
   | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
@@ -247,16 +247,16 @@ export default function LessonBarModelPage({
         {pendingIssue && <p role="alert">{pendingIssue}</p>}
       </>
     ) : null;
-  function commit(n: c.Envelope) {
+  function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     dirty.current = true;
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function operation(ops: api.Operation[]) {
     if (guard.current) return;
     try {
-      commit(api.apply(e, ops));
+      commit(api.apply(e, ops), operationLabel(ops));
     } catch (err) {
       setMessage(error(err));
     }
@@ -617,7 +617,7 @@ export default function LessonBarModelPage({
             title={pending.title}
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
             }}
             confirmLabel="Open bar model"
@@ -659,6 +659,8 @@ export default function LessonBarModelPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -1064,7 +1066,7 @@ export default function LessonBarModelPage({
                     : "Use this model"
                 }
                 onConfirm={() => {
-                  commit(pending.envelope);
+                  commit(pending.envelope, stepName(pending.title));
                   setSelectedBar(pending.envelope.document.bars[0].id);
                   setSelectedParts([]);
                   setPending(null);

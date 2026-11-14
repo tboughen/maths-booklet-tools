@@ -26,7 +26,7 @@ import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -145,18 +145,18 @@ export default function BarModelPage({
       panel?.querySelector<HTMLInputElement>("input,select")?.focus();
     }
   }, [drafting, active]);
-  function commit(n: c.Envelope) {
+  function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     if (managed) {
       managed.onCommit(valid);
       return;
     }
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
   }
   function operation(op: Operation) {
     if (guard.current) return;
     try {
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
       setMessage("");
     } catch (err) {
       setMessage(errorText(err));
@@ -216,7 +216,7 @@ export default function BarModelPage({
             Object.entries(draft.values).map(([k, v]) => [k, Number(v)]),
           ),
         };
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
       cancelDraft();
     } catch (err) {
       setInputError(errorText(err));
@@ -329,7 +329,7 @@ export default function BarModelPage({
   function remove(op: Operation) {
     if (guard.current) return;
     try {
-      commit(apply(e, [op]));
+      commit(apply(e, [op]), operationLabel(op));
     } catch (err) {
       if (errorText(err).includes("discardSpans")) setRemoval(op);
       else setMessage(errorText(err));
@@ -479,6 +479,8 @@ export default function BarModelPage({
             )}
             <EditorToolbar
               canUndo={!blocked && (managed?.canUndo ?? !!history.past.length)}
+              undoLabel={managed ? undefined : undoStepName(history)}
+              redoLabel={managed ? undefined : redoStepName(history)}
               canRedo={
                 !blocked && (managed?.canRedo ?? !!history.future.length)
               }
@@ -749,7 +751,7 @@ export default function BarModelPage({
                   setPending({ e: n, title: `Open ${title}?` });
               }}
               onWorked={(n) => {
-                if (!guard.current) commit(n);
+                if (!guard.current) commit(n, "use worked version");
               }}
             />
             <section className="panel-card bm-settings">
@@ -1119,7 +1121,7 @@ export default function BarModelPage({
             title={pending.title}
             onCancel={() => setPending(null)}
             onConfirm={() => {
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
             }}
             confirmLabel="Open bar model"
