@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { PDFDocument } from "pdf-lib";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { withFamilyNames } from "./family-tool-names";
@@ -148,7 +149,7 @@ describe("bounded bundle signing and workers", () => {
   it("bounds archive members and resulting bytes independently", () => {
     const members = Object.fromEntries(ARCHIVE_NAMES.map((n) => [n, new Uint8Array(1)]));
     expect(Object.keys(unzipSync(packArchive(members)))).toEqual(ARCHIVE_NAMES);
-    expect(() => packArchive({...members, "../escape": new Uint8Array(1)})).toThrow("five");
+    expect(() => packArchive({...members, "../escape": new Uint8Array(1)})).toThrow("six");
     expect(() => packArchive({...members, "diagram.png": new Uint8Array(11 * 1024 * 1024)})).toThrow("10 MiB");
     expect(() => packArchive({...members, "diagram.png": new Uint8Array(21 * 1024 * 1024)})).toThrow("20 MiB");
   });
@@ -198,6 +199,12 @@ describe("real MCP output workflows", () => {
     verifyPrintBytes(files["diagram.png"], pngSize.width, pngSize.height);
     expect(Buffer.from(files["diagram.svg"]).toString()).toBe(await (await fetch(moved.downloads.svg.url)).text());
     expect(Buffer.from(files["README.txt"]).toString()).not.toMatch(/signature=|token=/);
+    // M24: a vector PDF page holding the diagram at actual size.
+    const pdf = await PDFDocument.load(files["diagram.pdf"]);
+    expect(pdf.getPageCount()).toBe(1);
+    const { width, height } = pdf.getPage(0).getSize();
+    expect([Math.round(width / 72 * 25.4), Math.round(height / 72 * 25.4)]).toEqual([210, 297]);
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("diagram.pdf holds the diagram at actual size");
     // M16: the bundle carries the pupil-safe alt text for Word and PowerPoint.
     expect(Buffer.from(files["README.txt"]).toString()).toContain("Alt text (for Word or PowerPoint): Coordinate graph\n");
     const broken = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: moved.envelope}});
