@@ -584,7 +584,6 @@ test("single Nested choice reopens reverse-nested files exactly and label edits 
   expect(edited.document.regions).toEqual(e.document.regions);
   expect(edited.document.labels[2].text).toBe("Whole");
   expect(edited.document.labels[1].text).toBe("Part");
-  await page.getByRole("tab", { name: "Diagram", exact: true }).click();
   await page
     .getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true })
     .check();
@@ -673,7 +672,7 @@ for (const width of [320, 375, 768, 1440])
       page.getByLabel("Shading style", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("tab", { name: "Diagram", exact: true }),
+      page.getByRole("heading", { name: "Diagram", exact: true }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Shade", exact: true }),
@@ -685,7 +684,7 @@ for (const width of [320, 375, 768, 1440])
       0,
     );
     await expect(
-      page.getByRole("tab", { name: "Diagram", exact: true }),
+      page.getByRole("heading", { name: "Diagram", exact: true }),
     ).toBeVisible();
     await page.locator('[data-region-hit="1"]').click();
     await expect(
@@ -695,7 +694,6 @@ for (const width of [320, 375, 768, 1440])
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     expect(canonical(await saved(page))).toBe(before);
-    await page.getByRole("tab", { name: "Diagram", exact: true }).click();
     await expect(
       page.getByRole("button", { name: /^Outer set:/ }),
     ).toBeHidden();
@@ -724,7 +722,6 @@ for (const width of [320, 1440])
       page.getByRole("button", { name: /Separate/ }),
       page.getByRole("button", { name: /Nested/ }),
       page.locator(".vn-view-note"),
-      page.locator(".vn-tabs button").first(),
     ];
     for (const control of controls) {
       await expect(control).toBeVisible();

@@ -148,7 +148,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [selected, setSelected] = useState<number | null>(null),
-    [tab, setTab] = useState("Diagram"),
     [mode, setMode] = useState("edit"),
     [shade, setShade] = useState<Region["shade"]>("grey"),
     [zoom, setZoom] = useState(0),
@@ -301,7 +300,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     });
     if (type === "region") {
       setSelected(index);
-      setTab("Contents");
     }
   }
   function applyDraft() {
@@ -823,53 +821,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   : "Answer view · exports reveal saved answers only. Editable files keep the pupil settings."}
               </p>
             </section>
-            <section className="panel-card vn-inspector">
-              {mode === "edit" && (
-                <div
-                  className="vn-tabs"
-                  role="tablist"
-                  aria-label="Venn settings"
-                >
-                  {["Diagram", "Contents"].map((t) => (
-                    <button
-                      key={t}
-                      role="tab"
-                      id={`vn-tab-${t}`}
-                      aria-selected={tab === t}
-                      tabIndex={tab === t ? 0 : -1}
-                      onKeyDown={(ev) => {
-                        const tabs = ["Diagram", "Contents"];
-                        let index = tabs.indexOf(t);
-                        if (ev.key === "ArrowRight") index = (index + 1) % 2;
-                        else if (ev.key === "ArrowLeft")
-                          index = (index + 1) % 2;
-                        else if (ev.key === "Home") index = 0;
-                        else if (ev.key === "End") index = 1;
-                        else return;
-                        ev.preventDefault();
-                        setTab(tabs[index]);
-                        document
-                          .getElementById(`vn-tab-${tabs[index]}`)
-                          ?.focus();
-                      }}
-                      aria-controls={`vn-panel-${t}`}
-                      onClick={() => setTab(t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div
-                role={mode === "edit" ? "tabpanel" : "region"}
-                id={mode === "edit" ? `vn-panel-${tab}` : "vn-panel-shading"}
-                aria-labelledby={
-                  mode === "edit" ? `vn-tab-${tab}` : "vn-shading-heading"
-                }
-              >
-                {mode === "edit" && tab === "Diagram" && (
-                  <>
-                    <h2>Diagram</h2>
+            {/* U20: stacked cards, no tabs. Edit mode shows the diagram and its contents; Shade shows shading. */}
+                {mode === "edit" && (
+                  <section className="panel-card vn-inspector" aria-labelledby="vn-card-diagram">
+                    <h2 id="vn-card-diagram">Diagram</h2>
                     <label>
                       Outline
                       <select
@@ -1026,11 +981,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         </select>
                       </label>
                     </details>
-                  </>
+                  </section>
                 )}
-                {mode === "edit" && tab === "Contents" && (
-                  <>
-                    <h2>Region contents</h2>
+                {mode === "edit" && (
+                  <section className="panel-card vn-inspector" aria-labelledby="vn-card-contents">
+                    <h2 id="vn-card-contents">Region contents</h2>
                     <p className="vn-note">
                       Click the diagram or choose a region. Lists, frequencies,
                       fractions, algebra and pupil blanks stay editable.
@@ -1060,10 +1015,10 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         </button>
                       ))}
                     </div>
-                  </>
+                  </section>
                 )}
                 {mode === "shade" && (
-                  <>
+                  <section className="panel-card vn-inspector" aria-labelledby="vn-shading-heading">
                     <h2 id="vn-shading-heading">Region shading</h2>
                     <label>
                       Shading style
@@ -1126,10 +1081,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                         </button>
                       ))}
                     </div>
-                  </>
+                  </section>
                 )}
-              </div>
-            </section>
 
             <section className="panel-card vn-inspector">
               <details>
