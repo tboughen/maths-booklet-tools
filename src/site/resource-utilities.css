@@ -268,3 +268,47 @@
     gap: 8px;
   }
 }
+
+/* U6: one structure-control style in every editor. */
+.structure-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.structure-stepper--vertical {
+  flex-direction: column;
+}
+.structure-stepper-caption {
+  color: #34506a;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove) {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid #adc2d4;
+  border-radius: 999px;
+  background: #fff;
+  color: #184c72;
+  box-shadow: 0 2px 4px #15335125;
+  cursor: pointer;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):hover:not(:disabled) {
+  background: #eaf2fc;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):focus-visible {
+  outline: 2px solid #1766ca;
+  outline-offset: 2px;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}

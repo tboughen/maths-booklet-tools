@@ -9,6 +9,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -489,35 +490,29 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                <div
+                <StructureStepper
                   className="ch-structure"
-                  role="group"
-                  aria-label="Categories"
-                >
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length >= MAX_CATEGORIES}
-                    aria-label="Add a category at the end"
-                    title="Add category"
-                    onClick={() => {
+                  vertical
+                  name="Categories"
+                  caption=""
+                  add={{
+                    label: "Add a category at the end",
+                    title: "Add category",
+                    disabled: blocked || d.categories.length >= MAX_CATEGORIES,
+                    onClick: () => {
                       commit(addCategory(e));
                       requestAnimationFrame(() =>
                         focusField(`ch-cat-${d.categories.length}`),
                       );
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length <= 1}
-                    aria-label={`Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`}
-                    title="Remove last category"
-                    onClick={() => commit(removeCategory(e))}
-                  >
-                    −
-                  </button>
-                </div>
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`,
+                    title: "Remove last category",
+                    disabled: blocked || d.categories.length <= 1,
+                    onClick: () => commit(removeCategory(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (

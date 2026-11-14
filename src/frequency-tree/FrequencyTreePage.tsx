@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -396,20 +397,24 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
                     );
                   })}
                 </div>
-                <div className="pt-structure" role="group" aria-label="Levels">
-                  <button
-                    type="button"
-                    disabled={blocked || depth >= MAX_DEPTH}
-                    aria-label="Split every first-level group into a second level"
-                    title="Add level"
-                    onClick={() => commit(addLevel(e))}
-                  >
-                    +
-                  </button>
-                  <button type="button" disabled={blocked || depth <= 1} aria-label="Remove the second level" title="Remove level" onClick={() => commit(removeLevel(e))}>
-                    −
-                  </button>
-                </div>
+                <StructureStepper
+                  className="pt-structure"
+                  vertical
+                  name="Levels"
+                  caption=""
+                  add={{
+                    label: "Split every first-level group into a second level",
+                    title: "Add level",
+                    disabled: blocked || depth >= MAX_DEPTH,
+                    onClick: () => commit(addLevel(e)),
+                  }}
+                  remove={{
+                    label: "Remove the second level",
+                    title: "Remove level",
+                    disabled: blocked || depth <= 1,
+                    onClick: () => commit(removeLevel(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (
