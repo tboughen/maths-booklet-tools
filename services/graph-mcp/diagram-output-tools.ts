@@ -32,7 +32,9 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
     verifyPrintBytes(png.body, size.width, size.height);
     // M24: the diagram at 1:1 on the smallest A4 or A3 page that holds it, as a vector PDF.
     const view = ("outputView" in source && source.outputView) || "pupil";
-    const page = diagramPage(FAMILIES[source.kind].svg(source.envelope, view), altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil")));
+    // Cuboids use the same measured crop as diagram.svg, diagram.png and the stated native size.
+    const art = source.kind === "cuboids" ? info.crop!.svg : FAMILIES[source.kind].svg(source.envelope, view);
+    const page = diagramPage(art, altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil")));
     const pdf = await raster.worksheetPdf([page], `MathsDock ${FAMILIES[source.kind].label}`, signal);
     await assertVectorPdf(pdf, [page]);
     const route = source.kind === "charts" ? "charts" : source.kind === "algebra-grid" ? "expanding-factorising" : source.kind === "value-graph" ? "value-table-graph" : source.kind;
