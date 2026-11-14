@@ -363,8 +363,10 @@ export function layout(saved: Envelope, view: View = "pupil") {
   const height = y + rowH;
   const M = 1.5;
   if (height > 300) issues.push("The panels are taller than 30 cm. Use fewer panels or a smaller cube edge.");
-  if (d.panels.every((p) => p.state === "drawn") && d.panels.length > 1) notes.push("Every view is drawn, so pupils have nothing to draw. Make a view blank or an answer for a question.");
-  for (const p of d.panels)
+  // Notes describe the saved question, so both copies give the same notes.
+  const sd = saved.document;
+  if (sd.panels.every((p) => p.state === "drawn") && sd.panels.length > 1) notes.push("Every view is drawn, so pupils have nothing to draw. Make a view blank or an answer for a question.");
+  for (const p of sd.panels)
     if (p.view !== "isometric" && p.state !== "drawn" && p.squares.across) {
       const f = flatView(d, p.view);
       if (p.squares.across < f.across || p.squares.up < f.up) notes.push(`The ${p.view} grid is smaller than the ${p.view} view (${f.across} by ${f.up} squares).`);

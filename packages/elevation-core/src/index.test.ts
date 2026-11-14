@@ -116,4 +116,11 @@ describe("review fixes", () => {
     const r = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_panel", index: i, panel: { view: "front" } }] });
     expect(r.document.panels[i].label.text).toBe(c.DEFAULT_LABELS.front);
   });
+  it("gives the same teacher notes on both copies", () => {
+    const e = c.create();
+    expect(c.warnings(e, "answer")).toEqual(c.warnings(e, "pupil"));
+    e.document.panels[1].squares = { across: 2, up: 2 };
+    expect(c.warnings(e, "pupil").some((w) => w.includes("plan grid is smaller"))).toBe(true);
+    expect(c.warnings(e, "answer")).toEqual(c.warnings(e, "pupil"));
+  });
 });
