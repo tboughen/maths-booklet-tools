@@ -82,6 +82,13 @@ their diagrams. Nothing is derived or changed. Notes per family:
 
 A new family adds its visitor in `answer-slots.ts`; `answer-slots.test.ts` reads the whole corpus.
 
+**Answer-leak check (W90).** `answerLeaks(kind, envelope)` in
+`packages/diagram-core/src/answer-leaks.ts` checks a pupil copy two ways: it never uses the answer
+colour, and swapping every saved answer for a same-length stand-in changes none of its printed
+text (text, title, desc, aria-label, so alt text too). Geometry is not compared, because both
+copies share one layout sized for the answers. The worksheet renderer reports a leak as a layout
+issue, and `create_diagram` / `revise_diagram` add it to their warnings.
+
 ## Adding a family
 
 1. Build the family's core package as usual (`docs/tools/ADDING-BOOKLET-TOOLS.md`).
