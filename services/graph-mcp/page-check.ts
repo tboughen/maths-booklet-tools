@@ -1,19 +1,17 @@
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { checkRenderedPages, type GetDocument, type PageProblem } from "../../packages/resource-core/src/page-check";
+import type { PageProblem } from "../../packages/resource-core/src/page-check";
 import type { RasterQueue } from "./raster";
 
 /**
  * W31: write each copy's PDF, as the download links will, and read it back to check where its text
- * actually landed. Problems are returned with the copy they belong to, so they read as issues.
+ * actually landed (in one raster worker). Problems are returned with the copy they belong to, so they read as issues.
  */
 export async function renderedProblems(raster: RasterQueue, copies: { view: "pupil" | "answers"; pages: string[] }[], title: string, signal?: AbortSignal) {
   const found: (PageProblem & { view: "pupil" | "answers" })[] = [];
   try {
-    for (const { view, pages } of copies) {
-      const pdf = await raster.worksheetPdf(pages, title, signal);
-      for (const p of await checkRenderedPages(getDocument as unknown as GetDocument, pdf, pages))
-        found.push({ ...p, view, message: view === "answers" ? `On the answers copy: ${p.message}` : p.message });
-    }
+    const results = await raster.checkPages(copies.map((c) => c.pages), title, signal);
+    copies.forEach(({ view }, i) => {
+      for (const p of results[i] ?? []) found.push({ ...p, view, message: view === "answers" ? `On the answers copy: ${p.message}` : p.message });
+    });
   } catch (error) {
     if (signal?.aborted) throw error;
     // A busy or slow service must not stop the sheet being made: each download is still written
