@@ -1,8 +1,10 @@
 /** Half the 44 px touch target (U43). */
-const TAP_REACH = 22;
-/** The tick nearest a tap at (x, dy from the tick buttons' centre line), or null when none is within reach. */
-export function nearestTick(ticks: { v: string; x: number }[], x: number, dy: number): string | null {
-  if (Math.abs(dy) > TAP_REACH) return null;
+export const TAP_REACH = 22;
+/**
+ * The tick whose screen x is nearest a tap, or null when none is within 22 px. A tap exactly midway between
+ * two ticks picks the one that comes first in `ticks` (the lower value).
+ */
+export function nearestTick(ticks: { v: string; x: number }[], x: number): string | null {
   let best: { v: string; gap: number } | null = null;
   for (const t of ticks) {
     const gap = Math.abs(t.x - x);

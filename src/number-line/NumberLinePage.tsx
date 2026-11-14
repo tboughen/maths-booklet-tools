@@ -48,7 +48,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { nearestTick } from "./hitTest";
+import { nearestTick, TAP_REACH } from "./hitTest";
 import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
@@ -231,6 +231,9 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
+  /** Where each tick's button sits on screen; the touch hit test (U43) uses the same positions. */
+  const tickHits = ticks(d).map((v) => ({ v, x: position(d, v) * unit })),
+    tickHitTop = (m.axisY + 5) * unit;
   function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
@@ -930,14 +933,18 @@ export default function NumberLinePage({
                   }}
                   onClick={(e) => {
                     if (!(e.target instanceof SVGElement) || blocked) return;
-                    // U43: a tap on the axis band picks the nearest tick within a 44 px target, so a
-                    // finger need not land on the small tick button. Endpoints and lines sit above.
+                    // U43: a finger tap on bare paper near the axis or its tick labels picks the nearest tick
+                    // within 22 px, so touch gets a 44 px target without bigger, overlapping tick buttons.
+                    // A mouse click there still deselects. Endpoint, line and tick buttons sit above the paper.
+                    const pointer = (e.nativeEvent as PointerEvent).pointerType;
                     const box = e.currentTarget.getBoundingClientRect();
-                    const near = nearestTick(
-                      ticks(d).map((v) => ({ v, x: position(d, v) * unit })),
-                      e.clientX - box.left,
-                      e.clientY - box.top - (m.axisY + 5) * unit,
-                    );
+                    const y = e.clientY - box.top;
+                    const near =
+                      (pointer === "touch" || pointer === "pen") &&
+                      y >= m.axisY * unit - TAP_REACH &&
+                      y <= tickHitTop + TAP_REACH
+                        ? nearestTick(tickHits, e.clientX - box.left)
+                        : null;
                     if (near !== null) tick(near);
                     else setSelection(null);
                   }}
@@ -948,15 +955,12 @@ export default function NumberLinePage({
                       __html: renderSvg(history.present),
                     }}
                   />
-                  {ticks(d).map((v) => (
+                  {tickHits.map(({ v, x }) => (
                     <button
                       key={v}
                       aria-label={`Tick ${v}`}
                       className="nl-hit nl-tick"
-                      style={{
-                        left: position(d, v) * unit,
-                        top: (m.axisY + 5) * unit,
-                      }}
+                      style={{ left: x, top: tickHitTop }}
                       onClick={() => tick(v)}
                     />
                   ))}
