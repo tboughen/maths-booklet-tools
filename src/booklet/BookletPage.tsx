@@ -562,7 +562,10 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines
               </label>
               <label className="ws-check">
-                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
+                <input type="checkbox" checked={d.notation !== "plain"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
+              </label>
+              <label className="ws-check">
+                <input type="checkbox" checked={d.notation === "typeset"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "typeset" : "maths"))} /> Print maths as on a paper: x^2 as x², a true minus, {"<="} as ≤, italic x
               </label>
               <details className="ws-side">
                 <summary>Unit introduction</summary>

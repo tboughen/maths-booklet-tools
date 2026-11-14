@@ -88,11 +88,12 @@ export const bookletSchema = z
         /**
          * plain (saved booklets from before, and the default): text prints as typed. maths: {3/4}
          * prints as a stacked fraction, and as a native equation in Word, as on worksheets.
+         * typeset (new booklets): maths, and typed maths prints as a paper prints it (typeset.ts).
          */
         notation: z
-          .enum(["plain", "maths"])
+          .enum(["plain", "maths", "typeset"])
           .default("plain")
-          .describe("maths (every new booklet): {3/4} in question text, options, steps, bullets, parts, answer lines and table cells prints as a stacked fraction. plain (older saved booklets): text prints as typed."),
+          .describe("typeset (every new booklet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper (x^2 as x², a true minus, <= as ≤, sqrt as √, pi as π, letters used as maths in italic). maths (some saved booklets): fractions only. plain (older saved booklets): text prints as typed. Keep a saved booklet's value."),
         /** The unit introduction page, or null for none. */
         intro: introSchema.nullable().default(null),
         lessons: z.array(lessonSchema).min(1).max(12),

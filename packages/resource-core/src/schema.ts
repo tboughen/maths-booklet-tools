@@ -231,12 +231,13 @@ export const resourceSchema = z
         nameLine: z.boolean().default(true),
         /**
          * plain (saved files from before, and the default): text prints as typed. maths: {3/4} in
-         * question text prints as a stacked fraction, and as a native equation in Word.
+         * question text prints as a stacked fraction, and as a native equation in Word. typeset
+         * (new sheets): maths, and typed maths prints as a paper prints it (typeset.ts).
          */
         notation: z
-          .enum(["plain", "maths"])
+          .enum(["plain", "maths", "typeset"])
           .default("plain")
-          .describe("maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed."),
+          .describe("typeset (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. maths (some saved sheets): fractions only. plain (older saved sheets): text prints as typed. Keep a saved sheet's value."),
         /**
          * How a column without working spaces uses its spare height. share: every card gets an
          * equal share at its foot as working room. Left out (saved files from before): the last

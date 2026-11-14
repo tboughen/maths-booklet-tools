@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { A4, BOOKLET_WIDTHS, CONTINUED_HEAD, CONTINUED_RULE, fitLine, planBooklet, renderBooklet, type BookletIssue, type PlannedLessonPage } from "./booklet-render";
 import { sectionTitle, type Booklet, type Intro, type Lesson, type Section } from "./booklet";
 import {
@@ -387,7 +388,8 @@ function footerPart(label: string, st: HouseStyle, empty: boolean): string {
 const pageOpen = (first: boolean) => para("", { line: END_MM, markMm: END_MM, pageBreakBefore: !first });
 
 /** The Word file for one view of a booklet, or of one lesson printed on its own. */
-export async function writeBookletDocx(booklet: Booklet, options: BookletDocxOptions): Promise<RenderedBookletDocx> {
+export async function writeBookletDocx(saved: Booklet, options: BookletDocxOptions): Promise<RenderedBookletDocx> {
+  const booklet = typesetForPrint(saved);
   const view = options.view ?? "pupil";
   const st = styles.mathsdock;
   const doc = booklet.document;

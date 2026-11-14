@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
@@ -66,7 +67,7 @@ export const fractionBaseline = (size: number) => fractionLine(size) - (lineBox(
 /** Stacked fractions are the rule on worksheets, so a fraction typed inline gets a note. */
 export const fractionMessage = (question: number, found: string, maths: boolean) =>
   found.startsWith("{")
-    ? `Question ${question} has ${found}, which prints with its braces because document.notation is not "maths". Set notation "maths" so it prints as a stacked fraction.`
+    ? `Question ${question} has ${found}, which prints with its braces because document.notation is "plain". Set notation "typeset" so it prints as a stacked fraction.`
     : `Question ${question} writes the fraction ${found} inline. Fractions print stacked: write it as ${/\d/.test(found) ? `{${found.replace(/ /g, "")}}` : "{numerator/denominator}"}${maths ? "" : ' and set document.notation to "maths"'} (a mixed number as 2{1/2}).`;
 
 function noteInline(source: string, ctx: AnyCtx) {
@@ -628,7 +629,8 @@ export function missingGlyphIssues(resource: Resource): Issue[] {
   return [...found.values()];
 }
 
-export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
+export function renderResource(saved: Resource, options: RenderOptions = {}): Rendered {
+  const resource = typesetForPrint(saved);
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
   const ctx: Ctx<{ side: number; column: number; question?: number }> = {

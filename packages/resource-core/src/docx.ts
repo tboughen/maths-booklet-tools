@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
@@ -830,7 +831,8 @@ function stylesXml(st: HouseStyle): string {
 }
 
 /** The Word file for one view of a worksheet. */
-export async function writeWorksheetDocx(resource: Resource, options: DocxOptions): Promise<RenderedDocx> {
+export async function writeWorksheetDocx(saved: Resource, options: DocxOptions): Promise<RenderedDocx> {
+  const resource = typesetForPrint(saved);
   const view = options.view ?? "pupil";
   const st = styles.mathsdock;
   // The SVG layout's own checks come first: Word output never hides a problem the pages have.
