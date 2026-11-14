@@ -185,9 +185,9 @@ for (const tool of tools) {
       expect(labels.slice(0, 5)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
+        "Download PDF (actual size)",
         "Save editable file",
         "Open editable file",
-        "Copy editable link",
       ]);
       await expect(menu.getByRole("menuitem").first()).toBeFocused();
       await page.keyboard.press("End");
