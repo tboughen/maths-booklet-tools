@@ -21,13 +21,13 @@ import {
 } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
-import { answerArt } from "../export/worked";
+import { answerArt, copySizeCm } from "../export/worked";
 export async function prepareImage(e: Envelope, answers = false) {
   const issue = exportIssue(e);
   if (issue) throw Error(issue);
   const g = layout(e),
     svg = await embedPortableFonts(answerArt(renderSvg(e), e, answers));
-  return { svg, width: g.width / 10, height: g.height / 10 };
+  return { svg, ...copySizeCm(svg, g.width / 10, g.height / 10) };
 }
 export async function printPng(e: Envelope, answers = false) {
   const m = await prepareImage(e, answers),

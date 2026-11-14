@@ -59,7 +59,7 @@ describe("connector catalogue budget (M2)", () => {
   it("keeps every family's capabilities and the worksheet capabilities within budget", async () => {
     const caps = budget.capabilities as Record<string, number>;
     const lines: string[] = [];
-    const known = new Set<string>([...DIAGRAM_KINDS, "worksheet", "default"]);
+    const known = new Set<string>([...DIAGRAM_KINDS, "worksheet", "list", "default"]);
     expect(Object.keys(caps).filter((k) => !known.has(k)), "budgets for unknown families").toEqual([]);
     for (const kind of DIAGRAM_KINDS) {
       const r = await client.callTool({ name: "diagram_capabilities", arguments: { kind } });
@@ -68,6 +68,9 @@ describe("connector catalogue budget (M2)", () => {
       lines.push(`  ${kind}: ${size} / ${limit}`);
       expect.soft(size, `${kind} capabilities bytes`).toBeLessThanOrEqual(limit);
     }
+    const list = textBytes(await client.callTool({ name: "diagram_capabilities", arguments: {} }), "family list");
+    lines.push(`  list: ${list} / ${caps.list}`);
+    expect.soft(list, "family list bytes").toBeLessThanOrEqual(caps.list);
     const w = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
     const worksheet = textBytes(w, "worksheet_capabilities");
     lines.push(`  worksheet: ${worksheet} / ${caps.worksheet}`);

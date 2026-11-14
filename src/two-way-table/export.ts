@@ -6,7 +6,7 @@ import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
 import { svgPdf } from "../export/diagram-pdf";
-import { answerArt } from "../export/worked";
+import { answerArt, copySizeCm } from "../export/worked";
 import { downloadName } from "../export/filenames";
 
 export async function prepareImage(e: Envelope, answers = false) {
@@ -14,7 +14,7 @@ export async function prepareImage(e: Envelope, answers = false) {
   if (issue) throw Error(issue);
   const g = layout(e),
     svg = await embedPortableFonts(answerArt(renderSvg(e), e, answers));
-  return { svg, width: g.width / 10, height: g.height / 10 };
+  return { svg, ...copySizeCm(svg, g.width / 10, g.height / 10) };
 }
 export async function printPng(e: Envelope, answers = false) {
   const m = await prepareImage(e, answers),

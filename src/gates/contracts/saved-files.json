@@ -230,7 +230,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -245,15 +245,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -606,7 +606,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -621,15 +621,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -1178,7 +1178,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -1193,15 +1193,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -1758,7 +1758,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -1773,15 +1773,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -2136,7 +2136,7 @@
             "maxLength": 600
           },
           "worked": {
-            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
             "minItems": 1,
             "maxItems": 12,
             "type": "array",
@@ -2151,15 +2151,15 @@
                 },
                 "x": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Left edge of the note, in mm from the artwork's left edge."
+                  "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
                 },
                 "y": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Top of the note, in mm from the artwork's top edge."
+                  "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
                 },
                 "widthMm": {
                   "description": "Wrapping width in mm (default 60).",
@@ -2707,7 +2707,7 @@
             "maxLength": 600
           },
           "worked": {
-            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
             "minItems": 1,
             "maxItems": 12,
             "type": "array",
@@ -2722,15 +2722,15 @@
                 },
                 "x": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Left edge of the note, in mm from the artwork's left edge."
+                  "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
                 },
                 "y": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Top of the note, in mm from the artwork's top edge."
+                  "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
                 },
                 "widthMm": {
                   "description": "Wrapping width in mm (default 60).",
@@ -3286,7 +3286,7 @@
             "maxLength": 600
           },
           "worked": {
-            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+            "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
             "minItems": 1,
             "maxItems": 12,
             "type": "array",
@@ -3301,15 +3301,15 @@
                 },
                 "x": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Left edge of the note, in mm from the artwork's left edge."
+                  "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
                 },
                 "y": {
                   "type": "number",
-                  "minimum": 0,
+                  "minimum": -70,
                   "maximum": 500,
-                  "description": "Top of the note, in mm from the artwork's top edge."
+                  "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
                 },
                 "widthMm": {
                   "description": "Wrapping width in mm (default 60).",
@@ -3567,7 +3567,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -3582,15 +3582,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -4388,7 +4388,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -4403,15 +4403,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -4957,7 +4957,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -4972,15 +4972,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -5189,7 +5189,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -5204,15 +5204,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -5902,7 +5902,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -5917,15 +5917,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -6418,7 +6418,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -6433,15 +6433,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -6727,7 +6727,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -6742,15 +6742,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -7081,7 +7081,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -7096,15 +7096,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -7402,7 +7402,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -7417,15 +7417,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -8487,7 +8487,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -8502,15 +8502,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -8725,7 +8725,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -8740,15 +8740,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -9315,7 +9315,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -9330,15 +9330,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",
@@ -9578,7 +9578,7 @@
         "maxLength": 600
       },
       "worked": {
-        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner.",
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
         "minItems": 1,
         "maxItems": 12,
         "type": "array",
@@ -9593,15 +9593,15 @@
             },
             "x": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Left edge of the note, in mm from the artwork's left edge."
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
             },
             "y": {
               "type": "number",
-              "minimum": 0,
+              "minimum": -70,
               "maximum": 500,
-              "description": "Top of the note, in mm from the artwork's top edge."
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
             },
             "widthMm": {
               "description": "Wrapping width in mm (default 60).",

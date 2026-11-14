@@ -151,9 +151,15 @@ an L-shaped leader.
 
 - They print only on the answers copy, as the artwork's last layer, at 11 pt STIX Two in the house
   answer colour (`ANSWER_COLOUR`). The pupil copy is byte-identical with or without them.
-- They never change a printed size. The registry's `validate` refuses a note that runs past the
-  artwork's edge, a leader that ends outside it or on its own note, and notes that overlap one
-  another, each with a message naming the note and what to change.
+- They never change the diagram's printed size. A note sits inside the artwork or, where a small
+  diagram has no room (Tim, 14 Nov), in a margin of up to `WORKED_MARGIN_MM` (70 mm) beyond any
+  edge; negative positions are left of or above it. The answers copy's page then grows round the
+  artwork to hold the note (`workedPage`), with the artwork at the same size and place; the pupil
+  copy never changes. Editor previews draw such notes in place (`inPlace`), overflowing the
+  artwork, because the editors' controls sit over it.
+- The registry's `validate` refuses a note that runs past that margin, a leader that ends outside
+  the artwork or on its own note, and notes that overlap one another, each with a message naming
+  the note and what to change.
 - `FAMILIES[kind].svg(envelope, "answer")` draws them, so worksheets, booklets, the connector's
   files, bundles and get_diagram_svg all show the same notes. Families without an answers copy
   (tables of values and graphs, cuboids) refuse a `worked` list until they have one.
