@@ -493,84 +493,84 @@
    "pixels": "53ed9262258b6fd2"
   },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12": {
-   "json": "a6055531febbdf33",
+   "json": "5bbeda4788134900",
    "svg": "7a3d6f057d8eaddc",
    "mm": "100x46.66",
    "png600": "2362x1102",
    "pixels": "51186a7cccf4b392"
   },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12 (worked)": {
-   "json": "9adf0d0791ea611d",
+   "json": "8cdfcc61cb1196ad",
    "svg": "25be1f6370d327d0",
    "mm": "100x63.16",
    "png600": "2362x1492",
    "pixels": "b49cee6122fa0318"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_06_3F_Q15": {
-   "json": "69ffde8c0d2d55b2",
+   "json": "172edcba5efc4745",
    "svg": "b4e9bfa109ad394f",
    "mm": "160x66.58",
    "png600": "3780x1573",
    "pixels": "0a23707523efb8be"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_06_3F_Q15 (worked)": {
-   "json": "37910f61a8662537",
+   "json": "82bf054da26270d4",
    "svg": "4b6cbcbe88567beb",
    "mm": "160x71.58",
    "png600": "3780x1691",
    "pixels": "a54f2a1368a91058"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13": {
-   "json": "193a25c29eb9c312",
+   "json": "8fecb599b6552b50",
    "svg": "7b15cbc11e662803",
    "mm": "160x45.84",
    "png600": "3780x1083",
    "pixels": "87100dfe39a9459f"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13 (worked)": {
-   "json": "4344d820e4445022",
+   "json": "a1359bbfd5aecc2a",
    "svg": "78934147bceefb99",
    "mm": "160x50.84",
    "png600": "3780x1201",
    "pixels": "c5f42d37655c638c"
   },
   "cuboids: cuboid-1MA1_NOV_2018_3H_Q8": {
-   "json": "20e7866e646b7986",
+   "json": "e6d8863b68ba402f",
    "svg": "cc28cbc1af7590dc",
    "mm": "100x61.6",
    "png600": "2362x1455",
    "pixels": "5a351e20a348c570"
   },
   "cuboids: cuboid-1MA1_NOV_2018_3H_Q8 (worked)": {
-   "json": "d40b25967cb8e84d",
+   "json": "525c78c5a56f3ab1",
    "svg": "cfa1e1b7a78c4fa3",
    "mm": "100x61.09",
    "png600": "2362x1443",
    "pixels": "dc17d26b491ad16c"
   },
   "cuboids: cuboid-1MA1_NOV_2019_2H_Q9": {
-   "json": "128626911144ca1c",
+   "json": "a2c104bcc0c22969",
    "svg": "093eefb6110e6a8c",
    "mm": "160x82.2",
    "png600": "3780x1942",
    "pixels": "b58233cd6e823a82"
   },
   "cuboids: cuboid-1MA1_NOV_2019_2H_Q9 (worked)": {
-   "json": "93bbf86d92bef698",
+   "json": "3633539d1c61bec1",
    "svg": "c99cc038a42d67af",
    "mm": "160x82.2",
    "png600": "3780x1942",
    "pixels": "f2d33bd999238bbe"
   },
   "cuboids: cuboid-1MA1_NOV_2020_2F_Q11": {
-   "json": "55717b7008ca07c2",
+   "json": "835b5cea7322b827",
    "svg": "a09a0cfde7ab1033",
    "mm": "100x59.01",
    "png600": "2362x1394",
    "pixels": "a52f0e980417dd29"
   },
   "cuboids: cuboid-1MA1_NOV_2020_2F_Q11 (worked)": {
-   "json": "44a19ac8608b5784",
+   "json": "68c026b98afd93f6",
    "svg": "6522b70503e48504",
    "mm": "100x64.01",
    "png600": "2362x1512",
@@ -619,56 +619,56 @@
    "pixels": "7d1f9f14e97adae9"
   },
   "cuboids: cuboid-layers-1": {
-   "json": "19346991d2e59c73",
+   "json": "c6b3800755710b24",
    "svg": "6231550ae1213c17",
    "mm": "100x49.7",
    "png600": "2362x1174",
    "pixels": "ba264f761115f2cd"
   },
   "cuboids: cuboid-layers-1 (worked)": {
-   "json": "aa3104ab978906d3",
+   "json": "fdb483d8432b27fc",
    "svg": "4a28c18deb0b93f2",
    "mm": "100x59.7",
    "png600": "2362x1410",
    "pixels": "83c91d0eaa93ec2f"
   },
   "cuboids: cuboid-layers-2": {
-   "json": "ee56c87e747b4c35",
+   "json": "8b81c32eff533bc2",
    "svg": "4084ec14055dff94",
    "mm": "100x61.75",
    "png600": "2362x1459",
    "pixels": "038b612fbef74ae5"
   },
   "cuboids: cuboid-layers-2 (worked)": {
-   "json": "ee043095db70c6f3",
+   "json": "721cefa2fe2b79bf",
    "svg": "004f718155700b4e",
    "mm": "100x71.75",
    "png600": "2362x1695",
    "pixels": "d717535197ad1a1a"
   },
   "cuboids: cuboid-layers-3": {
-   "json": "36482b30868b091d",
+   "json": "a750c79ee4c136d3",
    "svg": "f494ac6f128180be",
    "mm": "100x73.79",
    "png600": "2362x1743",
    "pixels": "5f8112293cf146df"
   },
   "cuboids: cuboid-layers-3 (worked)": {
-   "json": "e0288fa7d42ce6e2",
+   "json": "81e8162ec17e1bea",
    "svg": "44ad90fb415c07b5",
    "mm": "100x83.79",
    "png600": "2362x1979",
    "pixels": "f0b7cdabb3d1a302"
   },
   "cuboids: cuboid-missing-height": {
-   "json": "cbf28198701d6592",
+   "json": "9ac2d096435ae454",
    "svg": "7d30cb729594c7f8",
    "mm": "100x52.5",
    "png600": "2362x1240",
    "pixels": "f1e71a06cf3e82f5"
   },
   "cuboids: cuboid-missing-height (worked)": {
-   "json": "adadcd0214671c7c",
+   "json": "597993e021c91285",
    "svg": "973ea3dbb9de5544",
    "mm": "100x61.09",
    "png600": "2362x1443",

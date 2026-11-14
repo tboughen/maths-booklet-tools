@@ -3,7 +3,7 @@ import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { create, upgrade } from "../packages/cuboid-core/src";
+import { create } from "../packages/cuboid-core/src";
 import { examples } from "../packages/cuboid-core/src/examples";
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 const report = join(
@@ -246,7 +246,7 @@ test("invalid floating input remains visible, cancels safely and restores focus"
 test("a scrolled-away full-height editor docks and retains its invalid draft", async ({
   page,
 }) => {
-  const e = upgrade(create());
+  const e = create();
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
   e.document.shapes[0].dimensions = { width: "20", depth: "20", height: "20" };
@@ -342,18 +342,8 @@ test("hidden faces are visible in the outline and one-face mode handles layer sw
   await page.getByLabel("View", { exact: true }).selectOption("layers");
   await expect(resource(page).locator("[data-layer]")).toHaveCount(2);
 });
-test("old arrow files retain their original artwork until the current exam layout is chosen", async ({
-  page,
-}) => {
+test("exam examples draw the current exam arrow layout", async ({ page }) => {
   await load(page, examples.find((e) => e.id.includes("06"))!.create(false));
-  await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
-    0,
-  );
-  await tab(page, "Shape");
-  await page.getByText("More shape options", { exact: true }).click();
-  await page
-    .getByRole("button", { name: "Use current exam layout", exact: true })
-    .click();
   await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
     2,
   );
@@ -361,10 +351,6 @@ test("old arrow files retain their original artwork until the current exam layou
     path: join(report, "corrected-exam-arrows.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
-    0,
-  );
 });
 test("shading and area save through editable exports and real greyscale image downloads", async ({
   page,

@@ -14,7 +14,6 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appearance,
-  upgrade,
   faceNames,
   faceAreaLabel,
   type Appearance,
@@ -61,7 +60,7 @@ import "./cuboid.css";
 import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
-const newDocument = () => upgrade(create());
+const newDocument = () => create();
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -198,11 +197,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
         ),
       },
     };
-    commit(
-      prev.schemaVersion === 1 && next.document.shapes.some((x) => x.appearance)
-        ? upgrade(next)
-        : next,
-    );
+    commit(next);
   }
   function paint(p: Partial<Appearance>) {
     changeShape((x) => ({ ...x, appearance: { ...appearance(x), ...p } }));
@@ -922,20 +917,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   )}
                   {check("Dimension arrows (exam view)", s.arrows, (v) =>
                     patch({ arrows: v }),
-                  )}
-                  {e.schemaVersion === 1 && (
-                    <>
-                      <p className="cb-note">
-                        Original saved layout is retained.
-                      </p>
-                      <button
-                        className="cb-action"
-                        disabled={blocked}
-                        onClick={() => safe(() => commit(upgrade(e)))}
-                      >
-                        Use current exam layout
-                      </button>
-                    </>
                   )}
                   {check(
                     "Schematic proportions (exam view)",

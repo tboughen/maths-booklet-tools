@@ -14,7 +14,6 @@ import {
   setDimension,
   setUnit,
   shapeSchema,
-  upgrade,
   validate,
   type Envelope,
   type Shape,
@@ -68,7 +67,7 @@ export function createCuboid(raw: unknown = {}): Envelope {
     renderSvg(e);
     return e;
   }
-  const e = upgrade(create());
+  const e = create();
   if (v.spec?.widthCm !== undefined) e.document.widthCm = v.spec.widthCm;
   if (v.spec?.shapes)
     e.document.shapes = v.spec.shapes.map((s, i) =>
@@ -158,7 +157,6 @@ export const operationSchema = z.discriminatedUnion("op", [
   z
     .object({ op: z.literal("set_print"), widthCm: z.number().min(4).max(18) })
     .strict(),
-  z.object({ op: z.literal("upgrade_document") }).strict(),
 ]);
 export const revisionSchema = z
   .object({
@@ -171,12 +169,8 @@ export async function hash(e: Envelope): Promise<string> {
   return sha256Hex(canonical(e));
 }
 export function apply(raw: Envelope, operations: unknown): Envelope {
-  let next = structuredClone(validate(raw));
+  const next = structuredClone(validate(raw));
   for (const o of z.array(operationSchema).max(30).parse(operations)) {
-    if (o.op === "upgrade_document") {
-      next = upgrade(next);
-      continue;
-    }
     if (o.op === "set_print") {
       next.document.widthCm = o.widthCm;
       continue;
@@ -187,8 +181,6 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
           ? next.document.shapes.length - 1
           : next.document.shapes.findIndex((s) => s.id === o.afterId);
       if (at < 0) throw Error("The preceding cuboid does not exist.");
-      if (next.schemaVersion === 1 && o.shape.appearance)
-        throw Error("Use upgrade_document before adding version-2 appearance.");
       let suffix = 1;
       while (next.document.shapes.some((s) => s.id === `cuboid-${suffix}`))
         suffix++;
@@ -209,8 +201,6 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
     if (o.op === "replace_shape") {
       if (o.shape.id !== undefined && o.shape.id !== o.id)
         throw Error("replace_shape retains the existing ID.");
-      if (next.schemaVersion === 1 && o.shape.appearance)
-        throw Error("Use upgrade_document before version-2 appearance.");
       next.document.shapes[at] = shape(o.shape, o.id);
       continue;
     }
@@ -237,13 +227,7 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
     }
     if (o.op === "set_label")
       s.labels[o.key] = { ...s.labels[o.key], ...o.label };
-    if (o.op === "set_appearance") {
-      if (next.schemaVersion === 1)
-        throw Error(
-          "Use upgrade_document before changing version-2 appearance.",
-        );
-      s.appearance = o.appearance;
-    }
+    if (o.op === "set_appearance") s.appearance = o.appearance;
     if (o.op === "set_presentation") s = { ...s, ...o.settings };
     next.document.shapes[at] = s;
   }

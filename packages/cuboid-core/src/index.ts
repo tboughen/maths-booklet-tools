@@ -1,6 +1,5 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
-import * as legacy from "./legacy";
 import {
   parseNumber,
   canonicalNumber,
@@ -88,8 +87,8 @@ export const shapeSchema = baseShapeSchema.extend({
 export const envelopeSchema = z
   .object({
     tool: z.literal("cuboids"),
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    rendererVersion: z.enum(["cuboids-1", "cuboids-2"]),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal("cuboids-2"),
     document: z
       .object({
         widthCm: z.number().min(4).max(18),
@@ -118,20 +117,6 @@ export function appearance(s: Shape): Appearance {
       },
     }
   );
-}
-export function upgrade(e: Envelope): Envelope {
-  return validate({
-    ...e,
-    schemaVersion: 2,
-    rendererVersion: "cuboids-2",
-    document: {
-      ...e.document,
-      shapes: e.document.shapes.map((s) => ({
-        ...s,
-        appearance: appearance(s),
-      })),
-    },
-  });
 }
 export function faceArea(s: Shape, face: FaceName) {
   const a =
@@ -312,25 +297,17 @@ export function newShape(id = "cuboid-1"): Shape {
   };
 }
 export function create(): Envelope {
+  const shape = newShape();
   return {
     tool: "cuboids",
-    schemaVersion: 1,
-    rendererVersion: "cuboids-1",
-    document: { widthCm: 10, shapes: [newShape()] },
+    schemaVersion: 2,
+    rendererVersion: "cuboids-2",
+    document: { widthCm: 10, shapes: [{ ...shape, appearance: appearance(shape) }] },
   };
 }
 export function validate(value: unknown): Envelope {
-  if (
-    value &&
-    typeof value === "object" &&
-    "schemaVersion" in value &&
-    value.schemaVersion === 1
-  )
-    return legacy.validate(value);
   const e = envelopeSchema.parse(value),
     ids = new Set<string>();
-  if (e.schemaVersion !== 2 || e.rendererVersion !== "cuboids-2")
-    throw Error("Unsupported cuboid version.");
   for (const s of e.document.shapes) {
     if (s.view === "layers" && appearance(s).mode === "one")
       throw Error(
@@ -471,8 +448,6 @@ function wrap(s: string, width: number): string[] {
   return lines;
 }
 export function layout(envelope: Envelope): Layout {
-  if (envelope.schemaVersion === 1)
-    return legacy.layout(envelope as legacy.Envelope);
   const e = validate(envelope),
     width = e.document.widthCm * 10,
     shapes = e.document.shapes;

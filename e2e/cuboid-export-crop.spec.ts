@@ -9,7 +9,6 @@ import {
   encode,
   layout,
   newShape,
-  upgrade,
   type Envelope,
 } from "../packages/cuboid-core/src";
 import { examples } from "../packages/cuboid-core/src/examples";
@@ -29,11 +28,11 @@ test.beforeEach(async ({ page }) => {
 
 function cases() {
   const result: [string, Envelope][] = [
-    ["default", upgrade(create())],
+    ["default", create()],
     ["legacy", create()],
   ];
   for (const direction of ["right", "left"] as const) {
-    const e = upgrade(create()),
+    const e = create(),
       s = e.document.shapes[0];
     e.document.widthCm = 18;
     s.direction = direction;
@@ -51,7 +50,7 @@ function cases() {
     s.labels.front = { mode: "text", text: "12 cm²", x: 8, y: -8 };
     result.push([`arrows-${direction}`, e]);
   }
-  const hidden = upgrade(create());
+  const hidden = create();
   for (const label of Object.values(hidden.document.shapes[0].labels))
     label.mode = "hidden";
   result.push(["no-labels", hidden]);
@@ -63,7 +62,7 @@ function cases() {
     "left",
     "right",
   ] as const) {
-    const e = upgrade(create()),
+    const e = create(),
       s = e.document.shapes[0];
     s.appearance = {
       ...appearance(s),
@@ -78,7 +77,7 @@ function cases() {
     };
     result.push([`face-${face}`, e]);
   }
-  const labels = upgrade(create());
+  const labels = create();
   labels.document.widthCm = 18;
   const s = labels.document.shapes[0];
   s.title = "Long title across the printed resource";
@@ -93,7 +92,7 @@ function cases() {
   };
   result.push(["long-labels", labels]);
   for (const width of [18, 10]) {
-    const e = upgrade(create());
+    const e = create();
     e.document.widthCm = width;
     e.document.shapes = (width === 18 ? [0, 1] : [0, 1, 2]).map((i) => ({
       ...newShape(`compare-${i}`),
@@ -103,7 +102,7 @@ function cases() {
     }));
     result.push([`comparison-${width}`, e]);
   }
-  const max = upgrade(create());
+  const max = create();
   max.document.widthCm = 16;
   Object.assign(max.document.shapes[0], {
     view: "layers",

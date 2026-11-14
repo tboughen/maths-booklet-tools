@@ -20,7 +20,6 @@ import {
 import { examples as cuboids } from "../../packages/cuboid-core/src/examples";
 import {
   layout as cuboidLayout,
-  upgrade as upgradeCuboid,
 } from "../../packages/cuboid-core/src";
 import {
   examples as lines,
@@ -176,7 +175,7 @@ export const cuboidGallery = cuboids.map((example) => ({
   title: example.title,
   description: example.description,
   sourceHref: example.source ? source(example.id) : undefined,
-  make: (worked: boolean) => upgradeCuboid(example.create(worked)),
+  make: (worked: boolean) => example.create(worked),
   render: (resource: ReturnType<typeof example.create>) =>
     cuboidLayout(resource).svg,
 }));

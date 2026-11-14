@@ -208,3 +208,26 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - plans and elevations: elevations-steps (worked): added
 - plans and elevations: elevations-scale-2cm: added
 - plans and elevations: elevations-scale-2cm (worked): added
+
+## 2026-11-14: Cuboids schema 1 removed (no backwards compatibility, Tim 14 Nov): the gallery's cuboid examples now save as schema 2. Saved JSON only; SVG, size and pixels unchanged.
+
+- cuboids: cuboid-1MA1_JUN_2017_3F_Q12: json a6055531febbdf33 -> 5bbeda4788134900
+- cuboids: cuboid-1MA1_JUN_2017_3F_Q12 (worked): json 9adf0d0791ea611d -> 8cdfcc61cb1196ad
+- cuboids: cuboid-1MA1_MOCK_SET_06_3F_Q15: json 69ffde8c0d2d55b2 -> 172edcba5efc4745
+- cuboids: cuboid-1MA1_MOCK_SET_06_3F_Q15 (worked): json 37910f61a8662537 -> 82bf054da26270d4
+- cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13: json 193a25c29eb9c312 -> 8fecb599b6552b50
+- cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13 (worked): json 4344d820e4445022 -> a1359bbfd5aecc2a
+- cuboids: cuboid-1MA1_NOV_2018_3H_Q8: json 20e7866e646b7986 -> e6d8863b68ba402f
+- cuboids: cuboid-1MA1_NOV_2018_3H_Q8 (worked): json d40b25967cb8e84d -> 525c78c5a56f3ab1
+- cuboids: cuboid-1MA1_NOV_2019_2H_Q9: json 128626911144ca1c -> a2c104bcc0c22969
+- cuboids: cuboid-1MA1_NOV_2019_2H_Q9 (worked): json 93bbf86d92bef698 -> 3633539d1c61bec1
+- cuboids: cuboid-1MA1_NOV_2020_2F_Q11: json 55717b7008ca07c2 -> 835b5cea7322b827
+- cuboids: cuboid-1MA1_NOV_2020_2F_Q11 (worked): json 44a19ac8608b5784 -> 68c026b98afd93f6
+- cuboids: cuboid-layers-1: json 19346991d2e59c73 -> c6b3800755710b24
+- cuboids: cuboid-layers-1 (worked): json aa3104ab978906d3 -> fdb483d8432b27fc
+- cuboids: cuboid-layers-2: json ee56c87e747b4c35 -> 8b81c32eff533bc2
+- cuboids: cuboid-layers-2 (worked): json ee043095db70c6f3 -> 721cefa2fe2b79bf
+- cuboids: cuboid-layers-3: json 36482b30868b091d -> a750c79ee4c136d3
+- cuboids: cuboid-layers-3 (worked): json e0288fa7d42ce6e2 -> 81e8162ec17e1bea
+- cuboids: cuboid-missing-height: json cbf28198701d6592 -> 9ac2d096435ae454
+- cuboids: cuboid-missing-height (worked): json adadcd0214671c7c -> 597993e021c91285

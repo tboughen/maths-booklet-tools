@@ -140,7 +140,7 @@ describe("real MCP SVG delivery with artifact downloads disabled in the consumer
     expect(result.body).toEqual(Buffer.from(original!, "utf8"));
     expect(result.chunks).toBeGreaterThan(1);
   }, 30000);
-  it.each(["cuboids", "venn"])("retains legacy %s schema and exact SVG", async kind => {
+  it.each(["venn"])("retains legacy %s schema and exact SVG", async kind => {
     const { client } = await start();
     const file = kind === "cuboids" ? "packages/cuboid-core/src/fixtures/v1.json" : "";
     const envelope = kind === "cuboids" ? JSON.parse(readFileSync(file, "utf8"))[0].envelope : createLegacyVenn();

@@ -105,64 +105,64 @@
   "pupilSvg": "86eccbbc0318ba12119317a1faf481793f65d7c877098b36e37479f646f55513"
  },
  "cuboids/example-1ma1-jun-2017-3f-q12-worked": {
-  "schemaVersion": 1,
-  "contentHash": "74e2375f51c04e02f2c2c23f7e248675c75cd235518f61628088e20a446f1f77",
-  "pupilSvg": "c461e68b0b0481046979ed71f9fe46a992b79dbd40265368c5e0929a69e43446"
+  "schemaVersion": 2,
+  "contentHash": "9adf0d0791ea611d40da9c84aec3bc88c7306bb398eac27f877eb4a30fd35360",
+  "pupilSvg": "f2d98e99ff83e7926505b19e90bbb4582d5838cf5edd6263ac1f3b43131ebf5f"
  },
  "cuboids/example-1ma1-jun-2017-3f-q12": {
-  "schemaVersion": 1,
-  "contentHash": "39dbc56e825feeec32b2eac1087b67ab0c70a2d23c6c40f9099fd592b4e464d2",
-  "pupilSvg": "b2a69fd8682e58bf4a3e3116e71deefd2e8dc7974dacc8a38764eb2e63bc8d7b"
+  "schemaVersion": 2,
+  "contentHash": "a6055531febbdf3349e21120170860606d146432326eddd657923d473e86b439",
+  "pupilSvg": "7a3d6f057d8eaddca61392a8ef7b2fff049195a6f85294df0243ad0238b50fbe"
  },
  "cuboids/example-1ma1-mock-set-06-3f-q15-worked": {
-  "schemaVersion": 1,
-  "contentHash": "12307340af2ecf528aff8b96a1e3f6bdc0a69f957312840db1c3689b8de93d1a",
-  "pupilSvg": "a1b50f62522ba50dd0df37985bfaefa0b71f0853593a11225b2206cb3813c01e"
+  "schemaVersion": 2,
+  "contentHash": "37910f61a86625377cd04dd8e57c4bd960b1d5a6fd5da9e6d1141fad75994c93",
+  "pupilSvg": "60fc73975697dd55ea4d096aff7cf75a4d1cefe41354f801875a6e091250172d"
  },
  "cuboids/example-1ma1-mock-set-06-3f-q15": {
-  "schemaVersion": 1,
-  "contentHash": "2811da0bad5c12c1448d55cc232fe600adeae04dc7bafd4e0e4f6cdc18137e2f",
-  "pupilSvg": "f7cc5b95e44aabc27c6f95cabcd1b637e7773406c188cb6f806a13c0bb9583b3"
+  "schemaVersion": 2,
+  "contentHash": "69ffde8c0d2d55b22faa9fbb1f80bad64285bf0b83620dc34ca0fb34fe48ee47",
+  "pupilSvg": "438ee61071a928394bfd9c95da2e9846ab1f9b26450d40e33cf37a3e6b092f36"
  },
  "cuboids/example-1ma1-mock-set-08-3f-q13-worked": {
-  "schemaVersion": 1,
-  "contentHash": "1fba845f5e71f4380db06414c36266e76a2ac45d928a5ef65ea78bb3a43b6129",
-  "pupilSvg": "d4d9b305d055f59bfe7c6e12b062abf1690bf8bd511701feb250f569b9b64827"
+  "schemaVersion": 2,
+  "contentHash": "4344d820e44450223969f6a59d5b266887a6babc32c8d7db6ed306b948909b1d",
+  "pupilSvg": "9a17a79e3822ba11d18373cfa8e63c34cb843559b2e6668529591b18fa13ee4d"
  },
  "cuboids/example-1ma1-mock-set-08-3f-q13": {
-  "schemaVersion": 1,
-  "contentHash": "3dc26461ee107759104b73886081415e47a009489b93de423f38d1d71637a2c3",
-  "pupilSvg": "017f8a0cf1c1b52462d6ccc9d54a643d6ea777d34264d1267d8046341e807aff"
+  "schemaVersion": 2,
+  "contentHash": "193a25c29eb9c3129bc39811117df3313c8ec3eab6149220360c3d90384b4a1e",
+  "pupilSvg": "396b43ff5ab802c49bc68ece3bc57b10a0ef7d1b153254f2cb00c715b6cd55fe"
  },
  "cuboids/example-1ma1-nov-2018-3h-q8-worked": {
-  "schemaVersion": 1,
-  "contentHash": "d82916344b2df569dee6cb03b97b81766b422b2837339ad9becf09120dd74f17",
-  "pupilSvg": "2e6673f6502bf036089a22ef9047a8ed90abc99ad52181f0102e712e0cd2ba18"
+  "schemaVersion": 2,
+  "contentHash": "d40b25967cb8e84da095525a473597297afd5d5b12a03392e70693580b2050eb",
+  "pupilSvg": "e9d966686b69940c33c10bb3fd532655d583a37206a956201c9a518846154e97"
  },
  "cuboids/example-1ma1-nov-2018-3h-q8": {
-  "schemaVersion": 1,
-  "contentHash": "07768c5277e4933b106ce0d5f88fbe521cc2439e30fa8194644de094735aaa6e",
-  "pupilSvg": "99b5aa3ff38251f470d99494ae145f58d367473390614e2a9cf2190e0fbb0ffe"
+  "schemaVersion": 2,
+  "contentHash": "20e7866e646b7986670edbda418fa919b006afb26975f92c9004f042c5a7ee29",
+  "pupilSvg": "cc28cbc1af7590dc8f1b5513113245057b447641bb0d306685d06a97900c4706"
  },
  "cuboids/example-1ma1-nov-2019-2h-q9-worked": {
-  "schemaVersion": 1,
-  "contentHash": "3aa41f43d664c91ad05a629eee33adb7c6d1a03a1750a6f623ff8c778a99f2ee",
-  "pupilSvg": "b2e1a5d6e2cbfebf06d68ab28c306ece62457c68771a83c0422b185fb7844011"
+  "schemaVersion": 2,
+  "contentHash": "93bbf86d92bef698e3959dc0534c5ec090132644bf2a7fadd8456cd59c1fb00d",
+  "pupilSvg": "c99cc038a42d67af4bffd3ade713a2a83f6f5f3770452911e7b53e7449856c6b"
  },
  "cuboids/example-1ma1-nov-2019-2h-q9": {
-  "schemaVersion": 1,
-  "contentHash": "899d1e3e8fffd30d2d47a520f9c2f4c89e888f85861ac0a260ee7db7b7400ac4",
-  "pupilSvg": "75e9a316cab531cf9c858876ad896e7432d3095a3407d6848952f0a39a80c363"
+  "schemaVersion": 2,
+  "contentHash": "128626911144ca1c6dd2ccfac3156f2a83005a7bb77168dea5507484432bc478",
+  "pupilSvg": "093eefb6110e6a8c8c446462dc2d97bfb4acdd9cd5eea302d881245efb3457e7"
  },
  "cuboids/example-1ma1-nov-2020-2f-q11-worked": {
-  "schemaVersion": 1,
-  "contentHash": "d93a94e3e52820e295671edf416412c19f7f89ec05191664409a7ffc497f82b8",
-  "pupilSvg": "50a576b2784726001fad83a299b7ede6a76f7615760cb3b66d4b40a128a0f627"
+  "schemaVersion": 2,
+  "contentHash": "44a19ac8608b57846c86a614c2face03038d6db39455a9acf72cd02f4e6afdc3",
+  "pupilSvg": "077b78e00feeceb56bad4634ddc567504b92cdc5970f3b3e73bb51ff3f3cfce2"
  },
  "cuboids/example-1ma1-nov-2020-2f-q11": {
-  "schemaVersion": 1,
-  "contentHash": "6b143cb451f720f6980cc5a0893a6a78242b410a2b04f6ce7d0c04430585e7e5",
-  "pupilSvg": "f75f7defe2437a89341d7433f21c9dc6e76f788f25ba56b48bda95eb481f9c7f"
+  "schemaVersion": 2,
+  "contentHash": "55717b7008ca07c282dcd60335b3d81e13f5d1cbca27f5ae56a1ed724e364481",
+  "pupilSvg": "0d828bf332f911e864cea4da60e154877a3717becd3961d420787cf3482944e8"
  },
  "cuboids/example-base-area-worked": {
   "schemaVersion": 2,
@@ -195,49 +195,49 @@
   "pupilSvg": "cfed12ab821637ddff5de349cfb6fa8c0bf1a6b2d4fc4d092d7bfbb97f0a0051"
  },
  "cuboids/example-layers-1-worked": {
-  "schemaVersion": 1,
-  "contentHash": "ff766ff826433cad9412bc40486e79329d691d05652cc0c7a589ae19300562b4",
-  "pupilSvg": "dddb86960c0601b14b5e1ca03d4d20e1da1eec5daa2e4d2a983cdb15c09ce63d"
+  "schemaVersion": 2,
+  "contentHash": "aa3104ab978906d355853c31ddc72fa691d80538c3ba604ab46bb75287bd2faa",
+  "pupilSvg": "33f35824ab333232fb8a28b1ed76781b4f62b749cc814bfa5d239d8e1fc47fab"
  },
  "cuboids/example-layers-1": {
-  "schemaVersion": 1,
-  "contentHash": "aa4f338982991bfd82ca9eca2452eb81de90de5b2bebbeb77f6dec6cb8279cac",
-  "pupilSvg": "8813b1996488e8060f09ff72ee057fa0b601f4d8b7d7a24e243338fb751ce12a"
+  "schemaVersion": 2,
+  "contentHash": "19346991d2e59c73ddac13d4fc1d619f94a716d6b8a9596fa1f61e2d24dad869",
+  "pupilSvg": "aad92f695e40a551fdae4d81bfaf617f6af8657f6e0c8bb70587759e02a118c0"
  },
  "cuboids/example-layers-2-worked": {
-  "schemaVersion": 1,
-  "contentHash": "6951915e21d4be03948ad3a09d10ef1fa5376a2f7c2e7d9eff6397a4db7e8df1",
-  "pupilSvg": "f0482a01350676f09c8145f79cbefa8d05995324fd55c91f94dae3a68b384287"
+  "schemaVersion": 2,
+  "contentHash": "ee043095db70c6f3c017a4867c6d56e8634a32b1b1d79014e367097183d6f42d",
+  "pupilSvg": "8af7c8b7716a6edb85085277010f4d950bdbe59f77564585a33a42616fc460be"
  },
  "cuboids/example-layers-2": {
-  "schemaVersion": 1,
-  "contentHash": "c4aea527ad1d83b0d4634e82ffb9153e7a8708df7bcf1e60168815695870b74a",
-  "pupilSvg": "55789ab03ac8f655bfd1e4059da6ecc682eda2fadf62b9cfd18824c7c9d4815f"
+  "schemaVersion": 2,
+  "contentHash": "ee56c87e747b4c351a306f8d21a1896496f36db07b90afd382e10e75b607b764",
+  "pupilSvg": "9b978fa85b37e7a6fdebe2c4a0b3427059315fdeef0a19664e12e621cdcc888a"
  },
  "cuboids/example-layers-3-worked": {
-  "schemaVersion": 1,
-  "contentHash": "ce00aa48eac2e60bc23e78248e304ad3ed644aa43290cf78c5a68bf7ec444b8a",
-  "pupilSvg": "3d3eab57264ce55586f8b72648b3df9abe4b84de4f813eb0acd0ef7b2f3d6c62"
+  "schemaVersion": 2,
+  "contentHash": "e0288fa7d42ce6e2f0fa103bf8b53f09222f3e06439dd0ca9d4bc339a50ea8a9",
+  "pupilSvg": "35daba01412ebe4a332c134b91a75849e217cceb93b2a55ce3c30183d0fe4cd0"
  },
  "cuboids/example-layers-3": {
-  "schemaVersion": 1,
-  "contentHash": "20283bf7ab4fe8746dc13f1d6ca6d7eb5dff912c01e2b863a2429d1c18aeb998",
-  "pupilSvg": "481839710a1c76abc1b207956e351e169f0c58675f238a80f30764fc641dc578"
+  "schemaVersion": 2,
+  "contentHash": "36482b30868b091dadd9204b7407debd2ea26fed058316f5fea8400eaff6f7fa",
+  "pupilSvg": "a98472e7681562be66d677e79b1b846933fba7bee743fbc7f9a032b93b1ea5da"
  },
  "cuboids/example-missing-height-worked": {
-  "schemaVersion": 1,
-  "contentHash": "52c1c07abfd4a9a4e2159c4cc268b84c5fedf3096fb540e9937f60b8c92bcb44",
-  "pupilSvg": "74e2710bc49355c40f5a1cb23e966e57c349c42a4be8b28f134cd6c072c28879"
+  "schemaVersion": 2,
+  "contentHash": "adadcd0214671c7caafceb61e1fb208eef564a738047b098351c99c26f59b4d6",
+  "pupilSvg": "28bc908b4fcdcab53f50a2fb5efad09d1f7c96bbd9c14503c26af61e7c3c5757"
  },
  "cuboids/example-missing-height": {
-  "schemaVersion": 1,
-  "contentHash": "e519d7c35536ee9045dcf082c428c9b589c32f8451587edabbdec2c552506711",
-  "pupilSvg": "56c94946d9e3ae5ac41a5aea71a28f0c44eb37bf5e454487b06a0932ca856d5c"
+  "schemaVersion": 2,
+  "contentHash": "cbf28198701d659235922447103f121d59f24b8fe59585b3bb7185dccb0e1df7",
+  "pupilSvg": "c605435cecde7924ada90b3953532581c00c3230574092652aaa791a25dfba78"
  },
  "cuboids/file-cuboid-examples-card-preview": {
-  "schemaVersion": 1,
-  "contentHash": "5d9832c429e855ce230036dc997e05c5ed949d828def3c9755a4609b076676c0",
-  "pupilSvg": "0d43e09f337d9a3f347cb6c47f850efc6db2812b6473093a6d420c980217d53a"
+  "schemaVersion": 2,
+  "contentHash": "c48737d3414c2509ba567576a69ef27353a6a79c5a492927993b8b05be0b4b69",
+  "pupilSvg": "508e7167b82c74a80970caf20de5e719e9592556b0345015b5e3f2a277918322"
  },
  "number-line/default": {
   "schemaVersion": 1,

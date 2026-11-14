@@ -331,7 +331,7 @@ export function graphService(options: ServiceOptions) {
           rendererVersion: RENDERER_VERSION,
           ratioRendererVersion: RATIO_RENDERER_VERSION,
           valueGraphRendererVersion: "value-graph-1",
-          cuboidRendererVersions: ["cuboids-1", "cuboids-2"],
+          cuboidRendererVersions: ["cuboids-2"],
           numberLineRendererVersion: "number-line-1",
           vennRendererVersions: ["venn-1", "venn-2"],
           barModelRendererVersion: "bar-model-1",
