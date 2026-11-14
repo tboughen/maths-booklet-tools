@@ -301,17 +301,9 @@
   align-items: center;
   gap: 8px;
 }
-.ratio-action-pair .tool-button {
-  border: 1px solid var(--line-strong);
-  background: white;
-  justify-content: center;
-  white-space: nowrap;
-}
 .ratio-column-actions {
   grid-column: 2;
   grid-row: 1;
-  flex-direction: column;
-  align-items: stretch;
 }
 .ratio-row-actions {
   grid-column: 1;
@@ -513,15 +505,6 @@
     left: 0;
     max-width: calc(100vw - 70px);
     gap: 6px;
-  }
-  .ratio-app .ratio-action-pair .tool-button {
-    min-width: 0;
-    padding-inline: 6px;
-    gap: 6px;
-    font-size: 12px;
-  }
-  .ratio-action-pair .tool-button span {
-    white-space: normal;
   }
   .ratio-edit-hint {
     padding-inline: 10px;

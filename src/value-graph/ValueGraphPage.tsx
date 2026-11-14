@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -1721,38 +1722,34 @@ export default function ValueGraphPage({
                   >
                     <div className="vg-actions">
                       <strong><em>x</em> values</strong>
-                      <button
-                        aria-label="Add column"
-                        title="Add column"
-                        disabled={blocked || d.columns.length >= 13}
-                        onClick={() => act(appendColumn)}
-                      >
-                        +
-                      </button>
-                      <button
-                        aria-label={
-                          selectedColumn
+                      <StructureStepper
+                        name="x values"
+                        caption=""
+                        add={{
+                          label: "Add column",
+                          disabled: blocked || d.columns.length >= 13,
+                          onClick: () => act(appendColumn),
+                        }}
+                        remove={{
+                          label: selectedColumn
                             ? "Remove selected column"
-                            : "Remove last column"
-                        }
-                        title="Remove column"
-                        disabled={blocked || d.columns.length <= 2}
-                        onClick={() =>
-                          act(() => {
-                            change([
-                              {
-                                op: "remove_column",
-                                columnId:
-                                  selectedColumn?.id ??
-                                  d.columns[d.columns.length - 1].id,
-                              },
-                            ]);
-                            setSelection(null);
-                          })
-                        }
-                      >
-                        −
-                      </button>
+                            : "Remove last column",
+                          title: "Remove column",
+                          disabled: blocked || d.columns.length <= 2,
+                          onClick: () =>
+                            act(() => {
+                              change([
+                                {
+                                  op: "remove_column",
+                                  columnId:
+                                    selectedColumn?.id ??
+                                    d.columns[d.columns.length - 1].id,
+                                },
+                              ]);
+                              setSelection(null);
+                            }),
+                        }}
+                      />
                     </div>
                   </div>
                 )}
