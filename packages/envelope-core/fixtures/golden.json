@@ -1160,8 +1160,8 @@
  "triangle/example-bisector": {
   "schemaVersion": 1,
   "contentHash": "284ab73126f0a2c5a3be82e91e5fb2d0faf9625aa5ce4ee9011a7ec6b87cd2f7",
-  "pupilSvg": "61054d91206c95d1042b2c00e312aeeffc0bde61cb04a08823d40f923d5a8dba",
-  "answerSvg": "61054d91206c95d1042b2c00e312aeeffc0bde61cb04a08823d40f923d5a8dba"
+  "pupilSvg": "fb498307d4ddd652b41c431cff37785b94af39027d4fb891235bffa29f3f515f",
+  "answerSvg": "fb498307d4ddd652b41c431cff37785b94af39027d4fb891235bffa29f3f515f"
  },
  "triangle/example-cosine-acute": {
   "schemaVersion": 1,
@@ -1178,8 +1178,8 @@
  "triangle/example-deliberate-error": {
   "schemaVersion": 1,
   "contentHash": "0225cee28ded60bf372c0deffff2ef277276fb7ac75cc1c5004a5a3e09e454da",
-  "pupilSvg": "64cb37f5a3e26b111773a40c9de19e88c5e59f037764aed259ad2ad7494f8c80",
-  "answerSvg": "64cb37f5a3e26b111773a40c9de19e88c5e59f037764aed259ad2ad7494f8c80"
+  "pupilSvg": "3ae8429f3397f0b1edbdbcb92fdce852b3616edd073a6fa1b3732e72dadf08a7",
+  "answerSvg": "3ae8429f3397f0b1edbdbcb92fdce852b3616edd073a6fa1b3732e72dadf08a7"
  },
  "triangle/example-external-height": {
   "schemaVersion": 1,
@@ -1238,14 +1238,14 @@
  "triangle/example-ssa": {
   "schemaVersion": 1,
   "contentHash": "d90aa08547abd19d4acd9990ef07298e5481249a8c8837ad11ce4f28d1ea2ac0",
-  "pupilSvg": "f90924d64a3a0a6855f3fba67447ec83c32ecf931454589b935c44b3937f6f87",
-  "answerSvg": "f90924d64a3a0a6855f3fba67447ec83c32ecf931454589b935c44b3937f6f87"
+  "pupilSvg": "b70863311d864f291623d434f688e5268c1118d83c783cf6aa0f4dd2dfc8aa55",
+  "answerSvg": "b70863311d864f291623d434f688e5268c1118d83c783cf6aa0f4dd2dfc8aa55"
  },
  "triangle/file-fixtures-triangle-area-v2": {
   "schemaVersion": 2,
   "contentHash": "a1ab3b49f6b05277e9ff6c2716f62daa82f718b54c5da35813f0cbcea796c35f",
-  "pupilSvg": "97848bce855c9cb45b680f143adca1933945150f0ec764f024fb742ab6f62a80",
-  "answerSvg": "173f8e1caa71ce742033df159eb54755115962c124eb000318c42a8c494bda05"
+  "pupilSvg": "d03f817ff2737937192caa01021d73afc0f289e75f83fca07a8f836eeaa04698",
+  "answerSvg": "2b524751b8f336cbdf3f72535fb65fffd09a4d19e52b4f93313435f496215ae6"
  },
  "triangle/file-fixtures-triangle-hidden-answer": {
   "schemaVersion": 1,
@@ -1262,7 +1262,7 @@
  "triangle/file-fixtures-triangle-split": {
   "schemaVersion": 1,
   "contentHash": "ed822830827e18dd467e5b58cbb76f585a588c711758603ccc7a5d614e2bd037",
-  "pupilSvg": "e461e7ab46101fb6d045d7a7c4756cab7c61903b1b27d870a9553c5c60094804",
-  "answerSvg": "e461e7ab46101fb6d045d7a7c4756cab7c61903b1b27d870a9553c5c60094804"
+  "pupilSvg": "6ea1a5fc92b81cb3e8a90f3939abbbd45a362d23c3e7a07d0782bee48e45d5f0",
+  "answerSvg": "6ea1a5fc92b81cb3e8a90f3939abbbd45a362d23c3e7a07d0782bee48e45d5f0"
  }
 }

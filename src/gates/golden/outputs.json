@@ -1026,14 +1026,14 @@
   },
   "triangles: triangle-bisector": {
    "json": "284ab73126f0a2c5",
-   "svg": "61054d91206c95d1",
+   "svg": "fb498307d4ddd652",
    "mm": "160x100.33",
    "png600": "3780x2370",
    "pixels": "36731d3abb182bb9"
   },
   "triangles: triangle-bisector (worked)": {
    "json": "284ab73126f0a2c5",
-   "svg": "61054d91206c95d1",
+   "svg": "fb498307d4ddd652",
    "mm": "160x100.33",
    "png600": "3780x2370",
    "pixels": "36731d3abb182bb9"
@@ -1068,14 +1068,14 @@
   },
   "triangles: triangle-deliberate-error": {
    "json": "0225cee28ded60bf",
-   "svg": "64cb37f5a3e26b11",
+   "svg": "3ae8429f3397f0b1",
    "mm": "120x83.91",
    "png600": "2835x1982",
    "pixels": "0295da2c349c01c2"
   },
   "triangles: triangle-deliberate-error (worked)": {
    "json": "0225cee28ded60bf",
-   "svg": "64cb37f5a3e26b11",
+   "svg": "3ae8429f3397f0b1",
    "mm": "120x83.91",
    "png600": "2835x1982",
    "pixels": "0295da2c349c01c2"
@@ -1208,14 +1208,14 @@
   },
   "triangles: triangle-ssa": {
    "json": "d90aa08547abd19d",
-   "svg": "f90924d64a3a0a68",
+   "svg": "b70863311d864f29",
    "mm": "120x83.91",
    "png600": "2835x1982",
    "pixels": "258b8369e84108bf"
   },
   "triangles: triangle-ssa (worked)": {
    "json": "d90aa08547abd19d",
-   "svg": "f90924d64a3a0a68",
+   "svg": "b70863311d864f29",
    "mm": "120x83.91",
    "png600": "2835x1982",
    "pixels": "258b8369e84108bf"

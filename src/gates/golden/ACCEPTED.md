@@ -88,3 +88,12 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - triangles: triangle-sine-side (worked): svg 9d216d1be4bef1b0 -> 3c3046fdce297357
 - triangles: triangle-ssa: svg 390583d7e01c2f3c -> f90924d64a3a0a68
 - triangles: triangle-ssa (worked): svg 390583d7e01c2f3c -> f90924d64a3a0a68
+
+## 2026-11-14: U36: triangle SVGs carry an accessible title and aria-label describing what they print; artwork unchanged
+
+- triangles: triangle-bisector: svg 61054d91206c95d1 -> fb498307d4ddd652
+- triangles: triangle-bisector (worked): svg 61054d91206c95d1 -> fb498307d4ddd652
+- triangles: triangle-deliberate-error: svg 64cb37f5a3e26b11 -> 3ae8429f3397f0b1
+- triangles: triangle-deliberate-error (worked): svg 64cb37f5a3e26b11 -> 3ae8429f3397f0b1
+- triangles: triangle-ssa: svg f90924d64a3a0a68 -> b70863311d864f29
+- triangles: triangle-ssa (worked): svg f90924d64a3a0a68 -> b70863311d864f29
