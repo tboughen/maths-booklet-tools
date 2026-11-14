@@ -4263,6 +4263,61 @@
             "type": "number",
             "minimum": 8,
             "maximum": 18
+          },
+          "secondary": {
+            "type": "object",
+            "properties": {
+              "minimum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "maximum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "unit": {
+                "default": "",
+                "type": "string",
+                "maxLength": 4,
+                "pattern": "^[^<>&\"0-9]*$"
+              },
+              "unitPlace": {
+                "default": "after",
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              "style": {
+                "default": "line",
+                "type": "string",
+                "enum": [
+                  "line",
+                  "bar"
+                ]
+              },
+              "labels": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "value",
+                    "hidden",
+                    "answer-line"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "minimum",
+              "maximum"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false

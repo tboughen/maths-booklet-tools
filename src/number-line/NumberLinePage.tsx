@@ -29,8 +29,12 @@ import {
   warnings,
   labelKey,
   valueOf,
+  secondaryTicks,
+  secondaryText,
+  labelled,
   type Envelope,
   type Operation,
+  type Secondary,
 } from "../../packages/number-line-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
@@ -235,6 +239,27 @@ export default function NumberLinePage({
         ),
       ),
     );
+  }
+  /** Changes the second scale, keeping its other settings and label states. */
+  function secondary(patch: Partial<Secondary>) {
+    const current = d.secondary;
+    if (!current) return;
+    // New first or last values move every label's value, so each tick keeps its label state by position.
+    const next = { ...current, ...patch, labels: {} as Secondary["labels"] };
+    const before = secondaryTicks(d),
+      after = secondaryTicks({ ...d, secondary: next });
+    before.forEach((v, i) => {
+      const state = current.labels[v];
+      if (state) next.labels[labelKey(after[i])] = state;
+    });
+    change([{ op: "set_secondary", secondary: next }]);
+  }
+  function safeSecondary(patch: Partial<Secondary>) {
+    try {
+      secondary(patch);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    }
   }
   function safe(ops: Operation[]) {
     try {
@@ -1313,6 +1338,91 @@ export default function NumberLinePage({
                 {field("Last tick", d.axis.maximum, (v) => axis("maximum", v))}
                 {field("Tick step", d.axis.step, (v) => axis("step", v))}
               </div>
+            </section>
+            <section className="panel-card" aria-label="Second scale">
+              <h2>Second scale</h2>
+              {d.secondary ? (
+                <div className="nl-settings-body">
+                  <div className="nl-scale-fields">
+                    {field("First value", d.secondary.minimum, (v) => secondary({ minimum: v }))}
+                    {field("Last value", d.secondary.maximum, (v) => secondary({ maximum: v }))}
+                    {field("Unit", d.secondary.unit, (v) => secondary({ unit: v.trim() }))}
+                  </div>
+                  <label>
+                    Unit goes{" "}
+                    <select
+                      aria-label="Unit position"
+                      value={d.secondary.unitPlace}
+                      disabled={blocked}
+                      onChange={(e) => safeSecondary({ unitPlace: e.target.value as Secondary["unitPlace"] })}
+                    >
+                      <option value="after">After the number (25%)</option>
+                      <option value="before">Before the number (£25)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Draw as{" "}
+                    <select
+                      aria-label="Second scale style"
+                      value={d.secondary.style}
+                      disabled={blocked}
+                      onChange={(e) => safeSecondary({ style: e.target.value as Secondary["style"] })}
+                    >
+                      <option value="line">Double number line</option>
+                      <option value="bar">Percentage bar</option>
+                    </select>
+                  </label>
+                  <div className="nl-secondary-labels" role="group" aria-label="Second-scale labels">
+                    {secondaryTicks(d).map((v, i) =>
+                      labelled(d, ticks(d)[i]) ? (
+                        <label key={v}>
+                          {secondaryText(d, v)}{" "}
+                          <select
+                            aria-label={`Second-scale label ${secondaryText(d, v)}`}
+                            value={d.secondary!.labels[v] ?? "value"}
+                            disabled={blocked}
+                            onChange={(e) =>
+                              safe([{ op: "set_secondary_label", value: v, state: e.target.value as "value" | "hidden" | "answer-line" }])
+                            }
+                          >
+                            <option value="value">Show</option>
+                            <option value="answer-line">Answer line</option>
+                            <option value="hidden">Hide</option>
+                          </select>
+                        </label>
+                      ) : null,
+                    )}
+                  </div>
+                  <p className="nl-note">
+                    Labels print above the line, one per tick. An answer line is left for pupils and its value shows only on the
+                    teacher copy.
+                  </p>
+                  <button disabled={blocked} onClick={() => safe([{ op: "set_secondary", secondary: null }])}>
+                    Remove second scale
+                  </button>
+                </div>
+              ) : (
+                <div className="nl-settings-body">
+                  <p className="nl-note">
+                    Pair every tick with a second scale above the line, such as percentages or money, as a double number line
+                    or a percentage bar.
+                  </p>
+                  <button
+                    disabled={blocked || !!s}
+                    onClick={() =>
+                      safe([
+                        {
+                          op: "set_secondary",
+                          secondary: { minimum: "0", maximum: "100", unit: "%", unitPlace: "after", style: "bar", labels: {} },
+                        },
+                      ])
+                    }
+                  >
+                    Add a second scale
+                  </button>
+                  {s && <p className="nl-note">Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
+                </div>
+              )}
             </section>
             <section className="panel-card nl-compact-card">
               <details onToggle={keepDraftVisible}>

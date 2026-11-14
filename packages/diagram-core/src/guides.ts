@@ -134,12 +134,13 @@ const lineGuide: FamilyGuide = {
     maximumRevisionOperations: 30,
     solutionKinds: ["interval", "ray", "points"],
     labelStates: ["value", "hidden", "answer-line"],
+    secondScale: "Optional: a double number line (style line) or a percentage bar (style bar), with units and its own label states.",
     operations: line.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
+    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility. A second scale (double number line or percentage bar) is spec.secondary:{minimum,maximum,unit (at most 4 characters, such as \"%\" or \"£\"),unitPlace:before|after,style:line|bar,labels:{exactValue:value|hidden|answer-line}}: its values run evenly, one per main tick, printed above the line; style bar draws a closed bar from the first tick to the last, for percentages of an amount. It cannot be combined with a solution. Use answer-line labels for the values pupils find; never fill them in.",
   revise:
-    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins); set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
+    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins); set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}; set_secondary {secondary|null}; set_secondary_label {value,state:value|hidden|answer-line} by the exact second-scale value. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
 };
 
 const vennGuide: FamilyGuide = {

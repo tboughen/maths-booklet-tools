@@ -39,12 +39,19 @@ export const setSchema = z.discriminatedUnion("kind", [
 ]);
 export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction", "mixed"]).default("decimal"), variableBelow: z.boolean().default(false) }).strict();
 export const teachingSchema = z.object({ solutionVisible: z.boolean().default(true), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}), prompt: z.string().max(160).default(""), answer: z.string().max(160).default(""), answerVisible: z.boolean().default(false), responseLines: z.number().int().min(0).max(3).default(0) }).strict();
-export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14) }).strict();
+/**
+ * A second scale on the same ticks (U109): a double number line, or a percentage bar when style is
+ * "bar". Its values run evenly from minimum to maximum, exactly, one per tick of the main scale; its
+ * labels print above the line. Units print with each label, such as "£" before or "%" after.
+ */
+export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
+export type Secondary = z.infer<typeof secondarySchema>;
+export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), secondary: secondarySchema.optional() }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
-export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional() }).strict();
+export const specSchema = z.object({ axis: patchSchema(axisSchema).optional(), solution: setSchema.nullable().optional(), teaching: patchSchema(teachingSchema).optional(), widthCm: z.number().min(8).max(18).optional(), secondary: secondarySchema.optional() }).strict();
 export const FONT = 11 * 25.4 / 72;
 export const compare = (a: string, b: string) => { const x = parseNumber(a), y = parseNumber(b); const v = x.n * y.d - y.n * x.d; return v < 0n ? -1 : v > 0n ? 1 : 0; };
 export function add(a: string, b: string, sign = 1) { const x = parseNumber(a), y = parseNumber(b); return fractionString(rational(x.n * y.d + BigInt(sign) * y.n * x.d, x.d * y.d)); }
@@ -54,7 +61,30 @@ export function ticks(d: LineDocument) { const a = parseNumber(d.axis.minimum), 
     throw Error("Use 2–32 whole tick intervals with a positive step."); if ((a.n * s.d) % (a.d * s.n))
     throw Error("The first tick must align with the step from zero."); const n = Number(numerator / denominator); return Array.from({ length: n + 1 }, (_, i) => fractionString(rational(a.n * s.d + BigInt(i) * s.n * a.d, a.d * s.d))); }
 export function labelled(d: LineDocument, v: string) { const x = parseNumber(v), s = parseNumber(d.axis.step); return (x.n * s.d) % (x.d * s.n * BigInt(d.axis.labelEvery)) === 0n; }
-export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.teaching.prompt ? 22 : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const labelBottom = axisY + (fraction ? 10 : 7), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, left: 7, right: width - 12 }; }
+/** The second scale's value at each main tick, exact: minimum + i × (maximum − minimum) ÷ intervals. */
+export function secondaryTicks(d: LineDocument): string[] {
+    const s = d.secondary;
+    if (!s) return [];
+    const main = ticks(d), n = BigInt(main.length - 1), a = parseNumber(s.minimum), b = parseNumber(s.maximum);
+    return main.map((_, i) => fractionString(rational(a.n * b.d * n + BigInt(i) * (b.n * a.d - a.n * b.d), a.d * b.d * n)));
+}
+/** A second-scale label with its unit: "£12" or "25%". Values print as decimals where they terminate. */
+export function secondaryText(d: LineDocument, v: string) {
+    const s = d.secondary!;
+    let text = displayNumber({ ...d, axis: { ...d.axis, numberFormat: "decimal" } }, v);
+    // Money keeps pence: £1.6 prints as £1.60.
+    if (/^[£$€]$/.test(s.unit) && /^-?\d+\.\d$/.test(text)) text += "0";
+    return s.unitPlace === "before" ? (text.startsWith("-") ? `-${s.unit}${text.slice(1)}` : s.unit + text) : text + s.unit;
+}
+/** Room above the line for the second scale's labels (and the bar). */
+function secondaryRoom(d: LineDocument) {
+    if (!d.secondary) return 0;
+    const fraction = secondaryTicks(d).some(v => secondaryText(d, v).includes("/"));
+    return (d.secondary.style === "bar" ? BAR_HEIGHT : 0) + (fraction ? 10 : 7);
+}
+/** Height of a percentage bar (mm). */
+export const BAR_HEIGHT = 8;
+export function metrics(d: LineDocument) { const width = d.widthCm * 10, axisY = d.secondary ? (d.teaching.prompt ? 9 : 3) + secondaryRoom(d) + 3 : d.teaching.prompt ? 22 : 12; const fraction = ticks(d).some(v => labelled(d, v) && displayNumber(d, v).includes("/") && d.teaching.labels[labelKey(v)] !== "hidden"); const labelBottom = axisY + (fraction ? 10 : 7), answerY = labelBottom + 9; const height = labelBottom + 4 + (d.teaching.answerVisible && d.teaching.answer ? 8 : 0) + d.teaching.responseLines * 8; return { width, height, widthCm: d.widthCm, heightCm: height / 10, axisY, solutionY: axisY - 5, answerY, left: 7, right: width - 12, barTop: axisY - (d.secondary?.style === "bar" ? BAR_HEIGHT : 0) }; }
 export function position(d: LineDocument, v: string) { const m = metrics(d); return m.left + (valueOf(v) - valueOf(d.axis.minimum)) / (valueOf(d.axis.maximum) - valueOf(d.axis.minimum)) * (m.right - m.left); }
 export function validate(raw: unknown): Envelope {
     const e = envelopeSchema.parse(raw), d = e.document;
@@ -115,6 +145,26 @@ export function validate(raw: unknown): Envelope {
             throw Error("Tick labels overlap at this print width. Widen the line, label fewer ticks or use a coarser step.");
         previous = { x, w };
     }
+    if (d.secondary) {
+        const sec = d.secondary;
+        if (compare(sec.minimum, sec.maximum) === 0)
+            throw Error("The second scale needs different first and last values.");
+        if (d.solution)
+            throw Error("A second scale can't be combined with an inequality or points on the line. Remove one of them.");
+        const values = secondaryTicks(d);
+        for (const key of Object.keys(sec.labels))
+            if (labelKey(key) !== key || !values.includes(key))
+                throw Error("Second-scale label states use the exact values at the ticks.");
+        let before: { x: number; w: number } | undefined;
+        values.forEach((v, i) => {
+            const state = sec.labels[v] ?? "value";
+            if (!labelled(d, ticks(d)[i]) || state === "hidden") return;
+            const w = state === "answer-line" ? 5 : numberWidth(secondaryText(d, v)), x = position(d, ticks(d)[i]);
+            if (before && x - before.x < (before.w + w) / 2 + 1.3)
+                throw Error("Second-scale labels overlap at this print width. Widen the line, label fewer ticks or use a shorter unit.");
+            before = { x, w };
+        });
+    }
     const m = metrics(d);
     for (const text of [d.teaching.prompt, d.teaching.answerVisible ? d.teaching.answer : ""])
         if (textWidth(text, FONT) > m.width - 12)
@@ -145,6 +195,8 @@ export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("set_tick_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict(),
     z.object({ op: z.literal("set_presentation"), teaching: teachingPatch }).strict(),
     z.object({ op: z.literal("set_print"), widthCm: z.number().min(8).max(18) }).strict(),
+    z.object({ op: z.literal("set_secondary"), secondary: secondarySchema.nullable() }).strict().describe("Add, change or remove (null) the second scale above the line: a double number line, or a percentage bar with style bar."),
+    z.object({ op: z.literal("set_secondary_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict().describe("Show, hide or leave an answer line for one second-scale label, by its exact value."),
 ]);
 export type Operation = z.infer<typeof operationSchema>;
 export const revisionSchema = z.object({ envelope: envelopeSchema, baseHash: z.string().regex(/^[a-f0-9]{64}$/), operations: z.array(operationSchema).max(30) }).strict();
@@ -218,6 +270,14 @@ export function apply(e: Envelope, raw: unknown): Envelope {
             d.teaching = { ...d.teaching, ...o.teaching };
         if (o.op === "set_print")
             d.widthCm = o.widthCm;
+        if (o.op === "set_secondary") {
+            if (o.secondary) d.secondary = o.secondary;
+            else delete d.secondary;
+        }
+        if (o.op === "set_secondary_label") {
+            if (!d.secondary) throw Error("Add a second scale first.");
+            d.secondary.labels[labelKey(o.value)] = o.state;
+        }
     }
     return validate(next);
 }
@@ -267,6 +327,7 @@ export function revealedAnswers(e: Envelope) {
     const t = e.document.teaching;
     return {
         ticks: ticks(e.document).filter(v => labelled(e.document, v) && t.labels[labelKey(v)] === "answer-line").map(labelKey),
+        secondary: secondaryTicks(e.document).filter((v, i) => labelled(e.document, ticks(e.document)[i]) && e.document.secondary!.labels[v] === "answer-line"),
         solution: !t.solutionVisible && !!e.document.solution,
         answer: !t.answerVisible && !!t.answer.trim(),
     };
@@ -275,13 +336,15 @@ export function revealedAnswers(e: Envelope) {
 export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
     if (view === "pupil") return e;
     const n = structuredClone(validate(e)), t = n.document.teaching;
-    for (const key of revealedAnswers(e).ticks) t.labels[key] = "value";
+    const shown = revealedAnswers(e);
+    for (const key of shown.ticks) t.labels[key] = "value";
+    for (const key of shown.secondary) n.document.secondary!.labels[key] = "value";
     if (n.document.solution) t.solutionVisible = true;
     if (t.answer.trim()) t.answerVisible = true;
     return validate(n);
 }
 export function renderSvg(e: Envelope, showAnswers = false) {
-    const revealed = showAnswers ? revealedAnswers(validate(e)) : { ticks: [] as string[], solution: false, answer: false };
+    const revealed = showAnswers ? revealedAnswers(validate(e)) : { ticks: [] as string[], secondary: [] as string[], solution: false, answer: false };
     const d = validate(showAnswers ? forView(e, "answer") : e).document, m = metrics(d), r = 1.3;
     const ink = (svg: string, on: boolean) => on ? `<g fill="${NUMBER_LINE_ANSWER_COLOUR}" stroke="${NUMBER_LINE_ANSWER_COLOUR}">${svg.replaceAll("#111", NUMBER_LINE_ANSWER_COLOUR)}</g>` : svg;
     let art = "";
@@ -289,12 +352,14 @@ export function renderSvg(e: Envelope, showAnswers = false) {
     const arrow = (x: number, y: number, dir: number) => `<path d="M${x} ${y}l${-dir * 2.5} -1.1v2.2Z" fill="#111" stroke="none"/>`;
     if (d.teaching.prompt)
         art += `<text x="7" y="6">${esc(d.teaching.prompt)}</text>`;
-    art += `<path d="M${m.left - 3} ${m.axisY}H${m.right + 4}"/>${arrow(m.right + 4, m.axisY, 1)}`;
+    const bar = d.secondary?.style === "bar";
+    // A percentage bar is a closed rectangle from the first tick to the last; a line keeps its arrow.
+    art += bar ? `<rect data-bar="" x="${m.left}" y="${m.barTop}" width="${m.right - m.left}" height="${BAR_HEIGHT}" fill="none"/>` : `<path d="M${m.left - 3} ${m.axisY}H${m.right + 4}"/>${arrow(m.right + 4, m.axisY, 1)}`;
     if (d.axis.variable)
         art += `<text x="${m.right + 6}" y="${m.axisY + (d.axis.variableBelow ? 6 : 1.2)}" font-style="italic">${d.axis.variable}</text>`;
     for (const v of ticks(d)) {
         const x = position(d, v);
-        art += `<path d="M${x} ${m.axisY}v2"/>`;
+        art += bar ? `<path d="M${x} ${m.barTop}V${m.axisY + 2}"/>` : d.secondary ? `<path d="M${x} ${m.axisY - 2}V${m.axisY + 2}"/>` : `<path d="M${x} ${m.axisY}v2"/>`;
         if (!labelled(d, v))
             continue;
         const state = d.teaching.labels[labelKey(v)] ?? "value";
@@ -302,6 +367,15 @@ export function renderSvg(e: Envelope, showAnswers = false) {
             art += ink(numberSvg(displayNumber(d, v), x, m.axisY + 6), revealed.ticks.includes(labelKey(v)));
         if (state === "answer-line")
             art += `<path d="M${x - 2.5} ${m.axisY + 6}h5" stroke-dasharray=".4 .7"/>`;
+    }
+    if (d.secondary) {
+        const sec = d.secondary, y = m.barTop - (secondaryTicks(d).some(v => secondaryText(d, v).includes("/")) ? 4.2 : 3.2);
+        secondaryTicks(d).forEach((v, i) => {
+            if (!labelled(d, ticks(d)[i])) return;
+            const x = position(d, ticks(d)[i]), state = sec.labels[v] ?? "value";
+            if (state === "value") art += ink(numberSvg(secondaryText(d, v), x, y), revealed.secondary.includes(v));
+            if (state === "answer-line") art += `<path d="M${x - 2.5} ${y}h5" stroke-dasharray=".4 .7"/>`;
+        });
     }
     const s = d.solution, before = art;
     if (d.teaching.solutionVisible && s) {
