@@ -7,7 +7,7 @@ const cards = Object.entries(galleries).flatMap(([name, value]) =>
     ? (value as { id: string; title: string; description: string }[]).map((card) => ({ gallery: name, ...card }))
     : [],
 );
-const hyphenMinus = /(^|[\s(=,:])-\s?[\d.(a-zA-Z]|[\w²³)]\s-\s[\w(]/;
+const hyphenMinus = /(^|[\s(=,:])-\s?[\d.(a-zA-Z]|[\w²³)]\s-\s[\w(]|[\d²³)x]-[\d(x]/;
 
 describe("example gallery captions (U23)", () => {
   it("covers every gallery", () => {

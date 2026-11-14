@@ -140,7 +140,12 @@ export const ratioTeachingGallery = (
   make: () => ratioTeachingExample(kind),
   render: (resource: ReturnType<typeof ratioTeachingExample>) =>
     renderRatioSvg(resource.document),
-  worked: kind === "worked",
+  // The worked table already shows its step, so it has one button; the others have no worked copy.
+  worked: false,
+  workedReason:
+    kind === "worked"
+      ? "This table already shows its scaling step."
+      : undefined,
 }));
 export const quadraticGallery = [
   ...quadraticSources.map((example) => ({
@@ -230,7 +235,7 @@ export const algebraGallery = algebraNames.map(([name, title]) => ({
   render: algebraSvg,
 }));
 
-const barCards: Record<string, { title: string; purpose: string }> = {
+const barCards: Record<(typeof bar.exampleNames)[number], { title: string; purpose: string }> = {
   BM01: { title: "Known total 64, ratio 3 : 5", purpose: "Share a known total in a ratio by finding one unit first." },
   BM02: { title: "Known share 24, ratio 3 : 5", purpose: "Work back from one known share to the other share and the total." },
   BM03: { title: "Known difference 16", purpose: "Use the difference between two shares to find one unit." },
@@ -244,14 +249,14 @@ const barCards: Record<string, { title: string; purpose: string }> = {
   H18: { title: "Summer 2024 3H Q10: algebra shares", purpose: "x stands for a whole three-unit share." },
   "source-sharing": { title: "Mock set 7 1H Q1: £60 in 3 : 2 : 5", purpose: "Share £60 in the ratio 3 : 2 : 5, straight from the exam question." },
 };
-const barDetails: Record<string, string> = {
-  H07: "Adapted sharing stage only: fifteen units represent 150 empty jars, in ratio 3 : 4 : 8. Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This 2024 source is retained locally and is not in the published bank.",
-  H18: "Adapted bag A only: red x represents the entire three-unit share. The eight-unit bag is 8x/3. This 2024 source is retained locally and is not in the published bank.",
+const barDetails: Partial<Record<(typeof bar.exampleNames)[number], string>> = {
+  H07: "Use BM05 for the preceding fraction stage. The final percentage uses a ratio table. This 2024 source is retained locally and is not in the published bank.",
+  H18: "Adapted from bag A only. The eight-unit bag is 8x/3. This 2024 source is retained locally and is not in the published bank.",
 };
 export const barGallery: GalleryExample<bar.Envelope>[] = bar.exampleNames.map((id) => ({
   id: "bar-" + id,
-  title: id + " " + barCards[id].title,
-  description: `${barCards[id].purpose} ${barDetails[id] ?? "Saved answers stay hidden until you choose the worked version."}`,
+  title: (id === "source-sharing" ? "" : id + " ") + barCards[id].title,
+  description: `${barCards[id].purpose} ${barDetails[id] ?? (["BM06", "BM08", "BM09"].includes(id) ? "Saved answers stay hidden on the pupil resource." : "Saved answers stay hidden until you choose the worked version.")}`,
   sourceHref: id === "source-sharing" ? source("1MA1_MOCK_SET_07_1H_Q1") : undefined,
   make: (worked) => bar.example(id, worked),
   render: bar.renderSvg,
