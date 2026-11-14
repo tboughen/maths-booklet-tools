@@ -359,7 +359,7 @@ export default function BarModelPage({
       },
     });
   }
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const actions = diagramFileMenu({
                 about: titleNote.item,
     svg: {

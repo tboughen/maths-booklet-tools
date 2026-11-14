@@ -474,7 +474,7 @@ export default function RatioTablePage({
     selection?.kind === "cell" || selection?.kind === "heading"
       ? selection.column
       : document.headings.length - 1;
-  const titleNote = useTitleNote({ about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main

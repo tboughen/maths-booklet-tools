@@ -20,3 +20,11 @@ export function graphDocument(envelope: GraphEnvelope): GraphDocument {
   if (about.title !== undefined || about.note !== undefined) document.about = about;
   return document;
 }
+
+/** `document` with its title and note replaced (blank means none). */
+export function withGraphAbout(document: GraphDocument, about: About): GraphDocument {
+  const { about: _old, ...drawing } = document;
+  void _old;
+  const next = aboutOf(about);
+  return next.title !== undefined || next.note !== undefined ? { ...drawing, about: next } : drawing;
+}

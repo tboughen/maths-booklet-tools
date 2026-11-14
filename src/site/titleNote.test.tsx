@@ -48,4 +48,29 @@ describe("title and note (U34)", () => {
     expect(onSave).toHaveBeenCalledWith({ title: "A", note: "Homework" });
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  it("keeps what was typed and says why when the page refuses the change", () => {
+    function Harness() {
+      const t = useTitleNote({ about: {}, onSave: () => { throw new Error("Download recovery data first."); } });
+      return (
+        <>
+          <button onClick={() => void t.item.action()}>open</button>
+          {t.dialog}
+        </>
+      );
+    }
+    render(<Harness />);
+    fireEvent.click(screen.getByText("open"));
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Kept" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save title and note" }));
+    expect(screen.getByRole("alert").textContent).toBe("Download recovery data first.");
+    expect((screen.getByRole("textbox", { name: "Title" }) as HTMLInputElement).value).toBe("Kept");
+  });
+
+  it("graph downloads use a title carried on the document", async () => {
+    const { downloadName } = await import("../export/filenames");
+    expect(downloadName("graph", "svg", { resource: { document: { about: { title: "Linear graphs" } } }, date: new Date(2026, 10, 14) })).toBe(
+      "mathsdock-graph-linear-graphs-2026-11-14.svg",
+    );
+  });
 });

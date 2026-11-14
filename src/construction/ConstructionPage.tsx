@@ -496,7 +496,7 @@ export default function ConstructionPage({ active = true }: { active?: boolean }
     ...segments.map((s) => <option key={s.id} value={s.id}>Line {s.from}{s.to}</option>),
   ];
 
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor cn-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>

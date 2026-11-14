@@ -1264,7 +1264,7 @@ export default function ValueGraphPage({
     selection &&
     ["equation", "axis", "bound", "cell", "point"].includes(selection.kind);
 
-  const titleNote = useTitleNote({ about: aboutOf(envelope), disabled: blocked, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: blocked, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vg-editor">
       <main

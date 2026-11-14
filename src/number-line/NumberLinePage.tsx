@@ -735,7 +735,7 @@ export default function NumberLinePage({
       ]);
     setSelection(null);
   }
-  const titleNote = useTitleNote({ about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor nl-editor">
       <main

@@ -461,7 +461,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main

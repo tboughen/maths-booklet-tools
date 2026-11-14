@@ -320,7 +320,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   }
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <FieldErrors.Provider value={fieldErrorContext}>
     <div className="app-shell booklet-editor pt-editor twt-editor">

@@ -32,6 +32,8 @@ for (const tool of toolIds) {
     await dialog.getByRole("textbox", { name: "Note" }).fill(NOTE);
     await dialog.getByRole("button", { name: "Save title and note" }).click();
     await expect(dialog).toHaveCount(0);
+    // Focus goes back to the File button.
+    await expect(page.getByRole("button", { name: "File", exact: true }).filter({ visible: true })).toBeFocused();
     await expect(bar.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", "Undo change title and note (Ctrl+Z)");
 
     const saved = await download(page, /^Save editable file/);

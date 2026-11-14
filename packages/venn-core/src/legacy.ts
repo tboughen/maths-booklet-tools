@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { aboutShape } from "../../envelope-core/src/about";
 import { MIN_TEXT_PT, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
@@ -41,6 +42,7 @@ const schema = z
         lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof schema>;

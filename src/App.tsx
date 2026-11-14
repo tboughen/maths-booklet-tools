@@ -3,7 +3,7 @@ import { graphGallery } from "./examples/galleryCatalogue";
 import { PreviewControls } from "./site/PreviewControls";
 import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
-import { graphEnvelope, type GraphDocument } from "./domain/graphAbout";
+import { graphEnvelope, withGraphAbout, type GraphDocument } from "./domain/graphAbout";
 import { useTitleNote } from "./site/TitleNote";
 import { TITLE_NOTE_STEP } from "./site/titleNoteData";
 import { useGraphDrafts } from "./components/useGraphDrafts";
@@ -480,13 +480,10 @@ export default function App({ active = true }: { active?: boolean }) {
 
   // U34: the title and note ride on the document as `about` and are saved at the envelope's top level.
   const titleNote = useTitleNote({
+    active,
     about: document.about ?? {},
-    disabled: !active || blocked,
-    onSave: (about) => {
-      const { about: _old, ...drawing } = document;
-      void _old;
-      commit(about.title || about.note ? { ...drawing, about } : drawing, TITLE_NOTE_STEP);
-    },
+    disabled: blocked,
+    onSave: (about) => commit(withGraphAbout(document, about), TITLE_NOTE_STEP),
   });
   return (
     <div className="app-shell booklet-editor graph-editor">

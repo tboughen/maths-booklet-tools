@@ -332,7 +332,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>

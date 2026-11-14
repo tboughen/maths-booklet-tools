@@ -476,7 +476,7 @@ export default function AlgebraGridPage({
     );
   }
   const dimensionBlocked = !!draft || (blocked && field?.key !== "expression");
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: pendingInput, onSave: (about) => commit(withAbout(e, about), false, TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), false, TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor ag-editor">
       <main

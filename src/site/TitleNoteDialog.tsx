@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { NOTE_MAX, TITLE_MAX, type About } from "../../packages/envelope-core/src/about";
 
 /** The "Title and note" dialog (U34); `useTitleNote` opens it. */
-export function TitleNoteDialog(props: { about: About; disabled?: boolean; onCancel: () => void; onSave: (next: About) => void }) {
+export function TitleNoteDialog(props: { about: About; disabled?: boolean; error?: string; onCancel: () => void; onSave: (next: About) => void }) {
   const [title, setTitle] = useState(props.about.title ?? "");
   const [note, setNote] = useState(props.about.note ?? "");
   const box = useRef<HTMLElement>(null);
@@ -35,7 +35,12 @@ export function TitleNoteDialog(props: { about: About; disabled?: boolean; onCan
     return () => {
       window.clearTimeout(start);
       window.removeEventListener("keydown", keys);
-      if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
+      // Back to where the teacher was: the File menu item has gone with the menu, so its File button.
+      const target =
+        previous instanceof HTMLElement && previous.isConnected
+          ? previous
+          : Array.from(document.querySelectorAll<HTMLElement>("button.file-menu-button")).find((b) => b.offsetParent !== null);
+      target?.focus();
     };
   }, []);
   return (
@@ -65,6 +70,11 @@ export function TitleNoteDialog(props: { about: About; disabled?: boolean; onCan
               {note.length} of {NOTE_MAX} characters
             </small>
           </div>
+          {props.error && (
+            <p className="title-note-error" role="alert">
+              {props.error}
+            </p>
+          )}
           <div className="graph-import-actions">
             <button type="button" onClick={props.onCancel}>
               Cancel

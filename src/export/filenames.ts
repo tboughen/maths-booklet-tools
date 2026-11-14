@@ -26,7 +26,9 @@ export const fileDate = (date = new Date()) =>
 export function contentHint(resource: unknown): string {
   const envelope = resource as { title?: unknown; document?: Record<string, unknown> } | null;
   const doc = envelope?.document;
-  const pick = [envelope?.title, doc?.title, doc?.sourceId].find((value) => typeof value === "string" && value.trim());
+  // The graph editor carries its title on the document as `about` (src/domain/graphAbout.ts).
+  const about = doc?.about as { title?: unknown } | undefined;
+  const pick = [envelope?.title, about?.title, doc?.title, doc?.sourceId].find((value) => typeof value === "string" && value.trim());
   return typeof pick === "string" ? slug(pick) : "";
 }
 

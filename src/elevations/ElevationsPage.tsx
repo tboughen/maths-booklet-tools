@@ -285,7 +285,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     }, "change view");
   }
 
-  const titleNote = useTitleNote({ about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor ev-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>

@@ -181,11 +181,12 @@ export function GraphExchange({
             action: () => {
               if (!available.current)
                 throw Error("Apply or cancel unfinished input first.");
+              const envelope = graphEnvelope(document);
               downloadBlob(
-                new Blob([JSON.stringify(graphEnvelope(document), null, 2)], {
+                new Blob([JSON.stringify(envelope, null, 2)], {
                   type: "application/json",
                 }),
-                downloadName("graph", "json", { resource: graphEnvelope(document) }),
+                downloadName("graph", "json", { resource: envelope }),
               );
             },
             success: "Editable file download started.",
