@@ -750,66 +750,6 @@ export default function RatioTablePage({
               onWorked={(resource) => commit(resource, "use worked version")}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
-              <section className="panel-card specialist-tools">
-                <h2>Table tools</h2>
-                <div
-                  className="tool-group"
-                  role="group"
-                  aria-label="Ratio editing tools"
-                >
-                  <button
-                    className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
-                    aria-pressed={tool === "edit"}
-                    disabled={structureDisabled}
-                    onClick={() => {
-                      setTool("edit");
-                      setArrowFrom(null);
-                      setSelection(null);
-                      setSelectionActive(false);
-                      setMessage("");
-                    }}
-                  >
-                    <MousePointer2 size={18} />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
-                    aria-pressed={tool === "arrow"}
-                    data-ratio-select
-                    disabled={structureDisabled || document.rows.length < 2}
-                    onClick={() => {
-                      setTool("arrow");
-                      setArrowFrom(null);
-                      showSelection({
-                        kind: "step",
-                        from: document.rows[0].id,
-                      });
-                      setMessage("");
-                    }}
-                  >
-                    <ArrowDown size={18} />
-                    <span>Add arrow</span>
-                  </button>
-                  <button
-                    className="tool-button"
-                    disabled={structureDisabled}
-                    data-ratio-select
-                    onClick={() => {
-                      setTool("edit");
-                      setArrowFrom(null);
-                      showSelection({ kind: "headings" });
-                    }}
-                  >
-                    <Type size={18} />
-                    <span>Edit headings</span>
-                  </button>
-                </div>
-
-                <p className="panel-note">
-                  Edit values on the table. Add and remove rows or columns
-                  beside its edges.
-                </p>
-              </section>
               <RatioInspector
                 document={document}
                 selection={selection}
@@ -823,6 +763,68 @@ export default function RatioTablePage({
                 onOperations={operations}
                 onAction={(ops) => attempt(() => operations(ops))}
                 onFill={fill}
+                tools={
+                  <section className="panel-card specialist-tools">
+                    <h2>Table tools</h2>
+                    <div
+                      className="tool-group"
+                      role="group"
+                      aria-label="Ratio editing tools"
+                    >
+                      <button
+                        className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
+                        aria-pressed={tool === "edit"}
+                        disabled={structureDisabled}
+                        onClick={() => {
+                          setTool("edit");
+                          setArrowFrom(null);
+                          setSelection(null);
+                          setSelectionActive(false);
+                          setMessage("");
+                        }}
+                      >
+                        <MousePointer2 size={18} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
+                        aria-pressed={tool === "arrow"}
+                        data-ratio-select
+                        disabled={structureDisabled || document.rows.length < 2}
+                        onClick={() => {
+                          setTool("arrow");
+                          setArrowFrom(null);
+                          showSelection({
+                            kind: "step",
+                            from: document.rows[0].id,
+                          });
+                          setMessage("");
+                        }}
+                      >
+                        <ArrowDown size={18} />
+                        <span>Add arrow</span>
+                      </button>
+                      <button
+                        className="tool-button"
+                        disabled={structureDisabled}
+                        data-ratio-select
+                        onClick={() => {
+                          setTool("edit");
+                          setArrowFrom(null);
+                          showSelection({ kind: "headings" });
+                        }}
+                      >
+                        <Type size={18} />
+                        <span>Edit headings</span>
+                      </button>
+                    </div>
+
+                    <p className="panel-note">
+                      Edit values on the table. Add and remove rows or columns
+                      beside its edges.
+                    </p>
+                  </section>
+                }
               />
             </fieldset>
             {warnings.length > 0 && (

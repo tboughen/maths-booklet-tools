@@ -1132,84 +1132,6 @@ export default function NumberLinePage({
               }
               onWorked={(resource) => commit(resource, "use worked version")}
             />
-            <section className="panel-card">
-              <h2>Draw</h2>
-              <div className="nl-actions nl-draw-actions">
-                <button
-                  aria-pressed={mode === "point"}
-                  disabled={blocked}
-                  onClick={() => {
-                    setMode(mode === "point" ? "select" : "point");
-                    setFirst(null);
-                    setSelection(null);
-                  }}
-                >
-                  Point
-                </button>
-                <button
-                  aria-pressed={mode === "interval"}
-                  disabled={blocked}
-                  onClick={() => {
-                    setMode(mode === "interval" ? "select" : "interval");
-                    setFirst(null);
-                    setSelection(null);
-                  }}
-                >
-                  Interval
-                </button>
-                <button
-                  aria-pressed={mode === "left" || mode === "right"}
-                  disabled={blocked}
-                  onClick={() => {
-                    setMode(
-                      mode === "left" || mode === "right"
-                        ? "select"
-                        : rayDirection,
-                    );
-                    setFirst(null);
-                    setSelection(null);
-                  }}
-                >
-                  Ray
-                </button>
-              </div>
-              {(mode === "left" || mode === "right") && (
-                <label>
-                  Direction{" "}
-                  <select
-                    aria-label="New ray direction"
-                    value={rayDirection}
-                    disabled={blocked}
-                    onChange={(e) => {
-                      const direction = e.target.value as "left" | "right";
-                      setRayDirection(direction);
-                      setMode(direction);
-                    }}
-                  >
-                    <option value="left">← Left</option>
-                    <option value="right">Right →</option>
-                  </select>
-                </label>
-              )}
-              <NotationPanel
-                envelope={history.present}
-                active={active}
-                disabled={
-                  busy ||
-                  !!recovery ||
-                  [...dirty].some((key) => key !== "Inequality or value")
-                }
-                onPending={(value) =>
-                  inputPending("Inequality or value", value)
-                }
-                onApply={(next) => {
-                  commit(next);
-                  setSelection(null);
-                  setMode("select");
-                  setFirst(null);
-                }}
-              />
-            </section>
             {selection && (
               <section
                 className="panel-card nl-context"
@@ -1389,6 +1311,84 @@ export default function NumberLinePage({
                 )}
               </section>
             )}
+            <section className="panel-card">
+              <h2>Draw</h2>
+              <div className="nl-actions nl-draw-actions">
+                <button
+                  aria-pressed={mode === "point"}
+                  disabled={blocked}
+                  onClick={() => {
+                    setMode(mode === "point" ? "select" : "point");
+                    setFirst(null);
+                    setSelection(null);
+                  }}
+                >
+                  Point
+                </button>
+                <button
+                  aria-pressed={mode === "interval"}
+                  disabled={blocked}
+                  onClick={() => {
+                    setMode(mode === "interval" ? "select" : "interval");
+                    setFirst(null);
+                    setSelection(null);
+                  }}
+                >
+                  Interval
+                </button>
+                <button
+                  aria-pressed={mode === "left" || mode === "right"}
+                  disabled={blocked}
+                  onClick={() => {
+                    setMode(
+                      mode === "left" || mode === "right"
+                        ? "select"
+                        : rayDirection,
+                    );
+                    setFirst(null);
+                    setSelection(null);
+                  }}
+                >
+                  Ray
+                </button>
+              </div>
+              {(mode === "left" || mode === "right") && (
+                <label>
+                  Direction{" "}
+                  <select
+                    aria-label="New ray direction"
+                    value={rayDirection}
+                    disabled={blocked}
+                    onChange={(e) => {
+                      const direction = e.target.value as "left" | "right";
+                      setRayDirection(direction);
+                      setMode(direction);
+                    }}
+                  >
+                    <option value="left">← Left</option>
+                    <option value="right">Right →</option>
+                  </select>
+                </label>
+              )}
+              <NotationPanel
+                envelope={history.present}
+                active={active}
+                disabled={
+                  busy ||
+                  !!recovery ||
+                  [...dirty].some((key) => key !== "Inequality or value")
+                }
+                onPending={(value) =>
+                  inputPending("Inequality or value", value)
+                }
+                onApply={(next) => {
+                  commit(next);
+                  setSelection(null);
+                  setMode("select");
+                  setFirst(null);
+                }}
+              />
+            </section>
             <section className="panel-card">
               <h2>Scale</h2>
               <div className="nl-scale-fields">
