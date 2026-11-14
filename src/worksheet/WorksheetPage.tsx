@@ -59,22 +59,24 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const shown = useMemo(() => renderResource(r, { view: answers ? "answers" : "pupil" }), [r, answers]);
   const issues = shown.issues;
 
-  function commit(next: Resource) {
-    if (recovery !== null) return;
+  function commit(next: Resource): boolean {
+    if (recovery !== null) return false;
     try {
       const valid = validate(next);
       documentHistory.commit(valid);
       setMessage("");
+      return true;
     } catch (e) {
       // Invalid drafts are refused with the specific reason; the last valid sheet stays.
       setMessage(e instanceof Error ? e.message : String(e));
+      return false;
     }
   }
   function patch(update: (d: Resource["document"]) => void) {
-    if (blocked) return;
+    if (blocked) return false;
     const next = structuredClone(r);
     update(next.document);
-    commit(next);
+    return commit(next);
   }
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();

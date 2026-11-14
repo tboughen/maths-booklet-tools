@@ -277,6 +277,27 @@ describe("stacked fractions in the SVG pages", () => {
     expect(renderResource(doc).issues.some((i) => /brace is not part of a fraction/.test(i.message))).toBe(true);
   });
 
+  it("reports a brace with no fraction anywhere in the text (W12)", () => {
+    const doc = structuredClone(wordSample);
+    doc.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "Simplify {oops" });
+    expect(renderResource(doc).issues.some((i) => /brace is not part of a fraction/.test(i.message))).toBe(true);
+    const sets = structuredClone(wordSample);
+    sets.document.sides[0].columns[0].cards[0].items.unshift({ type: "text", text: "ξ = {1, 2, 3, 4}" });
+    expect(renderResource(sets).issues.some((i) => /brace is not part of a fraction/.test(i.message))).toBe(false);
+  });
+
+  it("keeps a diagram that cannot be drawn on the page, with its specific problem (W12)", () => {
+    const doc = structuredClone(wordSample);
+    const items = doc.document.sides[0].columns[0].cards[0].items;
+    items.unshift({ type: "diagram", diagram: { tool: "venn", envelope: { tool: "venn", schemaVersion: 1, document: { sets: 9 } } } } as never);
+    const rendered = renderResource(doc);
+    const issue = rendered.issues.find((i) => /^A diagram could not be drawn: /.test(i.message));
+    expect(issue).toBeTruthy();
+    const page = rendered.pages.join("");
+    expect(page).toContain('data-broken-diagram="true"');
+    expect(page).toMatch(/data-broken-diagram="true"><rect[^>]*stroke-dasharray[^>]*\/><g transform="translate\(0 3\)"><text/);
+  });
+
   it("reports a saved answer longer than its answer line", () => {
     const doc = structuredClone(treeDiagrams);
     doc.document.sides[1].columns[2].cards[1].items[2] = {

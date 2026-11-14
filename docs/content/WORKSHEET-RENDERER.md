@@ -143,6 +143,14 @@ artwork), every font the paper writes with embedded or one of the standard 14, a
 question heading present in the text layer, in order. A failure stops the export with the
 problem named; no incomplete paper is produced.
 
+Invalid drafts stay visible (improvement item W12). In the worksheet and booklet editors a text
+field whose change the page refuses keeps what was typed, marked invalid, beside the page's
+specific message; Escape restores the saved text. A diagram block that cannot be drawn stays on
+the page as a dashed box holding its problem, at least 24 mm tall, and its issue blocks every
+export. With maths notation on, fraction markup that did not parse (an unmatched brace, or braces
+round a slash that is not a fraction) is reported even in text without a stacked fraction; set
+notation such as {1, 2, 3} stays allowed there.
+
 ## MCP tools
 
 `worksheet_capabilities` lists the layout, item types and limits. `create_worksheet` takes a whole
