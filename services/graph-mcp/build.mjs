@@ -46,6 +46,7 @@ for (const directory of [
   "packages/frequency-tree-core",
   "packages/construction-core",
   "packages/elevation-core",
+  "packages/two-way-table-core",
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",

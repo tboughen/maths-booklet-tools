@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
@@ -128,6 +129,7 @@ export const envelopeSchema = z
     rendererVersion: z.enum(["triangle-1", "triangle-2"]),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;

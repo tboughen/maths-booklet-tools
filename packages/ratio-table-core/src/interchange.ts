@@ -1,3 +1,4 @@
+import { aboutOf, type About } from "../../envelope-core/src/about";
 import { z } from "zod";
 import {
   DEFAULT_HEADINGS,
@@ -40,7 +41,8 @@ function bounded(value: unknown, maximum: number, name: string) {
   if (bytes > maximum)
     throw new RatioError("size_limit", `${name} is too large.`);
 }
-export function ratioEnvelope(input: unknown): RatioEnvelope {
+/** The envelope for a document; a saved title and note (U34) ride along unchanged. */
+export function ratioEnvelope(input: unknown, about: About = {}): RatioEnvelope {
   const document = normalizeDocument(input);
   ratioMetrics(document);
   const legacy = document.headings.length === 2 && document.rows.length >= 2;
@@ -52,6 +54,7 @@ export function ratioEnvelope(input: unknown): RatioEnvelope {
       : RATIO_THREE_COLUMN_RENDERER_VERSION,
     styleProfile: RATIO_STYLE_PROFILE,
     document,
+    ...about,
   };
   bounded(envelope, RATIO_MAX_ENVELOPE_BYTES, "The ratio table");
   return envelope;
@@ -85,7 +88,7 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
       "invalid_ratio_table",
       "The saved format must match the row and column counts.",
     );
-  return ratioEnvelope(envelope.document);
+  return ratioEnvelope(envelope.document, aboutOf(envelope));
 }
 type RatioSpec = z.infer<typeof ratioSpecSchema>;
 type SpecRow = NonNullable<RatioSpec["rows"]>[number];
@@ -420,7 +423,7 @@ export function applyRatioOperations(
     // Enforce every operation's invariants, so temporary dangling references cannot hide in a batch.
     document = ratioEnvelope(document).document;
   }
-  return ratioEnvelope(document);
+  return ratioEnvelope(document, aboutOf(input));
 }
 function stable(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stable);
@@ -444,7 +447,7 @@ export async function reviseRatioTable(input: unknown): Promise<RatioEnvelope> {
     envelope = validateRatioEnvelope(revision.envelope);
   if ((await ratioHash(envelope)) !== revision.baseHash)
     throw new RatioError(
-      "stale_document",
+      "stale_hash",
       "Use the contentHash from the exact ratio table being revised.",
     );
   return applyRatioOperations(envelope, revision.operations);

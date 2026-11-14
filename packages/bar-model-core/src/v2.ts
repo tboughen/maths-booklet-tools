@@ -1,3 +1,4 @@
+import { aboutOf, aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import * as legacy from "./index";
@@ -84,6 +85,7 @@ export const schema = z
         sourceId: z.string().max(100).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof schema>;
@@ -224,6 +226,7 @@ export function upgrade(e: legacy.Envelope): Envelope {
   const old = legacy.validate(e),
     d = old.document;
   return validate({
+    ...aboutOf(e),
     kind: "bar-model",
     schemaVersion: 2,
     rendererVersion: "bar-model-2",

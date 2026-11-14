@@ -553,7 +553,7 @@ test("largest structure stays editable on a narrow screen", async ({
 }) => {
   const e = create(3);
   e.document.widthCm = 16;
-  e.document.fontPt = 9;
+  e.document.fontPt = 10;
   for (let mask = 0; mask < 8; mask++)
     e.document.regions[mask] = {
       kind: "members",

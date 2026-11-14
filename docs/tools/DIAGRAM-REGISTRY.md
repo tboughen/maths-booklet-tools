@@ -49,8 +49,7 @@ Every connector failure, from any tool and from the SDK's own input checks, has 
 ```
 
 - `fields` and `hint` are optional; `message` always repeats the field problems in words.
-- `retry` is `fix_input`, `refresh_envelope` (a stale `baseHash`: code `stale_hash` in every
-  family; the older `stale_document` and `base_hash_mismatch` spellings are read as it),
+- `retry` is `fix_input`, `refresh_envelope` (a stale `baseHash`: every family's core throws code `stale_hash`),
   `try_later` (quota, busy, stopped or timed-out renderer) or `none`.
 - Cores throw `MathsDockError(code, message, { fields, hint })` (GraphError and RatioError extend
   it). A plain `Error` keeps its message under the tool's default code; a message starting with
@@ -126,6 +125,17 @@ graph's own download) and every connector SVG download passes through `tidySvgRo
 four decimal places of their own unit, so `5.515280000000001cm` becomes `5.5153cm`. The print size
 changes by at most 0.5 µm in cm (1.3 µm in inches); a value too small to keep at four places is
 left alone, and nothing below the root element changes.
+
+## Title and note (U34, 14 November 2026)
+
+Every family's envelope may carry `title` (up to 80 characters) and `note` (up to 600) at its top
+level, after `document` (`packages/envelope-core/src/about.ts`). They are the teacher's name for
+the diagram and a free note, saved in the editable file and its link. Neither is ever printed: the
+artwork, previews and print files are identical with or without them. They take part in the
+contentHash, so a revision quotes the hash of the titled file. Create from an envelope and every
+revision keep them unchanged; a file without them keeps its exact canonical text and hash
+(`packages/diagram-core/src/about.test.ts`). A new family spreads `aboutShape` into its envelope
+schema and carries `aboutOf(envelope)` onto any envelope it rebuilds.
 
 ## Adding a family
 

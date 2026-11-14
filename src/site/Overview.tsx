@@ -17,9 +17,10 @@ const searchTerms: Record<string, string> = {
   venn: "sets probability shading intersection union",
   "probability-tree":
     "probability tree diagram branches replacement independent dependent conditional given that",
-  "frequency-tree": "frequency tree probability counts groups two-way statistics",
+  "frequency-tree": "frequency tree probability counts groups statistics",
   construction: "constructions loci locus perpendicular bisector angle bisector compasses ruler scale drawing map bearings north GM8",
   elevations: "plans elevations plan front side isometric cubes 3D solids views GM8",
+  "two-way-table": "two-way two way table totals frequency probability statistics fractions",
   "expanding-factorising":
     "algebra brackets multiplication factorise factorize",
 };
