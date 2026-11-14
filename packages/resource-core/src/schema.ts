@@ -5,7 +5,8 @@ import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from ".
  * A two-sided A3 worksheet, as Tim's finalised question sets describe it: each side has three
  * strand columns, each column holds titled question cards, and each card holds items.
  *
- * Text is plain Unicode with two marks only: **bold** and *italic*. Nothing is evaluated.
+ * Text is plain Unicode with two marks only: **bold** and *italic*. Nothing is evaluated. The
+ * signs < and > are ordinary text (inequalities need them); every renderer escapes them.
  * Answer states stay distinct: a table cell is supplied (printed), blank (an empty box for the
  * pupil) or hidden (an empty box whose saved answer prints only in the answers view).
  */
@@ -13,7 +14,7 @@ export const text = (max: number) =>
   z
     .string()
     .max(max)
-    .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"), "Use ordinary text without markup.");
+    .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32), "Use ordinary text without control characters.");
 
 export const cellSchema = z
   .object({

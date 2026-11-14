@@ -10,7 +10,7 @@ export const treeConfig = {
     schemaVersions: [1],
     rendererVersions: ["probability-tree-1"],
     maximumStages: tree.MAX_DEPTH,
-    branchesPerPoint: { minimum: 2, maximum: tree.MAX_CHILDREN },
+    branchesPerPoint: { minimum: 1, firstStageMinimum: 2, maximum: tree.MAX_CHILDREN },
     maximumBranches: tree.MAX_BRANCHES,
     maximumPaths: tree.MAX_LEAVES,
     maximumQuestions: tree.MAX_QUESTIONS,

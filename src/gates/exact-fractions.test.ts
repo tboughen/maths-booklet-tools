@@ -27,7 +27,9 @@ describe("exact fractions stay exact", () => {
     for (const copy of [numberLine.decode(numberLine.encode(e)), numberLine.parseFile(JSON.stringify(e))]) expect(copy).toEqual(e);
     const svg = numberLine.renderSvg(e);
     expect(drawn(svg).filter(t => roundedDecimal.test(t) || t.includes("/"))).toEqual([]);
-    for (const f of [["−2", "3"], ["−1", "3"], ["1", "3"], ["2", "3"]] as [string, string][]) expect(stacked(svg, f), f.join("/")).toBe(true);
+    // A negative fraction prints its minus sign before the bar (−⅔), so its numerator is unsigned.
+    for (const f of [["1", "3"], ["2", "3"]] as [string, string][]) expect(stacked(svg, f), f.join("/")).toBe(true);
+    expect(drawn(svg).filter(t => t === "−")).toHaveLength(2);
   });
 
   it("ratio table: fraction cells", () => {

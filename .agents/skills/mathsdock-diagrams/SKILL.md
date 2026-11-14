@@ -165,6 +165,13 @@ column headings cannot stack; keep fractions out of them. An exact fractional va
 decimal. A note naming a question means a
 fraction there will not print stacked: fix it and call `create_worksheet` again.
 
+Worksheet text is plain Unicode: `<`, `>`, `≤`, `≥`, `○`, `●`, `ξ` and `∅` all print. The worksheet font has
+no `∩`, `∪`, `∈` or `⊂`; an issue naming the question and the character comes back if one is
+used, so write set notation in words or put it in a Venn diagram, whose own font has them. A
+diagram wider than its card comes back as an issue naming the setting to change (a number line,
+Venn diagram or triangle's `widthCm`, a tree's `branchMm`); on a three-column side a card holds
+130 mm, so give a number line `widthCm` 13 or less and a two-level frequency tree `branchMm` 30.
+
 For a unit booklet (A4 portrait, one lesson per objective), call `create_booklet` once with the
 whole booklet; `worksheet_capabilities` lists its layout and section kinds. A booklet is used
 with the teaching (a worksheet follows it), so give every lesson: a one-sentence key idea; a

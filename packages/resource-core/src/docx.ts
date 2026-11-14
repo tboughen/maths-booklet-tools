@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, type Ctx, type Issue, type View } from "./render";
+import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { answerHasFraction, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -78,8 +78,14 @@ const ANSWER_WRITE_MM = S.answerRow - 2.6 + 0.8 - 0.2;
 const ANSWER_BELOW_MM = S.answerRow - ANSWER_WRITE_MM - 0.08;
 /** The writing row of an answer row holding a stacked fraction (maths notation): one exact line fills it. */
 const FRAC_WRITE_MM = ANSWER_WRITE_MM + FRAC_ANSWER_EXTRA;
-/** Space under a stacked fraction on an answer line, so its denominator clears the line. */
-const FRAC_WORD_LIFT = 0.8;
+/**
+ * Space under a stacked fraction on an answer line, so its denominator clears the line. 0.8 (set in
+ * LibreOffice) left real Word's denominator 0.4 mm above the line; 1.4 gives 0.55 mm, with the
+ * whole number within 0.2 mm of the PDF's (real Word 16, 14 November 2026).
+ */
+const FRAC_WORD_LIFT = 1.4;
+/** The thin space either side of a Word fraction, as a share of the text size (see fraction()). */
+const WORD_FRACTION_PAD = 0.55;
 
 const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
 const emu = (mm: number) => Math.round(mm * 36000);
@@ -135,7 +141,12 @@ function fraction(f: { num: string; den: string }, o: RunStyle): string {
         return `<m:r><m:rPr><m:nor/></m:rPr>${r}<m:t xml:space="preserve">${x(c)}</m:t></m:r>`;
       })
       .join("");
-  return `<m:oMath><m:f><m:num>${part(f.num)}</m:num><m:den>${part(f.den)}</m:den></m:f></m:oMath>`;
+  // Word set fractions tight against their neighbours ("2½." touched), while the pages pad a
+  // fraction 0.8 mm each side. A thin space at 0.55 of the text size either side, plus Word's own
+  // equation spacing, puts every character within 0.2 mm of the PDF's position (real Word 16,
+  // three rounds, 14 November 2026; docs/content/WORD-OUTPUT.md).
+  const pad = `<m:r><m:rPr><m:nor/></m:rPr>${rPr({ color: o.color, sizeMm: (o.sizeMm ?? S.body) * WORD_FRACTION_PAD })}<m:t xml:space="preserve">\u2009</m:t></m:r>`;
+  return `<m:oMath>${pad}<m:f><m:num>${part(f.num)}</m:num><m:den>${part(f.den)}</m:den></m:f>${pad}</m:oMath>`;
 }
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
 const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false) =>
@@ -264,7 +275,7 @@ function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): string {
     return gap(END_MM, indent);
   }
   const room = w + 2 * (S.cardPad - 0.6);
-  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: `A diagram is ${drawn.widthMm} mm wide; the card has ${room} mm. Diagrams are never shrunk to fit.` });
+  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: tooWideMessage(d.tool, drawn.widthMm, room) });
   return drawing(drawn, w, indent, ctx);
 }
 /** Grid paper: the same SVG as the page, as a picture at its printed size. */
