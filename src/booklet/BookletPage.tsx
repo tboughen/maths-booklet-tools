@@ -11,6 +11,7 @@ import {
   lessonFileName,
   lessonPagesOf,
   issuePlace,
+  singleLessonBooklet,
   renderBooklet,
   SECTION_KINDS,
   SECTION_TITLES,
@@ -25,11 +26,13 @@ import {
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
 import { Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
 import { pagesPdf } from "../worksheet/export";
+import { DOCX_TYPE, wordKit } from "../export/word";
 import { BookletAiPanel } from "./ai/BookletAiPanel";
 import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
+import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
@@ -86,7 +89,8 @@ const pdfName = (b: Booklet, view: "pupil" | "answers", lesson?: number) => (les
 
 export default function BookletPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{ past: Booklet[]; present: Booklet; future: Booklet[] }>({ past: [], present: startup.b, future: [] });
+  const documentHistory = useDocumentHistory<Booklet>(startup.b, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
+  const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -108,7 +112,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     try {
       const valid = validateBooklet(next);
-      setHistory((h) => (JSON.stringify(h.present) === JSON.stringify(valid) ? h : { past: [...h.past, h.present].slice(-60), present: valid, future: [] }));
+      documentHistory.commit(valid);
       setMessage("");
     } catch (e) {
       // Invalid edits are refused with the specific reason; the last valid booklet stays.
@@ -124,8 +128,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     update(next.document);
     commit(next);
   }
-  const undo = () => !blocked && setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h));
-  const redo = () => !blocked && setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h));
+  const undo = () => !blocked && documentHistory.undo();
+  const redo = () => !blocked && documentHistory.redo();
 
   useEffect(() => {
     if (recovery !== null) return;
@@ -140,16 +144,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (!(event.ctrlKey || event.metaKey) || (event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))) return;
-      const k = event.key.toLowerCase();
-      if (k === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-      } else if (k === "y") {
-        event.preventDefault();
-        redo();
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -189,6 +184,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const pages = r.pages;
     downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
   }
+  /** The Word file: the same pages as the PDF, written here with the connector's own writer. */
+  async function downloadWord(view: "pupil" | "answers", lesson?: number) {
+    const one = lesson === undefined ? null : singleLessonBooklet(b, lesson);
+    const [{ writeBookletDocx }, kit] = await Promise.all([import("../../packages/resource-core/src/booklet-docx"), wordKit()]);
+    const r = await writeBookletDocx(one ? one.booklet : b, { view, numbering: one?.numbering, fonts: kit.fonts, picture: kit.picture, version: "MathsDock booklet renderer, Word output 1" });
+    if (r.issues.length) throw Error("Fix the layout checks before downloading.");
+    downloadBlob(new Blob([r.bytes as BlobPart], { type: DOCX_TYPE }), pdfName(b, view, lesson).replace(/\.pdf$/, ".docx"));
+  }
   const editableName = () => bookletFileName(b).replace(/_A4\.pdf$/, ".json");
   const showPage = (page: number) => pagesRef.current?.querySelector(`#bk-page-${page}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -200,7 +203,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     },
     { ok: placeholders === 0, text: placeholders ? `${placeholders} lesson${placeholders > 1 ? "s" : ""} not made yet: rebuild under Change a lesson.` : "Every lesson is made." },
     { ok: true, text: "Text is 11 pt with nothing below 10 pt; nothing is shrunk to fit." },
-    { ok: true, text: "Saved answers print only in the answers PDF." },
+    { ok: true, text: "Saved answers print only in the answers PDF and Word file." },
   ];
 
   const lessonEditor = (lesson: Lesson, li: number): ReactNode => {
@@ -229,6 +232,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           </button>
           <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadPdf("pupil", li), `Lesson ${li + 1} PDF download started.`)}>
             <Download size={15} aria-hidden="true" /> Lesson PDF
+          </button>
+          <button className="tool-button bk-small" disabled={blocked || issues.length > 0} onClick={() => void run(() => downloadWord("pupil", li), `Lesson ${li + 1} Word file download started.`)}>
+            <Download size={15} aria-hidden="true" /> Lesson Word
           </button>
         </div>
         <Field label={`Lesson ${li + 1} title`} value={lesson.title} max={80} disabled={blocked} onCommit={(v) => setLesson((l) => void (l.title = v))} />
@@ -383,7 +389,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor bk-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Booklets" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs.">
+        <PageHeading title="Booklets" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs or Word files.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
@@ -423,6 +429,8 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               actions={[
                 { label: "Download pupil PDF", action: () => downloadPdf("pupil"), disabled: blocked || issues.length > 0, success: "Pupil booklet download started." },
                 { label: "Download answers PDF", action: () => downloadPdf("answers"), disabled: blocked || issues.length > 0, success: "Answers booklet download started. Keep it away from pupils." },
+                { label: "Download pupil Word file", action: () => downloadWord("pupil"), disabled: blocked || issues.length > 0, success: "Pupil Word file download started: laid out page for page like the PDF, for small edits in Word.", separator: true },
+                { label: "Download answers Word file", action: () => downloadWord("answers"), disabled: blocked || issues.length > 0, success: "Answers Word file download started. Keep it away from pupils. Editing it does not change the pupil file." },
                 { label: "Save editable file", action: () => downloadBlob(new Blob([JSON.stringify(b, null, 2)], { type: "application/json" }), editableName()), disabled: blocked, success: `Saved ${editableName()}.`, separator: true },
                 { label: "Open booklet file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
               ]}
@@ -476,7 +484,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     const next = pending.b;
                     setPending(null);
-                    setHistory((h) => ({ past: [...h.past, h.present].slice(-60), present: next, future: [] }));
+                    setHistory((h) => pushHistory(h, next, { label: "open file" }));
                     setFocus(0);
                     setMessage("");
                   }}
@@ -545,6 +553,9 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <Field label="Cover note" value={d.coverNote} max={240} multiline disabled={blocked} onCommit={(v) => patch((x) => void (x.coverNote = v))} />
               <label className="ws-check">
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines
+              </label>
+              <label className="ws-check">
+                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
               </label>
               <details className="ws-side">
                 <summary>Unit introduction</summary>

@@ -193,3 +193,32 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
   flush();
   return out.join("");
 }
+
+/** Gap between answer lines that share a row (mm). */
+export const ANSWER_SLOT_GAP = 6;
+/** Shortest answer line a pupil can write on (mm). */
+export const ANSWER_LINE_MIN = 18;
+/**
+ * Consecutive inline answer lines share a row in equal slots. Rows hold as many lines as fit: each
+ * line needs its prefix, suffix and a line at least 18 mm long and as wide as its saved answer.
+ * Lines that already fitted together stay on one row, exactly as before; lines that did not are
+ * split into rows of equal size instead of overlapping (stress test, 14 November 2026). Maths-notation
+ * (new) sheets only: older plain sheets keep their saved layout byte for byte.
+ */
+export function packAnswerLines<T>(lines: T[], width: number, need: (line: T) => number): T[][] {
+  const most = Math.max(...lines.map(need));
+  let k = lines.length;
+  while (k > 1 && (width - (k - 1) * ANSWER_SLOT_GAP) / k < most) k--;
+  const rows: T[][] = [];
+  for (let i = 0; i < lines.length; i += k) rows.push(lines.slice(i, i + k));
+  return rows;
+}
+
+/**
+ * A part with one short answer puts its line on the question's last line when at least 30 mm is
+ * left there and the saved answer fits on it; otherwise the answer gets a full row of its own, so
+ * the answers copy never runs past the line (stress test, 14 November 2026). Maths-notation (new)
+ * sheets only: older plain sheets keep their saved layout byte for byte.
+ */
+export const stubFits = (room: number, answer: string, size: number, maths: boolean) =>
+  room >= 30 && (!maths || !answer || plainWidth(answer, size) + 2 <= room);

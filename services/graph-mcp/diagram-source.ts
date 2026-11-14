@@ -44,9 +44,9 @@ export type DiagramSource =
   | { kind: "ratio-table"; envelope: RatioEnvelope; outputView?: "pupil" | "answer" }
   | { kind: "value-graph"; envelope: ValueEnvelope }
   | { kind: "cuboids"; envelope: cuboid.Envelope }
-  | { kind: "number-line"; envelope: numberLine.Envelope }
+  | { kind: "number-line"; envelope: numberLine.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "venn"; envelope: venn.Envelope; outputView?: "pupil" | "answer" }
-  | { kind: "bar-model"; envelope: bar.Envelope }
+  | { kind: "bar-model"; envelope: bar.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "algebra-grid"; envelope: algebra.Envelope }
   | { kind: "charts"; envelope: chart.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "probability-tree"; envelope: tree.Envelope; outputView?: "pupil" | "answer" }
@@ -66,7 +66,7 @@ export function diagramSource(raw: unknown): DiagramSource {
   }
 }
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
-  if(source.kind==="bar-model") {const g=bar.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:bar.printFacts(source.envelope)};}
+  if(source.kind==="bar-model") {const g=bar.layout(bar.forView(source.envelope, source.outputView ?? "pupil"));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:bar.printFacts(source.envelope)};}
   if(source.kind==="charts") { const view=source.outputView ?? "pupil", g=chart.layout(chart.forView(source.envelope, view));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:chartPrintFacts(source.envelope, view)}; }
   if(source.kind==="triangle") {const g=triangle.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:ti.printFacts(source.envelope)};}
   if(source.kind==="algebra-grid") { const g=algebra.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:algebraPrintFacts(source.envelope)}; }
@@ -91,8 +91,8 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
     return { physicalSizeCm: { width: crop.widthCm, height: crop.heightCm }, printGuidance: cuboidPrintFacts(source.envelope) };
   }
   if (source.kind === "number-line") {
-    const m = numberLine.metrics(source.envelope.document);
-    return { physicalSizeCm: { width: m.widthCm, height: m.heightCm }, printGuidance: numberLine.printFacts(source.envelope.document) };
+    const d = numberLine.forView(source.envelope, source.outputView ?? "pupil").document, m = numberLine.metrics(d);
+    return { physicalSizeCm: { width: m.widthCm, height: m.heightCm }, printGuidance: numberLine.printFacts(d) };
   }
   if (source.kind === "venn") {
     const view = source.outputView ?? "pupil", e = venn.forView(source.envelope, view), g = venn.geometry(e);

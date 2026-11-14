@@ -3,6 +3,7 @@ import {
   parseFile,
   type Envelope,
 } from "./model";
+import { toBase64Url } from "../../envelope-core/src/index";
 export const MAX_TRIANGLE_LINK_LENGTH = 16_000;
 export function triangleEditorLink(envelope: Envelope, base: string): string {
   const text = canonical(envelope);
@@ -11,15 +12,13 @@ export function triangleEditorLink(envelope: Envelope, base: string): string {
     throw Error(
       "This diagram is too large for a link. Save an editable file instead.",
     );
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
   const url = new URL(base);
   // The editor's own page path, such as /tools/triangle (old ?tool= links still redirect).
   url.pathname = url.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/triangle";
   url.search = "";
   url.hash =
     "triangle=" +
-    btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+    toBase64Url(text);
   if (url.href.length > MAX_TRIANGLE_LINK_LENGTH)
     throw Error(
       "This diagram is too large for a link. Save an editable file instead.",

@@ -1,14 +1,16 @@
-# Word output for worksheets
+# Word output for worksheets and booklets
 
 `packages/resource-core/src/docx.ts` writes the pupil and answers Word files for an A3 worksheet
 from the same source, and the same layout, as the SVG pages and PDFs. It is build step 3 of the
-A3 Word worksheets plan (11 November 2026). The target is desktop Word on Windows. Word is the
-deliverable; PDFs and page images are only used for checking.
+A3 Word worksheets plan (11 November 2026). `packages/resource-core/src/booklet-docx.ts` does the
+same for A4 unit booklets (13 November 2026, see "Booklets" below). The target is desktop Word on
+Windows. Word is the deliverable; PDFs and page images are only used for checking.
 
 ## Making the files
 
 In any chat with the MathsDock connector, `create_worksheet` returns `pupilDocx` and `answersDocx`
-download links beside the PDFs (13 November 2026). Booklets print as PDFs only. The connector's file is
+download links beside the PDFs (13 November 2026); `create_booklet` returns whole-booklet and
+per-lesson Word links the same way. The connector's file is
 byte-identical to the one `scripts/resource/word.mjs` writes for the same sheet: both call
 `services/graph-mcp/worksheet-docx.ts`, which the service runs in its render worker. A Word link
 carries the worksheet (or, in production, the hash of the copy saved in the document store), like the PDF links, and the file is made again on each download.
@@ -21,8 +23,10 @@ node scripts/resource/word.mjs sheet.json --out output/word --preview
 ```
 
 This writes `sheet.docx` and `sheet_answers.docx` (and, with `--preview`, LibreOffice PDFs and page
-images plus the PDF writer's own PDF for comparison). With no file it writes the golden sheets, the
-rendering-test sheet and the layout-test sheet. `--no-system-inter` hides any installed Inter from LibreOffice, which
+images plus the PDF writer's own PDF for comparison). A booklet file is recognised and written the
+same way; `--lessons` also writes each lesson on its own. With no file it writes the golden sheets,
+the rendering-test sheet, the layout-test sheet and the example booklet. `word-expected.json` lists
+the pages each file must print as, for the real-Word check. `--no-system-inter` hides any installed Inter from LibreOffice, which
 proves the embedded fonts are used. The preview needs LibreOffice Writer **and LibreOffice Math**
 (`apt-get install libreoffice-math`); without Math, LibreOffice silently drops every equation.
 
@@ -97,6 +101,24 @@ an answer-line fraction sits on a 1.4 mm gap (`FRAC_WORD_LIFT`). After three rou
 character of the test lines is within 0.2 mm of its PDF position, the answer-line denominator is
 0.55 mm clear of the line, and every file is still two pages. Word still draws the fraction bar a
 little thinner than the PDF.
+
+### A fraction alone in its paragraph (R25, 14 November 2026)
+
+Tim's own Word export of SP7.04 showed answer-line fractions larger in Word than in the PDF. A
+character comparison found the cause: when an answer line holds only a fraction (`10/36`), its
+equation is alone in its paragraph, and Word treats a lone equation as display maths, printing its
+parts at full size. The inline enlargement (11/8) then made them 15 pt (5.3 mm high glyph boxes
+against 3.9 mm in the PDF), and the denominator sat 1.6 mm lower. A fraction that shares its line
+with text (`6/25 = 12/25`, `2 1/2`) is inline maths and was already right.
+
+`soleRuns` (answer-line cells and table cells) now writes a paragraph that holds only fractions at
+body size. Four variants were printed by Word 16 on Tim's PC (`C:\dev\mathsdock-word-check-r25`);
+the chosen one prints every answer-line fraction at 11 pt, within 0.3 mm of the PDF horizontally and
+within 0.3 mm vertically once Word's 0.4 mm whole-page offset is allowed for. Display maths ignores the
+paragraph's alignment, so a lone fraction in a centred table cell was also printing at the left of
+its cell; table cells now state their justification (`m:oMathPara` with `m:jc`), and real Word then
+centres it within 0.4 mm. Still open: fractions in table rows print about 1.9 mm lower than in the
+PDF in Word (they did before this change too).
 
 ## Rendering test (11 November 2026)
 
@@ -182,11 +204,63 @@ paper measures 99.57 mm between frame centres, against 99.99 mm in the PDF write
 same way), although the file holds them at full size (Word reports 283.45 pt). The outer frame of
 grid paper prints half as thick, because Word clips the half of the stroke outside the picture.
 
+## Booklets
+
+`writeBookletDocx(booklet, { view, fonts, picture, numbering? })` draws the Word file from the
+booklet's page plan (`planBooklet` in `booklet-render.ts`), the same plan the SVG pages use, so
+Word never decides where a page breaks. With `numbering` (from `singleLessonBooklet`) it writes
+one lesson on its own, without the cover, numbered as in the whole booklet.
+
+| Rule | Why |
+| --- | --- |
+| Every page opens with a 1 pt paragraph with "page break before", then exactly the blocks the plan put on that page, with exact gaps between them. The top margin is 1 pt smaller to make room. | Word starts each page where the PDF does. A page break paragraph at the end of a full page could itself spill onto a blank page; a break before cannot. |
+| A row of cards is one table row that cannot split, with each card a bordered cell pinned (at least) to the row's planned height less two borders, one border narrower than its column. Side-by-side cards share the row, so they are the same height, as on the page. | The worksheet's card rules (probes P1, P9, P10), at body level. Word moves a whole row rather than cutting a card, so a fault shows as an extra page, never a cut card. |
+| Cards hold the worksheet's items (`cardCell` in `docx.ts`), with the working space each page gave out. Tables keep their natural width, every cell centred, as booklet pages do. | The PDF's own heights, so the plan holds. |
+| Lesson titles, key ideas, section headings (with the instruction on the same line when it fits) and the navy rules are exact-height paragraphs and one-row tables at the SVG positions. Text gets 1 mm more width than measured. | Only line breaks could change a block's height, and Word never needs more lines than predicted. |
+| The footer (hairline, booklet name, "Page N") is a Word footer below the content area, with Word's own page number. The cover's footer is empty; a lesson file starts its numbering at the lesson's first page. | The footer never pushes content. The cover's contents list the plan's page numbers, which match. |
+| The bottom margin is `WORD_FOOT_MM` smaller than the layout's (content may reach 284 mm, not 281 mm). | A row Word draws a fraction taller never moves to the next page. |
+| Pictures, fonts and fixed bytes as for worksheets. | The same file from the connector and the website. |
+
+The page count is the plan's. LibreOffice 24.2 (13 November 2026): the example booklet is 11 of 11
+pages, each lesson file 2 and 7 pages, and a 12-lesson, 56-page unit is 56 of 56, pupil and
+answers, with the embedded Inter. The lowest ink on each page is within 0.8 mm of the PDF writer's,
+except the unit introduction (2 mm higher: LibreOffice does not add borders to minimum row heights
+as Word does). The website's Word files are byte-identical to the connector's: the page uses
+`@resvg/resvg-wasm` 2.6.2, the same resvg as the service's `@resvg/resvg-js` 2.6.2, and makes the
+same outlined SVG and PNG for every diagram (`e2e/booklet.spec.ts` compares the bytes).
+
+Desktop Word (14 November 2026, Tim's Word, saved as PDF): every page count equals the plan: the
+example booklet 11 and 11 (pupil, answers), lesson 2 on its own 7 (numbered from page 5) and the
+12-lesson unit 56. `compare-text.mjs` matched 140 to 662 text pieces per file: text sits within
+0.23 mm up and 0.82 mm across of the PDF writer's, and within 1.3 mm down everywhere except one
+place. In the example's diagnostic question 1, option D is "⅓", a character Inter (the worksheet
+font) does not have: the PDF prints a gap, and Word substitutes Cambria Math, which wraps the option
+onto a second line, so that card row is 11.5 mm taller and the row below moves down (still on its
+page). Booklets do not yet report characters the font lacks, as worksheets do
+(`missingGlyphIssues`). To measure a Word PDF against the PDF writer, run
+`node scripts/word/compare-text.mjs <folder>`.
+
+Since then booklets have `notation` (as worksheets): with `"maths"` fractions are Word equations
+(`m:f`), and the example booklet uses it, so it is now 12 pages (lesson 2 on its own, 8). In
+LibreOffice its page counts still equal the plan, and text sits within 1 mm across and 2 mm down of
+the PDF; the largest moves are lines that hold a stacked fraction. Booklets now also report
+characters the font lacks. Desktop Word has opened worksheet equations of this kind (#219) but not
+yet a stacked-fraction booklet: that check is still outstanding.
+
+Differences from the PDF, by design: rounded corners are square; contents dot leaders are Word's
+dots; the lesson and code tiles are square.
+
+Fix found on the way, for worksheets too: in a row of lettered options, an option's text exactly
+as wide as its measured slot wrapped below its letter in LibreOffice. Each option now gets
+`WORD_WRAP_SLACK_MM` more width, from the gap before the next option or, for the last, from the
+card's own slack (only the Word rendering-test sheet's bytes change).
+
 ## The real-Word check (option 4)
 
 `scripts/word/word-to-pdf.ps1` opens each `.docx` in a folder with desktop Word (read-only),
 saves Word's own PDF beside it and writes `word-check.json` with Word's page count for each file
-(it must be 2) and whether Inter is installed. It does what `docx2pdf` does, with nothing to
+(2 for a worksheet; a booklet's count from `word-expected.json` when the folder has one) and whether
+Inter is installed. It does what `docx2pdf` does, with nothing to
 install. Run it only with Tim's agreement, on a Windows computer with Word:
 
 ```

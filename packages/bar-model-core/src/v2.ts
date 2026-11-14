@@ -792,6 +792,16 @@ function text(
   anchor = "middle",
   linear = false,
 ) {
+  return legacy.inkRevealed(l, labelSvg(l, x, centre, font, anchor, linear));
+}
+function labelSvg(
+  l: Label,
+  x: number,
+  centre: number,
+  font: number,
+  anchor = "middle",
+  linear = false,
+) {
   if (l.state === "line")
     return `<path d="M${x - 4} ${centre}h8" fill="none" stroke="#000" stroke-width="0.25"/>`;
   const s = visible(l);

@@ -6,13 +6,14 @@ import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
-import { LAYOUTS, columnBoxes, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
+import { LAYOUTS, columnBoxes, isReminder, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
 import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
+import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
 const MAX_FILE = 400_000;
@@ -41,11 +42,8 @@ function initial(): { r: Resource; message: string; recovery: string | null } {
 
 export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{
-    past: Resource[];
-    present: Resource;
-    future: Resource[];
-  }>({ past: [], present: startup.r, future: [] });
+  const documentHistory = useDocumentHistory<Resource>(startup.r, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
+  const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -64,15 +62,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (recovery !== null) return;
     try {
       const valid = validate(next);
-      setHistory((h) =>
-        JSON.stringify(h.present) === JSON.stringify(valid)
-          ? h
-          : {
-              past: [...h.past, h.present].slice(-80),
-              present: valid,
-              future: [],
-            },
-      );
+      documentHistory.commit(valid);
       setMessage("");
     } catch (e) {
       // Invalid drafts are refused with the specific reason; the last valid sheet stays.
@@ -85,28 +75,8 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     update(next.document);
     commit(next);
   }
-  const undo = () =>
-    !blocked &&
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
-  const redo = () =>
-    !blocked &&
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+  const undo = () => !blocked && documentHistory.undo();
+  const redo = () => !blocked && documentHistory.redo();
 
   useEffect(() => {
     if (recovery !== null) return;
@@ -121,16 +91,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('[aria-modal="true"]')) return;
-      if (!(event.ctrlKey || event.metaKey) || (event.target instanceof HTMLElement && event.target.closest("input,textarea,select,[contenteditable]"))) return;
-      const k = event.key.toLowerCase();
-      if (k === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-      } else if (k === "y") {
-        event.preventDefault();
-        redo();
-      }
+      handleUndoKeys(event, { undo, redo });
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -307,11 +268,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     const next = pending.r;
                     setPending(null);
-                    setHistory((h) => ({
-                      past: [...h.past, h.present].slice(-80),
-                      present: next,
-                      future: [],
-                    }));
+                    setHistory((h) => pushHistory(h, next, { label: "open file" }));
                     setMessage("");
                   }}
                 >
@@ -414,7 +371,9 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                     <div key={c} className="ws-column">
                       <Field label={`Column ${letters.columns[s][c]} heading`} value={col.heading} max={40} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].heading = v))} />
                       {col.cards.map((card, k) => {
-                        const q = ++number;
+                        const q = isReminder(card) ? null : ++number;
+                        const qName = q === null ? "reminder card" : `question ${q}`;
+                        const QName = q === null ? "Reminder card" : `Question ${q}`;
                         const setItem = (path: number[], next: Item | Leaf) =>
                           patch((x) => {
                             const items = x.sides[s].columns[c].cards[k].items;
@@ -427,24 +386,24 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                         return (
                           <details key={k} className="ws-card">
                             <summary>
-                              <span className="ws-q">{q}</span> {card.title}
+                              <span className="ws-q">{q ?? "•"}</span> {card.title}
                             </summary>
-                            <div className="ws-card-moves" role="group" aria-label={`Move question ${q}`}>
-                              <button className="icon-button" aria-label={`Move question ${q} up`} disabled={blocked || k === 0} onClick={() => move(s, c, k, "up")}>
+                            <div className="ws-card-moves" role="group" aria-label={`Move ${qName}`}>
+                              <button className="icon-button" aria-label={`Move ${qName} up`} disabled={blocked || k === 0} onClick={() => move(s, c, k, "up")}>
                                 <ArrowUp size={16} aria-hidden="true" />
                               </button>
-                              <button className="icon-button" aria-label={`Move question ${q} down`} disabled={blocked || k === col.cards.length - 1} onClick={() => move(s, c, k, "down")}>
+                              <button className="icon-button" aria-label={`Move ${qName} down`} disabled={blocked || k === col.cards.length - 1} onClick={() => move(s, c, k, "down")}>
                                 <ArrowDown size={16} aria-hidden="true" />
                               </button>
-                              <button className="icon-button" aria-label={`Move question ${q} to the previous column`} disabled={blocked || linear === 0} onClick={() => move(s, c, k, "previous")}>
+                              <button className="icon-button" aria-label={`Move ${qName} to the previous column`} disabled={blocked || linear === 0} onClick={() => move(s, c, k, "previous")}>
                                 <ArrowLeft size={16} aria-hidden="true" />
                               </button>
-                              <button className="icon-button" aria-label={`Move question ${q} to the next column`} disabled={blocked || linear === d.sides.reduce((t, x) => t + x.columns.length, 0) - 1} onClick={() => move(s, c, k, "next")}>
+                              <button className="icon-button" aria-label={`Move ${qName} to the next column`} disabled={blocked || linear === d.sides.reduce((t, x) => t + x.columns.length, 0) - 1} onClick={() => move(s, c, k, "next")}>
                                 <ArrowRight size={16} aria-hidden="true" />
                               </button>
                             </div>
-                            <Field label={`Question ${q} title`} value={card.title} max={60} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].cards[k].title = v))} />
-                            <Field label={stageLetter ? `Stage ${stageLetter} band above question ${q}` : `Stage band above question ${q} (empty for none)`} value={card.stage ?? ""} max={40} disabled={blocked} onCommit={(v) => setCard((cd) => (v.trim() ? (cd.stage = v) : delete cd.stage))} />
+                            <Field label={`${QName} title`} value={card.title} max={60} disabled={blocked} onCommit={(v) => patch((x) => void (x.sides[s].columns[c].cards[k].title = v))} />
+                            <Field label={stageLetter ? `Stage ${stageLetter} band above ${qName}` : `Stage band above ${qName} (empty for none)`} value={card.stage ?? ""} max={40} disabled={blocked} onCommit={(v) => setCard((cd) => (v.trim() ? (cd.stage = v) : delete cd.stage))} />
                             {k === 0 && card.stage ? <p className="ws-hint problem">The first question sits under the column heading, so this band is not printed. Use the column heading instead.</p> : null}
                             {card.items.map((item, i) =>
                               item.type === "part" ? (
@@ -480,7 +439,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                             <button className="tool-button ws-small" disabled={blocked || card.items.length >= 16} onClick={() => setCard((cd) => addPaper(cd, columnBoxes(side)[c].w))}>
                               <Grid3x3 size={15} aria-hidden="true" /> Add grid paper
                             </button>
-                            <WorkingField label={`Question ${q} hidden working`} value={card.working} disabled={blocked} onCommit={(v) => setCard((cd) => (v === undefined ? delete cd.working : (cd.working = v)))} />
+                            <WorkingField label={`${QName} hidden working`} value={card.working} disabled={blocked} onCommit={(v) => setCard((cd) => (v === undefined ? delete cd.working : (cd.working = v)))} />
                           </details>
                         );
                       })}

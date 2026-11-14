@@ -6,6 +6,7 @@ import {
   type Rational,
 } from "../../ratio-table-core/src/numbers";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { toBase64Url } from "../../envelope-core/src/index";
 
 export const axes = ["width", "depth", "height"] as const;
 export const faces = ["front", "top", "side"] as const;
@@ -289,12 +290,8 @@ export function parseFile(raw: string) {
   if (raw.length > 50000) throw Error("This editable file is too large.");
   return validate(JSON.parse(raw));
 }
-export function encode(e: Envelope) {
-  const bytes = new TextEncoder().encode(canonical(e));
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/, "");
+export function encode(e: Envelope): string {
+  return toBase64Url(canonical(e));
 }
 export function decode(s: string) {
   if (s.length > 66000) throw Error("This editor link is too large.");

@@ -1,7 +1,8 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
+import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -155,7 +156,10 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
   try {
-    drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
+    const envelope = diagramEnvelope(d);
+    drawn = drawDiagram(d.tool, envelope, ctx.view === "answers" ? "answer" : "pupil");
+    // W90: a pupil copy never shows a saved answer.
+    if (ctx.view !== "answers") for (const leak of answerLeaks(d.tool, envelope, drawn.svg)) issue(ctx, leak.message);
   } catch (error) {
     issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
     return { h: 0, svg: "" };
@@ -181,6 +185,14 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   return { h: height, svg };
 }
 
+/** Width (mm) one inline answer line needs: prefix, suffix and a line that holds its saved answer. */
+export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: boolean) {
+  const widthOf = (s: string) => (maths ? lineWidth(parseRuns(stackAnswerText(s), "regular", true), S.body) : plainWidth(s, S.body));
+  const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
+  const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
+  return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
+}
+
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx): Frag {
   const size = S.body;
   // Maths notation: fractions in the prefix, suffix and saved answer print stacked, and a row that
@@ -192,16 +204,16 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
   const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, maths)));
   const h = S.answerRow + (tall ? FRAC_ANSWER_EXTRA : 0);
   const base = h - 2.6;
-  const slot = (w - (lines.length - 1) * 6) / lines.length;
+  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const out: string[] = [];
   lines.forEach((l, i) => {
-    const x0 = i * (slot + 6);
+    const x0 = i * (slot + ANSWER_SLOT_GAP);
     const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
     const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
     if (l.prefix) out.push(textSvg(runsOf(l.prefix), x0, base, size, ctx.st.ink));
     const x1 = x0 + pre,
       x2 = x0 + slot - post;
-    if (x2 - x1 < 18) issue(ctx, "An answer line is shorter than 18 mm.");
+    if (x2 - x1 < ANSWER_LINE_MIN) issue(ctx, "An answer line is shorter than 18 mm.");
     // The saved answer is written on the line in the answers copy; it must not run past it.
     const answerW = l.answer ? widthOf(l.answer) : 0;
     if (l.answer && answerW + 2 > x2 - x1 + 0.01)
@@ -358,14 +370,14 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
     if (it.type === "answerLine" && it.inline) {
       const group = [it];
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
-      frags.push(answerRow(group, w, ctx));
+      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
       const textW = w - S.partIndent;
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
-      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && stubFits(textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0), only.answer, S.body, !!ctx.maths)) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const head = para(it.text, textW, ctx, { x: S.partIndent });
@@ -406,13 +418,15 @@ export function tooWideMessage(tool: string, width: number, room: number): strin
   const fit = Math.floor(room / 5) / 2;
   const hint = WIDTH_CM.has(tool)
     ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`
-    : tool === "probability-tree" || tool === "frequency-tree"
+    : tool === "frequency-tree"
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
+      : tool === "probability-tree"
+        ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the end probability column (settings.endColumn "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
       : tool === "construction"
         ? " Constructions print at true size: reduce the drawing's widthCm (and move points inside it), or use a wider column layout."
-        : tool === "elevations"
-          ? " Use settings.maxWidthCm to wrap the panels onto more rows, a smaller unitCm, or a wider column layout."
-          : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
+      : tool === "elevations"
+        ? " Use settings.maxWidthCm to wrap the panels onto more rows, a smaller unitCm, or a wider column layout."
+      : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }
 
@@ -447,7 +461,7 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
  * otherwise (saved sheets from before) the last card reaches the foot. Shared by the SVG and
  * Word writers.
  */
-export function planColumn(cards: Card[], numbers: number[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
+export function planColumn(cards: Card[], numbers: (number | null)[], w: number, avail: number, ctx: AnyCtx, share = false): { spare: number; extra: number; stretch: (i: number) => number } {
   const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0, inline: undefined };
   const natural = cards.map((cd, i) => card(cd, numbers[i], w, quiet, 0, 0).h);
   const used = natural.reduce((a, b) => a + b, 0) + Math.max(0, cards.length - 1) * S.cardGap + stagedCards(cards) * STAGE_BAND;
@@ -577,36 +591,46 @@ export function paperSvg(item: Extract<Leaf, { type: "paper" }>, st: HouseStyle)
 }
 
 /** Printed text fields: hidden worked solutions ("working") and diagrams are not printed text. */
-const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options"]);
+const PRINTED = new Set(["text", "title", "heading", "prefix", "suffix", "answer", "label", "instruction", "objective", "code", "group", "items", "options", "keyIdea", "coverNote", "word", "meaning", "remember", "learn", "next"]);
+/** The printed characters in a document part that the worksheet font does not hold, each once. */
+export function missingCharacters(value: unknown): string[] {
+  const known = measuredWidths("regular");
+  const found = new Set<string>();
+  const scan = (v: unknown, key = "") => {
+    if (typeof v === "string") {
+      if (!PRINTED.has(key)) return;
+      for (const c of v) if (!(c in known) && c !== "\n") found.add(c);
+    } else if (Array.isArray(v)) v.forEach((x) => scan(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram" && k !== "working") scan(x, k);
+  };
+  scan(value);
+  return [...found];
+}
+const charName = (c: string) => `"${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")})`;
+/** The issue text for a character the font lacks; `where` names the place, e.g. "Question 3". */
+export const missingCharacterMessage = (where: string, c: string) =>
+  `${where} uses ${charName(c)}, which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words${c >= "\u2150" && c <= "\u215f" ? ", or as a stacked fraction such as {1/3} with maths notation" : ""}).`;
 /**
  * A character the worksheet font does not hold would print as a gap in the PDF and as a
  * substitute font in Word, so it is reported as an issue, once per character and question.
  */
 export function missingGlyphIssues(resource: Resource): Issue[] {
-  const known = measuredWidths("regular");
   const found = new Map<string, Issue>();
   type Where = Omit<Issue, "message">;
-  const scan = (value: unknown, where: Where, key = "") => {
-    if (typeof value === "string") {
-      if (!PRINTED.has(key)) return;
-      for (const c of new Set(value)) {
-        if (c in known || c === "\n") continue;
-        const id = `${c}.${where.side}.${where.question ?? 0}`;
-        if (!found.has(id))
-          found.set(id, { ...where, message: `${where.question ? `Question ${where.question}` : "The header"} uses "${c}" (U+${c.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")}), which the worksheet font does not have, so it would print as a gap. Write it another way (for example in words).` });
-      }
-    } else if (Array.isArray(value)) value.forEach((v) => scan(v, where, key));
-    else if (value && typeof value === "object")
-      for (const [k, v] of Object.entries(value)) if (k !== "diagram" && k !== "working") scan(v, where, k);
+  const report = (value: unknown, where: Where) => {
+    for (const c of missingCharacters(value)) {
+      const id = `${c}.${where.side}.${where.question ?? 0}`;
+      if (!found.has(id)) found.set(id, { ...where, message: missingCharacterMessage(where.question ? `Question ${where.question}` : "The header", c) });
+    }
   };
   const d = resource.document;
-  scan({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
+  report({ title: d.title, objective: d.objective, code: d.code, group: d.group }, { side: 1, column: 0 });
   let question = 0;
   d.sides.forEach((side, s) => {
-    scan({ instruction: side.instruction }, { side: s + 1, column: 0 });
+    report({ instruction: side.instruction }, { side: s + 1, column: 0 });
     side.columns.forEach((col, c) => {
-      scan({ heading: col.heading }, { side: s + 1, column: c + 1 });
-      for (const card of col.cards) scan(card, { side: s + 1, column: c + 1, question: ++question });
+      report({ heading: col.heading }, { side: s + 1, column: c + 1 });
+      for (const card of col.cards) report(card, { side: s + 1, column: c + 1, question: ++question });
     });
   });
   return [...found.values()];
@@ -668,13 +692,13 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
       ctx.where = { side: s + 1, column: c + 1, question: 0 };
       // Stage tile (A to F across both sides) and heading: the progression is visible at a glance.
       out.push(stageSvg(letters.columns[s][c], col.heading, x, colTop, st));
-      const numbers = col.cards.map(() => ++number);
+      const numbers = col.cards.map((cd) => (isReminder(cd) ? null : ++number));
       const { spare, extra, stretch } = planColumn(col.cards, numbers, colW, avail, ctx, doc.spareSpace === "share");
       if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
       if (spare / avail > SPARSE_COLUMN) notes.push({ side: s + 1, column: c + 1, message: sparseMessage(s, c, spare / avail) });
       let y = cardsTop;
       col.cards.forEach((cd, i) => {
-        ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
+        ctx.where = { side: s + 1, column: c + 1, question: numbers[i] ?? undefined };
         const letter = letters.cards[s][c][i];
         if (i === 0 && cd.stage) issue(ctx, "The first card in a column sits under the column heading, so its stage is not printed. Put the stage in the column heading.");
         if (letter) {
@@ -691,6 +715,7 @@ export function renderResource(resource: Resource, options: RenderOptions = {}):
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${P.width}mm" height="${P.height}mm" viewBox="0 0 ${P.width} ${P.height}" font-family="Inter, sans-serif" role="img" aria-label="${esc(label)}">${style}<rect width="${P.width}" height="${P.height}" fill="white"/>${out.join("")}</svg>`;
   });
   notes.push(...ctx.inline!.values());
+  ctx.issues.push(...questionReferenceIssues(resource));
   return { pages, issues: ctx.issues, notes };
 }
 
@@ -700,4 +725,45 @@ export function fileName(resource: Resource, view: View = "pupil"): string {
   const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
   const parts = [d.code, d.objective].map(safe).filter(Boolean);
   return `${parts.join("_")}${view === "answers" ? "_Answers" : ""}_A3.pdf`;
+}
+
+/** Every string a pupil can read in a card (titles and items, not saved answers or hidden working). */
+function readableText(cd: Card): string[] {
+  const out: string[] = [cd.title];
+  const walk = (v: unknown, key = ""): void => {
+    if (typeof v === "string") {
+      if (!["answer", "working", "type", "state", "kind", "style", "mode"].includes(key)) out.push(v);
+    } else if (Array.isArray(v)) v.forEach((x) => walk(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "diagram") walk(x, k);
+  };
+  walk(cd.items);
+  return out;
+}
+
+/**
+ * "Question N" in a card's text must name a real, different question, except in Edexcel's
+ * "(Total for Question N is M marks)", which must name the card's own number. Reminder cards are not
+ * numbered, so adding or moving one shifts the numbers these references rely on.
+ */
+export function questionReferenceIssues(resource: Resource): Issue[] {
+  const issues: Issue[] = [];
+  const cards: { cd: Card; n: number; side: number; column: number }[] = [];
+  let n = 0;
+  resource.document.sides.forEach((side, s) => side.columns.forEach((col, c) => col.cards.forEach((cd) => {
+    if (!isReminder(cd)) cards.push({ cd, n: ++n, side: s + 1, column: c + 1 });
+  })));
+  for (const { cd, n: own, side, column } of cards) {
+    for (const text of readableText(cd)) {
+      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+        const ref = Number(m[2]);
+        const where = { side, column, question: own };
+        const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";
+        if (m[1]) {
+          if (ref !== own) issues.push({ ...where, message: `Question ${own} says "Total for Question ${ref}"; it is question ${own}. ${tail}` });
+        } else if (ref === own) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, which is itself. ${tail}` });
+        else if (ref < 1 || ref > n) issues.push({ ...where, message: `Question ${own} refers to Question ${ref}, but the sheet has ${n} questions. ${tail}` });
+      }
+    }
+  }
+  return issues;
 }

@@ -80,7 +80,7 @@ export function resourceTools(
   /** The artwork for the requested view; cuboids use the measured crop, Venn SVG files outline text. */
   function artwork(source: NewSource, info: Awaited<ReturnType<typeof prepareDiagram>>, format: DownloadFormat | "preview") {
     if (source.kind === "cuboids") return info.crop!.svg;
-    if (source.kind === "venn" && format === "svg") return renderPortableSvg(venn.forView(source.envelope, viewOf(source)));
+    if (source.kind === "venn" && format === "svg") return renderPortableSvg(venn.forView(source.envelope, viewOf(source), true));
     return FAMILIES[source.kind].svg(source.envelope, viewOf(source));
   }
   async function artifacts(source: NewSource, format: DownloadFormat, signal?: AbortSignal) {

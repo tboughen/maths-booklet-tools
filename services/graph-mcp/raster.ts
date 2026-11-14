@@ -36,6 +36,12 @@ export class RasterQueue {
     if (!result.docx) throw new GraphError("render_failed", "No Word file was generated.");
     return result.docx;
   }
+  /** Word file of one view of a booklet, or of one lesson of it printed with the full booklet's numbering. */
+  async bookletDocx(booklet: unknown, view: "pupil" | "answers", numbering?: { lessonOffset: number; pageOffset: number }, signal?: AbortSignal): Promise<Uint8Array> {
+    const result = await this.run({ bookletDocx: { booklet, view, ...(numbering ? { numbering } : {}) }, fontRoot: this.fontRoot, textFontRoot: this.textFontRoot }, signal);
+    if (!result.docx) throw new GraphError("render_failed", "No Word file was generated.");
+    return result.docx;
+  }
   async render(
     svg: string,
     width: number,

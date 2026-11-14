@@ -5,6 +5,7 @@ import {
   guidance,
   renderedTextSizesPt,
 } from "../../graph-core/src/print-guidance";
+import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 const cellEdit = z
   .object({
     rowId: z.string(),
@@ -95,14 +96,8 @@ export const revisionSchema = z
     operations: z.array(operationSchema).max(30),
   })
   .strict();
-export async function hash(e: core.Envelope) {
-  const bytes = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(core.canonical(e)),
-  );
-  return Array.from(new Uint8Array(bytes), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("");
+export async function hash(e: core.Envelope): Promise<string> {
+  return sha256Hex(core.canonical(e));
 }
 function cell(e: core.Envelope, v: z.infer<typeof cellEdit>) {
   const r = e.document.rows.findIndex((row) => row.id === v.rowId),
@@ -203,17 +198,13 @@ export async function revise(input: unknown) {
   return e;
 }
 export function editorLink(e: core.Envelope, base: string) {
-  const bytes = new TextEncoder().encode(core.canonical(e));
   const u = new URL(base);
   // The editor's own page path, such as /tools/expanding-factorising (old ?tool= links still redirect).
   u.pathname = u.pathname.replace(/(\/tools(\/[^/]*)?)?\/?$/, "/") + "tools/expanding-factorising";
   u.search = "";
   u.hash =
     "algebra-grid=" +
-    btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))
-      .replaceAll("+", "-")
-      .replaceAll("/", "_")
-      .replace(/=+$/, "");
+    toBase64Url(core.canonical(e));
   return u.href.length <= 16000 ? u.href : null;
 }
 export function printFacts(e: core.Envelope) {

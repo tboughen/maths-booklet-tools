@@ -3,7 +3,8 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { PDFDocument } from "pdf-lib";
 import { a7Booklet } from "../packages/resource-core/src/booklet-fixtures";
-import type { Booklet } from "../packages/resource-core/src/index";
+import { singleLessonBooklet, type Booklet } from "../packages/resource-core/src/index";
+import { bookletDocx } from "../services/graph-mcp/worksheet-docx";
 
 const key = "maths-booklet-tools:booklet:v1";
 const out = resolve("test-results/booklet-artifacts");
@@ -31,7 +32,7 @@ function claudeStream(tool: string, input: unknown, id: string) {
 
 test("shows the example booklet with a contents page, edits a lesson title and undoes it", async ({ page }) => {
   await boot(page);
-  await expect(page.locator(".resource-size")).toHaveText("A4 portrait, 11 pages");
+  await expect(page.locator(".resource-size")).toHaveText("A4 portrait, 12 pages");
   await page.locator("details.bk-lesson").nth(1).locator(":scope > summary").click();
   const title = page.getByRole("textbox", { name: "Lesson 2 title" });
   await title.fill("Gradients of lines");
@@ -40,6 +41,14 @@ test("shows the example booklet with a contents page, edits a lesson title and u
   await expect(page.getByTestId("booklet-pages").locator("svg").first()).toContainText("Gradients of lines");
   await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.lessons[1].title).toBe(a7Booklet.document.lessons[1].title);
+  // Stacked fractions are a cover setting, undoable like any edit.
+  const stacked = page.getByRole("checkbox", { name: /Stacked fractions/ });
+  await expect(stacked).toBeChecked();
+  await stacked.uncheck();
+  expect((await saved(page)).document.notation).toBe("plain");
+  await expect(page.getByTestId("booklet-pages")).toContainText("{1/3}");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.notation).toBe("maths");
   // Answers appear only in the teacher preview.
   // The check-in's ratio tables hold their answers as hidden cells and hidden ÷ 4 steps.
   const hiddenOnPage5 = page.locator("#bk-page-5 .ratio-hidden-answer");
@@ -63,7 +72,7 @@ test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) 
   await pupil.saveAs(file);
   const bytes = readFileSync(file);
   const pdf = await PDFDocument.load(bytes);
-  expect(pdf.getPageCount()).toBe(11);
+  expect(pdf.getPageCount()).toBe(12);
   expect(pdf.getPage(0).getWidth()).toBeCloseTo((210 * 72) / 25.4, 1);
   expect(pdf.getPage(0).getHeight()).toBeCloseTo((297 * 72) / 25.4, 1);
   expect(bytes.toString("latin1")).not.toContain("/Subtype /Image");
@@ -74,7 +83,33 @@ test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) 
   const [lesson] = await Promise.all([page.waitForEvent("download"), lessonPdf.click()]);
   expect(lesson.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Lesson 2_A4.pdf");
   await lesson.saveAs(resolve(out, "lesson.pdf"));
-  expect((await PDFDocument.load(readFileSync(resolve(out, "lesson.pdf")))).getPageCount()).toBe(7);
+  expect((await PDFDocument.load(readFileSync(resolve(out, "lesson.pdf")))).getPageCount()).toBe(8);
+});
+
+test("downloads the booklet and one lesson as Word files identical to the connector's", async ({ page }) => {
+  // The page writes Word files with the connector's writer and the same resvg version (as WebAssembly),
+  // so a teacher gets the same bytes from the website as from a chat.
+  test.setTimeout(90_000);
+  await boot(page, a7Booklet);
+  const roots = { text: resolve("assets/resource-fonts"), diagrams: resolve("assets/graph-fonts") };
+  const version = "MathsDock booklet renderer, Word output 1";
+  await page.getByRole("button", { name: "File" }).click();
+  const [answers] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Download answers Word file" }).click()]);
+  expect(answers.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Booklet_Answers_A4.docx");
+  await answers.saveAs(resolve(out, "answers.docx"));
+  const expected = await bookletDocx(a7Booklet, "answers", roots, version);
+  expect(Buffer.compare(readFileSync(resolve(out, "answers.docx")), Buffer.from(expected.bytes))).toBe(0);
+  expect(expected.pages).toBe(12);
+
+  await page.locator("details.bk-lesson").nth(1).locator(":scope > summary").click();
+  const lessonWord = page.getByRole("group", { name: "Lesson 2" }).getByRole("button", { name: "Lesson Word" });
+  const [lesson] = await Promise.all([page.waitForEvent("download"), lessonWord.click()]);
+  expect(lesson.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Lesson 2_A4.docx");
+  await lesson.saveAs(resolve(out, "lesson.docx"));
+  const one = singleLessonBooklet(a7Booklet, 1);
+  const lessonExpected = await bookletDocx(one.booklet, "pupil", roots, version, one.numbering);
+  expect(Buffer.compare(readFileSync(resolve(out, "lesson.docx")), Buffer.from(lessonExpected.bytes))).toBe(0);
+  expect(lessonExpected.pages).toBe(8);
 });
 
 test("plans a unit and writes each lesson with the teacher's own Claude key, then undoes it", async ({ page }) => {

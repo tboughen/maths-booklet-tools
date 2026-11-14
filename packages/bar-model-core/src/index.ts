@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { guidance } from "../../graph-core/src/print-guidance";
+import { sha256Hex } from "../../envelope-core/src/index";
 
 export const LIMITS = {
   bars: 6,
@@ -179,21 +180,19 @@ export function parseFile(raw: string) {
     throw Error("Use an editable file up to 32 KiB.");
   return normalise(JSON.parse(raw));
 }
-export async function hash(e: Envelope) {
-  return Array.from(
-    new Uint8Array(
-      await crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(canonical(e)),
-      ),
-    ),
-  )
-    .map((v) => v.toString(16).padStart(2, "0"))
-    .join("");
+export async function hash(e: Envelope): Promise<string> {
+  return sha256Hex(canonical(e));
 }
 export function fresh(): Envelope {
   return example("BM01");
 }
+/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
+export const BAR_ANSWER_COLOUR = "#b0125b";
+/** Labels an answers copy shows only because they were saved hidden: drawn in the answer colour. */
+export const REVEALED_LABELS = new WeakSet<Label>();
+/** A label's artwork, recoloured when it is a revealed saved answer. */
+export const inkRevealed = (l: Label, svg: string) =>
+  REVEALED_LABELS.has(l) ? svg.replaceAll('"#000"', `"${BAR_ANSWER_COLOUR}"`) : svg;
 export const visible = (l: Label) =>
   l.state === "value" ? l.text : l.state === "question" ? "?" : "";
 const esc = (s: string) =>
@@ -349,6 +348,15 @@ export function warnings(e: Envelope) {
     : [];
 }
 function textSvg(
+  l: Label,
+  x: number,
+  y: number,
+  font: number,
+  anchor = "middle",
+) {
+  return inkRevealed(l, labelSvg(l, x, y, font, anchor));
+}
+function labelSvg(
   l: Label,
   x: number,
   y: number,

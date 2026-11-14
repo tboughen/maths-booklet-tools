@@ -1,0 +1,171 @@
+{
+ "tool": "construction",
+ "schemaVersion": 1,
+ "rendererVersion": "construction-1",
+ "document": {
+  "width": 13,
+  "height": 7,
+  "grid": "none",
+  "border": false,
+  "caption": {
+   "text": "",
+   "show": "show"
+  },
+  "points": [
+   {
+    "id": "A",
+    "x": 1,
+    "y": 1.5,
+    "label": {
+     "text": "A",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "given"
+   },
+   {
+    "id": "B",
+    "x": 12,
+    "y": 1.5,
+    "label": {
+     "text": "B",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "given"
+   },
+   {
+    "id": "P",
+    "x": 6,
+    "y": 1.5,
+    "label": {
+     "text": "P",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "cross",
+    "role": "given"
+   },
+   {
+    "id": "pa1-x",
+    "x": 3.5,
+    "y": 1.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "given",
+    "group": "pa1"
+   },
+   {
+    "id": "pa1-y",
+    "x": 8.5,
+    "y": 1.5,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "given",
+    "group": "pa1"
+   },
+   {
+    "id": "pa1-z",
+    "x": 6,
+    "y": 4.362,
+    "label": {
+     "text": "",
+     "show": "show"
+    },
+    "labelAt": "auto",
+    "mark": "none",
+    "role": "given",
+    "group": "pa1"
+   }
+  ],
+  "objects": [
+   {
+    "id": "AB",
+    "role": "given",
+    "type": "segment",
+    "from": "A",
+    "to": "B",
+    "extend": [
+     0,
+     0
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   },
+   {
+    "id": "pa1-arc1",
+    "role": "given",
+    "group": "pa1",
+    "type": "arc",
+    "center": "P",
+    "radius": 2.5,
+    "start": 163.96,
+    "sweep": 32.09,
+    "dash": false
+   },
+   {
+    "id": "pa1-arc2",
+    "role": "given",
+    "group": "pa1",
+    "type": "arc",
+    "center": "P",
+    "radius": 2.5,
+    "start": -16.04,
+    "sweep": 32.09,
+    "dash": false
+   },
+   {
+    "id": "pa1-arc3",
+    "role": "given",
+    "group": "pa1",
+    "type": "arc",
+    "center": "pa1-x",
+    "radius": 3.8,
+    "start": 38.31,
+    "sweep": 21.11,
+    "dash": false
+   },
+   {
+    "id": "pa1-arc4",
+    "role": "given",
+    "group": "pa1",
+    "type": "arc",
+    "center": "pa1-y",
+    "radius": 3.8,
+    "start": 120.59,
+    "sweep": 21.11,
+    "dash": false
+   },
+   {
+    "id": "pa1-line",
+    "role": "given",
+    "group": "pa1",
+    "type": "segment",
+    "from": "P",
+    "to": "pa1-z",
+    "extend": [
+     0,
+     1
+    ],
+    "dash": false,
+    "label": {
+     "text": "",
+     "show": "show"
+    }
+   }
+  ]
+ }
+}
