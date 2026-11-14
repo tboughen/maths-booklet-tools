@@ -39,6 +39,7 @@ import {
   pathName,
   pruneBranch,
   questionValue,
+  minimumBranches,
   removeLastSibling,
   removeStage,
   renderSvg,
@@ -517,7 +518,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   </button>
                   <button
                     type="button"
-                    disabled={blocked || childrenOf(d, selectedBranch.parent).length <= 2}
+                    disabled={blocked || childrenOf(d, selectedBranch.parent).length <= minimumBranches(selectedBranch.parent)}
                     onClick={() => {
                       commit(removeLastSibling(e, selectedBranch.parent));
                       setSelected(null);

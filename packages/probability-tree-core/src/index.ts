@@ -168,9 +168,10 @@ export function validate(input: unknown): Envelope {
   }
   const groups = new Map<string | null, number>();
   for (const b of d.branches) groups.set(b.parent, (groups.get(b.parent) ?? 0) + 1);
-  for (const [, count] of groups)
-    if (count < 2 || count > MAX_CHILDREN)
-      throw Error(`Each point of the tree needs 2 to ${MAX_CHILDREN} branches.`);
+  // A later point may have one branch, for "draw the missing branches" questions.
+  for (const [parent, count] of groups)
+    if (count < (parent === null ? 2 : 1) || count > MAX_CHILDREN)
+      throw Error(`The first stage needs 2 to ${MAX_CHILDREN} branches; each later point 1 to ${MAX_CHILDREN}.`);
   if (maxDepth(d) > MAX_DEPTH) throw Error(`Use at most ${MAX_DEPTH} stages.`);
   if (leaves(d).length > MAX_LEAVES) throw Error(`Use at most ${MAX_LEAVES} paths through the tree.`);
   const qids = new Set<string>();
@@ -290,7 +291,7 @@ export function extendBranch(e: Envelope, id: string, count?: number): Envelope 
     d = n.document;
   if (!isLeaf(d, id) || depthOf(d, id) >= MAX_DEPTH) return e;
   const first = childrenOf(d, null);
-  const k = Math.min(MAX_CHILDREN, Math.max(2, count ?? first.length));
+  const k = Math.min(MAX_CHILDREN, Math.max(1, count ?? first.length));
   const at = d.branches.findIndex((b) => b.id === id);
   const added: Branch[] = [];
   for (let i = 0; i < k; i++) {
@@ -337,9 +338,11 @@ export function addSibling(e: Envelope, parent: string | null): Envelope {
   d.branches.splice(at + 1, 0, newBranch(nextId(d), parent));
   return validate(n);
 }
+/** The first stage keeps two branches; a later point may keep one. */
+export const minimumBranches = (parent: string | null) => (parent === null ? 2 : 1);
 export function removeLastSibling(e: Envelope, parent: string | null): Envelope {
   const group = childrenOf(e.document, parent);
-  if (group.length <= 2) return e;
+  if (group.length <= minimumBranches(parent)) return e;
   const last = group[group.length - 1];
   const n = clone(pruneBranch(e, last.id));
   n.document.branches = n.document.branches.filter((b) => b.id !== last.id);
@@ -410,7 +413,8 @@ export function fillComplements(e: Envelope): { envelope: Envelope; filled: numb
   for (const [parent] of groupSizes(d)) {
     const group = childrenOf(d, parent);
     const empty = group.filter((b) => !b.probability.text.trim());
-    if (empty.length !== 1) continue;
+    // A lone branch is a part-drawn tree, not a certain event: never write 1 there.
+    if (empty.length !== 1 || group.length < 2) continue;
     const known = group.filter((b) => b !== empty[0]).map((b) => readProbability(b.probability.text));
     if (known.some((f) => f === null)) continue;
     const total = (known as Fraction[]).reduce(add, { n: 0n, d: 1n });
@@ -593,6 +597,48 @@ export type Target = {
 export type Placed = { label: Label; kind: "probability" | "text"; cx: number; cy: number; align: "middle" | "start" };
 export type Layout = ReturnType<typeof layout>;
 
+type Box = { x1: number; x2: number; y1: number; y2: number };
+/** Places along a branch (0 start, 1 end) tried for its probability, the middle first. */
+const PROBABILITY_POSITIONS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.45, 0.4, 0.35, 0.3];
+/** A label prints something: text, or a pupil space for a hidden answer. */
+const drawnLabel = (l: Label) => l.show === "hidden" || !!l.text.trim();
+function boxOf(p: Placed, blank: TreeDocument["blankStyle"]): Box {
+  const b = labelBox(p.label, blank, p.kind);
+  const x1 = p.align === "start" ? p.cx : p.cx - b.width / 2;
+  return { x1, x2: x1 + b.width, y1: p.cy - b.height / 2, y2: p.cy + b.height / 2 };
+}
+/** Labels may touch but not overlap by more than 0.3 mm. */
+const boxesOverlap = (a: Box, b: Box) =>
+  a.x1 < b.x2 - 0.3 && b.x1 < a.x2 - 0.3 && a.y1 < b.y2 - 0.3 && b.y1 < a.y2 - 0.3;
+/** Whether a branch line passes through a label (shrunk by 0.3 mm), by Liang-Barsky clipping. */
+export function lineCrossesBox(l: { x1: number; y1: number; x2: number; y2: number }, box: Box): boolean {
+  const xMin = box.x1 + 0.3,
+    xMax = box.x2 - 0.3,
+    yMin = box.y1 + 0.3,
+    yMax = box.y2 - 0.3;
+  if (xMin >= xMax || yMin >= yMax) return false;
+  const dx = l.x2 - l.x1,
+    dy = l.y2 - l.y1;
+  let t0 = 0,
+    t1 = 1;
+  for (const [p, q] of [
+    [-dx, l.x1 - xMin],
+    [dx, xMax - l.x1],
+    [-dy, l.y1 - yMin],
+    [dy, yMax - l.y1],
+  ]) {
+    if (p === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    const r = q / p;
+    if (p < 0) t0 = Math.max(t0, r);
+    else t1 = Math.min(t1, r);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
 /** All positions and teacher-facing issues; issues block export, notes do not. */
 export function layout(e: Envelope) {
   const d = e.document,
@@ -632,29 +678,62 @@ export function layout(e: Envelope) {
   const lines: { x1: number; y1: number; x2: number; y2: number; bold: boolean }[] = [];
   const placed: Placed[] = [];
   const targets: Target[] = [];
-  for (const b of d.branches) {
+  // Lines and outcome names first, so probabilities can be placed clear of all of them.
+  const geometry = d.branches.map((b) => {
     const k = depth.get(b.id)! - 1;
     const parentY = b.parent ? nodeY.get(b.parent)! : rootY;
-    const x1 = k === 0 ? 0 : startX[k],
-      x2 = startX[k] + d.branchMm,
-      y1 = parentY,
-      y2 = nodeY.get(b.id)!;
-    lines.push({ x1, y1, x2, y2, bold: b.bold });
+    const line = { x1: k === 0 ? 0 : startX[k], x2: startX[k] + d.branchMm, y1: parentY, y2: nodeY.get(b.id)!, bold: b.bold };
+    lines.push(line);
     // Outcome name just after the branch end.
     const ob = labelBox(b.outcome, d.blankStyle, "text");
-    placed.push({ label: b.outcome, kind: "text", cx: x2 + 1.5, cy: y2, align: "start" });
-    targets.push({ kind: "outcome", id: b.id, x: x2 + 1, y: y2 - 3, width: Math.max(ob.width, 8) + 1, height: 6 });
+    const outcome: Placed = { label: b.outcome, kind: "text", cx: line.x2 + 1.5, cy: line.y2, align: "start" };
+    placed.push(outcome);
+    return { b, line, outcome, outcomeTarget: { kind: "outcome", id: b.id, x: line.x2 + 1, y: line.y2 - 3, width: Math.max(ob.width, 8) + 1, height: 6 } as Target };
+  });
+  const branchPlaced: Placed[] = [];
+  const branchTargets: Target[] = [];
+  for (const { b, line, outcome, outcomeTarget } of geometry) {
+    const { x1, x2, y1, y2 } = line;
     // Probability above an upward or level branch, below a downward one, clear of the line.
     const pb = labelBox(b.probability, d.blankStyle, "probability");
     const w = Math.max(pb.width, 6),
       h = Math.max(pb.height, FONT * 1.2);
-    const mx = (x1 + x2) / 2,
-      my = (y1 + y2) / 2,
-      slope = (y2 - y1) / (x2 - x1);
-    const cy = y2 > y1 + 0.01 ? my + Math.abs(slope) * (w / 2) + 1 + h / 2 : my - Math.abs(slope) * (w / 2) - 1 - h / 2;
-    placed.push({ label: b.probability, kind: "probability", cx: mx, cy, align: "middle" });
-    targets.push({ kind: "probability", id: b.id, x: mx - w / 2 - 0.5, y: cy - h / 2 - 0.5, width: w + 1, height: h + 1 });
+    const slope = (y2 - y1) / (x2 - x1);
+    const at = (t: number, below: boolean) => {
+      const mx = x1 + t * (x2 - x1),
+        my = y1 + t * (y2 - y1);
+      return { mx, cy: below ? my + Math.abs(slope) * (w / 2) + 1 + h / 2 : my - Math.abs(slope) * (w / 2) - 1 - h / 2 };
+    };
+    const preferBelow = y2 > y1 + 0.01;
+    // The usual place is the middle of the branch. Where that would touch another branch or
+    // label (the middle branch of a three-way split), slide along the branch, then try the other side.
+    let spot = at(0.5, preferBelow);
+    const probability: Placed = { label: b.probability, kind: "probability", cx: spot.mx, cy: spot.cy, align: "middle" };
+    if (drawnLabel(probability.label)) {
+      const others = placed.filter((p) => drawnLabel(p.label)).map((p) => boxOf(p, d.blankStyle));
+      const clear = (c: { mx: number; cy: number }) => {
+        const box = boxOf({ ...probability, cx: c.mx, cy: c.cy }, d.blankStyle);
+        return (
+          box.x1 >= x1 - 0.01 &&
+          box.x2 <= x2 + 0.01 &&
+          !others.some((o) => boxesOverlap(box, o)) &&
+          !lines.some((l) => lineCrossesBox(l, box))
+        );
+      };
+      const found = [false, true]
+        .flatMap((other) => PROBABILITY_POSITIONS.map((t) => at(t, other ? !preferBelow : preferBelow)))
+        .find(clear);
+      if (found) spot = found;
+    }
+    probability.cx = spot.mx;
+    probability.cy = spot.cy;
+    placed.push(probability);
+    // Printed and tab order stays outcome, then probability, branch by branch.
+    branchPlaced.push(outcome, probability);
+    branchTargets.push(outcomeTarget, { kind: "probability", id: b.id, x: spot.mx - w / 2 - 0.5, y: spot.cy - h / 2 - 0.5, width: w + 1, height: h + 1 });
   }
+  placed.splice(0, placed.length, ...branchPlaced);
+  targets.push(...branchTargets);
   // End columns line up at the right for every path, whatever its length.
   const endX = x + 3;
   let right = Math.max(...d.branches.map((b) => startX[depth.get(b.id)! - 1] + d.branchMm + 1.5 + labelBox(b.outcome, d.blankStyle, "text").width));
@@ -723,22 +802,17 @@ export function layout(e: Envelope) {
     shiftY = (v: number) => v + dy;
 
   // Printed labels must not overlap one another.
-  const drawn = placed
-    .filter((p) => p.label.show === "hidden" || p.label.text.trim())
-    .map((p) => {
-      const b = labelBox(p.label, d.blankStyle, p.kind);
-      const x1 = p.align === "start" ? p.cx : p.cx - b.width / 2;
-      return { x1, x2: x1 + b.width, y1: p.cy - b.height / 2, y2: p.cy + b.height / 2 };
-    });
-  const clash = drawn.some((a, i) =>
-    drawn.slice(i + 1).some((b) => a.x1 < b.x2 - 0.3 && b.x1 < a.x2 - 0.3 && a.y1 < b.y2 - 0.3 && b.y1 < a.y2 - 0.3),
-  );
+  const drawn = placed.filter((p) => drawnLabel(p.label)).map((p) => boxOf(p, d.blankStyle));
+  const clash = drawn.some((a, i) => drawn.slice(i + 1).some((b) => boxesOverlap(a, b)));
   if (clash) issues.push("Some labels overlap. Increase the path spacing or branch length, or shorten labels.");
+  // ... nor cross a branch line. A note rather than an issue, so saved trees still export as before.
+  else if (drawn.some((box) => lines.some((l) => lineCrossesBox(l, box))))
+    notes.push("A label or pupil space crosses a branch. Increase the path spacing or branch length, or shorten labels.");
   // Teacher notes: sibling probabilities that are all numbers but do not total 1.
   for (const [parent] of groupSizes(d)) {
     const group = childrenOf(d, parent);
     const values = group.map((b) => readProbability(b.probability.text));
-    if (values.every((v) => v)) {
+    if (group.length > 1 && values.every((v) => v)) {
       const total = (values as Fraction[]).reduce(add, { n: 0n, d: 1n });
       if (total.n !== total.d)
         notes.push(
