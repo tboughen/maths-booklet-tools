@@ -239,7 +239,8 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
       const svg = bytes.toString();
       expect(svg.includes("data:font/otf;base64,")).toBe(true);
       expect(svg.includes("ratio-guides")).toBe(false);
-      expect(svg.includes(`width="${metrics.widthCm}cm"`)).toBe(true);
+      // The SVG root keeps four decimal places of its unit (U38).
+      expect(svg.includes(`width="${Number(metrics.widthCm.toFixed(4))}cm"`)).toBe(true);
       const pupilCell = svg.match(
         /<g class="ratio-cell" data-row="target" data-column="1"[^]*?<\/g>/,
       )![0];
