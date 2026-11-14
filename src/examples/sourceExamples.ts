@@ -131,7 +131,6 @@ export const ratioExamples: SourceExample<RatioEnvelope>[] = [
       "2.5 kg costs £3.60. Use the unit-price step to find the cost of 3.5 kg.",
     create: (worked) =>
       createRatioTable({
-        schemaVersion: 1,
         headings: [
           { text: "kg", italic: false, direction: "none" },
           { text: "GBP", italic: false, direction: "none" },

@@ -1,7 +1,7 @@
 {
   "kind": "ratio-table",
-  "schemaVersion": 1,
-  "rendererVersion": "ratio-1",
+  "schemaVersion": 2,
+  "rendererVersion": "ratio-2",
   "styleProfile": "ratio-lesson-v1",
   "document": {
     "headings": [

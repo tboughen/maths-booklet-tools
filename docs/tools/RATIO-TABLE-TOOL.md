@@ -132,12 +132,10 @@ automatically printed or inferred.
 ## Saving, sharing and recovery
 
 The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
-all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables with at least two rows
-retain schemaVersion 1 / ratio-1 and their hashes; one-row, one-column or three-column tables use
-schemaVersion 2 / ratio-2. Existing saved files, links and the storage key are
-unchanged. Removing a column is immediate and undoable. Returning to two columns with at least two rows
-returns to the original format. Older website versions cannot open three-column
-files; the current editor can open both formats.
+all graph keys. Save editable table downloads the complete JSON envelope. Every table is
+schemaVersion 2 / ratio-2, whatever its shape; schema 1 files are no longer read
+(Tim, 14 Nov 2026: no backwards compatibility). Removing a column is immediate and
+undoable.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves
 the current table unchanged; a confirmed opening is one undoable change.
 Share links, including those from the MCP service, use /tools/ratio-table#ratio-table=... (older ?tool=ratio-table links still redirect); the fragment stays in the browser.

@@ -95,7 +95,7 @@ describe("bounded original SVG byte transport", () => {
 describe("real MCP SVG delivery with artifact downloads disabled in the consumer", () => {
   const fixtures = [
     { kind: "graph", name: "graph", args: { schemaVersion: 1, objects: [] } },
-    { kind: "ratio-table", name: "ratio_table", args: { schemaVersion: 1, rows: [{ cells: [{ kind: "number", value: "2/3" }, { kind: "answer-line" }] }, { cells: [{ kind: "number", value: "0" }, { kind: "empty" }] }] } },
+    { kind: "ratio-table", name: "ratio_table", args: { rows: [{ cells: [{ kind: "number", value: "2/3" }, { kind: "answer-line" }] }, { cells: [{ kind: "number", value: "0" }, { kind: "empty" }] }] } },
     { kind: "value-graph", name: "value_graph", args: {} },
     { kind: "cuboids", name: "cuboid", args: { spec: { shapes: [{ labels: { width: { mode: "blank" } } }] } } },
     { kind: "number-line", name: "number_line", args: { spec: { teaching: { labels: { "0": "answer-line" }, answer: "x > 0", answerVisible: false } } } },

@@ -19,7 +19,7 @@ const font = {
 };
 const fixture = (size = "standard", annotated = true) =>
   createRatioTable({
-    schemaVersion: 1,
+    schemaVersion: 2,
     size,
     mode: annotated ? "annotated" : "simple",
     rows: [
@@ -144,7 +144,7 @@ describe("native ratio-table presentation", () => {
       }
     }
     const fraction = createRatioTable({
-      schemaVersion: 1,
+      schemaVersion: 2,
       rows: [
         {
           cells: [
