@@ -1,4 +1,5 @@
 // @vitest-environment node
+/// <reference types="vite/client" />
 /**
  * Golden corpus: every saved envelope in packages/envelope-core/fixtures/corpus must still read,
  * keep its exact contentHash and draw byte-identical pupil and answer artwork. Teachers hold
