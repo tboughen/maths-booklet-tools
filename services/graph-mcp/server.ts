@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { copyMetrics } from "./worked-size";
 import type { IncomingMessage } from "node:http";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { resolve } from "node:path";
@@ -133,8 +134,8 @@ export function graphService(options: ServiceOptions) {
     view: "pupil" | "answer" = "pupil",
   ) => {
     const document = documentFromEnvelope(envelope),
-      metrics = getExportMetrics(document),
-      svg = FAMILIES.graph.svg(envelope, view);
+      svg = FAMILIES.graph.svg(envelope, view),
+      metrics = copyMetrics(svg, getExportMetrics(document));
     if (format === "json")
       return {
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
@@ -190,7 +191,7 @@ export function graphService(options: ServiceOptions) {
         })
       : raw;
     const document = documentFromEnvelope(envelope),
-      metrics = getExportMetrics(document);
+      metrics = copyMetrics(FAMILIES.graph.svg(envelope, view), getExportMetrics(document));
     // Generate and independently verify the print artifact before advertising it.
     const printFile = await artifacts(envelope, "png", signal, view);
     const width = Math.min(

@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES, drawDiagram, svgSizeMm } from "./registry";
-import { WORKED_TEXT_MAX } from "../../envelope-core/src/worked";
+import { WORKED_MARGIN_MM, WORKED_TEXT_MAX } from "../../envelope-core/src/worked";
 import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 
 const corpus = join(__dirname, "../../envelope-core/fixtures/corpus");
@@ -41,10 +41,32 @@ describe("worked-solution notes on every answers copy (U116)", () => {
       expect(revised).toMatchObject({ worked });
       expect(await f.hash(noted)).not.toBe(await f.hash(plain));
     });
-    it(`${kind}: names a note that runs off the artwork`, () => {
+    it(`${kind}: a note in the margin grows only the answers copy's page; past the margin it is named`, () => {
       const plain = f.validate(saved(kind), "pupil") as Record<string, unknown>;
-      const { width } = svgSizeMm(f.svg(plain, "answer"));
-      expect(() => f.validate({ ...plain, worked: [{ text: "Too far", x: width, y: 1 }] }, "pupil")).toThrow(/Worked note 1 runs .* past the right edge/);
+      const size = svgSizeMm(f.svg(plain, "answer"));
+      const beside = f.validate({ ...plain, worked: [{ text: "Add 3", x: size.width + 2, y: 1, widthMm: 20 }] }, "pupil");
+      const grown = svgSizeMm(f.svg(beside, "answer"));
+      expect(grown.width).toBeGreaterThan(size.width + 2);
+      expect(grown.height).toBeCloseTo(size.height, 1);
+      expect(f.svg(beside, "pupil")).toBe(f.svg(plain, "pupil"));
+      const far = [{ text: "Too far", x: size.width + WORKED_MARGIN_MM, y: 1 }];
+      expect(() => f.validate({ ...plain, worked: far }, "pupil")).toThrow(/Worked note 1 runs .* past the 70 mm margin right of the diagram/);
+    });
+    it(`${kind}: in a worksheet both copies take the margin's space, with their artwork lined up`, () => {
+      const plain = f.validate(saved(kind), "pupil") as Record<string, unknown>;
+      const size = svgSizeMm(f.svg(plain, "answer"));
+      const beside = f.validate({ ...plain, worked: [{ text: "Add 3", x: -25, y: 1, widthMm: 20 }] }, "pupil");
+      const pupil = drawDiagram(kind, beside, "pupil"),
+        answer = drawDiagram(kind, beside, "answer");
+      const box = (svg: string) => svg.match(/<svg\b[^>]*\sviewBox="([^"]+)"/)![1];
+      expect(box(pupil.svg)).toBe(box(answer.svg));
+      expect(svgSizeMm(pupil.svg)).toEqual(svgSizeMm(answer.svg));
+      expect(pupil.widthMm).toBeGreaterThan(size.width + 25);
+      expect(pupil.artworkWidthMm).toBeCloseTo(size.width, 1);
+      expect(pupil.svg).not.toContain('data-layer="worked"');
+      // A note inside the answers artwork never changes the pupil copy, even where the pupil artwork is smaller.
+      const inside = f.validate({ ...plain, worked: [{ text: "Add", x: 1, y: Math.max(0, size.height - 6), widthMm: 10 }] }, "pupil");
+      expect(drawDiagram(kind, inside, "pupil").svg).toBe(drawDiagram(kind, plain, "pupil").svg);
     });
   }
 

@@ -7,6 +7,7 @@ import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import {
+  A4,
   bookletFileName,
   lessonFileName,
   lessonPagesOf,
@@ -33,6 +34,7 @@ import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
+import { usePrintSize } from "../site/usePrintSize";
 import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
@@ -96,6 +98,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
+  const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -109,25 +112,27 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const shown = useMemo(() => renderBooklet(b, { view: answers ? "answers" : "pupil" }), [b, answers]);
   const issues = shown.issues;
 
-  function commit(next: Booklet) {
-    if (recovery !== null) return;
+  function commit(next: Booklet): boolean {
+    if (recovery !== null) return false;
     try {
       const valid = validateBooklet(next);
       documentHistory.commit(valid);
       setMessage("");
+      return true;
     } catch (e) {
       // Invalid edits are refused with the specific reason; the last valid booklet stays.
       setMessage(e instanceof Error ? e.message : String(e));
+      return false;
     }
   }
   function apply(f: (b: Booklet) => Booklet) {
     if (!blocked) commit(f(b));
   }
   function patch(update: (doc: BookletDoc) => void) {
-    if (blocked) return;
+    if (blocked) return false;
     const next = structuredClone(b);
     update(next.document);
-    commit(next);
+    return commit(next);
   }
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
@@ -183,7 +188,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const r = lesson === undefined ? renderBooklet(b, { view }) : lessonPagesOf(b, lesson, { view });
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
     const pages = r.pages;
-    downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
+    downloadBlob(await pagesPdf(pages, d.title, "Page"), pdfName(b, view, lesson));
   }
   /** The Word file: the same pages as the PDF, written here with the connector's own writer. */
   async function downloadWord(view: "pupil" | "answers", lesson?: number) {
@@ -453,6 +458,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <span className="resource-size">
                 A4 portrait, {shown.pages.length} pages
               </span>
+              {printSize.controls}
               <span className="bk-jump">
                 <select
                   aria-label="Go to a page"
@@ -516,11 +522,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             )}
-            <div className="bk-pages" data-testid="booklet-pages" ref={pagesRef}>
+            <div className={`bk-pages${printSize.actual ? " ws-actual" : ""}`} data-testid="booklet-pages" ref={pagesRef}>
               {shown.pages.map((svg, i) => (
                 <figure key={i} className="ws-page bk-page" id={`bk-page-${i + 1}`}>
                   <figcaption>Page {i + 1}</figcaption>
-                  <div className="ws-art" dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
+                  <div className="ws-art" style={{ width: printSize.width(A4.page.width) }} dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
                 </figure>
               ))}
             </div>

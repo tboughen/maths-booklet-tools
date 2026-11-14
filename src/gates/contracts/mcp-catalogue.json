@@ -4358,7 +4358,7 @@
   {
     "name": "diagram_capabilities",
     "title": "Diagram options",
-    "description": "List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, triangle, construction, elevations.",
+    "description": "List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, triangle, construction, elevations.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4419,6 +4419,12 @@
               "summary": {
                 "type": "string"
               },
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "answerView": {
                 "type": "boolean"
               }
@@ -4426,9 +4432,16 @@
             "required": [
               "kind",
               "summary",
+              "topics",
               "answerView"
             ],
             "additionalProperties": false
+          }
+        },
+        "notDrawn": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         },
         "next": {

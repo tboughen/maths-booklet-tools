@@ -11,21 +11,39 @@ const familyLabel = (kind: keyof typeof FAMILIES) => {
   return l[0].toUpperCase() + l.slice(1);
 };
 
-export /** Typing stays local; leaving the field or Enter applies one undoable change, Escape restores. */
-function Field({ label, value, onCommit, max, multiline, lines, disabled }: { label: string; value: string; onCommit: (v: string) => void; max: number; multiline?: boolean; /** Keeps line breaks: Enter starts a new line, leaving the field applies. */ lines?: boolean; disabled?: boolean }) {
+export /**
+ * Typing stays local; leaving the field or Enter applies one undoable change, Escape restores. When the page
+ * refuses the change (`onCommit` returns false, W12), the typed text stays in the field, marked invalid,
+ * beside the page's specific message, so nothing the teacher typed disappears.
+ */
+function Field({ label, value, onCommit, max, multiline, lines, disabled }: { label: string; value: string; onCommit: (v: string) => boolean | void; max: number; multiline?: boolean; /** Keeps line breaks: Enter starts a new line, leaving the field applies. */ lines?: boolean; disabled?: boolean }) {
   const [draft, setDraft] = useState(value);
   const [editing, setEditing] = useState(false);
+  const [refused, setRefused] = useState(false);
   useEffect(() => {
     if (!editing) setDraft(value);
   }, [value, editing]);
+  // A refused draft belongs to the value it was typed over: when that value changes (undo, redo, an
+  // item moving into this place), the stale draft gives way to the new saved text.
+  const [typedOver, setTypedOver] = useState(value);
+  if (typedOver !== value) {
+    setTypedOver(value);
+    if (refused) {
+      setRefused(false);
+      setEditing(false);
+      setDraft(value);
+    }
+  }
   const commit = () => {
-    setEditing(false);
     // Saved text is one line (line breaks become spaces), except where lines are kept.
     const clean = lines ? draft.replace(/\r\n?/g, "\n").replace(/\t/g, " ") : draft.replace(/[\r\n\t]+/g, " ");
-    if (clean !== value) onCommit(clean);
+    const kept = clean !== value && onCommit(clean) === false;
+    setRefused(kept);
+    setEditing(kept);
   };
   const common = {
     "aria-label": label,
+    "aria-invalid": refused || undefined,
     value: draft,
     maxLength: max,
     disabled,
@@ -44,6 +62,7 @@ function Field({ label, value, onCommit, max, multiline, lines, disabled }: { la
         e.stopPropagation();
         setDraft(value);
         setEditing(false);
+        setRefused(false);
       }
     },
   };
@@ -51,6 +70,7 @@ function Field({ label, value, onCommit, max, multiline, lines, disabled }: { la
     <label className="ws-field">
       <span>{label}</span>
       {multiline || lines ? <textarea rows={Math.min(lines ? 8 : 5, Math.max(2, Math.ceil(value.length / 48), lines ? value.split("\n").length : 0))} {...common} /> : <input {...common} />}
+      {refused && <small className="ws-field-refused">Not applied: the change was refused (see the message above). Fix it, or press Escape to restore.</small>}
     </label>
   );
 }
@@ -79,7 +99,7 @@ const CELL_STATES: [Cell["state"], string][] = [
   ["hidden", "Hidden answer"],
 ];
 
-export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf; set: (next: Leaf) => void; label: string; disabled: boolean }): ReactNode {
+export function LeafEditor({ item, set, label, disabled: blocked }: { item: Leaf; set: (next: Leaf) => boolean | void; label: string; disabled: boolean }): ReactNode {
     switch (item.type) {
       case "text":
       case "info":
@@ -169,7 +189,7 @@ const PAPER_STYLES: [Paper["style"], string][] = [
 ];
 
 /** Grid paper: style, printed size and optional blank axes. Grids are never shrunk; a grid wider than its card is reported. */
-function PaperEditor({ item, set, label, disabled }: { item: Paper; set: (next: Leaf) => void; label: string; disabled: boolean }) {
+function PaperEditor({ item, set, label, disabled }: { item: Paper; set: (next: Leaf) => boolean | void; label: string; disabled: boolean }) {
   const axes = item.axes;
   const name = (t: string) => (label ? `${label} ${t}` : t[0].toUpperCase() + t.slice(1));
   return (
