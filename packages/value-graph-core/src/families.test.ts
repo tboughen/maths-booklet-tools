@@ -45,6 +45,9 @@ describe("cubic, reciprocal and exponential tables (U84)", () => {
     expect(reciprocal).not.toContain("Infinity");
     const svg = renderSvg(withEquation({ a: "0", b: "0", c: "0", reciprocal: "6" }, rangeColumns("1", "6", "1")));
     expect(svg).toContain("data-curve=");
+    // The equation heading stacks 6 over x: no inline "6/x" anywhere in the artwork.
+    expect(svg).not.toMatch(/\d\/(<tspan[^>]*>)?x/);
+    expect(svg).toMatch(/>6<\/text><path d="M[\d.]+ [\d.]+h[\d.]+" stroke="black" stroke-width="0.18"\/>/);
   });
 
   it("keeps quadratic files unchanged and warns about straight joins by family", () => {

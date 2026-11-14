@@ -844,17 +844,17 @@
   },
   "plotting quadratics: quadratic-fractions": {
    "json": "0d638e4ba4c98cb6",
-   "svg": "5ae4b7a29459f80a",
-   "mm": "141x134",
-   "png600": "3331x3165",
-   "pixels": "6ac55f7fcb3e143d"
+   "svg": "cf36101557f9172e",
+   "mm": "141x136",
+   "png600": "3331x3213",
+   "pixels": "552d38ee876f26eb"
   },
   "plotting quadratics: quadratic-fractions (worked)": {
    "json": "6ff6ceefa00ba614",
-   "svg": "1477dd03169c49a3",
-   "mm": "141x134",
-   "png600": "3331x3165",
-   "pixels": "ff0cb26b711403c8"
+   "svg": "27d8dde9e4449e9c",
+   "mm": "141x136",
+   "png600": "3331x3213",
+   "pixels": "318a7273a4a13565"
   },
   "probability trees: tree-darts": {
    "json": "cbf56c04bcacb580",
