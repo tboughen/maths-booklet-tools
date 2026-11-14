@@ -121,3 +121,20 @@ test("a point prints its coordinates or a pupil blank, as an undoable edit", asy
   await expect(canvas.locator(".point-coordinates text")).toHaveCount(0);
   await expect.poll(async () => "coordinates" in ((await saved(page))?.objects[0] ?? {})).toBe(false);
 });
+
+test("bold lines are saved, drawn heavier and undoable; the grid keeps its weight (U111)", async ({ page }) => {
+  await page.goto("/tools/graph");
+  await page.getByText("Exam-style axes and grid").click();
+  const canvas = page.locator(".graph-canvas");
+  const width = (selector: string) => canvas.locator(selector).first().evaluate((el) => parseFloat(getComputedStyle(el).strokeWidth));
+  const axes = await width(".graph-axes"),
+    grid = await width(".grid-lines");
+  await page.getByRole("group", { name: "Lines" }).getByRole("button", { name: "Bold" }).click();
+  await expect.poll(async () => (await saved(page))?.lines).toBe("bold");
+  await expect.poll(() => width(".graph-axes")).toBeCloseTo(axes * 1.5, 2);
+  expect(await width(".grid-lines")).toBeCloseTo(grid, 3);
+  await page.getByRole("group", { name: "Lines" }).getByRole("button", { name: "Normal" }).click();
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => (await saved(page))?.lines).toBe("bold");
+});

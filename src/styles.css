@@ -169,6 +169,11 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-polygon--answer.graph-polygon--shaded { fill: #b0125b; fill-opacity: .18; }
 .graph-polygon--selected { stroke: var(--blue); stroke-width: 4; }
 .gradient-triangle path { stroke: #222426; stroke-width: 2; fill: none; pointer-events: none; }
+/* Bold lines (U111): the axes and plotted lines are 1.5 times as heavy; the grid keeps its weight. */
+.graph-canvas--bold .graph-axes { stroke-width: 6.35; }
+.graph-canvas--bold .graph-straight, .graph-canvas--bold .graph-point, .graph-canvas--bold .graph-polygon { stroke-width: 4.5; }
+.graph-canvas--bold .graph-straight--selected, .graph-canvas--bold .graph-point--selected, .graph-canvas--bold .graph-polygon--selected { stroke-width: 6; }
+.graph-canvas--bold .gradient-triangle path { stroke-width: 3; }
 .gradient-triangle--answer path { stroke: #b0125b; }
 .graph-canvas .gradient-triangle text.text-halo { fill: #fff; stroke: #fff; stroke-width: 3.6px; stroke-linejoin: round; }
 .gradient-triangle .point-label text { fill: #202224; }

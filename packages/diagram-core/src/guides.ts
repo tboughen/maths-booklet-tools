@@ -40,6 +40,7 @@ const graphGuide: FamilyGuide = {
     axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title"],
     grids: ["1cm", "5mm", "2mm", "none"],
     originLabels: ["0", "O"],
+    lines: ["normal", "bold"],
     objectNames: "A, B, P′, L, L1, L2 (capital letter, optional prime, optional subscript number)",
     squares: { x: [2, 18], y: [2, 26] },
     maximumObjects: 50,
@@ -48,10 +49,10 @@ const graphGuide: FamilyGuide = {
       x: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
       y: { negativeSquares: 5, positiveSquares: 5, unitsPerSquare: 1 },
     },
-    revisionOperations: ["add_object", "replace_object", "remove_object", "set_axes", "set_label", "set_grid", "set_name"],
+    revisionOperations: ["add_object", "replace_object", "remove_object", "set_axes", "set_label", "set_grid", "set_lines", "set_name"],
   },
   create:
-    "One-centimetre grid squares with points, segments, straight lines and shaded inequality regions; no curves. spec is {schemaVersion?:1, axes, grid?, originLabel?, objects}: supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly asks to print, show or label the equation; plotting y = 2x + 1 alone gives an unlabelled line. A point, segment end or line may sit anywhere, including off the grid, for example a deliberate non-perfect point in a spot-the-mistake question: coordinates need not be on grid lines or crossings (e.g. {x:3,y:2.6}); only parts inside the axes are drawn. " +
+    "One-centimetre grid squares with points, segments, straight lines and shaded inequality regions; no curves. spec is {schemaVersion?:1, axes, grid?, originLabel?, lines?:normal|bold, objects} (lines bold makes the axes and plotted lines 1.5 times as heavy; the grid keeps its weight): supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly asks to print, show or label the equation; plotting y = 2x + 1 alone gives an unlabelled line. A point, segment end or line may sit anywhere, including off the grid, for example a deliberate non-perfect point in a spot-the-mistake question: coordinates need not be on grid lines or crossings (e.g. {x:3,y:2.6}); only parts inside the axes are drawn. " +
     "Edexcel style: originLabel \"O\" prints an italic O; name:\"L\" (or \"L1\", \"L2\") prints a bold line name beside the line; a point with name:\"A\" prints an italic A beside its cross. Names never reveal answers, so add them only when the question names the object. " +
     "Hidden answers: answerOnly:true on a point, segment or line draws it in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy keeps the grid blank. Use it for the line or shape a pupil is asked to draw; ask for outputView answer only when the user wants the answers copy. " +
     "Transformations: {kind:\"polygon\", vertices:[{x,y},...] (3 to 12 corners in order; it closes itself), shaded?:true, name?:\"A\"} draws a closed shape; its name prints upright in the middle of the shape, as exam papers label shapes. For \"Reflect shape A\" give the image as a second polygon with answerOnly:true, so the pupil copy shows only A. Shapes are not moved, reflected or enlarged for you: give the image corners yourself only when making an answers copy. " +
@@ -61,7 +62,7 @@ const graphGuide: FamilyGuide = {
     "Inequality regions: {kind:\"region\", inequalities:[\"y > 2x - 1\",\"x <= 3\",\"y >= 0\"], shade:\"wanted\"|\"unwanted\", boundaries:true, name:\"R\"} shades the region (light grey) and draws each boundary across the grid, dashed for < and >, solid for <= and >=; ranges like \"-2 < x <= 3\" count as two. shade unwanted shades the rest and leaves the region clear. A \"shade the region\" question is answerOnly:true so the pupil copy stays unshaded; give the boundary lines as separate line objects (with boundaries:false on the region) when the question already draws them. " +
     "Example travel graph 12 00 to 14 30, 0 to 30 km: axes {x:{negativeSquares:0,positiveSquares:15,unitsPerSquare:10,origin:720,labelEvery:3,format:\"time\",title:\"Time of day\"}, y:{negativeSquares:0,positiveSquares:6,unitsPerSquare:5,labelEvery:2,title:\"Distance from home (km)\"}}, grid \"2mm\", segments in minutes and km such as {kind:\"segment\",start:{x:720,y:0},end:{x:765,y:25}}.",
   revise:
-    "Operations apply atomically. replace_object keeps the ID (use it to change a line's labels); set_label shows, hides or moves a line equation; set_axes sets both axes (include every axis option you want to keep); set_grid {grid?, originLabel?} changes the grid or origin mark; set_name {id, name?: string|null, position?: {x,y}|null} names, renames, unnames or moves an object's printed name. Keep label visibility, names, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
+    "Operations apply atomically. replace_object keeps the ID (use it to change a line's labels); set_label shows, hides or moves a line equation; set_axes sets both axes (include every axis option you want to keep); set_grid {grid?, originLabel?} changes the grid or origin mark; set_lines {lines: normal|bold} sets the line weight; set_name {id, name?: string|null, position?: {x,y}|null} names, renames, unnames or moves an object's printed name. Keep label visibility, names, axis settings and unchanged objects unless asked. A human editable JSON with a legacy font converts to the portable print font with a warning.",
 };
 
 const ratioGuide: FamilyGuide = {

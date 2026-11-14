@@ -1,4 +1,5 @@
 import { aboutOf, aboutShape } from "../../envelope-core/src/about";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { z } from "zod";
 import {
   MAX_AXIS_ORIGIN,
@@ -168,6 +169,9 @@ const gradientTriangleInput = z
   .strict()
   .optional()
   .describe("A right-angled gradient triangle drawn with dashed legs between the line and a horizontal and vertical leg. Not for vertical or horizontal lines.");
+const linesSchema = z
+  .enum(LINE_WEIGHTS)
+  .describe("normal (default) or bold: bold makes the axes and everything plotted 1.5 times as heavy; the grid keeps its weight.");
 const originLabelSchema = z
   .enum(["0", "O"])
   .describe("O prints an italic O at the origin, as Edexcel papers do. Default 0.");
@@ -297,6 +301,7 @@ export const graphSpecSchema = z
     axes: axesSchema.optional(),
     grid: gridSchema.optional(),
     originLabel: originLabelSchema.optional(),
+    lines: linesSchema.optional(),
     objects: z.array(objectInputSchema).max(50),
   })
   .strict();
@@ -366,6 +371,7 @@ const documentSchema = z
     styleProfile: z.enum(["legacy", "portable-v1"]).optional(),
     grid: gridSchema.optional(),
     originLabel: originLabelSchema.optional(),
+    lines: z.literal("bold").optional(),
   })
   .strict()
   .superRefine((d, c) => {
@@ -553,6 +559,7 @@ export function createGraph(value: unknown): GraphEnvelope {
   if (input.axes) document.axes = input.axes;
   if (input.grid) document.grid = input.grid;
   if (input.originLabel) document.originLabel = input.originLabel;
+  if (input.lines === "bold") document.lines = "bold";
   document.styleProfile = "portable-v1";
   document.objects = input.objects.map((object, index) =>
     makeObject(object, index, document),
@@ -570,6 +577,7 @@ const operationSchema = z.discriminatedUnion("op", [
     .strict(),
   z.object({ op: z.literal("remove_object"), id: identifier }).strict(),
   z.object({ op: z.literal("set_axes"), axes: axesSchema }).strict(),
+  z.object({ op: z.literal("set_lines"), lines: linesSchema }).strict(),
   z
     .object({
       op: z.literal("set_grid"),
@@ -700,6 +708,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
       // New settings join the hash only when present, so older graphs keep their hashes.
       ...(document.grid ? { grid: document.grid } : {}),
       ...(document.originLabel ? { originLabel: document.originLabel } : {}),
+      ...(document.lines ? { lines: document.lines } : {}),
     }),
     ...aboutOf(envelope),
   });
@@ -719,6 +728,11 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
   for (const op of input.operations) {
     if (op.op === "set_axes") {
       document.axes = op.axes;
+      continue;
+    }
+    if (op.op === "set_lines") {
+      if (op.lines === "bold") document.lines = "bold";
+      else delete document.lines;
       continue;
     }
     if (op.op === "set_grid") {
