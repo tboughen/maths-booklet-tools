@@ -1,4 +1,5 @@
 import { FAMILIES } from "../../packages/diagram-core/src/registry";
+import { copyMetrics } from "./worked-size";
 import { ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
@@ -35,8 +36,8 @@ export function ratioTools(
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
         type: "application/json",
       };
-    const metrics = ratioMetrics(envelope.document),
-      svg = FAMILIES["ratio-table"].svg(envelope, view);
+    const svg = FAMILIES["ratio-table"].svg(envelope, view),
+      metrics = copyMetrics(svg, ratioMetrics(envelope.document));
     const size =
       format === "svg"
         ? {
@@ -61,7 +62,7 @@ export function ratioTools(
   }
   /** Files and preview for one copy: pupil (default) or answer, which prints hidden answers. */
   async function result(envelope: RatioEnvelope, signal: AbortSignal, view: "pupil" | "answer" = "pupil") {
-    const metrics = ratioMetrics(envelope.document),
+    const metrics = copyMetrics(FAMILIES["ratio-table"].svg(envelope, view), ratioMetrics(envelope.document)),
       hash = await ratioHash(envelope),
       description = describeRatio(envelope, view),
       warnings = ratioWarnings(envelope);

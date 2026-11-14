@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from "react";
-import { WORKED_MAX, WORKED_TEXT_MAX, WORKED_WIDTH_MM, workedIssues, type WorkedNote } from "../../packages/envelope-core/src/worked";
+import { WORKED_MARGIN_MM, WORKED_MAX, WORKED_TEXT_MAX, WORKED_WIDTH_MM, workedIssues, type WorkedNote } from "../../packages/envelope-core/src/worked";
 import { useMenuDialog } from "./menuDialog";
 import { draftOf, notesFromDrafts, type Draft } from "./workedNotesData";
 
@@ -22,7 +22,7 @@ export function WorkedNotesDialog(props: {
   const field = (i: number, key: "x" | "y" | "width" | "lx" | "ly", label: string) => (
     <label className="worked-note-number">
       {label}
-      <input type="number" inputMode="decimal" step="0.5" min={key === "width" ? 10 : 0} value={drafts[i][key]} onChange={(event) => change(i, { [key]: event.target.value })} />
+      <input type="number" inputMode="decimal" step="0.5" min={key === "width" ? 10 : key === "x" || key === "y" ? -WORKED_MARGIN_MM : 0} value={drafts[i][key]} onChange={(event) => change(i, { [key]: event.target.value })} />
     </label>
   );
   return (
@@ -32,7 +32,9 @@ export function WorkedNotesDialog(props: {
         <p id={`${id}-help`} className="title-note-help">
           Dark-pink guidance printed beside the maths on the answers copy only. Place each note near the step it explains; add a straight leader only if
           it cannot sit right beside it. Positions are millimetres from the top-left corner of the diagram
-          {props.size ? `, which is ${Math.round(props.size.width)} × ${Math.round(props.size.height)} mm` : ""}.
+          {props.size ? `, which is ${Math.round(props.size.width)} × ${Math.round(props.size.height)} mm` : ""}. On a small diagram a note can
+          sit in a margin up to {WORKED_MARGIN_MM} mm beside it (a negative position is left of or above it); the answers copy grows to hold it,
+          and the diagram stays at its printed size.
         </p>
         <form
           onSubmit={(event) => {

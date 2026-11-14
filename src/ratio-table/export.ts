@@ -20,7 +20,7 @@ import {
 } from "../export/clipboard";
 import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
-import { answerArt } from "../export/worked";
+import { answerArt, copySizeCm } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 
 /** Whether the table has an answers copy: hidden cells, hidden operations or worked notes (U116). */
@@ -34,8 +34,9 @@ export async function ratioPrintPng(envelope: RatioEnvelope, view: RatioView = "
   const valid = validateRatioEnvelope(envelope),
     metrics = ratioMetrics(valid.document);
   const svg = await embedPortableFonts(ratioArt(valid, view));
-  const png = await svgToPng(svg, metrics.widthCm, metrics.heightCm);
-  const size = printRasterSize(metrics.widthCm, metrics.heightCm);
+  const cm = copySizeCm(svg, metrics.widthCm, metrics.heightCm);
+  const png = await svgToPng(svg, cm.width, cm.height);
+  const size = printRasterSize(cm.width, cm.height);
   verifyPrintBytes(
     new Uint8Array(await png.arrayBuffer()),
     size.width,

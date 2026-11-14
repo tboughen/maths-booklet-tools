@@ -32,8 +32,8 @@ describe("the Worked notes dialog (U116)", () => {
     const onSave = vi.fn();
     render(<Harness notes={[{ text: "Add 3", x: 2, y: 2 }]} onSave={onSave} />);
     fireEvent.click(screen.getByText("open"));
-    fireEvent.change(screen.getByRole("spinbutton", { name: "Across (mm)" }), { target: { value: "78" } });
-    expect(screen.getByRole("alert").textContent).toMatch(/Worked note 1 runs [\d.]+ mm past the right edge/);
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Across (mm)" }), { target: { value: "160" } });
+    expect(screen.getByRole("alert").textContent).toMatch(/Worked note 1 runs [\d.]+ mm past the 70 mm margin right of the diagram/);
     expect((screen.getByRole("button", { name: "Save worked notes" }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "Remove note 1" }));
     fireEvent.click(screen.getByRole("button", { name: "Save worked notes" }));

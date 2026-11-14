@@ -1,4 +1,5 @@
 import { aboutShape } from "../../packages/envelope-core/src/about";
+import { artworkSizeMm, workedOf } from "../../packages/envelope-core/src/worked";
 import { z } from "zod";
 import { GraphError, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { getExportMetrics, graphPrintFacts } from "../../packages/graph-core/src/svg";
@@ -72,7 +73,20 @@ export function diagramSource(raw: unknown): DiagramSource {
     throw new GraphError("invalid_diagram", `Use a supported ${String((raw as {kind?: unknown})?.kind ?? "diagram")} envelope: ${describeIssues(error) ?? (error instanceof Error ? error.message : "invalid source")}`);
   }
 }
+/**
+ * Print information for one copy. Worked notes in the margin (U116) grow the answers copy's page
+ * round the artwork, so its printed size is that page's, read from the answers SVG itself.
+ */
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
+  const info = familyPrintInfo(source, crop);
+  const view = ("outputView" in source && source.outputView) || "pupil";
+  if (view !== "answer" || !workedOf(source.envelope).length || !FAMILIES[source.kind].answerView) return info;
+  const page = artworkSizeMm(FAMILIES[source.kind].svg(source.envelope, "answer"));
+  const cm = (mm: number) => Math.round(mm * 100) / 1000;
+  const grown = Math.abs(page.width / 10 - info.physicalSizeCm.width) > 0.001 || Math.abs(page.height / 10 - info.physicalSizeCm.height) > 0.001;
+  return grown && page.width > 0 && page.height > 0 ? { ...info, physicalSizeCm: { width: cm(page.width), height: cm(page.height) } } : info;
+}
+function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if(source.kind==="bar-model") {const g=bar.layout(bar.forView(source.envelope, source.outputView ?? "pupil"));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:bar.printFacts(source.envelope)};}
   if(source.kind==="charts") { const view=source.outputView ?? "pupil", g=chart.layout(chart.forView(source.envelope, view));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:chartPrintFacts(source.envelope, view)}; }
   if(source.kind==="triangle") {const g=triangle.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:ti.printFacts(source.envelope)};}
