@@ -1,0 +1,73 @@
+{
+ "kind": "two-way-table",
+ "schemaVersion": 1,
+ "rendererVersion": "two-way-table-1",
+ "document": {
+  "corner": "",
+  "columns": [
+   {
+    "id": "c1",
+    "heading": ""
+   },
+   {
+    "id": "c2",
+    "heading": ""
+   }
+  ],
+  "rows": [
+   {
+    "id": "r1",
+    "heading": "",
+    "cells": [
+     {
+      "text": "",
+      "show": "show"
+     },
+     {
+      "text": "",
+      "show": "show"
+     },
+     {
+      "text": "",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r2",
+    "heading": "",
+    "cells": [
+     {
+      "text": "",
+      "show": "show"
+     },
+     {
+      "text": "",
+      "show": "show"
+     },
+     {
+      "text": "",
+      "show": "show"
+     }
+    ]
+   }
+  ],
+  "totalColumn": true,
+  "totalRow": [
+   {
+    "text": "",
+    "show": "show"
+   },
+   {
+    "text": "",
+    "show": "show"
+   },
+   {
+    "text": "",
+    "show": "show"
+   }
+  ],
+  "cellMm": 22,
+  "intentionalError": false
+ }
+}

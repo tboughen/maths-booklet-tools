@@ -23,6 +23,8 @@ import * as construction from "../../packages/construction-core/src/index";
 import { printFacts as constructionPrintFacts } from "../../packages/construction-core/src/interchange";
 import * as elevations from "../../packages/elevation-core/src/index";
 import { printFacts as elevationsPrintFacts } from "../../packages/elevation-core/src/interchange";
+import * as twt from "../../packages/two-way-table-core/src/index";
+import { printFacts as twtPrintFacts } from "../../packages/two-way-table-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
@@ -53,6 +55,7 @@ export type DiagramSource =
   | { kind: "frequency-tree"; envelope: ftree.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "construction"; envelope: construction.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "elevations"; envelope: elevations.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "two-way-table"; envelope: twt.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
@@ -85,6 +88,10 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "elevations") {
     const view = source.outputView ?? "pupil", g = elevations.layout(source.envelope, view);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: elevationsPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "two-way-table") {
+    const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: twtPrintFacts(source.envelope, view) };
   }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");

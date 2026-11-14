@@ -56,6 +56,8 @@ import { examples as constructions } from "../../packages/construction-core/src/
 import { renderSvg as constructionSvg } from "../../packages/construction-core/src";
 import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
 import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
+import { examples as twoWayTables } from "../../packages/two-way-table-core/src/examples";
+import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -312,4 +314,12 @@ export const frequencyTreeGallery = frequencyTrees.map((example) => ({
   make: example.make,
   render: frequencyTreeSvg,
   worked: example.worked,
+}));
+export const twoWayTableGallery = twoWayTables.map((example) => ({
+  id: `twt-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: twoWayTableSvg,
+  worked: true,
 }));
