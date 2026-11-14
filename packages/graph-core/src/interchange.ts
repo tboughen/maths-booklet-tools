@@ -25,17 +25,15 @@ import {
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { MathsDockError } from "../../envelope-core/src/errors";
 
 export const RENDERER_VERSION = "graph-1";
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const MAX_LINK_LENGTH = 8192;
 export const MAX_FILE_BYTES = 1024 * 1024;
-export class GraphError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-  ) {
-    super(message);
+export class GraphError extends MathsDockError {
+  constructor(code: string, message: string, details?: ConstructorParameters<typeof MathsDockError>[2]) {
+    super(code, message, details);
     this.name = "GraphError";
   }
 }

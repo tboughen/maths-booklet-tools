@@ -354,17 +354,17 @@
   },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12": {
    "json": "a6055531febbdf33",
-   "svg": "31384e61bad1b541",
+   "svg": "7a3d6f057d8eaddc",
    "mm": "100x46.66",
    "png600": "2362x1102",
-   "pixels": "e7707ddf1c843f7f"
+   "pixels": "51186a7cccf4b392"
   },
   "cuboids: cuboid-1MA1_JUN_2017_3F_Q12 (worked)": {
    "json": "9adf0d0791ea611d",
-   "svg": "07e8f7735838bcf8",
+   "svg": "25be1f6370d327d0",
    "mm": "100x63.16",
    "png600": "2362x1492",
-   "pixels": "7d4d19b3f46bb67e"
+   "pixels": "b49cee6122fa0318"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_06_3F_Q15": {
    "json": "69ffde8c0d2d55b2",
@@ -382,17 +382,17 @@
   },
   "cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13": {
    "json": "193a25c29eb9c312",
-   "svg": "671bf19846dacba1",
+   "svg": "7b15cbc11e662803",
    "mm": "160x45.84",
    "png600": "3780x1083",
-   "pixels": "673cb1969c4078f5"
+   "pixels": "87100dfe39a9459f"
   },
   "cuboids: cuboid-1MA1_MOCK_SET_08_3F_Q13 (worked)": {
    "json": "4344d820e4445022",
-   "svg": "ccb41ff341ee992d",
+   "svg": "78934147bceefb99",
    "mm": "160x50.84",
    "png600": "3780x1201",
-   "pixels": "f5044524d8e33862"
+   "pixels": "c5f42d37655c638c"
   },
   "cuboids: cuboid-1MA1_NOV_2018_3H_Q8": {
    "json": "20e7866e646b7986",
@@ -403,136 +403,136 @@
   },
   "cuboids: cuboid-1MA1_NOV_2018_3H_Q8 (worked)": {
    "json": "d40b25967cb8e84d",
-   "svg": "09312cdf350786b7",
+   "svg": "cfa1e1b7a78c4fa3",
    "mm": "100x61.09",
    "png600": "2362x1443",
-   "pixels": "5e1ff5edc1e0bc0d"
+   "pixels": "dc17d26b491ad16c"
   },
   "cuboids: cuboid-1MA1_NOV_2019_2H_Q9": {
    "json": "128626911144ca1c",
-   "svg": "86fbf3655af61646",
+   "svg": "093eefb6110e6a8c",
    "mm": "160x82.2",
    "png600": "3780x1942",
-   "pixels": "ab57e0b81a017947"
+   "pixels": "b58233cd6e823a82"
   },
   "cuboids: cuboid-1MA1_NOV_2019_2H_Q9 (worked)": {
    "json": "93bbf86d92bef698",
-   "svg": "8693362e8de1cab0",
+   "svg": "c99cc038a42d67af",
    "mm": "160x82.2",
    "png600": "3780x1942",
-   "pixels": "17ebe3b154d4b9f4"
+   "pixels": "f2d33bd999238bbe"
   },
   "cuboids: cuboid-1MA1_NOV_2020_2F_Q11": {
    "json": "55717b7008ca07c2",
-   "svg": "e0f7c4537a1bfd7a",
+   "svg": "a09a0cfde7ab1033",
    "mm": "100x59.01",
    "png600": "2362x1394",
-   "pixels": "aabc999e48518c2a"
+   "pixels": "a52f0e980417dd29"
   },
   "cuboids: cuboid-1MA1_NOV_2020_2F_Q11 (worked)": {
    "json": "44a19ac8608b5784",
-   "svg": "9f07930511a18589",
+   "svg": "6522b70503e48504",
    "mm": "100x64.01",
    "png600": "2362x1512",
-   "pixels": "0dddd227ccd47c0e"
+   "pixels": "654dd6541ae7940e"
   },
   "cuboids: cuboid-base-area": {
    "json": "a6112421dfc2ab10",
-   "svg": "0f7ea9b40827f517",
+   "svg": "d5e882e511b23aed",
    "mm": "100x66.75",
    "png600": "2362x1577",
-   "pixels": "5311e1cc14d6541c"
+   "pixels": "280874f31caf0f01"
   },
   "cuboids: cuboid-base-area (worked)": {
    "json": "2880e54f2007a0be",
-   "svg": "4cc14a2273e6562f",
+   "svg": "ff719532c8116923",
    "mm": "100x66.75",
    "png600": "2362x1577",
-   "pixels": "b0c2f2dbc11e5d15"
+   "pixels": "5cdf3fcf315094a4"
   },
   "cuboids: cuboid-cross-section-face": {
    "json": "2c2df367d5fcab9b",
-   "svg": "b756315f5e3acf3d",
+   "svg": "1ac486b384ef1e15",
    "mm": "100x66.75",
    "png600": "2362x1577",
-   "pixels": "b3bab496862e4f7c"
+   "pixels": "cf5c190520169444"
   },
   "cuboids: cuboid-cross-section-face (worked)": {
    "json": "5f045094925874f1",
-   "svg": "728b1756b83dd5f7",
+   "svg": "0c0525aeb0f3a3b8",
    "mm": "100x66.75",
    "png600": "2362x1577",
-   "pixels": "ff294d68289d139f"
+   "pixels": "e320090707e88c97"
   },
   "cuboids: cuboid-grey-faces": {
    "json": "848f1a84d0f4b753",
-   "svg": "ee7696ce0e6f3aa7",
+   "svg": "52ef36a80327c6fa",
    "mm": "100x61.75",
    "png600": "2362x1459",
-   "pixels": "f6b0c5f571cf19b5"
+   "pixels": "3e4f33df548e3862"
   },
   "cuboids: cuboid-grey-faces (worked)": {
    "json": "66f87b6983bf5ca4",
-   "svg": "d10afe4c59179b32",
+   "svg": "117a89f9784ed1d6",
    "mm": "100x66.75",
    "png600": "2362x1577",
-   "pixels": "7d7d128c8e196e6d"
+   "pixels": "7d1f9f14e97adae9"
   },
   "cuboids: cuboid-layers-1": {
    "json": "19346991d2e59c73",
-   "svg": "94bd52ed73c54cc9",
+   "svg": "6231550ae1213c17",
    "mm": "100x49.7",
    "png600": "2362x1174",
-   "pixels": "8a037a9f9a90b864"
+   "pixels": "ba264f761115f2cd"
   },
   "cuboids: cuboid-layers-1 (worked)": {
    "json": "aa3104ab978906d3",
-   "svg": "adcefacbd3fe17ba",
+   "svg": "4a28c18deb0b93f2",
    "mm": "100x59.7",
    "png600": "2362x1410",
-   "pixels": "8ff6ff1c3b145652"
+   "pixels": "83c91d0eaa93ec2f"
   },
   "cuboids: cuboid-layers-2": {
    "json": "ee56c87e747b4c35",
-   "svg": "fd4703a558137d44",
+   "svg": "4084ec14055dff94",
    "mm": "100x61.75",
    "png600": "2362x1459",
-   "pixels": "10c4db61fddd4e8c"
+   "pixels": "038b612fbef74ae5"
   },
   "cuboids: cuboid-layers-2 (worked)": {
    "json": "ee043095db70c6f3",
-   "svg": "a9625b25c50c8cfb",
+   "svg": "004f718155700b4e",
    "mm": "100x71.75",
    "png600": "2362x1695",
-   "pixels": "319bd6a36d471125"
+   "pixels": "d717535197ad1a1a"
   },
   "cuboids: cuboid-layers-3": {
    "json": "36482b30868b091d",
-   "svg": "002181269e8d55bb",
+   "svg": "f494ac6f128180be",
    "mm": "100x73.79",
    "png600": "2362x1743",
-   "pixels": "2ab1e5f8799cf2d8"
+   "pixels": "5f8112293cf146df"
   },
   "cuboids: cuboid-layers-3 (worked)": {
    "json": "e0288fa7d42ce6e2",
-   "svg": "d3d0a697f5b25f1a",
+   "svg": "44ad90fb415c07b5",
    "mm": "100x83.79",
    "png600": "2362x1979",
-   "pixels": "e34a5818ff9e51e9"
+   "pixels": "f0b7cdabb3d1a302"
   },
   "cuboids: cuboid-missing-height": {
    "json": "cbf28198701d6592",
-   "svg": "ffe45be39ea0eb86",
+   "svg": "7d30cb729594c7f8",
    "mm": "100x52.5",
    "png600": "2362x1240",
-   "pixels": "781bd693c3757cfc"
+   "pixels": "f1e71a06cf3e82f5"
   },
   "cuboids: cuboid-missing-height (worked)": {
    "json": "adadcd0214671c7c",
-   "svg": "6c6f330c3e68bc43",
+   "svg": "973ea3dbb9de5544",
    "mm": "100x61.09",
    "png600": "2362x1443",
-   "pixels": "dddcccdda6560ff2"
+   "pixels": "c86796bc8c78bd8d"
   },
   "frequency trees: ftree-coffee": {
    "json": "7c9891da5255f961",

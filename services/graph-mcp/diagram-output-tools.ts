@@ -13,6 +13,7 @@ import { ARCHIVE_NAMES } from "./archive";
 import { FAMILIES } from "../../packages/diagram-core/src/registry";
 import type { DownloadFormat } from "./downloads";
 import { registerSvgDelivery } from "./svg-delivery";
+import { toolFailure } from "./tool-error";
 export type Artifact = { body: Buffer; type: string };
 type Artifacts = (source: DiagramSource, format: DownloadFormat, signal?: AbortSignal) => Promise<Artifact>;
 export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloads, limits: TrafficLimits, artifacts: Artifacts) {
@@ -85,5 +86,5 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
   return { register: registerAll, bundle };
 }
 function failure(error: unknown) {
-  return { isError: true, content: [{ type: "text" as const, text: error instanceof GraphError ? `${error.code}: ${error.message}` : "The diagram output request could not be processed." }] };
+  return toolFailure(error, { code: "invalid_request", message: "The diagram output request could not be processed.", opaque: true, fieldHint: "Check diagram_capabilities for the family's envelope fields." });
 }

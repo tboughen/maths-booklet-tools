@@ -18,6 +18,7 @@ import { diagramKind, diagramSource, diagramSourceSchema, prepareDiagram, type D
 import type { Artifact } from "./diagram-output-tools";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
+import { toolFailure } from "./tool-error";
 
 export const SVG_CHUNK_BYTES = 48 * 1024;
 export const SVG_RESPONSE_BYTES = 256 * 1024;
@@ -116,8 +117,7 @@ export function registerSvgDelivery(server: McpServer, connection: AbortSignal, 
       limits.output(responseBytes);
       return result;
     } catch (error) {
-      return { isError: true, content: [{ type: "text" as const,
-        text: error instanceof GraphError ? `${error.code}: ${error.message}` : "The original SVG could not be delivered." }] };
+      return toolFailure(error, { code: "invalid_request", message: "The original SVG could not be delivered.", opaque: true });
     }
   });
 }

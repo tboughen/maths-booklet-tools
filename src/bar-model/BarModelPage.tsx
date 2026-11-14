@@ -23,6 +23,7 @@ import { barGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
+import { houseModel } from "./house";
 import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
@@ -35,14 +36,14 @@ function initial() {
   try {
     raw = localStorage.getItem(STORAGE);
     return {
-      e: raw ? c.parseFile(raw) : c.fresh(),
+      e: raw ? c.parseFile(raw) : houseModel(c.fresh(), { lines: false }),
       raw,
       recovery: null as string | null,
       message: "",
     };
   } catch {
     return {
-      e: c.fresh(),
+      e: houseModel(c.fresh(), { lines: false }),
       raw,
       recovery: raw,
       message: raw
@@ -489,7 +490,7 @@ export default function BarModelPage({
               onReset={() => {
                 if (!guard.current && onNewModel) onNewModel();
                 else if (!guard.current)
-                  setPending({ e: c.fresh(), title: "Reset bar model?" });
+                  setPending({ e: houseModel(c.fresh(), { lines: false }), title: "Reset bar model?" });
               }}
               resetLabel={onNewModel ? "New model" : undefined}
               resetDisabled={blocked}
@@ -726,7 +727,7 @@ export default function BarModelPage({
                       expected.current = localStorage.getItem(STORAGE);
                       setConflict(false);
                       setRecovery(null);
-                      commit(c.fresh());
+                      commit(houseModel(c.fresh(), { lines: false }));
                     } catch {
                       setMessage(
                         "Storage remains unavailable. Keep an editable file.",
@@ -884,7 +885,7 @@ export default function BarModelPage({
                   start({
                     type: "print",
                     values: Object.fromEntries(
-                      Object.entries(d.presentation).map(([k, v]) => [
+                      Object.entries(d.presentation).filter(([k]) => k !== "lines").map(([k, v]) => [
                         k,
                         String(v),
                       ]),
