@@ -28,11 +28,8 @@ import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import "./bar-model.css";
-export interface History {
-  past: c.Envelope[];
-  present: c.Envelope;
-  future: c.Envelope[];
-}
+import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory } from "../editor-kit";
+export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
   | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
   | { kind: "name"; barId: string }
@@ -135,9 +132,11 @@ export default function LessonBarModelPage({
   storageKey: string;
   initialHistory?: History;
 }) {
-  const [history, setHistory] = useState<History>(
-      initialHistory ?? { past: [], present: startup.envelope, future: [] },
-    ),
+  const documentHistory = useDocumentHistory<c.Envelope>(startup.envelope, {
+      ...{ equals: (a, b) => c.canonical(a) === c.canonical(b) },
+      from: initialHistory,
+    }),
+    { history, setHistory } = documentHistory,
     e = history.present;
   const profile = e.schemaVersion === 2 ? v : v3;
   const lesson = e.schemaVersion === 2 ? legacyLessonExample : lessonExample;
@@ -251,15 +250,7 @@ export default function LessonBarModelPage({
   function commit(n: c.Envelope) {
     const valid = c.validate(n);
     dirty.current = true;
-    setHistory((h) =>
-      c.canonical(h.present) === c.canonical(valid)
-        ? h
-        : {
-            past: [...h.past, h.present].slice(-60),
-            present: valid,
-            future: [],
-          },
-    );
+    documentHistory.commit(valid);
     setMessage("");
   }
   function operation(ops: api.Operation[]) {
@@ -273,28 +264,12 @@ export default function LessonBarModelPage({
   function undo() {
     if (guard.current) return;
     dirty.current = true;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past.at(-1)!,
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (guard.current) return;
     dirty.current = true;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   function start(n: Draft) {
     if (guard.current) return;
@@ -473,14 +448,7 @@ export default function LessonBarModelPage({
         )
       )
         return;
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        ["z", "y"].includes(event.key.toLowerCase())
-      ) {
-        event.preventDefault();
-        if (event.key.toLowerCase() === "y" || event.shiftKey) redo();
-        else undo();
-      }
+      if (handleUndoKeys(event, { undo, redo })) return;
     };
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);

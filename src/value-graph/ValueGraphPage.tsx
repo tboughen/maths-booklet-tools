@@ -53,6 +53,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -74,11 +75,6 @@ type Selection =
   | { kind: "curve"; id: string }
   | { kind: "reference"; id: string }
   | null;
-type History = {
-  past: ValueEnvelope[];
-  present: ValueEnvelope;
-  future: ValueEnvelope[];
-};
 type Pending = { title: string; description: string; action: () => void };
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "This action could not be completed.";
@@ -95,11 +91,8 @@ export default function ValueGraphPage({
       : copyStorageKey(STORAGE_KEY);
   });
   const [startup] = useState(() => recovery(storageKey));
-  const [history, setHistory] = useState<History>({
-    past: [],
-    present: startup.envelope,
-    future: [],
-  });
+  const documentHistory = useDocumentHistory<ValueEnvelope>(startup.envelope),
+    { history, commit: record } = documentHistory;
   const [recoverRaw, setRecoverRaw] = useState(startup.raw),
     [message, setMessage] = useState(startup.error);
   const [saved, setSaved] = useState(!startup.error),
@@ -157,13 +150,9 @@ export default function ValueGraphPage({
   );
   const commit = useCallback((next: ValueEnvelope) => {
     renderSvg(next);
-    setHistory((previous) => ({
-      past: [...previous.past.slice(-79), previous.present],
-      present: next,
-      future: [],
-    }));
+    record(next);
     setMessage("");
-  }, []);
+  }, [record]);
   function change(ops: ValueOperation[]) {
     commit(apply(current.current, ops));
   }
@@ -201,28 +190,12 @@ export default function ValueGraphPage({
   function undo() {
     if (blocked) return;
     setSelection(null);
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
   }
   function redo() {
     if (blocked) return;
     setSelection(null);
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
   }
   useEffect(() => {
     if (recoverRaw) return;
@@ -242,15 +215,7 @@ export default function ValueGraphPage({
         e.target.closest("input,textarea,select,[contenteditable=true]")
       )
         return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
-        e.preventDefault();
-        redo();
-      }
+      if (handleUndoKeys(e, { undo, redo })) return;
       if (e.key === "Escape" && !pendingFields.size) {
         setSelection(null);
         setMode("select");

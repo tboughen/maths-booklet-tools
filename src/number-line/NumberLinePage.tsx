@@ -38,6 +38,7 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
+import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -158,11 +159,8 @@ export default function NumberLinePage({
   active?: boolean;
 }) {
   const [startup] = useState(initial);
-  const [history, setHistory] = useState<{
-    past: Envelope[];
-    present: Envelope;
-    future: Envelope[];
-  }>({ past: [], present: startup.envelope, future: [] });
+  const documentHistory = useDocumentHistory<Envelope>(startup.envelope, { equals: (a, b) => canonical(a) === canonical(b) }),
+    history = documentHistory.history;
   const [message, setMessage] = useState(startup.error),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [recoverySaved, setRecoverySaved] = useState(false),
@@ -219,11 +217,7 @@ export default function NumberLinePage({
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    setHistory((h) =>
-      canonical(v) === canonical(h.present)
-        ? h
-        : { past: [...h.past, h.present].slice(-60), present: v, future: [] },
-    );
+    documentHistory.commit(v);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -251,28 +245,12 @@ export default function NumberLinePage({
   }
   function undo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.past.length
-        ? {
-            past: h.past.slice(0, -1),
-            present: h.past[h.past.length - 1],
-            future: [h.present, ...h.future],
-          }
-        : h,
-    );
+    documentHistory.undo();
     setSelection(null);
   }
   function redo() {
     if (blocked) return;
-    setHistory((h) =>
-      h.future.length
-        ? {
-            past: [...h.past, h.present],
-            present: h.future[0],
-            future: h.future.slice(1),
-          }
-        : h,
-    );
+    documentHistory.redo();
     setSelection(null);
   }
   function replacement(envelope: Envelope, title: string) {
@@ -353,23 +331,7 @@ export default function NumberLinePage({
         setFirst(null);
         if (!dirty.size) setSelection(null);
       }
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        !(
-          e.target instanceof HTMLElement &&
-          e.target.closest("input,textarea,select,[contenteditable]")
-        )
-      ) {
-        if (e.key.toLowerCase() === "z") {
-          e.preventDefault();
-          if (e.shiftKey) redo();
-          else undo();
-        }
-        if (e.key.toLowerCase() === "y") {
-          e.preventDefault();
-          redo();
-        }
-      }
+      if (handleUndoKeys(e, { undo, redo })) return;
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
