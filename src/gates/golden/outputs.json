@@ -30,6 +30,20 @@
    "png600": "1276x1181",
    "pixels": "2753a773c61479e4"
   },
+  "algebra grid: algebra-decimal": {
+   "json": "20fbae154a624f57",
+   "svg": "598e36aef4fea9f4",
+   "mm": "39x39",
+   "png600": "921x921",
+   "pixels": "cfa32e638ff96393"
+  },
+  "algebra grid: algebra-decimal (worked)": {
+   "json": "fc4064851c5c36af",
+   "svg": "fda4d7736f154696",
+   "mm": "39x50",
+   "png600": "921x1181",
+   "pixels": "426475d13f4d69bd"
+  },
   "algebra grid: algebra-double": {
    "json": "73528044ff6dbf2b",
    "svg": "0562faab6c33ac7f",
@@ -71,6 +85,20 @@
    "mm": "39x50",
    "png600": "921x1181",
    "pixels": "f815075ae3d52b09"
+  },
+  "algebra grid: algebra-numeric": {
+   "json": "6c3c9a64149e1e9a",
+   "svg": "2593502be3e80f12",
+   "mm": "39x39",
+   "png600": "921x921",
+   "pixels": "e73c6823809611c9"
+  },
+  "algebra grid: algebra-numeric (worked)": {
+   "json": "fc031c04fff48457",
+   "svg": "9296a92abd973de6",
+   "mm": "39x50",
+   "png600": "921x1181",
+   "pixels": "8cf8d9ec64b8727f"
   },
   "algebra grid: algebra-signed": {
    "json": "596bbbdc6c863b69",

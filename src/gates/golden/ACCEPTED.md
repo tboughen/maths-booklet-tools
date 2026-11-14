@@ -55,3 +55,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2021_1F_Q18: svg 7308b829e8734eab -> 48df159e1eaa672b
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 47e75c878ab5371b -> d7c6def019a98198
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 515f66453941fb7e -> 68ad6c047e5303ba
+
+## 2026-11-14: U105 numeric grid method examples
+
+- algebra grid: algebra-numeric: added
+- algebra grid: algebra-numeric (worked): added
+- algebra grid: algebra-decimal: added
+- algebra grid: algebra-decimal (worked): added

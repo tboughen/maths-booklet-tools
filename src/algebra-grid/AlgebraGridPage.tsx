@@ -26,9 +26,7 @@ import {
   type Envelope,
 } from "../../packages/algebra-grid-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import {
-  EditorDownloadMenu,
-} from "../site/EditorDownloadMenu";
+import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
 import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
@@ -40,7 +38,12 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { editorLink, parseLink } from "./links";
 import { CellEditor } from "./CellEditor";
 import "./algebra-grid.css";
-import { createHistory, handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import {
+  createHistory,
+  handleUndoKeys,
+  pushHistory,
+  useDocumentHistory,
+} from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:algebra-grid:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -104,7 +107,9 @@ export default function AlgebraGridPage({
     documentHistory = useDocumentHistory<Envelope>(startup.e, {
       equals: (a, b) => canonical(a) === canonical(b),
       from: startup.previous
-        ? pushHistory(createHistory(startup.previous), startup.e, { label: "open link" })
+        ? pushHistory(createHistory(startup.previous), startup.e, {
+            label: "open link",
+          })
         : undefined,
     }),
     history = documentHistory.history;
@@ -339,6 +344,30 @@ export default function AlgebraGridPage({
       setMessage(errorText(err));
     }
   }
+  function switchMode(mode: Envelope["document"]["mode"]) {
+    if (blocked) return;
+    const next = structuredClone(e);
+    next.document.mode = mode;
+    next.document.expression = "";
+    next.document.sourceId = null;
+    try {
+      commit(next);
+    } catch {
+      // Algebra terms are not numbers (and the reverse), so the entries go.
+      next.document.rows.forEach((row, r) =>
+        row.cells.forEach((cell, c) => {
+          if (r || c) Object.assign(cell, { value: null, hidden: false });
+        }),
+      );
+      replace(
+        next,
+        mode === "multiply"
+          ? "Switch to multiplying numbers?"
+          : "Switch to algebra?",
+        "The current entries do not fit this task, so the grid cells will be cleared. You can undo this.",
+      );
+    }
+  }
   function collect() {
     if (blocked) return;
     try {
@@ -559,7 +588,10 @@ export default function AlgebraGridPage({
                 onZoom={(value) => setZoom(value ? String(value) : "fit")}
               />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
-              <AnswerPreviewToggle checked={showAnswers} onChange={setShowAnswers} />
+              <AnswerPreviewToggle
+                checked={showAnswers}
+                onChange={setShowAnswers}
+              />
             </div>
             <p className="ag-guidance">
               Click a cell or the printed question to edit. Blank cells stay
@@ -817,21 +849,22 @@ export default function AlgebraGridPage({
                   value={d.mode}
                   disabled={blocked}
                   onChange={(ev) =>
-                    change((n) => {
-                      n.document.mode = ev.target.value as typeof d.mode;
-                      n.document.expression = "";
-                      n.document.sourceId = null;
-                    })
+                    switchMode(ev.target.value as typeof d.mode)
                   }
                 >
                   <option value="expand">Expanding</option>
                   <option value="factorise">Factorising</option>
+                  <option value="multiply">
+                    Multiplying numbers (grid method)
+                  </option>
                 </select>
               </label>
               <label>
                 {d.mode === "factorise"
                   ? "Expression to factorise"
-                  : "Question expression"}
+                  : d.mode === "multiply"
+                    ? "Multiplication, such as 23 × 47"
+                    : "Question expression"}
                 <input
                   aria-label="Question expression"
                   aria-invalid={field?.key === "expression" && !!inputError}
@@ -914,7 +947,9 @@ export default function AlgebraGridPage({
                 <button disabled={blocked} onClick={collect}>
                   {d.mode === "factorise"
                     ? "Read factors"
-                    : "Collect like terms"}
+                    : d.mode === "multiply"
+                      ? "Add the products"
+                      : "Collect like terms"}
                 </button>
                 <button
                   disabled={blocked}
@@ -1064,6 +1099,12 @@ export default function AlgebraGridPage({
                 rows and columns begin blank.
               </p>
               <p>
+                Multiplying numbers uses the same grid for the grid method:
+                enter plain numbers such as 20, 3 or 0.4. The worked version
+                splits each number by place value, so 23 × 47 needs two columns
+                and two rows of products.
+              </p>
+              <p>
                 Factorising uses trial and improvement. Check that the whole
                 expression matches. Automatic worked copies support monic
                 integer quadratics in a 3 × 3 grid, and a common factor in one
@@ -1087,7 +1128,9 @@ export default function AlgebraGridPage({
             <label>
               {d.mode === "factorise"
                 ? "Expression to factorise"
-                : "Expression to expand"}
+                : d.mode === "multiply"
+                  ? "Multiplication to work out"
+                  : "Expression to expand"}
               <input
                 aria-label="Printed question expression"
                 aria-invalid={!!inputError}
