@@ -92,6 +92,17 @@ describe("review fixes", () => {
     }
   });
 
+  it("puts the dot paper in the same place on both copies of an answer isometric panel", () => {
+    const e = c.blank();
+    e.document.heights = [[2, 1], [1, 1]];
+    e.document.isoDots = true;
+    e.document.panels = [{ ...c.panel("isometric"), state: "answer" }];
+    const v = c.validate(e);
+    const dots = (svg: string) => svg.match(/<circle[^>]*>/g) ?? [];
+    expect(dots(c.renderSvg(v)).length).toBeGreaterThan(10);
+    expect(dots(c.renderSvg(v))).toEqual(dots(c.renderSvg(c.forView(v, "answer"))));
+  });
+
   it("fits the solid when an isometric panel sets only across", () => {
     const e = c.blank();
     e.document.heights = [[2, 1]];

@@ -34,7 +34,7 @@ describe("construction drawings", () => {
     const e = c.create();
     expect(c.hasHidden(e)).toBe(true);
     const pupil = c.renderSvg(e),
-      answer = c.renderSvg(c.forView(e, "answer"));
+      answer = c.renderSvg(e, "answer");
     expect(pupil.match(/<path/g)!.length).toBeLessThan(answer.match(/<path/g)!.length);
     // forView never changes the saved document.
     expect(e.document.objects.some((o) => o.role === "answer")).toBe(true);
@@ -135,7 +135,7 @@ describe("construction drawings", () => {
         expect(c.parseFile(JSON.stringify(e))).toEqual(e);
         expect(c.decodeLinkHash(c.linkHash(e))).toEqual(e);
         expect(c.exportIssue(e), x.id).toBeNull();
-        expect(c.exportIssue(c.forView(e, "answer")), x.id).toBeNull();
+        expect(c.exportIssue(e, "answer"), x.id).toBeNull();
         expect(await c.hash(e)).toMatch(/^[0-9a-f]{64}$/);
       }
     expect(c.editorLink(c.create(), "https://mathsdock.co.uk/")).toBeNull(); // no editor until it is released
@@ -194,9 +194,19 @@ describe("review fixes", () => {
     for (const x of examples) {
       const e = x.make(false);
       const p = c.layout(e),
-        a = c.layout(c.forView(e, "answer"));
+        a = c.layout(e, "answer");
       expect([p.width, p.height, p.dx, p.dy], x.id).toEqual([a.width, a.height, a.dx, a.dy]);
     }
+  });
+
+  it("keeps both copies aligned when a revealed line moves a given label", () => {
+    const e = c.blank(8, 6);
+    e.document.points.push(c.newPoint("A", 0, 6), c.newPoint("B", 0.2, 6.2, "", { mark: "none", role: "answer" }));
+    e.document.objects.push({ ...c.segment("AB", "A", "B"), role: "answer" });
+    const v = c.validate(e);
+    const p = c.layout(v),
+      a = c.layout(v, "answer");
+    expect([p.width, p.height, p.dx, p.dy]).toEqual([a.width, a.height, a.dx, a.dy]);
   });
 
   it("draws a due-north bearing without an arc", () => {
@@ -218,6 +228,7 @@ describe("review fixes", () => {
   });
 
   it("refuses group names too long for their parts' IDs", () => {
-    expect(() => c.perpendicularBisector(twoPoints(), { a: "A", b: "B", group: "bisectorAB12" })).toThrow(/1 to 10/);
+    expect(() => c.perpendicularBisector(twoPoints(), { a: "A", b: "B", group: "bisectorAB12" })).toThrow(/1 to 9/);
+    expect(() => c.locusFromPoint(twoPoints(), { point: "A", distance: 2, group: "abcdefghi" })).not.toThrow();
   });
 });

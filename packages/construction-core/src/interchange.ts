@@ -70,7 +70,7 @@ export const objectInput = z.discriminatedUnion("type", [
     .object({ type: z.literal("region"), ...common, rules: z.array(core.ruleSchema).min(1).max(core.MAX_RULES), pattern: z.enum(["hatch", "cross"]).optional() })
     .strict(),
 ]);
-const helper = { group: z.string().regex(/^[A-Za-z][A-Za-z0-9_']{0,9}$/, "Use a group name of 1 to 10 letters or digits, such as pb1.").optional(), answer: z.boolean().optional() };
+const helper = { group: z.string().regex(/^[A-Za-z][A-Za-z0-9_']{0,8}$/, "Use a group name of 1 to 9 letters or digits, such as pb1.").optional(), answer: z.boolean().optional() };
 export const constructionInput = z.discriminatedUnion("type", [
   z.object({ type: z.literal("perpendicular-bisector"), ...helper, a: id, b: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
   z.object({ type: z.literal("angle-bisector"), ...helper, at: id, from: id, to: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
@@ -247,7 +247,7 @@ function construct(e: core.Envelope, c: ConstructionInput): core.Envelope {
     case "locus-segment":
       return core.locusFromSegment(e, { ...base, a: c.a, b: c.b, distance: c.distance, dash: c.dash });
     case "point-by-bearing":
-      return core.pointByBearing(e, { id: c.id, from: c.from, bearing: c.bearing, distance: c.distance, label: c.label, mark: c.mark, role: role(c.answer) });
+      return core.pointByBearing(e, { id: c.id, from: c.from, bearing: c.bearing, distance: c.distance, label: c.label, mark: c.mark, role: role(c.answer, core.pointById(e.document, c.from)?.role === "answer" ? "answer" : "given") });
   }
 }
 function setDrawing(e: core.Envelope, s: Partial<Record<keyof typeof drawing, unknown>>) {
@@ -279,11 +279,13 @@ function setObject(e: core.Envelope, oid: string, fields: z.infer<typeof objectF
   for (const [k, v] of Object.entries(fields)) {
     if (v === undefined) continue;
     if (!allowed.includes(k)) throw Error(`${k} does not apply to ${o.type} ${oid}; use ${allowed.join(", ")}.`);
-    if (k === "answer") o.role = v ? "answer" : "given";
+    if (k === "answer") continue;
     else if (k === "label" || k === "text") (o as { label: core.Label }).label.text = v as string;
     else if (k === "labelHidden" || k === "hidden") (o as { label: core.Label }).label.show = v ? "hidden" : "show";
     else o[k] = v;
   }
+  // Roles go through setRole so what is drawn from this object (or what it is drawn from) follows.
+  if (fields.answer !== undefined) return core.setRole(n, [oid], fields.answer ? "answer" : "given");
   return core.validate(n);
 }
 function setPoint(e: core.Envelope, pid: string, f: Partial<PointInput>) {
@@ -291,13 +293,14 @@ function setPoint(e: core.Envelope, pid: string, f: Partial<PointInput>) {
   const p = core.pointById(n.document, pid);
   if (!p) throw Error(`Unknown point ${pid}. Use IDs from the returned envelope.`);
   if ((f.x !== undefined && f.x !== p.x) || (f.y !== undefined && f.y !== p.y)) {
-    // A saved construction was built from this point's old position; moving it would leave a wrong answer.
-    const built = [...new Set(n.document.objects.filter((o) => o.group && core.references(o).includes(pid)).map((o) => o.group!))];
+    // Saved constructions keep the positions they were built from (arms, lines and reach segments
+    // as well as arc centres), so moving any point under them could leave a wrong answer.
+    const built = [...new Set([...n.document.points, ...n.document.objects].map((x) => x.group).filter((g): g is string => !!g))];
     if (built.length || p.group)
       throw Error(
         p.group
           ? `Point ${pid} belongs to the ${p.group} construction. Remove the group (remove_group) and add the construction again instead.`
-          : `The ${built.join(", ")} construction${built.length > 1 ? "s were" : " was"} built from point ${pid}. Remove ${built.length > 1 ? "them" : "it"} (remove_group), move ${pid}, then add the construction again.`,
+          : `This drawing holds the saved construction${built.length > 1 ? "s" : ""} ${built.join(", ")}, built from the points where they are now. Remove ${built.length > 1 ? "them" : "it"} (remove_group), move ${pid}, then add the construction${built.length > 1 ? "s" : ""} again.`,
       );
   }
   if (f.x !== undefined) p.x = f.x;
@@ -381,7 +384,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
 
 export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil") {
   return guidance({
-    textSizesPt: renderedTextSizesPt(core.renderSvg(core.forView(e, view)), 72 / 25.4),
+    textSizesPt: renderedTextSizesPt(core.renderSvg(e, view), 72 / 25.4),
     gridPitchMm: e.document.grid === "cm" ? [10] : [],
     tableRowHeightsMm: [],
     answerLineLengthsMm: [],

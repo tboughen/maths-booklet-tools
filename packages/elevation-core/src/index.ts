@@ -261,12 +261,10 @@ function gridPanel(d: ElevationDocument, p: Panel): Built {
 }
 
 function isoPanel(d: ElevationDocument, p: Panel): Built {
-  // An answer panel keeps the room its drawing takes on the answers copy, so both copies match.
-  if (p.state === "answer") {
-    const full = isoPanel(d, { ...p, state: "drawn" }),
-      empty = isoPanel(d, { ...p, state: "blank" });
-    return { width: full.width, height: full.height, svg: empty.svg };
-  }
+  // An answer panel is laid out exactly as its drawing on the answers copy (same box, same dot
+  // paper), with the solid and its arrows left out, so both copies match.
+  const ghost = p.state === "answer";
+  if (ghost) p = { ...p, state: "drawn" };
   const faces = isoFaces(d);
   const s = 10; // 1 cm isometric paper
   const pts = faces.flatMap((f) => f.pts);
@@ -301,7 +299,7 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
     out.push(`<g fill="#6b6b6b">${dots.join("")}</g>`);
   }
   if (p.state === "drawn") {
-    for (const f of faces)
+    for (const f of ghost ? [] : faces)
       out.push(`<path d="M${f.pts.map((q) => `${n(X(q.u))} ${n(Y(q.v))}`).join("L")}Z" fill="white" stroke="black" stroke-width="0.35" stroke-linejoin="round"/>`);
     if (arrows) {
       const H = d.heights,
@@ -316,14 +314,16 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
         const back = { x: tip.x + du * 2.2, y: tip.y + dv * 2.2 },
           side1 = { x: back.x - dv * 1, y: back.y + du * 1 },
           side2 = { x: back.x + dv * 1, y: back.y - du * 1 };
-        out.push(`<path d="M${n(tail.x)} ${n(tail.y)}L${n(back.x)} ${n(back.y)}" stroke="black" stroke-width="0.3"/>`);
-        out.push(`<path d="M${n(tip.x)} ${n(tip.y)}L${n(side1.x)} ${n(side1.y)}L${n(side2.x)} ${n(side2.y)}Z" fill="black"/>`);
+        if (!ghost) {
+          out.push(`<path d="M${n(tail.x)} ${n(tail.y)}L${n(back.x)} ${n(back.y)}" stroke="black" stroke-width="0.3"/>`);
+          out.push(`<path d="M${n(tip.x)} ${n(tip.y)}L${n(side1.x)} ${n(side1.y)}L${n(side2.x)} ${n(side2.y)}Z" fill="black"/>`);
+        }
         return { tail, word };
       };
       const a1 = arrow(front, Math.cos(Math.PI / 6) * 0.6, 0.8, "Front");
       const a2 = arrow(side, -0.6, 0.8, "Side");
       const extra: string[] = [];
-      for (const a of [a1, a2]) extra.push(text(a.word, a.tail.x, a.tail.y + FONT * 1.05));
+      if (!ghost) for (const a of [a1, a2]) extra.push(text(a.word, a.tail.x, a.tail.y + FONT * 1.05));
       out.push(...extra);
       const lowest = Math.max(a1.tail.y, a2.tail.y) + FONT * 1.3;
       const left = Math.min(0, a2.tail.x - textWidth("Side") / 2 - 1),

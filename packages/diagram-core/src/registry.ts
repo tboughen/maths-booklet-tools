@@ -330,13 +330,13 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revisionSchema: constructionIo.revisionSchema,
     validate: (raw, view) => {
       const e = construction.validate(raw);
-      check(construction.exportIssue(construction.forView(e, view)));
+      check(construction.exportIssue(e, view));
       return e;
     },
     create: (input) => constructionIo.create(input),
     revise: (input) => constructionIo.revise(input),
     hash: construction.hash,
-    svg: (e, view) => construction.renderSvg(construction.forView(e, view)),
+    svg: (e, view) => construction.renderSvg(e, view),
   }),
   elevations: family<elevations.Envelope>({
     kind: "elevations",

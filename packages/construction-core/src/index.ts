@@ -417,8 +417,8 @@ function draft(e: Envelope, prefix: string, o: HelperOptions): Draft {
   for (let k = 1; !g; k++) if (!groups.has(`${prefix}${k}`) && !usedIds(n.document).has(`${prefix}${k}`)) g = `${prefix}${k}`;
   if (usedIds(n.document).has(g) || n.document.objects.some((x) => x.group === g) || n.document.points.some((x) => x.group === g))
     throw Error(`The group ${g} is already in the drawing.`);
-  // Its parts are named group-part (pb1-arc1), and every ID has at most 16 characters.
-  if (!/^[A-Za-z][A-Za-z0-9_']{0,9}$/.test(g)) throw Error(`Use a group name of 1 to 10 letters or digits (such as pb1), not ${g}.`);
+  // Its parts are named group-part (pb1-arc1, up to ls1-circle), and every ID has at most 16 characters.
+  if (!/^[A-Za-z][A-Za-z0-9_']{0,8}$/.test(g)) throw Error(`Use a group name of 1 to 9 letters or digits (such as pb1), not ${g}.`);
   return { e: n, d: n.document, group: g, role: o.role ?? "answer" };
 }
 const hiddenPoint = (dr: Draft, name: string, at: Vec) => {
@@ -752,15 +752,21 @@ function angleSpan(d: ConstructionDocument, a: Of<"angle">) {
 
 /** Everything placed in millimetres on the page (y downwards), with teacher-facing issues and notes. */
 /**
- * Both copies share one size and frame position: the pupil copy reserves the room the answers copy
- * needs (answer constructions, revealed labels), so the answers sheet lines up with the pupil sheet.
+ * The layout of one copy of a saved drawing. Both copies share one size and frame position: each
+ * reserves the room the other takes (answer constructions, revealed labels, labels that move when
+ * lines appear), so the answers sheet lines up with the pupil sheet. Pass the SAVED envelope and
+ * the view, not forView(e, "answer"), which has lost what was hidden.
  */
-export function layout(e: Envelope) {
+export function layout(e: Envelope, view: View = "pupil") {
   if (!hasHidden(e)) return draw(e);
-  const answer = draw(forView(e, "answer"));
-  const g = draw(e, answer.bounds);
+  const shown = forView(e, "answer");
+  const pb = draw(e).bounds,
+    ab = draw(shown).bounds;
+  const both: Box = { x1: Math.min(pb.x1, ab.x1), y1: Math.min(pb.y1, ab.y1), x2: Math.max(pb.x2, ab.x2), y2: Math.max(pb.y2, ab.y2) };
+  const pupil = draw(e, both),
+    answer = draw(shown, both);
   // A hidden caption still takes its place under the drawing, so both copies are the same height.
-  return { ...g, height: Math.max(g.height, answer.height), width: Math.max(g.width, answer.width) };
+  return { ...(view === "answer" ? answer : pupil), height: Math.max(pupil.height, answer.height), width: Math.max(pupil.width, answer.width) };
 }
 function draw(e: Envelope, reserve?: Box) {
   const d = e.document,
@@ -1033,9 +1039,9 @@ function draw(e: Envelope, reserve?: Box) {
   };
 }
 export type Layout = ReturnType<typeof layout>;
-export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
-export function warnings(e: Envelope) {
-  const g = layout(e);
+export const exportIssue = (e: Envelope, view: View = "pupil") => layout(e, view).issues.join(" ") || null;
+export function warnings(e: Envelope, view: View = "pupil") {
+  const g = layout(e, view);
   return [...g.issues, ...g.notes];
 }
 
@@ -1113,9 +1119,10 @@ function hatch(d: ConstructionDocument, o: Of<"region">, Wmm: number, Hmm: numbe
 const n = (v: number) => String(Math.round(v * 1000) / 1000);
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export function renderSvg(e: Envelope): string {
-  const d = e.document,
-    g = layout(e),
+/** One copy of a saved drawing as SVG (pass the saved envelope and the view; see layout). */
+export function renderSvg(e: Envelope, view: View = "pupil"): string {
+  const d = forView(e, view).document,
+    g = layout(e, view),
     out: string[] = [];
   out.push(`<rect width="${n(g.width)}" height="${n(g.height)}" fill="white"/>`);
   const F = g.frame;

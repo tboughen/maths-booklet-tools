@@ -79,7 +79,7 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: ftreePrintFacts(source.envelope, view) };
   }
   if (source.kind === "construction") {
-    const view = source.outputView ?? "pupil", g = construction.layout(construction.forView(source.envelope, view));
+    const view = source.outputView ?? "pupil", g = construction.layout(source.envelope, view);
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: constructionPrintFacts(source.envelope, view) };
   }
   if (source.kind === "elevations") {
