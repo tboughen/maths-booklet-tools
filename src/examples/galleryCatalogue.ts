@@ -52,6 +52,10 @@ import { examples as trees } from "../../packages/probability-tree-core/src/exam
 import { renderSvg as treeSvg } from "../../packages/probability-tree-core/src";
 import { examples as frequencyTrees } from "../../packages/frequency-tree-core/src/examples";
 import { renderSvg as frequencyTreeSvg } from "../../packages/frequency-tree-core/src";
+import { examples as constructions } from "../../packages/construction-core/src/examples";
+import { renderSvg as constructionSvg } from "../../packages/construction-core/src";
+import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
+import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -280,6 +284,24 @@ export const treeGallery = trees.map((example) => ({
   sourceHref: example.sourceId ? source(example.sourceId) : undefined,
   make: example.make,
   render: treeSvg,
+  worked: example.worked,
+}));
+export const constructionGallery = constructions.map((example) => ({
+  id: `construction-${example.id}`,
+  title: example.title,
+  description: example.note,
+  sourceHref: example.sourceId ? source(example.sourceId) : undefined,
+  make: example.make,
+  render: (e: Parameters<typeof constructionSvg>[0]) => constructionSvg(e),
+  worked: example.worked,
+}));
+export const elevationsGallery = elevationExamples.map((example) => ({
+  id: `elevations-${example.id}`,
+  title: example.title,
+  description: example.note,
+  sourceHref: example.sourceId ? source(example.sourceId) : undefined,
+  make: example.make,
+  render: (e: Parameters<typeof elevationSvg>[0]) => elevationSvg(e),
   worked: example.worked,
 }));
 export const frequencyTreeGallery = frequencyTrees.map((example) => ({

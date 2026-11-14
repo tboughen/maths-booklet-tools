@@ -26,6 +26,8 @@ const undoRegistry: Record<string, string> = {
   charts: "charts/ChartsPage.tsx",
   "probability-tree": "probability-tree/ProbabilityTreePage.tsx",
   "frequency-tree": "frequency-tree/FrequencyTreePage.tsx",
+  construction: "construction/ConstructionPage.tsx",
+  elevations: "elevations/ElevationsPage.tsx",
   worksheets: "worksheet/WorksheetPage.tsx",
   booklets: "booklet/BookletPage.tsx",
 };

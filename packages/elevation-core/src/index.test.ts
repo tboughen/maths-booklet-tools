@@ -64,7 +64,7 @@ describe("plans and elevations", () => {
         expect(c.decodeLinkHash(c.linkHash(e))).toEqual(e);
         expect(c.exportIssue(e), x.id).toBeNull();
       }
-    expect(c.editorLink(c.create(), "https://mathsdock.co.uk/")).toBeNull();
+    expect(c.editorLink(c.create(), "https://mathsdock.co.uk/")).toMatch(/^https:\/\/mathsdock\.co\.uk\/tools\/elevations#elevations=/);
   });
 
   it("builds and revises through the connector adapter", async () => {

@@ -349,13 +349,13 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revisionSchema: elevationsIo.revisionSchema,
     validate: (raw, view) => {
       const e = elevations.validate(raw);
-      check(elevations.exportIssue(elevations.forView(e, view)));
+      check(elevations.exportIssue(e, view));
       return e;
     },
     create: (input) => elevationsIo.create(input),
     revise: (input) => elevationsIo.revise(input),
     hash: elevations.hash,
-    svg: (e, view) => elevations.renderSvg(elevations.forView(e, view)),
+    svg: (e, view) => elevations.renderSvg(e, view),
   }),
 };
 

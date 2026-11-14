@@ -2,7 +2,7 @@ import * as core from "../../../elevation-core/src/index";
 import * as ei from "../../../elevation-core/src/interchange";
 export const elevationsConfig = {
   capabilities: {
-    editor: "No website editor yet (it is a later step); reopen a drawing from its JSON envelope.",
+    editor: "The returned editor link opens the views at /tools/elevations, where teachers set cube heights, choose panels and save or print.",
     schemaVersions: [1],
     rendererVersions: ["elevations-1"],
     solids: "cube solids only, as a height map; prisms, cylinders and pyramids are not supported yet",
