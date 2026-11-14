@@ -6404,7 +6404,6 @@
           "size": {
             "type": "string",
             "enum": [
-              "compact",
               "standard",
               "large"
             ]

@@ -9,7 +9,8 @@ Human editing and exports use the browser; the MCP service is not required.
 One to three columns and one to six data rows, plus headings. The ratio-lesson-v1 profile
 uses a 3 cm table body, 1 cm rows, 12 pt bundled STIX text and 2.25 pt centre/header
 rules at Standard size; fraction parts and operation labels print at 10 pt, the house
-minimum. Compact is 80%; Large is 120%. Lines are normal or bold (U111): bold multiplies
+minimum. Large is 120%. There is no smaller size: Compact (80%) printed text below the
+10 pt minimum and was removed (Tim, 14 Nov 2026). Lines are normal or bold (U111): bold multiplies
 every stroke by 1.5 and is saved as `lines: "bold"`; normal is never saved. A new table
 starts with the house style's lines. The exported size includes
 margins and scaling annotation gutters. Preview zoom changes screen size only.

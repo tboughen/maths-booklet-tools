@@ -59,7 +59,7 @@ function labelSlot(step: RatioDocument["transitions"][number]) {
   return step.hidden ? Math.max(total, ANSWER_LINE_WIDTH) : total;
 }
 export function ratioMetrics(document: RatioDocument) {
-  const scale = { compact: 0.8, standard: 1, large: 1.2 }[document.size];
+  const scale = { standard: 1, large: 1.2 }[document.size];
   const annotated =
     document.mode === "annotated" && document.transitions.length > 0;
   let gutter = 0;
