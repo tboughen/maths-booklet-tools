@@ -33,7 +33,9 @@ export function checkPlacement(raw: unknown, preparedInfo?: ReturnType<typeof di
     width: widthMm ?? heightMm! * nativeSizeMm.width / nativeSizeMm.height,
     height: heightMm ?? widthMm! * nativeSizeMm.height / nativeSizeMm.width,
   };
-  const uniformScale = Math.min(requestedSizeMm.width / nativeSizeMm.width, requestedSizeMm.height / nativeSizeMm.height);
+  // Rounded to 9 decimal places so asking for the native width reports exactly 1, not the
+  // 0.9999999999999999 that deriving the other side can leave behind.
+  const uniformScale = Math.round(Math.min(requestedSizeMm.width / nativeSizeMm.width, requestedSizeMm.height / nativeSizeMm.height) * 1e9) / 1e9;
   const proportionalSizeMm = { width: nativeSizeMm.width * uniformScale, height: nativeSizeMm.height * uniformScale };
   const tolerance = (v: number) => Math.max(0.1, v * 0.001);
   const wouldDistort = Math.abs(proportionalSizeMm.width - requestedSizeMm.width) > tolerance(requestedSizeMm.width)
