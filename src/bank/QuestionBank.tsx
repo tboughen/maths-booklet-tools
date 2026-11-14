@@ -148,7 +148,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const viewHasInk=visibleKeys.some(key=>layerOf(ink,key).strokes.length>0);
   const sizes=SIZES.find(size=>size.value===annotatePrefs.size)!;
   const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?sizes.highlighter:sizes.pen,scale):undefined;
-  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize:sizes.pen,highlighterSize:sizes.highlighter,straight:annotatePrefs.straight,fistEraser:annotatePrefs.fistEraser}),[annotatePrefs,sizes]);
+  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize:sizes.pen,highlighterSize:sizes.highlighter,straight:annotatePrefs.straight}),[annotatePrefs,sizes]);
   const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>({...p,tool}));setAnnotating(true);},[]);
   // Answers open at fit; going back to the question restores the zoom and position the teacher left.
   const switchRole=useCallback((next:ViewRole)=>{
