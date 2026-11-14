@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { defineEnvelope } from "../../envelope-core/src/index";
@@ -51,7 +52,7 @@ export const documentSchema = z
   })
   .strict();
 export const envelopeSchema = z
-  .object({ tool: z.literal("elevations"), schemaVersion: z.literal(1), rendererVersion: z.literal("elevations-1"), document: documentSchema })
+  .object({ tool: z.literal("elevations"), schemaVersion: z.literal(1), rendererVersion: z.literal("elevations-1"), document: documentSchema, ...aboutShape })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type ElevationDocument = Envelope["document"];

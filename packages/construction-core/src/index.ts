@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { defineEnvelope } from "../../envelope-core/src/index";
@@ -158,6 +159,7 @@ export const envelopeSchema = z
     schemaVersion: z.literal(1),
     rendererVersion: z.literal("construction-1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 

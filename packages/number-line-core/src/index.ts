@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { canonicalNumber, fractionString, isMixedNumber, mixedString, parseNumber, parseRatioNumber, rational } from "../../ratio-table-core/src/numbers";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
@@ -49,7 +50,7 @@ export const teachingSchema = z.object({ solutionVisible: z.boolean().default(tr
 export const secondarySchema = z.object({ minimum: num, maximum: num, unit: z.string().max(4).regex(/^[^<>&"0-9/\s]*$/).default(""), unitPlace: z.enum(["before", "after"]).default("after"), style: z.enum(["line", "bar"]).default("line"), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}) }).strict();
 export type Secondary = z.infer<typeof secondarySchema>;
 export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional() }).strict();
-export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema }).strict();
+export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;

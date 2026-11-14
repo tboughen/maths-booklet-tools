@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import * as legacy from "./legacy";
 import {
@@ -95,6 +96,7 @@ export const envelopeSchema = z
         shapes: z.array(shapeSchema).min(1).max(3),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Shape = z.infer<typeof shapeSchema>;
