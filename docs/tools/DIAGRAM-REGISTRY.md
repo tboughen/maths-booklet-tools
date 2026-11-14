@@ -97,6 +97,13 @@ the top and never scaled. `diagramPage` (`packages/resource-core/src/diagram-pag
 page; the worksheet PDF writer draws it and the W30 audit checks it before it is offered. Print at
 "Actual size" (100 %).
 
+## Tidy root numbers (U38, 14 November 2026)
+
+Every family's artwork from the registry, and every website SVG export (`embedPortableFonts`),
+passes through `tidySvgRoot` (`packages/envelope-core/src/svg-root.ts`): the root `width`,
+`height` and `viewBox` are rounded to four decimal places, so `5.515280000000001cm` becomes
+`5.5153cm`. The print size changes by less than 0.1 µm; nothing below the root element changes.
+
 ## Adding a family
 
 1. Build the family's core package as usual (`docs/tools/ADDING-BOOKLET-TOOLS.md`).
