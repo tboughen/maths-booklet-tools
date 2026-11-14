@@ -20,7 +20,7 @@ export function TriangleFloatingEditor({
     const frame = requestAnimationFrame(() => {
       const panel = box.current;
       if (!panel) return;
-      if (matchMedia("(max-width: 900px)").matches)
+      if (matchMedia("(max-width: 767px)").matches)
         panel.scrollIntoView({ block: "start" });
       else {
         const inspector = panel.closest(".inspector-stack");

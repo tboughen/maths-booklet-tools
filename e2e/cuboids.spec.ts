@@ -5,7 +5,6 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   create,
-  upgrade,
   canonical,
   encode,
   layout,
@@ -555,7 +554,7 @@ test("maximum separated resource exports a real 600 ppi PNG", async ({
   page,
 }) => {
   test.setTimeout(90000);
-  const e = upgrade(create());
+  const e = create();
   e.document.shapes[0].appearance!.mode = "faces";
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";

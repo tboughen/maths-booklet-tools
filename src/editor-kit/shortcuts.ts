@@ -33,3 +33,30 @@ export function handleUndoKeys(event: KeyboardEvent, actions: { undo: () => void
   if (!actions.blocked) actions[command]();
   return true;
 }
+
+export type ObjectKey =
+  | { kind: "delete" }
+  | { kind: "deselect" }
+  | { kind: "nudge"; dx: number; dy: number };
+
+/** One nudge, in millimetres on the printed resource: 1 mm, or 5 mm with Shift (U9). */
+export const NUDGE_MM = 1;
+export const NUDGE_LARGE_MM = 5;
+
+/**
+ * The same object keys in every editor (U9): Delete or Backspace removes the selected object (a label, point,
+ * arrow, line or shading, never a row, column or set) as one undo step; arrow keys nudge a movable object by
+ * 1 mm (Shift: 5 mm; dy is positive downwards); Escape deselects. Tab already moves between objects because
+ * every direct-edit target is a button. Never while typing in a field, behind a dialog, or with Ctrl/Cmd/Alt.
+ */
+export function objectKeyCommand(
+  event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "shiftKey" | "altKey" | "target" | "defaultPrevented">,
+): ObjectKey | null {
+  if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return null;
+  if (isTypingTarget(event.target) || modalOpen()) return null;
+  if (event.key === "Escape") return { kind: "deselect" };
+  if (event.key === "Delete" || event.key === "Backspace") return { kind: "delete" };
+  const step = event.shiftKey ? NUDGE_LARGE_MM : NUDGE_MM;
+  const move = ({ ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] } as Record<string, [number, number]>)[event.key];
+  return move ? { kind: "nudge", dx: move[0], dy: move[1] } : null;
+}

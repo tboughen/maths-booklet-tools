@@ -212,7 +212,7 @@
   min-height: 36px;
   padding-block: 8px;
 }
-@media (min-width: 901px) {
+@media (min-width: 768px) {
   .booklet-editor
     :is(
       .graph-stage,
@@ -233,7 +233,7 @@
     scrollbar-gutter: stable;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .booklet-editor .tr-label-editor-slot {
     grid-column: 1 / -1;
   }

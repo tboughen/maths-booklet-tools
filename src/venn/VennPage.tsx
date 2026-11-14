@@ -44,7 +44,7 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
@@ -193,11 +193,11 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     documentHistory.commit(valid, label);
     setMessage("");
   }
-  function patch(update: (n: Envelope["document"]) => void) {
+  function patch(update: (n: Envelope["document"]) => void, label?: string) {
     if (blocked) return;
     const n = structuredClone(e);
     update(n.document);
-    commit(n);
+    commit(n, label);
   }
   function undo() {
     if (blocked) return;
@@ -397,7 +397,22 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         closeDraft();
         return;
       }
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      // U9: Escape deselects; Delete clears the selected region's shading (never a set or region).
+      const command = objectKeyCommand(event);
+      if (!command || draft || selected === null || blocked) return;
+      if (command.kind === "deselect") setSelected(null);
+      else if (
+        command.kind === "delete" &&
+        d.regions[selected] &&
+        d.regions[selected].shade !== "none"
+      ) {
+        event.preventDefault();
+        const mask = selected;
+        patch((n) => {
+          n.regions[mask].shade = "none";
+        }, "clear shading");
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);

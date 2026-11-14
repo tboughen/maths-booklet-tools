@@ -21,7 +21,6 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   appearance,
-  upgrade,
   faceNames,
   faceAreaLabel,
   type Appearance,
@@ -70,7 +69,7 @@ import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 /** A new drawing starts from the house style's lines (U111); its text is always 11 pt. */
 const newDocument = () => {
-  const e = upgrade(create());
+  const e = create();
   if (housePreference().lines === "bold") e.document.lines = "bold";
   return e;
 };
@@ -210,11 +209,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
         ),
       },
     };
-    commit(
-      prev.schemaVersion === 1 && next.document.shapes.some((x) => x.appearance)
-        ? upgrade(next)
-        : next,
-    );
+    commit(next);
   }
   function paint(p: Partial<Appearance>) {
     changeShape((x) => ({ ...x, appearance: { ...appearance(x), ...p } }));
@@ -932,20 +927,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   {check("Dimension arrows (exam view)", s.arrows, (v) =>
                     patch({ arrows: v }),
                   )}
-                  {e.schemaVersion === 1 && (
-                    <>
-                      <p className="cb-note">
-                        Original saved layout is retained.
-                      </p>
-                      <button
-                        className="cb-action"
-                        disabled={blocked}
-                        onClick={() => safe(() => commit(upgrade(e)))}
-                      >
-                        Use current exam layout
-                      </button>
-                    </>
-                  )}
                   {check(
                     "Schematic proportions (exam view)",
                     s.schematic,
@@ -1218,8 +1199,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   <select
                     aria-label="Lines"
                     value={d.lines ?? "normal"}
-                    disabled={e.schemaVersion === 1}
-                    title={e.schemaVersion === 1 ? "Upgrade this drawing to choose its lines." : undefined}
                     onChange={(ev) => {
                       const next = { ...d };
                       setLines(next, ev.target.value as LineWeight);

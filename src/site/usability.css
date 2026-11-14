@@ -35,7 +35,7 @@
 }
 /* Beside the resource the settings are already in view, so these jumps stay out of sight until a
    keyboard reaches them: Tab lands on "Edit settings" before the diagram's many hit targets. */
-@media (min-width: 901px) {
+@media (min-width: 768px) {
   .booklet-editor .editor-inspector-link:not(:focus-visible),
   .booklet-editor .editor-diagram-link:not(:focus-visible) {
     /* Visually hidden; !important so a tool's own button sizing cannot reveal a sliver. */
