@@ -46,6 +46,17 @@ import type {
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { polygonCentroid, polygonVisible } from "./polygon";
+
+/** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
+export const POLYGON_SHADE = "#d4d4d4";
+/** Shading opacity for a hidden-answer shape, in the answer colour. */
+export const POLYGON_ANSWER_SHADE_OPACITY = 0.18;
+
+/** Exam papers print shape names upright, point names italic and line names bold. */
+export function nameStyle(object: GraphObject): "bold" | "italic" | "upright" {
+  return object.kind === "point" ? "italic" : object.kind === "polygon" ? "upright" : "bold";
+}
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -612,7 +623,9 @@ function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
           o.position.x <= layout.bounds.xMax + 1e-9 &&
           o.position.y >= layout.bounds.yMin - 1e-9 &&
           o.position.y <= layout.bounds.yMax + 1e-9
-      : visibleStraightPoints(o, layout.bounds) !== null;
+      : o.kind === "polygon"
+        ? polygonVisible(o, layout.bounds)
+        : visibleStraightPoints(o, layout.bounds) !== null;
   });
 }
 
@@ -648,6 +661,8 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, ax
     const right = p.x + dx + total / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
     centre = { x: (right ? p.x + dx : p.x - dx) - total / 2 + box.width / 2, y: up ? p.y - dy : p.y + dy };
+  } else if (object.kind === "polygon") {
+    centre = coordinateToSvg(polygonCentroid(object.vertices), layout);
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -748,7 +763,7 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const names = visibleNames(document, layout);
   if (!names.length) return "";
   const marks = names.map((object) => {
-    const style = object.kind === "point" ? "italic" : "bold";
+    const style = nameStyle(object);
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
     const centre = nameCentre(object, layout, UNITS_PER_CM, document.axes)!;
@@ -765,7 +780,11 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
-function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; marks: string } {
+function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { fills: string; lines: string; marks: string } {
+  // Shape fills sit under the grid and axes so they show through; outlines go before the lines, as in the editor.
+  const fills: string[] = [];
+  const shapes: string[] = [];
+  const answerShapes: string[] = [];
   const straight: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
@@ -789,6 +808,16 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       pointsOut.push(
         `<path d="M ${n(point.x - size)} ${n(point.y - size)} L ${n(point.x + size)} ${n(point.y + size)} M ${n(point.x - size)} ${n(point.y + size)} L ${n(point.x + size)} ${n(point.y - size)}"/>`,
       );
+      continue;
+    }
+    if (object.kind === "polygon") {
+      if (!polygonVisible(object, layout.bounds)) continue;
+      const points = object.vertices.map((p) => coordinateToSvg(p, layout)).map((p) => `${n(p.x)},${n(p.y)}`).join(" ");
+      if (object.shaded)
+        fills.push(
+          `<polygon class="graph-polygon-fill" points="${points}" ${object.answerOnly ? `fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${POLYGON_ANSWER_SHADE_OPACITY}"` : `fill="${POLYGON_SHADE}"`}/>`,
+        );
+      (object.answerOnly ? answerShapes : shapes).push(`<polygon class="graph-polygon" data-object-id="${escapeXml(object.id)}" points="${points}" stroke-linejoin="round"/>`);
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);
@@ -815,10 +844,10 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
   const pupilLabels = pointLabelsMarkup(document, layout, straightObjects(false));
   const answerPointLabels = pointLabelsMarkup(document, layout, straightObjects(true));
   const lines = `
-    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>${
-      answerStraight.length
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${shapes.join("")}${straight.join("")}</g>${
+      answerStraight.length || answerShapes.length
         ? `
-    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerStraight.join("")}</g>`
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerShapes.join("")}${answerStraight.join("")}</g>`
         : ""
     }`;
   const marks = `
@@ -829,7 +858,9 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
     <g class="point-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pupilLabels}</g>`
         : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
-  return { lines, marks };
+  const shaded = fills.length ? `
+    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-clip)">${fills.join("")}</g>` : "";
+  return { fills: shaded, lines, marks };
 }
 
 /** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
@@ -865,7 +896,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
-  ${gridMarkup(document, layout)}
+  ${objects.fills}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
   ${axes.labels}
