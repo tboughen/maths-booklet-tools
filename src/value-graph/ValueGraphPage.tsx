@@ -54,6 +54,7 @@ import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -659,7 +660,7 @@ export default function ValueGraphPage({
               true,
             )}
             <p>
-              Use expanded form, for example y = x² − x − 6. Existing values and
+              Use expanded form, for example y = x² − x − 6, y = x³ − 4x, y = 3/x or y = 2ˣ. Existing values and
               plots are retained.
             </p>
           </>
@@ -1405,7 +1406,7 @@ export default function ValueGraphPage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recoverRaw], { type: "application/json" }),
-                      "value-graph-recovery.json",
+                      downloadName("value-table-graph", "json", { recovery: true }),
                     );
                     setMessage(
                       "Recovery download prepared. You can now start afresh.",

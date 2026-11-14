@@ -46,7 +46,7 @@ const inputs = z.record(z.string().max(24), z.string().max(80)).refine(v => Obje
 export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_label"), ref, patch }).strict(),
   z.object({ op: z.literal("set_angle_mark"), id, mark: z.enum(["none", "arc", "double", "triple", "right"]) }).strict(),
-  z.object({ op: z.literal("set_edge_style"), id, ticks: z.number().int().min(0).max(3).optional(), dashed: z.boolean().optional() }).strict(),
+  z.object({ op: z.literal("set_edge_style"), id, ticks: z.number().int().min(0).max(3).optional(), arrows: z.number().int().min(0).max(3).optional().describe("Parallel-side arrowheads: give parallel sides the same number (0 removes them)."), dashed: z.boolean().optional() }).strict(),
   z.object({ op: z.literal("move_vertex"), id, x: z.number().min(-10000).max(10000), y: z.number().min(-10000).max(10000) }).strict(),
   z.object({ op: z.literal("transform"), kind: z.enum(["left", "right", "reflect", "vertical"]) }).strict(),
   z.object({ op: z.literal("set_constraint"), triangleId: id, type: z.enum(["right", "equal", "equilateral", "none"]), vertex: id }).strict(),
@@ -122,6 +122,11 @@ function calculate(e: m.Envelope, op: Extract<z.infer<typeof operationSchema>, {
   const unit = result.dimension === "angle" ? "°" : result.dimension === "area" ? `${context.unit}²` as m.Label["unit"] : context.unit;
   return maths.saveAnswer(e, op.ref, result, op.rounding, unit, op.overwrite);
 }
+/** 0 removes the field, so a file without arrows saves exactly as before. */
+function setArrows(edge: m.Envelope["document"]["edges"][number], arrows: number) {
+  if (arrows) edge.arrows = arrows;
+  else delete edge.arrows;
+}
 export function applyOperations(source: m.Envelope, operations: z.infer<typeof operationSchema>[]) {
   let e = structuredClone(source);
   for (const op of operations) {
@@ -132,6 +137,7 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
       case "set_edge_style": {
         const edge = found(d.edges, op.id);
         if (op.ticks !== undefined) edge.ticks = op.ticks;
+        if (op.arrows !== undefined) setArrows(edge, op.arrows);
         if (op.dashed !== undefined) edge.dashed = op.dashed;
         break;
       }

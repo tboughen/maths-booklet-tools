@@ -17,6 +17,8 @@ import { chartConfig } from "./guides/chart";
 import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { triangleConfig } from "./guides/triangle";
+import { constructionConfig } from "./guides/construction";
+import { elevationsConfig } from "./guides/elevations";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -30,7 +32,8 @@ export interface FamilyGuide {
 const graphGuide: FamilyGuide = {
   capabilities: {
     rendererVersion: graph.RENDERER_VERSION,
-    objects: ["point", "segment", "line"],
+    objects: ["point", "segment", "line", "polygon"],
+    polygonVertices: [3, 12],
     unitsPerSquare: "any positive scale per 1 cm square, such as 0.5, 1, 2, 5, 10, 20, 25, 50; minutes for time axes",
     commonUnitsPerSquare: [0.5, 1, 2, 5, 10, 20, 25, 50],
     axisOptions: ["origin", "labelEvery (1-10)", "format: number | time", "title"],
@@ -50,6 +53,7 @@ const graphGuide: FamilyGuide = {
     "One-centimetre grid squares with points, segments and straight lines; no curves. spec is {schemaVersion?:1, axes, grid?, originLabel?, objects}: supply exact square counts and scales. Fractions such as 1/2 are supported. Keep equationVisible false unless the user explicitly asks to print, show or label the equation; plotting y = 2x + 1 alone gives an unlabelled line. A point, segment end or line may sit anywhere, including off the grid, for example a deliberate non-perfect point in a spot-the-mistake question: coordinates need not be on grid lines or crossings (e.g. {x:3,y:2.6}); only parts inside the axes are drawn. " +
     "Edexcel style: originLabel \"O\" prints an italic O; name:\"L\" (or \"L1\", \"L2\") prints a bold line name beside the line; a point with name:\"A\" prints an italic A beside its cross. Names never reveal answers, so add them only when the question names the object. " +
     "Hidden answers: answerOnly:true on a point, segment or line draws it in the answer colour only on the answers copy (outputView answer, or a worksheet's answers view); the pupil copy keeps the grid blank. Use it for the line or shape a pupil is asked to draw; ask for outputView answer only when the user wants the answers copy. " +
+    "Transformations: {kind:\"polygon\", vertices:[{x,y},...] (3 to 12 corners in order; it closes itself), shaded?:true, name?:\"A\"} draws a closed shape; its name prints upright in the middle of the shape, as exam papers label shapes. For \"Reflect shape A\" give the image as a second polygon with answerOnly:true, so the pupil copy shows only A. Shapes are not moved, reflected or enlarged for you: give the image corners yourself only when making an answers copy. " +
     "Real-life graphs: each axis takes unitsPerSquare (any positive scale per 1 cm square, e.g. 5, 10, 25), origin (value where the axes cross), labelEvery (number every nth 1 cm line), format \"time\" (values are minutes after midnight, printed 12 00) and title (words and unit, e.g. \"Distance from home (km)\", replacing the italic letter). grid \"2mm\" or \"5mm\" adds a fine grid inside heavier 1 cm lines; points and line ends may sit on fine lines. " +
     "Sketch questions: grid \"none\" draws sketch axes (no grid, no axis numbers, just the axes with x, y and, with originLabel \"O\", an italic O). Squares still set the size and scale. A segment or line takes labels: up to 4 {at:{x,y}, text, side?} short texts such as \"3\", \"-2\" (printed −2) or \"(0, 3)\" beside a point, usually where it crosses an axis; side defaults to the free corner left of the y-axis or below the x-axis. Labels follow the line's answerOnly, so a sketch answer is a line with answerOnly:true and its intercept labels, and the pupil copy is blank axes. " +
     "Example travel graph 12 00 to 14 30, 0 to 30 km: axes {x:{negativeSquares:0,positiveSquares:15,unitsPerSquare:10,origin:720,labelEvery:3,format:\"time\",title:\"Time of day\"}, y:{negativeSquares:0,positiveSquares:6,unitsPerSquare:5,labelEvery:2,title:\"Distance from home (km)\"}}, grid \"2mm\", segments in minutes and km such as {kind:\"segment\",start:{x:720,y:0},end:{x:765,y:25}}.",
@@ -92,11 +96,12 @@ const valueGuide: FamilyGuide = {
     print: { axisFontPt: 12, gridPitchMm: [2, 10, 20], gridStrokePt: [0.51, 1.02, 1.417], defaultXUnitsPerCm: "1/2", defaultYUnitsPerCm: "1" },
     cellKinds: ["value", "blank", "answer-line"],
     connections: ["none", "straight-joins"],
+    equationFamilies: ["quadratic", "cubic", "reciprocal", "exponential"],
   },
   create:
-    "Table of values and exam graph paper, for partial tables, quadratic curves and deliberate straight-join errors. Omit envelope for the June 2018 scaffold with five blank y cells and nothing plotted; there is no spec. To customise, supply a full schemaVersion 1 / value-graph-1 / exam-v1 envelope. Columns are {id,x,y} with y {kind:blank|answer-line} or {kind:value,value}. A curve is graph.curves {id,equation:{a,b,c},min,max}; straight joins are a series connection, never a curve.",
+    "Table of values and exam graph paper, for partial tables, quadratic curves and deliberate straight-join errors. Omit envelope for the June 2018 scaffold with five blank y cells and nothing plotted; there is no spec. To customise, supply a full schemaVersion 1 / value-graph-1 / exam-v1 envelope. Columns are {id,x,y} with y {kind:blank|answer-line} or {kind:value,value}. A curve is graph.curves {id,equation:{a,b,c},min,max}; straight joins are a series connection, never a curve. Equations are y = ax² + bx + c, with optional extra terms: cubic (the x³ coefficient, e.g. {a:\"0\",b:\"-4\",c:\"0\",cubic:\"1\"} for y = x³ − 4x), reciprocal (k in k/x, with only c beside it: {a:\"0\",b:\"0\",c:\"0\",reciprocal:\"6\"} for y = 6/x) or exponential {coefficient,base} (with only c beside it: y = 3 × 2ˣ is {a:\"0\",b:\"0\",c:\"0\",exponential:{coefficient:\"3\",base:\"2\"}}). A reciprocal table must not have an x = 0 column, and an exponential table needs whole-number x values; set the equation and replace_columns in the same revision. Values stay exact fractions (2⁻² is 1/4).",
   revise:
-    "References use stable IDs, not indexes. set_equation {equation:{a,b,c}}; set_cell {columnId,x?,y?}; insert_column {afterId,column}; remove_column {columnId}; replace_columns {columns}; calculate_cells {columnIds,overwrite} (the only operation that supplies answers; replacing values needs overwrite:true); set_graph {settings}; plot_series {id,source:table|equation,columnIds,connection}; put_series {series}; remove_series {id}; set_connection {id,connection}; move_point {seriesId,pointId,x,y,linked:update-table|detach}; set_curve {curve|null}; set_reference_lines {lines:[{id,y}]}; set_presentation {settings}; set_print {settings}. plot_series source:table skips blanks and includes zero; source:equation calculates points without filling the table.",
+    "References use stable IDs, not indexes. set_equation {equation:{a,b,c,cubic?,reciprocal?,exponential?}}; set_cell {columnId,x?,y?}; insert_column {afterId,column}; remove_column {columnId}; replace_columns {columns}; calculate_cells {columnIds,overwrite} (the only operation that supplies answers; replacing values needs overwrite:true); set_graph {settings}; plot_series {id,source:table|equation,columnIds,connection}; put_series {series}; remove_series {id}; set_connection {id,connection}; move_point {seriesId,pointId,x,y,linked:update-table|detach}; set_curve {curve|null}; set_reference_lines {lines:[{id,y}]}; set_presentation {settings}; set_print {settings}. plot_series source:table skips blanks and includes zero; source:equation calculates points without filling the table.",
 };
 
 const cuboidGuide: FamilyGuide = {
@@ -131,15 +136,16 @@ const lineGuide: FamilyGuide = {
     tickIntervals: { minimum: 2, maximum: 32 },
     maximumPoints: 33,
     maximumConnections: 32,
+    maximumMarkers: 6,
     maximumRevisionOperations: 30,
     solutionKinds: ["interval", "ray", "points"],
     labelStates: ["value", "hidden", "answer-line"],
     operations: line.operationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
+    "Examination number line; omit spec for a blank -5 to 5 axis. spec:{axis?,solution?,teaching?,widthCm?,markers?}. axis has minimum, maximum and step as numeric strings (integers, decimals, fractions such as 3/2, or mixed numbers such as \"1 1/2\" or \"1½\", saved as 3/2); axis.numberFormat is decimal (decimals where exact), fraction (stacked, improper: 3/2) or mixed (stacked, mixed: 1 and a half); fractions always print stacked; solution is null, interval, ray or points with stable IDs. For \"what number is the arrow pointing to?\" use markers:[{id,value,label?}] (up to 6 down arrows, label up to 3 letters or digits such as A; value may lie between ticks; not with a solution) and axis.minorTicks:true for exam-style long labelled and short unlabelled ticks (for example step 0.1, labelEvery 10). The marker value is the answer the pupil reads: give it only in teaching.answer, kept hidden. Keep solutionVisible, tick-label answer lines, prompt and answer visibility.",
   revise:
-    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins and ray); add_point_ray {ray:{id,from,direction:left|right}} (a ray from a point to the end of the line, for sets such as x < −1 or x ≥ 2; at most one each way); remove_point_ray {id}; set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
+    "set_axis {axis}; set_solution {solution}; set_endpoint {id,endpoint:lower|upper|value,value?,included?}; add_point {point}; set_point {id,value?,included?}; connect_points {interval:{id,from,to}}; remove_interval {id}; remove_point {id} (also removes its joins and ray); add_point_ray {ray:{id,from,direction:left|right}} (a ray from a point to the end of the line, for sets such as x < −1 or x ≥ 2; at most one each way); remove_point_ray {id}; set_tick_label {value,state:value|hidden|answer-line}; set_presentation {teaching}; set_print {widthCm}; add_marker {marker:{id,value,label?}}; set_marker {id,value?,label?} (an empty label removes it); remove_marker {id}. Axis changes never silently discard solutions; a truncated ray needs intentional:true.",
 };
 
 const vennGuide: FamilyGuide = {
@@ -197,6 +203,8 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
     ...fromConfig(triangleConfig),
     create: "Triangle keeps explicit labels, topology and saved answers; calculate only when the user asks, and never measure drawn proportions. " + triangleConfig.createDescription,
   },
+  construction: fromConfig(constructionConfig),
+  elevations: fromConfig(elevationsConfig),
 };
 
 const jsonSchema = (schema: z.ZodType) => {

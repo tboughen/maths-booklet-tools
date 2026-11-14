@@ -48,9 +48,15 @@ export interface NamedObject {
   namePosition?: Coordinate;
 }
 
+/** Coordinates printed after a point's name, as exam papers write A(2, 3). "show" prints them;
+ * "blank" leaves ( ……… , ……… ) for the pupil on the pupil copy, and prints the point's own
+ * coordinates in the answer colour on the answers copy. Omitted prints none. */
+export type PointCoordinates = "show" | "blank";
+
 export interface PointObject extends BaseObject, NamedObject {
   kind: "point";
   position: Coordinate;
+  coordinates?: PointCoordinates;
 }
 
 /** Where a short label sits beside the point it labels. */
@@ -85,7 +91,17 @@ export interface StraightObject extends BaseObject, NamedObject {
   labels?: PointLabel[];
 }
 
-export type GraphObject = PointObject | StraightObject;
+/** A closed shape for transformations, such as triangle A or shape P (U72). Its name prints
+ * upright in the middle of the shape, as exam papers label shapes. */
+export interface PolygonObject extends BaseObject, NamedObject {
+  kind: "polygon";
+  /** 3 to 12 corners in order, in graph coordinates. */
+  vertices: Coordinate[];
+  /** Grey shading inside the shape. Omitted means unshaded. */
+  shaded?: true;
+}
+
+export type GraphObject = PointObject | StraightObject | PolygonObject;
 
 export interface DiagramDocumentV1 {
   version: 1;

@@ -4,6 +4,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { downloadName } from "../export/filenames";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
@@ -384,12 +385,12 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 svg: {
-                  action: () => downloadImage(displayed, "svg"),
+                  action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
                 png: {
-                  action: () => downloadImage(displayed, "png"),
+                  action: () => downloadImage(displayed, "png", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
@@ -943,7 +944,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "chart-recovery.json",
+                  downloadName("charts", "json", { recovery: true }),
                 );
                 setProtectedCopy(true);
               }}
