@@ -49,6 +49,7 @@ import type {
 import {
   copyDiagram,
   copyPngToClipboard,
+  downloadDiagramPdf,
   downloadDiagramPng,
   downloadDiagramSvg,
 } from "./export/clipboard";
@@ -463,6 +464,16 @@ export default function App({ active = true }: { active?: boolean }) {
                     return downloadDiagramPng(document);
                   },
                   success: "PNG download started.",
+                },
+                {
+                  label: "Download PDF (actual size)",
+                  disabled: blocked,
+                  action: () => {
+                    if (locked())
+                      throw Error("Apply or cancel unfinished input first.");
+                    return downloadDiagramPdf(document);
+                  },
+                  success: "PDF download started.",
                 },
               ]}
             />

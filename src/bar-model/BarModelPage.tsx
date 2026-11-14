@@ -361,6 +361,11 @@ export default function BarModelPage({
       action: () => downloadImage(e, "png"),
       success: "PNG download started",
     },
+    pdf: {
+      disabled: blocked || !!issue,
+      action: () => downloadImage(e, "pdf"),
+      success: "PDF download started",
+    },
     save: {
       disabled: blocked,
       action: () => downloadEditable(e),

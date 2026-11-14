@@ -389,6 +389,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadImage(displayed, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
