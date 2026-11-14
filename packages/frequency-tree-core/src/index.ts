@@ -178,12 +178,24 @@ export function parseFile(text: string) {
 }
 
 /** Pupil view leaves hidden labels as spaces; the answer view prints them. */
-export function forView(e: Envelope, view: "pupil" | "answer"): Envelope {
+/**
+ * The teacher copy shows every label. With `mark`, labels shown only because they were saved hidden
+ * are drawn in the answer colour (worksheet answers copies and outputView answer); worked copies
+ * made by create keep plain black.
+ */
+export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
-  for (const l of allLabels(n.document)) l.show = "show";
+  for (const l of allLabels(n.document)) {
+    if (mark && l.show === "hidden" && l.text.trim()) REVEALED.add(l);
+    l.show = "show";
+  }
   return n;
 }
+/** Labels a teacher copy shows only because they were saved hidden: drawn in the answer colour. */
+const REVEALED = new WeakSet<Label>();
+/** The house answer colour, as on ratio tables, graphs and worksheet answer lines. */
+export const TREE_ANSWER_COLOUR = "#b0125b";
 export function allLabels(d: TreeDocument): Label[] {
   return [d.total, ...d.nodes.flatMap((b) => [b.category, b.count]), ...d.questions.map((q) => q.answer)];
 }
@@ -474,7 +486,7 @@ export type Target = {
   height: number;
 };
 type Box = { x1: number; x2: number; y1: number; y2: number };
-export type PlacedText = { lines: string[]; hidden: boolean; x: number; y: number; align: "start" | "middle"; width: number; height: number };
+export type PlacedText = { lines: string[]; hidden: boolean; revealed?: boolean; x: number; y: number; align: "start" | "middle"; width: number; height: number };
 export type Layout = ReturnType<typeof layout>;
 
 /** Size of a group name or of its pupil line. */
@@ -572,7 +584,7 @@ export function layout(e: Envelope) {
     }
     const w = Math.max(block.width, 8),
       h = Math.max(block.height, LINE);
-    texts.push({ lines: block.lines, hidden: b.category.show === "hidden", x, y, align, width: block.width, height: block.height });
+    texts.push({ lines: block.lines, hidden: b.category.show === "hidden", revealed: REVEALED.has(b.category), x, y, align, width: block.width, height: block.height });
     const left = align === "start" ? x : x - w / 2;
     targets.push({ kind: "category", id: b.id, x: left - 0.5, y: y - h / 2 - 0.5, width: w + 1, height: h + 1 });
   }
@@ -661,8 +673,9 @@ export function warnings(e: Envelope) {
 
 const n = (v: number) => String(Math.round(v * 1000) / 1000);
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const text = (t: string, x: number, y: number, anchor = "middle") =>
-  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(t)}</text>`;
+const text = (t: string, x: number, y: number, anchor = "middle", fill = "black") =>
+  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="${fill}">${esc(t)}</text>`;
+const ink = (l: Label) => (REVEALED.has(l) ? TREE_ANSWER_COLOUR : "black");
 const dotted = (x1: number, x2: number, y: number) =>
   `<line x1="${n(x1)}" y1="${n(y)}" x2="${n(x2)}" y2="${n(y)}" stroke="black" stroke-width="0.3" stroke-dasharray="0.3 0.9" stroke-linecap="round"/>`;
 
@@ -681,7 +694,7 @@ export function renderSvg(e: Envelope): string {
         ? `<ellipse cx="${n(s.cx)}" cy="${n(s.cy)}" rx="${n(W / 2)}" ry="${n(H / 2)}" fill="white" stroke="black" stroke-width="0.3"/>`
         : `<rect x="${n(s.cx - W / 2)}" y="${n(s.cy - H / 2)}" width="${n(W)}" height="${n(H)}" fill="white" stroke="black" stroke-width="0.3"/>`,
     );
-    if (s.count.show === "show" && s.count.text.trim()) out.push(text(typeset(s.count.text), s.cx, s.cy + FONT * 0.33));
+    if (s.count.show === "show" && s.count.text.trim()) out.push(text(typeset(s.count.text), s.cx, s.cy + FONT * 0.33, "middle", ink(s.count)));
   }
   for (const t of g.texts) {
     const x1 = t.align === "start" ? t.x : t.x - 8;
@@ -691,7 +704,7 @@ export function renderSvg(e: Envelope): string {
     }
     t.lines.forEach((line, i) => {
       const y = t.y - t.height / 2 + LINE * i + LINE * 0.5 + FONT * 0.33;
-      out.push(text(line, t.x, y, t.align === "start" ? "start" : "middle"));
+      out.push(text(line, t.x, y, t.align === "start" ? "start" : "middle", t.revealed ? TREE_ANSWER_COLOUR : "black"));
     });
   }
   for (const r of g.questions) {
@@ -706,10 +719,10 @@ export function renderSvg(e: Envelope): string {
         const [top, bottom] = a.text.split("/").map((s) => typeset(s));
         const bar = Math.max(textWidth(top), textWidth(bottom)) + 1.2;
         const by = r.y - 1.5 - FONT * 0.95;
-        out.push(text(top, mid, by - 0.9));
-        out.push(`<line x1="${n(mid - bar / 2)}" y1="${n(by)}" x2="${n(mid + bar / 2)}" y2="${n(by)}" stroke="black" stroke-width="0.25"/>`);
-        out.push(text(bottom, mid, by + FONT * 0.72 + 0.9));
-      } else out.push(text(typeset(a.text), mid, r.y - 1.5));
+        out.push(text(top, mid, by - 0.9, "middle", ink(a)));
+        out.push(`<line x1="${n(mid - bar / 2)}" y1="${n(by)}" x2="${n(mid + bar / 2)}" y2="${n(by)}" stroke="${ink(a)}" stroke-width="0.25"/>`);
+        out.push(text(bottom, mid, by + FONT * 0.72 + 0.9, "middle", ink(a)));
+      } else out.push(text(typeset(a.text), mid, r.y - 1.5, "middle", ink(a)));
     }
   }
   const groups = d.nodes.length;

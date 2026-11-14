@@ -115,10 +115,10 @@ it("supports placement,bundles and original multi-chunk SVG without editing sour
   expect(createHash("sha256").update(control).digest("hex")).toBe(received.svgSha256);
   expect(Buffer.from(members["diagram.svg"]).equals(control)).toBe(true);
 },30000);
-it("does not accept Venn outputView for Triangle and preserves version validation", async () => {
+it("accepts the answers view for Triangle (saved answers in pink) and preserves version validation", async () => {
   const c = await start(), r = await call(c,"create_triangle",{});
-  const invalid = await c.callTool({name:"get_diagram_svg",arguments:{kind:"triangle",envelope:r.data.envelope,outputView:"answer"}});
-  expect(invalid.isError).toBe(true);
+  const answers = await c.callTool({name:"get_diagram_svg",arguments:{kind:"triangle",envelope:r.data.envelope,outputView:"answer"}});
+  expect(answers.isError).toBeFalsy();
   const v2 = await call(c,"revise_triangle",{envelope:r.data.envelope,baseHash:r.data.contentHash,operations:[{op:"set_area",triangleId:"T1",label:{prefix:"Area = ",state:"answer-line"}}]});
   expect(v2.data.envelope.rendererVersion).toBe("triangle-2");
   const invalidV1 = await c.callTool({name:"create_triangle",arguments:{envelope:{...v2.data.envelope,schemaVersion:1}}});

@@ -33,7 +33,7 @@ export const FIELD_DOCS: Readonly<Record<string, string>> = {
   operations:
     "Edits applied in order and atomically: all succeed or none apply. An empty array changes nothing and returns fresh download links.",
   outputView:
-    "pupil (default) or answer. answer draws a teacher copy with hidden answers shown (Venn diagrams, ratio tables, charts and probability trees). Artwork only: the returned envelope and contentHash stay the pupil source.",
+    "pupil (default) or answer. answer draws a teacher copy with hidden answers shown in the answer colour (Venn diagrams, ratio tables, charts, probability and frequency trees, expanding and factorising grids, triangles). Artwork only: the returned envelope and contentHash stay the pupil source.",
   schemaVersion:
     "File format version. Keep the value a previous call returned. The tool description says which versions a new resource may request.",
   rendererVersion: "Drawing rules version recorded in the file. Keep the value a previous call returned.",

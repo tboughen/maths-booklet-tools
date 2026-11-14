@@ -629,8 +629,10 @@ export const textWidth = (s: string) =>
         (p.super ? 0.7 : 1),
     0,
   );
-function textSvg(s: string, x: number, y: number, anchor = "middle") {
-  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="STIX Two Text" font-size="${textSize(s)}" fill="#000">${mathParts(
+/** Saved answers revealed on an answers copy print in the house answer colour. */
+export const ALGEBRA_ANSWER_COLOUR = "#b0125b";
+function textSvg(s: string, x: number, y: number, anchor = "middle", fill = "#000") {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="STIX Two Text" font-size="${textSize(s)}" fill="${fill}">${mathParts(
     s,
   )
     .map(
@@ -764,6 +766,8 @@ export function renderSvg(e: Envelope, showAnswers = false) {
             a.cell.value!,
             a.x + a.w / 2,
             a.y + a.h / 2 + textSize(a.cell.value!) * 0.28,
+            "middle",
+            a.cell.hidden ? ALGEBRA_ANSWER_COLOUR : "#000",
           ),
         )
         .join("")

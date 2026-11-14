@@ -202,7 +202,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     label: "expanding and factorising grid",
     summary: "Multiplication grid for expanding brackets or factorising, with blank pupil cells.",
     route: "/tools/expanding-factorising",
-    answerView: false,
+    answerView: true,
     envelopeSchema: algebra.schema,
     createSchema: algebraIo.createSchema,
     revisionSchema: algebraIo.revisionSchema,
@@ -214,7 +214,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => algebraIo.create(input),
     revise: (input) => algebraIo.revise(input),
     hash: algebraIo.hash,
-    svg: (e) => algebra.renderSvg(e),
+    svg: (e, view) => algebra.renderSvg(e, view === "answer"),
   }),
   "bar-model": family<bar.Envelope>({
     kind: "bar-model",
@@ -271,7 +271,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => treeIo.create(input),
     revise: (input) => treeIo.revise(input),
     hash: tree.hash,
-    svg: (e, view) => tree.renderSvg(tree.forView(e, view)),
+    svg: (e, view) => tree.renderSvg(tree.forView(e, view, true)),
   }),
   "frequency-tree": family<ftree.Envelope>({
     kind: "frequency-tree",
@@ -290,14 +290,14 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => ftreeIo.create(input),
     revise: (input) => ftreeIo.revise(input),
     hash: ftree.hash,
-    svg: (e, view) => ftree.renderSvg(ftree.forView(e, view)),
+    svg: (e, view) => ftree.renderSvg(ftree.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
     label: "triangle diagram",
     summary: "Triangle diagrams for Pythagoras, trigonometry, sine/cosine rule and area, with answer lines.",
     route: "/tools/triangle",
-    answerView: false,
+    answerView: true,
     envelopeSchema: triangleIo.wireEnvelopeSchema,
     createSchema: triangleIo.createSchema,
     revisionSchema: triangleIo.revisionSchema,
@@ -309,7 +309,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     create: (input) => triangleIo.create(input),
     revise: (input) => triangleIo.revise(input),
     hash: triangleIo.hash,
-    svg: (e) => triangle.renderSvg(e),
+    svg: (e, view) => triangle.renderSvg(e, view === "answer"),
   }),
 };
 

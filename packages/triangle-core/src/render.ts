@@ -18,6 +18,8 @@ import {
 import { heightFoot } from "./geometry";
 
 export const FONT = (11 * 25.4) / 72;
+/** Saved answers revealed on an answers copy print in the house answer colour. */
+export const TRIANGLE_ANSWER_COLOUR = "#b0125b";
 export const escapeXml = (s: string) =>
   s
     .replaceAll("&", "&amp;")
@@ -151,6 +153,8 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
     ) => {
       const l = getLabel(e, ref),
         text = shown(e, l, showAnswers),
+        // A saved answer shown only because this is the answers copy prints in the answer colour.
+        revealed = showAnswers && !!l.answer && !l.answerVisible,
         m = mathMetrics(text, size),
         hasOffset = l.dx !== 0 || l.dy !== 0;
       let c = add(proposed, { x: l.dx, y: l.dy });
@@ -182,7 +186,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
         boxes.push(r);
         bounds.push({ x: r.x, y: r.y }, { x: r.x + r.w, y: r.y + r.h });
         labels.push(
-          `<g data-triangle-label="${escapeXml(ref)}"><rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" fill="white" stroke="none"/>${textSvg(text, c, size, italic)}</g>`,
+          `<g data-triangle-label="${escapeXml(ref)}"${revealed ? ` fill="${TRIANGLE_ANSWER_COLOUR}"` : ""}><rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" fill="white" stroke="none"/>${textSvg(text, c, size, italic)}</g>`,
         );
       }
       anchors.push({
@@ -451,7 +455,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
   }
   return final!;
 }
-export const renderSvg = (e: Envelope) => layout(e).svg;
+export const renderSvg = (e: Envelope, showAnswers = false) => layout(e, showAnswers).svg;
 export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }
