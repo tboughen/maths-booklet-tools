@@ -542,30 +542,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 }
                 error={!!issue || cropSize.error}
               />
-              <label>
-                View{" "}
-                <select
-                  aria-label="View"
-                  value={s.view}
-                  disabled={blocked}
-                  onChange={(ev) => view(ev.target.value as Shape["view"])}
-                >
-                  <option value="plain">Exam diagram</option>
-                  <option value="cubes">Show cubes</option>
-                  <option value="layers" disabled={a.mode === "one"}>
-                    Separate layers
-                  </option>
-                </select>
-              </label>
-              <button
-                className="cb-quick-cubes"
-                disabled={blocked}
-                onClick={() =>
-                  safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
-                }
-              >
-                Show 1 cm³ cubes
-              </button>
             </div>
             <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
@@ -855,6 +831,32 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                         : {}),
                     }),
                   )}
+                </div>
+                <div className="cb-units-row">
+                  <label>
+                    View{" "}
+                    <select
+                      aria-label="View"
+                      value={s.view}
+                      disabled={blocked}
+                      onChange={(ev) => view(ev.target.value as Shape["view"])}
+                    >
+                      <option value="plain">Exam diagram</option>
+                      <option value="cubes">Show cubes</option>
+                      <option value="layers" disabled={a.mode === "one"}>
+                        Separate layers
+                      </option>
+                    </select>
+                  </label>
+                  <button
+                    className="cb-quick-cubes"
+                    disabled={blocked}
+                    onClick={() =>
+                      safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
+                    }
+                  >
+                    Show 1 cm³ cubes
+                  </button>
                 </div>
                 {
                   <details>

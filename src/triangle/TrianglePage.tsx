@@ -932,19 +932,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 disabled={blocked}
                 onChange={setShowAnswers}
               />
-              <button
-                disabled={blocked || !hasSavedAnswer}
-                aria-describedby={hasSavedAnswer ? undefined : "tr-worked-hint"}
-                title={hasSavedAnswer ? undefined : workedHint}
-                onClick={() => fork(e)}
-              >
-                Use worked version
-              </button>
-              {!hasSavedAnswer && (
-                <span id="tr-worked-hint" className="sr-only">
-                  {workedHint}
-                </span>
-              )}
             </div>
             {showAnswers && (
               <p className="tr-banner">
@@ -2225,6 +2212,21 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                     </button>
                   ))}
                 </div>
+                <p className="tr-note">Or open a worked version of this triangle, with its saved answers shown:</p>
+                <div className="tr-two">
+                  <button
+                    disabled={blocked || !hasSavedAnswer}
+                    aria-describedby={hasSavedAnswer ? undefined : "tr-worked-hint"}
+                    onClick={() => fork(e)}
+                  >
+                    Use worked version
+                  </button>
+                </div>
+                {!hasSavedAnswer && (
+                  <p id="tr-worked-hint" className="tr-note">
+                    {workedHint}
+                  </p>
+                )}
               </div>
             </details>{" "}
             <details className="tr-section">

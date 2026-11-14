@@ -98,6 +98,8 @@ test("1 cm cubes and separated layers keep a missing height blank", async ({
   await page
     .getByLabel("Label appearance", { exact: true })
     .selectOption("blank");
+  // U1: View and the cube shortcut are document settings, on the Shape tab.
+  await page.getByRole("tab", { name: "Shape", exact: true }).click();
   await page
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
