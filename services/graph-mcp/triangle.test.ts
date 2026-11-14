@@ -71,7 +71,7 @@ it.each([undefined,"external-height","ssa","fractions","joined-rules","bisector"
   const json = await artifact(r,"json"), svg = await artifact(r,"svg"), png = await artifact(r,"png");
   expect(JSON.parse(json.toString("utf8"))).toEqual(e);
   expect(svg.toString()).not.toMatch(/<(?:text|image|script|foreignObject)\b/);
-  expect(svg.toString()).toContain("Triangle diagram");
+  expect(svg.toString()).toMatch(/<title>(?:Triangle|\d+ triangles) with vertices [^<]+<\/title>/);
   verifyPrintBytes(png,r.data.printRaster.width,r.data.printRaster.height);
   const g = core.layout(e);
   expect(r.data.physicalSizeCm).toEqual({width:g.width/10,height:g.height/10});

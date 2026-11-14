@@ -3,6 +3,7 @@ import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 import { svgPdf } from "../export/diagram-pdf";
 
 export async function prepareImage(e: Envelope) {
@@ -19,18 +20,18 @@ export async function printPng(e: Envelope) {
   verifyPrintBytes(new Uint8Array(await png.arrayBuffer()), size.width, size.height);
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf") {
+export async function downloadImage(e: Envelope, format: "png" | "svg" | "pdf", answers = false) {
   downloadBlob(
     format === "pdf"
       ? await svgPdf((await prepareImage(e)).svg)
       : format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
-    `probability-tree.${format}`,
+    downloadName("probability-tree", format, { resource: e, answers }),
   );
 }
 export function downloadEditable(e: Envelope) {
-  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), "probability-tree.json");
+  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), downloadName("probability-tree", "json", { resource: e }));
 }
 export async function copyWord(e: Envelope) {
   const m = await prepareImage(e),
