@@ -6,6 +6,7 @@ import type {
 import type { RatioSelection } from "./RatioCanvas";
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { headingText, headingFromText } from "./headingText";
 
 type RatioCellValue = RatioDocument["rows"][number]["cells"][number];
@@ -370,6 +371,23 @@ export function RatioInspector({
             <option value="compact">Compact · 80%</option>
             <option value="standard">Standard · lesson size</option>
             <option value="large">Large · 120%</option>
+          </select>
+        </label>
+        <label className="ratio-label">
+          Lines
+          <select
+            aria-label="Lines"
+            disabled={pendingInputs}
+            value={document.lines ?? "normal"}
+            onChange={(event) =>
+              onAction([{ op: "set_lines", lines: event.target.value as LineWeight }])
+            }
+          >
+            {LINE_WEIGHTS.map((v) => (
+              <option key={v} value={v}>
+                {LINE_WEIGHT_NAMES[v]}
+              </option>
+            ))}
           </select>
         </label>
         <label className="ratio-label">

@@ -1,5 +1,6 @@
 import { aboutOf, type About } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   DEFAULT_HEADINGS,
   documentSchema,
@@ -207,6 +208,7 @@ export function createRatioTable(input: unknown): RatioEnvelope {
     mode: spec.mode ?? "simple",
     showArrows: spec.showArrows ?? true,
     showOperations: spec.showOperations ?? true,
+    ...(spec.lines === "bold" ? { lines: "bold" as const } : {}),
   });
 }
 export function emptyRatioTable(): RatioEnvelope {
@@ -264,6 +266,9 @@ export const ratioOperationSchema = z.discriminatedUnion("op", [
     .strict(),
   z
     .object({ op: z.literal("set_size"), size: documentSchema.shape.size })
+    .strict(),
+  z
+    .object({ op: z.literal("set_lines"), lines: z.enum(LINE_WEIGHTS) })
     .strict(),
   z
     .object({
@@ -376,6 +381,10 @@ export function applyRatioOperations(
         break;
       case "set_size":
         document.size = op.size;
+        break;
+      case "set_lines":
+        if (op.lines === "bold") document.lines = "bold";
+        else delete document.lines;
         break;
       case "set_annotation_visibility": {
         if (op.mode !== undefined) document.mode = op.mode;

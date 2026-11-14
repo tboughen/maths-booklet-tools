@@ -1,4 +1,5 @@
 import { speakRatio } from "./speakRatio";
+import { houseRatio } from "./house";
 import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import {
@@ -554,7 +555,7 @@ export default function RatioTablePage({
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(starterRatioTable(), "Reset this table?")}
+              onReset={() => replace(houseRatio(starterRatioTable()), "Reset this table?")}
               resetDisabled={structureDisabled}
               exportDisabled={exportDisabled}
               busy={busy}
