@@ -32,6 +32,7 @@ const presentation = z
     key: z.boolean().optional(),
     heightMm: z.number().int().min(40).max(140).optional(),
     barMm: z.number().int().min(5).max(20).optional(),
+    lines: core.envelopeSchema.shape.document.shape.lines,
   })
   .strict();
 export const createSchema = z

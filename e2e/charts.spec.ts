@@ -85,3 +85,23 @@ test("adds a category beside the chart and work survives leaving the page", asyn
   await page.reload();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
 });
+
+test("bold lines are saved, printed and undoable; the grid keeps its weight (U111)", async ({ page }) => {
+  await boot(page);
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const axis = async () => Number((await art.innerHTML()).match(/stroke="black" stroke-width="([\d.]+)" fill="none"/)![1]);
+  const grid = async () => (await art.innerHTML()).match(/stroke="#a6a6a6" stroke-width="([\d.]+)"/)?.[1];
+  const normal = await axis(),
+    gridWeight = await grid();
+  const lines = page.getByLabel("Lines", { exact: true });
+  await lines.selectOption("bold");
+  await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+  // The preview is the printed SVG: the axes are 1.5 times as heavy, the grid is unchanged.
+  await expect.poll(axis).toBeCloseTo(normal * 1.5, 3);
+  expect(await grid()).toBe(gridWeight);
+  await expect(art.locator("rect[stroke-width='0.45']:not([width='8'])")).toHaveCount(8);
+  await lines.selectOption("normal");
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => (await saved(page))?.document.lines).toBe("bold");
+});
