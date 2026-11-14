@@ -51,7 +51,7 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import "./charts.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
@@ -181,10 +181,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const series = drawnSeries(e);
   const line = d.kind === "vline";
 
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function patch(update: (n: Doc) => void) {
@@ -347,6 +347,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -551,7 +553,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
@@ -987,7 +989,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

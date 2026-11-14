@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, Download, Grid3x3, LoaderCircle, Redo2, RotateCcw, Trash2, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, Download, Grid3x3, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
@@ -13,7 +13,8 @@ import { downloadEditable, downloadPdf, editableName } from "./export";
 import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { HistoryButtons } from "../site/HistoryButtons";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
 const MAX_FILE = 400_000;
@@ -171,12 +172,14 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <div className="editor-toolbar" role="group" aria-label="Resource utilities">
               <div className="tool-group" role="group" aria-label="History and reset">
-                <button className="icon-button" disabled={blocked || !history.past.length} aria-label="Undo" title="Undo (Ctrl+Z)" onClick={undo}>
-                  <Undo2 size={18} aria-hidden="true" />
-                </button>
-                <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title="Redo (Ctrl+Y)" onClick={redo}>
-                  <Redo2 size={18} aria-hidden="true" />
-                </button>
+                <HistoryButtons
+                  canUndo={!blocked && !!history.past.length}
+                  canRedo={!blocked && !!history.future.length}
+                  onUndo={undo}
+                  onRedo={redo}
+                  undoLabel={undoStepName(history)}
+                  redoLabel={redoStepName(history)}
+                />
                 <button
                   className="tool-button reset-button"
                   disabled={blocked}
