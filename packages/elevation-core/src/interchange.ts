@@ -44,7 +44,8 @@ function toPanel(p: PanelInput, base?: core.Panel): core.Panel {
   const view = p.view ?? base!.view;
   const out = base ? structuredClone(base) : core.panel(view);
   out.view = view;
-  if (!base && p.label === undefined) out.label.text = core.DEFAULT_LABELS[view];
+  // A new panel, or a panel whose view changes while it still has the old view's default label, takes the new default.
+  if (p.label === undefined && (!base || (view !== base.view && base.label.text === core.DEFAULT_LABELS[base.view]))) out.label.text = core.DEFAULT_LABELS[view];
   if (p.state) out.state = p.state;
   if (p.label !== undefined) out.label.text = p.label;
   if (p.labelHidden !== undefined) out.label.show = p.labelHidden ? "hidden" : "show";

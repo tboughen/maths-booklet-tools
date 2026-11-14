@@ -63,3 +63,10 @@ describe("construction connector adapter", () => {
     await expect(io.revise({ envelope: e, baseHash, operations: [{ op: "set_object", id: "AB", fields: { radius: 2 } }] })).rejects.toThrow(/does not apply/);
   });
 });
+
+describe("moving points", () => {
+  it("refuses to move a point a saved construction was built from", async () => {
+    const e = c.create();
+    await expect(io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_point", id: "B", point: { x: 8 } }] })).rejects.toThrow(/remove_group/);
+  });
+});

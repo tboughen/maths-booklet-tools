@@ -134,7 +134,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       const items = Array.isArray(doc[list]) ? (doc[list] as Node[]) : [];
       items.forEach((o, i) => {
         const path = `document.${list}.${i}`;
-        if (o.role === "answer") out.push(slot(path, "hidden", str(o.id) || str(o.type)));
+        // An answer with a label (a length, an angle, a bearing) holds that label as its saved answer.
+        if (o.role === "answer" && isNode(o.label) && str(o.label.text)) out.push(slot(`${path}.label`, "hidden", str(o.label.text)));
+        else if (o.role === "answer") out.push(slot(path, "hidden", str(o.id) || str(o.type)));
         else if (isNode(o.label) && str(o.label.text)) shown(o.label, `${path}.label`, out);
       });
     }
@@ -148,6 +150,7 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       if (p.state === "answer") out.push(slot(path, "hidden", str(p.view)));
       else if (p.state === "blank") out.push(slot(path, "blank"));
       else out.push(slot(path, "supplied", str(p.view)));
+      if (isNode(p.label) && p.label.show === "hidden" && str(p.label.text)) out.push(slot(`${path}.label`, "hidden", str(p.label.text)));
     });
   },
   triangle(doc, out) {

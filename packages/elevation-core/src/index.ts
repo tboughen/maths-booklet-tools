@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { defineEnvelope } from "../../envelope-core/src/index";
 
 /**
  * Plans and elevations of solids made from centimetre cubes (Hanley GM8.08-09).
@@ -82,7 +83,9 @@ export function validate(input: unknown): Envelope {
   if (!h.flat().some((v) => v > 0)) throw Error("The solid needs at least one cube.");
   return e;
 }
-export const canonical = (e: Envelope) => JSON.stringify(validate(e));
+/** Shared envelope helpers: sorted canonical JSON, as envelope-core asks of new families. */
+const envelope = defineEnvelope<Envelope>({ kind: "elevations", validate, canonical: "sorted" });
+export const canonical = envelope.canonical;
 export function parseFile(text: string) {
   if (text.length > 30_000) throw Error("This editable file is too large.");
   return validate(JSON.parse(text));
@@ -258,6 +261,12 @@ function gridPanel(d: ElevationDocument, p: Panel): Built {
 }
 
 function isoPanel(d: ElevationDocument, p: Panel): Built {
+  // An answer panel keeps the room its drawing takes on the answers copy, so both copies match.
+  if (p.state === "answer") {
+    const full = isoPanel(d, { ...p, state: "drawn" }),
+      empty = isoPanel(d, { ...p, state: "blank" });
+    return { width: full.width, height: full.height, svg: empty.svg };
+  }
   const faces = isoFaces(d);
   const s = 10; // 1 cm isometric paper
   const pts = faces.flatMap((f) => f.pts);
@@ -265,10 +274,9 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
     maxU = Math.max(...pts.map((q) => q.u)),
     minV = Math.min(...pts.map((q) => q.v)),
     maxV = Math.max(...pts.map((q) => q.v));
-  if (p.state !== "drawn" && p.squares.across) {
-    maxU = minU + p.squares.across * C;
-    maxV = minV + p.squares.up;
-  }
+  // across/up size the panel in isometric squares; each 0 means "fit the solid", as on grid panels.
+  if (p.squares.across) maxU = Math.max(maxU, minU + p.squares.across * C);
+  if (p.squares.up) maxV = Math.max(maxV, minV + p.squares.up);
   const arrows = d.arrows && p.state === "drawn";
   const pad = arrows ? 2.2 : 0.6;
   minU -= pad;
@@ -380,18 +388,10 @@ export function renderSvg(e: Envelope): string {
 
 /* ---------- Hashes and links ---------- */
 
-export async function hash(e: Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(e)));
-  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
-}
+export const hash = envelope.contentHash;
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#elevations=";
-export function linkHash(e: Envelope): string {
-  const bytes = new TextEncoder().encode(canonical(e));
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return LINK_PREFIX + btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
-}
+export const linkHash = (e: Envelope): string => LINK_PREFIX + envelope.encodeLink(e);
 /** The website editor is a later step; until it is released the connector returns no editor link. */
 export const EDITOR_RELEASED = false;
 export function editorLink(e: Envelope, base: string): string | null {
@@ -406,8 +406,7 @@ export function decodeLinkHash(hashText: string): Envelope {
   if (!/^#elevations=[A-Za-z0-9_-]+$/.test(hashText) || hashText.length > MAX_LINK_LENGTH)
     throw Error("This is not a supported plans and elevations link. Open an editable file instead.");
   try {
-    const binary = atob(hashText.slice(LINK_PREFIX.length).replaceAll("-", "+").replaceAll("_", "/"));
-    return parseFile(new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (c) => c.charCodeAt(0))));
+    return envelope.decodeLink(hashText.slice(LINK_PREFIX.length), MAX_LINK_LENGTH);
   } catch {
     throw Error("This plans and elevations link could not be read. Open an editable file instead.");
   }

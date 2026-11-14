@@ -81,3 +81,28 @@ describe("plans and elevations", () => {
     for (const example of io.exampleIds) expect(c.exportIssue(io.create({ spec: { example } }))).toBeNull();
   });
 });
+
+describe("review fixes", () => {
+  it("keeps every example at one size on both copies", () => {
+    for (const x of examples) {
+      const e = x.make(false);
+      const p = c.layout(e),
+        a = c.layout(c.forView(e, "answer"));
+      expect([p.width, p.height], x.id).toEqual([a.width, a.height]);
+    }
+  });
+
+  it("fits the solid when an isometric panel sets only across", () => {
+    const e = c.blank();
+    e.document.heights = [[2, 1]];
+    e.document.panels = [{ ...c.panel("isometric"), state: "answer", squares: { across: 5, up: 0 } }];
+    expect(c.layout(c.validate(e)).height).toBeGreaterThan(30);
+  });
+
+  it("gives a panel the new view's label when its view changes", async () => {
+    const e = io.create({ spec: { example: "draw-views" } });
+    const i = e.document.panels.findIndex((p) => p.view === "plan");
+    const r = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_panel", index: i, panel: { view: "front" } }] });
+    expect(r.document.panels[i].label.text).toBe(c.DEFAULT_LABELS.front);
+  });
+});

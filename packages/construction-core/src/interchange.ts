@@ -70,7 +70,7 @@ export const objectInput = z.discriminatedUnion("type", [
     .object({ type: z.literal("region"), ...common, rules: z.array(core.ruleSchema).min(1).max(core.MAX_RULES), pattern: z.enum(["hatch", "cross"]).optional() })
     .strict(),
 ]);
-const helper = { group: id.optional(), answer: z.boolean().optional() };
+const helper = { group: z.string().regex(/^[A-Za-z][A-Za-z0-9_']{0,9}$/, "Use a group name of 1 to 10 letters or digits, such as pb1.").optional(), answer: z.boolean().optional() };
 export const constructionInput = z.discriminatedUnion("type", [
   z.object({ type: z.literal("perpendicular-bisector"), ...helper, a: id, b: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
   z.object({ type: z.literal("angle-bisector"), ...helper, at: id, from: id, to: id, radius: num.optional(), extend: num.min(0).max(30).optional(), reach: id.optional() }).strict(),
@@ -221,6 +221,11 @@ function measureItem(e: core.Envelope, oid: string, scale: { scaleCm?: number; r
 function addObject(e: core.Envelope, o: ObjectInput) {
   const n = structuredClone(e);
   const made = object(n.document, o);
+  // Drawn from an answer, it is an answer too unless the request says otherwise.
+  if (o.answer === undefined) {
+    const answers = new Set([...n.document.points, ...n.document.objects].filter((x) => x.role === "answer").map((x) => x.id));
+    if (core.references(made).some((r) => answers.has(r))) made.role = "answer";
+  }
   n.document.objects.push(made);
   let out = core.validate(n);
   if ("measure" in o && o.measure) out = measureItem(out, made.id, typeof o.measure === "object" ? o.measure : {});
@@ -285,13 +290,23 @@ function setPoint(e: core.Envelope, pid: string, f: Partial<PointInput>) {
   const n = structuredClone(e);
   const p = core.pointById(n.document, pid);
   if (!p) throw Error(`Unknown point ${pid}. Use IDs from the returned envelope.`);
+  if ((f.x !== undefined && f.x !== p.x) || (f.y !== undefined && f.y !== p.y)) {
+    // A saved construction was built from this point's old position; moving it would leave a wrong answer.
+    const built = [...new Set(n.document.objects.filter((o) => o.group && core.references(o).includes(pid)).map((o) => o.group!))];
+    if (built.length || p.group)
+      throw Error(
+        p.group
+          ? `Point ${pid} belongs to the ${p.group} construction. Remove the group (remove_group) and add the construction again instead.`
+          : `The ${built.join(", ")} construction${built.length > 1 ? "s were" : " was"} built from point ${pid}. Remove ${built.length > 1 ? "them" : "it"} (remove_group), move ${pid}, then add the construction again.`,
+      );
+  }
   if (f.x !== undefined) p.x = f.x;
   if (f.y !== undefined) p.y = f.y;
   if (f.label !== undefined) p.label.text = f.label;
   if (f.labelHidden !== undefined) p.label.show = f.labelHidden ? "hidden" : "show";
   if (f.labelAt !== undefined) p.labelAt = f.labelAt;
   if (f.mark !== undefined) p.mark = f.mark;
-  if (f.answer !== undefined) p.role = f.answer ? "answer" : "given";
+  if (f.answer !== undefined) return core.setRole(n, [pid], f.answer ? "answer" : "given");
   return core.validate(n);
 }
 

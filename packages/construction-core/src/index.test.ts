@@ -188,3 +188,36 @@ describe("drawing details Tim checked", () => {
     expect(shaftTop - tip).toBeGreaterThan(2); // the line stops inside the head, well short of its tip
   });
 });
+
+describe("review fixes", () => {
+  it("prints the pupil and answer copies at one size with the frame in one place", () => {
+    for (const x of examples) {
+      const e = x.make(false);
+      const p = c.layout(e),
+        a = c.layout(c.forView(e, "answer"));
+      expect([p.width, p.height, p.dx, p.dy], x.id).toEqual([a.width, a.height, a.dx, a.dy]);
+    }
+  });
+
+  it("draws a due-north bearing without an arc", () => {
+    const e = c.blank(6, 8);
+    e.document.points.push(c.newPoint("A", 3, 1), c.newPoint("B", 3, 6));
+    e.document.objects.push({ id: "b", type: "bearing", from: "A", to: "B", northLine: true, label: c.label("000°"), role: "given" });
+    expect(c.renderSvg(c.validate(e))).not.toMatch(/NaN/);
+  });
+
+  it("never draws something on the pupil copy from a hidden answer", () => {
+    const e = c.pointByBearing(twoPoints(), { id: "C", from: "A", bearing: 45, distance: 3, role: "answer" });
+    e.document.objects.push(c.segment("AC", "A", "C"));
+    expect(() => c.validate(e)).toThrow(/drawn from C, which is an answer/);
+    const f = c.pointByBearing(twoPoints(), { id: "C", from: "A", bearing: 45, distance: 3 });
+    f.document.objects.push(c.segment("AC", "A", "C"));
+    const hidden = c.setRole(c.validate(f), ["C"], "answer");
+    expect(hidden.document.objects.find((o) => o.id === "AC")?.role).toBe("answer");
+    expect(c.setRole(hidden, ["AC"], "given").document.points.find((p) => p.id === "C")?.role).toBe("given");
+  });
+
+  it("refuses group names too long for their parts' IDs", () => {
+    expect(() => c.perpendicularBisector(twoPoints(), { a: "A", b: "B", group: "bisectorAB12" })).toThrow(/1 to 10/);
+  });
+});

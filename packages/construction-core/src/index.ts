@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { defineEnvelope } from "../../envelope-core/src/index";
 
 /**
  * Constructions, loci, scale drawings and bearings (Hanley GM8), drawn at true size on plain or
@@ -251,6 +252,13 @@ export function validate(input: unknown): Envelope {
     if (o.type === "angle" && (o.at === o.from || o.at === o.to || o.from === o.to))
       throw Error(`${what} needs a vertex and two other points.`);
   }
+  // Something on the pupil copy must not be drawn from an answer, or the pupil copy shows it.
+  const roleOf = new Map<string, Role>([...d.points.map((p) => [p.id, p.role] as const), ...d.objects.map((o) => [o.id, o.role] as const)]);
+  for (const o of d.objects)
+    if (o.role === "given")
+      for (const ref of refsOf(o))
+        if (roleOf.get(ref) === "answer")
+          throw Error(`${o.type} ${o.id} is on the pupil copy but is drawn from ${ref}, which is an answer. Make ${o.id} an answer too, or make ${ref} given.`);
   const byId = new Map(d.points.map((p) => [p.id, p]));
   for (const o of d.objects) {
     if (o.type === "segment" || o.type === "bearing") {
@@ -266,7 +274,9 @@ export function validate(input: unknown): Envelope {
   }
   return e;
 }
-export const canonical = (e: Envelope) => JSON.stringify(validate(e));
+/** Shared envelope helpers: sorted canonical JSON, as envelope-core asks of new families. */
+const envelope = defineEnvelope<Envelope>({ kind: "construction", validate, canonical: "sorted" });
+export const canonical = envelope.canonical;
 export function parseFile(text: string) {
   if (text.length > 120_000) throw Error("This editable file is too large.");
   return validate(JSON.parse(text));
@@ -407,6 +417,8 @@ function draft(e: Envelope, prefix: string, o: HelperOptions): Draft {
   for (let k = 1; !g; k++) if (!groups.has(`${prefix}${k}`) && !usedIds(n.document).has(`${prefix}${k}`)) g = `${prefix}${k}`;
   if (usedIds(n.document).has(g) || n.document.objects.some((x) => x.group === g) || n.document.points.some((x) => x.group === g))
     throw Error(`The group ${g} is already in the drawing.`);
+  // Its parts are named group-part (pb1-arc1), and every ID has at most 16 characters.
+  if (!/^[A-Za-z][A-Za-z0-9_']{0,9}$/.test(g)) throw Error(`Use a group name of 1 to 10 letters or digits (such as pb1), not ${g}.`);
   return { e: n, d: n.document, group: g, role: o.role ?? "answer" };
 }
 const hiddenPoint = (dr: Draft, name: string, at: Vec) => {
@@ -689,6 +701,24 @@ export function setRole(e: Envelope, ids: string[], r: Role): Envelope {
       hit++;
     }
   if (!hit) throw Error(`None of ${ids.join(", ")} is in the drawing.`);
+  // Keep the pupil copy honest: hiding something hides what is drawn from it; showing something
+  // shows what it is drawn from.
+  for (let changed = true; changed; ) {
+    changed = false;
+    const roleOf = new Map<string, Role>([...d.points.map((p) => [p.id, p.role] as const), ...d.objects.map((o) => [o.id, o.role] as const)]);
+    for (const o of d.objects)
+      for (const ref of refsOf(o)) {
+        if (r === "answer" && o.role === "given" && roleOf.get(ref) === "answer") {
+          o.role = "answer";
+          changed = true;
+        }
+        if (r === "given" && o.role === "given" && roleOf.get(ref) === "answer") {
+          const t = d.points.find((p) => p.id === ref) ?? d.objects.find((x) => x.id === ref)!;
+          t.role = "given";
+          changed = true;
+        }
+      }
+  }
   return validate(n);
 }
 
@@ -721,7 +751,18 @@ function angleSpan(d: ConstructionDocument, a: Of<"angle">) {
 }
 
 /** Everything placed in millimetres on the page (y downwards), with teacher-facing issues and notes. */
+/**
+ * Both copies share one size and frame position: the pupil copy reserves the room the answers copy
+ * needs (answer constructions, revealed labels), so the answers sheet lines up with the pupil sheet.
+ */
 export function layout(e: Envelope) {
+  if (!hasHidden(e)) return draw(e);
+  const answer = draw(forView(e, "answer"));
+  const g = draw(e, answer.bounds);
+  // A hidden caption still takes its place under the drawing, so both copies are the same height.
+  return { ...g, height: Math.max(g.height, answer.height), width: Math.max(g.width, answer.width) };
+}
+function draw(e: Envelope, reserve?: Box) {
   const d = e.document,
     issues: string[] = [],
     notes: string[] = [];
@@ -733,7 +774,7 @@ export function layout(e: Envelope) {
   const visible = (r: Role) => r === "given";
   const paths: Path[] = [];
   const texts: Placed[] = [];
-  const boxes: Box[] = [{ x1: 0, y1: 0, x2: Wmm, y2: Hmm }];
+  const boxes: Box[] = [{ x1: 0, y1: 0, x2: Wmm, y2: Hmm }, ...(reserve ? [reserve] : [])];
   const textBoxes: Box[] = [];
   const f = (v: number) => String(Math.round(v * 1000) / 1000);
   const extendBox = (x: number, y: number, pad = 0) => boxes.push({ x1: x - pad, y1: y - pad, x2: x + pad, y2: y + pad });
@@ -871,11 +912,14 @@ export function layout(e: Envelope) {
         const head = 2.4,
           endAng = 90 - bearing,
           stop = Math.min(bearing / 2, deg(head / r));
-        arcPath(c, r, 90, -(bearing - stop), THIN);
-        const at = (t: number) => ({ x: c.x + r * Math.cos(rad(t)), y: c.y - r * Math.sin(rad(t)) });
-        const tip = at(endAng),
-          base = at(endAng + stop);
-        arrowhead(tip, unit(sub(tip, base)), dist(tip, base) / 1.6);
+        // A bearing of 000° has no turn to show: the line to the other point runs along north.
+        if (bearing > 1e-6) {
+          arcPath(c, r, 90, -(bearing - stop), THIN);
+          const at = (t: number) => ({ x: c.x + r * Math.cos(rad(t)), y: c.y - r * Math.sin(rad(t)) });
+          const tip = at(endAng),
+            base = at(endAng + stop);
+          arrowhead(tip, unit(sub(tip, base)), dist(tip, base) / 1.6);
+        }
         if (o.label.text.trim() && o.label.show === "show") {
           const mid = 90 - bearing / 2,
             w = textWidth(typeset(o.label.text));
@@ -954,6 +998,8 @@ export function layout(e: Envelope) {
   // 5. Caption below the drawing, in a box as on exam papers.
   let captionBox: Box | null = null;
   const cap = d.caption;
+  // What the pupil copy must reserve for the answers copy: everything but the caption, which is placed after.
+  const body: Box = { x1: Math.min(...boxes.map((b) => b.x1)), y1: Math.min(...boxes.map((b) => b.y1)), x2: Math.max(...boxes.map((b) => b.x2)), y2: Math.max(...boxes.map((b) => b.y2)) };
   if (cap.text.trim() && cap.show === "show") {
     const w = textWidth(typeset(cap.text)) + 8;
     const bottom = Math.max(...boxes.map((b) => b.y2));
@@ -983,6 +1029,7 @@ export function layout(e: Envelope) {
     caption: captionBox && { text: typeset(cap.text), x: captionBox.x1 + dx, y: captionBox.y1 + dy, width: captionBox.x2 - captionBox.x1, height: captionBox.y2 - captionBox.y1 },
     issues,
     notes,
+    bounds: body,
   };
 }
 export type Layout = ReturnType<typeof layout>;
@@ -1112,18 +1159,10 @@ export function renderSvg(e: Envelope): string {
 
 /* ---------- Hashes and editor links ---------- */
 
-export async function hash(e: Envelope) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(e)));
-  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
-}
+export const hash = envelope.contentHash;
 export const MAX_LINK_LENGTH = 16_000;
 export const LINK_PREFIX = "#construction=";
-export function linkHash(e: Envelope): string {
-  const bytes = new TextEncoder().encode(canonical(e));
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return LINK_PREFIX + btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
-}
+export const linkHash = (e: Envelope): string => LINK_PREFIX + envelope.encodeLink(e);
 /** The website editor is a later step; until it is released the connector returns no editor link. */
 export const EDITOR_RELEASED = false;
 export function editorLink(e: Envelope, base: string): string | null {
@@ -1138,9 +1177,7 @@ export function decodeLinkHash(hashText: string): Envelope {
   if (!/^#construction=[A-Za-z0-9_-]+$/.test(hashText) || hashText.length > MAX_LINK_LENGTH)
     throw Error("This is not a supported construction link. Open an editable file instead.");
   try {
-    const binary = atob(hashText.slice(LINK_PREFIX.length).replaceAll("-", "+").replaceAll("_", "/"));
-    const t = new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (c) => c.charCodeAt(0)));
-    return parseFile(t);
+    return envelope.decodeLink(hashText.slice(LINK_PREFIX.length), MAX_LINK_LENGTH);
   } catch {
     throw Error("This construction link could not be read. Open an editable file instead.");
   }
