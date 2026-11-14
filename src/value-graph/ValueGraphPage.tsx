@@ -1288,7 +1288,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope());
+                    commit(defaultEnvelope(), "reset this resource");
                     setSelection(null);
                   },
                 )

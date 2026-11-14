@@ -1,5 +1,5 @@
-import { useId, useLayoutEffect, useRef } from "react";
-import { historyActionText } from "../editor-kit/labels";
+import { useId, useLayoutEffect, useRef, useState } from "react";
+import { historyActionText, isResetStep } from "../editor-kit/labels";
 
 /** Starts the print-font fetch once, on the first sign of an export (U57). */
 let preloaded = false;
@@ -15,6 +15,7 @@ import {
   Redo2,
   RotateCcw,
   Undo2,
+  X,
 } from "lucide-react";
 
 interface EditorToolbarProps {
@@ -45,6 +46,10 @@ export function EditorToolbar(props: EditorToolbarProps) {
   const ids = useId();
   const undoText = historyActionText("Undo", props.canUndo ? props.undoLabel : undefined),
     redoText = historyActionText("Redo", props.canRedo ? props.redoLabel : undefined);
+  // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
+  const resetStep = props.canUndo && isResetStep(props.undoLabel);
+  const [dismissedStep, setDismissedStep] = useState<string | undefined>();
+  const noticeDismissed = dismissedStep === props.undoLabel;
   useLayoutEffect(() => {
     const element = bar.current;
     const parent = element?.parentElement;
@@ -177,6 +182,22 @@ export function EditorToolbar(props: EditorToolbarProps) {
           </button>
         </div>
       </div>
+      {resetStep && !noticeDismissed && (
+        <div className="editor-reset-notice" role="status">
+          <span>Resource reset.</span>
+          <button type="button" className="editor-reset-undo" onClick={props.onUndo}>
+            Undo reset
+          </button>
+          <button
+            type="button"
+            className="editor-reset-close"
+            aria-label="Dismiss reset notice"
+            onClick={() => setDismissedStep(props.undoLabel)}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
