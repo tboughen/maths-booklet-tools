@@ -85,5 +85,5 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
   return { register: registerAll, bundle };
 }
 function failure(error: unknown) {
-  return toolFailure(error, { code: "invalid_request", message: "The diagram output request could not be processed.", fieldHint: "Check diagram_capabilities for the family's envelope fields." });
+  return toolFailure(error, { code: "invalid_request", message: "The diagram output request could not be processed.", opaque: true, fieldHint: "Check diagram_capabilities for the family's envelope fields." });
 }

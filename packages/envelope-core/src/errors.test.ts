@@ -28,6 +28,19 @@ describe("toErrorBody", () => {
     expect(toErrorBody(new Error("Each data set needs exactly one value."), defaults)).toEqual({ code: "invalid_diagram", message: "Each data set needs exactly one value.", retry: "fix_input" });
     expect(toErrorBody({ secret: 1 }, defaults)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
   });
+  it("reads only known codes from a message prefix, and stale wording only where cores use it", () => {
+    for (const m of ["arx: must be a positive number", "discriminator: expected one of point, line", "objects: too many lines"]) {
+      expect(toErrorBody(new Error(m), defaults), m).toEqual({ code: "invalid_diagram", message: m, retry: "fix_input" });
+    }
+    expect(toErrorBody(new Error("Labels mention stale_hash and base_hash_mismatch."), defaults).code).toBe("invalid_diagram");
+    expect(toErrorBody(new Error("The base hash is stale."), defaults).code).toBe("stale_hash");
+  });
+  it("hides an uncoded runtime error's text where the tool asks for it", () => {
+    const opaque = { ...defaults, opaque: true };
+    expect(toErrorBody(new Error("ENOENT: /srv/cache/x.png"), opaque)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+    expect(toErrorBody(new MathsDockError("too_wide", "The diagram is wider than the page."), opaque).message).toBe("The diagram is wider than the page.");
+    expect(toErrorBody(new Error("stale_hash: use the returned envelope."), opaque).code).toBe("stale_hash");
+  });
   it("marks temporary limits as try_later", () => {
     expect(toErrorBody(new MathsDockError("rate_limited", "Today's allowance has been reached."), defaults).retry).toBe("try_later");
     expect(toErrorBody(new MathsDockError("busy", "The renderer is busy."), defaults).retry).toBe("try_later");

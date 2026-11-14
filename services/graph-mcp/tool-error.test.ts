@@ -8,6 +8,10 @@ import type { Server } from "node:http";
 import { graphService } from "./server";
 import { DIAGRAM_KINDS, FAMILIES } from "../../packages/diagram-core/src/registry";
 import type { ToolErrorBody } from "./tool-error";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { z } from "zod";
+import { vi } from "vitest";
+import { MathsDockMcpServer } from "./tool-metadata";
 
 const servers: Server[] = [],
   clients: Client[] = [];
@@ -64,18 +68,16 @@ describe("one error shape across the connector (M12)", () => {
 
   it("reports a stale baseHash the same way for every family", async () => {
     const client = await start();
+    let checked = 0;
     for (const kind of DIAGRAM_KINDS) {
-      let envelope: unknown;
-      try {
-        envelope = FAMILIES[kind].create(kind === "graph" ? { spec: { objects: [] } } : {});
-      } catch {
-        continue;
-      }
+      const envelope = FAMILIES[kind].create(kind === "graph" ? { spec: { objects: [] } } : {});
+      checked++;
       const body = await failure(client, "revise_diagram", { kind, envelope, baseHash: "0".repeat(64), operations: [] });
       expect(body.code, kind).toBe("stale_hash");
       expect(body.retry, kind).toBe("refresh_envelope");
       expect(body.hint, kind).toContain("contentHash");
     }
+    expect(checked).toBe(12);
   });
 
   it("keeps a core's own code and names spec fields on create", async () => {
@@ -96,6 +98,25 @@ describe("one error shape across the connector (M12)", () => {
     expect(svg.code).toBe("svg_hash_required");
     const placement = await failure(client, "check_diagram_placement", { kind: "venn", envelope: FAMILIES.venn.create({}), widthMm: -5 });
     expect(placement.code).toBe("invalid_input");
+  });
+
+  it("answers a broken result with internal, and logs the SDK's text instead of sending it", async () => {
+    const server = new MathsDockMcpServer({ name: "t", version: "1" });
+    server.registerTool("diagram_capabilities", { description: "Returns the wrong shape.", inputSchema: z.object({}).strict(), outputSchema: z.object({ n: z.number() }) }, async () => ({ structuredContent: { n: "x" }, content: [] }));
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "t", version: "1" });
+    clients.push(client);
+    await server.connect(a);
+    await client.connect(b);
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const body = await failure(client, "diagram_capabilities", {});
+      expect(body).toEqual({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
+      expect(log.mock.calls.flat().join(" ")).toMatch(/internal/);
+    } finally {
+      log.mockRestore();
+      await server.close();
+    }
   });
 
   it("answers an unknown tool with the shape", async () => {

@@ -131,7 +131,8 @@ type SdkInternals = {
 /**
  * Routes the SDK's own failures through the one error shape (M12). Arguments that fail a tool's
  * input schema, and any other failure the SDK reports as bare text, come back as the same JSON
- * body the tools return. Relies on two SDK internals; tool-error.test.ts fails if they move.
+ * body the tools return. Relies on two SDK internals; tool-error.test.ts fails if they move, so
+ * an SDK upgrade must run that test (the SDK is pinned in package.json for this reason).
  */
 function oneErrorShape(server: McpServer) {
   const sdk = server as unknown as SdkInternals;
@@ -156,6 +157,8 @@ function oneErrorShape(server: McpServer) {
     }
     const unknownTool = /Tool [\w-]+ (?:not found|disabled)/.exec(message);
     if (unknownTool) return errorResult({ code: "unknown_tool", message: `${unknownTool[0]}. Call tools/list for the current tools.`, retry: "fix_input" });
+    // Kept in the service log, never sent: an output-schema failure or another SDK diagnostic.
+    console.error(`MathsDock tool error (internal): ${message.slice(0, 2000)}`);
     return errorResult({ code: "internal", message: "The tool could not complete the request.", retry: "none" });
   };
 }

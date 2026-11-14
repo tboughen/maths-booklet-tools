@@ -54,7 +54,10 @@ const RETRY: Record<string, RetryAdvice> = {
 };
 /** Older codes, kept readable in the cores, mapped to the one current name. */
 const ALIASES: Record<string, string> = { base_hash_mismatch: "stale_hash", stale_document: "stale_hash" };
-const STALE = /baseHash does not match|base hash is stale|stale_hash|base_hash_mismatch/i;
+/** The wording older cores use for a stale baseHash without a code. */
+const STALE = /^The baseHash does not match|base hash is stale/i;
+/** Codes a plain Error may carry as a "code: message" prefix. Any other "word: " stays message text. */
+const PREFIXES = new Set([...Object.keys(RETRY), ...Object.keys(ALIASES), "invalid_input", "invalid_diagram", "invalid_graph", "invalid_ratio", "unsupported"]);
 
 export function retryFor(code: string): RetryAdvice {
   return RETRY[code] ?? "fix_input";
@@ -84,12 +87,18 @@ export interface ErrorDefaults {
   fieldHint?: string;
   /** Path segments in front of zod paths, e.g. ["resource"] when the tool validated args.resource. */
   pathPrefix?: (string | number)[];
+  /**
+   * True where an uncoded Error may come from the runtime (rasterising, zipping, storage) rather
+   * than from a core's checks: its message is replaced by the default message.
+   */
+  opaque?: boolean;
 }
 
 /**
  * The one error body for anything a tool threw. Zod errors become "invalid_input" with fields;
- * a coded error keeps its code; a message that starts "some_code: " is read as that code; any
- * other Error keeps its message under the default code. Non-Error values never leak.
+ * a coded error keeps its code; a message that starts with a known code ("stale_hash: ") is read
+ * as that code; any other Error keeps its message under the default code, unless `opaque` is set.
+ * Non-Error values never leak.
  */
 export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorBody {
   if (error instanceof z.ZodError) {
@@ -101,12 +110,13 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
   let code: string | undefined = typeof own === "string" ? own : undefined;
   let message = error.message || defaults.message;
   const prefixed = /^([a-z][a-z0-9_]{2,40}): (.+)$/s.exec(message);
-  if (prefixed && (!code || code === prefixed[1])) {
+  if (prefixed && PREFIXES.has(prefixed[1]) && (!code || code === prefixed[1])) {
     code = prefixed[1];
     message = prefixed[2];
   }
   code = ALIASES[code ?? ""] ?? code;
   if (!code) code = STALE.test(message) ? "stale_hash" : defaults.code;
+  if (defaults.opaque && code === defaults.code && !(error instanceof MathsDockError)) return { code, message: defaults.message, retry: retryFor(code) };
   const details = error instanceof MathsDockError ? error.details : {};
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {

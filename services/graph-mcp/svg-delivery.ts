@@ -117,7 +117,7 @@ export function registerSvgDelivery(server: McpServer, connection: AbortSignal, 
       limits.output(responseBytes);
       return result;
     } catch (error) {
-      return toolFailure(error, { code: "invalid_request", message: "The original SVG could not be delivered." });
+      return toolFailure(error, { code: "invalid_request", message: "The original SVG could not be delivered.", opaque: true });
     }
   });
 }
