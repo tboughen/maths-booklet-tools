@@ -1,6 +1,10 @@
 import { housePreference } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
@@ -766,6 +770,7 @@ export default function NumberLinePage({
     setSelection(null);
   }
   const titleNote = useTitleNote({ active, about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(history.present), size: answerSize(renderSvg(history.present, true)), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(history.present, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor nl-editor">
       <main
@@ -828,6 +833,7 @@ export default function NumberLinePage({
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
@@ -878,6 +884,7 @@ export default function NumberLinePage({
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />

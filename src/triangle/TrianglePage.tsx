@@ -1,4 +1,8 @@
 import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { fitResource } from "../site/useResourceFit";
@@ -744,6 +748,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     return () => window.removeEventListener("blur", cancel);
   }, []);
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(layout(e, true).svg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div
       className="app-shell booklet-editor tr-editor"
@@ -869,6 +874,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!exportMetrics.issues.length,
@@ -906,6 +912,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               className="tr-file"
               ref={file}
@@ -967,7 +974,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 >
                   <div
                     className="tr-art"
-                    dangerouslySetInnerHTML={{ __html: g.svg }}
+                    dangerouslySetInnerHTML={{ __html: previewArt(g.svg, e, showAnswers) }}
                   />
                   <svg
                     className="tr-geometry"
