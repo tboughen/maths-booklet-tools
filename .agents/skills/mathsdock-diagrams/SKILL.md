@@ -181,7 +181,9 @@ each named misconception; practice with at least three unaided questions per cas
 "From earlier" strip; a challenge; and an exam-style page in Edexcel wording with marks, as its
 description sets out. Use the school's method, named the same way, wherever the skill returns,
 and add one new step at a time. A whole unit goes in one call: send diagrams as specs, not envelopes, and
-do not split the unit. Share the whole-booklet links and the per-lesson PDF links it returns.
+do not split the unit. Set `document.notation` to `"maths"` on a new booklet and write fractions as
+on worksheets (`{3/4}`, never `½` or `⅓`). It returns pupil and answers PDF and Word links for the
+whole booklet and for every lesson: give the teacher all of them.
 
 Use a `ratio-table` diagram, not a plain `table` item, for ratio, scaling, rate and
 x → / y ↑ gradient tables, so the curved scaling arrows show the method. Write it in the

@@ -86,6 +86,14 @@ export const bookletSchema = z
         /** One or two lines on the cover: equipment and how to use the booklet. */
         coverNote: text(240).default(""),
         nameLine: z.boolean().default(true),
+        /**
+         * plain (saved booklets from before, and the default): text prints as typed. maths: {3/4}
+         * prints as a stacked fraction, and as a native equation in Word, as on worksheets.
+         */
+        notation: z
+          .enum(["plain", "maths"])
+          .default("plain")
+          .describe("maths (every new booklet): {3/4} in question text, options, steps, bullets, parts, answer lines and table cells prints as a stacked fraction. plain (older saved booklets): text prints as typed."),
         /** The unit introduction page, or null for none. */
         intro: introSchema.nullable().default(null),
         lessons: z.array(lessonSchema).min(1).max(12),
