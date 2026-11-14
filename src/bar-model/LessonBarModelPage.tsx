@@ -27,6 +27,8 @@ import LegacyPage from "./BarModelPage";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { houseStyled } from "../site/houseStyle";
 import "./bar-model.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 export type History = DocumentHistory<c.Envelope>;
@@ -59,6 +61,7 @@ type Draft =
         string
       >;
       autoName: boolean;
+      lines: LineWeight;
     }
   | {
       kind: "move";
@@ -67,6 +70,11 @@ type Draft =
       mode: "copy" | "move";
       overwrite: boolean;
     };
+/** A new model starts from the house style (U111); its own print settings override it. */
+function houseModel<E extends { document: { presentation: { fontPt: number; lines?: LineWeight } } }>(e: E): E {
+  houseStyled(e.document.presentation, { max: 14 });
+  return e;
+}
 const error = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const stateNames = {
   value: "Print label",
@@ -383,6 +391,7 @@ export default function LessonBarModelPage({
               ]),
             );
           if (draft.autoName) delete presentation.nameWidthMm;
+          presentation.lines = draft.lines;
           ops = [
             { op: "set_presentation", presentation, autoName: draft.autoName },
           ];
@@ -597,7 +606,7 @@ export default function LessonBarModelPage({
           }}
           onNewModel={() =>
             setPending({
-              envelope: profile.fresh(),
+              envelope: houseModel(profile.fresh()),
               title: "Start a new model?",
             })
           }
@@ -666,7 +675,7 @@ export default function LessonBarModelPage({
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(profile.fresh(), "Start a new model?")}
+              onReset={() => replace(houseModel(profile.fresh()), "Start a new model?")}
               resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
@@ -1434,6 +1443,24 @@ export default function LessonBarModelPage({
                         />
                         Automatic name gutter
                       </label>
+                      <label>
+                        Lines
+                        <select
+                          value={draft.lines}
+                          onChange={(ev) =>
+                            setDraft({
+                              ...draft,
+                              lines: ev.target.value as LineWeight,
+                            })
+                          }
+                        >
+                          {LINE_WEIGHTS.map((w) => (
+                            <option key={w} value={w}>
+                              {LINE_WEIGHT_NAMES[w]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       {!draft.autoName && (
                         <label>
                           Name width (mm)
@@ -1641,12 +1668,14 @@ export default function LessonBarModelPage({
                       onClick={() => {
                         try {
                           replace(
-                            profile.fresh(
-                              starter,
-                              Number(count),
-                              ratio.split(":").map(Number),
-                              partitioned,
-                              comparisonLengths.map(Number),
+                            houseModel(
+                              profile.fresh(
+                                starter,
+                                Number(count),
+                                ratio.split(":").map(Number),
+                                partitioned,
+                                comparisonLengths.map(Number),
+                              ),
                             ),
                             `Start ${starter.replaceAll("-", " ")}?`,
                           );
@@ -2086,6 +2115,7 @@ export default function LessonBarModelPage({
                           nameWidthMm: String(d.presentation.nameWidthMm ?? 28),
                         },
                         autoName: d.presentation.nameWidthMm === undefined,
+                        lines: d.presentation.lines ?? "normal",
                       })
                     }
                   >
