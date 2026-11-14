@@ -49,6 +49,8 @@ const edgeSchema = z
     to: id,
     label: labelSchema,
     ticks: z.number().int().min(0).max(3),
+    /** Parallel-side arrowheads (1 to 3); absent means none, so older files are unchanged. */
+    arrows: z.number().int().min(1).max(3).optional(),
     dashed: z.boolean(),
     draw: z.boolean(),
   })

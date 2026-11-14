@@ -94,8 +94,11 @@ test("ratio link protects a draft; confirming opens once and undo restores it", 
     .getByRole("button", { name: "Open this table", exact: true })
     .click();
   await expect.poll(() => stored(page)).toEqual(scaffold);
+  // Undo names the step it will reverse (U8).
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", "Undo open this ratio table (Ctrl+Z)");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => stored(page)).toEqual(simple);
+  await expect(page.getByRole("button", { name: "Redo", exact: true })).toHaveAttribute("title", "Redo open this ratio table (Ctrl+Y)");
 });
 test("pupil blank stays blank; explicit fill confirms existing values and undo restores the scaffold", async ({
   page,
@@ -224,7 +227,7 @@ test("actual PNG, embedded-font SVG and editable JSON export preserve print size
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(name) }).click();
     const result = await download;
-    expect(result.suggestedFilename()).toBe(`maths-ratio-table.${format}`);
+    expect(result.suggestedFilename()).toMatch(new RegExp(`^mathsdock-ratio-table-(.+-)?\\d{4}-\\d{2}-\\d{2}\\.${format}$`));
     const bytes = await readFile((await result.path())!);
     if (format === "png")
       verifyPrintBytes(
@@ -1115,14 +1118,14 @@ test("a hidden answer stays out of the pupil export, prints in the answers expor
     .check();
   await expect(preview.locator(".ratio-hidden-answer")).toHaveCount(1);
   for (const [name, file, shown] of [
-    ["Download SVG", "maths-ratio-table.svg", false],
-    ["Download answers SVG", "maths-ratio-table-answers.svg", true],
+    ["Download SVG", /^mathsdock-ratio-table-(?!.*answers)(.+-)?\d{4}-\d{2}-\d{2}\.svg$/, false],
+    ["Download answers SVG", /^mathsdock-ratio-table-(.+-)?answers-\d{4}-\d{2}-\d{2}\.svg$/, true],
   ] as const) {
     await page.getByRole("button", { name: "File", exact: true }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: new RegExp(`^${name}`) }).click();
     const result = await download;
-    expect(result.suggestedFilename()).toBe(file);
+    expect(result.suggestedFilename()).toMatch(file);
     const svg = (await readFile((await result.path())!)).toString();
     expect(svg.includes("ratio-hidden-answer")).toBe(shown);
   }

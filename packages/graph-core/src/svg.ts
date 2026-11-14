@@ -9,6 +9,7 @@ import {
 } from "./diagram";
 import {
   axisTicks,
+  formatAxisValue,
   gridPitchesMm,
   mathsDigits,
   mathsLetter,
@@ -40,10 +41,22 @@ import type {
   PointLabel,
   GraphObject,
   GraphView,
+  PointObject,
   StraightObject,
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { polygonCentroid, polygonVisible } from "./polygon";
+
+/** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
+export const POLYGON_SHADE = "#d4d4d4";
+/** Shading opacity for a hidden-answer shape, in the answer colour. */
+export const POLYGON_ANSWER_SHADE_OPACITY = 0.18;
+
+/** Exam papers print shape names upright, point names italic and line names bold. */
+export function nameStyle(object: GraphObject): "bold" | "italic" | "upright" {
+  return object.kind === "point" ? "italic" : object.kind === "polygon" ? "upright" : "bold";
+}
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -610,7 +623,9 @@ function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
           o.position.x <= layout.bounds.xMax + 1e-9 &&
           o.position.y >= layout.bounds.yMin - 1e-9 &&
           o.position.y <= layout.bounds.yMax + 1e-9
-      : visibleStraightPoints(o, layout.bounds) !== null;
+      : o.kind === "polygon"
+        ? polygonVisible(o, layout.bounds)
+        : visibleStraightPoints(o, layout.bounds) !== null;
   });
 }
 
@@ -628,21 +643,26 @@ export function nameBox(name: string, fontSize = AXIS_LABEL_FONT_SIZE) {
   };
 }
 
+type Axes = DiagramDocumentV1["axes"];
 /**
  * Where a name sits automatically, as the centre of its box in SVG units. Points: up and to the
  * right of the cross. Lines: near the upper end, on the right of the line (above a horizontal
  * one). The box is kept inside the plot.
  */
-function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): Coordinate {
+function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, axes?: Axes): Coordinate {
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   let centre: Coordinate;
   if (object.kind === "point") {
+    // A name with printed coordinates, A(2, 3), is placed as one label; the name is its left part.
+    const total = box.width + coordinatesWidth(object, unitsPerCm, axes);
     const p = coordinateToSvg(object.position, layout);
-    const dx = 0.18 * unitsPerCm + box.width / 2;
+    const dx = 0.18 * unitsPerCm + total / 2;
     const dy = 0.16 * unitsPerCm + box.height / 2;
-    const right = p.x + dx + box.width / 2 <= layout.plotRight;
+    const right = p.x + dx + total / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
-    centre = { x: right ? p.x + dx : p.x - dx, y: up ? p.y - dy : p.y + dy };
+    centre = { x: (right ? p.x + dx : p.x - dx) - total / 2 + box.width / 2, y: up ? p.y - dy : p.y + dy };
+  } else if (object.kind === "polygon") {
+    centre = coordinateToSvg(polygonCentroid(object.vertices), layout);
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -667,26 +687,86 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): C
 }
 
 /** The centre of an object's printed name in the given layout, with its box inside the plot. */
-export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM): Coordinate | null {
+export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM, axes?: Axes): Coordinate | null {
   if (!object.name) return null;
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   const centre = object.namePosition
     ? coordinateToSvg(object.namePosition, layout)
-    : autoNameCentre(object as Named, layout, unitsPerCm);
+    : autoNameCentre(object as Named, layout, unitsPerCm, axes);
+  // Printed coordinates follow the name, so they must fit inside the plot too.
+  const after = object.kind === "point" ? coordinatesWidth(object, unitsPerCm, axes) : 0;
   return {
-    x: Math.min(layout.plotRight - box.width / 2, Math.max(layout.plotLeft + box.width / 2, centre.x)),
+    x: Math.min(layout.plotRight - box.width / 2 - after, Math.max(layout.plotLeft + box.width / 2, centre.x)),
     y: Math.min(layout.plotBottom - box.height / 2, Math.max(layout.plotTop + box.height / 2, centre.y)),
   };
+}
+
+const COORDINATE_BLANK = "………";
+/** The printed coordinates of a point: (2, −3), or the pupil's blank ( ……… , ……… ). */
+export function coordinatesText(document: DiagramDocumentV1, object: PointObject, view: GraphView): string | null {
+  if (!object.coordinates) return null;
+  if (object.coordinates === "blank" && view === "pupil") return `( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`;
+  return `(${formatAxisValue(object.position.x, document.axes.x)}, ${formatAxisValue(object.position.y, document.axes.y)})`;
+}
+/** Width reserved after the name for the coordinates: the wider of the blank and the values. */
+function coordinatesWidth(object: GraphObject, unitsPerCm: number, axes?: Axes): number {
+  if (object.kind !== "point" || !object.coordinates) return 0;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c) * fontSize, 0);
+  const values = `(${formatAxisValue(object.position.x, axes?.x ?? {})}, ${formatAxisValue(object.position.y, axes?.y ?? {})})`;
+  return Math.max(width(values), object.coordinates === "blank" ? width(`( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`) : 0);
+}
+/** Where a point's coordinates are anchored and their vertical centre, in SVG units. After a name
+ * they start at its right edge; alone on the left of the cross they end beside it. */
+export function coordinatesAnchor(
+  object: PointObject,
+  layout: SvgLayout,
+  unitsPerCm = UNITS_PER_CM,
+  axes?: Axes,
+): (Coordinate & { anchor: "start" | "end" }) | null {
+  if (!object.coordinates) return null;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  if (object.name) {
+    const centre = nameCentre(object, layout, unitsPerCm, axes)!;
+    // Exam papers write A(2, 3) with no space; the name box carries a little side padding.
+    return { x: centre.x + nameBox(object.name, fontSize).width / 2 - fontSize * 0.1, y: centre.y, anchor: "start" };
+  }
+  // No name: the coordinates alone sit where a name would, up and to the right of the cross.
+  const width = coordinatesWidth(object, unitsPerCm, axes),
+    height = fontSize * 1.2;
+  const p = coordinateToSvg(object.position, layout);
+  const right = p.x + 0.18 * unitsPerCm + width <= layout.plotRight;
+  const up = p.y - 0.16 * unitsPerCm - height >= layout.plotTop;
+  const y = up ? p.y - 0.16 * unitsPerCm - height / 2 : p.y + 0.16 * unitsPerCm + height / 2;
+  if (right) return { x: p.x + 0.18 * unitsPerCm, y, anchor: "start" };
+  return { x: Math.max(layout.plotLeft + width, p.x - 0.18 * unitsPerCm), y, anchor: "end" };
+}
+function coordinatesMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: GraphView): string {
+  const marks = document.objects.flatMap((object) => {
+    if (object.kind !== "point" || !object.coordinates) return [];
+    const { x, y } = object.position;
+    if (x < layout.bounds.xMin || x > layout.bounds.xMax || y < layout.bounds.yMin || y > layout.bounds.yMax) return [];
+    const text = coordinatesText(document, object, view)!;
+    const at = coordinatesAnchor(object, layout, UNITS_PER_CM, document.axes)!;
+    // Saved answers print in the answer colour on the answers copy only.
+    const answer = (object.coordinates === "blank" && view === "answer") || object.answerOnly;
+    return [
+      `<g class="point-coordinates${answer ? ` point-coordinates-answer" fill="${GRAPH_ANSWER_COLOUR}` : ""}" data-object-id="${escapeXml(object.id)}">${halo(`<text x="${n(at.x)}" y="${n(at.y + AXIS_LABEL_FONT_SIZE * 0.34)}"${at.anchor === "end" ? ' text-anchor="end"' : ""} font-size="${n(AXIS_LABEL_FONT_SIZE)}">${escapeXml(text)}</text>`)}</g>`,
+    ];
+  });
+  if (!marks.length) return "";
+  return `
+    <g class="point-coordinates-all" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
 function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const names = visibleNames(document, layout);
   if (!names.length) return "";
   const marks = names.map((object) => {
-    const style = object.kind === "point" ? "italic" : "bold";
+    const style = nameStyle(object);
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
-    const centre = nameCentre(object, layout)!;
+    const centre = nameCentre(object, layout, UNITS_PER_CM, document.axes)!;
     const left = centre.x - box.width / 2 + AXIS_LABEL_FONT_SIZE * 0.08;
     const baseline = centre.y + AXIS_LABEL_FONT_SIZE * 0.34;
     const letter = `${mathsLetter(parts.letter, style)}${parts.prime ? "′" : ""}`;
@@ -700,7 +780,11 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
-function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; marks: string } {
+function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { fills: string; lines: string; marks: string } {
+  // Shape fills sit under the grid and axes so they show through; outlines go before the lines, as in the editor.
+  const fills: string[] = [];
+  const shapes: string[] = [];
+  const answerShapes: string[] = [];
   const straight: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
@@ -724,6 +808,16 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       pointsOut.push(
         `<path d="M ${n(point.x - size)} ${n(point.y - size)} L ${n(point.x + size)} ${n(point.y + size)} M ${n(point.x - size)} ${n(point.y + size)} L ${n(point.x + size)} ${n(point.y - size)}"/>`,
       );
+      continue;
+    }
+    if (object.kind === "polygon") {
+      if (!polygonVisible(object, layout.bounds)) continue;
+      const points = object.vertices.map((p) => coordinateToSvg(p, layout)).map((p) => `${n(p.x)},${n(p.y)}`).join(" ");
+      if (object.shaded)
+        fills.push(
+          `<polygon class="graph-polygon-fill" points="${points}" ${object.answerOnly ? `fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${POLYGON_ANSWER_SHADE_OPACITY}"` : `fill="${POLYGON_SHADE}"`}/>`,
+        );
+      (object.answerOnly ? answerShapes : shapes).push(`<polygon class="graph-polygon" data-object-id="${escapeXml(object.id)}" points="${points}" stroke-linejoin="round"/>`);
       continue;
     }
     const visible = visibleStraightPoints(object, layout.bounds);
@@ -750,10 +844,10 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
   const pupilLabels = pointLabelsMarkup(document, layout, straightObjects(false));
   const answerPointLabels = pointLabelsMarkup(document, layout, straightObjects(true));
   const lines = `
-    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>${
-      answerStraight.length
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${shapes.join("")}${straight.join("")}</g>${
+      answerStraight.length || answerShapes.length
         ? `
-    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerStraight.join("")}</g>`
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerShapes.join("")}${answerStraight.join("")}</g>`
         : ""
     }`;
   const marks = `
@@ -764,7 +858,9 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
     <g class="point-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pupilLabels}</g>`
         : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
-  return { lines, marks };
+  const shaded = fills.length ? `
+    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-clip)">${fills.join("")}</g>` : "";
+  return { fills: shaded, lines, marks };
 }
 
 /** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
@@ -800,10 +896,10 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
-  ${gridMarkup(document, layout)}
+  ${objects.fills}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
   ${axes.labels}
-  ${objects.marks}
+  ${objects.marks}${coordinatesMarkup(document, layout, view)}
 </svg>`;
 }

@@ -21,10 +21,12 @@ import {
   type Envelope,
 } from "./index";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
 const set = z.enum(["universe", "A", "B", "C"]);
 const mask = z.number().int().min(0).max(7);
 const widthCm = z.number().min(8).max(16),
-  fontPt = z.number().min(9).max(14);
+  fontPt = z.number().min(MIN_TEXT_PT).max(14),
+  lines = z.enum(LINE_WEIGHTS);
 const entry = z.object({ mask, region: regionSchema.partial() }).strict();
 export const specSchema = z
   .object({
@@ -44,6 +46,7 @@ export const specSchema = z
     showDefinitions: z.boolean().optional(),
     widthCm: widthCm.optional(),
     fontPt: fontPt.optional(),
+    lines: lines.optional(),
   })
   .strict();
 export const outputViewSchema = z.enum(["pupil", "answer"]);
@@ -72,6 +75,7 @@ export function createVenn(raw: unknown = {}): Envelope {
     e = createExtended(s.sets ?? 2);
   const { labels, definitions, regions, ...settings } = s;
   Object.assign(e.document, settings);
+  if (e.document.lines === "normal") delete e.document.lines;
   unique(labels ?? [], (v) => v.set);
   unique(definitions ?? [], (v) => v.set);
   unique(regions ?? [], (v) => v.mask);
@@ -140,6 +144,7 @@ export const operationSchema = z.discriminatedUnion("op", [
       op: z.literal("set_print"),
       widthCm: widthCm.optional(),
       fontPt: fontPt.optional(),
+      lines: lines.optional(),
     })
     .strict(),
   z.object({ op: z.literal("upgrade_document") }).strict(),
@@ -204,6 +209,7 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
               showDefinitions: next.document.showDefinitions,
               widthCm: next.document.widthCm,
               fontPt: next.document.fontPt,
+              ...(next.document.lines ? { lines: next.document.lines } : {}),
             },
           };
         }
@@ -257,6 +263,8 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
     if (o.op === "set_print") {
       if (o.widthCm !== undefined) next.document.widthCm = o.widthCm;
       if (o.fontPt !== undefined) next.document.fontPt = o.fontPt;
+      if (o.lines === "bold") next.document.lines = "bold";
+      else if (o.lines === "normal") delete next.document.lines;
     }
   }
   const e = validate(next);
@@ -294,7 +302,7 @@ export function printFacts(raw: Envelope, view: "pupil" | "answer" = "pupil") {
   const answerLineLengthsMm = distinct(
     [
       ...svg.matchAll(
-        /<path\s+d="[^"]*h([\d.]+)"\s+stroke="black"\s+stroke-width="\.22"/g,
+        /<path\s+d="[^"]*h([\d.]+)"\s+stroke="black"\s+stroke-width="(?:\.22|0\.33)"/g,
       ),
     ].map((m) => Number(m[1])),
   );

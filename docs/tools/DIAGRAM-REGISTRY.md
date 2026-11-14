@@ -18,9 +18,10 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 | `create_booklet` | A4 unit booklets (see [BOOKLET-MAKER.md](BOOKLET-MAKER.md)); same items and families as worksheets. Added 11 Nov 2026, the ninth tool. |
 
 Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn`,
-`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree` and `triangle`. `outputView` applies
+`algebra-grid`, `bar-model`, `charts`, `probability-tree`, `frequency-tree`, `triangle`, `construction` and `elevations`
+([constructions, loci and bearings](CONSTRUCTION-TOOL.md) and [plans and elevations](ELEVATIONS-TOOL.md), 14 Nov 2026). `outputView` applies
 only to families with an answers copy (ratio tables, graphs, number lines, Venn, bar models, charts,
-probability trees, frequency trees, expanding and factorising grids, and triangles). Value graphs and cuboids hold no
+probability trees, frequency trees, expanding and factorising grids, triangles, constructions, and plans and elevations). Value graphs and cuboids hold no
 saved answers (a blank value-graph cell or cuboid label has nothing stored), so they stay pupil-only: an answers copy
 there would mean calculating. Since M84 (14 November 2026) number lines print answer-line tick values, a hidden
 solution and a hidden saved answer in pink (hidden tick labels stay hidden), and bar models (v1, v2 and v3) print
@@ -36,8 +37,28 @@ A create or revise result starts with a one-line plain summary (`Created a <labe
 `structuredContent` adds `kind`, `summary` and `altText` to the family's own fields (`envelope`,
 `contentHash`, `downloads`, `editorUrl`, warnings and so on).
 
-Errors are JSON `{code, message}`. Invalid input uses `invalid_input` and names the field
-(`spec.categories: ...`) with a pointer to `diagram_capabilities {kind:"..."}`.
+Every connector failure, from any tool and from the SDK's own input checks, has one shape
+(improvement list M12, `services/graph-mcp/tool-error.ts`, body type in
+`packages/envelope-core/src/errors.ts`):
+
+```json
+{ "code": "invalid_input", "message": "spec.categories: Expected array",
+  "fields": [{ "path": "spec.categories", "message": "Expected array" }],
+  "hint": "Check diagram_capabilities {kind:\"charts\"} for the expected fields.",
+  "retry": "fix_input" }
+```
+
+- `fields` and `hint` are optional; `message` always repeats the field problems in words.
+- `retry` is `fix_input`, `refresh_envelope` (a stale `baseHash`: code `stale_hash` in every
+  family; the older `stale_document` and `base_hash_mismatch` spellings are read as it),
+  `try_later` (quota, busy, stopped or timed-out renderer) or `none`.
+- Cores throw `MathsDockError(code, message, { fields, hint })` (GraphError and RatioError extend
+  it). A plain `Error` keeps its message under the tool's default code; a message starting with
+  a known code (`stale_hash: `) is read as that code, and any other `word: ` prefix stays text.
+  The output and SVG tools replace an uncoded `Error`'s text with a fixed sentence, and an SDK
+  failure (such as a result that breaks its output schema) answers `internal` and only its lead-in is logged, so
+  internal detail never reaches the model. The SDK is pinned: upgrading it must pass
+  `services/graph-mcp/tool-error.test.ts`, which guards the two SDK internals this relies on.
 
 Download links carry deflated, base64url tokens (prefix `z`); older `ey...` tokens still open.
 The signature is checked before a token is unpacked.
@@ -88,6 +109,23 @@ colour, and swapping every saved answer for a same-length stand-in changes none 
 text (text, title, desc, aria-label, so alt text too). Geometry is not compared, because both
 copies share one layout sized for the answers. The worksheet renderer reports a leak as a layout
 issue, and `create_diagram` / `revise_diagram` add it to their warnings.
+
+## Single-diagram PDF (U32, 14 November 2026)
+
+Every editor's menu has **Download PDF (actual size)**: the same artwork as Download SVG on an A4
+portrait page (A4 landscape or A3 when it does not fit inside 15 mm margins), centred 15 mm from
+the top and never scaled. `diagramPage` (`packages/resource-core/src/diagram-page.ts`) builds the
+page; the worksheet PDF writer draws it and the W30 audit checks it before it is offered. Print at
+"Actual size" (100 %).
+
+## Tidy root numbers (U38, 14 November 2026)
+
+Every family's artwork from the registry, every website SVG export (`embedPortableFonts` and the
+graph's own download) and every connector SVG download passes through `tidySvgRoot`
+(`packages/envelope-core/src/svg-root.ts`): the root `width`, `height` and `viewBox` are rounded to
+four decimal places of their own unit, so `5.515280000000001cm` becomes `5.5153cm`. The print size
+changes by at most 0.5 µm in cm (1.3 µm in inches); a value too small to keep at four places is
+left alone, and nothing below the root element changes.
 
 ## Adding a family
 
