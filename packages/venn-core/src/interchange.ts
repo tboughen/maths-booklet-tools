@@ -1,3 +1,4 @@
+import { aboutOf } from "../../envelope-core/src/about";
 import { z } from "zod";
 import {
   activeMasks,
@@ -211,6 +212,7 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
               fontPt: next.document.fontPt,
               ...(next.document.lines ? { lines: next.document.lines } : {}),
             },
+            ...aboutOf(next),
           };
         }
       }

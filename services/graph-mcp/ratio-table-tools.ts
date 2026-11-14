@@ -1,9 +1,9 @@
+import { FAMILIES } from "../../packages/diagram-core/src/registry";
 import { ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
   ratioMetrics,
-  renderRatioSvg,
   describeRatio,
   ratioWarnings,
   ratioHash,
@@ -36,7 +36,7 @@ export function ratioTools(
         type: "application/json",
       };
     const metrics = ratioMetrics(envelope.document),
-      svg = renderRatioSvg(envelope.document, view);
+      svg = FAMILIES["ratio-table"].svg(envelope, view);
     const size =
       format === "svg"
         ? {
@@ -72,7 +72,7 @@ export function ratioTools(
       ),
       height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderRatioSvg(envelope.document, view),
+      FAMILIES["ratio-table"].svg(envelope, view),
       width,
       height,
       false,
