@@ -75,7 +75,12 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 316px; align-items: start; gap: 18px; }
 .editor-card, .panel-card { border: 1px solid var(--line); border-radius: 15px; background: var(--paper); box-shadow: var(--shadow); }
 .editor-card { position: relative; min-width: 0; overflow: hidden; }
-.editor-toolbar { min-height: 68px; display: flex; align-items: center; gap: 5px; padding: 10px 12px; border-bottom: 1px solid #e3ddd2; background: #fffdfa; }
+.editor-toolbar { position: relative; min-height: 68px; display: flex; align-items: center; gap: 5px; padding: 10px 12px; border-bottom: 1px solid #e3ddd2; background: #fffdfa; }
+/* "Resource reset. Undo reset" sits just under the toolbar so the resource does not move (U25). */
+.editor-reset-notice { position: absolute; top: calc(100% + 6px); left: 12px; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 8px; color: #fff; background: #253e59; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 14px; }
+.editor-reset-notice button { min-height: 44px; min-width: 44px; border: 0; border-radius: 6px; color: #fff; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
+.editor-reset-notice .editor-reset-undo { padding: 0 12px; text-decoration: underline; text-underline-offset: 3px; }
+.editor-reset-notice button:focus-visible { outline: 3px solid #ffd166; outline-offset: 1px; }
 .tool-group { display: flex; align-items: center; gap: 4px; }
 .tool-button, .icon-button { min-height: var(--control-lg); border: 1px solid transparent; border-radius: 8px; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: var(--button-label); line-height: 18px; }
 .tool-button { padding: 0 16px; }

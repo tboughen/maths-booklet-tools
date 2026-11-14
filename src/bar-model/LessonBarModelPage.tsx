@@ -501,7 +501,7 @@ export default function LessonBarModelPage({
   }
   function replace(envelope: c.Envelope, title: string, worked = false) {
     if (guard.current) return;
-    if (worked) commit(envelope);
+    if (worked) commit(envelope, "use worked version");
     else setPending({ envelope, title });
   }
   function endpointControl(

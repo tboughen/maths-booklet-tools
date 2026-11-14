@@ -293,14 +293,16 @@ describe("graph builder", () => {
     ];
     changedDocument.selectedObjectId = "point-1";
     saveDiagram(changedDocument);
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const confirm = vi.spyOn(window, "confirm");
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Reset diagram" }));
-
-    expect(confirm).toHaveBeenCalledWith(
-      "Reset the diagram? This clears the grid settings and all objects. You can undo this action afterwards.",
-    );
+    // The same in-page confirmation as the other editors, never the browser's own dialog.
+    const dialog = screen.getByRole("dialog", { name: "Reset the diagram?" });
+    expect(dialog).toHaveTextContent("You can undo it.");
+    await user.click(within(dialog).getByRole("button", { name: "Reset diagram" }));
+    expect(confirm).not.toHaveBeenCalled();
+    expect(screen.getByText("Resource reset.")).toBeInTheDocument();
     expect(screen.getByText("0 objects")).toBeInTheDocument();
     // With nothing selected the panel shows the drawing tools; the equation form opens on request.
     expect(
