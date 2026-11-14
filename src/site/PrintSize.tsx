@@ -4,12 +4,15 @@ import { BANK_CARD_MM, nominalPxPerMm } from "./printSizeData";
 
 /** Match the bar to a real bank card: it is then exactly BANK_CARD_MM long on this screen. */
 export function CalibrateDialog(props: { pxPerMm: number; onCancel: () => void; onSave: (pxPerMm: number | null) => void }) {
-  const [scale, setScale] = useState(props.pxPerMm);
+  const nominal = nominalPxPerMm();
+  // Limits round both the browser's assumption and the current value, so zoom never pins the bar.
+  const lo = Math.min(nominal, props.pxPerMm) * 0.6,
+    hi = Math.max(nominal, props.pxPerMm) * 1.6;
+  const clamp = (v: number) => Math.min(hi, Math.max(lo, v));
+  const [scale, setScale] = useState(() => clamp(props.pxPerMm));
   const box = useRef<HTMLElement>(null);
   const id = useId();
   useMenuDialog(box, props.onCancel);
-  const nominal = nominalPxPerMm();
-  const clamp = (v: number) => Math.min(nominal * 1.6, Math.max(nominal * 0.6, v));
   const step = (k: number) => setScale(clamp(scale * k));
   return (
     <div className="word-help-backdrop">
@@ -24,7 +27,7 @@ export function CalibrateDialog(props: { pxPerMm: number; onCancel: () => void; 
         </div>
         <label className="calibrate-range">
           Bar length
-          <input type="range" min={nominal * 0.6} max={nominal * 1.6} step={0.001} value={scale} onChange={(event) => setScale(Number(event.target.value))} />
+          <input type="range" min={lo} max={hi} step={0.001} value={scale} onChange={(event) => setScale(Number(event.target.value))} />
         </label>
         <div className="title-note-actions">
           <button type="button" className="tool-button" onClick={() => step(1 / 1.005)} aria-label="Shorter">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalibrateDialog } from "./PrintSize";
 import { nominalPxPerMm, readCalibration, writeCalibration } from "./printSizeData";
 
@@ -10,8 +10,16 @@ import { nominalPxPerMm, readCalibration, writeCalibration } from "./printSizeDa
  */
 export function usePrintSize() {
   const [actual, setActual] = useState(false);
-  const [saved, setSaved] = useState(readCalibration);
   const [calibrating, setCalibrating] = useState(false);
+  // Read on every render: the calibration is kept in device pixels, so a browser zoom (which fires
+  // resize and changes devicePixelRatio) changes the CSS pixels it needs.
+  const [, setVersion] = useState(0);
+  useEffect(() => {
+    const refresh = () => setVersion((v) => v + 1);
+    window.addEventListener("resize", refresh);
+    return () => window.removeEventListener("resize", refresh);
+  }, []);
+  const saved = readCalibration();
   const pxPerMm = saved ?? nominalPxPerMm();
   return {
     actual,
@@ -32,8 +40,9 @@ export function usePrintSize() {
             pxPerMm={pxPerMm}
             onCancel={() => setCalibrating(false)}
             onSave={(next) => {
-              setSaved(writeCalibration(next));
+              writeCalibration(next);
               setCalibrating(false);
+              setVersion((v) => v + 1);
             }}
           />
         )}

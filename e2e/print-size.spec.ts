@@ -12,6 +12,12 @@ for (const [route, pages, mm] of [["/worksheets", "worksheet-pages", 420], ["/bo
     await expect(page.getByRole("button", { name: "Actual size" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Not calibrated on this device")).toBeVisible();
     expect(Math.abs((await width()) - mm * NOMINAL)).toBeLessThan(1);
+    // Drawn in full: the page's figure is as wide as its art, and the list scrolls to show it.
+    const figure = page.getByTestId(pages).locator("figure").first();
+    expect(Math.abs((await figure.boundingBox())!.width - (await width()))).toBeLessThan(2);
+    const list = page.getByTestId(pages);
+    expect(await list.evaluate((el) => el.scrollWidth >= el.firstElementChild!.getBoundingClientRect().width - 1)).toBe(true);
+    expect(await figure.evaluate((el) => getComputedStyle(el).contentVisibility)).not.toBe("auto");
 
     await page.getByRole("button", { name: "Calibrate…" }).click();
     const dialog = page.getByRole("dialog", { name: "Calibrate actual size" });
