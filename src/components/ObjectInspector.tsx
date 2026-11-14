@@ -15,16 +15,24 @@ import {
   polygonProblem,
 } from "../../packages/graph-core/src/polygon";
 
-/** Reads corners typed as "(1, 1) (4, 1) (1, 3)"; minus signs and spaces are forgiven. */
+/** Reads corners typed as "(1, 1) (4, 1) (1/3, 3)"; minus signs, fractions and spaces are forgiven. */
+const VERTEX_NUMBER = String.raw`-?(?:\d+(?:\.\d+)?|\.\d+)(?:\/\d+)?`;
+const vertexValue = (text: string) => {
+  const [top, bottom] = text.split("/");
+  return bottom === undefined ? Number(top) : Number(top) / Number(bottom);
+};
 function parseVertices(text: string): Coordinate[] {
   const cleaned = text.replaceAll("−", "-");
-  const pairs = [...cleaned.matchAll(/\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g)];
-  const leftover = cleaned.replace(/\(\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*\)/g, "").replace(/[\s,;]/g, "");
+  const pair = String.raw`\(\s*(${VERTEX_NUMBER})\s*,\s*(${VERTEX_NUMBER})\s*\)`;
+  const pairs = [...cleaned.matchAll(new RegExp(pair, "g"))];
+  const leftover = cleaned.replace(new RegExp(pair, "g"), "").replace(/[\s,;]/g, "");
   if (leftover)
     throw Error("Type each corner in brackets, such as (1, 1) (4, 1) (1, 3).");
   if (pairs.length < POLYGON_MIN_VERTICES || pairs.length > POLYGON_MAX_VERTICES)
     throw Error(`A shape needs ${POLYGON_MIN_VERTICES} to ${POLYGON_MAX_VERTICES} corners.`);
-  const vertices = pairs.map((m) => ({ x: Number(m[1]), y: Number(m[2]) }));
+  if (pairs.some((m) => [m[1], m[2]].some((v) => v.endsWith("/0"))))
+    throw Error("A fraction in a corner can't have 0 below the line.");
+  const vertices = pairs.map((m) => ({ x: vertexValue(m[1]), y: vertexValue(m[2]) }));
   const problem = polygonProblem(vertices);
   if (problem) throw Error(`This shape can't be drawn: ${problem}`);
   return vertices;

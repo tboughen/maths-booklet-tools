@@ -50,10 +50,18 @@ export function polygonInBounds(object: PolygonObject, bounds: Bounds): boolean 
 }
 
 /** True when any corner is on the grid, so part of the shape prints. */
+/** True when any part of the shape lies on the grid; the plot clip trims the rest. */
 export function polygonVisible(object: PolygonObject, bounds: Bounds): boolean {
-  return object.vertices.some((p) => inside(p, bounds));
+  const xs = object.vertices.map((p) => p.x), ys = object.vertices.map((p) => p.y);
+  return Math.max(...xs) >= bounds.xMin && Math.min(...xs) <= bounds.xMax && Math.max(...ys) >= bounds.yMin && Math.min(...ys) <= bounds.yMax;
 }
 
+/** A corner value as typed: whole numbers and short decimals as they are, thirds and the like as fractions. */
+function vertexText(v: number): string {
+  if (Number.isInteger(Number(v.toFixed(9))) || Math.abs(v * 1000 - Math.round(v * 1000)) < 1e-6) return String(Number(v.toFixed(6)));
+  for (let d = 2; d <= 12; d++) if (Math.abs(v * d - Math.round(v * d)) < 1e-9) return `${Math.round(v * d)}/${d}`;
+  return String(v);
+}
 export function formatVertices(vertices: Coordinate[]): string {
-  return vertices.map((p) => `(${p.x}, ${p.y})`).join(" ");
+  return vertices.map((p) => `(${vertexText(p.x)}, ${vertexText(p.y)})`).join(" ");
 }

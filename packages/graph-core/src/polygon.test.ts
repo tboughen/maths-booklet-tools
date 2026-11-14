@@ -24,11 +24,13 @@ describe("shapes for transformations (U72)", () => {
     const document = documentFromEnvelope(reflection());
     const pupil = renderDiagramSvg(document, "pupil");
     const answer = renderDiagramSvg(document, "answer");
-    expect(pupil.match(/<polygon /g)).toHaveLength(1);
+    expect(pupil.match(/<polygon class="graph-polygon" /g)).toHaveLength(1);
     expect(pupil).toContain('fill="#d4d4d4"');
+    // The grey sits under the grid and axes, so they show through it.
+    expect(pupil.indexOf("graph-polygon-fills")).toBeLessThan(pupil.indexOf("<line"));
     expect(pupil).toMatch(/object-name-polygon[^>]*>.*>A</);
     expect(pupil).not.toMatch(/>B</);
-    expect(answer.match(/<polygon /g)).toHaveLength(2);
+    expect(answer.match(/<polygon class="graph-polygon" /g)).toHaveLength(2);
     expect(answer).toMatch(/object-name-polygon object-name-answer/);
   });
 
