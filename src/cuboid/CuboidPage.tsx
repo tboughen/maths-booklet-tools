@@ -7,8 +7,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -481,50 +481,43 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="cuboids-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(e, location.origin + location.pathname)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />

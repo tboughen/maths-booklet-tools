@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { WordSetupDialog } from "./WordSetupDialog";
 
 export interface DownloadAction {
   label: string;
@@ -23,6 +24,8 @@ export const SAVED_NOTE = "Saved to file";
 export const SAVED_NOTE_MS = 3000;
 export const LINK_DESCRIPTION =
   "Anyone with the link can open the saved resource, including hidden answers.";
+export const SAVE_DESCRIPTION = "Includes hidden answers.";
+export const WORD_SETUP_LABEL = "First-time Word setup";
 
 /** One active, viewport-bounded menu. Import/recovery dialogs stay outside it. */
 export function EditorDownloadMenu({
@@ -33,7 +36,10 @@ export function EditorDownloadMenu({
   actions,
   onMessage,
   onBusyChange,
+  wordHelp = false,
 }: {
+  /** Add "First-time Word setup" at the end, for tools that copy for Word. */
+  wordHelp?: boolean;
   id: string;
   open: boolean;
   active?: boolean;
@@ -45,6 +51,7 @@ export function EditorDownloadMenu({
   const menu = useRef<HTMLDivElement>(null);
   const invoking = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [wordSetup, setWordSetup] = useState(false);
   const [position, setPosition] = useState({
     top: 0,
     left: 0,
@@ -170,7 +177,17 @@ export function EditorDownloadMenu({
           globalThis.document.body,
         )
       : null;
-  if (!open || !active) return savedNote;
+  const wordSetupDialog = wordSetup && active ? <WordSetupDialog onClose={() => setWordSetup(false)} /> : null;
+  if (!open || !active)
+    return (
+      <>
+        {savedNote}
+        {wordSetupDialog}
+      </>
+    );
+  const items: DownloadAction[] = wordHelp
+    ? [...actions, { label: WORD_SETUP_LABEL, action: () => setWordSetup(true), separator: true, picker: true }]
+    : actions;
   async function invoke(item: DownloadAction) {
     if (invoking.current || item.disabled) return;
     invoking.current = true;
@@ -274,7 +291,7 @@ export function EditorDownloadMenu({
         }
       }}
     >
-      {actions.map((item, index) => (
+      {items.map((item, index) => (
         <div key={item.label}>
           {item.separator && <div role="separator" />}
           <button
@@ -303,6 +320,7 @@ export function EditorDownloadMenu({
     <>
       {savedNote}
       {menuPortal}
+      {wordSetupDialog}
     </>
   );
 }

@@ -28,8 +28,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
@@ -495,48 +495,41 @@ export default function AlgebraGridPage({
               menuId="algebra-download-menu"
             />
             <EditorDownloadMenu
+              wordHelp
               id="algebra-download-menu"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onMessage={setMessage}
               onBusyChange={setBusy}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "svg"),
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   disabled: pendingInput || !!issue,
                   action: () => downloadImage(e, "png"),
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                save: {
                   disabled: pendingInput,
-                  description: "Includes hidden answers.",
                   action: () => downloadEditable(e),
                   success: "Editable-file download started.",
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   disabled: pendingInput,
                   action: () => file.current?.click(),
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   disabled: pendingInput,
-                  description: LINK_DESCRIPTION,
                   action: async () =>
                     navigator.clipboard.writeText(editorLink(e, location.href)),
                   success:
                     "Editable link copied, including any hidden answers.",
                 },
-              ]}
+              })}
             />
             <input
               type="file"

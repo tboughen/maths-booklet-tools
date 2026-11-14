@@ -7,8 +7,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import {
@@ -1316,50 +1316,43 @@ export default function ValueGraphPage({
               onToggleMenu={() => setExportOpen(!exportOpen)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="quadratics-downloads"
               open={exportOpen}
               active={active}
               onClose={() => setExportOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => download(envelope, "svg"),
                   disabled: blocked || !!renderError,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => download(envelope, "png"),
                   disabled: blocked || !!renderError,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                save: {
                   action: () => download(envelope, "json"),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(envelope, location.href)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <input
               type="file"

@@ -1,5 +1,13 @@
 import { useId, useLayoutEffect, useRef } from "react";
 import { historyActionText } from "../editor-kit/labels";
+
+/** Starts the print-font fetch once, on the first sign of an export (U57). */
+let preloaded = false;
+function preloadExportFonts() {
+  if (preloaded) return;
+  preloaded = true;
+  void import("../export/portable").then((m) => m.preloadPortableFonts()).catch(() => (preloaded = false));
+}
 import {
   ChevronDown,
   Copy,
@@ -115,7 +123,12 @@ export function EditorToolbar(props: EditorToolbarProps) {
           <span>Reset</span>
         </button>
       </div>
-      <div className="editor-copy-actions">
+      <div
+        className="editor-copy-actions"
+        // Export intent: fetch the print fonts before the click (U57).
+        onPointerEnter={preloadExportFonts}
+        onFocus={preloadExportFonts}
+      >
         <button
           className="copy-main clipboard-copy"
           disabled={props.exportDisabled || props.busy}

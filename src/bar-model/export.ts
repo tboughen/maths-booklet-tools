@@ -15,6 +15,7 @@ import {
   blobToDataUrl,
   copyWordSizedHtml,
   downloadBlob,
+  svgAlt,
 } from "../export/clipboard";
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -58,7 +59,7 @@ export async function copyWord(e: Envelope) {
     url = await blobToDataUrl(await printPng(e));
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${g.width}cm" height="${g.height}cm" style="width:${g.width}cm;height:${g.height}cm" alt="Bar model">`,
+      `<img src="${url}" width="${g.width}cm" height="${g.height}cm" style="width:${g.width}cm;height:${g.height}cm" alt="${svgAlt(g.svg, "Bar model")}">`,
     )
   )
     throw Error(

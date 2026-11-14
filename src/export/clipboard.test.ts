@@ -98,3 +98,15 @@ describe("Word clipboard export", () => {
     expect(write).not.toHaveBeenCalled();
   });
 });
+
+describe("svgAlt (U37)", () => {
+  it("uses the artwork's aria-label, escaped for an attribute", async () => {
+    const { svgAlt } = await import("./clipboard");
+    expect(svgAlt('<svg role="img" aria-label="Triangle with vertices A, B &amp; C"><title>x</title></svg>', "Triangle diagram")).toBe("Triangle with vertices A, B &amp; C");
+  });
+  it("falls back to title and description, then to the family name", async () => {
+    const { svgAlt } = await import("./clipboard");
+    expect(svgAlt("<svg><title>Coordinate graph</title><desc>Line through (0, 3)</desc></svg>", "Graph")).toBe("Coordinate graph. Line through (0, 3)");
+    expect(svgAlt("<svg></svg>", "Chart")).toBe("Chart");
+  });
+});
