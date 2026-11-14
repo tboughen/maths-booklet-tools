@@ -30,10 +30,12 @@ catch (e) {
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/);
 export const pointSchema = z.object({ id, value: num, included: z.boolean().optional() }).strict();
 export const connectionSchema = z.object({id, from: id, to: id}).strict();
+/** A ray from one of the points to the end of the line, for "x < −1 or x ≥ 2". */
+export const pointRaySchema = z.object({ id, from: id, direction: z.enum(["left", "right"]) }).strict();
 export const setSchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("interval"), id, lower: num, upper: num, lowerIncluded: z.boolean(), upperIncluded: z.boolean() }).strict(),
     z.object({ kind: z.literal("ray"), id, value: num, included: z.boolean(), direction: z.enum(["left", "right"]), intentional: z.boolean().default(false), stop: num.nullable().default(null) }).strict(),
-    z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(33), intervals: z.array(connectionSchema).max(32).optional() }).strict(),
+    z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(33), intervals: z.array(connectionSchema).max(32).optional(), rays: z.array(pointRaySchema).max(2).optional() }).strict(),
 ]);
 export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction", "mixed"]).default("decimal"), variableBelow: z.boolean().default(false) }).strict();
 export const teachingSchema = z.object({ solutionVisible: z.boolean().default(true), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}), prompt: z.string().max(160).default(""), answer: z.string().max(160).default(""), answerVisible: z.boolean().default(false), responseLines: z.number().int().min(0).max(3).default(0) }).strict();
@@ -85,6 +87,17 @@ export function validate(raw: unknown): Envelope {
             if(Math.abs(position(d,a.value)-position(d,b.value))<2.8) throw Error("The interval endpoints are too close at this print width.");
             ids.add(line.id);pairs.add(pair);
         }
+        // At most one ray each way, from an existing point, and never through another point
+        // or interval (that set would be one ray from a further point).
+        const directions = new Set<string>();
+        for (const ray of s.rays ?? []) {
+            const from = s.points.find(p => p.id === ray.from);
+            if (!from) throw Error("A ray must start at an existing point.");
+            if (ids.has(ray.id) || directions.has(ray.direction)) throw Error("Use at most one ray each way, with a unique ID.");
+            const beyond = (v: string) => compare(v, from.value) === (ray.direction === "left" ? -1 : 1);
+            if (s.points.some(p => beyond(p.value))) throw Error(`The ray ${ray.direction} from ${from.value} would pass through another point. Start it from the last point that way.`);
+            ids.add(ray.id); directions.add(ray.direction);
+        }
     }
     for (const v of required)
         if (compare(v, d.axis.minimum) < 0 || compare(v, d.axis.maximum) > 0)
@@ -126,6 +139,8 @@ export const operationSchema = z.discriminatedUnion("op", [
     z.object({ op: z.literal("set_point"), id, value: num.optional(), included: z.boolean().optional() }).strict(),
     z.object({ op: z.literal("connect_points"), interval: connectionSchema }).strict(),
     z.object({ op: z.literal("remove_interval"), id }).strict(),
+    z.object({ op: z.literal("add_point_ray"), ray: pointRaySchema }).strict().describe("Draw a ray from a point to the end of the line, for two-part sets such as x < −1 or x ≥ 2."),
+    z.object({ op: z.literal("remove_point_ray"), id }).strict(),
     z.object({ op: z.literal("remove_point"), id }).strict(),
     z.object({ op: z.literal("set_tick_label"), value: num, state: z.enum(["value", "hidden", "answer-line"]) }).strict(),
     z.object({ op: z.literal("set_presentation"), teaching: teachingPatch }).strict(),
@@ -173,7 +188,7 @@ export function apply(e: Envelope, raw: unknown): Envelope {
             if (s?.kind !== "points" || !s.points.some(p => p.id === o.id))
                 throw Error("Point not found.");
             if (o.op === "remove_point")
-                { s.points = s.points.filter(p => p.id !== o.id); if(s.intervals) s.intervals=s.intervals.filter(line=>line.from!==o.id&&line.to!==o.id); }
+                { s.points = s.points.filter(p => p.id !== o.id); if(s.intervals) s.intervals=s.intervals.filter(line=>line.from!==o.id&&line.to!==o.id); if(s.rays) { s.rays=s.rays.filter(ray=>ray.from!==o.id); if(!s.rays.length) delete s.rays; } }
             else {
                 const point=s.points.find(p => p.id === o.id)!;
                 if(o.value!==undefined) point.value=o.value;
@@ -183,6 +198,15 @@ export function apply(e: Envelope, raw: unknown): Envelope {
         if(o.op==="connect_points") {
             if(d.solution?.kind!=="points") throw Error("Add points before joining them.");
             d.solution.intervals=[...(d.solution.intervals??[]),o.interval];
+        }
+        if(o.op==="add_point_ray") {
+            if(d.solution?.kind!=="points") throw Error("Add points before drawing a ray from one.");
+            d.solution.rays=[...(d.solution.rays??[]),o.ray];
+        }
+        if(o.op==="remove_point_ray") {
+            if(d.solution?.kind!=="points" || !d.solution.rays?.some(ray=>ray.id===o.id)) throw Error("Ray not found.");
+            d.solution.rays=d.solution.rays.filter(ray=>ray.id!==o.id);
+            if(!d.solution.rays.length) delete d.solution.rays;
         }
         if(o.op==="remove_interval") {
             if(d.solution?.kind!=="points" || !d.solution.intervals?.some(line=>line.id===o.id)) throw Error("Interval not found.");
@@ -293,6 +317,10 @@ export function renderSvg(e: Envelope, showAnswers = false) {
             for(const line of s.intervals??[]) {
                 const a=position(d,s.points.find(p=>p.id===line.from)!.value),b=position(d,s.points.find(p=>p.id===line.to)!.value);
                 art+=`<path data-interval="${line.id}" d="M${Math.min(a,b)+r} ${m.solutionY}H${Math.max(a,b)-r}"/>`;
+            }
+            for (const ray of s.rays ?? []) {
+                const dir = ray.direction === "left" ? -1 : 1, end = dir < 0 ? m.left - 3 : m.right + 4;
+                art += `<path data-ray="${ray.id}" d="M${position(d, s.points.find(p => p.id === ray.from)!.value) + dir * r} ${m.solutionY}H${end}"/>${arrow(end, m.solutionY, dir)}`;
             }
             art += s.points.map(p => circle(p.value, p.included!==false)).join("");
         }

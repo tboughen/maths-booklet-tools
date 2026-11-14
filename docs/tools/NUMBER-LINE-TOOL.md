@@ -16,6 +16,10 @@ Join existing points: choose Interval and click the two points (or ticks).
 Those clicks join without toggling type; other points and their appearance
 remain. In Point mode, empty ticks add points and existing circles toggle type.
 Select a connecting line and choose Remove interval to retain both endpoints.
+A selected point can also carry a ray to the end of the line ("Ray from this point":
+left or right), for two-part sets such as x < −1 or x ≥ 2: at most one ray each way,
+from the last point that way (optional `rays` on a points solution; connector
+`add_point_ray` / `remove_point_ray`). Removing the ray leaves the file as it was.
 Removing a point also removes its attached intervals; the button states this,
 and Undo restores everything.
 
