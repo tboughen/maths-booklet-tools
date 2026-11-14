@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { guidance } from "../../graph-core/src/print-guidance";
 import { sha256Hex } from "../../envelope-core/src/index";
@@ -64,6 +65,8 @@ export const presentationSchema = z
     unitMm: z.number().min(4).max(16),
     barHeightMm: z.number().min(8).max(16),
     fontPt: z.number().min(10).max(14),
+    // Normal is the default and is never kept, so one picture has one saved form.
+    lines: z.enum(LINE_WEIGHTS).transform((v) => (v === "bold" ? v : undefined)).optional(),
     nameWidthMm: z.number().min(20).max(60),
   })
   .strict();
@@ -379,6 +382,9 @@ function labelSvg(
   return `<text x="${x}" y="${y}" font-family="STIX Two Text" font-size="${font}" text-anchor="${anchor}" fill="#000">${esc(s)}</text>`;
 }
 export function renderSvg(e: Envelope) {
+  return boldLines(drawSvg(e), e.document.presentation.lines);
+}
+function drawSvg(e: Envelope) {
   validate(e);
   const g = layout(e),
     p = e.document.presentation;

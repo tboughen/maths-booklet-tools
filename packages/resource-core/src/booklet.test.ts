@@ -10,7 +10,8 @@ const frames = (svg: string) => svg.match(/<rect x="0.15" y="0.15" width="[\d.]+
 describe("A4 booklet renderer", () => {
   it("draws exactly the pages it drew when these hashes were taken", () => {
     // Hashes of the printed SVG pages (first taken from the renderer before planBooklet, then
-    // retaken when the example's fractions became stacked). The PDF pages and the Word files are
+    // retaken when the example's fractions became stacked, and when maths notation began typesetting
+    // typed maths: the objective's y = mx ± c now prints with italic letters). The PDF pages and the Word files are
     // both made from the plan, so any change here moves printed pages: update these only for a
     // deliberate change to the printed booklet.
     const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
@@ -18,12 +19,12 @@ describe("A4 booklet renderer", () => {
     const [a, b] = a7Booklet.document.lessons;
     unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
     const one = singleLessonBooklet(a7Booklet, 1);
-    expect(sha(renderBooklet(a7Booklet).pages)).toBe("e2d872ac34041a203f1b2d58e528ca09fd6d9bf5c6dc984a162648fc4d76ad6f");
-    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("851a9cfce695620c5b7d2999ecf315ef68afe0f16732a584c9f6f93d3f7c08fa");
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("1a445353bfe55a467a8d8017b415f8671e82b7ea9518b3b539b98d508588f016");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("455dfa1b378a5ddfdf2965ca9621dcadd67c2be613706ba3444eeacc00b9d03d");
     expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("8e3e506a0a0a754463483b268d8412da60aebdcd115eb3b22415882e02a9cd4f");
     const whole = renderBooklet(unit);
     expect(whole.pages.length).toBe(62);
-    expect(sha(whole.pages)).toBe("f57e28e574a9d511135c2c56c0508004c2fbb4631fdf0ec565bce53d24b10e1e");
+    expect(sha(whole.pages)).toBe("e20d88b047175ade28d96f56d3f26c0524e11cb9e7e3af5766522279e22aedf6");
   });
 
   it("prints a booklet saved before notation existed exactly as before, flagging only the characters the font lacks", () => {

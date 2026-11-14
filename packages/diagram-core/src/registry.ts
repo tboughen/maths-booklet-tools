@@ -11,6 +11,7 @@
  * missing one), its guide in guides.ts and its result adapter in services/graph-mcp/families.ts.
  */
 import { z } from "zod";
+import { tidySvgRoot } from "../../envelope-core/src/svg-root";
 import * as graph from "../../graph-core/src/interchange";
 import { renderDiagramSvg } from "../../graph-core/src/svg";
 import * as ratio from "../../ratio-table-core/src/interchange";
@@ -32,6 +33,10 @@ import * as ftree from "../../frequency-tree-core/src/index";
 import * as ftreeIo from "../../frequency-tree-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
+import * as construction from "../../construction-core/src/index";
+import * as constructionIo from "../../construction-core/src/interchange";
+import * as elevations from "../../elevation-core/src/index";
+import * as elevationsIo from "../../elevation-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -46,6 +51,8 @@ export const DIAGRAM_KINDS = [
   "probability-tree",
   "frequency-tree",
   "triangle",
+  "construction",
+  "elevations",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -76,7 +83,8 @@ export interface DiagramFamily<E = unknown> {
   svg(envelope: E, view: View): string;
 }
 
-const family = <E>(f: DiagramFamily<E>) => f as DiagramFamily<unknown>;
+// Every family's artwork leaves with tidy root numbers (U38): same print size, readable bytes.
+const family = <E>(f: DiagramFamily<E>) => ({ ...f, svg: (e: E, view: View) => tidySvgRoot(f.svg(e, view)) }) as DiagramFamily<unknown>;
 /** Families whose create input is the flat spec itself rather than { spec, envelope }. */
 const flatCreate = (create: (spec: unknown) => unknown, validate: (raw: unknown) => unknown) =>
   (input: { spec?: unknown; envelope?: unknown }) => {
@@ -125,7 +133,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   "value-graph": family<value.ValueEnvelope>({
     kind: "value-graph",
     label: "table of values and graph",
-    summary: "Exam table of values with graph paper, plotted points and an optional quadratic curve.",
+    summary: "Exam table of values with graph paper, plotted points and an optional quadratic, cubic, reciprocal or exponential curve.",
     route: "/tools/value-table-graph",
     answerView: false,
     envelopeSchema: value.envelopeSchema,
@@ -311,6 +319,44 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: triangleIo.hash,
     svg: (e, view) => triangle.renderSvg(e, view === "answer"),
   }),
+  construction: family<construction.Envelope>({
+    kind: "construction",
+    label: "construction drawing",
+    summary: "True-size constructions, loci, scale drawings, maps and bearings: points, lines, compass arcs, bisectors, shaded regions and north lines; constructions saved as hidden answers.",
+    route: "/tools/construction",
+    answerView: true,
+    envelopeSchema: construction.envelopeSchema,
+    createSchema: constructionIo.createSchema,
+    revisionSchema: constructionIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = construction.validate(raw);
+      check(construction.exportIssue(e, view));
+      return e;
+    },
+    create: (input) => constructionIo.create(input),
+    revise: (input) => constructionIo.revise(input),
+    hash: construction.hash,
+    svg: (e, view) => construction.renderSvg(e, view),
+  }),
+  elevations: family<elevations.Envelope>({
+    kind: "elevations",
+    label: "plans and elevations diagram",
+    summary: "Solids made of cubes: isometric drawing, plan, front and side elevations on cm squares, each drawn, blank or a hidden answer.",
+    route: "/tools/elevations",
+    answerView: true,
+    envelopeSchema: elevations.envelopeSchema,
+    createSchema: elevationsIo.createSchema,
+    revisionSchema: elevationsIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = elevations.validate(raw);
+      check(elevations.exportIssue(elevations.forView(e, view)));
+      return e;
+    },
+    create: (input) => elevationsIo.create(input),
+    revise: (input) => elevationsIo.revise(input),
+    hash: elevations.hash,
+    svg: (e, view) => elevations.renderSvg(elevations.forView(e, view)),
+  }),
 };
 
 export function familyOf(kind: string): DiagramFamily {
@@ -334,7 +380,7 @@ export function svgSizeMm(svg: string): { width: number; height: number } {
 /** Short alt text: the artwork's own aria-label when it has one, else the family name. */
 export function altText(kind: DiagramKind, svg: string): string {
   const label = svg.match(/<svg\b[^>]*\saria-label="([^"]*)"/)?.[1] ?? svg.match(/<title\b[^>]*>([^<]*)<\/title>/)?.[1];
-  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&apos;/g, "'").replace(/&amp;/g, "&").trim();
   const name = FAMILIES[kind].label;
   return text ? text : `${name[0].toUpperCase()}${name.slice(1)}`;
 }

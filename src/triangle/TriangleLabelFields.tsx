@@ -238,6 +238,15 @@ export function TriangleLabelFields({
                     }))}
                     onChange={(ticks) => update({ ticks: Number(ticks) })}
                   />
+                  <TriangleChoices
+                    legend="Parallel arrows"
+                    value={String(draft.arrows)}
+                    options={[0, 1, 2, 3].map((v) => ({
+                      value: String(v),
+                      label: v ? String(v) : "None",
+                    }))}
+                    onChange={(arrows) => update({ arrows: Number(arrows) })}
+                  />
                   <label className="tr-check">
                     <input
                       type="checkbox"

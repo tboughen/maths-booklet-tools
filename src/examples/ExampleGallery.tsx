@@ -164,7 +164,7 @@ export function ExampleGallery<T>({
                                 }
                               }}
                             >
-                              {example.openLabel ?? "Open scaffold"}
+                              Use this example
                             </button>
                             {example.worked !== false ? (
                               <button

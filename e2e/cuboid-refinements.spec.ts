@@ -107,7 +107,7 @@ test("replacement confirmation hides the non-modal editor and cancellation resto
     .filter({
       has: page.getByRole("heading", { name: "Shaded base area", exact: true }),
     })
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await expect(page.locator("[aria-modal=true]")).toBeVisible();
   await expect(

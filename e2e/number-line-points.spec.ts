@@ -93,3 +93,37 @@ test("joining ticks to a point set adds only missing endpoints and preserves oth
     page.getByTestId("number-line-resource").locator("path[data-interval]"),
   ).toHaveCount(1);
 });
+
+test("arrow markers point at values between ticks with short minor ticks, and Undo removes them", async ({
+  page,
+}) => {
+  await page.goto("/tools/number-line");
+  await page.evaluate(() =>
+    localStorage.removeItem("maths-booklet-tools:number-line:v1"),
+  );
+  await page.reload();
+  const resource = page.getByTestId("number-line-resource");
+  await page.getByText("More settings", { exact: true }).click();
+  await page.getByText("Labels", { exact: true }).click();
+  await page.getByLabel("Label every", { exact: true }).fill("5");
+  await page.getByLabel("Label every", { exact: true }).press("Enter");
+  await page.getByLabel("Short ticks between labels").check();
+  await expect(resource.locator('path[d$="v1.2"]')).toHaveCount(8);
+  await page.getByText("Arrow markers", { exact: true }).click();
+  await page.getByRole("button", { name: "Add arrow", exact: true }).click();
+  await page.getByRole("button", { name: "Add arrow", exact: true }).click();
+  await expect(resource.locator("[data-marker]")).toHaveCount(2);
+  await expect(resource.locator('[data-marker="m2"] text')).toHaveText("B");
+  await page.getByLabel("Arrow 1 value", { exact: true }).fill("2.5");
+  await page.getByLabel("Arrow 1 value", { exact: true }).press("Enter");
+  await expect(resource).not.toContainText("2.5");
+  await page.getByLabel("Arrow 1 value", { exact: true }).fill("9");
+  await page.getByLabel("Arrow 1 value", { exact: true }).press("Enter");
+  await expect(page.getByText(/visible range/)).toBeVisible();
+  await page.getByLabel("Arrow 1 value", { exact: true }).press("Escape");
+  await expect(page.getByLabel("Arrow 1 value", { exact: true })).toHaveValue("2.5");
+  await page.getByRole("button", { name: "Remove arrow 2", exact: true }).click();
+  await expect(resource.locator("[data-marker]")).toHaveCount(1);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(resource.locator("[data-marker]")).toHaveCount(2);
+});
