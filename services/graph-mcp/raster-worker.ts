@@ -18,7 +18,7 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
-    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "triangle" | "worksheet";
+    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "two-way-table" | "triangle" | "worksheet";
     /** Worksheet text fonts (assets/resource-fonts), loaded beside the diagram fonts. */
     textFontRoot?: string;
     pdf?: { pages: string[]; title: string };
@@ -114,7 +114,7 @@ process.once(
           svg = svg
             .replace(/\bwidth="[^"]+"/, `width="${width}"`)
             .replace(/\bheight="[^"]+"/, `height="${height}"`);
-        const metadata = job.artifactKind === "triangle" ? "<title>Triangle diagram</title><desc>Use the accompanying editable JSON; pupil blanks and saved answer visibility are retained.</desc>" : job.artifactKind === "probability-tree" ? "<title>Probability tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "frequency-tree" ? "<title>Frequency tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "charts" ? "<title>Statistical chart</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "bar-model" ? "<title>Bar model</title><desc>Use accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
+        const metadata = job.artifactKind === "triangle" ? "<title>Triangle diagram</title><desc>Use the accompanying editable JSON; pupil blanks and saved answer visibility are retained.</desc>" : job.artifactKind === "probability-tree" ? "<title>Probability tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "frequency-tree" ? "<title>Frequency tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "two-way-table" ? "<title>Two-way table</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "charts" ? "<title>Statistical chart</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "bar-model" ? "<title>Bar model</title><desc>Use accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "number-line" ? "<title>Number line</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "venn" ? "<title>Venn diagram</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "value-graph"

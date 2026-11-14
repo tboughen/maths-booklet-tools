@@ -20,6 +20,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -695,6 +696,7 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
+                                                    "two-way-table",
                                                     "triangle"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
@@ -1139,6 +1141,7 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
+                                                              "two-way-table",
                                                               "triangle"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
@@ -1718,6 +1721,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
@@ -1770,6 +1774,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -2309,6 +2314,7 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
+                                                    "two-way-table",
                                                     "triangle"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
@@ -2753,6 +2759,7 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
+                                                              "two-way-table",
                                                               "triangle"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
@@ -3385,6 +3392,7 @@
                                                     "charts",
                                                     "probability-tree",
                                                     "frequency-tree",
+                                                    "two-way-table",
                                                     "triangle"
                                                   ],
                                                   "description": "Diagram family, as diagram_capabilities lists them."
@@ -3837,6 +3845,7 @@
                                                               "charts",
                                                               "probability-tree",
                                                               "frequency-tree",
+                                                              "two-way-table",
                                                               "triangle"
                                                             ],
                                                             "description": "Diagram family, as diagram_capabilities lists them."
@@ -4315,7 +4324,7 @@
   {
     "name": "diagram_capabilities",
     "title": "Diagram options",
-    "description": "List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, triangle.",
+    "description": "List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: graph, ratio-table, value-graph, cuboids, number-line, venn, algebra-grid, bar-model, charts, probability-tree, frequency-tree, two-way-table, triangle.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4334,6 +4343,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ]
         }
@@ -4372,6 +4382,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -4445,6 +4456,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -4577,7 +4589,7 @@
   {
     "name": "get_diagram_svg",
     "title": "Get a diagram's SVG",
-    "description": "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/triangle and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree and frequency-tree outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
+    "description": "Retrieve original outlined SVG content through MCP when external SVG downloads are blocked. Supply kind graph/ratio-table/value-graph/cuboids/number-line/venn/algebra-grid/bar-model/charts/probability-tree/frequency-tree/two-way-table/triangle and the exact returned envelope; no URL or baseHash. Venn, charts, probability-tree, frequency-tree and two-way-table outputView defaults pupil; answer must be explicitly requested. Does not revise or save a file. First call: omit offsetBytes; maxChunkBytes defaults to 49152 (1024..49152). Save decoded svgChunk as exact UTF-8 with no extra newline. For continuation use returned nextOffsetBytes and expectedSvgSha256:svgSha256, repeating source/outputView. Verify contiguous offsets, chunkBytes/chunkSha256, unchanged file metadata, then totalBytes/svgSha256 before embedding. sourceContentHash is the revision hash; svgSha256 is a different file checksum. complete means this is the last chunk, not that a client saved a file or printed a PDF. Do not redraw, normalize text, or substitute the preview. If exact saving fails, report the client limitation. Existing download links remain available.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -4595,6 +4607,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -4682,6 +4695,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."
@@ -4822,6 +4836,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "Diagram family. Call diagram_capabilities with this kind first to read its spec and operations."
@@ -4886,6 +4901,7 @@
             "charts",
             "probability-tree",
             "frequency-tree",
+            "two-way-table",
             "triangle"
           ],
           "description": "The diagram family the envelope belongs to."

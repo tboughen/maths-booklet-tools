@@ -30,6 +30,8 @@ import * as tree from "../../probability-tree-core/src/index";
 import * as treeIo from "../../probability-tree-core/src/interchange";
 import * as ftree from "../../frequency-tree-core/src/index";
 import * as ftreeIo from "../../frequency-tree-core/src/interchange";
+import * as twt from "../../two-way-table-core/src/index";
+import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
 
@@ -45,6 +47,7 @@ export const DIAGRAM_KINDS = [
   "charts",
   "probability-tree",
   "frequency-tree",
+  "two-way-table",
   "triangle",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
@@ -291,6 +294,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => ftreeIo.revise(input),
     hash: ftree.hash,
     svg: (e, view) => ftree.renderSvg(ftree.forView(e, view, true)),
+  }),
+  "two-way-table": family<twt.Envelope>({
+    kind: "two-way-table",
+    label: "two-way table",
+    summary: "Exam two-way table: up to 5 column and 5 row categories with optional totals; cells are numbers, decimals or stacked fractions, blank or hidden for pupils.",
+    route: "/tools/two-way-table",
+    answerView: true,
+    envelopeSchema: twt.envelopeSchema,
+    createSchema: twtIo.createSchema,
+    revisionSchema: twtIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = twt.validate(raw);
+      check(twt.exportIssue(twt.forView(e, view)));
+      return e;
+    },
+    create: (input) => twtIo.create(input),
+    revise: (input) => twtIo.revise(input),
+    hash: twt.hash,
+    svg: (e, view) => twt.renderSvg(twt.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

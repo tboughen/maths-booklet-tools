@@ -21,7 +21,7 @@ function walk(value: unknown, path: string, visit: (node: Node, path: string) =>
   }
 }
 
-/** A {text, show} label (probability trees, frequency trees) or a {value, show} chart cell. */
+/** A {text, show} label (probability trees, frequency trees, two-way tables) or a {value, show} chart cell. */
 function shown(node: Node, path: string, out: AnswerSlot[]) {
   if (node.show !== "show" && node.show !== "hidden") return false;
   const text = typeof node.text === "string" ? node.text : str(node.value);
@@ -125,6 +125,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
   "frequency-tree"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
+  "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },
   triangle(doc, out) {

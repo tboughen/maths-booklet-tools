@@ -44,6 +44,7 @@ for (const directory of [
   "packages/chart-core",
   "packages/probability-tree-core",
   "packages/frequency-tree-core",
+  "packages/two-way-table-core",
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",
