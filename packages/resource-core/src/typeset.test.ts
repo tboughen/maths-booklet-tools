@@ -92,4 +92,22 @@ describe("maths notation typesets printed text", () => {
     expect(printed.document.lessons[0].teacherNotes).toBe("x^2 stays as typed in notes");
     expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-style=\"italic\">x</tspan> − 1");
   });
+
+  it("keeps units, addresses and named parts as typed, and finds a minus beside fractions and negatives", () => {
+    const cases: Array<[string, string]> = [
+      ["1 m = 100 cm", "1 m = 100 cm"],
+      ["5 g + 3 g", "5 g + 3 g"],
+      ["Work out {2/3} - {1/4}", "Work out {2/3} − {1/4}"],
+      ["{x/2} - 1", "{x/2} − 1"],
+      ["2 - -3", "2 − −3"],
+      ["-3 - -2", "−3 − −2"],
+      ["-{1/2}", "−{1/2}"],
+      ["See https://www.bbc.co.uk/bitesize/z9x2cdm for x-3", "See https://www.bbc.co.uk/bitesize/z9x2cdm for *x*−3"],
+      ["C = 2pi r", "C = 2π *r*"],
+      ["a pi-chart", "a pi-chart"],
+      ["Answer part b", "Answer part b"],
+      ["3-5 marks", "3-5 marks"],
+    ];
+    for (const [typed, printed] of cases) expect(typesetText(typed)).toBe(printed);
+  });
 });

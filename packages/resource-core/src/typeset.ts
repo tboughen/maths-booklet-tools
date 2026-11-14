@@ -32,18 +32,18 @@ export function typesetSymbols(s: string): string {
       .replace(/!=/g, "≠")
       .replace(/\+\/-|\+-(?=\s|\d)/g, "±")
       .replace(/\bsqrt\s*(?=[\d(a-zπ])/g, "√")
-      .replace(/\bpi\b/g, "π")
+      .replace(/(?<![A-Za-z])pi(?![A-Za-z-])/g, "π")
       .replace(/\^\(?2\)?(?!\d)/g, "²")
       .replace(/\^\(?3\)?(?!\d)/g, "³")
       // 3 x 4: a lone x between two numbers is a times sign.
       .replace(/(\d) x (?=\d)/g, "$1 × ")
       // A sign: at the start, after a space, a bracket, a slash or an operator, before a number,
       // a bracket, a root, π or a short letter run (-x, -ab). Not inside words (well-known).
-      .replace(new RegExp(`(^|[\\s([{/${OPERATOR}])-(?=[\\d.(√π]|[a-z]{1,2}(?![a-z]))`, "g"), "$1−")
+      .replace(new RegExp(`(^|[\\s([{/${OPERATOR}])-(?=[\\d.(√π{]|[a-z]{1,2}(?![a-z]))`, "g"), "$1−")
       // A spaced binary minus between maths atoms: 7 - 3, x - 2, (x + 1) - 4.
-      .replace(/(\d|\)|[²³]|(?<![A-Za-z])[a-z]) - (?=[\d(√π]|[a-z](?![a-z]))/g, "$1 − ")
+      .replace(/(\d|\)|\}|[²³]|(?<![A-Za-z])[a-z]) - (?=[\d(√π{−]|[a-z](?![a-z]))/g, "$1 − ")
       // An unspaced minus after a letter or bracket: x-3, 2x-1, (x+1)-y. A digit-digit hyphen is a range.
-      .replace(/((?<![A-Za-z])[a-z]|\)|[²³])-(?=\d|\(|[a-z](?![a-z]))/g, "$1−")
+      .replace(/((?<![A-Za-z])[a-z]|\)|\}|[²³])-(?=\d|\(|\{|[a-z](?![a-z]))/g, "$1−")
   );
 }
 
@@ -74,8 +74,10 @@ function italicLetters(s: string): string {
     }
     if (/^[a-z]$/.test(core)) {
       // A unit after a number (5 m, 3 g) stays upright; so does the word "a" unless it is maths (a = 3).
-      const afterNumber = /^[−-]?[\d.,]+%?$/.test(prev) && !OPERATOR_TOKEN.test(next);
-      if ((core === "a" && !byOperator) || afterNumber) return;
+      const afterNumber = /^[−-]?[\d.,]+%?$/.test(prev);
+      // A part or option named in prose (part b, Option c) is a label.
+      const named = /^(part|option)$/i.test(prev);
+      if ((core === "a" && !byOperator) || afterNumber || named) return;
       out[w.i] = `${lead}*${core}*${tail}`;
       return;
     }
@@ -97,8 +99,21 @@ function italicLetters(s: string): string {
 /** Markup segments (**bold**, *italic*) and fractions: their letters are left as they are. */
 const PROTECTED = new RegExp(`(\\*\\*.+?\\*\\*|\\*.+?\\*|${FRACTION.source})`, "g");
 
+/** Web addresses print exactly as typed. */
+const ADDRESS = /(?:https?:\/\/|www\.)\S+/g;
+
 /** One printed string typeset: symbols everywhere, italic maths letters outside markup and fractions. */
 export function typesetText(source: string, italic = true): string {
+  let out = "";
+  let at = 0;
+  for (const m of source.matchAll(ADDRESS)) {
+    out += typesetPlain(source.slice(at, m.index), italic) + m[0];
+    at = m.index + m[0].length;
+  }
+  return out + typesetPlain(source.slice(at), italic);
+}
+
+function typesetPlain(source: string, italic: boolean): string {
   const s = typesetSymbols(source);
   if (!italic) return s;
   let out = "";
@@ -111,7 +126,7 @@ export function typesetText(source: string, italic = true): string {
 }
 
 /** Printed keys whose text takes italic maths letters, and those that print in bold (symbols only). */
-const BODY = new Set(["text", "prefix", "suffix", "answer", "items", "options", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next"]);
+const BODY = new Set(["text", "prefix", "suffix", "answer", "items", "options", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next", "columns"]);
 const HEADINGS = new Set(["title", "heading", "label", "word"]);
 
 function typesetValue(v: unknown, key: string): unknown {
