@@ -136,9 +136,8 @@ not physical scale. Retained joined/split constraints still apply.
 
 ## Versions, print and transport
 
-Retain kind `triangle`, style `exam-v1`, schema1/triangle-1 and schema2/triangle-2.
-Per-triangle area labels use version 2. Adding/removing the last area follows the
-browser version rules; a no-op/import does not silently migrate a valid version.
+Kind `triangle`, style `exam-v1`, schema 2 / triangle-2 only (schema 1 is no longer
+read). Per-triangle area labels need no version change.
 The MCP wire schema uses a homogeneous exactly-three-entry vertex array while
 the saved format/internal tuple remains unchanged. Audit both input and output
 schemas; a valid internal Zod type alone does not prove client import acceptance.

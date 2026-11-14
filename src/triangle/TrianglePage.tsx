@@ -932,24 +932,12 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 disabled={blocked}
                 onChange={setShowAnswers}
               />
-              <button
-                disabled={blocked || !hasSavedAnswer}
-                aria-describedby={hasSavedAnswer ? undefined : "tr-worked-hint"}
-                title={hasSavedAnswer ? undefined : workedHint}
-                onClick={() => fork(e)}
-              >
-                Use worked version
-              </button>
-              {!hasSavedAnswer && (
-                <span id="tr-worked-hint" className="sr-only">
-                  {workedHint}
-                </span>
-              )}
             </div>
             {showAnswers && (
               <p className="tr-banner">
                 Answer preview only. Copy and image downloads use saved pupil
-                visibility. Use a worked version to export the answers.
+                visibility. To export the answers, use Worked version in the
+                settings.
               </p>
             )}
             <EditorHint tool="triangle">
@@ -2198,6 +2186,29 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 onError={setMessage}
               />
             )}
+            <details className="tr-section tr-worked">
+              <summary>Worked version</summary>
+              <div className="tr-section-body">
+                <p className="tr-note">
+                  Replace this triangle with its worked version, with every saved
+                  answer shown. Undo restores the pupil version.
+                </p>
+                <div className="tr-two">
+                  <button
+                    disabled={blocked || !hasSavedAnswer}
+                    aria-describedby={hasSavedAnswer ? undefined : "tr-worked-hint"}
+                    onClick={() => fork(e)}
+                  >
+                    Use worked version
+                  </button>
+                </div>
+                {!hasSavedAnswer && (
+                  <p id="tr-worked-hint" className="tr-note">
+                    {workedHint}
+                  </p>
+                )}
+              </div>
+            </details>
             <details className="tr-section">
               <summary>Start a new triangle</summary>
               <div className="tr-section-body">
@@ -2508,10 +2519,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                         delete n.document.triangles.find(
                           (t) => "r:" + t.id === draft.ref,
                         )!.area;
-                        if (!n.document.triangles.some((t) => t.area)) {
-                          n.schemaVersion = 1;
-                          n.rendererVersion = "triangle-1";
-                        }
                         commit(n);
                         closeDraft();
                         setSelected(null);

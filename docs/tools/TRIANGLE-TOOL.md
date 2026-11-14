@@ -29,12 +29,9 @@ area label is undoable. No numerical area is inferred from drawn proportions.
 The existing explicit calculation helpers can save an area answer to this
 label; connected givens and calculation ownership use its exact triangle.
 
-Old files and presets retain schemaVersion 1 / triangle-1 and identical output.
-Adding a centre area uses schemaVersion 2 / triangle-2: each triangle may have
-an optional area: Label, reached as r:`<triangle-id>`. Captions keep their original
-meaning and two-caption limit. Both versions are validated; version/renderer
-mismatches and area fields in version 1 are rejected. Old clients cannot open
-version 2. Removal of the last area in this editor returns to version 1. Area
+Every file is schemaVersion 2 / triangle-2 (schema 1 is no longer read): each
+triangle may have an optional area: Label, reached as r:`<triangle-id>`. Captions
+keep their original meaning and two-caption limit. Area
 labels follow reshape, transforms, split/restore and worked-copy operations.
 
 ## Visible label controls, 17 October 2026 (local review refinement)
@@ -94,7 +91,7 @@ schema, renderer and saved pupil states are retained. The shared mathematical
 helper adds the explicit inverse-area height method h = 2A/base; existing
 methods and exported preset artwork remain unchanged.
 
-Route: /tools/triangle. Renderers: triangle-1/triangle-2; file kind triangle, schemaVersion 1/2,
+Route: /tools/triangle. Renderer: triangle-2; file kind triangle, schemaVersion 2,
 style exam-v1. Core: packages/triangle-core/src. Browser: src/triangle.
 This implementation is local and uncommitted. No MCP adapter is included.
 

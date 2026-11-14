@@ -270,10 +270,12 @@ test("a disabled Use worked version says why", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page);
+  await page.locator("summary", { hasText: "Worked version" }).click();
   const blank = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(blank).toBeDisabled();
   await expect(blank).toHaveAccessibleDescription(hint);
-  await expect(blank).toHaveAttribute("title", hint);
+  // U1: the reason is printed beside the button in the settings, not hidden in a tooltip.
+  await expect(blank.locator("xpath=ancestor::details").getByText(hint, { exact: true })).toBeVisible();
 });
 
 test("an enabled Use worked version carries no disabled reason", async ({
@@ -281,10 +283,11 @@ test("an enabled Use worked version carries no disabled reason", async ({
 }) => {
   const hint = "Save a hidden answer on a label to create a worked version.";
   await boot(page, example("right-trig"));
+  await page.locator("summary", { hasText: "Worked version" }).click();
   const ready = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(ready).toBeEnabled();
   await expect(ready).toHaveAccessibleDescription("");
-  await expect(ready).not.toHaveAttribute("title", hint);
+  await expect(page.getByText(hint, { exact: true })).toHaveCount(0);
 });
 
 test("worked version replaces immediately and Undo restores the complete pupil scaffold", async ({
@@ -298,6 +301,7 @@ test("worked version replaces immediately and Undo restores the complete pupil s
     "33.6°",
   );
   const pages = page.context().pages().length;
+  await page.locator("summary", { hasText: "Worked version" }).click();
   await page
     .getByRole("button", { name: "Use worked version", exact: true })
     .first()
@@ -1928,7 +1932,7 @@ test("centre area entry cancels cleanly then applies as one undoable edit with r
   await page
     .getByRole("button", { name: "Remove area label", exact: true })
     .click();
-  expect((await saved(page)).schemaVersion).toBe(1);
+  expect((await saved(page)).schemaVersion).toBe(2);
   await expect(page.locator(".tr-art")).not.toContainText("24 cm²");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.locator(".tr-art")).toContainText("24 cm²");

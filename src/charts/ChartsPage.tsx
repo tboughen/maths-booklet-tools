@@ -1,3 +1,5 @@
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
@@ -62,6 +64,12 @@ import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabe
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
 
+/** A new chart starts from the house style's lines (U111). */
+function fresh() {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+}
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -70,7 +78,7 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: fresh(),
           recovery: raw,
           message:
             "Saved chart data needs recovery. Download the original before starting afresh.",
@@ -79,13 +87,13 @@ function initial() {
     }
   } catch {
     return {
-      e: create(),
+      e: fresh(),
       recovery: null,
       message:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: fresh(), recovery: null, message: "" };
 }
 
 /** Text field that keeps its draft while typing and commits on Enter or leaving
@@ -361,7 +369,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset the chart?")}
+              onReset={() => replacement(fresh(), "Reset the chart?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
@@ -842,6 +850,21 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     disabled={blocked}
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
+                </label>
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   Chart height (mm)

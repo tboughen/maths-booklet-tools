@@ -19,6 +19,7 @@ const settings = z
     blankStyle: core.documentSchema.shape.blankStyle,
     branchMm: core.documentSchema.shape.branchMm,
     gapMm: core.documentSchema.shape.gapMm,
+    lines: core.documentSchema.shape.lines,
   })
   .partial()
   .strict();

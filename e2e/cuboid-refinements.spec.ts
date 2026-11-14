@@ -280,11 +280,11 @@ test("greyscale faces retain black grids, stay neutral and mirror correctly", as
     1,
   );
   await expect(resource(page)).not.toContainText("area =");
+  await tab(page, "Shape");
   await page
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
   await expect(resource(page).locator('[data-cube-count="24"]')).toHaveCount(1);
-  await tab(page, "Shape");
   await page.getByText("More shape options", { exact: true }).click();
   await page
     .getByLabel("Receding direction", { exact: true })
@@ -339,6 +339,7 @@ test("hidden faces are visible in the outline and one-face mode handles layer sw
     1,
   );
   await page.getByRole("button", { name: "Grey faces", exact: true }).click();
+  await tab(page, "Shape");
   await page.getByLabel("View", { exact: true }).selectOption("layers");
   await expect(resource(page).locator("[data-layer]")).toHaveCount(2);
 });

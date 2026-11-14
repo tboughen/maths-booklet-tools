@@ -1,7 +1,7 @@
 {
  "kind": "triangle",
- "schemaVersion": 1,
- "rendererVersion": "triangle-1",
+ "schemaVersion": 2,
+ "rendererVersion": "triangle-2",
  "styleProfile": "exam-v1",
  "document": {
   "layout": "joined",
