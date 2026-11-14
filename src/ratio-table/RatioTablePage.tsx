@@ -1,6 +1,7 @@
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
-import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
 import { answerSize } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";

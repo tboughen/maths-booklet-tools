@@ -1,7 +1,8 @@
 import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useTitleNote } from "../site/TitleNote";
-import { WORKED_STEP, useWorkedNotes, withWorkedNotes } from "../site/WorkedNotes";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
 import { answerSize, previewArt, workedIssue } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";

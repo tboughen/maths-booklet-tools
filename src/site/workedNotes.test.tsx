@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { WorkedNote } from "../../packages/envelope-core/src/worked";
-import { useWorkedNotes, withWorkedNotes } from "./WorkedNotes";
+import { useWorkedNotes } from "./WorkedNotes";
+import { withWorkedNotes } from "./workedNotesData";
 import { diagramFileMenu } from "./fileMenu";
 
 function Harness(props: { notes?: WorkedNote[]; onSave: (n: WorkedNote[]) => void }) {
