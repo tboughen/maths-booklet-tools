@@ -52,6 +52,7 @@ import {
 import { LINK_PREFIX, frequencyTreeLink, parseFrequencyTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
 type Doc = Envelope["document"];
@@ -688,7 +689,7 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "frequency-tree-recovery.json");
+                downloadBlob(new Blob([recovery], { type: "application/json" }), downloadName("frequency-tree", "json", { recovery: true }));
                 setProtectedCopy(true);
               }}
             >

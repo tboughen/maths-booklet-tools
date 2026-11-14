@@ -16,6 +16,7 @@ import {
   downloadBlob,
   svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 
 export async function prepareImage(e: Envelope) {
   // Measure with the page's own STIX fonts and embed the (subset) fonts only after cropping: a
@@ -115,12 +116,12 @@ export async function downloadImage(e: Envelope, format: "png" | "svg") {
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
         });
-  downloadBlob(blob, `maths-cuboids.${format}`);
+  downloadBlob(blob, downloadName("cuboids", format, { resource: e }));
 }
 export function downloadEditable(e: Envelope) {
   downloadBlob(
     new Blob([canonical(validate(e))], { type: "application/json" }),
-    "maths-cuboids.json",
+    downloadName("cuboids", "json", { resource: e }),
   );
 }
 export async function copyWord(e: Envelope) {

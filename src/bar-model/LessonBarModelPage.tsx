@@ -29,6 +29,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
 import "./bar-model.css";
 import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
   | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
@@ -560,7 +561,7 @@ export default function LessonBarModelPage({
         onClick={() =>
           downloadBlob(
             new Blob([startup.legacyRecovery!], { type: "application/json" }),
-            "bar-model-older-recovery.json",
+            downloadName("bar-model", "json", { content: "older", recovery: true }),
           )
         }
       >
@@ -974,7 +975,7 @@ export default function LessonBarModelPage({
                         new Blob([recovery ?? expected.current ?? ""], {
                           type: "application/json",
                         }),
-                        "bar-model-saved-recovery.json",
+                        downloadName("bar-model", "json", { content: "saved", recovery: true }),
                       )
                     }
                   >

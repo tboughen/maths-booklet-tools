@@ -59,6 +59,7 @@ import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
 import { createHistory, handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 const newDocument = () => upgrade(create());
 function initial() {
@@ -684,7 +685,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "cuboids-recovery.json",
+                      downloadName("cuboids", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}

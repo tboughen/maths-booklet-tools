@@ -19,6 +19,7 @@ import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { renderDiagramSvg } from "../export/svg";
 import type { DiagramDocumentV1 } from "../domain/types";
 import { downloadBlob } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 
 export function GraphExchange({
   document,
@@ -180,7 +181,7 @@ export function GraphExchange({
                 new Blob([JSON.stringify(createEnvelope(document), null, 2)], {
                   type: "application/json",
                 }),
-                "maths-graph.json",
+                downloadName("graph", "json", { resource: { document } }),
               );
             },
             success: "Editable file download started.",

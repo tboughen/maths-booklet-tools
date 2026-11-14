@@ -3,6 +3,7 @@ import { embedPortableFonts } from "../export/portable";
 import { svgToPng } from "../export/png";
 import { printRasterSize, verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { blobToDataUrl, copyWordSizedHtml, downloadBlob, svgAlt } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 
 export async function prepareImage(e: Envelope) {
   const issue = exportIssue(e);
@@ -23,11 +24,11 @@ export async function downloadImage(e: Envelope, format: "png" | "svg") {
     format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
-    `frequency-tree.${format}`,
+    downloadName("frequency-tree", format, { resource: e }),
   );
 }
 export function downloadEditable(e: Envelope) {
-  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), "frequency-tree.json");
+  downloadBlob(new Blob([canonical(e)], { type: "application/json" }), downloadName("frequency-tree", "json", { resource: e }));
 }
 export async function copyWord(e: Envelope) {
   const m = await prepareImage(e),

@@ -27,6 +27,7 @@ import "./bar-model.css";
 import * as versioned from "../../packages/bar-model-core/src/versioned";
 import * as improved from "../../packages/bar-model-core/src/v2";
 import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:bar-model:v1");
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -705,7 +706,7 @@ export default function BarModelPage({
                       new Blob([recovery ?? c.canonical(e)], {
                         type: "application/json",
                       }),
-                      "bar-model-recovery.json",
+                      downloadName("bar-model", "json", { recovery: true }),
                     )
                   }
                 >

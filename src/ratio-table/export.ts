@@ -17,6 +17,7 @@ import {
   copyWordSizedHtml,
   blobToDataUrl,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
 
 /** Whether the table has an answers copy: hidden cells or hidden operations. */
 export const hasRatioAnswers = (envelope: RatioEnvelope) =>
@@ -47,7 +48,7 @@ export async function downloadRatioImage(
       : new Blob([await embedPortableFonts(renderRatioSvg(valid.document, view))], {
           type: "image/svg+xml;charset=utf-8",
         });
-  downloadBlob(blob, `maths-ratio-table${view === "answer" ? "-answers" : ""}.${format}`);
+  downloadBlob(blob, downloadName("ratio-table", format, { resource: valid, answers: view === "answer" }));
 }
 export async function copyRatioForWord(envelope: RatioEnvelope): Promise<void> {
   const valid = validateRatioEnvelope(envelope),
