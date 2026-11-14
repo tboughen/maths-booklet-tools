@@ -118,6 +118,13 @@ describe("spare column height", () => {
     expect([0, 1, 2].map(share.stretch)).toEqual([share.spare / 3, share.spare / 3, share.spare / 3]);
     expect([0, 1, 2].map(last.stretch)).toEqual([0, 0, last.spare]);
   });
+  it("gives a reminder card no share of the spare height", () => {
+    const withReminder = [{ title: "Remember", items: [{ type: "info" as const, text: "An open circle means < or >." }] }, ...cards];
+    const r = planColumn(withReminder, [0, 1, 2, 3], 131.3, 250, ctx, true);
+    expect([0, 1, 2, 3].map(r.stretch)).toEqual([0, r.spare / 3, r.spare / 3, r.spare / 3]);
+    const only = planColumn(withReminder.slice(0, 1), [0], 131.3, 250, ctx, true);
+    expect(only.stretch(0)).toBe(only.spare);
+  });
   it("gives working spaces the spare height first, whatever the setting", () => {
     const withSpace = [...cards, { title: "Four", items: [{ type: "space" as const, kind: "working" as const, heightMm: 20 }] }];
     const r = planColumn(withSpace, [1, 2, 3, 4], 131.3, 250, ctx, true);

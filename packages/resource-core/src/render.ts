@@ -439,7 +439,7 @@ export const overflowMessage = (s: number, c: number, spare: number) =>
 
 /**
  * Measures a column of cards, then shares its spare height between the working and drawing
- * spaces. With none, `share` gives every card an equal share at its foot as working room;
+ * spaces. With none, `share` gives every question card (not a reminder card) an equal share at its foot as working room;
  * otherwise (saved sheets from before) the last card reaches the foot. Shared by the SVG and
  * Word writers.
  */
@@ -451,9 +451,16 @@ export function planColumn(cards: Card[], numbers: number[], w: number, avail: n
   const spaces = cards.reduce((k, cd) => k + countSpaces(cd.items), 0);
   const extra = spare > 0 && spaces ? spare / spaces : 0;
   const free = spare > 0 && !spaces ? spare : 0;
-  const stretch = (i: number) => (share ? free / cards.length : i === cards.length - 1 ? free : 0);
+  // A reminder card (key facts only, nothing to answer) needs no working room, so with `share` the
+  // spare height goes to the question cards; a column of reminders alone shares it as before.
+  const questions = cards.map((cd, i) => (isReminder(cd) ? -1 : i)).filter((i) => i >= 0);
+  const takers = questions.length ? questions : cards.map((_, i) => i);
+  const stretch = (i: number) => (share ? (takers.includes(i) ? free / takers.length : 0) : i === cards.length - 1 ? free : 0);
   return { spare, extra, stretch };
 }
+
+/** A card holding only key-fact (info) items: a reminder, with nothing for the pupil to answer. */
+export const isReminder = (cd: Card) => cd.items.length > 0 && cd.items.every((it) => it.type === "info");
 
 /** A column more than this fraction blank (before spare height is shared out) gets a space note. */
 export const SPARSE_COLUMN = 1 / 3;

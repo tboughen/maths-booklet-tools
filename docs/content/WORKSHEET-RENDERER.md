@@ -83,8 +83,9 @@ The Worksheets page edits a sheet without the AI or the JSON. Every change is on
   setting that makes it fit (a number line, Venn diagram or triangle's `widthCm`, a tree's
   `branchMm`, or a wider column layout).
 - Text is plain Unicode: `<` and `>` are ordinary characters (inequalities need them) and are
-  escaped on every page and in Word. A character the worksheet font does not hold (for example
-  ∩, ∪ or ∈) is reported as an issue naming the question, because it would print as a gap.
+  escaped on every page and in Word. Set notation (∈ ∉ ∩ ∪ ⊂ ⊃ ⊆ ⊇ ≡) prints from glyphs added to
+  the Inter subsets. A character the worksheet font does not hold (for example ℝ or ∀) is reported
+  as an issue naming the question, because it would print as a gap.
 - Pupil and answers views share one layout (diagrams reserve the larger of their two sizes).
 - A saved answer wider than its answer line is reported: it would run past the line in the
   answers copy.

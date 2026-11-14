@@ -1,8 +1,25 @@
 import { z } from "zod";
-import { canonicalNumber, fractionString, parseNumber, rational } from "../../ratio-table-core/src/numbers";
+import { canonicalNumber, fractionString, isMixedNumber, mixedString, parseNumber, parseRatioNumber, rational } from "../../ratio-table-core/src/numbers";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { patchSchema } from "../../graph-core/src/patch-schema";
 const textWidth = (text: string, size: number) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * size;
+/** Numeric fields where a typed mixed number ("1 1/2" or "1½") is read as its improper fraction ("3/2"). */
+const NUMERIC_KEYS = new Set(["minimum", "maximum", "step", "value", "lower", "upper", "stop"]);
+/** Reads mixed numbers in a create spec or revision operations before validation; saved files keep their schema. */
+function unmix(raw: unknown, key = ""): unknown {
+    if (typeof raw === "string")
+        return NUMERIC_KEYS.has(key) && isMixedNumber(raw) ? (() => { try {
+            return fractionString(parseRatioNumber(raw));
+        }
+        catch {
+            return raw;
+        } })() : raw;
+    if (Array.isArray(raw))
+        return raw.map(v => unmix(v));
+    if (raw && typeof raw === "object")
+        return Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, unmix(v, k)]));
+    return raw;
+}
 const num = z.string().max(32).superRefine((v, ctx) => { try {
     canonicalNumber(v);
 }
@@ -17,7 +34,7 @@ export const setSchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("ray"), id, value: num, included: z.boolean(), direction: z.enum(["left", "right"]), intentional: z.boolean().default(false), stop: num.nullable().default(null) }).strict(),
     z.object({ kind: z.literal("points"), id, points: z.array(pointSchema).max(33), intervals: z.array(connectionSchema).max(32).optional() }).strict(),
 ]);
-export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction"]).default("decimal"), variableBelow: z.boolean().default(false) }).strict();
+export const axisSchema = z.object({ minimum: num.default("-5"), maximum: num.default("5"), step: num.default("1"), labelEvery: z.number().int().min(1).max(32).default(1), variable: z.string().regex(/^[a-zA-Z]?$/).default("x"), numberFormat: z.enum(["decimal", "fraction", "mixed"]).default("decimal"), variableBelow: z.boolean().default(false) }).strict();
 export const teachingSchema = z.object({ solutionVisible: z.boolean().default(true), labels: z.record(z.string(), z.enum(["value", "hidden", "answer-line"])).default({}), prompt: z.string().max(160).default(""), answer: z.string().max(160).default(""), answerVisible: z.boolean().default(false), responseLines: z.number().int().min(0).max(3).default(0) }).strict();
 export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14) }).strict();
 export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema }).strict();
@@ -90,7 +107,7 @@ export function validate(raw: unknown): Envelope {
             throw Error("The prompt or answer is too long for this print width.");
     return e;
 }
-export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: "number-line-1", styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(raw) }); }
+export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: "number-line-1", styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(unmix(raw)) }); }
 export function canonical(e: Envelope) { return JSON.stringify(validate(e)); }
 export function parseFile(text: string) { if (new TextEncoder().encode(text).length > 32768)
     throw Error("Use a number-line file smaller than 32 KiB."); return validate(JSON.parse(text)); }
@@ -116,7 +133,7 @@ export const operationSchema = z.discriminatedUnion("op", [
 export type Operation = z.infer<typeof operationSchema>;
 export const revisionSchema = z.object({ envelope: envelopeSchema, baseHash: z.string().regex(/^[a-f0-9]{64}$/), operations: z.array(operationSchema).max(30) }).strict();
 export function apply(e: Envelope, raw: unknown): Envelope {
-    const ops = z.array(operationSchema).max(30).parse(raw), next = structuredClone(validate(e)), d = next.document;
+    const ops = z.array(operationSchema).max(30).parse(unmix(raw)), next = structuredClone(validate(e)), d = next.document;
     for (const o of ops) {
         if (o.op === "set_axis")
             d.axis = { ...d.axis, ...o.axis };
@@ -187,6 +204,9 @@ export function printFacts(d: LineDocument) { return { recommendedScale: 1 as co
 export function displayNumber(d: LineDocument, s: string) {
     if (d.axis.numberFormat === "fraction")
         return fractionString(parseNumber(s));
+    // Mixed: 3/2 prints as 1 and a stacked half; whole numbers and proper fractions as "fraction".
+    if (d.axis.numberFormat === "mixed")
+        return mixedString(parseNumber(s));
     const q = parseNumber(s);
     let divisor = q.d;
     while (divisor % 2n === 0n)
@@ -200,8 +220,17 @@ export function displayNumber(d: LineDocument, s: string) {
 function esc(s: string) { return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"); }
 /** Fraction parts print at 10 pt, the house minimum, under 11 pt whole numbers. */
 const PART = FONT * 10 / 11;
-function numberWidth(s: string) { return s.includes("/") ? Math.max(...s.split("/").map(v => textWidth(v.replace("-", "−"), PART))) : textWidth(s.replace("-", "−"), FONT); }
-function numberSvg(s: string, x: number, y: number) { if (!s.includes("/"))
+/** The gap between a mixed number's whole part and its stacked fraction (mm). */
+const MIXED_GAP = .6;
+function numberWidth(s: string): number { if (s.includes(" ")) {
+    const [whole, frac] = s.split(" ");
+    return textWidth(whole.replace("-", "−"), FONT) + MIXED_GAP + numberWidth(frac);
+} return s.includes("/") ? Math.max(...s.split("/").map(v => textWidth(v.replace("-", "−"), PART))) : textWidth(s.replace("-", "−"), FONT); }
+function numberSvg(s: string, x: number, y: number): string { if (s.includes(" ")) {
+    // A mixed number: the whole number at full size beside a stacked fraction, centred as one.
+    const [whole, frac] = s.split(" "), left = x - numberWidth(s) / 2, wholeW = textWidth(whole.replace("-", "−"), FONT);
+    return `<text x="${left}" y="${y}">${esc(whole.replace("-", "−"))}</text>` + numberSvg(frac, left + wholeW + MIXED_GAP + numberWidth(frac) / 2, y);
+} if (!s.includes("/"))
     return `<text x="${x}" y="${y}" text-anchor="middle">${esc(s.replace("-", "−"))}</text>`; const [top, b] = s.split("/"), negative = top.startsWith("-"), n = negative ? top.slice(1) : top, w = numberWidth(n + "/" + b) + 1;
     // A negative fraction prints its minus sign before the bar, as exam papers do: −½, not a minus in the numerator.
     const sign = negative ? `<text x="${x - w / 2 - .3}" y="${y + .45}" text-anchor="end">−</text>` : "";
