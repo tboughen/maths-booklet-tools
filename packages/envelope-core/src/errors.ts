@@ -66,13 +66,17 @@ export function zodFields(error: z.ZodError, prefix: (string | number)[] = []): 
 
 type Issue = { code: string; path: PropertyKey[]; message: string; errors?: Issue[][]; keys?: string[]; values?: unknown[] };
 /** Keys that say which branch of a union an object belongs to. */
-const DISCRIMINATORS = ["kind", "op", "type", "schemaVersion", "mode"];
+const DISCRIMINATORS = ["kind", "op", "schemaVersion"];
 
-/** Whether a branch's issues reject the input's own discriminator, so it is the wrong branch. */
+/**
+ * Whether a branch's issues reject the input's own discriminator, so it is the wrong branch. A
+ * discriminator is one literal per branch, so an enum field that happens to share the name (several
+ * allowed values) is an ordinary field problem, not a sign of the wrong branch.
+ */
 function wrongBranch(issues: Issue[]) {
   return issues.some(
     (i) =>
-      (i.path.length === 1 && DISCRIMINATORS.includes(String(i.path[0])) && (i.code === "invalid_value" || i.code === "invalid_union")) ||
+      (i.path.length === 1 && DISCRIMINATORS.includes(String(i.path[0])) && i.code === "invalid_value" && (i.values ?? []).length === 1) ||
       (i.path.length === 0 && i.code === "unrecognized_keys" && (i.keys ?? []).some((k) => DISCRIMINATORS.includes(k))),
   );
 }
@@ -95,8 +99,15 @@ function narrowIssues(issues: Issue[], base: string[]): { path: string[]; messag
         if (allowed.length) return [{ path: [...path, key], message: `Use one of: ${[...new Set(allowed.map((v) => JSON.stringify(v)))].join(", ")}.` }];
       }
     }
+    const left = chosen.length ? chosen : i.errors;
+    // A union of literals or of different types (2 | 3, string | object) fails every branch at the
+    // value itself: report every value it accepts, or the union's own message, never one branch.
+    if (left.every((branch) => branch.every((x) => x.path.length === 0))) {
+      const values = left.flatMap((branch) => (branch.every((x) => x.code === "invalid_value") ? branch.flatMap((x) => x.values ?? []) : [undefined]));
+      return [{ path, message: values.length && !values.includes(undefined) ? `Use one of: ${[...new Set(values.map((v) => JSON.stringify(v)))].join(", ")}.` : i.message }];
+    }
     // Still ambiguous: the branch with the fewest problems is the most likely intent.
-    const best = [...(chosen.length ? chosen : i.errors)].sort((a, b) => a.length - b.length)[0];
+    const best = [...left].sort((a, b) => a.length - b.length)[0];
     return narrowIssues(best, path);
   });
 }
@@ -107,6 +118,20 @@ function narrowIssues(issues: Issue[], base: string[]): { path: string[]; messag
  */
 export function withFields<E extends Error>(error: E, zod: z.ZodError, prefix: (string | number)[] = []): E {
   Object.defineProperty(error, "fields", { value: zodFields(zod, prefix), enumerable: false });
+  return error;
+}
+
+/**
+ * Puts a tool argument name ("spec", "envelope") in front of the field paths a core attached, so
+ * they read from the tool's arguments. Fields that do not come from the caller's input (keep
+ * returns false) are dropped; the error's message still says what is wrong.
+ */
+export function prefixFields<E>(error: E, prefix: string, keep: (path: string) => boolean = () => true): E {
+  const shift = (fields: FieldProblem[] | undefined) =>
+    fields?.filter((f) => keep(f.path)).map((f) => ({ ...f, path: f.path === "input" ? prefix : `${prefix}.${f.path}` }));
+  if (error instanceof MathsDockError) error.details = { ...error.details, fields: shift(error.details.fields) };
+  else if (error instanceof Error && Array.isArray((error as unknown as { fields?: unknown }).fields))
+    Object.defineProperty(error, "fields", { value: shift((error as unknown as { fields: FieldProblem[] }).fields), enumerable: false });
   return error;
 }
 
@@ -160,7 +185,8 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
   const ownFields = (error as unknown as { fields?: FieldProblem[] }).fields;
   const prefix = defaults.pathPrefix?.join(".");
   const attached = Array.isArray(ownFields) && prefix ? ownFields.map((f) => ({ ...f, path: f.path === "input" ? prefix : `${prefix}.${f.path}` })) : ownFields;
-  const details = error instanceof MathsDockError ? { ...error.details, fields: error.details.fields ?? attached } : { fields: Array.isArray(attached) ? attached : undefined };
+  const merged = error instanceof MathsDockError ? { ...error.details, fields: error.details.fields ?? attached } : { fields: Array.isArray(attached) ? attached : undefined };
+  const details = { ...merged, fields: merged.fields?.slice(0, 20) };
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {
     code,
