@@ -27,9 +27,9 @@ export function HeadingInput({
   function apply() {
     try {
       const next = draft.trim();
-      if (!/^[A-Za-z0-9 _-]{1,12}(?: ?[→↑])?$/.test(next))
+      if (!/^[A-Za-z0-9 _/-]{1,12}(?: ?[→↑↓])?$/.test(next))
         throw Error(
-          "Use a short heading with letters, digits, spaces, underscores or hyphens, optionally ending in → or ↑.",
+          "Use a short heading with letters, digits, spaces, underscores, hyphens or slashes (m/s), optionally ending in →, ↑ or ↓.",
         );
       onCommit(next);
       setDraft(next);

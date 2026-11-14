@@ -4,7 +4,7 @@ import struct
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 _-.\u2212\u00d7\u00f7'
+characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 _-./\u2212\u00d7\u00f7'
 
 def advances(filename):
     data = (root / 'assets/graph-fonts' / filename).read_bytes()

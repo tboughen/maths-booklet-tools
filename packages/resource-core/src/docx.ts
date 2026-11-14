@@ -3,7 +3,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { FRAC_FOOT, FRAC_LINE, fracStyle, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { answerHasFraction, FRAC_ANSWER_EXTRA, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -76,6 +76,10 @@ const END_MM = 0.36;
  */
 const ANSWER_WRITE_MM = S.answerRow - 2.6 + 0.8 - 0.2;
 const ANSWER_BELOW_MM = S.answerRow - ANSWER_WRITE_MM - 0.08;
+/** The writing row of an answer row holding a stacked fraction (maths notation): one exact line fills it. */
+const FRAC_WRITE_MM = ANSWER_WRITE_MM + FRAC_ANSWER_EXTRA;
+/** Space under a stacked fraction on an answer line, so its denominator clears the line. */
+const FRAC_WORD_LIFT = 0.8;
 
 const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
 const emu = (mm: number) => Math.round(mm * 36000);
@@ -289,16 +293,25 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   const grid: number[] = [];
   const cells: string[] = [];
   const size = S.body;
+  // Maths notation: fractions on answer lines print stacked, as in the SVG page.
+  const maths = !!ctx.maths;
+  const shownText = (s: string) => (maths ? stackAnswerText(s) : s);
+  // Plain sheets keep their saved measurements exactly.
+  const widthOf = (s: string) => (maths ? lineWidth(parseRuns(shownText(s), "regular", true), size) : plainWidth(s, size));
   lines.forEach((l, i) => {
     if (i) {
       grid.push(6);
       cells.push(cell(gap(END_MM), { width: 6 }));
     }
-    const pre = l.prefix ? plainWidth(l.prefix, size) + 1.8 : 0;
-    const post = l.suffix ? plainWidth(l.suffix, size) + 1.8 : 0;
+    const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
+    const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
     const mid = slot - pre - post;
     if (mid < 18) ctx.issues.push({ ...ctx.where, message: "An answer line is shorter than 18 mm." });
-    const text = (s: string, o: RunStyle = {}) => para(runs(s, o), { line: lineBox(size) });
+    const text = (s: string, o: RunStyle = {}) =>
+      answerHasFraction(s, maths)
+        ? // A stacked fraction sits on a small gap so its denominator clears the line (LibreOffice check, 14 Nov 2026).
+          para(runs(shownText(s), o, "regular", maths), { line: FRAC_WRITE_MM - FRAC_WORD_LIFT }) + gap(FRAC_WORD_LIFT)
+        : para(runs(shownText(s), o, "regular", maths), { line: lineBox(size) });
     if (pre) {
       grid.push(pre);
       cells.push(cell(text(l.prefix), { width: pre, vAlign: "bottom" }));
@@ -323,7 +336,9 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, indent: number, ctx: WordCtx): Block {
   const { grid, cells } = answerCells(lines, w, ctx);
   const below = grid.map((g) => cell(gap(END_MM), { width: g }));
-  return table(grid, [row(cells, { mm: ANSWER_WRITE_MM, exact: true }), row(below, { mm: ANSWER_BELOW_MM, exact: true })], indent);
+  // A row holding a stacked fraction is taller, in both copies, as on the SVG page.
+  const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, !!ctx.maths)));
+  return table(grid, [row(cells, { mm: tall ? FRAC_WRITE_MM : ANSWER_WRITE_MM, exact: true }), row(below, { mm: ANSWER_BELOW_MM, exact: true })], indent);
 }
 
 function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: number, ctx: WordCtx): Block {
@@ -515,7 +530,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
       const head = { left: indent + S.partIndent, hanging: S.partIndent };
-      if (only && !only.prefix && !wrapped.some(hasFraction) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const post = only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0;

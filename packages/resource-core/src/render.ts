@@ -1,7 +1,7 @@
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { esc, FRAC_FOOT, FRAC_LINE, hasFraction, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { answerHasFraction, esc, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import type { FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -173,25 +173,36 @@ function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
 
 function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx): Frag {
   const size = S.body;
-  const base = S.answerRow - 2.6;
+  // Maths notation: fractions in the prefix, suffix and saved answer print stacked, and a row that
+  // holds one is taller in both copies. Plain (older) sheets print exactly as before.
+  const maths = !!ctx.maths;
+  const runsOf = (s: string) => parseRuns(maths ? stackAnswerText(s) : s, "regular", maths);
+  // Plain sheets keep their saved measurements exactly.
+  const widthOf = (s: string) => (maths ? lineWidth(runsOf(s), size) : plainWidth(s, size));
+  const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, maths)));
+  const h = S.answerRow + (tall ? FRAC_ANSWER_EXTRA : 0);
+  const base = h - 2.6;
   const slot = (w - (lines.length - 1) * 6) / lines.length;
   const out: string[] = [];
   lines.forEach((l, i) => {
     const x0 = i * (slot + 6);
-    const pre = l.prefix ? plainWidth(l.prefix, size) + 1.8 : 0;
-    const post = l.suffix ? plainWidth(l.suffix, size) + 1.8 : 0;
-    if (l.prefix) out.push(textSvg(parseRuns(l.prefix), x0, base, size, ctx.st.ink));
+    const pre = l.prefix ? widthOf(l.prefix) + 1.8 : 0;
+    const post = l.suffix ? widthOf(l.suffix) + 1.8 : 0;
+    if (l.prefix) out.push(textSvg(runsOf(l.prefix), x0, base, size, ctx.st.ink));
     const x1 = x0 + pre,
       x2 = x0 + slot - post;
     if (x2 - x1 < 18) issue(ctx, "An answer line is shorter than 18 mm.");
     // The saved answer is written on the line in the answers copy; it must not run past it.
-    if (l.answer && plainWidth(l.answer, size) + 2 > x2 - x1 + 0.01)
-      issue(ctx, `A saved answer is ${n(plainWidth(l.answer, size) + 2 - (x2 - x1))} mm wider than its answer line, so it would run past the line in the answers copy. Shorten it or give it a longer line.`);
+    const answerW = l.answer ? widthOf(l.answer) : 0;
+    if (l.answer && answerW + 2 > x2 - x1 + 0.01)
+      issue(ctx, `A saved answer is ${n(answerW + 2 - (x2 - x1))} mm wider than its answer line, so it would run past the line in the answers copy. Shorten it or give it a longer line.`);
     out.push(`<line x1="${n(x1)}" y1="${n(base + 0.8)}" x2="${n(x2)}" y2="${n(base + 0.8)}" stroke="${ctx.st.ink}" stroke-width="0.3"/>`);
-    if (l.suffix) out.push(textSvg(parseRuns(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
-    if (ctx.view === "answers" && l.answer) out.push(textSvg(parseRuns(l.answer), x1 + 2, base - 0.6, size, ctx.st.answer));
+    if (l.suffix) out.push(textSvg(runsOf(l.suffix), x2 + 1.8, base, size, ctx.st.ink));
+    // A stacked fraction answer is raised so its denominator clears the line.
+    if (ctx.view === "answers" && l.answer)
+      out.push(textSvg(runsOf(l.answer), x1 + 2, base - 0.6 - (answerHasFraction(l.answer, maths) ? FRAC_ANSWER_RAISE : 0), size, ctx.st.answer));
   });
-  return { h: S.answerRow, svg: out.join("") };
+  return { h, svg: out.join("") };
 }
 
 function choice(item: Extract<Leaf, { type: "choice" }>, w: number, ctx: AnyCtx): Frag {
@@ -337,7 +348,7 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       const textW = w - S.partIndent;
       const wrapped = wrap(it.text, S.body, textW, "regular", ctx.maths);
       const lastW = lineWidth(wrapped[wrapped.length - 1], S.body);
-      if (only && !only.prefix && !wrapped.some(hasFraction) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
+      if (only && !only.prefix && !wrapped.some(hasFraction) && ![only.suffix, only.answer].some((t) => answerHasFraction(t, !!ctx.maths)) && textW - lastW - 3 - (only.suffix ? plainWidth(only.suffix, S.body) + 1.8 : 0) >= 30) {
         // A short answer goes on the question's last line, which grows to a full answer row.
         const lift = S.answerRow - lineBox(S.body);
         const head = para(it.text, textW, ctx, { x: S.partIndent });

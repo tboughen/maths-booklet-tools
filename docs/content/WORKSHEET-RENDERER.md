@@ -40,6 +40,10 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
   new sheets use `notation: "maths"`; a question whose flowing text has a fraction typed inline
   (`1/2`, `½`, or `{1/2}` on a plain sheet) gets a note naming it. The note is advice, not a layout
   issue, and the text is never rewritten for the author.
+- On a `notation: "maths"` sheet, an answer line's prefix, suffix and saved answer print fractions
+  stacked too: `1/3`, `2 1/2`, `2½` and `{1/3}` all stack (a mixed number as the whole number beside
+  a stacked fraction). A row holding one is 1.8 mm taller in both copies, and a saved fraction answer
+  is raised so its denominator clears the line. Plain sheets print answer lines exactly as before.
 - Saved answers (hidden table cells, answer-line answers, choice answers, hidden diagram values)
   print only in the answers view, in dark pink. Blank and hidden stay distinct.
 

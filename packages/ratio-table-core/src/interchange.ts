@@ -21,7 +21,9 @@ import {
 import type { RatioDocument, RatioEnvelope, RatioTransition } from "./schema";
 import {
   RatioError,
-  parseNumber,
+  parseRatioNumber as parseNumber,
+  isMixedNumber,
+  mixedString,
   scaleNumber,
   fractionString,
   sameNumber,
@@ -100,7 +102,7 @@ export function compactHeading(value: string): RatioDocument["headings"][number]
     direction,
   });
 }
-/** A compact cell: "3", "-1/2", "" (empty), "_" (answer line), "[3]" or "[3]_" (hidden answer). */
+/** A compact cell: "3", "-1/2", "2 1/2", "" (empty), "_" (answer line), "[3]" or "[3]_" (hidden answer). */
 export function compactCell(value: string): SpecRow["cells"][number] {
   const v = value.trim();
   if (v === "") return { kind: "empty" };
@@ -397,9 +399,13 @@ export function applyRatioOperations(
             "overwrite_required",
             "The next row contains values. Confirm before replacing them.",
           );
+        // Mixed numbers in, mixed numbers out: the filled row keeps the table's own notation.
+        const mixed =
+          isMixedNumber(step.factor) ||
+          source.cells.some((c) => c.kind === "number" && isMixedNumber(c.value));
         target.cells = source.cells.map((c) => ({
           kind: "number" as const,
-          value: fractionString(
+          value: (mixed ? mixedString : fractionString)(
             scaleNumber(
               parseNumber(c.kind === "number" ? c.value : "0"),
               step.operation,

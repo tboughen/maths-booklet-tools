@@ -10,7 +10,8 @@ const never = (value: never): never => {
   throw new Error(`Unhandled ratio-table state: ${JSON.stringify(value)}`);
 };
 
-const speakNumber = (value: string) => value.replace(/\//g, " over ");
+const speakNumber = (value: string) =>
+  value.replace(/^(-?\d+) (?=\d+\/)/, "$1 and ").replace(/\//g, " over ");
 
 function speakCell(cell: RatioCell, view: "pupil" | "answer"): string {
   switch (cell.kind) {
