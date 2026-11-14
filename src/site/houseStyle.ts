@@ -3,7 +3,7 @@
  * size of new diagrams; each diagram's own settings override it and are saved with the diagram.
  */
 import { useSyncExternalStore } from "react";
-import { DEFAULT_PREFERENCE, parsePreference, type HousePreference } from "../../packages/envelope-core/src/house-style";
+import { DEFAULT_PREFERENCE, parsePreference, startingTextPt, type HousePreference, type LineWeight } from "../../packages/envelope-core/src/house-style";
 
 const KEY = "mathsdock.houseStyle";
 const listeners = new Set<() => void>();
@@ -29,10 +29,32 @@ export function setHousePreference(next: HousePreference) {
   listeners.forEach((l) => l());
 }
 
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+// Another tab changed the house style: forget the cached copy.
+if (typeof window !== "undefined")
+  window.addEventListener("storage", (event) => {
+    if (event.key !== KEY && event.key !== null) return;
+    cached = null;
+    listeners.forEach((l) => l());
+  });
+
 export function useHousePreference(): HousePreference {
-  return useSyncExternalStore(
-    (l) => (listeners.add(l), () => listeners.delete(l)),
-    housePreference,
-    () => DEFAULT_PREFERENCE,
-  );
+  return useSyncExternalStore(subscribe, housePreference, () => DEFAULT_PREFERENCE);
+}
+
+/** A new diagram's text size and lines from the house style, within the family's text limits. */
+export function houseStyled<P extends { fontPt: number; lines?: LineWeight }>(presentation: P, limits: { max?: number } = {}): P {
+  const house = housePreference();
+  presentation.fontPt = startingTextPt(house.style, presentation.fontPt, limits);
+  if (house.lines === "bold") presentation.lines = "bold";
+  return presentation;
+}
+
+/** Saves a lines choice: normal is the default, so it is not written into the file. */
+export function setLines<P extends { lines?: LineWeight }>(presentation: P, lines: LineWeight) {
+  if (lines === "bold") presentation.lines = "bold";
+  else delete presentation.lines;
 }

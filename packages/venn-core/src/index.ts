@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
+import { MIN_TEXT_PT, LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { renderSvg as renderLegacySvg } from "./legacy";
@@ -38,7 +38,7 @@ const legacySchema = z
         definitions: z.array(z.string().max(120)).length(4),
         showDefinitions: z.boolean(),
         widthCm: z.number().min(8).max(16),
-        fontPt: z.number().min(10).max(14),
+        fontPt: z.number().min(MIN_TEXT_PT).max(14),
         lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),

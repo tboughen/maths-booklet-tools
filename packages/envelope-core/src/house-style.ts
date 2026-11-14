@@ -44,8 +44,18 @@ export function parsePreference(raw: unknown): HousePreference {
   };
 }
 
-/** Every stroke-width in an SVG, multiplied for bold lines. Strokes never change a layout. */
+/**
+ * Every stroke-width in an SVG, multiplied for bold lines. Strokes never change a layout. Fill
+ * patterns (hatching) keep their weight, so shading still reads the same.
+ */
 export function boldLines(svg: string, lines: LineWeight | undefined): string {
   if (lines !== "bold") return svg;
-  return svg.replace(/stroke-width="([\d.]+)"/g, (_, w: string) => `stroke-width="${+(Number(w) * BOLD_LINE_FACTOR).toFixed(4)}"`);
+  return svg
+    .split(/(<pattern\b[^]*?<\/pattern>)/)
+    .map((part) =>
+      part.startsWith("<pattern")
+        ? part
+        : part.replace(/stroke-width="([\d.]+)"/g, (_, w: string) => `stroke-width="${+(Number(w) * BOLD_LINE_FACTOR).toFixed(4)}"`),
+    )
+    .join("");
 }

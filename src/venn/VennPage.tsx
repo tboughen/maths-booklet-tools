@@ -44,8 +44,8 @@ import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
-import { housePreference } from "../site/houseStyle";
-import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, startingTextPt, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { houseStyled, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
@@ -54,9 +54,7 @@ import "./venn.css";
 /** A new Venn diagram at the teacher's house style text size (U111); its own setting overrides it. */
 function freshVenn() {
   const e = create();
-  const house = housePreference();
-  e.document.fontPt = startingTextPt(house.style, e.document.fontPt, { max: 14 });
-  if (house.lines === "bold") e.document.lines = "bold";
+  houseStyled(e.document, { max: 14 });
   return e;
 }
 
@@ -970,7 +968,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                             })
                           }
                         >
-                          {[10, 11, 12, 13, 14].map((v) => (
+                          {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
                             <option key={v} value={v}>
                               {v} pt
                             </option>
@@ -985,7 +983,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                           disabled={blocked}
                           onChange={(ev) =>
                             patch((n) => {
-                              n.lines = ev.target.value as LineWeight;
+                              setLines(n, ev.target.value as LineWeight);
                             })
                           }
                         >

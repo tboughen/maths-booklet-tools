@@ -21,11 +21,11 @@ import {
   type Envelope,
 } from "./index";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
-import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
+import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
 const set = z.enum(["universe", "A", "B", "C"]);
 const mask = z.number().int().min(0).max(7);
 const widthCm = z.number().min(8).max(16),
-  fontPt = z.number().min(10).max(14),
+  fontPt = z.number().min(MIN_TEXT_PT).max(14),
   lines = z.enum(LINE_WEIGHTS);
 const entry = z.object({ mask, region: regionSchema.partial() }).strict();
 export const specSchema = z
@@ -300,7 +300,7 @@ export function printFacts(raw: Envelope, view: "pupil" | "answer" = "pupil") {
   const answerLineLengthsMm = distinct(
     [
       ...svg.matchAll(
-        /<path\s+d="[^"]*h([\d.]+)"\s+stroke="black"\s+stroke-width="\.22"/g,
+        /<path\s+d="[^"]*h([\d.]+)"\s+stroke="black"\s+stroke-width="(?:\.22|0\.33)"/g,
       ),
     ].map((m) => Number(m[1])),
   );
