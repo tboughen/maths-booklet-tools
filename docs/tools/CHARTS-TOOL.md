@@ -36,6 +36,10 @@ tool later rather than a mode here.
   Vertical line charts draw 0.6 mm black lines with a grid line through every category.
 - **Limits:** 1–12 categories, 1–4 data sets, at most 40 axis steps.
 
+## Line weight (U111)
+
+Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
+
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, pictograms, time series graphs,

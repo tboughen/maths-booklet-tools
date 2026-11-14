@@ -1,6 +1,7 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
@@ -81,6 +82,11 @@ export const envelopeSchema = z
         key: z.boolean(),
         heightMm: z.number().int().min(40).max(140),
         barMm: z.number().int().min(5).max(20),
+        /** Bold lines (U111) multiply the chart's black strokes by 1.5; the grid keeps its weight. Normal is never saved. */
+        lines: z
+          .enum(LINE_WEIGHTS)
+          .transform((v) => (v === "bold" ? v : undefined))
+          .optional(),
       })
       .strict(),
     ...aboutShape,
@@ -434,6 +440,8 @@ export function renderSvg(e: Envelope): string {
     out.push(
       `<path d="${g.ticks.slice(1).map((t) => `M${n(p.x)},${n(t.y)}H${n(right)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
     );
+  // The grid stays at its usual weight; bold lines apply to everything drawn after it.
+  const gridEnd = out.length;
   for (const b of g.bars) {
     // A bar drawn only for the answers copy prints in the answer colour; solid grey or black
     // fills turn pink too, so the outline still shows.
@@ -474,7 +482,7 @@ export function renderSvg(e: Envelope): string {
     }
   }
   const label = `${kindNames[d.kind]}${d.yTitle ? ` of ${d.yTitle}` : ""}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.slice(0, gridEnd).join("")}${boldLines(out.slice(gridEnd).join(""), d.lines)}</svg>`;
 }
 
 /** Structural edits. Each returns a new valid envelope. */

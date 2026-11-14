@@ -3083,6 +3083,13 @@
             "type": "integer",
             "minimum": 5,
             "maximum": 20
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
           }
         },
         "required": [
