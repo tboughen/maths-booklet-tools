@@ -1,0 +1,142 @@
+{
+ "tool": "cuboids",
+ "schemaVersion": 1,
+ "rendererVersion": "cuboids-1",
+ "document": {
+  "widthCm": 16,
+  "shapes": [
+   {
+    "id": "box",
+    "title": "Box",
+    "dimensions": {
+     "width": "32",
+     "depth": "20",
+     "height": "8"
+    },
+    "unit": "cm",
+    "cube": false,
+    "labels": {
+     "width": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "depth": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "height": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "front": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "top": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "side": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     }
+    },
+    "view": "plain",
+    "cubeSideCm": "4",
+    "direction": "right",
+    "projection": "standard",
+    "schematic": false,
+    "proportions": {
+     "width": "4",
+     "depth": "3",
+     "height": "2"
+    },
+    "hiddenEdges": false,
+    "arrows": false,
+    "workedVolume": false,
+    "workedArea": false,
+    "counts": false,
+    "layerNumbers": false,
+    "caption": ""
+   },
+   {
+    "id": "brick",
+    "title": "Brick",
+    "dimensions": {
+     "width": "4",
+     "depth": "4",
+     "height": "4"
+    },
+    "unit": "cm",
+    "cube": true,
+    "labels": {
+     "width": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "depth": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "height": {
+      "mode": "value",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "front": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "top": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     },
+     "side": {
+      "mode": "hidden",
+      "text": "",
+      "x": 0,
+      "y": 0
+     }
+    },
+    "view": "plain",
+    "cubeSideCm": "1",
+    "direction": "right",
+    "projection": "standard",
+    "schematic": false,
+    "proportions": {
+     "width": "4",
+     "depth": "3",
+     "height": "2"
+    },
+    "hiddenEdges": false,
+    "arrows": false,
+    "workedVolume": false,
+    "workedArea": false,
+    "counts": false,
+    "layerNumbers": false,
+    "caption": ""
+   }
+  ]
+ }
+}
