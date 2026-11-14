@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { canonicalRatioNumber, RatioError } from "./numbers";
+import { zodFields } from "../../envelope-core/src/errors";
 
 export const RATIO_RENDERER_VERSION = "ratio-1";
 export const RATIO_THREE_COLUMN_RENDERER_VERSION = "ratio-2";
@@ -117,11 +118,8 @@ export const ratioSpecSchema = z
 export function readSchema<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);
   if (!result.success) {
-    const issue = result.error.issues[0];
-    throw new RatioError(
-      "invalid_ratio_table",
-      `Invalid ratio table at ${issue.path.join(".") || "document"}: ${issue.message}`,
-    );
+    const fields = zodFields(result.error);
+    throw new RatioError("invalid_ratio_table", `Invalid ratio table at ${fields[0].path === "input" ? "document" : fields[0].path}: ${fields[0].message}`, { fields });
   }
   return result.data;
 }

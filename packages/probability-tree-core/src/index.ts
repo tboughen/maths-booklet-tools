@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * Probability tree diagrams, drawn left to right.
@@ -149,14 +150,14 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("text"))
-      throw Error("Use labels of at most 24 characters (questions 60), without markup.");
+      throw withFields(Error("Use labels of at most 24 characters (questions 60), without markup."), parsed.error);
     if (path.includes("branches"))
-      throw Error(`Use 2 to ${MAX_BRANCHES} branches with IDs such as b1.`);
+      throw withFields(Error(`Use 2 to ${MAX_BRANCHES} branches with IDs such as b1.`), parsed.error);
     if (path.includes("questions"))
-      throw Error(`Use at most ${MAX_QUESTIONS} questions with IDs such as q1.`);
-    if (path.includes("branchMm")) throw Error("Choose a branch length from 20 to 50 mm.");
-    if (path.includes("gapMm")) throw Error("Choose a path spacing from 10 to 24 mm.");
-    throw Error("This is not a supported probability tree file (version 1 is supported).");
+      throw withFields(Error(`Use at most ${MAX_QUESTIONS} questions with IDs such as q1.`), parsed.error);
+    if (path.includes("branchMm")) throw withFields(Error("Choose a branch length from 20 to 50 mm."), parsed.error);
+    if (path.includes("gapMm")) throw withFields(Error("Choose a path spacing from 10 to 24 mm."), parsed.error);
+    throw withFields(Error("This is not a supported probability tree file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data,
     d = e.document;

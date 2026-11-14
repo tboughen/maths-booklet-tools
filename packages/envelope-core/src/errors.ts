@@ -62,10 +62,53 @@ export function retryFor(code: string): RetryAdvice {
 
 /** Field problems from a zod error, paths joined with dots ("input" for the root). */
 export function zodFields(error: z.ZodError, prefix: (string | number)[] = []): FieldProblem[] {
-  return error.issues.map((i) => {
-    const path = [...prefix, ...i.path.map((p) => (typeof p === "symbol" ? String(p) : p))];
-    return { path: path.length ? path.join(".") : "input", message: i.message };
+  return narrowIssues(error.issues as Issue[], prefix.map(String)).map((i) => ({ path: i.path.length ? i.path.join(".") : "input", message: i.message }));
+}
+
+type Issue = { code: string; path: PropertyKey[]; message: string; errors?: Issue[][]; keys?: string[]; values?: unknown[] };
+/** Keys that say which branch of a union an object belongs to. */
+const DISCRIMINATORS = ["kind", "op", "type", "schemaVersion", "mode"];
+
+/** Whether a branch's issues reject the input's own discriminator, so it is the wrong branch. */
+function wrongBranch(issues: Issue[]) {
+  return issues.some(
+    (i) =>
+      (i.path.length === 1 && DISCRIMINATORS.includes(String(i.path[0])) && (i.code === "invalid_value" || i.code === "invalid_union")) ||
+      (i.path.length === 0 && i.code === "unrecognized_keys" && (i.keys ?? []).some((k) => DISCRIMINATORS.includes(k))),
+  );
+}
+
+/**
+ * Flattens zod issues to field problems with full paths (M11). A failed union reports only the
+ * branch the input chose (the one whose kind/op/type/schemaVersion matched), so "objects.0.equation.slope:
+ * Use a finite number" replaces "objects.0: Invalid input". When no branch matches its
+ * discriminator, the problem names the discriminator and the values it accepts.
+ */
+function narrowIssues(issues: Issue[], base: string[]): { path: string[]; message: string }[] {
+  return issues.flatMap((i) => {
+    const path = [...base, ...i.path.map((p) => (typeof p === "symbol" ? String(p) : String(p)))];
+    if (i.code !== "invalid_union" || !i.errors?.length) return [{ path, message: i.message }];
+    const chosen = i.errors.filter((branch) => !wrongBranch(branch));
+    if (chosen.length === 1) return narrowIssues(chosen[0], path);
+    if (chosen.length === 0) {
+      for (const key of DISCRIMINATORS) {
+        const allowed = i.errors.flatMap((branch) => branch.filter((x) => x.path.length === 1 && String(x.path[0]) === key && x.code === "invalid_value").flatMap((x) => x.values ?? []));
+        if (allowed.length) return [{ path: [...path, key], message: `Use one of: ${[...new Set(allowed.map((v) => JSON.stringify(v)))].join(", ")}.` }];
+      }
+    }
+    // Still ambiguous: the branch with the fewest problems is the most likely intent.
+    const best = [...(chosen.length ? chosen : i.errors)].sort((a, b) => a.length - b.length)[0];
+    return narrowIssues(best, path);
   });
+}
+
+/**
+ * Attaches a zod error's field problems to an Error whose message a core has already written in
+ * words, so the connector can still name every field. Returns the same error for `throw`.
+ */
+export function withFields<E extends Error>(error: E, zod: z.ZodError, prefix: (string | number)[] = []): E {
+  Object.defineProperty(error, "fields", { value: zodFields(zod, prefix), enumerable: false });
+  return error;
 }
 
 /** "a.b: problem; c: problem (3 more)": the field problems as one readable sentence. */
@@ -107,7 +150,10 @@ export function toErrorBody(error: unknown, defaults: ErrorDefaults): ToolErrorB
   }
   code = ALIASES[code ?? ""] ?? code;
   if (!code) code = STALE.test(message) ? "stale_hash" : defaults.code;
-  const details = error instanceof MathsDockError ? error.details : {};
+  const ownFields = (error as unknown as { fields?: FieldProblem[] }).fields;
+  const prefix = defaults.pathPrefix?.join(".");
+  const attached = Array.isArray(ownFields) && prefix ? ownFields.map((f) => ({ ...f, path: f.path === "input" ? prefix : `${prefix}.${f.path}` })) : ownFields;
+  const details = error instanceof MathsDockError ? { ...error.details, fields: error.details.fields ?? attached } : { fields: Array.isArray(attached) ? attached : undefined };
   const hint = details.hint ?? (code === "stale_hash" ? "Revise the exact envelope from the last result and quote its contentHash as baseHash." : details.fields?.length ? defaults.fieldHint : undefined);
   return {
     code,

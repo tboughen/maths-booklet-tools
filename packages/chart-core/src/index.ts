@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
@@ -130,22 +131,22 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("categories"))
-      throw Error(
+      throw withFields(Error(
         `Use 1 to ${MAX_CATEGORIES} category labels of at most 16 characters, without markup.`,
-      );
+      ), parsed.error);
     if (path.includes("name"))
-      throw Error("Use data set names of at most 24 characters, without markup.");
+      throw withFields(Error("Use data set names of at most 24 characters, without markup."), parsed.error);
     if (path.includes("series"))
-      throw Error(
+      throw withFields(Error(
         `Use 1 to ${MAX_SERIES} data sets, each with one value of at most 12 characters per category.`,
-      );
+      ), parsed.error);
     if (path.includes("heightMm"))
-      throw Error("Choose a chart height from 40 to 140 mm.");
+      throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
-      throw Error("Choose a bar width from 5 to 20 mm.");
+      throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
     if (path.includes("xTitle") || path.includes("yTitle"))
-      throw Error("Use axis titles of at most 40 characters, without markup.");
-    throw Error("This is not a supported chart file (version 1 is supported).");
+      throw withFields(Error("Use axis titles of at most 40 characters, without markup."), parsed.error);
+    throw withFields(Error("This is not a supported chart file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data;
   if (e.document.series.some((s) => s.values.length !== e.document.categories.length))

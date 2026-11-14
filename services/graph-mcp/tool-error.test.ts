@@ -88,6 +88,17 @@ describe("one error shape across the connector (M12)", () => {
     expect(view.message).toContain("outputView applies only to");
   });
 
+  it("names the field inside the union branch the input chose (M11)", async () => {
+    const client = await start();
+    const slope = await failure(client, "create_diagram", { kind: "graph", spec: { objects: [{ kind: "line", equation: { kind: "slope", slope: "a/b", intercept: "1" } }] } });
+    expect(slope.fields?.map((f) => f.path)).toEqual(["objects.0.equation.slope"]);
+    const kind = await failure(client, "create_diagram", { kind: "graph", spec: { objects: [{ kind: "curve" }] } });
+    expect(kind.fields?.[0].path).toBe("objects.0.kind");
+    expect(kind.fields?.[0].message).toMatch(/point.*segment.*line/);
+    const sheet = await failure(client, "create_diagram", { kind: "venn", envelope: { tool: "venn", schemaVersion: 2, rendererVersion: "venn-2", document: { labels: "x" } } });
+    expect(sheet.fields?.length).toBeGreaterThan(0);
+  });
+
   it("uses the shape for output tools and SVG delivery too", async () => {
     const client = await start();
     const bundle = await failure(client, "download_diagram_bundle", { kind: "venn", envelope: { nope: true } });

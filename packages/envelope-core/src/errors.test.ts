@@ -33,3 +33,23 @@ describe("toErrorBody", () => {
     expect(toErrorBody(new MathsDockError("busy", "The renderer is busy."), defaults).retry).toBe("try_later");
   });
 });
+
+describe("union errors name the failing branch (M11)", () => {
+  const point = z.object({ kind: z.literal("point"), x: z.number() }).strict();
+  const line = z.object({ kind: z.literal("line"), slope: z.string().regex(/^-?\d+(\/\d+)?$/, "Use an integer or fraction such as 1/2.") }).strict();
+  const spec = z.object({ objects: z.array(z.union([point, line])) });
+  it("reports only the branch whose kind matched, at the full path", () => {
+    const r = spec.safeParse({ objects: [{ kind: "line", slope: "a/b" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.slope", message: "Use an integer or fraction such as 1/2." }]);
+  });
+  it("lists the accepted kinds when none matched", () => {
+    const r = spec.safeParse({ objects: [{ kind: "curve" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.kind", message: 'Use one of: "point", "line".' }]);
+  });
+  it("picks the version branch for a versioned union with an optional legacy version", () => {
+    const v1 = z.object({ bars: z.array(z.string()) }).strict();
+    const v3 = z.object({ schemaVersion: z.literal(3), bars: z.array(z.string()) }).strict();
+    const r = z.union([v1, v3]).safeParse({ schemaVersion: 3, bars: "x" });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "bars", message: expect.stringContaining("expected array") }]);
+  });
+});

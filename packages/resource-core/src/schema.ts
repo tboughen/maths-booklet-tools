@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from "../../diagram-core/src/registry";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * A two-sided A3 worksheet, as Tim's finalised question sets describe it: each side has three
@@ -263,7 +264,7 @@ export function validate(input: unknown): Resource {
   const r = resourceSchema.safeParse(input);
   if (!r.success) {
     const issue = r.error.issues[0];
-    throw Error(`${issue.path.join(".") || "document"}: ${issue.message}`);
+    throw withFields(Error(`${issue.path.join(".") || "document"}: ${issue.message}`), r.error);
   }
   return resolveDiagrams(r.data);
 }

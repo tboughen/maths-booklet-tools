@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { cardSchema, resolveCard, text, type Card } from "./schema";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * An A4 portrait unit booklet in reading order, the shape of the department's lesson booklets
@@ -111,7 +112,7 @@ export function validateBooklet(input: unknown): Booklet {
   const r = bookletSchema.safeParse(input);
   if (!r.success) {
     const issue = r.error.issues[0];
-    throw Error(`${issue.path.join(".") || "booklet"}: ${issue.message}`);
+    throw withFields(Error(`${issue.path.join(".") || "booklet"}: ${issue.message}`), r.error);
   }
   return resolveBookletDiagrams(r.data);
 }

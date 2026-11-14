@@ -2,6 +2,7 @@ import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { renderSvg as renderLegacySvg } from "./legacy";
+import { withFields } from "../../envelope-core/src/errors";
 
 export const visibility = ["show", "hidden", "line"] as const;
 export const kinds = [
@@ -171,22 +172,22 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("labels"))
-      throw Error(
+      throw withFields(Error(
         "Use set labels of at most 24 characters and a supported pupil display choice.",
-      );
+      ), parsed.error);
     if (path.includes("definitions"))
-      throw Error("Use definition lines of at most 120 characters.");
+      throw withFields(Error("Use definition lines of at most 120 characters."), parsed.error);
     if (path.includes("widthCm"))
-      throw Error("Choose a print width from 8 to 16 cm.");
+      throw withFields(Error("Choose a print width from 8 to 16 cm."), parsed.error);
     if (path.includes("fontPt"))
-      throw Error("Choose a text size from 9 to 14 pt.");
+      throw withFields(Error("Choose a text size from 9 to 14 pt."), parsed.error);
     if (path.includes("regions"))
-      throw Error(
+      throw withFields(Error(
         "A region has unsupported content or display settings. Keep member lists within 660 characters.",
-      );
-    throw Error(
+      ), parsed.error);
+    throw withFields(Error(
       "This is not a supported Venn diagram file (versions 1 and 2 are supported).",
-    );
+    ), parsed.error);
   }
   const e = parsed.data;
   for (const value of [
