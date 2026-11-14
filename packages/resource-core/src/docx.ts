@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, card as measureCard, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -745,7 +745,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, 
     }
     const colW = boxes[c].w;
     bands.push(cell(stageTable(letters.columns[s][c], col.heading, colW, st), { width: colW, margin: { top: (S.columnHeadingBand - S.tile) / 2 } }));
-    const numbers = col.cards.map(() => ++number);
+    const numbers = col.cards.map((cd) => (isReminder(cd) ? null : ++number));
     ctx.where = { side: s + 1, column: c + 1, question: 0 };
     const { spare, extra, stretch } = planColumn(col.cards, numbers, colW, avail, ctx, resource.document.spareSpace === "share");
     if (spare < -0.01) ctx.issues.push({ side: s + 1, column: c + 1, message: overflowMessage(s, c, spare) });
@@ -754,7 +754,7 @@ function side(resource: Resource, s: number, ctx: WordCtx, firstNumber: number, 
     const half = (S.columnHeadingBand - S.tile) / 2;
     const parts: string[] = [];
     col.cards.forEach((cd, i) => {
-      ctx.where = { side: s + 1, column: c + 1, question: numbers[i] };
+      ctx.where = { side: s + 1, column: c + 1, question: numbers[i] ?? undefined };
       const h = measureCard(cd, numbers[i], colW, quiet, extra, stretch(i)).h;
       const letter = letters.cards[s][c][i];
       if (i) parts.push(gap(S.cardGap + (letter ? half : 0)));

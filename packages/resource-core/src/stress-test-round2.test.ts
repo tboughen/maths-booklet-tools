@@ -149,3 +149,17 @@ describe("probability tree spec, round 2", () => {
     ).toThrow(/last branch of a path/);
   });
 });
+
+describe("reminder cards, round 2", () => {
+  // Tim, 14 Nov: only questions take numbers; a reminder card keeps its place but has no number.
+  const tiles = (r: Resource) => renderResource(r).pages.join("").match(/<rect x="[^"]+" y="[^"]+" width="[^"]+" height="[^"]+" rx="1.3" fill="#[0-9a-fA-F]+"\/><text/g)?.length ?? 0;
+  it("does not number a reminder card, so the first question is question 1", async () => {
+    const question = mathsSheet([{ type: "text", text: "Work out 3 + 4." }]);
+    const reminder = mathsSheet([{ type: "info", text: "Add the probabilities along different paths." }]);
+    expect(tiles(reminder)).toBe(tiles(question) - 1);
+    const svg = renderResource(reminder).pages.join("");
+    expect(svg).not.toContain(">0<");
+    const docx = await writeWorksheetDocx(reminder, wordOptions("pupil"));
+    expect(docx.bytes.byteLength).toBeGreaterThan(0);
+  });
+});
