@@ -58,6 +58,22 @@ import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
 import { parseTriangleLink, triangleEditorLink } from "./links";
 import { TriangleFloatingEditor } from "./TriangleFloatingEditor";
 import { TriangleLabelFields } from "./TriangleLabelFields";
+import { housePreference, setLines } from "../site/houseStyle";
+import {
+  LINE_WEIGHTS,
+  LINE_WEIGHT_NAMES,
+  MIN_TEXT_PT,
+  startingTextPt,
+  type LineWeight,
+} from "../../packages/envelope-core/src/house-style";
+/** A new triangle starts from the house style (U111); its own settings are saved with it. */
+function fresh(e: Envelope = create()): Envelope {
+  const house = housePreference(),
+    pt = startingTextPt(house.style, 11, { max: 14 });
+  if (pt !== 11) e.document.fontPt = pt;
+  if (house.lines === "bold") e.document.lines = "bold";
+  return e;
+}
 import {
   labelDraft,
   applyLabelDraft,
@@ -126,7 +142,7 @@ function initial() {
         return {
           key,
           copyId,
-          e: create(),
+          e: fresh(),
           raw,
           recovery: raw,
           message:
@@ -138,7 +154,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: starter(),
+      e: fresh(starter()),
       raw,
       recovery: null as string | null,
       message: "",
@@ -148,7 +164,7 @@ function initial() {
     return {
       key,
       copyId,
-      e: starter(),
+      e: fresh(starter()),
       raw: null,
       recovery: null as string | null,
       message:
@@ -777,7 +793,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
               onUndo={undo}
               onRedo={redo}
               onReset={() =>
-                replacement(starter(), "Reset the triangle diagram?")
+                replacement(fresh(starter()), "Reset the triangle diagram?")
               }
               resetDisabled={blocked}
               exportDisabled={blocked || !!exportMetrics.issues.length}
@@ -2154,7 +2170,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                       disabled={blocked}
                       onClick={() =>
                         replacement(
-                          create(shape),
+                          fresh(create(shape)),
                           `Start a ${title.toLowerCase()} triangle?`,
                         )
                       }
@@ -2192,9 +2208,51 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   />
                 </label>
                 <p className="tr-note">
-                  6–18 cm. Text stays at 11 pt; preview zoom changes only the
-                  view. Actual height follows the complete artwork and captions.
+                  6–18 cm. Text keeps its chosen size; preview zoom changes only
+                  the view. Actual height follows the complete artwork and captions.
                 </p>
+                <label>
+                  Text size
+                  <select
+                    aria-label="Text size"
+                    value={d.fontPt ?? 11}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      change((n) => {
+                        const pt = Number(ev.target.value);
+                        if (pt === 11) delete n.document.fontPt;
+                        else n.document.fontPt = pt;
+                      })
+                    }
+                  >
+                    {[10, 11, 12, 13, 14]
+                      .filter((v) => v >= MIN_TEXT_PT)
+                      .map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) =>
+                      change((n) => {
+                        setLines(n.document, ev.target.value as LineWeight);
+                      })
+                    }
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 {widthDraft !== null && (
                   <div className="tr-two">
                     <button
@@ -2348,7 +2406,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
-                setHistory((h) => pushHistory(h, create(), { label: "start afresh" }));
+                setHistory((h) => pushHistory(h, fresh(), { label: "start afresh" }));
                 setSelected(null);
               } catch (err) {
                 setMessage(errorText(err));

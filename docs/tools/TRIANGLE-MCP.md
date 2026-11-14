@@ -66,7 +66,7 @@ copy stored in another chat.
 | remove_caption | id |
 | set_shared_label | id, text; adds or updates bounded shared text |
 | link_label | ref, sharedId:string or null; unlink retains displayed text |
-| set_print | widthCm:6..18 |
+| set_print | widthCm?:6..18, fontPt?:10..14, lines?:normal\|bold (at least one; normal is not saved) |
 | set_not_to_scale | visible:boolean |
 | construct | triangleId, method:SSS/SAS/ASA/AAS/right, inputs:named strings |
 | calculate_and_store | ref, triangleId, method, optional inputs/branch, rounding:{kind:dp/sf/exact,digits:0..10}, overwrite:false default |
@@ -146,7 +146,7 @@ schemas; a valid internal Zod type alone does not prove client import acceptance
 Limits: two component triangles; three records for split including outer; six
 vertices; seven edges; nine angles; two heights (one per triangle); two captions.
 Single default width 12 cm, paired 16 cm; width 6–18 cm. Actual full artwork
-determines height; 11 pt typography, margins and pupil writing spaces are retained.
+determines height; 11 pt typography by default (`fontPt` 10–14), margins and pupil writing spaces are retained.
 
 Returns preview, envelope/hash, outlined SVG, verified 600 ppi PNG, editable JSON,
 physicalSizeCm, printGuidance, warnings and bounded editor link. Ordinary artwork

@@ -7052,6 +7052,18 @@
           "notToScale": {
             "type": "boolean"
           },
+          "fontPt": {
+            "type": "number",
+            "minimum": 10,
+            "maximum": 14
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          },
           "sourceId": {
             "anyOf": [
               {

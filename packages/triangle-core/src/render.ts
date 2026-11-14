@@ -1,4 +1,5 @@
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines } from "../../envelope-core/src/house-style";
 import {
   add,
   allLabels,
@@ -112,6 +113,7 @@ function intersectsLine(r: Rect, a: Point, b: Point) {
 export function layout(e: Envelope, showAnswers = false): Metrics {
   validate(e);
   const d = e.document,
+    font = ((d.fontPt ?? 11) * 25.4) / 72,
     width = d.widthCm * 10,
     feet = d.heights.map((h) => heightFoot(e, h.id).point),
     raw = [...d.vertices, ...feet];
@@ -149,7 +151,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       proposed: Point,
       candidates: Point[] = [],
       italic = false,
-      size = FONT,
+      size = font,
     ) => {
       const l = getLabel(e, ref),
         text = shown(e, l, showAnswers),
@@ -246,7 +248,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
           );
         }
       }
-      const m = mathMetrics(shown(e, a.label, showAnswers)),
+      const m = mathMetrics(shown(e, a.label, showAnswers), font),
         r = Math.max(
           radius + 4,
           (m.w / 2 + 1.5) / Math.max(0.1, Math.sin(theta / 2)),
@@ -271,7 +273,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       const normal = { x: -u.y, y: u.x },
         out = mul(normal, dot(normal, sub(other, mid)) > 0 ? -1 : 1);
       const text = shown(e, edge.label, showAnswers),
-        m = mathMetrics(text),
+        m = mathMetrics(text, font),
         gap = 4.5 + Math.min(3, Math.abs(out.x) * m.w * 0.3);
       place(
         `e:${edge.id}`,
@@ -342,7 +344,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
           m = mathMetrics(h.footName);
         boxes.push({ x: c.x - m.w / 2, y: c.y - m.h / 2, w: m.w, h: m.h });
         bounds.push({ x: c.x - m.w / 2, y: c.y + m.h / 2 });
-        labels.push(textSvg(h.footName, c, FONT, true));
+        labels.push(textSvg(h.footName, c, font, true));
       }
     }
     // Area annotations follow their own triangle, including after reshape/rotation.
@@ -454,7 +456,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
     const label = accessibleLabel(e, showAnswers);
     // Blank/hidden angle targets remain available in the labelled inspector even
     // when a narrow wedge makes their transparent direct hit area hard to reach.
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}" role="img" aria-label="${escapeXml(label)}"><title>${escapeXml(label)}</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
+    const svg = boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}" role="img" aria-label="${escapeXml(label)}"><title>${escapeXml(label)}</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`, d.lines);
     final = {
       width,
       height,
