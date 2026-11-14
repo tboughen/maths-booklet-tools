@@ -102,7 +102,7 @@
  "cuboids/default": {
   "schemaVersion": 2,
   "contentHash": "4616db56d0be2f2ab7efaac97dca0d681cafc463fb59bd50031d286b3aa2f22e",
-  "pupilSvg": "34c6a481cdef0d103d480ff7d11db361e30be6b073ab2bf3e4c6d63665cd6305"
+  "pupilSvg": "1e51840a437c94ac203d4c09515a150bfd9ee23f96385d6199b813346332f59a"
  },
  "cuboids/example-1ma1-jun-2017-3f-q12-worked": {
   "schemaVersion": 1,
@@ -167,7 +167,7 @@
  "cuboids/example-base-area-worked": {
   "schemaVersion": 2,
   "contentHash": "2880e54f2007a0be4d772e9e0cde15249f8c8a9a4df2d15732fb9eba0a225178",
-  "pupilSvg": "4cc14a2273e6562f967cbffd3b33d035bf1c18be1aa9842ec2ca00ab669615cd"
+  "pupilSvg": "ff719532c8116923757454de38642b03c63df3deb76a296afe748fd06edb883e"
  },
  "cuboids/example-base-area": {
   "schemaVersion": 2,

@@ -413,6 +413,8 @@ export const escapeXml = (s: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 const font = 3.88;
+/** Clearance (mm) between a depth label's nearest corner and the receding edge. */
+const DEPTH_GAP = 1.2;
 export function textWidth(s: string) {
   return [...s].reduce((n, c) => n + glyphAdvance(c), 0) * font;
 }
@@ -716,10 +718,22 @@ export function layout(envelope: Envelope): Layout {
       }
       if (l === layers - 1) {
         localTargets.width = [baseX + w / 2, bottom + 8];
-        localTargets.depth = [
-          sideFront[0] + dx + (dx > 0 ? 3 : -3),
-          bottom + v / 2 + 4,
-        ];
+        if (s.arrows && s.view !== "layers")
+          localTargets.depth = [
+            sideFront[0] + dx + (dx > 0 ? 3 : -3),
+            bottom + v / 2 + 4,
+          ];
+        else {
+          // Beside the middle of the receding edge it labels, offset at right angles to it,
+          // so the label's nearest corner sits DEPTH_GAP mm off the edge, away from the cuboid.
+          const len = Math.hypot(dx, v) || 1,
+            nx = (dx > 0 ? -v : v) / len,
+            ny = Math.abs(dx) / len;
+          localTargets.depth = [
+            sideFront[0] + dx / 2 + nx * DEPTH_GAP,
+            bottom + v / 2 + ny * DEPTH_GAP + font * 0.7,
+          ];
+        }
         localTargets.height = [
           s.arrows && s.view !== "layers"
             ? baseX + (dx > 0 ? w + dx + 6 : dx - 6)
