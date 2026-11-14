@@ -17,7 +17,8 @@ is false and there is no editor link.
   `drawn` (both copies), `blank` (empty grid only) or `answer` (empty grid for pupils, drawn on the answer copy),
   with a label (default Plan, Front elevation, Side elevation) and an optional empty-grid size in squares.
 - `unitCm` (0.5, 1 or 2): printed cube edge on the cm-square grids. The isometric drawing uses 1 cm isometric paper;
-  an empty isometric panel is isometric dot paper.
+  an empty isometric panel is plain sketching space, as in Edexcel "draw a sketch of the solid shape" (no 1MA1
+  question from June 2017 to November 2021 uses isometric paper). `isoDots: true` puts dot paper behind isometric panels.
 - The isometric drawing shows the top, front and left side; `arrows` mark Front and Side, and the side elevation is
   the view from the left.
 

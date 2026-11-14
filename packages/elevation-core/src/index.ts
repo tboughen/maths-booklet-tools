@@ -280,7 +280,7 @@ function isoPanel(d: ElevationDocument, p: Panel): Built {
   const X = (u: number) => (u - minU) * s,
     Y = (v: number) => (maxV - v) * s;
   const out: string[] = [];
-  if (d.isoDots || p.state !== "drawn") {
+  if (d.isoDots) {
     const dots: string[] = [];
     for (let i = Math.floor(minU / C) - 1; i <= Math.ceil(maxU / C) + 1; i++)
       for (let j = Math.floor(minV * 2) - 1; j <= Math.ceil(maxV * 2) + 1; j++) {
