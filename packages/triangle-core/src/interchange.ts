@@ -223,7 +223,7 @@ export function create(input: unknown): m.Envelope {
 }
 export async function revise(input: unknown) {
   const v = revisionSchema.parse(input), e = m.validate(v.envelope);
-  if (await hash(e) !== v.baseHash) throw Error("base_hash_mismatch: Use the exact returned envelope and contentHash.");
+  if (await hash(e) !== v.baseHash) throw Error("stale_hash: Use the exact returned envelope and contentHash.");
   return applyOperations(e, v.operations);
 }
 export function editorLink(e: m.Envelope, base: string): string | null {

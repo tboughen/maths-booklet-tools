@@ -6,11 +6,13 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { triangleGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  useSyncExternalStore,
 } from "react";
 import {
   addHeight,
@@ -192,7 +194,16 @@ type Drag = {
 type Replacement = { e: Envelope; title: string; explanation: string };
 const errorText = (err: unknown) =>
   err instanceof Error ? err.message : String(err);
+/** U43: vertex handles are 44 CSS px on touch screens and 28 px for a mouse; triangle.css sets the boxes. */
+const coarse = typeof matchMedia === "function" ? matchMedia("(pointer:coarse)") : undefined;
+const subscribeCoarse = (onChange: () => void) => {
+  coarse?.addEventListener("change", onChange);
+  return () => coarse?.removeEventListener("change", onChange);
+};
+const useVertexHitSize = () => useSyncExternalStore(subscribeCoarse, () => (coarse?.matches ? 44 : 28), () => 28);
+
 export default function TrianglePage({ active = true }: { active?: boolean }) {
+  const vertexHitSize = useVertexHitSize();
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
     { history, setHistory } = documentHistory;
@@ -914,10 +925,10 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 visibility. Use a worked version to export the answers.
               </p>
             )}
-            <p className="tr-guidance">
+            <EditorHint tool="triangle">
               Click a wedge to edit an angle, or a label to edit its text. Drag
               a vertex to reshape. Select a triangle to add its area.
-            </p>
+            </EditorHint>
             <div
               className="tr-scroll"
               ref={scroll}
@@ -1093,8 +1104,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                           style={{
                             left: a.x * px,
                             top: a.y * px,
-                            width: Math.max(28, a.w * px),
-                            height: Math.max(28, a.h * px),
+                            width: a.w * px,
+                            height: a.h * px,
                           }}
                           data-tr-anchor={a.ref}
                           aria-label={`Edit ${refName(display, a.ref).toLowerCase()}`}
@@ -1197,7 +1208,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                                 ? { x: a.x * px, y: a.y * px }
                                 : undefined;
                             })(),
-                            matchMedia("(pointer:coarse)").matches ? 40 : 28,
+                            vertexHitSize,
                           ),
                         }}
                         aria-label={`Move vertex ${nameOf(display, id)}`}
