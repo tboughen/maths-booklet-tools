@@ -10,6 +10,7 @@ import * as bi from "../../packages/bar-model-core/src/versioned-interchange";
 import * as chart from "../../packages/chart-core/src/index";
 import * as chi from "../../packages/chart-core/src/interchange";
 import * as tree from "../../packages/probability-tree-core/src/index";
+import * as ftree from "../../packages/frequency-tree-core/src/index";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as tri from "../../packages/triangle-core/src/interchange";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
@@ -24,7 +25,7 @@ import type { DownloadFormat } from "./downloads";
 import { PRINT_INSTRUCTIONS } from "./placement";
 
 /** Families served by the shared /resource/download route and this result builder. */
-export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "triangle"] as const;
+export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "triangle"] as const;
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
 export type NewSource = Extract<DiagramSource, { kind: ResourceKind }>;
 export const isResourceSource = (source: DiagramSource): source is NewSource =>
@@ -36,6 +37,7 @@ function warningsOf(source: NewSource): string[] {
   switch (source.kind) {
     case "triangle": return triangle.warnings(source.envelope);
     case "probability-tree": return tree.warnings(source.envelope);
+    case "frequency-tree": return ftree.warnings(source.envelope);
     case "charts": return [...chart.layout(source.envelope).notes];
     case "bar-model": return bar.warnings(source.envelope);
     case "algebra-grid": return algebra.warnings(source.envelope);
@@ -48,6 +50,7 @@ function editorLinkOf(source: NewSource, base: string): string | null {
   switch (source.kind) {
     case "triangle": return tri.editorLink(source.envelope, base);
     case "probability-tree": return tree.editorLink(source.envelope, base);
+    case "frequency-tree": return ftree.editorLink(source.envelope, base);
     case "charts": return chi.editorLink(source.envelope, base);
     case "bar-model": try { return bi.editorLink(source.envelope, base); } catch { return null; }
     case "algebra-grid": return ai.editorLink(source.envelope, base);
@@ -58,9 +61,9 @@ function editorLinkOf(source: NewSource, base: string): string | null {
 }
 /** Longest editor link a chat client handles reliably for each family's link format. */
 const editorLimit = (source: NewSource) =>
-  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || (source.kind === "bar-model" && source.envelope.schemaVersion === 2) ? 16_000 : 7500;
+  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || (source.kind === "bar-model" && source.envelope.schemaVersion === 2) ? 16_000 : 7500;
 /** Families whose editable files can hold answers hidden from the pupil artwork. */
-const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "triangle"];
+const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "triangle"];
 
 export function resourceTools(
   raster: RasterQueue,

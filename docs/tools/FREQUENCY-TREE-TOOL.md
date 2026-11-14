@@ -6,8 +6,9 @@ list N:P-2), approved by Tim on 10 November 2026 with this scope: a total, two o
 any count left blank for pupils, hidden answers and an optional answer line for a probability question.
 
 Code: `packages/frequency-tree-core` (schema, counts, layout, SVG, examples), `src/frequency-tree` (editor). The
-layout and editor follow the [probability tree tool](PROBABILITY-TREE-TOOL.md). MCP access comes through the
-family-generic connector tools (wave 4 lane D), not separate frequency tree tools.
+layout and editor follow the [probability tree tool](PROBABILITY-TREE-TOOL.md). MCP access is the `frequency-tree` kind of the generic connector tools (`diagram_capabilities`,
+`create_diagram`, `revise_diagram`; see [the diagram registry](DIAGRAM-REGISTRY.md)), adapted by
+`packages/frequency-tree-core/src/interchange.ts`. Frequency trees can also be placed in worksheets.
 
 ## Document
 

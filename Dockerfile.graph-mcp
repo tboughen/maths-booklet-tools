@@ -13,6 +13,7 @@ COPY packages/algebra-grid-core packages/algebra-grid-core
 COPY packages/bar-model-core packages/bar-model-core
 COPY packages/chart-core packages/chart-core
 COPY packages/probability-tree-core packages/probability-tree-core
+COPY packages/frequency-tree-core packages/frequency-tree-core
 COPY packages/triangle-core packages/triangle-core
 COPY packages/resource-core packages/resource-core
 COPY packages/diagram-core packages/diagram-core

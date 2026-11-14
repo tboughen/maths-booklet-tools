@@ -43,6 +43,7 @@ for (const directory of [
   "packages/bar-model-core",
   "packages/chart-core",
   "packages/probability-tree-core",
+  "packages/frequency-tree-core",
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",
