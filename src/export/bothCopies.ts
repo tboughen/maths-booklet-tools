@@ -26,7 +26,7 @@ export async function bothCopiesZip(tool: ToolId, resource: unknown, make: (view
   }
   // PNGs are already compressed; level 0 keeps the ZIP fast.
   const zip = zipSync(files, { level: 0 });
-  return new Blob([zip.buffer as ArrayBuffer], { type: "application/zip" });
+  return new Blob([zip as Uint8Array<ArrayBuffer>], { type: "application/zip" });
 }
 
 export async function downloadBothCopies(tool: ToolId, resource: unknown, make: (view: CopyView) => Promise<CopyImages>) {
