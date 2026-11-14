@@ -107,10 +107,11 @@ async function section(page: Page, title: string) {
     await section(page, "More tools");
   // U20: common settings are open cards with a heading; rarer ones stay folded.
   const card = page.locator(`section.tr-card:has(> h2:text-is("${title}"))`);
-  if (await card.count()) return card;
   const item = page.locator(
     `details.tr-section:has(> summary:text-is("${title}"))`,
   );
+  await card.or(item).first().waitFor();
+  if (await card.count()) return card;
   if ((await item.getAttribute("open")) === null)
     await item.locator("summary").first().click();
   return item;
@@ -766,6 +767,9 @@ test("contextual inspector, keyboard selection and local attachment preserve the
   ).toBeVisible();
   await expect(
     page.locator('details:has(> summary:text-is("More tools"))'),
+  ).not.toHaveAttribute("open");
+  await expect(
+    page.locator('details:has(> summary:text-is("Editing help"))'),
   ).not.toHaveAttribute("open");
   const chooser = page.getByRole("combobox", {
     name: "Selected object",
