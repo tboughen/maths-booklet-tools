@@ -156,8 +156,8 @@ const lineGuide: FamilyGuide = {
 
 const vennGuide: FamilyGuide = {
   capabilities: {
-    schemaVersions: [1, 2],
-    rendererVersions: ["venn-1", "venn-2"],
+    schemaVersions: [2],
+    rendererVersions: ["venn-2"],
     defaultRendererVersion: "venn-2",
     setCounts: [1, 2, 3],
     arrangements: venn.arrangements,
@@ -176,7 +176,7 @@ const vennGuide: FamilyGuide = {
   create:
     "One, two or three set Venn diagrams; omit spec for a blank two-set version-2 overlap. spec: {sets, shape, arrangement, widthCm, fontPt (10-14), lines (normal|bold; bold prints every stroke 1.5 times as thick), labels:[{set,label}], definitions:[{set,text}], regions:[{mask,region}], showDefinitions, caption}. Region mask 0 is outside; bits A=1 B=2 C=4. Arrangements overlap, separate, b-inside-a, a-inside-b (non-overlap only with two sets). Region kind and show/hidden/line visibility are explicit; zero is not blank. outputView answer must be explicitly requested.",
   revise:
-    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?,lines?}; upgrade_document {}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values. Legacy files need an explicit upgrade for new layouts.",
+    "set_region {mask,region}; set_label {set:universe|A|B|C,label}; set_definition {set,text}; set_definitions_visible {visible}; set_layout {sets?,shape?,arrangement?,caption?,discardIncompatible?}; shade_regions {masks,style:none|grey|hatch,mode:replace|add}; shade_expression {expression,style,mode}; clear_shading {}; set_print {widthCm?,fontPt?,lines?}. Expressions use A/B/C, union, intersection, complement and brackets. Lossy layout changes need the user's explicit discard request and discardIncompatible:true; never merge values.",
 };
 
 const fromConfig = (c: { capabilities: Record<string, unknown>; createDescription: string; reviseDescription: string }): FamilyGuide => ({

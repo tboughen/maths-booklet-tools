@@ -9,7 +9,7 @@ import { graphService } from "./server";
 import { sliceSvg, svgDeliveryResult, svgSha256, SVG_CHUNK_BYTES, SVG_RESPONSE_BYTES, SVG_FILE_BYTES, type SvgDelivery, type SvgDeliveryInput } from "./svg-delivery";
 import { receiveSvg } from "./svg-consumer";
 import { createGraph } from "../../packages/graph-core/src/interchange";
-import { create as createLegacyVenn } from "../../packages/venn-core/src/index";
+import { create as createVenn } from "../../packages/venn-core/src/index";
 
 const servers: Server[] = [], clients: Client[] = [];
 afterEach(async () => { await Promise.all(clients.splice(0).map(c => c.close())); await Promise.all(servers.splice(0).map(s => new Promise<void>(r => s.close(() => r())))); });
@@ -139,13 +139,13 @@ describe("real MCP SVG delivery with artifact downloads disabled in the consumer
     expect(result.body).toEqual(Buffer.from(original!, "utf8"));
     expect(result.chunks).toBeGreaterThan(1);
   }, 30000);
-  it("retains a legacy venn schema and exact SVG", async () => {
+  it("retains a saved venn envelope and exact SVG", async () => {
     const kind = "venn" as const;
     const { client } = await start();
-    const envelope = createLegacyVenn();
+    const envelope = createVenn();
     const before = JSON.stringify(envelope);
     const r = await call(client, { kind, envelope });
-    expect(r.rendererVersion).toBe("venn-1");
+    expect(r.rendererVersion).toBe("venn-2");
     const created = await client.callTool({ name: "create_venn", arguments: { envelope } });
     expect(created.isError).not.toBe(true);
     const url = (created.structuredContent as { downloads: { svg: { url: string } } }).downloads.svg.url;

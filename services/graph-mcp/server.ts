@@ -332,7 +332,7 @@ export function graphService(options: ServiceOptions) {
           valueGraphRendererVersion: "value-graph-1",
           cuboidRendererVersions: ["cuboids-2"],
           numberLineRendererVersion: "number-line-1",
-          vennRendererVersions: ["venn-1", "venn-2"],
+          vennRendererVersions: ["venn-2"],
           barModelRendererVersion: "bar-model-1",
           barModelRendererVersions: ["bar-model-1","bar-model-2","bar-model-3"],
             algebraGridRendererVersion: "algebra-grid-1",

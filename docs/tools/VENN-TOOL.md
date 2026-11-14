@@ -48,9 +48,9 @@ runtime dependencies or newly published question-bank assets.
 - Version 2 / venn-2 adds sets=1, arrangement (overlap|separate|b-inside-a|
   a-inside-b) and caption (off|relationship|line). Caption requires separate or
   nested two-set geometry; other counts use arrangement=overlap. Version 1
-  documents retain their format and exact legacy renderer in legacy.ts. New
-  structure/caption operations explicitly upgrade to version 2; ordinary edits
-  to version 1 keep version 1. Existing fixtures and card artwork are retained.
+  and its legacy renderer were removed on 14 November 2026 (no backwards
+  compatibility); its two- and three-set overlap artwork was byte-identical to
+  version 2's, so every example and fixture moved to version 2 unchanged.
 - Realizable masks: single 0,1; separate 0,1,2; B inside A 0,1,3;
   A inside B 0,2,3; overlap unchanged. Incompatible region data is rejected.
   activeMasks drives all editing, content, shading and expression choices.
@@ -102,8 +102,8 @@ runtime dependencies or newly published question-bank assets.
 
 ## Representation
 
-Envelope: tool=venn, schemaVersion=1, rendererVersion=venn-1.
-document has sets (2|3), shape, four labels (universe,A,B,C), eight regions,
+Envelope: tool=venn, schemaVersion=2, rendererVersion=venn-2.
+document has sets (1|2|3), arrangement, caption, shape, four labels (universe,A,B,C), eight regions,
 four definitions, showDefinitions, widthCm and fontPt. Every label has text
 and visibility (show|hidden|line). Every region has kind (empty|members|
 frequency|number|algebra|text), text, visibility and shade (none|grey|hatch).
