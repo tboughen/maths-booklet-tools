@@ -159,6 +159,7 @@ it("creates, downloads and revises exact saved resources with native print facts
   );
   expect(Object.keys(members).sort()).toEqual([
     "README.txt",
+    "diagram.pdf",
     "diagram.png",
     "diagram.svg",
     "print-info.json",

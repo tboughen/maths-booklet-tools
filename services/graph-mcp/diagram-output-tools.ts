@@ -11,6 +11,8 @@ import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { ARCHIVE_NAMES } from "./archive";
 import { FAMILIES, altText } from "../../packages/diagram-core/src/registry";
+import { diagramPage } from "../../packages/resource-core/src/diagram-page";
+import { assertVectorPdf } from "../../packages/resource-core/src/pdf-audit";
 import type { DownloadFormat } from "./downloads";
 import { registerSvgDelivery } from "./svg-delivery";
 import { toolFailure } from "./tool-error";
@@ -28,12 +30,19 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
     const svg = await artifacts(source, "svg", signal), png = await artifacts(source, "png", signal);
     const size = printRasterSize(info.physicalSizeCm.width, info.physicalSizeCm.height);
     verifyPrintBytes(png.body, size.width, size.height);
+    // M24: the diagram at 1:1 on the smallest A4 or A3 page that holds it, as a vector PDF.
+    const view = ("outputView" in source && source.outputView) || "pupil";
+    // Cuboids use the same measured crop as diagram.svg, diagram.png and the stated native size.
+    const art = source.kind === "cuboids" ? info.crop!.svg : FAMILIES[source.kind].svg(source.envelope, view);
+    const page = diagramPage(art, altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil")));
+    const pdf = await raster.worksheetPdf([page], `MathsDock ${FAMILIES[source.kind].label}`, signal);
+    await assertVectorPdf(pdf, [page]);
     const route = source.kind === "charts" ? "charts" : source.kind === "algebra-grid" ? "expanding-factorising" : source.kind === "value-graph" ? "value-table-graph" : source.kind;
     const members = {
       "source.json": Buffer.from(JSON.stringify(source.envelope, null, 2)),
-      "diagram.svg": svg.body, "diagram.png": png.body,
+      "diagram.svg": svg.body, "diagram.png": png.body, "diagram.pdf": Buffer.from(pdf),
       "print-info.json": Buffer.from(JSON.stringify({ kind: source.kind, physicalSizeCm: info.physicalSizeCm, printGuidance: info.printGuidance, ...(FAMILIES[source.kind].answerView ? {outputView: ("outputView" in source && source.outputView) || "pupil"} : {}), printDpi: 600 }, null, 2)),
-      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nAlt text (for Word or PowerPoint): ${altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"))}\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${FAMILIES[source.kind].answerView ? `Artwork view: ${("outputView" in source && source.outputView) || "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
+      "README.txt": Buffer.from(`MathsDock diagram files\n\n${PRINT_INSTRUCTIONS}\n\nNative size: ${info.physicalSizeCm.width} x ${info.physicalSizeCm.height} cm.\nAlt text (for Word or PowerPoint): ${altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"))}\ndiagram.pdf holds the diagram at actual size on the smallest A4 or A3 page that fits it; print at 100% (Actual size).\nSVG lettering is outlined; use source.json for mathematical edits.\nOpen source.json in https://mathsdock.co.uk/tools/${route}\n${FAMILIES[source.kind].answerView ? `Artwork view: ${("outputView" in source && source.outputView) || "pupil"}. source.json retains the saved pupil visibility and may contain hidden answers. Repeat outputView when regenerating answer artwork.\n` : ""}Blank cells and answer lines remain unfinished. Saving these files to a project is the consuming AI/user's action.\nTo obtain another download link, call download_diagram_bundle with the saved source envelope and kind '${source.kind}'. No server library is retained.\n`),
     };
     return { body: Buffer.from(await raster.pack(members, signal)), type: "application/zip" };
   }
@@ -50,7 +59,7 @@ export function diagramOutputTools(raster: RasterQueue, downloads: BundleDownloa
       } catch (error) { return failure(error); }
     });
     server.registerTool("download_diagram_bundle", {
-      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, print facts and README. Supply kind and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require an explicit revise_diagram conversion first.",
+      description: "Optionally download one existing diagram as ZIP containing editable JSON, outlined SVG, verified 600 ppi PNG, a vector PDF page at actual size (A4 or A3, M24), print facts and README. Supply kind and its returned envelope; no baseHash. Does not edit, save a library, or store a booklet. Links expire after seven days; repeat with saved source to refresh. The linked archive is generated on download, so verify retrieval before claiming success. Oversized links may use bounded inline ZIP; otherwise use individual files. Legacy graph fonts require an explicit revise_diagram conversion first.",
       inputSchema: diagramSourceSchema,
       outputSchema: z.object({
         kind: diagramKind,

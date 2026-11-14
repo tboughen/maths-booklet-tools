@@ -103,7 +103,7 @@ it("supports placement,bundles and original multi-chunk SVG without editing sour
   if (data.download) zip = Buffer.from(await (await fetch(data.download.url)).arrayBuffer());
   else { const block = (bundle.content as Array<{type:string;resource?:{blob:string}}>).find(v=>v.resource?.blob)!;zip=Buffer.from(block.resource!.blob,"base64"); }
   const members = unzipSync(zip);
-  expect(Object.keys(members).sort()).toEqual(["README.txt","diagram.png","diagram.svg","print-info.json","source.json"]);
+  expect(Object.keys(members).sort()).toEqual(["README.txt","diagram.pdf","diagram.png","diagram.svg","print-info.json","source.json"]);
   expect(JSON.parse(Buffer.from(members["source.json"]).toString("utf8"))).toEqual(source.envelope);
   const control = await artifact(r,"svg");
   const received = await receiveSvg(async input => {

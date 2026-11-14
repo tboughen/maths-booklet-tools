@@ -65,11 +65,12 @@ Native-size placement does not need a routine extra call or approval question.
 ## Optional source-and-artwork bundle
 
 Call `download_diagram_bundle` with `kind` and the exact returned `envelope`.
-It returns one ZIP with five fixed members:
+It returns one ZIP with six fixed members:
 
 - `source.json`: editable definition with stable IDs and pupil blanks.
 - `diagram.svg`: outlined vector artwork.
 - `diagram.png`: verified 600 ppi print PNG.
+- `diagram.pdf`: the diagram at 1:1 on the smallest A4 or A3 page that holds it inside 15 mm margins, as a vector PDF with embedded fonts, audited before it is packed (M24). It follows the requested `outputView`.
 - `print-info.json`: native size and print facts.
 - `README.txt`: placement, reopening and refresh instructions, and the pupil-safe alt text to paste into Word or PowerPoint (M16).
 
@@ -82,7 +83,7 @@ refreshes them without revising the mathematics.
 Sources too large for a signed URL can use an embedded `application/zip` resource
 up to 1 MiB raw. Larger inline archives return `bundle_unavailable`; use the
 existing individual download/resource route. Limits: 10 MiB output ZIP, 20 MiB
-combined member input, five fixed filenames, existing queue/timeout/child-heap
+combined member input, six fixed filenames, existing queue/timeout/child-heap
 constraints. ZIP STORE avoids compression work on the main event loop; packing
 runs in the bounded child. Inline output accounting includes base64 overhead.
 

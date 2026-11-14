@@ -219,7 +219,7 @@ line beside the arrow. Keep plain tables for tables of values and other non-rati
   the diagram at native size; they are not part of its definition or hash.
 - `check_diagram_placement` (kind, envelope, `widthMm` and/or `heightMm`) reports what a
   resize does to print size. `download_diagram_bundle` (kind, envelope) gives one ZIP with
-  JSON, SVG, print PNG and a README. Retrieve the archive before saying it worked. Call it
+  JSON, SVG, print PNG, an actual-size vector PDF and a README. Retrieve the archive before saying it worked. Call it
   again with the saved source to refresh an expired link; expired downloads for a single
   diagram can also be refreshed by revising the same returned document without changes.
   Legacy Graph fonts need the reported portable conversion before bundling. The website
