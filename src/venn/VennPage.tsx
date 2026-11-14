@@ -1,5 +1,9 @@
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -164,6 +168,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
+    answers = view === "answer",
+    answerSvg = renderSvg(forView(e, "answer")),
     g = layout(displayed),
     blocked = busy || recovery !== null || draft !== null || pending !== null;
   const fitted = useResourceFit(
@@ -171,7 +177,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     (g.height * 96) / 25.4,
     zoom,
   );
-  const issue = g.issues.join(" "),
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" "),
     note = warnings(e);
   const nested = d.sets === 2 && arrangement(e).includes("inside");
   function labelName(index: number) {
@@ -475,6 +481,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     }
   }
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main
@@ -506,7 +513,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               busy={busy}
               onCopy={() =>
                 void run(
-                  () => copyWord(displayed),
+                  () => copyWord(displayed, answers),
                   false,
                   "Copied for Word at " +
                     formatResourceSize(g.width / 10, g.height / 10) +
@@ -514,7 +521,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 )
               }
               onCopyClipboard={() =>
-                void run(() => copyPngToClipboard(() => printPng(displayed)))
+                void run(() => copyPngToClipboard(() => printPng(displayed, answers)))
               }
               menuId="venn-downloads"
               menuOpen={menu}
@@ -530,19 +537,20 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
                 svg: {
-                  action: () => downloadImage(displayed, "svg", view === "answer"),
+                  action: () => downloadImage(displayed, "svg", answers),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
                 png: {
-                  action: () => downloadImage(displayed, "png", view === "answer"),
+                  action: () => downloadImage(displayed, "png", answers),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
                 pdf: {
-                  action: () => downloadImage(displayed, "pdf"),
+                  action: () => downloadImage(displayed, "pdf", answers),
                   disabled: blocked || !!issue,
                   success: "PDF download started.",
                 },
@@ -567,6 +575,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -630,7 +639,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               >
                 <div
                   className="vn-art"
-                  dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }}
+                  dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, answers) }}
                 />
                 {activeMasks(e).map((mask) => {
                   const p = g.anchors[mask];

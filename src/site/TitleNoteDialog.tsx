@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useMenuDialog } from "./menuDialog";
 import { NOTE_MAX, TITLE_MAX, type About } from "../../packages/envelope-core/src/about";
 
 /** The "Title and note" dialog (U34); `useTitleNote` opens it. */
@@ -7,42 +8,7 @@ export function TitleNoteDialog(props: { about: About; disabled?: boolean; error
   const [note, setNote] = useState(props.about.note ?? "");
   const box = useRef<HTMLElement>(null);
   const id = useId();
-  const cancel = useRef(props.onCancel);
-  cancel.current = props.onCancel;
-  useEffect(() => {
-    const previous = document.activeElement;
-    // After the File menu has closed and handed focus back, so the title field keeps it.
-    const start = window.setTimeout(() => box.current?.querySelector<HTMLInputElement>("input")?.focus());
-    function keys(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        cancel.current();
-      }
-      if (event.key !== "Tab") return;
-      const controls = box.current?.querySelectorAll<HTMLElement>("input, textarea, button:not(:disabled)");
-      if (!controls?.length) return;
-      const first = controls[0],
-        last = controls[controls.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-    window.addEventListener("keydown", keys);
-    return () => {
-      window.clearTimeout(start);
-      window.removeEventListener("keydown", keys);
-      // Back to where the teacher was: the File menu item has gone with the menu, so its File button.
-      const target =
-        previous instanceof HTMLElement && previous.isConnected
-          ? previous
-          : Array.from(document.querySelectorAll<HTMLElement>("button.file-menu-button")).find((b) => b.offsetParent !== null);
-      target?.focus();
-    };
-  }, []);
+  useMenuDialog(box, props.onCancel);
   return (
     <div className="word-help-backdrop">
       <section ref={box} role="dialog" aria-modal="true" aria-labelledby={`${id}-heading`} className="word-help-dialog title-note-dialog">

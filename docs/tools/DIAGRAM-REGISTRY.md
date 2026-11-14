@@ -157,6 +157,9 @@ an L-shaped leader.
 - `FAMILIES[kind].svg(envelope, "answer")` draws them, so worksheets, booklets, the connector's
   files, bundles and get_diagram_svg all show the same notes. Families without an answers copy
   (tables of values and graphs, cuboids) refuse a `worked` list until they have one.
+- In the website, "Worked notes…" in the File menu edits them in the tools with an answers copy
+  (ratio tables, Venn, charts, probability and frequency trees, two-way tables, constructions and
+  elevations); see `docs/tools/BOOKLET-CONSISTENCY.md`.
 - They take part in the contentHash and survive every revision through `aboutOf`
   (`packages/diagram-core/src/worked.test.ts`).
 

@@ -16,6 +16,8 @@ export function diagramFileMenu(items: {
   both?: FileMenuItem;
   /** "Title and note…" (U34): from `useTitleNote`. */
   about: FileMenuItem;
+  /** "Worked notes…" (U116): from `useWorkedNotes`, for tools with an answers copy. */
+  worked?: FileMenuItem;
   save: FileMenuItem;
   open: FileMenuItem;
   link: FileMenuItem;
@@ -34,6 +36,7 @@ export function diagramFileMenu(items: {
       ? [{ ...items.both, label: "Download pupil and answers (ZIP)", description: "SVG and PNG of both copies. The view on screen does not change." }]
       : []),
     { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
+    ...(items.worked ? [{ ...items.worked, label: "Worked notes…", description: "Dark-pink guidance on the answers copy only." }] : []),
     { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },
     { picker: true, ...items.open, label: "Open editable file" },
     { ...items.link, label: "Copy editable link", description: LINK_DESCRIPTION },

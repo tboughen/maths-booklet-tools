@@ -1,5 +1,9 @@
 import { useTitleNote } from "../site/TitleNote";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
 import { houseRatio } from "./house";
@@ -124,7 +128,9 @@ export default function RatioTablePage({
   const envelope = history.present,
     document = envelope.document,
     metrics = ratioMetrics(document),
-    warnings = ratioWarnings(envelope);
+    warnings = ratioWarnings(envelope),
+    answerSvg = renderRatioSvg(document, "answer"),
+    notesIssue = workedIssue(answerSvg, envelope);
   const exportDisabled = !!recovery || busy || pendingInputs.size > 0;
   const onInputPending = useCallback(
     (key: string, value: boolean) =>
@@ -487,6 +493,7 @@ export default function RatioTablePage({
       ? selection.column
       : document.headings.length - 1;
   const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(envelope), size: answerSize(answerSvg), disabled: exportDisabled, onSave: (notes) => commit(withWorkedNotes(envelope, notes), WORKED_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
@@ -603,6 +610,7 @@ export default function RatioTablePage({
               onMessage={setMessage}
               actions={diagramFileMenu({
                 about: titleNote.item,
+                worked: worked.item,
                 svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
@@ -622,12 +630,12 @@ export default function RatioTablePage({
                   ? {
                       svg: {
                         action: () => downloadRatioImage(envelope, "svg", "answer"),
-                        disabled: exportDisabled,
+                        disabled: exportDisabled || !!notesIssue,
                         success: "Answers SVG download started.",
                       },
                       png: {
                         action: () => downloadRatioImage(envelope, "png", "answer"),
-                        disabled: exportDisabled,
+                        disabled: exportDisabled || !!notesIssue,
                         success: "Answers PNG download started.",
                       },
                     }
@@ -635,7 +643,7 @@ export default function RatioTablePage({
                 both: hasRatioAnswers(envelope)
                   ? {
                       action: () => downloadRatioBoth(envelope),
-                      disabled: exportDisabled,
+                      disabled: exportDisabled || !!notesIssue,
                       success: "Pupil and answers ZIP download started.",
                     }
                   : undefined,
@@ -666,6 +674,7 @@ export default function RatioTablePage({
               })}
             />
             {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               className="sr-only"
@@ -834,6 +843,13 @@ export default function RatioTablePage({
                 }
               />
             </fieldset>
+            {notesIssue && (
+              <section className="panel-card ratio-warnings" role="alert">
+                <h2>Fix the worked notes</h2>
+                <p>{notesIssue}</p>
+                <p>The answers copy cannot be downloaded until they fit. Change them from File, Worked notes.</p>
+              </section>
+            )}
             {warnings.length > 0 && (
               <section className="panel-card ratio-warnings">
                 <h2>Check the maths</h2>
