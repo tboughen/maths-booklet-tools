@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -282,6 +285,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
     }, "change view");
   }
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor ev-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -319,6 +323,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: { action: () => downloadImage(e, "svg", view), disabled: blocked || !!issue, success: "SVG download started." },
                 png: { action: () => downloadImage(e, "png", view), disabled: blocked || !!issue, success: "PNG download started." },
                 pdf: { action: () => downloadImage(e, "pdf", view), disabled: blocked || !!issue, success: "PDF download started." },
@@ -327,6 +332,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
                 link: { action: () => navigator.clipboard.writeText(elevationsLink(e, location.href)), disabled: blocked, success: "Editable link copied." },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"

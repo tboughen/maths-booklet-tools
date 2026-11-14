@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
   useRef,
@@ -333,6 +336,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor ch-editor">
       <main
@@ -386,6 +390,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
@@ -421,6 +426,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 },
               })}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               type="file"

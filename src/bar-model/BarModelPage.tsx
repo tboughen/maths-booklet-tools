@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useRef, useState } from "react";
 import * as c from "../../packages/bar-model-core/src";
@@ -356,7 +359,9 @@ export default function BarModelPage({
       },
     });
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const actions = diagramFileMenu({
+                about: titleNote.item,
     svg: {
       disabled: blocked || !!issue,
       action: () => downloadImage(e, "svg"),
@@ -522,6 +527,7 @@ export default function BarModelPage({
               onMessage={setMessage}
               onBusyChange={setBusy}
             />
+            {titleNote.dialog}
             <input
               ref={file}
               aria-label="Open bar model file"
