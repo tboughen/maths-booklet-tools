@@ -310,3 +310,20 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - ratio table: ratio-simple (worked): json 3560c4e3f60144d3 -> dbd0b8e1c472f7ed
 - ratio table: ratio-worked: json e895ae5f535ef595 -> 501b6d028824888b
 - ratio table: ratio-worked (worked): json e895ae5f535ef595 -> 501b6d028824888b
+
+## 2026-11-14: Venn schema 1 removed (no backwards compatibility): examples saved as schema 2; artwork bytes unchanged, only the editable JSON hash moves
+
+- venn: venn-2017: json d8cc264daf26ecb9 -> 4335173964a154f6
+- venn: venn-2017 (worked): json 4768bed58a3eaa75 -> 0c647330c5d76cdd
+- venn: venn-2018: json 2ede9098b574e600 -> ae67cf8ce155083f
+- venn: venn-2018 (worked): json 6aff256ae3368fd0 -> 4f54c797377528e3
+- venn: venn-2019: json aefeaf07c3898c9c -> 0da63ac7b83073b3
+- venn: venn-2019 (worked): json eb5590ce3a15504a -> a99b404bafe17122
+- venn: venn-algebra: json 8afc0f42fafaf13d -> a8817cd6c5575c2f
+- venn: venn-algebra (worked): json 8afc0f42fafaf13d -> a8817cd6c5575c2f
+- venn: venn-films: json c3d88d3d988240dd -> 9dcff321cc6b230f
+- venn: venn-films (worked): json c3d88d3d988240dd -> 9dcff321cc6b230f
+- venn: venn-languages: json 4657efc4599f3ea2 -> c2881893f5b7addd
+- venn: venn-languages (worked): json 55559d57a9c16e4e -> b9088bbb766cd463
+- venn: venn-shading: json 5fa1e9ce8a83057a -> e746bd34238ec502
+- venn: venn-shading (worked): json 5fa1e9ce8a83057a -> e746bd34238ec502

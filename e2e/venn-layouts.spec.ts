@@ -6,9 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { Resvg } from "@resvg/resvg-js";
 import {
   create,
-  createExtended,
   changeArrangement,
-  upgrade,
   canonical,
   activeMasks,
   geometry,
@@ -141,7 +139,7 @@ test("one-set count change starts blank only after confirmation and Undo recover
 test("one-set default complement and absent-set errors; impossible intersection feedback", async ({
   page,
 }) => {
-  await boot(page, createExtended(1));
+  await boot(page, create(1));
   await page.getByRole("button", { name: "Shade", exact: true }).click();
   await page
     .getByRole("button", { name: "Shade a set expression", exact: true })
@@ -178,9 +176,7 @@ test("one-set default complement and absent-set errors; impossible intersection 
 test("caption choices, nested label edits, view export and editable-file presentation preservation", async ({
   page,
 }) => {
-  const e = upgrade(
-    teachingExamples.find((x) => x.id === "nested")!.make(false),
-  );
+  const e = teachingExamples.find((x) => x.id === "nested")!.make(false);
   e.document.regions[1].visibility = "line";
   await boot(page, e);
   const original = canonical(await saved(page));
@@ -242,7 +238,7 @@ for (const ex of teachingExamples)
     context,
   }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-    const e = upgrade(ex.make(true));
+    const e = ex.make(true);
     if (e.document.arrangement !== "overlap")
       e.document.caption = "relationship";
     await boot(page, e);
@@ -374,7 +370,7 @@ for (const value of ["one", "separate", "b-inside-a", "a-inside-b"] as const)
   }) => {
     let e: Envelope =
       value === "one"
-        ? createExtended(1)
+        ? create(1)
         : changeArrangement(create(), value as Arrangement);
     for (const shape of ["circles", "ovals"] as const)
       for (const mask of activeMasks(e)) {
@@ -462,13 +458,13 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
   ).toBeChecked();
   expect(await saved(page)).toEqual(e);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  expect((await saved(page)).schemaVersion).toBe(1);
+  expect((await saved(page)).schemaVersion).toBe(2);
 });
 
 test("answer-view label overflow is retained and correctable without exposing pupil answers", async ({
   page,
 }) => {
-  const e = upgrade(changeArrangement(create(), "b-inside-a"));
+  const e = changeArrangement(create(), "b-inside-a");
   e.document.labels[2] = {
     text: "ABCDEFGHIJKLMNOPQRSTUVWX",
     visibility: "hidden",
@@ -505,7 +501,7 @@ test("answer-view label overflow is retained and correctable without exposing pu
 test("actual 40-member nested exports fit around both labels in circles and ovals", async ({
   page,
 }) => {
-  const e = upgrade(changeArrangement(create(), "b-inside-a"));
+  const e = changeArrangement(create(), "b-inside-a");
   e.document.widthCm = 16;
   e.document.fontPt = 10;
   e.document.definitions = [
@@ -553,9 +549,7 @@ test("actual 40-member nested exports fit around both labels in circles and oval
 test("single Nested choice reopens reverse-nested files exactly and label edits preserve every region", async ({
   page,
 }) => {
-  const e = upgrade(
-    teachingExamples.find((x) => x.id === "reverse-nested")!.make(false),
-  );
+  const e = teachingExamples.find((x) => x.id === "reverse-nested")!.make(false);
   e.document.caption = "relationship";
   e.document.regions[2].shade = "hatch";
   const original = canonical(e);
@@ -627,7 +621,7 @@ test("combined Examples has teaching first, all six verified source links and no
     .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  expect((await saved(page)).schemaVersion).toBe(1);
+  expect((await saved(page)).schemaVersion).toBe(2);
   await showExamples(page);
   await card
     .getByRole("button", { name: "Use this example", exact: true })

@@ -50,14 +50,14 @@ describe("worked-solution notes on every answers copy (U116)", () => {
     const f = FAMILIES.venn;
     for (const name of readdirSync(join(corpus, "venn")).filter((n) => n.endsWith(".json"))) {
       const raw = JSON.parse(readFileSync(join(corpus, "venn", name), "utf8")) as { schemaVersion: number; document: { sets: number } };
-      if (raw.schemaVersion !== 1) continue;
+      if (raw.document.sets === 1) continue;
       const noted = f.validate({ ...raw, worked, title: "Sets" }, "pupil");
       const sets = raw.document.sets === 3 ? 2 : 3;
       const revised = await f.revise({ envelope: noted, baseHash: await f.hash(noted), operations: [{ op: "set_layout", sets }] });
       expect(revised, name).toMatchObject({ worked, title: "Sets" });
       return;
     }
-    throw Error("No schema version 1 Venn fixture.");
+    throw Error("No two- or three-set Venn fixture.");
   });
 
   it("rejects text that is too long, padded or multi-line", () => {
