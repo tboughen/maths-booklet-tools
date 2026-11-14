@@ -55,6 +55,20 @@ describe("MCP tool metadata (M4, M10, M17, M18)", () => {
     }
     expect(new Set(tools.map((t) => t.title)).size).toBe(tools.length);
   });
+  it("gives every tool an output schema and the capabilities tools structured replies (M13)", async () => {
+    const client = await start();
+    const tools = (await client.listTools()).tools;
+    expect(tools.filter((t) => !t.outputSchema).map((t) => t.name)).toEqual([]);
+    for (const args of [{}, { kind: "graph" }]) {
+      const caps = await client.callTool({ name: "diagram_capabilities", arguments: args });
+      expect(caps.isError).toBeFalsy();
+      expect(caps.structuredContent).toEqual(JSON.parse((caps.content as { text: string }[])[0].text));
+    }
+    const sheet = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
+    expect(sheet.isError).toBeFalsy();
+    expect((sheet.structuredContent as { rendererVersion: string }).rendererVersion).toBe("worksheet-a3-1");
+    expect(sheet.structuredContent).toEqual(JSON.parse((sheet.content as { text: string }[])[0].text));
+  });
   it("accepts create_graph without schemaVersion and create_ratio_table with no arguments", async () => {
     const client = await start();
     const graph = await client.callTool({ name: "create_graph", arguments: { objects: [] } });
