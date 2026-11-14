@@ -19,12 +19,12 @@ export async function printPng(e: Envelope) {
   verifyPrintBytes(new Uint8Array(await png.arrayBuffer()), size.width, size.height);
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg", answers = false) {
   downloadBlob(
     format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], { type: "image/svg+xml;charset=utf-8" }),
-    downloadName("probability-tree", format, { resource: e }),
+    downloadName("probability-tree", format, { resource: e, answers }),
   );
 }
 export function downloadEditable(e: Envelope) {

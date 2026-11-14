@@ -498,12 +498,12 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onMessage={setMessage}
               actions={diagramFileMenu({
                 svg: {
-                  action: () => downloadImage(displayed, "svg"),
+                  action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
                 png: {
-                  action: () => downloadImage(displayed, "png"),
+                  action: () => downloadImage(displayed, "png", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },

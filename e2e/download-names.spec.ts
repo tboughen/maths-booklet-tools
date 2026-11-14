@@ -14,3 +14,14 @@ for (const tool of toolIds) {
     }
   });
 }
+
+for (const tool of ["venn", "charts", "probability-tree", "frequency-tree"]) {
+  test(`${tool}: the teacher copy's download says "answers"`, async ({ page }) => {
+    await page.goto(`/tools/${tool}`);
+    await page.getByRole("checkbox", { name: /answers/i }).filter({ visible: true }).first().check();
+    await page.getByRole("button", { name: "File", exact: true }).click();
+    const download = page.waitForEvent("download");
+    await page.getByRole("menuitem", { name: "Download SVG", exact: true }).click();
+    expect((await download).suggestedFilename()).toMatch(new RegExp(`^mathsdock-${tool}-([a-z0-9-]+-)?answers-\\d{4}-\\d{2}-\\d{2}\\.svg$`));
+  });
+}

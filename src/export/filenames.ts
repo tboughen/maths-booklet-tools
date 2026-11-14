@@ -2,7 +2,9 @@
  * One naming rule for every download (improvement item U33):
  * mathsdock-<tool>-<short content>-<date>.<ext>, for example mathsdock-triangle-1ma1-jun-2018-1h-q4-2026-11-14.png.
  * The short content is the resource's title when it has one, otherwise its source question; it is left out when
- * there is neither. Teacher copies add "answers". File contents never change.
+ * there is neither. Today only expanding-factorising, triangle and bar-model documents carry a source question;
+ * the resource title every tool will save (U34) arrives with the shared envelope rework and is read here.
+ * Teacher copies add "answers". File contents never change.
  */
 import type { ToolId } from "../site/routes";
 

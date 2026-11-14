@@ -1032,7 +1032,7 @@ export default function LessonBarModelPage({
                             ],
                             { type: "application/json" },
                           ),
-                          "bar-model-original-data.json",
+                          downloadName("bar-model", "json", { content: "original", recovery: true }),
                         );
                         expected.current = localStorage.getItem(storageKey);
                         setRecovery(undefined);

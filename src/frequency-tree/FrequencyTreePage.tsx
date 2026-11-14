@@ -333,8 +333,8 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
-                svg: { action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                png: { action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
+                svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
                 save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
                 open: { action: () => file.current?.click(), disabled: blocked, success: "" },
                 link: {

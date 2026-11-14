@@ -36,14 +36,14 @@ export async function printPng(e: Envelope) {
   );
   return png;
 }
-export async function downloadImage(e: Envelope, format: "png" | "svg") {
+export async function downloadImage(e: Envelope, format: "png" | "svg", answers = false) {
   downloadBlob(
     format === "png"
       ? await printPng(e)
       : new Blob([(await prepareImage(e)).svg], {
           type: "image/svg+xml;charset=utf-8",
         }),
-    downloadName("venn", format, { resource: e }),
+    downloadName("venn", format, { resource: e, answers }),
   );
 }
 export function downloadEditable(e: Envelope) {
