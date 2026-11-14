@@ -32,17 +32,17 @@
   },
   "algebra grid: algebra-decimal": {
    "json": "20fbae154a624f57",
-   "svg": "598e36aef4fea9f4",
-   "mm": "39x39",
-   "png600": "921x921",
-   "pixels": "cfa32e638ff96393"
+   "svg": "018682f38cc791e7",
+   "mm": "39x31.5",
+   "png600": "921x744",
+   "pixels": "f7a793cbac86c465"
   },
   "algebra grid: algebra-decimal (worked)": {
    "json": "fc4064851c5c36af",
-   "svg": "fda4d7736f154696",
-   "mm": "39x50",
-   "png600": "921x1181",
-   "pixels": "426475d13f4d69bd"
+   "svg": "61aeb195d4c75711",
+   "mm": "39x42.5",
+   "png600": "921x1004",
+   "pixels": "af1741c5109bd28d"
   },
   "algebra grid: algebra-double": {
    "json": "73528044ff6dbf2b",
@@ -88,17 +88,17 @@
   },
   "algebra grid: algebra-numeric": {
    "json": "6c3c9a64149e1e9a",
-   "svg": "2593502be3e80f12",
-   "mm": "39x39",
-   "png600": "921x921",
-   "pixels": "e73c6823809611c9"
+   "svg": "73f02511b9c8f630",
+   "mm": "39x31.5",
+   "png600": "921x744",
+   "pixels": "9baff6f16819fbd1"
   },
   "algebra grid: algebra-numeric (worked)": {
    "json": "fc031c04fff48457",
-   "svg": "9296a92abd973de6",
-   "mm": "39x50",
-   "png600": "921x1181",
-   "pixels": "8cf8d9ec64b8727f"
+   "svg": "e8377cee0a7073c4",
+   "mm": "39x42.5",
+   "png600": "921x1004",
+   "pixels": "b202353bba390da8"
   },
   "algebra grid: algebra-signed": {
    "json": "596bbbdc6c863b69",
