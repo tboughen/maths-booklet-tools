@@ -13,8 +13,8 @@ import {
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
@@ -680,44 +680,38 @@ export default function LessonBarModelPage({
               menuId="bar-model-v2-files"
             />
             <EditorDownloadMenu
+              wordHelp
               id="bar-model-v2-files"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onMessage={setMessage}
               onBusyChange={setBusy}
-              actions={[
-                {
-                  label: "Download PNG (600 ppi)",
-                  action: () => downloadImage(e, "png"),
-                  disabled: blocked || !!issue,
-                },
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                 },
-                {
-                  label: "Save editable file",
+                png: {
+                  action: () => downloadImage(e, "png"),
+                  disabled: blocked || !!issue,
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                 },
-                {
-                  label: "Copy editable link",
-                  description: LINK_DESCRIPTION,
+                open: {
+                  action: () => file.current?.click(),
+                  disabled: blocked,
+                },
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(api.editorLink(e, location.origin)),
                     ),
                   disabled: blocked || !!issue,
                 },
-                {
-                  label: "Open editable file",
-                  action: () => file.current?.click(),
-                  picker: true,
-                  disabled: blocked,
-                },
-              ]}
+              })}
             />
             <input
               ref={file}

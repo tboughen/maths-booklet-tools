@@ -8,8 +8,8 @@ import { PreviewControls } from "../site/PreviewControls";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -753,27 +753,25 @@ export default function NumberLinePage({
               </p>
             )}
             <EditorDownloadMenu
+              wordHelp
               id="number-line-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(history.present, "png"),
                   disabled: blocked,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([canonical(history.present)], {
@@ -783,17 +781,13 @@ export default function NumberLinePage({
                     ),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () => {
                     const raw = editorLink(
                       history.present,
@@ -808,9 +802,8 @@ export default function NumberLinePage({
                   },
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
