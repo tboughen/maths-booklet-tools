@@ -41,6 +41,7 @@
     "@google/genai": "2.31.0",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@resvg/resvg-js": "2.6.2",
+    "@resvg/resvg-wasm": "2.6.2",
     "fflate": "0.8.3",
     "harfbuzzjs": "1.6.4",
     "lucide-react": "^0.468.0",

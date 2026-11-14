@@ -3,7 +3,8 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { PDFDocument } from "pdf-lib";
 import { a7Booklet } from "../packages/resource-core/src/booklet-fixtures";
-import type { Booklet } from "../packages/resource-core/src/index";
+import { singleLessonBooklet, type Booklet } from "../packages/resource-core/src/index";
+import { bookletDocx } from "../services/graph-mcp/worksheet-docx";
 
 const key = "maths-booklet-tools:booklet:v1";
 const out = resolve("test-results/booklet-artifacts");
@@ -75,6 +76,32 @@ test("downloads the A4 booklet and one lesson as vector PDFs", async ({ page }) 
   expect(lesson.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Lesson 2_A4.pdf");
   await lesson.saveAs(resolve(out, "lesson.pdf"));
   expect((await PDFDocument.load(readFileSync(resolve(out, "lesson.pdf")))).getPageCount()).toBe(7);
+});
+
+test("downloads the booklet and one lesson as Word files identical to the connector's", async ({ page }) => {
+  // The page writes Word files with the connector's writer and the same resvg version (as WebAssembly),
+  // so a teacher gets the same bytes from the website as from a chat.
+  test.setTimeout(90_000);
+  await boot(page, a7Booklet);
+  const roots = { text: resolve("assets/resource-fonts"), diagrams: resolve("assets/graph-fonts") };
+  const version = "MathsDock booklet renderer, Word output 1";
+  await page.getByRole("button", { name: "File" }).click();
+  const [answers] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: "Download answers Word file" }).click()]);
+  expect(answers.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Booklet_Answers_A4.docx");
+  await answers.saveAs(resolve(out, "answers.docx"));
+  const expected = await bookletDocx(a7Booklet, "answers", roots, version);
+  expect(Buffer.compare(readFileSync(resolve(out, "answers.docx")), Buffer.from(expected.bytes))).toBe(0);
+  expect(expected.pages).toBe(11);
+
+  await page.locator("details.bk-lesson").nth(1).locator(":scope > summary").click();
+  const lessonWord = page.getByRole("group", { name: "Lesson 2" }).getByRole("button", { name: "Lesson Word" });
+  const [lesson] = await Promise.all([page.waitForEvent("download"), lessonWord.click()]);
+  expect(lesson.suggestedFilename()).toBe("A7_Algebraic proficiency visualising_Lesson 2_A4.docx");
+  await lesson.saveAs(resolve(out, "lesson.docx"));
+  const one = singleLessonBooklet(a7Booklet, 1);
+  const lessonExpected = await bookletDocx(one.booklet, "pupil", roots, version, one.numbering);
+  expect(Buffer.compare(readFileSync(resolve(out, "lesson.docx")), Buffer.from(lessonExpected.bytes))).toBe(0);
+  expect(lessonExpected.pages).toBe(7);
 });
 
 test("plans a unit and writes each lesson with the teacher's own Claude key, then undoes it", async ({ page }) => {

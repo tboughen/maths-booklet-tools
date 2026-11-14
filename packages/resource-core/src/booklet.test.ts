@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { a7Booklet, exampleLessonSource } from "./booklet-fixtures";
-import { bookletFileName, renderBooklet, styles, validateBooklet, type Booklet } from "./index";
+import { bookletFileName, renderBooklet, singleLessonBooklet, styles, validateBooklet, type Booklet } from "./index";
 
 const clone = (b: Booklet) => structuredClone(b);
 const frames = (svg: string) => svg.match(/<rect x="0.15" y="0.15" width="[\d.]+" height="[\d.]+"/g);
 
 describe("A4 booklet renderer", () => {
+  it("draws exactly the pages it drew before the shared page plan", () => {
+    // Hashes of the printed SVG pages from the renderer before planBooklet (main ff82863). The PDF
+    // pages and the Word files are both made from the plan, so any change here moves printed pages:
+    // update these only for a deliberate change to the printed booklet.
+    const sha = (pages: string[]) => createHash("sha256").update(pages.join("\n")).digest("hex");
+    const unit = clone(a7Booklet);
+    const [a, b] = a7Booklet.document.lessons;
+    unit.document.lessons = Array.from({ length: 12 }, (_, i) => ({ ...structuredClone(i % 2 ? b : a), title: `${(i % 2 ? b : a).title} (${i + 1})`, code: `A7.${String(i + 1).padStart(2, "0")}` }));
+    const one = singleLessonBooklet(a7Booklet, 1);
+    expect(sha(renderBooklet(a7Booklet).pages)).toBe("66f85e9f74a801a38e6e61ab8b05aeb175430fe687cdd7381d07c8cb46fbe890");
+    expect(sha(renderBooklet(a7Booklet, { view: "answers" }).pages)).toBe("0eb57e6089f0874bdd0e793c2744c04d0670a08885f6329ce04dafb597009ce6");
+    expect(sha(renderBooklet(one.booklet, { view: "answers", numbering: one.numbering }).pages)).toBe("2ee20b368fe52a7b35752d437d669aef37dbfae4060b07259dc62337ac318c82");
+    const whole = renderBooklet(unit);
+    expect(whole.pages.length).toBe(56);
+    expect(sha(whole.pages)).toBe("310e2b6bd9a8227e01061b9d520346ac9dae3ee6d3baba242ef5ebee0ceaf452");
+  });
+
   it("lays out the example on A4 pages with a cover, an introduction and lessons on fresh pages", () => {
     for (const view of ["pupil", "answers"] as const) {
       const r = renderBooklet(a7Booklet, { view });

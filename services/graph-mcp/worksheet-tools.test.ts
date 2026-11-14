@@ -7,7 +7,7 @@ import type { Server } from "node:http";
 import { PDFDocument } from "pdf-lib";
 import { graphService } from "./server";
 import { WorksheetDownloads } from "./worksheet-tools";
-import { memoryDocumentStore } from "./document-store";
+import { memoryDocumentStore, type DocumentStore } from "./document-store";
 import { inflateSync, strFromU8, unzipSync } from "fflate";
 import { comparativeBarCharts, treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
@@ -26,13 +26,13 @@ afterEach(async () => {
   await Promise.all(clients.splice(0).map((c) => c.close()));
   await Promise.all(servers.splice(0).map((s) => new Promise<void>((r) => s.close(() => r()))));
 });
-async function start() {
+async function start(documentStore?: DocumentStore) {
   const reservation = createServer();
   await new Promise<void>((r) => reservation.listen(0, "127.0.0.1", r));
   const port = (reservation.address() as { port: number }).port;
   await new Promise<void>((r) => reservation.close(() => r()));
   const base = `http://127.0.0.1:${port}`,
-    server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: key }, activeKey: "test" });
+    server = graphService({ publicUrl: base, editorUrl: "https://mathsdock.co.uk/", keys: { test: key }, activeKey: "test", documentStore });
   servers.push(server);
   await new Promise<void>((r) => server.listen(port, "127.0.0.1", r));
   const client = new Client({ name: "worksheet-acceptance", version: "1" });
@@ -155,10 +155,10 @@ describe("worksheet tools", () => {
     expect(answers.xml).toContain(">Walk<");
   });
 
-  it("refuses a Word link for a booklet", async () => {
+  it("signs Word links for booklets too", async () => {
     const downloads = new WorksheetDownloads("http://127.0.0.1", { test: key }, "test");
     const link = downloads.link(renderable(a7Booklet), "docx", "pupil");
-    await expect(downloads.verify(new URL(link.url))).rejects.toThrow("Invalid worksheet token.");
+    await expect(downloads.verify(new URL(link.url))).resolves.toMatchObject({ format: "docx", view: "pupil" });
   });
 
   it("reports overflow as issues instead of shrinking text", async () => {
@@ -199,8 +199,24 @@ type BookletReply = {
   issues: { lesson: number; message: string }[];
   files: Record<string, string>;
   downloads: Record<string, { url: string }>;
-  lessons: { lesson: number; title: string; firstPage: number; pupilPdf?: { url: string }; answersPdf?: { url: string } }[];
+  lessons: { lesson: number; title: string; firstPage: number; pupilPdf?: { url: string }; answersPdf?: { url: string }; pupilDocx?: { url: string }; answersDocx?: { url: string } }[];
 };
+const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+/** A booklet Word file: its pages (one per page-opening paragraph), first page number and parts. */
+async function bookletWord(url: string) {
+  const res = await fetch(url);
+  expect(res.status).toBe(200);
+  expect(res.headers.get("content-type")).toBe(DOCX);
+  const files = unzipSync(new Uint8Array(await res.arrayBuffer()));
+  const xml = strFromU8(files["word/document.xml"]);
+  return {
+    disposition: res.headers.get("content-disposition") ?? "",
+    files,
+    xml,
+    pages: (xml.match(/<w:pageBreakBefore\/>/g) ?? []).length + 1,
+    start: Number(xml.match(/<w:pgNumType w:start="(\d+)"\/>/)?.[1]),
+  };
+}
 
 describe("booklet tool", () => {
   it("produces previews, whole-booklet files and a PDF link for every lesson", async () => {
@@ -217,11 +233,13 @@ describe("booklet tool", () => {
     expect(content.filter((c) => c.type === "image")).toHaveLength(3);
     const bookletText = (r.content as { type: string; text?: string }[]).filter((c) => c.type === "text").map((c) => c.text).join("\n");
     for (const link of Object.values(reply.downloads)) expect(bookletText).toContain((link as { url: string }).url);
-    for (const lesson of reply.lessons) if (lesson.pupilPdf) expect(bookletText).toContain(lesson.pupilPdf.url);
+    for (const lesson of reply.lessons) for (const link of [lesson.pupilPdf, lesson.answersPdf, lesson.pupilDocx, lesson.answersDocx]) if (link) expect(bookletText).toContain(link.url);
 
-    // The whole booklet is either a link or an included file, for each of the three outputs.
+    // The whole booklet is either a link or an included file, for each of the five outputs.
     const included = content.filter((c) => c.type === "resource").map((c) => c.resource!);
-    expect(Object.keys(reply.downloads).length + included.length).toBe(3);
+    expect(Object.keys(reply.downloads).length + included.length).toBe(5);
+    expect(reply.files.pupilDocx).toBe("A7_Algebraic proficiency visualising_Booklet_A4.docx");
+    expect(reply.files.answersDocx).toBe("A7_Algebraic proficiency visualising_Booklet_Answers_A4.docx");
     const wholePupil = reply.downloads.pupilPdf
       ? new Uint8Array(await (await fetch(reply.downloads.pupilPdf.url)).arrayBuffer())
       : Buffer.from(included.find((f) => f.mimeType === "application/pdf")!.blob!, "base64");
@@ -229,6 +247,20 @@ describe("booklet tool", () => {
     expect(pdf.getPageCount()).toBe(full.pages.length);
     expect(pdf.getPage(0).getWidth()).toBeCloseTo((210 * 72) / 25.4, 1);
     expect(pdf.getPage(0).getHeight()).toBeCloseTo((297 * 72) / 25.4, 1);
+
+    // The Word files have the PDF's pages: A4 portrait, a fixed page per planned page, the cover
+    // without a footer, and saved answers only in the answers file.
+    const pupilWord = await bookletWord(reply.downloads.pupilDocx.url);
+    const answersWord = await bookletWord(reply.downloads.answersDocx.url);
+    expect(pupilWord.disposition).toContain(".docx");
+    expect(pupilWord.xml).toMatch(/<w:pgSz w:w="11906" w:h="16838"\/>/);
+    expect(pupilWord.pages).toBe(full.pages.length);
+    expect(answersWord.pages).toBe(full.pages.length);
+    expect(pupilWord.start).toBe(1);
+    expect(pupilWord.xml).toContain("<w:titlePg/>");
+    expect(Object.keys(pupilWord.files).filter((f) => f.endsWith(".odttf"))).toHaveLength(3);
+    expect(pupilWord.xml).not.toContain("B0125B");
+    expect(answersWord.xml).toContain("B0125B");
 
     expect(reply.lessons.map((l) => l.firstPage)).toEqual(full.lessonPages);
     for (const [i, lesson] of reply.lessons.entries()) {
@@ -238,9 +270,16 @@ describe("booklet tool", () => {
         expect(res.headers.get("content-disposition")).toContain(encodeURIComponent(`_Lesson ${i + 1}`));
         const one = await PDFDocument.load(new Uint8Array(await res.arrayBuffer()));
         expect(one.getPageCount()).toBe(lessonPagesOf(a7Booklet, i, { view }).pages.length);
+        // The lesson's Word file: its pages, numbered from the lesson's first page, no cover.
+        const word = await bookletWord(lesson[`${view}Docx`]!.url);
+        expect(word.disposition).toContain(encodeURIComponent(`_Lesson ${i + 1}`));
+        expect(word.disposition).toContain(".docx");
+        expect(word.pages).toBe(one.getPageCount());
+        expect(word.start).toBe(lesson.firstPage);
+        expect(word.xml).not.toContain("<w:titlePg/>");
       }
     }
-  }, 60_000);
+  }, 90_000);
 
   it("makes no files and names the place when a lesson does not fit", async () => {
     const { client } = await start();
@@ -262,9 +301,14 @@ describe("booklet tool", () => {
     doc.document.lessons = [];
     expect((await client.callTool({ name: "create_booklet", arguments: { booklet: doc } })).isError).toBe(true);
     const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test");
-    // Numbering is only valid on a one-lesson PDF.
+    // Numbering is only valid on a one-lesson PDF or Word file.
     const forged = new URL(d.link(a7Booklet, "pdf", "pupil", 1_000_000, { lessonOffset: 1, pageOffset: 3 }).url);
     await expect(d.verify(forged, 1_000_000)).rejects.toThrow(/token/);
+    const one = renderable({ ...a7Booklet, document: { ...a7Booklet.document, intro: null, lessons: [a7Booklet.document.lessons[1]] } });
+    const json = new URL(d.link(one, "json", "pupil", 1_000_000, { lessonOffset: 1, pageOffset: 3 }).url);
+    await expect(d.verify(json, 1_000_000)).rejects.toThrow(/token/);
+    const word = new URL(d.link(one, "docx", "answers", 1_000_000, { lessonOffset: 1, pageOffset: 3 }).url);
+    await expect(d.verify(word, 1_000_000)).resolves.toMatchObject({ format: "docx", numbering: { lessonOffset: 1, pageOffset: 3 } });
   });
 
   it("takes a whole 11-lesson unit in one call and links its whole-booklet files from the store", async () => {
@@ -280,14 +324,26 @@ describe("booklet tool", () => {
     expect(reply.printReady).toBe(true);
     // No files are pushed into the reply; every output is a link.
     expect((r.content as { type: string }[]).some((c) => c.type === "resource")).toBe(false);
-    expect(Object.keys(reply.downloads).sort()).toEqual(["answersPdf", "json", "pupilPdf"]);
+    expect(Object.keys(reply.downloads).sort()).toEqual(["answersDocx", "answersPdf", "json", "pupilDocx", "pupilPdf"]);
     // Too big to carry, so the link names the stored copy.
     expect(reply.downloads.pupilPdf.url.length).toBeLessThan(600);
     const pdf = await PDFDocument.load(new Uint8Array(await (await fetch(reply.downloads.pupilPdf.url)).arrayBuffer()));
     expect(pdf.getPageCount()).toBe(reply.pages);
     expect(await (await fetch(reply.downloads.json.url)).json()).toEqual(renderable(doc));
     expect(reply.lessons).toHaveLength(11);
-    expect(reply.lessons.every((l) => l.pupilPdf && l.answersPdf)).toBe(true);
+    expect(reply.lessons.every((l) => l.pupilPdf && l.answersPdf && l.pupilDocx && l.answersDocx)).toBe(true);
+    // This store does not survive a restart, so each lesson travels in its own link and keeps
+    // working after one (the durable-store test checks the short stored lesson links).
+    expect(Math.min(...reply.lessons.map((l) => l.pupilDocx!.url.length))).toBeGreaterThan(600);
+    const tokenOf = (url: string) => JSON.parse(new TextDecoder().decode(inflateSync(Buffer.from(new URL(url).searchParams.get("token")!, "base64url"))));
+    expect(reply.lessons.every((l) => tokenOf(l.pupilDocx!.url).ref === undefined && tokenOf(l.answersPdf!.url).ref === undefined)).toBe(true);
+    const whole = await bookletWord(reply.downloads.pupilDocx.url);
+    expect(whole.pages).toBe(reply.pages);
+    const last = reply.lessons[10];
+    const word = await bookletWord(last.answersDocx!.url);
+    expect(word.disposition).toContain(encodeURIComponent("_Lesson 11"));
+    expect(word.start).toBe(last.firstPage);
+    expect(word.pages).toBe(reply.pages - last.firstPage + 1);
 
     // Other tools keep the 64 KiB limit.
     const big = structuredClone(treeDiagrams) as unknown as { document: { title: string } };
@@ -323,6 +379,24 @@ describe("booklet tool", () => {
     await expect(fallback.verify(inline, 1_000_000)).resolves.toMatchObject({ format: "pdf" });
   });
 
+  it("gives short booklet and lesson links from a durable store, saving the booklet once", async () => {
+    const store = memoryDocumentStore();
+    let puts = 0;
+    const { client } = await start({ ...store, durable: true, put: (id: string, text: string, ttl: number) => (puts++, store.put(id, text, ttl)) });
+    const r = await client.callTool({ name: "create_booklet", arguments: { booklet: a7Booklet } }, undefined, { timeout: 120_000 });
+    expect(r.isError, JSON.stringify(r.content).slice(0, 400)).not.toBe(true);
+    const reply = r.structuredContent as unknown as BookletReply;
+    expect(puts).toBe(1);
+    const all = [...Object.values(reply.downloads), ...reply.lessons.flatMap((l) => [l.pupilPdf, l.answersPdf, l.pupilDocx, l.answersDocx])] as { url: string }[];
+    expect(all).toHaveLength(13);
+    expect(Math.max(...all.map((l) => l.url.length))).toBeLessThan(600);
+    const second = reply.lessons[1];
+    const word = await bookletWord(second.pupilDocx!.url);
+    expect(word.start).toBe(second.firstPage);
+    const pdf = await PDFDocument.load(new Uint8Array(await (await fetch(second.answersPdf!.url)).arrayBuffer()));
+    expect(pdf.getPageCount()).toBe(word.pages);
+  }, 180_000);
+
   it("refuses a stored-document link that was tampered with or has gone", async () => {
     const store = memoryDocumentStore();
     const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", store);
@@ -333,5 +407,21 @@ describe("booklet tool", () => {
     await expect(d.verify(link, 1_000_000)).rejects.toThrow(/token/);
     const empty = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", memoryDocumentStore());
     await expect(empty.verify(link, 1_000_000)).rejects.toThrow(/no longer available/);
+  });
+
+  it("prints one lesson of a stored booklet, numbered as in the booklet, and saves the booklet once", async () => {
+    const store = memoryDocumentStore();
+    let puts = 0;
+    const counting = { ...store, durable: store.durable, put: (id: string, text: string, ttl: number) => (puts++, store.put(id, text, ttl)) };
+    const d = new WorksheetDownloads("http://127.0.0.1:1/", { test: key }, "test", counting);
+    const link = new URL((await d.storedLink(a7Booklet, "docx", "answers", 1_000_000, 1)).url);
+    await d.storedLink(a7Booklet, "pdf", "pupil", 1_000_000);
+    expect(puts).toBe(1);
+    const got = await d.verify(link, 1_000_000);
+    expect(got).toMatchObject({ format: "docx", view: "answers", numbering: { lessonOffset: 1, pageOffset: renderBooklet(a7Booklet).lessonPages[1] - 2 } });
+    expect((got.resource as typeof a7Booklet).document.lessons).toHaveLength(1);
+    // A lesson the booklet does not have, or a lesson of the editable file, is refused.
+    await expect(d.verify(new URL((await d.storedLink(a7Booklet, "docx", "pupil", 1_000_000, 5)).url), 1_000_000)).rejects.toThrow(/token/);
+    await expect(d.verify(new URL((await d.storedLink(a7Booklet, "json", "pupil", 1_000_000, 0)).url), 1_000_000)).rejects.toThrow(/token/);
   });
 });

@@ -66,7 +66,7 @@ export const WORD_FOOT_MM = 3;
  */
 export const WORD_INLINE_FRACTION = 8 / 11;
 /** The paragraph Word requires after a nested table: 1 pt high. */
-const END_MM = 0.36;
+export const END_MM = 0.36;
 /**
  * An answer row is two exact rows in Word: the writing row, whose bottom border is the answer
  * line, and the space below the line. Word draws a 0.3 mm bottom border with its centre about
@@ -87,22 +87,22 @@ const FRAC_WORD_LIFT = 1.4;
 /** The thin space either side of a Word fraction, as a share of the text size (see fraction()). */
 const WORD_FRACTION_PAD = 0.55;
 
-const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
+export const tw = (mm: number) => Math.round((mm * 1440) / 25.4);
 const emu = (mm: number) => Math.round(mm * 36000);
 /** Font size in half-points from a size in millimetres. */
 const hp = (mm: number) => Math.round((mm / 0.3528) * 2);
 /** Border width in eighths of a point from millimetres (Word allows 2 to 96). */
 const b8 = (mm: number) => Math.max(2, Math.min(96, Math.round((mm / 0.3528) * 8)));
-const hex = (c: string) => c.replace("#", "").toUpperCase();
-const x = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const lineBox = (size: number) => size * S.lineHeight;
+export const hex = (c: string) => c.replace("#", "").toUpperCase();
+export const x = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export const lineBox = (size: number) => size * S.lineHeight;
 
-const FONT = "Inter";
-const FONT_BOLD = "Inter SemiBold";
+export const FONT = "Inter";
+export const FONT_BOLD = "Inter SemiBold";
 
 // ---------------------------------------------------------------- runs and paragraphs
 
-interface RunStyle {
+export interface RunStyle {
   bold?: boolean;
   italic?: boolean;
   color?: string;
@@ -123,8 +123,8 @@ function rPr(o: RunStyle): string {
   if (o.shade) p.push(`<w:shd w:val="clear" w:color="auto" w:fill="${hex(o.shade)}"/>`);
   return p.length ? `<w:rPr>${p.join("")}</w:rPr>` : "";
 }
-const run = (text: string, o: RunStyle = {}) => `<w:r>${rPr(o)}<w:t xml:space="preserve">${x(text)}</w:t></w:r>`;
-const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
+export const run = (text: string, o: RunStyle = {}) => `<w:r>${rPr(o)}<w:t xml:space="preserve">${x(text)}</w:t></w:r>`;
+export const tab = (o: RunStyle = {}) => `<w:r>${rPr(o)}<w:tab/></w:r>`;
 /**
  * A stacked fraction as a native Word equation, so a teacher can change it with Word's equation
  * editor. Its parts are "normal text" in the sheet's own font (Inter), not Cambria Math, so the
@@ -149,7 +149,7 @@ function fraction(f: { num: string; den: string }, o: RunStyle): string {
   return `<m:oMath>${pad}<m:f><m:num>${part(f.num)}</m:num><m:den>${part(f.den)}</m:den></m:f>${pad}</m:oMath>`;
 }
 /** Marked-up text (**bold**, *italic*, and {3/4} with maths notation on) as Word runs. */
-const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false) =>
+export const runs = (source: string, o: RunStyle = {}, base: Run["style"] = "regular", maths = false) =>
   parseRuns(source, base, maths)
     .map((r) => (r.frac ? fraction(r.frac, o) : run(r.text, { ...o, bold: o.bold || r.style === "bold", italic: o.italic || r.style === "italic" })))
     .join("");
@@ -169,7 +169,7 @@ function mathRuns(source: string, o: RunStyle, boxed: boolean): string {
   return `<m:oMath>${boxed ? `<m:borderBox><m:e>${inner}</m:e></m:borderBox>` : inner}</m:oMath>`;
 }
 
-interface ParaStyle {
+export interface ParaStyle {
   /** Exact line height in millimetres; omitted = exact body line. */
   line?: number;
   /** Auto line spacing (pictures). */
@@ -182,15 +182,18 @@ interface ParaStyle {
   right?: number;
   hanging?: number;
   align?: "left" | "center" | "right";
-  tabs?: { pos: number; align?: "left" | "right"; leader?: "underscore" }[];
+  tabs?: { pos: number; align?: "left" | "right"; leader?: "underscore" | "dot" }[];
   borderLeft?: { color: string; width: number; space: number };
   keep?: boolean;
+  /** Start a new page here (each booklet page opens with one; Word never chooses the break). */
+  pageBreakBefore?: boolean;
   /** Paragraph mark size (affects the height of empty and picture paragraphs). */
   markMm?: number;
 }
-function para(content: string, o: ParaStyle = {}): string {
+export function para(content: string, o: ParaStyle = {}): string {
   const p: string[] = [];
   if (o.keep) p.push("<w:keepLines/>");
+  if (o.pageBreakBefore) p.push("<w:pageBreakBefore/>");
   if (o.borderLeft) p.push(`<w:pBdr><w:left w:val="single" w:sz="${b8(o.borderLeft.width)}" w:space="${Math.round(o.borderLeft.space / 0.3528)}" w:color="${hex(o.borderLeft.color)}"/></w:pBdr>`);
   if (o.tabs?.length)
     p.push(`<w:tabs>${o.tabs.map((t) => `<w:tab w:val="${t.align ?? "left"}"${t.leader ? ` w:leader="${t.leader}"` : ""} w:pos="${tw(t.pos)}"/>`).join("")}</w:tabs>`);
@@ -205,16 +208,16 @@ function para(content: string, o: ParaStyle = {}): string {
   return `<w:p><w:pPr>${p.join("")}</w:pPr>${content}</w:p>`;
 }
 /** An empty paragraph exactly `mm` high: gaps between items, and the end of a cell. */
-const gap = (mm: number, left = 0) => para("", { line: Math.max(mm, 0.36), markMm: 0.36, left });
+export const gap = (mm: number, left = 0) => para("", { line: Math.max(mm, 0.36), markMm: 0.36, left });
 /**
  * Space at the end of a cell. Word does not print the last paragraph of a cell when it follows a
  * nested table (layout probe P4, real Word, 11 November 2026), so the space is two paragraphs.
  */
-const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
+export const endGap = (mm: number) => gap(mm - END_MM) + gap(END_MM);
 
 // ---------------------------------------------------------------- tables
 
-interface CellOpts {
+export interface CellOpts {
   width: number;
   span?: number;
   borders?: Partial<Record<"top" | "left" | "bottom" | "right", { color: string; width: number }>>;
@@ -222,7 +225,7 @@ interface CellOpts {
   margin?: Partial<Record<"top" | "left" | "bottom" | "right", number>>;
   vAlign?: "top" | "center" | "bottom";
 }
-function cell(content: string, o: CellOpts): string {
+export function cell(content: string, o: CellOpts): string {
   const p: string[] = [`<w:tcW w:w="${tw(o.width)}" w:type="dxa"/>`];
   if (o.span && o.span > 1) p.push(`<w:gridSpan w:val="${o.span}"/>`);
   const sides = ["top", "left", "bottom", "right"] as const;
@@ -241,10 +244,10 @@ function cell(content: string, o: CellOpts): string {
   const body = content.endsWith("</w:p>") ? content : content + gap(END_MM);
   return `<w:tc><w:tcPr>${p.join("")}</w:tcPr>${body}</w:tc>`;
 }
-const row = (cells: string[], height?: { mm: number; exact?: boolean }, cantSplit = false) =>
+export const row = (cells: string[], height?: { mm: number; exact?: boolean }, cantSplit = false) =>
   `<w:tr><w:trPr>${cantSplit ? "<w:cantSplit/>" : ""}${height ? `<w:trHeight w:val="${tw(height.mm)}" w:hRule="${height.exact ? "exact" : "atLeast"}"/>` : ""}</w:trPr>${cells.join("")}</w:tr>`;
 /** A fixed-layout table with zero cell margins unless a cell sets its own. */
-function table(grid: number[], rows: string[], indent = 0): string {
+export function table(grid: number[], rows: string[], indent = 0): string {
   const total = grid.reduce((a, b) => a + b, 0);
   return (
     `<w:tbl><w:tblPr><w:tblW w:w="${tw(total)}" w:type="dxa"/><w:tblInd w:w="${tw(indent)}" w:type="dxa"/>` +
@@ -261,12 +264,14 @@ interface Media {
   name: string;
   bytes: Uint8Array;
 }
-interface WordCtx extends Ctx<{ side: number; column: number; question?: number }> {
+/** Word layout state: the SVG layout's, plus the pictures the file needs. `where` locates issues. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface WordCtx<W extends object = any> extends Ctx<W> {
   media: Media[];
   rels: { id: string; target: string; type: string }[];
   pictures: { svg: string; widthMm: number; heightMm: number; id: number; png: string; vector: string; alt: string }[];
 }
-function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): string {
+export function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): string {
   let drawn: ReturnType<typeof drawDiagram>;
   try {
     drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
@@ -380,7 +385,11 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
   const natural = item.columns.map((head, j) => Math.max(cellWidth(head, true), ...item.rows.map((r) => cellWidth(r[j]?.text ?? ""))) + 5);
   const total = natural.reduce((a, b) => a + b, 0);
   if (total > w + 0.01) ctx.issues.push({ ...ctx.where, message: `A table needs ${Math.round((total - w) * 100) / 100} mm more width than the column has.` });
-  const widths = natural.map((v) => (v * w) / total);
+  // Booklets keep a table at its natural width (cells at least 14 mm), every cell centred, as the
+  // SVG layout does; worksheets stretch it across the column.
+  const roomy = natural.map((v) => Math.max(v, 14));
+  const compact = !!ctx.compactTables && roomy.reduce((a, b) => a + b, 0) <= w;
+  const widths = compact ? roomy : natural.map((v) => (v * w) / total);
   const rule = { color: st.rule, width: 0.35 };
   const border = { top: rule, left: rule, bottom: rule, right: rule };
   const rowXml = (texts: { text: string; bold?: boolean; color?: string }[], h: number, head: boolean) =>
@@ -388,7 +397,7 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
       texts.map((t, j) =>
         cell(
           para(t.text ? runs(shown(t.text), { bold: t.bold, color: t.color }, "regular", maths) : "", {
-            align: j === 0 ? "left" : "center",
+            align: j === 0 && !compact ? "left" : "center",
             // A stacked fraction needs the whole row as its line.
             ...(answerHasFraction(t.text, maths) ? { line: h - 0.2 } : {}),
           }),
@@ -397,7 +406,7 @@ function dataTable(item: Extract<Leaf, { type: "table" }>, w: number, indent: nu
           borders: border,
           shade: head ? st.tableHead : undefined,
           vAlign: "center",
-          margin: { left: j === 0 ? 2 : 0.5, right: 0.5 },
+          margin: { left: j === 0 && !compact ? 2 : 0.5, right: 0.5 },
           },
         ),
       ),
@@ -460,7 +469,11 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
     const g2: number[] = [];
     for (let j = 0; j < perRow; j++) {
       const i = start + j;
-      const cw = (slot || widths[i] || slot) + (j < perRow - 1 ? 6 : 0);
+      // Each option's text gets WORD_WRAP_SLACK_MM more than measured, as card text does: from the
+      // gap before the next option, or, for the last, from the card's own slack. Without it a
+      // one-word option exactly as wide as its slot wrapped below its letter (LibreOffice, 13 November 2026).
+      const last = j === perRow - 1;
+      const cw = (slot || widths[i] || slot) + (last ? WORD_WRAP_SLACK_MM : 6);
       g2.push(cw);
       if (i >= item.options.length) {
         cells.push(cell(gap(END_MM), { width: cw }));
@@ -474,7 +487,7 @@ function choice(item: Extract<Leaf, { type: "choice" }>, w: number, indent: numb
       cells.push(
         cell(para(letter + tab() + mt(item.options[i], ctx), { left: 2 * r + g, hanging: 2 * r + g, grow: grows(ctx, item.options[i]) }) + foot, {
           width: cw,
-          margin: { top: start ? 1.6 : 0, right: j < perRow - 1 ? 6 : 0 },
+          margin: { top: start ? 1.6 : 0, right: last ? 0 : 6 - WORD_WRAP_SLACK_MM },
         }),
       );
     }
@@ -600,6 +613,16 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
 
 /** One framed question card: a bordered single-cell table, pinned to at least `height`. */
 function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra: number, height: number): Block {
+  const cw = w - CARD_RULE;
+  return table([cw], [row([cardCell(c, number, w, ctx, extra)], { mm: height - 2 * CARD_RULE })]);
+}
+/** A card's frame width, and how much narrower and shorter than its layout box Word's card cell is. */
+export const CARD_RULE = 0.45;
+/**
+ * The bordered cell of a question card laid out `w` wide. Its row's minimum height must be the
+ * card's height less two borders (`CARD_RULE`); the cell is one border narrower than `w`.
+ */
+export function cardCell(c: Card, number: number | null, w: number, ctx: WordCtx, extra: number): string {
   const st = ctx.st,
     pad = S.cardPad;
   const inner = w - pad * 2;
@@ -626,7 +649,7 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
           ],
         );
   if (plainWidth(c.title, S.cardTitle, "bold") > inner - (number === null ? 0 : S.tile + 2.8)) ctx.issues.push({ ...ctx.where, message: "The card title is wider than the card." });
-  const rule = { color: st.rule, width: 0.45 };
+  const rule = { color: st.rule, width: CARD_RULE };
   // The card's top and bottom padding are exact empty paragraphs, not cell margins: Word adds a
   // cell's top and bottom margins to a minimum row height (real-Word check, 11 November 2026),
   // which made every card about 5.5 mm taller than the layout.
@@ -635,22 +658,12 @@ function wordCard(c: Card, number: number | null, w: number, ctx: WordCtx, extra
   // right border outside the cell, where the column cell cuts it off (probes P9 and P10). So the
   // card is one border narrower and two borders shorter, and its outside matches the SVG card.
   const cw = w - rule.width;
-  return table(
-    [cw],
-    [
-      row(
-        [
-          cell(body, {
-            width: cw,
-            borders: { top: rule, left: rule, bottom: rule, right: rule },
-            // The padding paragraphs give the top and bottom borders' width back.
-            margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
-          }),
-        ],
-        { mm: height - 2 * rule.width },
-      ),
-    ],
-  );
+  return cell(body, {
+    width: cw,
+    borders: { top: rule, left: rule, bottom: rule, right: rule },
+    // The padding paragraphs give the top and bottom borders' width back.
+    margin: { top: 0, left: pad, bottom: 0, right: pad - rule.width - WORD_WRAP_SLACK_MM },
+  });
 }
 
 // ---------------------------------------------------------------- page
@@ -838,10 +851,60 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
   const sect =
     `<w:sectPr><w:pgSz w:w="${tw(P.width)}" w:h="${tw(P.height)}" w:orient="landscape"/>` +
     `<w:pgMar w:top="${tw(S.margin)}" w:right="${tw(S.margin)}" w:bottom="${tw(S.margin - WORD_FOOT_MM)}" w:left="${tw(S.margin)}" w:header="0" w:footer="0" w:gutter="0"/><w:cols w:space="0"/><w:docGrid w:linePitch="360"/></w:sectPr>`;
-  // The page settings are the body's own last child. Inside a paragraph they would end a section
-  // there, and Word would start another at its default (A4 portrait) size for the rest of the body.
-  const last = `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>`;
-  const document = `${XML}<w:document ${NS}><w:body>${sides[0]}${pageBreak}${sides[1]}${last}${sect}</w:body></w:document>`;
+  const doc = resource.document;
+  const bytes = await writePackage({
+    body: `${sides[0]}${pageBreak}${sides[1]}${LAST_PARAGRAPH}${sect}`,
+    ctx,
+    options,
+    title: `${doc.title}${view === "answers" ? " (answers)" : ""}`,
+    subject: [doc.code, doc.objective].filter(Boolean).join(" "),
+    keywords: ["MathsDock worksheet", doc.code, doc.group, view === "answers" ? "answers" : "pupil"].filter(Boolean).join("; "),
+    description: `Made by MathsDock from the worksheet source. Edit the source and remake this file to keep the pupil and answer copies in step.`,
+    pages: 2,
+  });
+  return { bytes, issues };
+}
+
+/**
+ * The body's closing paragraph. The page settings are the body's own last child, after it. Inside a
+ * paragraph they would end a section there, and Word would start another at its default (A4
+ * portrait) size for the rest of the body.
+ */
+export const LAST_PARAGRAPH = `<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>`;
+
+/** A part beside the document, such as a footer, with its relationship from the document. */
+export interface ExtraPart {
+  /** Path inside word/, e.g. "footer1.xml". */
+  name: string;
+  id: string;
+  /** Relationship type, after the officeDocument relationships namespace, e.g. "footer". */
+  relType: string;
+  contentType: string;
+  xml: string;
+}
+/** The document element's namespaces, for parts such as footers. */
+export const WORD_NAMESPACES = NS;
+export const XML_HEAD = XML;
+
+/**
+ * Packs a document body (ending with its section settings) into a .docx: pictures as outlined
+ * SVG with a PNG fallback, Inter embedded and obfuscated, fixed dates so the same source always
+ * makes the same bytes.
+ */
+export async function writePackage(o: {
+  body: string;
+  ctx: WordCtx;
+  options: DocxOptions;
+  title: string;
+  subject: string;
+  keywords: string;
+  description: string;
+  pages: number;
+  parts?: ExtraPart[];
+}): Promise<Uint8Array> {
+  const { ctx, options } = o;
+  const st = ctx.st;
+  const document = `${XML}<w:document ${NS}><w:body>${o.body}</w:body></w:document>`;
 
   // Pictures: outlined SVG plus PNG fallback.
   const files: Record<string, Uint8Array> = {};
@@ -850,6 +913,7 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
     `<Relationship Id="rIdSettings" Type="${REL}/settings" Target="settings.xml"/>`,
     `<Relationship Id="rIdFonts" Type="${REL}/fontTable" Target="fontTable.xml"/>`,
   ];
+  for (const p of o.parts ?? []) docRels.push(`<Relationship Id="${p.id}" Type="${REL}/${p.relType}" Target="${p.name}"/>`);
   for (const p of ctx.pictures) {
     const made = await options.picture(p.svg, p.widthMm, p.heightMm);
     files[`word/media/diagram${p.id}.png`] = made.png;
@@ -890,16 +954,14 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
     `<m:mathPr><m:mathFont m:val="Cambria Math"/><m:smallFrac m:val="0"/><m:dispDef/><m:lMargin m:val="0"/><m:rMargin m:val="0"/><m:defJc m:val="left"/><m:intLim m:val="subSup"/><m:naryLim m:val="undOvr"/></m:mathPr>` +
     `</w:settings>`;
 
-  const doc = resource.document;
-  const title = `${doc.title}${view === "answers" ? " (answers)" : ""}`;
   const core =
     XML +
     `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">` +
-    `<dc:title>${x(title)}</dc:title><dc:subject>${x([doc.code, doc.objective].filter(Boolean).join(" "))}</dc:subject><dc:creator>MathsDock</dc:creator>` +
-    `<cp:keywords>${x(["MathsDock worksheet", doc.code, doc.group, view === "answers" ? "answers" : "pupil"].filter(Boolean).join("; "))}</cp:keywords>` +
-    `<dc:description>${x(`Made by MathsDock from the worksheet source. Edit the source and remake this file to keep the pupil and answer copies in step.`)}</dc:description>` +
+    `<dc:title>${x(o.title)}</dc:title><dc:subject>${x(o.subject)}</dc:subject><dc:creator>MathsDock</dc:creator>` +
+    `<cp:keywords>${x(o.keywords)}</cp:keywords>` +
+    `<dc:description>${x(o.description)}</dc:description>` +
     `${options.version ? `<cp:version>${x(options.version)}</cp:version>` : ""}</cp:coreProperties>`;
-  const app = `${XML}<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>MathsDock</Application><Pages>2</Pages></Properties>`;
+  const app = `${XML}<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>MathsDock</Application><Pages>${o.pages}</Pages></Properties>`;
 
   files["[Content_Types].xml"] = strToU8(
     XML +
@@ -911,6 +973,7 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
       `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>` +
       `<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>` +
       `<Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"/>` +
+      (o.parts ?? []).map((p) => `<Override PartName="/word/${p.name}" ContentType="${p.contentType}"/>`).join("") +
       `<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>` +
       `<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`,
   );
@@ -925,17 +988,18 @@ export async function writeWorksheetDocx(resource: Resource, options: DocxOption
   files["word/styles.xml"] = strToU8(stylesXml(st));
   files["word/settings.xml"] = strToU8(settings);
   files["word/fontTable.xml"] = strToU8(fontTable);
+  for (const p of o.parts ?? []) files[`word/${p.name}`] = strToU8(p.xml);
   files["word/_rels/document.xml.rels"] = strToU8(`${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${docRels.join("")}</Relationships>`);
   files["word/_rels/fontTable.xml.rels"] = strToU8(`${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${fontRels.join("")}</Relationships>`);
   files["docProps/core.xml"] = strToU8(core);
   files["docProps/app.xml"] = strToU8(app);
 
-  // A fixed date keeps the bytes the same for the same worksheet.
+  // A fixed date keeps the bytes the same for the same source.
   const mtime = new Date(Date.UTC(2026, 0, 1));
   const ordered = ["[Content_Types].xml", "_rels/.rels", ...Object.keys(files).filter((k) => k !== "[Content_Types].xml" && k !== "_rels/.rels").sort()];
   const zip: Record<string, [Uint8Array, { mtime: Date; level: 0 | 6 }]> = {};
   for (const k of ordered) zip[k] = [files[k], { mtime, level: k.endsWith(".png") ? 0 : 6 }];
-  return { bytes: zipSync(zip), issues };
+  return zipSync(zip);
 }
 
 /** The guide's file name with a .docx extension: [code]_[objective]_A3.docx, _Answers before _A3. */

@@ -2,7 +2,8 @@
 
 The Booklets page (`/booklets`, its own section of the site) makes an A4 portrait unit booklet, one
 lesson per scheme-of-work objective, with the teacher's own AI key. Every question stays editable,
-and the page downloads pupil and answers PDFs for the whole booklet or one lesson. Code:
+and the page downloads pupil and answers PDFs and Word files for the whole booklet or one lesson
+(Word files: `docs/content/WORD-OUTPUT.md`). Code:
 `src/booklet/` (page, editor, AI) and `packages/resource-core/src/booklet*.ts` (schema, layout).
 
 ## The booklet document
@@ -100,8 +101,13 @@ The outline beside the preview edits everything: cover and introduction, each le
 teacher notes, sections (kind, cards per row, heading, instruction, order) and cards (order, move
 between sections, duplicate, delete, every item field). Edits are undoable (60 steps), the booklet
 is saved on the device, and the File menu saves and opens editable `.json` files. Layout problems
-show in the Checks panel with the lesson and card they belong to, and PDFs are refused until they
-are fixed.
+show in the Checks panel with the lesson and card they belong to, and PDFs and Word files are refused
+until they are fixed.
+
+The File menu also downloads the pupil and answers Word files, and each lesson has a Lesson Word
+button beside Lesson PDF. The page writes them with the connector's own writer and the same resvg
+version compiled to WebAssembly (`src/export/word.ts`, loaded only when a Word file is first asked
+for), so the website and a chat give byte-identical files.
 
 ## Tests
 
@@ -109,8 +115,10 @@ are fixed.
 `src/booklet/ai/booklet-ai.test.ts` checks the prompts stay stable, the lesson checks (schema
 paths, layout problems in millimetres, no answers on pupil diagrams), placeholders and structural
 edits. `e2e/booklet.spec.ts` (`npx playwright test --project=booklet`) edits and undoes the example,
-downloads the booklet and one lesson as vector PDFs, plans and writes a unit against a mocked Claude
-stream, and refuses a worksheet file.
+downloads the booklet and one lesson as vector PDFs and as Word files (checked byte for byte against
+the connector's writer), plans and writes a unit against a mocked Claude stream, and refuses a
+worksheet file. `packages/resource-core/src/docx.test.ts` checks the booklet Word files' pages,
+page numbers, pinned rows and footers, and its answer canary covers the example booklet.
 
 ## Connector tool
 
@@ -123,7 +131,8 @@ about 88 KB for 11 lessons.
 cover and the first page of up to three lessons, the layout issues (lesson, section, question and
 page), and, only when the booklet fits:
 
-- whole-booklet pupil PDF, answers PDF and editable JSON as signed seven-day links. A small
+- whole-booklet pupil PDF, answers PDF, pupil and answers Word files and editable JSON as signed
+  seven-day links. A small
   booklet travels inside its link; a whole unit is too big for that, so the service keeps it for
   eight days in Cloudflare Workers KV (the namespace the daily byte counter uses, keys
   `graph-mcp-document:<sha256>`) and the link names its hash, which is checked again on download.
@@ -131,7 +140,11 @@ page), and, only when the booklet fits:
   pushed into the reply, so a unit costs no extra chat tokens;
 - a pupil and an answers PDF link for every lesson. Each carries a one-lesson booklet plus
   numbering offsets, so the lesson prints exactly as it does in the full booklet, with the same
-  lesson and page numbers. A lesson too large for a link is named in the reply.
+  lesson and page numbers. A lesson too large for a link is named in the reply;
+- a pupil and an answers Word link for every lesson, numbered the same way. When the whole booklet
+  is kept in the store, a lesson's Word link names the stored booklet and the lesson (about 400
+  characters), so twelve lessons add little to the reply; the service saves the booklet once per
+  reply.
 
 The output schema gives the returned booklet as a plain object rather than repeating its schema,
 which keeps the tool list about 12 KB smaller.

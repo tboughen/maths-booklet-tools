@@ -76,7 +76,7 @@ const rect = (x: number, y: number, w: number, h: number, attrs: string) => `<re
 const hline = (x1: number, x2: number, y: number, st: HouseStyle, width = 0.3) => `<line x1="${n(x1)}" y1="${n(y)}" x2="${n(x2)}" y2="${n(y)}" stroke="${st.rule}" stroke-width="${width}"/>`;
 
 /** Fits a single line by cutting it with an ellipsis; only used for running headers and footers. */
-function fitLine(s: string, size: number, width: number, style: FontStyle = "regular") {
+export function fitLine(s: string, size: number, width: number, style: FontStyle = "regular") {
   if (plainWidth(s, size, style) <= width) return s;
   let t = s;
   while (t.length > 1 && plainWidth(t + "…", size, style) > width) t = t.slice(0, -1);
@@ -304,14 +304,42 @@ function introPage(doc: Booklet["document"], intro: Intro, st: HouseStyle, issue
   return out.join("");
 }
 
-export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
+/** A block placed on a page: its top and height after spare height is shared out, in millimetres. */
+export type PlacedBlock =
+  | { kind: "head"; y: number; h: number }
+  | { kind: "section"; section: number; continued: boolean; y: number; h: number }
+  | { kind: "row"; section: number; cards: { index: number; number: number | null }[]; y: number; h: number; natural: number };
+/** One printed lesson page of the plan. */
+export interface PlannedLessonPage {
+  /** 1-based lesson. */
+  lesson: number;
+  continued: boolean;
+  /** The printed page number in the full booklet. */
+  pageNo: number;
+  /** Extra height given to each working or drawing space on this page. */
+  extra: number;
+  blocks: PlacedBlock[];
+}
+/**
+ * The booklet's page plan: which blocks go on which page, where, and how tall. The SVG pages and
+ * the Word file are both drawn from it, so they break pages in the same places.
+ */
+export interface BookletPlan {
+  pages: PlannedLessonPage[];
+  lessonPages: number[];
+  introPage: number | null;
+  contents: { label: string; title: string; page: number }[];
+}
+/** The continued-page running header: lesson number and title, a hairline, then the content. */
+export const CONTINUED_HEAD = 9;
+export const CONTINUED_RULE = 5.6;
+
+export function planBooklet(booklet: Booklet, options: Pick<BookletRenderOptions, "numbering" | "view" | "style"> = {}): BookletPlan {
   const doc = booklet.document;
   const st = styles[options.style ?? "mathsdock"];
-  const view = options.view ?? "pupil";
-  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true };
-  const issues: BookletIssue[] = [];
+  const ctx: BCtx = { st, view: options.view ?? "pupil", diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true };
   const contentTop = A4.top;
-  const contHead = 9;
+  const contHead = CONTINUED_HEAD;
 
   // 1. Plan every lesson's pages from natural heights.
   const planned: PlannedPage[] = [];
@@ -355,56 +383,85 @@ export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = 
   planned.forEach((p, i) => {
     if (!p.continued) lessonPages.push(first + i);
   });
-
-  const pages: string[] = [];
   const contents = [
     ...(introPageNo ? [{ label: "", title: "Unit introduction", page: introPageNo }] : []),
     ...doc.lessons.map((l, i) => ({ label: `Lesson ${i + 1}`, title: l.title, page: lessonPages[i] })),
   ];
-  pages.push(page(cover(doc, contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));
-  if (doc.intro) pages.push(page(introPage(doc, doc.intro, st, issues, 2) + footer(doc, 2, st), `${doc.title}, unit introduction`, options));
 
-  // 3. Draw each page, giving its spare height to working and drawing spaces.
-  planned.forEach((p, pi) => {
-    const pageNo = first + pi;
-    const lesson = doc.lessons[p.lesson - 1];
-    const out: string[] = [];
-    if (p.continued) {
-      const label = fitLine(`Lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)} · ${lesson.title}`, A4.small, W);
-      out.push(textSvg(parseRuns(label), A4.marginX, contentTop + base(A4.small), A4.small, st.muted), hline(A4.marginX, A4.marginX + W, contentTop + 5.6, st));
-    }
+  // 3. Give each page's spare height to its working and drawing spaces.
+  const pages = planned.map((p, pi): PlannedLessonPage => {
     const growth = p.blocks.reduce((k, b) => k + (b.block.kind === "row" ? b.block.row.spaces : 0), 0);
     const spare = A4.bottom - p.end;
     const extra = growth && spare > 0 ? Math.min(A4.maxExtra, spare / growth) : 0;
     let shift = 0;
-    for (const { block, y } of p.blocks) {
+    const blocks = p.blocks.map(({ block, y }): PlacedBlock => {
       const yy = y + shift;
-      if (block.kind === "head" || block.kind === "section") {
-        out.push(at(block.frag, A4.marginX, yy));
+      if (block.kind === "head") return { kind: "head", y: yy, h: block.frag.h };
+      if (block.kind === "section") return { kind: "section", section: block.section, continued: block.continued, y: yy, h: block.frag.h };
+      const grown = block.row.h + extra * block.row.spaces;
+      shift += grown - block.row.h;
+      return { kind: "row", section: block.section, cards: block.row.cards, y: yy, h: grown, natural: block.row.h };
+    });
+    return { lesson: p.lesson, continued: p.continued, pageNo: first + pi, extra, blocks };
+  });
+  return { pages, lessonPages, introPage: introPageNo, contents };
+}
+
+export function renderBooklet(booklet: Booklet, options: BookletRenderOptions = {}): RenderedBooklet {
+  const doc = booklet.document;
+  const st = styles[options.style ?? "mathsdock"];
+  const view = options.view ?? "pupil";
+  const ctx: BCtx = { st, view, diagrams: 0, issues: [], where: { lesson: 0 }, compactTables: true };
+  const issues: BookletIssue[] = [];
+  const contentTop = A4.top;
+  const contHead = CONTINUED_HEAD;
+  const plan = planBooklet(booklet, options);
+
+  const pages: string[] = [];
+  pages.push(page(cover(doc, plan.contents, st, issues), `${doc.title}, cover${view === "answers" ? ", answers" : ""}`, options));
+  if (doc.intro) pages.push(page(introPage(doc, doc.intro, st, issues, 2) + footer(doc, 2, st), `${doc.title}, unit introduction`, options));
+
+  // Draw each page from the plan.
+  for (const p of plan.pages) {
+    const pageNo = p.pageNo;
+    const lesson = doc.lessons[p.lesson - 1];
+    const out: string[] = [];
+    if (p.continued) {
+      const label = fitLine(`Lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)} · ${lesson.title}`, A4.small, W);
+      out.push(textSvg(parseRuns(label), A4.marginX, contentTop + base(A4.small), A4.small, st.muted), hline(A4.marginX, A4.marginX + W, contentTop + CONTINUED_RULE, st));
+    }
+    const extra = p.extra;
+    for (const block of p.blocks) {
+      const yy = block.y;
+      if (block.kind === "head") {
+        out.push(at(lessonHead(lesson, p.lesson + (options.numbering?.lessonOffset ?? 0), st), A4.marginX, yy));
+        continue;
+      }
+      if (block.kind === "section") {
+        out.push(at(sectionHead(lesson.sections[block.section], st, block.continued), A4.marginX, yy));
         continue;
       }
       const section = lesson.sections[block.section];
       const cols = section.columns;
       const w = cols === 2 ? BOOKLET_WIDTHS.half : BOOKLET_WIDTHS.full;
-      const grown = block.row.h + extra * block.row.spaces;
-      if (block.row.h > A4.bottom - contentTop - contHead - 14)
-        issues.push({ lesson: p.lesson, section: block.section + 1, question: block.row.cards[0].number ?? undefined, page: pageNo, message: `A card is ${n(block.row.h)} mm tall, more than a page holds. Split it into two cards or reduce its working space; text is never shrunk.` });
-      block.row.cards.forEach((c, k) => {
+      const grown = block.h;
+      if (block.natural > A4.bottom - contentTop - contHead - 14)
+        issues.push({ lesson: p.lesson, section: block.section + 1, question: block.cards[0].number ?? undefined, page: pageNo, message: `A card is ${n(block.natural)} mm tall, more than a page holds. Split it into two cards or reduce its working space; text is never shrunk.` });
+      block.cards.forEach((c, k) => {
         ctx.where = { lesson: p.lesson, section: block.section + 1, question: c.number ?? undefined, page: pageNo };
         if (section.cards[c.index].stage) ctx.issues.push({ ...ctx.where, message: "A booklet card has a worksheet stage, which booklets do not print: sections have their own headings." });
         const natural = card(section.cards[c.index], c.number, w, { ...ctx, issues: [] }, extra, 0).h;
         const f = card(section.cards[c.index], c.number, w, ctx, extra, Math.max(0, grown - natural));
         out.push(at(f, A4.marginX + k * (w + A4.columnGap), yy));
       });
-      shift += grown - block.row.h;
     }
     const shownPage = pageNo + (options.numbering?.pageOffset ?? 0);
     pages.push(page(out.join("") + footer(doc, shownPage, st), `${doc.title}, lesson ${p.lesson + (options.numbering?.lessonOffset ?? 0)}, page ${shownPage}${view === "answers" ? ", answers" : ""}`, options));
-  });
+  }
 
   // Card-level issues carry the lesson, section and question they belong to.
   for (const i of ctx.issues) issues.push({ lesson: i.lesson, section: i.section, question: i.question, page: i.page, message: i.message });
-  return { pages, issues: dedupe(issues), lessonPages, introPage: introPageNo };
+  return { pages, issues: dedupe(issues), lessonPages: plan.lessonPages, introPage: plan.introPage };
 }
 
 function dedupe(list: BookletIssue[]): BookletIssue[] {
