@@ -3,6 +3,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
@@ -546,6 +547,16 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint
+              tool="venn"
+              prompt={
+                mode === "shade"
+                  ? "Shade mode: click a region to shade or clear it."
+                  : undefined
+              }
+            >
+              Click a region or label to edit it.
+            </EditorHint>
             <div
               className="vn-scroll"
               ref={fitted.ref}
@@ -711,12 +722,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     Shade
                   </button>
                 </div>
-                <span>
-                  {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
-                  {mode === "shade"
-                    ? "Click a region to shade or clear it"
-                    : "Click a region or label to edit"}
-                </span>
                 <label>
                   Number of sets
                   <select

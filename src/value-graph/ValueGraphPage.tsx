@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -1268,7 +1269,7 @@ export default function ValueGraphPage({
       >
         <PageHeading
           title="Plotting quadratics"
-          description="Click the equation, table or graph to edit your resource."
+          description="Make tables of values and plot quadratic graphs on exam-style axes."
         >
           <ResourceSaveStatus
             text={saved ? "Saved on this device" : "Not saved on device"}
@@ -1381,6 +1382,10 @@ export default function ValueGraphPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
             </div>
+            <EditorHint tool="value-table-graph">
+              Click the equation, table or graph to edit it. Blank cells stay
+              blank until you choose to calculate.
+            </EditorHint>
             {!!message && (
               <p role="status" className="resource-feedback">
                 {message}

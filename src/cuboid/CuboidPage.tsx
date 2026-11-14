@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -553,8 +554,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               >
                 Show 1 cm³ cubes
               </button>
-              <span>Click a label to edit</span>
             </div>
+            <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
               <p className="cb-export-warning" role="alert">
                 {issue}

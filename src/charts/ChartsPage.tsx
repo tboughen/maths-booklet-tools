@@ -9,6 +9,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -429,6 +430,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="charts">
+              Click a bar, line or category label to edit its value. Enter
+              applies; Escape restores.
+            </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
               <div className="ch-stage">
                 <div

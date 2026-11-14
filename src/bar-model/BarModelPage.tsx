@@ -16,6 +16,7 @@ import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSize } from "../site/ResourceSize";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { useResourceFit } from "../site/useResourceFit";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
@@ -542,6 +543,9 @@ export default function BarModelPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={g.width / 10} height={g.height / 10} />
             </div>
+            <EditorHint tool="bar-model">
+              Click a bar name, part label or brace on the model to edit it.
+            </EditorHint>
             <div ref={fit.ref} className="bm-scroll">
               <div
                 className="bm-stage"

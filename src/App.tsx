@@ -1,6 +1,7 @@
 import { ExampleGallery } from "./examples/ExampleGallery";
 import { graphGallery } from "./examples/galleryCatalogue";
 import { PreviewControls } from "./site/PreviewControls";
+import { EditorHint } from "./site/EditorHint";
 import { ResourceSaveStatus } from "./site/ResourceSaveStatus";
 import { createEnvelope } from "../packages/graph-core/src/interchange";
 import { useGraphDrafts } from "./components/useGraphDrafts";
@@ -479,6 +480,11 @@ export default function App({ active = true }: { active?: boolean }) {
                 height={exportMetrics.heightCm}
               />
             </div>
+            <EditorHint tool="graph">
+              Choose a tool, then click or drag on the grid. Click a line,
+              segment or cross to change it. Blue handles are editing guides
+              and are never copied.
+            </EditorHint>
             <GraphCanvas
               zoom={previewZoom}
               disabled={blocked}

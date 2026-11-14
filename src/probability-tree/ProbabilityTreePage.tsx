@@ -4,6 +4,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -396,6 +397,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="probability-tree">
+              Click a label on the tree to edit it. Enter applies; Escape
+              restores.
+            </EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
