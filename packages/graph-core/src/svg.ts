@@ -896,8 +896,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
-  ${objects.fills}
-  ${gridMarkup(document, layout)}
+  ${objects.fills}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
   ${axes.labels}
