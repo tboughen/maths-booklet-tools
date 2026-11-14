@@ -57,19 +57,6 @@
   outline: 1px dashed #b5487a;
   background: #b5487a10;
 }
-.pt-structure {
-  display: grid;
-  gap: 8px;
-}
-.pt-editor .pt-structure button {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border-radius: 999px;
-  font-size: 22px;
-  line-height: 1;
-  box-shadow: 0 2px 4px #15335125;
-}
 .pt-preview-bar,
 .pt-row {
   display: flex;
@@ -198,7 +185,6 @@
   margin: 0 0 10px;
 }
 .pt-panel button,
-.pt-structure button,
 .pt-recovery button {
   border: 1px solid var(--line-strong, #becbd8);
   border-radius: 5px;
@@ -208,8 +194,7 @@
   color: var(--ink, #213c59);
   cursor: pointer;
 }
-.pt-panel button:disabled,
-.pt-structure button:disabled {
+.pt-panel button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
