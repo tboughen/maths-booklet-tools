@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ArrowDown, Grid3X3, Table2, Trash2 } from "lucide-react";
 import type {
   RatioDocument,
@@ -40,6 +41,7 @@ export function RatioInspector({
   onOperations,
   onAction,
   onFill,
+  tools,
 }: {
   document: RatioDocument;
   selection: RatioSelection;
@@ -51,6 +53,8 @@ export function RatioInspector({
   onOperations: (operations: RatioOperation[]) => void;
   onAction: (operations: RatioOperation[]) => void;
   onFill: (from: string) => void;
+  /** The table tools card, shown after the selected item and before the table settings (U21). */
+  tools?: ReactNode;
 }) {
   function headingControls(column: number) {
     const heading = document.headings[column];
@@ -348,6 +352,7 @@ export function RatioInspector({
           </>
         )}
       </section>
+      {tools}
       <section className="panel-card">
         <div className="panel-heading">
           <Grid3X3 size={17} />
