@@ -22,7 +22,9 @@ Kinds are `graph`, `ratio-table`, `value-graph`, `cuboids`, `number-line`, `venn
 only to families with an answers copy (ratio tables, graphs, Venn, charts, probability trees, frequency trees,
 expanding and factorising grids, and triangles). Since 14 November 2026 the grid and triangle answers copies show
 saved hidden answers, and the two trees colour revealed answers in the house answer colour, as worksheet answers
-copies already did for answer lines, ratio tables and graphs.
+copies already did for answer lines, ratio tables and graphs. Venn diagrams (regions and set labels saved hidden or
+as answer lines) and charts (bars and lines whose value was saved hidden) do the same since R24; their solid grey or
+black bar fills turn pink too so the outline still shows. Given values stay black, and pupil copies are unchanged.
 
 A create or revise result starts with a one-line plain summary (`Created a <label>, W × H cm at
 100%.`), then the preview image, then `resource_link` blocks for the SVG, PNG and JSON downloads.

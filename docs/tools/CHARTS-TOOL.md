@@ -54,7 +54,8 @@ frequency polygons and histograms. Each would be a separate, reviewed extension 
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled.
-- `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only. The
+- `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
+  answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain
   hidden answers.
 - Responses carry the preview, outlined SVG, verified 600 ppi PNG, JSON, physical size, print
