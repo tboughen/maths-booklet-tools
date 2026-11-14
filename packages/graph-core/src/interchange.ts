@@ -24,6 +24,7 @@ import {
   equationForObject,
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
+import { gradientTriangleProblem } from "./gradient-triangle";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 
 export const RENDERER_VERSION = "graph-1";
@@ -142,6 +143,18 @@ const labelsInput = z
   .max(4)
   .optional()
   .describe("Up to 4 short labels beside points on this line, such as its axis intercepts on a sketch. They print upright at 12 pt and follow the line's answerOnly.");
+const gradientTriangleLabels = z.enum(["values", "blank"]);
+const gradientTriangleInput = z
+  .object({
+    x: numeric.describe("The x where the triangle starts on the line."),
+    run: numeric.describe("The horizontal leg from x: positive runs right, negative left. Choose one that gives a whole-number rise."),
+    labels: gradientTriangleLabels
+      .optional()
+      .describe("values prints the run and rise beside the legs; blank prints dotted answer spaces on the pupil copy and the values in pink on the answers copy. Omit for no labels."),
+  })
+  .strict()
+  .optional()
+  .describe("A right-angled gradient triangle drawn with dashed legs between the line and a horizontal and vertical leg. Not for vertical or horizontal lines.");
 const originLabelSchema = z
   .enum(["0", "O"])
   .describe("O prints an italic O at the origin, as Edexcel papers do. Default 0.");
@@ -186,6 +199,7 @@ const straightInput = {
     .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
   answerOnly: answerOnlyInput,
   labels: labelsInput,
+  gradientTriangle: gradientTriangleInput,
 };
 export const objectInputSchema = z.union([
   z
@@ -259,6 +273,7 @@ const objectSchema = z.union([
         .min(1)
         .max(4)
         .optional(),
+      gradientTriangle: z.object({ x: finite, run: finite, labels: gradientTriangleLabels.optional() }).strict().optional(),
     })
     .strict(),
 ]);
@@ -287,6 +302,8 @@ const documentSchema = z
           code: "custom",
           message: `${o.id} needs two distinct points.`,
         });
+      if (o.kind === "straight" && o.gradientTriangle && Math.abs(o.gradientTriangle.run) < 1e-12)
+        c.addIssue({ code: "custom", message: `${o.id}: a gradient triangle needs a run that is not zero.` });
     }
     if (d.selectedObjectId !== null && !ids.has(d.selectedObjectId))
       c.addIssue({
@@ -405,6 +422,15 @@ function makeObject(
     ...(input.labels?.length
       ? { labels: input.labels.map((l) => ({ at: l.at, text: l.text, ...(l.side ? { side: l.side } : {}) })) }
       : {}),
+    ...(input.gradientTriangle
+      ? {
+          gradientTriangle: {
+            x: input.gradientTriangle.x,
+            run: input.gradientTriangle.run,
+            ...(input.gradientTriangle.labels ? { labels: input.gradientTriangle.labels } : {}),
+          },
+        }
+      : {}),
   };
 }
 export function createGraph(value: unknown): GraphEnvelope {
@@ -516,6 +542,15 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
                 })),
               }
             : {}),
+          ...(o.gradientTriangle
+            ? {
+                gradientTriangle: {
+                  x: o.gradientTriangle.x,
+                  run: o.gradientTriangle.run,
+                  ...(o.gradientTriangle.labels ? { labels: o.gradientTriangle.labels } : {}),
+                },
+              }
+            : {}),
         },
   );
   document.axes = {
@@ -624,7 +659,11 @@ export function graphWarnings(envelope: GraphEnvelope): string[] {
   const crowded = xNumbersCrowded(envelope.document)
     ? ["The x-axis numbers touch at print size. Number every 2nd, 3rd or 5th line (labelEvery) or use a larger scale."]
     : [];
-  return crowded.concat(envelope.document.objects
+  const triangles = envelope.document.objects.flatMap((o) => {
+    const problem = o.kind === "straight" ? gradientTriangleProblem(o, bounds) : null;
+    return problem ? [`${o.id}: ${problem}`] : [];
+  });
+  return crowded.concat(triangles, envelope.document.objects
     .filter((o) =>
       o.kind === "point"
         ? !pointInBounds(o.position, bounds)
@@ -641,7 +680,7 @@ export function describeGraph(envelope: GraphEnvelope): string {
     .map((o) =>
       o.kind === "point"
         ? `${o.id}: point (${o.position.x}, ${o.position.y})${named(o)}`
-        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}${o.labels ? `, labelled ${o.labels.map((l) => `"${l.text}" at (${l.at.x}, ${l.at.y})`).join(" and ")}` : ""}`,
+        : `${o.id}: ${o.strokeStyle ?? "solid"} ${o.display}${named(o)}, ${equationForObject(o as StraightObject)}, equation ${o.equationVisible ? "shown" : "hidden"}${o.labels ? `, labelled ${o.labels.map((l) => `"${l.text}" at (${l.at.x}, ${l.at.y})`).join(" and ")}` : ""}${o.gradientTriangle ? `, gradient triangle from x = ${o.gradientTriangle.x} with run ${o.gradientTriangle.run}${o.gradientTriangle.labels ? ` (${o.gradientTriangle.labels === "blank" ? "blank labels" : "run and rise printed"})` : ""}` : ""}`,
     )
     .join("; ");
   const range = (axis: "x" | "y", min: number, max: number) => {

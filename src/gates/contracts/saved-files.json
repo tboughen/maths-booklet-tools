@@ -3857,6 +3857,33 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "gradientTriangle": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "run": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "labels": {
+                          "type": "string",
+                          "enum": [
+                            "values",
+                            "blank"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "run"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [

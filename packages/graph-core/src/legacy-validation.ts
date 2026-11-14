@@ -2,6 +2,17 @@ import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes"
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
 
+function isGradientTriangle(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const t = value as Record<string, unknown>;
+  return (
+    Object.keys(t).every((key) => key === "x" || key === "run" || key === "labels") &&
+    typeof t.x === "number" && Number.isFinite(t.x) &&
+    typeof t.run === "number" && Number.isFinite(t.run) && t.run !== 0 &&
+    (t.labels === undefined || t.labels === "values" || t.labels === "blank")
+  );
+}
+
 function isCoordinate(value: unknown): value is Coordinate {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<Coordinate>;
@@ -50,7 +61,8 @@ function isGraphObject(value: unknown): value is GraphObject {
     (candidate.equationLabelPosition === undefined ||
       isCoordinate(candidate.equationLabelPosition)) &&
     (candidate.labels === undefined ||
-      (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel)))
+      (Array.isArray(candidate.labels) && candidate.labels.every(isPointLabel))) &&
+    (candidate.gradientTriangle === undefined || isGradientTriangle(candidate.gradientTriangle))
   );
 }
 
