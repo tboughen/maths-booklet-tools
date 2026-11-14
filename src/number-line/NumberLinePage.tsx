@@ -44,13 +44,6 @@ import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
 import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
-
-/**
- * U43: invisible direct-edit targets grow to 44 CSS px for touch where the drawing has room, but never past
- * their neighbours: ticks stay within their tick gap, and the tick row and the solution row (10 mm apart)
- * never overlap, so a tap always reaches the target it lands on.
- */
-const HIT_PX = 44;
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -225,12 +218,6 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
-  const tickValues = ticks(d);
-  const tickGap =
-    tickValues.length > 1 ? Math.abs(position(d, tickValues[1]) - position(d, tickValues[0])) * unit : HIT_PX;
-  const tickHitWidth = Math.min(HIT_PX, tickGap);
-  // Tick hits are centred 5 mm below the axis and solution hits 5 mm above it.
-  const rowHitHeight = Math.min(HIT_PX, (m.axisY + 5 - m.solutionY) * unit);
   function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
@@ -573,9 +560,7 @@ export default function NumberLinePage({
         style={{
           left: position(d, v) * unit,
           top: m.solutionY * unit,
-          // Half the gap to the next point at most, so part of an interval's line stays selectable.
-          width: Math.min(HIT_PX, spacing / 2, tickHitWidth),
-          height: rowHitHeight,
+          width: Math.min(26, spacing),
         }}
         aria-label={`Endpoint ${v}, ${included ? "filled, included" : "hollow, excluded"}. Click to make ${included ? "hollow" : "filled"}.`}
         title="Click to switch filled / hollow; drag to move"
@@ -673,8 +658,7 @@ export default function NumberLinePage({
         className="nl-line-hit"
         style={{
           left: (Math.min(left, right) + 2) * unit,
-          top: m.solutionY * unit - rowHitHeight / 2,
-          height: rowHitHeight,
+          top: m.solutionY * unit - 10,
           width: Math.max(4, (Math.abs(right - left) - 4) * unit),
         }}
         aria-label={`Select interval from ${from} to ${to}`}
@@ -916,7 +900,7 @@ export default function NumberLinePage({
                       __html: renderSvg(history.present),
                     }}
                   />
-                  {tickValues.map((v) => (
+                  {ticks(d).map((v) => (
                     <button
                       key={v}
                       aria-label={`Tick ${v}`}
@@ -924,8 +908,6 @@ export default function NumberLinePage({
                       style={{
                         left: position(d, v) * unit,
                         top: (m.axisY + 5) * unit,
-                        width: tickHitWidth,
-                        height: rowHitHeight,
                       }}
                       onClick={() => tick(v)}
                     />
@@ -935,16 +917,8 @@ export default function NumberLinePage({
                       className="nl-hit"
                       aria-label="Edit variable"
                       style={{
-                        // Centred on the variable, or moved just right of the last tick's target when that is closer.
-                        left: Math.max(
-                          (m.right + 6) * unit,
-                          tickValues.length
-                            ? position(d, tickValues[tickValues.length - 1]) * unit + tickHitWidth / 2 + rowHitHeight / 2
-                            : 0,
-                        ),
+                        left: (m.right + 6) * unit,
                         top: (m.axisY + 2) * unit,
-                        width: rowHitHeight,
-                        height: rowHitHeight,
                       }}
                       onClick={() => {
                         if (!blocked) setSelection("variable");
