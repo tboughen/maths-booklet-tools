@@ -1,3 +1,4 @@
+import { curvePathData } from "./families";
 import {
   fractionString,
   parseNumber,
@@ -33,9 +34,18 @@ export function displayNumber(v: string, places: number | null = null): string {
   );
 }
 export function equationText(e: Equation): string {
+  if (e.exponential) {
+    const k = e.exponential.coefficient, base = displayNumber(e.exponential.base);
+    const power = `${base.includes("/") ? `(${base})` : base}ˣ`;
+    const front = number(k) === 1 ? "" : number(k) === -1 ? "−" : `${displayNumber(k)} × `;
+    const c = number(e.c);
+    return `y = ${front}${power}${c ? (c < 0 ? " − " : " + ") + displayNumber(e.c.replace(/^[−-]/, "")) : ""}`;
+  }
   const terms: [string, string][] = [
+    [e.cubic ?? "0", "x³"],
     [e.a, "x²"],
     [e.b, "x"],
+    [e.reciprocal ?? "0", "/x"],
     [e.c, ""],
   ];
   let out = "";
@@ -45,7 +55,7 @@ export function equationText(e: Equation): string {
     const magnitude = displayNumber(v.replace(/^[−-]/, ""));
     out +=
       (out ? (n < 0 ? " − " : " + ") : n < 0 ? "−" : "") +
-      (suffix && Math.abs(n) === 1 ? "" : magnitude) +
+      (suffix && suffix !== "/x" && Math.abs(n) === 1 ? "" : magnitude) +
       suffix;
   }
   return "y = " + out;
@@ -66,7 +76,8 @@ export function metrics(e: ValueEnvelope) {
       withTable ? d.print.tableWidthMm : 0,
       withGraph ? graphWidth + 17 : 0,
     ) + 4;
-  const equationHeight = d.presentation.showEquation ? 9 : 0;
+  // A stacked fraction in the equation (y = 6/x, y = 1/2x²) needs a taller band.
+  const equationHeight = d.presentation.showEquation ? (equationText(d.equation).includes("/") ? 11 : 9) : 0;
   const tableTop = 2 + equationHeight,
     tableHeight = withTable ? d.print.tableRowHeightMm * 2 : 0;
   const graphTop =
@@ -163,13 +174,40 @@ export function renderSvg(raw: ValueEnvelope): string {
     return backing + text(x, y, label, anchor);
   };
   if (d.presentation.showEquation) {
-    const equation = escape(equationText(d.equation)).replace(
-      /[xy]/g,
-      (v) => `<tspan font-style="italic">${v}</tspan>`,
-    );
-    elements.push(
-      `<text x="${m.width / 2}" y="7" font-size="${f}" text-anchor="middle">${equation}</text>`,
-    );
+    // Fractions print stacked (school rule): "6/x" becomes 6 over x, "1/2x²" becomes ½ then x².
+    const source = equationText(d.equation),
+      stacked = source.includes("/"),
+      y = stacked ? 8 : 7,
+      size = f * 0.8;
+    const pieces = source.split(/(\d+(?:\.\d+)?\/(?:\d+(?:\.\d+)?|x))/).filter(Boolean);
+    const runWidth = (t: string) => plainWidth(t);
+    const pieceWidth = (t: string) => {
+      if (!/^\d.*\//.test(t)) return runWidth(t);
+      const [top, bottom] = t.split("/");
+      return Math.max(plainWidth(top, size), plainWidth(bottom, size)) + 0.8 + 0.6;
+    };
+    const run = (x: number, t: string, sz = f) =>
+      `<text x="${x}" y="${y}" font-size="${sz}" text-anchor="start" xml:space="preserve">${escape(t).replace(/[xy]/g, (v) => `<tspan font-style="italic">${v}</tspan>`)}</text>`;
+    let x = m.width / 2 - pieces.reduce((sum, t) => sum + pieceWidth(t), 0) / 2;
+    if (!stacked)
+      elements.push(
+        `<text x="${m.width / 2}" y="${y}" font-size="${f}" text-anchor="middle">${escape(source).replace(/[xy]/g, (v) => `<tspan font-style="italic">${v}</tspan>`)}</text>`,
+      );
+    else for (const t of pieces) {
+      const w = pieceWidth(t);
+      if (/^\d.*\//.test(t)) {
+        // 0.3 mm either side of the bar; the bar sits on the maths axis, about 0.3 em above the baseline.
+        const [top, bottom] = t.split("/"),
+          mid = y - f * 0.3,
+          italic = (v: string) => escape(v).replace(/x/g, '<tspan font-style="italic">x</tspan>');
+        elements.push(
+          `<text x="${x + w / 2}" y="${mid - f * 0.2}" font-size="${size}" text-anchor="middle">${italic(top)}</text>`,
+          `<path d="M${x + 0.3} ${mid}h${w - 0.6}" stroke="black" stroke-width="0.18"/>`,
+          `<text x="${x + w / 2}" y="${mid + f * 0.2 + size * 0.72}" font-size="${size}" text-anchor="middle">${italic(bottom)}</text>`,
+        );
+      } else elements.push(run(x, t));
+      x += w;
+    }
   }
   if (m.withTable) {
     const t = m.table,
@@ -302,16 +340,14 @@ export function renderSvg(raw: ValueEnvelope): string {
         const min = Math.max(number(c.min), number(b.xMin)),
           max = Math.min(number(c.max), number(b.xMax));
         if (min >= max) return;
-        const a = number(c.equation.a),
-          bb = number(c.equation.b),
-          cc = number(c.equation.c);
-        // A quadratic Bezier is the exact polynomial, including between sampled table x values.
-        const y0 = a * min * min + bb * min + cc,
-          y1 = a * max * max + bb * max + cc;
-        const controlY = y0 + ((2 * a * min + bb) * (max - min)) / 2;
-        elements.push(
-          `<path data-curve="${escape(c.id)}" d="M${px(min)} ${py(y0)}Q${px((min + max) / 2)} ${py(controlY)} ${px(max)} ${py(y1)}"/>`,
-        );
+        // Quadratics stay one exact quadratic Bezier; other families use exact or
+        // gradient-matched cubic pieces (families.ts).
+        const path = curvePathData(c.equation, min, max, px, py, {
+          min: number(b.yMin),
+          max: number(b.yMax),
+        });
+        if (path)
+          elements.push(`<path data-curve="${escape(c.id)}" d="${path}"/>`);
       });
     const markers: string[] = [];
     for (const s of g.series) {

@@ -125,7 +125,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   "value-graph": family<value.ValueEnvelope>({
     kind: "value-graph",
     label: "table of values and graph",
-    summary: "Exam table of values with graph paper, plotted points and an optional quadratic curve.",
+    summary: "Exam table of values with graph paper, plotted points and an optional quadratic, cubic, reciprocal or exponential curve.",
     route: "/tools/value-table-graph",
     answerView: false,
     envelopeSchema: value.envelopeSchema,

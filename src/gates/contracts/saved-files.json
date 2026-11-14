@@ -6030,6 +6030,32 @@
               "c": {
                 "type": "string",
                 "maxLength": 32
+              },
+              "cubic": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "reciprocal": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "exponential": {
+                "type": "object",
+                "properties": {
+                  "coefficient": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "base": {
+                    "type": "string",
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "coefficient",
+                  "base"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
@@ -6289,6 +6315,32 @@
                         "c": {
                           "type": "string",
                           "maxLength": 32
+                        },
+                        "cubic": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "reciprocal": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "exponential": {
+                          "type": "object",
+                          "properties": {
+                            "coefficient": {
+                              "type": "string",
+                              "maxLength": 32
+                            },
+                            "base": {
+                              "type": "string",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "coefficient",
+                            "base"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [

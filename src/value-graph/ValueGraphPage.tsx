@@ -659,7 +659,7 @@ export default function ValueGraphPage({
               true,
             )}
             <p>
-              Use expanded form, for example y = x² − x − 6. Existing values and
+              Use expanded form, for example y = x² − x − 6, y = x³ − 4x, y = 3/x or y = 2ˣ. Existing values and
               plots are retained.
             </p>
           </>
