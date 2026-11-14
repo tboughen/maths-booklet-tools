@@ -55,3 +55,12 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2021_1F_Q18: svg 7308b829e8734eab -> 48df159e1eaa672b
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 47e75c878ab5371b -> d7c6def019a98198
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 515f66453941fb7e -> 68ad6c047e5303ba
+
+## 2026-11-14: U97: new two-way table tool examples
+
+- two-way tables: twt-complete: added
+- two-way tables: twt-complete (worked): added
+- two-way tables: twt-totals: added
+- two-way tables: twt-totals (worked): added
+- two-way tables: twt-probability: added
+- two-way tables: twt-probability (worked): added

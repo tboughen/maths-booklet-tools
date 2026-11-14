@@ -1220,6 +1220,48 @@
    "png600": "2835x1982",
    "pixels": "258b8369e84108bf"
   },
+  "two-way tables: twt-complete": {
+   "json": "e4d07b952d5775e5",
+   "svg": "40a22a43ca8a08d9",
+   "mm": "106x40",
+   "png600": "2504x945",
+   "pixels": "0de4f83beabcb08e"
+  },
+  "two-way tables: twt-complete (worked)": {
+   "json": "47852aa0988a29b3",
+   "svg": "0b4d22e64ff7cfb9",
+   "mm": "106x40",
+   "png600": "2504x945",
+   "pixels": "a9bf9a1c94938cd9"
+  },
+  "two-way tables: twt-probability": {
+   "json": "6872c2eba7b3dab5",
+   "svg": "fe35c419ca8b90ff",
+   "mm": "87x52",
+   "png600": "2055x1228",
+   "pixels": "4ef6f15bbae40d96"
+  },
+  "two-way tables: twt-probability (worked)": {
+   "json": "449e8dca5f45205c",
+   "svg": "630decf1cc4e004c",
+   "mm": "87x52",
+   "png600": "2055x1228",
+   "pixels": "897f722fe0f850fa"
+  },
+  "two-way tables: twt-totals": {
+   "json": "d172d665d8536123",
+   "svg": "f9ec91a03a9ff647",
+   "mm": "84x40",
+   "png600": "1984x945",
+   "pixels": "f09366920636f66a"
+  },
+  "two-way tables: twt-totals (worked)": {
+   "json": "33da5f12eecdcd62",
+   "svg": "3962f258a135c99e",
+   "mm": "84x40",
+   "png600": "1984x945",
+   "pixels": "019adc6da9609937"
+  },
   "venn: venn-2017": {
    "json": "d8cc264daf26ecb9",
    "svg": "24e2ad6ab0337869",

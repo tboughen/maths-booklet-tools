@@ -16,6 +16,7 @@ import { barConfig } from "./guides/bar";
 import { chartConfig } from "./guides/chart";
 import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
+import { twoWayTableConfig } from "./guides/two-way-table";
 import { triangleConfig } from "./guides/triangle";
 
 export interface FamilyGuide {
@@ -192,6 +193,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   charts: fromConfig(chartConfig),
   "probability-tree": fromConfig(treeConfig),
   "frequency-tree": fromConfig(frequencyTreeConfig),
+  "two-way-table": fromConfig(twoWayTableConfig),
   triangle: {
     ...fromConfig(triangleConfig),
     create: "Triangle keeps explicit labels, topology and saved answers; calculate only when the user asks, and never measure drawn proportions. " + triangleConfig.createDescription,

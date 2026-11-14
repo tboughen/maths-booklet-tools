@@ -1145,6 +1145,48 @@
   "pupilSvg": "55cc39adb22ada781e138d6d883410506ec5c292d4be8d3fa81fd13f5b60acd9",
   "answerSvg": "b6cef9ab8e66ce96962aa840b4d1b65b40430961d7f079f17a79cd1434ac4b8f"
  },
+ "two-way-table/default": {
+  "schemaVersion": 1,
+  "contentHash": "158733793ad5b1f99ef85902401082f92721af5d48b5d137bfc93a5f280c5be7",
+  "pupilSvg": "adf59871d88f284fbebbadbfb3bef481923701f7ea7f0ee4b3d8a6443d9e85b0",
+  "answerSvg": "adf59871d88f284fbebbadbfb3bef481923701f7ea7f0ee4b3d8a6443d9e85b0"
+ },
+ "two-way-table/example-complete-worked": {
+  "schemaVersion": 1,
+  "contentHash": "47852aa0988a29b39d299825cdbfe7b2e2742e7d049d50b51065f3a834a4e323",
+  "pupilSvg": "0b4d22e64ff7cfb9ae377a5abeb58e898999fd7eee8776d23aa0734b508fa127",
+  "answerSvg": "0b4d22e64ff7cfb9ae377a5abeb58e898999fd7eee8776d23aa0734b508fa127"
+ },
+ "two-way-table/example-complete": {
+  "schemaVersion": 1,
+  "contentHash": "e4d07b952d5775e5f72c953ab73730bde6a73c16297ce7e15a8167d6b637bba8",
+  "pupilSvg": "40a22a43ca8a08d9e613b857a65791a44de906025a10a7f17174f207711e0ed8",
+  "answerSvg": "6c1604f63bcac123e058270f86e5600051ae9d3bfa4c789fd64531dca3b9995c"
+ },
+ "two-way-table/example-probability-worked": {
+  "schemaVersion": 1,
+  "contentHash": "449e8dca5f45205cea2bb29215075acdae7606696ef0cd7db306e51ac0d20ae5",
+  "pupilSvg": "630decf1cc4e004cb671685a6b34063902687be6994d6bcf3dab814f3e3a1310",
+  "answerSvg": "630decf1cc4e004cb671685a6b34063902687be6994d6bcf3dab814f3e3a1310"
+ },
+ "two-way-table/example-probability": {
+  "schemaVersion": 1,
+  "contentHash": "6872c2eba7b3dab590ed5a6968ae0395d9e20d67cb04ee443cde376d57455875",
+  "pupilSvg": "fe35c419ca8b90ffc52229f50ff10fca4886e69807e0a34df15effb95d0fc15b",
+  "answerSvg": "800704240f79964e2788fe7c51990c666de9d2be85e873f7f3a86ffd1979889f"
+ },
+ "two-way-table/example-totals-worked": {
+  "schemaVersion": 1,
+  "contentHash": "33da5f12eecdcd62e0a4e61ec026d3304d26cfa95bd45a26fe87b6f1b561777c",
+  "pupilSvg": "3962f258a135c99e6dd176b6371010b1fb0a53c9cce8cca7062e764d166ec66a",
+  "answerSvg": "3962f258a135c99e6dd176b6371010b1fb0a53c9cce8cca7062e764d166ec66a"
+ },
+ "two-way-table/example-totals": {
+  "schemaVersion": 1,
+  "contentHash": "d172d665d8536123da999aca92210318d69b0078fe02989c057809bcaa5fe251",
+  "pupilSvg": "f9ec91a03a9ff647cea11bf060e20f1dc8be280487bcc48b223dace46d65f96c",
+  "answerSvg": "ad7eaa699edff1ffb14d31ec6801104074da3cb2715e976f9b551fb37a1a1a6a"
+ },
  "triangle/default": {
   "schemaVersion": 1,
   "contentHash": "4a2b906f9bbedad5c5081dba198d3850fa74976f454a333fe1e274488253601a",
