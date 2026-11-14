@@ -9,6 +9,7 @@ import {
 } from "./diagram";
 import {
   axisTicks,
+  formatAxisValue,
   gridPitchesMm,
   mathsDigits,
   mathsLetter,
@@ -40,6 +41,7 @@ import type {
   PointLabel,
   GraphObject,
   GraphView,
+  PointObject,
   StraightObject,
   SvgLayout,
 } from "./types";
@@ -628,21 +630,24 @@ export function nameBox(name: string, fontSize = AXIS_LABEL_FONT_SIZE) {
   };
 }
 
+type Axes = DiagramDocumentV1["axes"];
 /**
  * Where a name sits automatically, as the centre of its box in SVG units. Points: up and to the
  * right of the cross. Lines: near the upper end, on the right of the line (above a horizontal
  * one). The box is kept inside the plot.
  */
-function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): Coordinate {
+function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, axes?: Axes): Coordinate {
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   let centre: Coordinate;
   if (object.kind === "point") {
+    // A name with printed coordinates, A(2, 3), is placed as one label; the name is its left part.
+    const total = box.width + coordinatesWidth(object, unitsPerCm, axes);
     const p = coordinateToSvg(object.position, layout);
-    const dx = 0.18 * unitsPerCm + box.width / 2;
+    const dx = 0.18 * unitsPerCm + total / 2;
     const dy = 0.16 * unitsPerCm + box.height / 2;
-    const right = p.x + dx + box.width / 2 <= layout.plotRight;
+    const right = p.x + dx + total / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
-    centre = { x: right ? p.x + dx : p.x - dx, y: up ? p.y - dy : p.y + dy };
+    centre = { x: (right ? p.x + dx : p.x - dx) - total / 2 + box.width / 2, y: up ? p.y - dy : p.y + dy };
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -667,16 +672,76 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): C
 }
 
 /** The centre of an object's printed name in the given layout, with its box inside the plot. */
-export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM): Coordinate | null {
+export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM, axes?: Axes): Coordinate | null {
   if (!object.name) return null;
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   const centre = object.namePosition
     ? coordinateToSvg(object.namePosition, layout)
-    : autoNameCentre(object as Named, layout, unitsPerCm);
+    : autoNameCentre(object as Named, layout, unitsPerCm, axes);
+  // Printed coordinates follow the name, so they must fit inside the plot too.
+  const after = object.kind === "point" ? coordinatesWidth(object, unitsPerCm, axes) : 0;
   return {
-    x: Math.min(layout.plotRight - box.width / 2, Math.max(layout.plotLeft + box.width / 2, centre.x)),
+    x: Math.min(layout.plotRight - box.width / 2 - after, Math.max(layout.plotLeft + box.width / 2, centre.x)),
     y: Math.min(layout.plotBottom - box.height / 2, Math.max(layout.plotTop + box.height / 2, centre.y)),
   };
+}
+
+const COORDINATE_BLANK = "………";
+/** The printed coordinates of a point: (2, −3), or the pupil's blank ( ……… , ……… ). */
+export function coordinatesText(document: DiagramDocumentV1, object: PointObject, view: GraphView): string | null {
+  if (!object.coordinates) return null;
+  if (object.coordinates === "blank" && view === "pupil") return `( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`;
+  return `(${formatAxisValue(object.position.x, document.axes.x)}, ${formatAxisValue(object.position.y, document.axes.y)})`;
+}
+/** Width reserved after the name for the coordinates: the wider of the blank and the values. */
+function coordinatesWidth(object: GraphObject, unitsPerCm: number, axes?: Axes): number {
+  if (object.kind !== "point" || !object.coordinates) return 0;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c) * fontSize, 0);
+  const values = `(${formatAxisValue(object.position.x, axes?.x ?? {})}, ${formatAxisValue(object.position.y, axes?.y ?? {})})`;
+  return Math.max(width(values), object.coordinates === "blank" ? width(`( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`) : 0);
+}
+/** Where a point's coordinates are anchored and their vertical centre, in SVG units. After a name
+ * they start at its right edge; alone on the left of the cross they end beside it. */
+export function coordinatesAnchor(
+  object: PointObject,
+  layout: SvgLayout,
+  unitsPerCm = UNITS_PER_CM,
+  axes?: Axes,
+): (Coordinate & { anchor: "start" | "end" }) | null {
+  if (!object.coordinates) return null;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  if (object.name) {
+    const centre = nameCentre(object, layout, unitsPerCm, axes)!;
+    // Exam papers write A(2, 3) with no space; the name box carries a little side padding.
+    return { x: centre.x + nameBox(object.name, fontSize).width / 2 - fontSize * 0.1, y: centre.y, anchor: "start" };
+  }
+  // No name: the coordinates alone sit where a name would, up and to the right of the cross.
+  const width = coordinatesWidth(object, unitsPerCm, axes),
+    height = fontSize * 1.2;
+  const p = coordinateToSvg(object.position, layout);
+  const right = p.x + 0.18 * unitsPerCm + width <= layout.plotRight;
+  const up = p.y - 0.16 * unitsPerCm - height >= layout.plotTop;
+  const y = up ? p.y - 0.16 * unitsPerCm - height / 2 : p.y + 0.16 * unitsPerCm + height / 2;
+  if (right) return { x: p.x + 0.18 * unitsPerCm, y, anchor: "start" };
+  return { x: Math.max(layout.plotLeft + width, p.x - 0.18 * unitsPerCm), y, anchor: "end" };
+}
+function coordinatesMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: GraphView): string {
+  const marks = document.objects.flatMap((object) => {
+    if (object.kind !== "point" || !object.coordinates) return [];
+    const { x, y } = object.position;
+    if (x < layout.bounds.xMin || x > layout.bounds.xMax || y < layout.bounds.yMin || y > layout.bounds.yMax) return [];
+    const text = coordinatesText(document, object, view)!;
+    const at = coordinatesAnchor(object, layout, UNITS_PER_CM, document.axes)!;
+    // Saved answers print in the answer colour on the answers copy only.
+    const answer = (object.coordinates === "blank" && view === "answer") || object.answerOnly;
+    return [
+      `<g class="point-coordinates${answer ? ` point-coordinates-answer" fill="${GRAPH_ANSWER_COLOUR}` : ""}" data-object-id="${escapeXml(object.id)}">${halo(`<text x="${n(at.x)}" y="${n(at.y + AXIS_LABEL_FONT_SIZE * 0.34)}"${at.anchor === "end" ? ' text-anchor="end"' : ""} font-size="${n(AXIS_LABEL_FONT_SIZE)}">${escapeXml(text)}</text>`)}</g>`,
+    ];
+  });
+  if (!marks.length) return "";
+  return `
+    <g class="point-coordinates-all" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
 function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
@@ -686,7 +751,7 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     const style = object.kind === "point" ? "italic" : "bold";
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
-    const centre = nameCentre(object, layout)!;
+    const centre = nameCentre(object, layout, UNITS_PER_CM, document.axes)!;
     const left = centre.x - box.width / 2 + AXIS_LABEL_FONT_SIZE * 0.08;
     const baseline = centre.y + AXIS_LABEL_FONT_SIZE * 0.34;
     const letter = `${mathsLetter(parts.letter, style)}${parts.prime ? "′" : ""}`;
@@ -804,6 +869,6 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   ${axes.lines}
   ${objects.lines}
   ${axes.labels}
-  ${objects.marks}
+  ${objects.marks}${coordinatesMarkup(document, layout, view)}
 </svg>`;
 }

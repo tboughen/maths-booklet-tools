@@ -1,9 +1,8 @@
-export class RatioError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-  ) {
-    super(message);
+import { MathsDockError } from "../../envelope-core/src/errors";
+
+export class RatioError extends MathsDockError {
+  constructor(code: string, message: string, details?: ConstructorParameters<typeof MathsDockError>[2]) {
+    super(code, message, details);
     this.name = "RatioError";
   }
 }

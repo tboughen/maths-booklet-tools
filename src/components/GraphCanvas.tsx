@@ -2,6 +2,8 @@ import { fitResource } from "../site/useResourceFit";
 import {
   NAME_SUBSCRIPT_FONT_POINTS,
   axisTextPlacement,
+  coordinatesAnchor,
+  coordinatesText,
   getExportMetrics,
   nameBox,
   nameCentre,
@@ -874,7 +876,7 @@ export function GraphCanvas({
                   : !visibleStraightPoints(object, layout.bounds)
               )
                 return null;
-              const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE)!;
+              const centre = nameCentre(object, layout, EDITOR_UNITS_PER_CENTIMETRE, document.axes)!;
               const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE);
               const parts = nameParts(object.name);
               const style = object.kind === "point" ? "italic" : "bold";
@@ -912,6 +914,27 @@ export function GraphCanvas({
                   ))}
                 </g>
               );
+            })}
+          </g>
+          {/* Printed coordinates, A(2, 3), as the pupil copy shows them (a blank shows its dots). */}
+          <g className="point-coordinates" fontFamily={fontFamily}>
+            {visibleDocument.objects.map((object) => {
+              if (object.kind !== "point" || !object.coordinates || !pointInBounds(object.position, layout.bounds)) return null;
+              const at = coordinatesAnchor(object, layout, EDITOR_UNITS_PER_CENTIMETRE, document.axes)!;
+              const text = coordinatesText(visibleDocument, object, "pupil");
+              return ["text-halo", undefined].map((halo) => (
+                <text
+                  key={`${object.id}-${halo ?? "text"}`}
+                  className={halo}
+                  aria-hidden={halo ? true : undefined}
+                  x={at.x}
+                  y={at.y + AXIS_LABEL_FONT_SIZE * 0.34}
+                  textAnchor={at.anchor}
+                  fontSize={AXIS_LABEL_FONT_SIZE}
+                >
+                  {text}
+                </text>
+              ));
             })}
           </g>
           {selected?.kind === "straight" && (

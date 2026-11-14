@@ -48,9 +48,15 @@ export interface NamedObject {
   namePosition?: Coordinate;
 }
 
+/** Coordinates printed after a point's name, as exam papers write A(2, 3). "show" prints them;
+ * "blank" leaves ( ……… , ……… ) for the pupil on the pupil copy, and prints the point's own
+ * coordinates in the answer colour on the answers copy. Omitted prints none. */
+export type PointCoordinates = "show" | "blank";
+
 export interface PointObject extends BaseObject, NamedObject {
   kind: "point";
   position: Coordinate;
+  coordinates?: PointCoordinates;
 }
 
 /** Where a short label sits beside the point it labels. */

@@ -102,7 +102,7 @@
  "cuboids/default": {
   "schemaVersion": 2,
   "contentHash": "4616db56d0be2f2ab7efaac97dca0d681cafc463fb59bd50031d286b3aa2f22e",
-  "pupilSvg": "33fe584f57b13c6a315a5a5cdc372eb0b078530e62f3537ae57a647dbe0ac872"
+  "pupilSvg": "86eccbbc0318ba12119317a1faf481793f65d7c877098b36e37479f646f55513"
  },
  "cuboids/example-1ma1-jun-2017-3f-q12-worked": {
   "schemaVersion": 1,
@@ -167,32 +167,32 @@
  "cuboids/example-base-area-worked": {
   "schemaVersion": 2,
   "contentHash": "2880e54f2007a0be4d772e9e0cde15249f8c8a9a4df2d15732fb9eba0a225178",
-  "pupilSvg": "fcf252e8e3fa07da2c09bd91c84e12042d87bbbbcac6610a6fcdc60412aed859"
+  "pupilSvg": "a16d0723fbfb8322335dee45044997f6d9f753c080f6f8978ca1b3a09ad99596"
  },
  "cuboids/example-base-area": {
   "schemaVersion": 2,
   "contentHash": "a6112421dfc2ab10359ff024ab34f32c4f7be2058aab4c43d53b687677b8bf80",
-  "pupilSvg": "8f8c362ed4af4ed6c3b17fa0141be12219b640fb26336166459569345b2697be"
+  "pupilSvg": "f5a71a000bfc07881a7270d502d287ce95bd491d7302f7c221325591ee179214"
  },
  "cuboids/example-cross-section-face-worked": {
   "schemaVersion": 2,
   "contentHash": "5f045094925874f1edaccd518a069334ae80b33b26cc3808c7b9ac5b321a163f",
-  "pupilSvg": "2c4ba0da254cc0610d59f4871b2ee654a6f8f2da246db869b8d36e989ded72c9"
+  "pupilSvg": "e5b14b060187e82f08e681a08eb9f5648bfdaa9e3316ee085e38f83f271715da"
  },
  "cuboids/example-cross-section-face": {
   "schemaVersion": 2,
   "contentHash": "2c2df367d5fcab9bfec6b4cda9e28bdb534d9da3f40918e3981b790ff82f28ba",
-  "pupilSvg": "46c1ffab0065b0410439aa69a8d633afd67bd804aa9f61f81176bf1b4507eda4"
+  "pupilSvg": "1b9616d68b996aee271dc42380407942263be051398ac9d9da682927df289081"
  },
  "cuboids/example-grey-faces-worked": {
   "schemaVersion": 2,
   "contentHash": "66f87b6983bf5ca4f8323c0def62c3a13676f50c1ba24f14e2890a4592bd5921",
-  "pupilSvg": "6c7dd2862f692ee8eb88b2778524ad2150ea8307c8692dcff7d014fe61820bb5"
+  "pupilSvg": "19f0ba05a5a8459291f19fd116dc6473b976a3316f23f318103f0ba3d02545d5"
  },
  "cuboids/example-grey-faces": {
   "schemaVersion": 2,
   "contentHash": "848f1a84d0f4b753f5e201865d6ac34445e93a1d0745e4569c5a22754ecd0086",
-  "pupilSvg": "b96c139d0b941c0948bf2b7c09d6bf535921cccbdc884fc8c06a9d91bf9b0765"
+  "pupilSvg": "cfed12ab821637ddff5de349cfb6fa8c0bf1a6b2d4fc4d092d7bfbb97f0a0051"
  },
  "cuboids/example-layers-1-worked": {
   "schemaVersion": 1,

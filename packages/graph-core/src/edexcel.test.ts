@@ -10,6 +10,7 @@ import {
   createGraph,
   decodeEnvelope,
   documentFromEnvelope,
+  encodeEnvelope,
   editorLink,
   graphHash,
   parseGraphFile,
@@ -283,5 +284,49 @@ describe("axis numbers over lines", () => {
     const name = svg.match(/<g class="object-name object-name-straight"[^>]*>(.*?)<\/g>/)![1];
     expect(name).not.toContain("<rect");
     expect(name).toContain('stroke="#ffffff"');
+  });
+});
+
+describe("point coordinates", () => {
+  const spec = {
+    objects: [
+      { kind: "point", id: "a", position: { x: 2, y: -3 }, name: "A", coordinates: "show" },
+      { kind: "point", id: "b", position: { x: -1, y: 4 }, name: "B", coordinates: "blank" },
+      { kind: "point", id: "c", position: { x: 1, y: 1 } },
+    ],
+  };
+  it("print A(2, −3), leave a blank for pupils and show the saved point only on the answers copy", () => {
+    const d = documentFromEnvelope(createGraph(spec));
+    const pupil = renderDiagramSvg(d);
+    const answer = renderDiagramSvg(d, "answer");
+    expect(pupil).toContain("(2, −3)");
+    expect(pupil).toContain("( ……… , ……… )");
+    expect(pupil).not.toContain("(−1, 4)");
+    expect(answer).toContain("(−1, 4)");
+    expect(answer).toContain('point-coordinates-answer" fill="#b0125b"');
+    expect(answer).not.toContain("……");
+    const size = (svg: string) => svg.match(/width="[\d.]+cm" height="[\d.]+cm"/)![0];
+    expect(size(answer)).toBe(size(pupil));
+    // The point without coordinates saves without the field.
+    expect("coordinates" in d.objects[2]).toBe(false);
+    expect(isDiagramDocument(d)).toBe(true);
+    expect(isDiagramDocument({ ...d, objects: [{ ...d.objects[0], coordinates: "maybe" }] })).toBe(false);
+  });
+  it("keep coordinates through links and the content hash", async () => {
+    const e = createGraph(spec);
+    expect(documentFromEnvelope(decodeEnvelope(encodeEnvelope(e))).objects[1]).toMatchObject({ coordinates: "blank" });
+    const shown = createGraph({ objects: spec.objects.map((o) => (o.id === "b" ? { ...o, coordinates: "show" } : o)) });
+    expect(await graphHash(shown)).not.toBe(await graphHash(e));
+  });
+  it("refuse coordinates that would print as a rounded decimal", () => {
+    expect(() => createGraph({ objects: [{ kind: "point", id: "a", position: { x: 1 / 3, y: 2 }, coordinates: "show" }] })).toThrow(
+      "at most 3 decimal places",
+    );
+    expect(() => createGraph({ objects: [{ kind: "point", id: "a", position: { x: 0.25, y: 2 }, coordinates: "show" }] })).not.toThrow();
+  });
+  it("keep a graph without coordinates byte for byte", () => {
+    const without = { objects: spec.objects.map((o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== "coordinates"))) };
+    const d = documentFromEnvelope(createGraph(without));
+    expect(renderDiagramSvg(d)).not.toContain("point-coordinates");
   });
 });

@@ -12,6 +12,7 @@ import {
   LABEL_SIDES,
   MAX_LABEL_TEXT_LENGTH,
   OBJECT_NAME_PATTERN,
+  coordinatesPrintable,
   formatAxisValue,
   normaliseLabelText,
   normaliseObjectName,
@@ -25,17 +26,15 @@ import {
 } from "./equations";
 import type { AxisConfig, DiagramDocumentV1, GraphObject, StraightObject } from "./types";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
+import { MathsDockError } from "../../envelope-core/src/errors";
 
 export const RENDERER_VERSION = "graph-1";
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const MAX_LINK_LENGTH = 8192;
 export const MAX_FILE_BYTES = 1024 * 1024;
-export class GraphError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-  ) {
-    super(message);
+export class GraphError extends MathsDockError {
+  constructor(code: string, message: string, details?: ConstructorParameters<typeof MathsDockError>[2]) {
+    super(code, message, details);
     this.name = "GraphError";
   }
 }
@@ -168,6 +167,7 @@ export const equationSchema = z.discriminatedUnion("kind", [
     .strict(),
   z.object({ kind: z.literal("vertical"), x: numeric }).strict(),
 ]);
+const coordinatesSchema = z.enum(["show", "blank"]);
 const straightInput = {
   id: identifier.optional(),
   start: inputCoordinate.optional(),
@@ -197,6 +197,11 @@ export const objectInputSchema = z.union([
       namePosition: inputCoordinate
         .optional()
         .describe("Centre of the printed name in graph coordinates. Omit to place it automatically."),
+      coordinates: coordinatesSchema
+        .optional()
+        .describe(
+          'Print the coordinates after the name, as A(2, 3): "show" prints them; "blank" leaves ( ……… , ……… ) for pupils to write ("write down the coordinates of A") and prints them only on the answers copy. Omit for none.',
+        ),
       answerOnly: answerOnlyInput,
     })
     .strict(),
@@ -238,6 +243,7 @@ const objectSchema = z.union([
       position: coordinate,
       name: nameSchema.optional(),
       namePosition: coordinate.optional(),
+      coordinates: coordinatesSchema.optional(),
       answerOnly: z.literal(true).optional(),
     })
     .strict(),
@@ -354,6 +360,12 @@ export function validateEnvelope(
   network = false,
 ): GraphEnvelope {
   const envelope = parse(envelopeSchema, value);
+  for (const o of envelope.document.objects)
+    if (o.kind === "point" && o.coordinates && !coordinatesPrintable(o.position))
+      throw new GraphError(
+        "invalid_input",
+        `Point ${o.id} is at (${o.position.x}, ${o.position.y}); printed coordinates need values with at most 3 decimal places, so move it to an exact position or leave its coordinates off.`,
+      );
   if (
     network &&
     (envelope.document.objects.length > 50 ||
@@ -378,7 +390,7 @@ function makeObject(
     ...(input.answerOnly ? { answerOnly: true as const } : {}),
   };
   if (input.kind === "point")
-    return { id, kind: "point", position: input.position, ...named };
+    return { id, kind: "point", position: input.position, ...named, ...(input.coordinates ? { coordinates: input.coordinates } : {}) };
   // A label off the axes would never print, so a new one must mark a point on them.
   for (const label of input.labels ?? [])
     if (!pointInBounds(label.at, getBounds(document)))
@@ -489,6 +501,7 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
           kind: o.kind,
           position: { x: o.position.x, y: o.position.y },
           ...canonicalName(o),
+          ...(o.coordinates ? { coordinates: o.coordinates } : {}),
         }
       : {
           id: o.id,

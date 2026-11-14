@@ -37,7 +37,11 @@ function isGraphObject(value: unknown): value is GraphObject {
     (candidate.answerOnly !== undefined && candidate.answerOnly !== true)
   )
     return false;
-  if (candidate.kind === "point") return isCoordinate(candidate.position);
+  if (candidate.kind === "point")
+    return (
+      isCoordinate(candidate.position) &&
+      (candidate.coordinates === undefined || candidate.coordinates === "show" || candidate.coordinates === "blank")
+    );
   if (candidate.kind !== "straight") return false;
   return (
     (candidate.display === "segment" || candidate.display === "line") &&
