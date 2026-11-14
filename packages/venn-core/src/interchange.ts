@@ -75,6 +75,7 @@ export function createVenn(raw: unknown = {}): Envelope {
     e = createExtended(s.sets ?? 2);
   const { labels, definitions, regions, ...settings } = s;
   Object.assign(e.document, settings);
+  if (e.document.lines === "normal") delete e.document.lines;
   unique(labels ?? [], (v) => v.set);
   unique(definitions ?? [], (v) => v.set);
   unique(regions ?? [], (v) => v.mask);
@@ -262,7 +263,8 @@ export function apply(raw: Envelope, operations: unknown): Envelope {
     if (o.op === "set_print") {
       if (o.widthCm !== undefined) next.document.widthCm = o.widthCm;
       if (o.fontPt !== undefined) next.document.fontPt = o.fontPt;
-      if (o.lines !== undefined) next.document.lines = o.lines;
+      if (o.lines === "bold") next.document.lines = "bold";
+      else if (o.lines === "normal") delete next.document.lines;
     }
   }
   const e = validate(next);
