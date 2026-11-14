@@ -18,7 +18,7 @@ import {
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   appearance,
   faceNames,
@@ -124,8 +124,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set());
-  /** The card for what was last clicked on the diagram (a label or the shading), shown first (U20). */
-  const [focus, setFocus] = useState<"labels" | "shading" | null>(null);
   const [inputEpoch, setInputEpoch] = useState(0);
   const inlineField = useRef<FieldHandle>(null);
   const file = useRef<HTMLInputElement>(null),
@@ -366,10 +364,12 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       />
     );
   }
+  /** The card for the label or area being edited on the diagram comes first (U20, U21). */
+  const focus: SettingsCard | null =
+    inline === null ? null : inline === "area" ? "shading" : "labels";
   function selectShape(id: string) {
     if (blocked) return;
     setSelected(id);
-    setFocus(null);
     setInline(null);
     setShowHidden(false);
   }
@@ -377,7 +377,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (blocked) return;
     setSelected(shapeId);
     if (k !== "area") setLabelKey(k);
-    setFocus(k === "area" ? "shading" : "labels");
     setInline(k);
   }
   function view(value: Shape["view"]) {
@@ -743,7 +742,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onWorked={(resource) => commit(resource, "use worked version")}
             />
             {d.shapes.length > 1 && (
-              <section className="panel-card cb-settings">
+              <section className="panel-card cb-settings" aria-label="Cuboids">
                   <label>
                     Selected cuboid{" "}
                     <select
@@ -762,7 +761,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               </section>
             )}
             {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top. */}
-            {cardOrder(focus).map((key) => ({
+            {((cards: Record<SettingsCard, ReactNode>) =>
+              cardOrder(focus).map((key) => cards[key]))({
                 shape: (
                   <section key="shape" className="panel-card cb-settings" aria-labelledby="cb-card-shape">
                     <h2 id="cb-card-shape">{"Shape"}</h2>
@@ -926,7 +926,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 ),
                 labels: (
                   <section key="labels" className="panel-card cb-settings" aria-labelledby="cb-card-labels">
-                    <h2 id="cb-card-labels">{focus === "labels" ? `Selected label: ${labelKey}` : "Labels"}</h2>
+                    <h2 id="cb-card-labels">{focus === "labels" ? `Selected label: ${inline}` : "Labels"}</h2>
                     <label>
                       Edge or face{" "}
                       <select
@@ -1009,7 +1009,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 ),
                 shading: (
                   <section key="shading" className="panel-card cb-settings" aria-labelledby="cb-card-shading">
-                    <h2 id="cb-card-shading">{focus === "shading" ? "Selected: shading" : "Shading"}</h2>
+                    <h2 id="cb-card-shading">{focus === "shading" ? "Selected: area label" : "Shading"}</h2>
                     <div className="cb-shade-options" aria-label="Shading style">
                       {(
                         [
@@ -1154,8 +1154,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                     )}
                   </section>
                 ),
-            })[key])}
-            <section className="panel-card cb-settings">
+            })}
+            <section className="panel-card cb-settings" aria-label="Print settings">
               <details className="cb-settings-footer">
                 <summary>Print settings</summary>
                 <p className="cb-note">

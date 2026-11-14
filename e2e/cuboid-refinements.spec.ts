@@ -147,8 +147,11 @@ test("settings are stacked cards, and clicking a label brings its card to the to
     page.getByLabel("Label appearance", { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Grey faces", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /height/i }).first().click();
+  await page.getByRole("button", { name: /^Edit height label/ }).click();
   await expect(headings.first()).toHaveText("Selected label: height");
+  // Deselecting puts the cards back in their usual order.
+  await page.keyboard.press("Escape");
+  await expect(headings.first()).toHaveText("Shape");
   await page.screenshot({
     path: join(report, "compact-desktop.png"),
     fullPage: true,
