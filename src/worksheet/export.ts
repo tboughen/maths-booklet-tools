@@ -26,6 +26,9 @@ function loadFonts() {
 export async function pagesPdf(pages: string[], title: string): Promise<Blob> {
   const [{ default: PDFDocument }, { default: SVGtoPDF }, f] = await Promise.all([import("pdfkit"), import("svg-to-pdfkit"), loadFonts()]);
   const bytes = await writeWorksheetPdf(PDFDocument as never, SVGtoPDF as never, pages, title, f);
+  // Post-export vector audit (W30): the file is re-opened and checked before it is offered.
+  const { assertVectorPdf } = await import("../../packages/resource-core/src/pdf-audit");
+  await assertVectorPdf(bytes, pages);
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
 
