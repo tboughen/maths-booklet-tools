@@ -8,8 +8,12 @@ export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "descrip
 export function diagramFileMenu(items: {
   svg: FileMenuItem;
   png: FileMenuItem;
+  /** The diagram on an A4 or A3 PDF page at actual size (U32). */
+  pdf?: FileMenuItem;
   /** Teacher copies with hidden answers printed, for tools that offer them. */
   answers?: { svg: FileMenuItem; png: FileMenuItem };
+  /** "Title and note…" (U34): from `useTitleNote`. */
+  about: FileMenuItem;
   save: FileMenuItem;
   open: FileMenuItem;
   link: FileMenuItem;
@@ -17,13 +21,15 @@ export function diagramFileMenu(items: {
   return [
     { ...items.svg, label: "Download SVG" },
     { ...items.png, label: "Download PNG (600 ppi)" },
+    ...(items.pdf ? [{ ...items.pdf, label: "Download PDF (actual size)" }] : []),
     ...(items.answers
       ? [
           { ...items.answers.svg, label: "Download answers SVG", description: "Hidden answers printed in the answer colour." },
           { ...items.answers.png, label: "Download answers PNG (600 ppi)" },
         ]
       : []),
-    { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION, separator: true },
+    { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
+    { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },
     { picker: true, ...items.open, label: "Open editable file" },
     { ...items.link, label: "Copy editable link", description: LINK_DESCRIPTION },
   ];

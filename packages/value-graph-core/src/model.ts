@@ -15,6 +15,24 @@ import {
   type Equation,
   type Column,
 } from "./schema";
+import { equationFamily, equationProblem, evaluateExact } from "./families";
+
+/** True when two equations have the same terms, treating an omitted term as zero. */
+export function sameEquation(a: Equation, b: Equation): boolean {
+  const same = (x: string | undefined, y: string | undefined) =>
+    sameNumber(parseNumber(x ?? "0"), parseNumber(y ?? "0"));
+  return (
+    same(a.a, b.a) &&
+    same(a.b, b.b) &&
+    same(a.c, b.c) &&
+    same(a.cubic, b.cubic) &&
+    same(a.reciprocal, b.reciprocal) &&
+    !!a.exponential === !!b.exponential &&
+    (!a.exponential ||
+      (same(a.exponential.coefficient, b.exponential!.coefficient) &&
+        same(a.exponential.base, b.exponential!.base)))
+  );
+}
 
 export const AXIS_FONT_PT = 12;
 export const PT_MM = 25.4 / 72;
@@ -49,27 +67,15 @@ export function rangeColumns(start: string, end: string, step: string) {
 function add(a: Rational, b: Rational) {
   return rational(a.n * b.d + b.n * a.d, a.d * b.d);
 }
-function multiply(a: Rational, b: Rational) {
-  return rational(a.n * b.n, a.d * b.d);
-}
 export function evaluate(equation: Equation, x: string): string {
-  const v = parseNumber(x);
-  return fractionString(
-    add(
-      add(
-        multiply(multiply(parseNumber(equation.a), v), v),
-        multiply(parseNumber(equation.b), v),
-      ),
-      parseNumber(equation.c),
-    ),
-  );
+  return evaluateExact(equation, x);
 }
 export function validate(raw: unknown): ValueEnvelope {
   const e = envelopeSchema.parse(raw),
     d = e.document,
     g = d.graph;
-  if (!number(d.equation.a))
-    throw Error("Use a nonzero coefficient a for a quadratic.");
+  const problem = equationProblem(d.equation);
+  if (problem) throw Error(problem);
   const ids = d.columns.map((c) => c.id);
   if (new Set(ids).size !== ids.length)
     throw Error("Column IDs must be unique.");
@@ -161,9 +167,12 @@ export function validate(raw: unknown): ValueEnvelope {
     )
       throw Error("Straight joins need distinct x values.");
   }
-  for (const c of g.curves)
-    if (!number(c.equation.a) || number(c.min) >= number(c.max))
-      throw Error("A curve needs a nonzero a and increasing domain bounds.");
+  for (const c of g.curves) {
+    const curveProblem = equationProblem(c.equation);
+    if (curveProblem) throw Error(`The curve: ${curveProblem}`);
+    if (number(c.min) >= number(c.max))
+      throw Error("A curve needs increasing domain bounds.");
+  }
   return e;
 }
 export function wrap(document: ValueDocument): ValueEnvelope {
@@ -389,19 +398,11 @@ export function warnings(e: ValueEnvelope): string[] {
       );
     if (s.connection === "straight-joins")
       out.push(
-        "Straight segments are selected. This can show the mistake of joining a quadratic with straight lines.",
+        `Straight segments are selected. This can show the mistake of joining a ${equationFamily(d.equation)} graph's points with straight lines.`,
       );
   }
   if (
-    d.graph.curves.some((c) =>
-      ["a", "b", "c"].some(
-        (k) =>
-          !sameNumber(
-            parseNumber(c.equation[k as keyof Equation]),
-            parseNumber(d.equation[k as keyof Equation]),
-          ),
-      ),
-    )
+    d.graph.curves.some((c) => !sameEquation(c.equation, d.equation))
   )
     out.push(
       "The retained curve uses a different equation. Replot explicitly or retain it as an error.",

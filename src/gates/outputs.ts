@@ -17,6 +17,9 @@ export const galleries: Record<string, Entry[]> = {
   charts: gallery.chartGallery as Entry[],
   "probability trees": gallery.treeGallery as Entry[],
   "frequency trees": gallery.frequencyTreeGallery as Entry[],
+  constructions: gallery.constructionGallery as Entry[],
+  "plans and elevations": gallery.elevationsGallery as Entry[],
+  "two-way tables": gallery.twoWayTableGallery as Entry[],
 };
 
 export function renders(entries: Entry[]) {

@@ -26,7 +26,8 @@
             "type": "string",
             "enum": [
               "expand",
-              "factorise"
+              "factorise",
+              "multiply"
             ]
           },
           "columns": {
@@ -215,6 +216,18 @@
           "sourceId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -483,6 +496,13 @@
                 "minimum": 10,
                 "maximum": 14
               },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
+              },
               "nameWidthMm": {
                 "type": "number",
                 "minimum": 20,
@@ -508,6 +528,18 @@
           "presentation"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -881,6 +913,13 @@
                 "minimum": 10,
                 "maximum": 14
               },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
+              },
               "titlePt": {
                 "type": "number",
                 "minimum": 12,
@@ -997,6 +1036,18 @@
           "captions"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -1370,6 +1421,13 @@
                 "minimum": 10,
                 "maximum": 14
               },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
+              },
               "titlePt": {
                 "type": "number",
                 "minimum": 12,
@@ -1494,6 +1552,18 @@
           "captions"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -1764,6 +1834,13 @@
                     "minimum": 10,
                     "maximum": 14
                   },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
+                  },
                   "nameWidthMm": {
                     "type": "number",
                     "minimum": 20,
@@ -1789,6 +1866,18 @@
               "presentation"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -2161,6 +2250,13 @@
                     "minimum": 10,
                     "maximum": 14
                   },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
+                  },
                   "titlePt": {
                     "type": "number",
                     "minimum": 12,
@@ -2277,6 +2373,18 @@
               "captions"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -2649,6 +2757,13 @@
                     "minimum": 10,
                     "maximum": 14
                   },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
+                  },
                   "titlePt": {
                     "type": "number",
                     "minimum": 12,
@@ -2773,6 +2888,18 @@
               "captions"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -2971,6 +3098,775 @@
           "barMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      }
+    },
+    "required": [
+      "tool",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
+  "construction": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tool": {
+        "type": "string",
+        "const": "construction"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "construction-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 26
+          },
+          "height": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 30
+          },
+          "grid": {
+            "type": "string",
+            "enum": [
+              "none",
+              "cm"
+            ]
+          },
+          "border": {
+            "type": "boolean"
+          },
+          "caption": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "show": {
+                "type": "string",
+                "enum": [
+                  "show",
+                  "hidden"
+                ]
+              }
+            },
+            "required": [
+              "text",
+              "show"
+            ],
+            "additionalProperties": false
+          },
+          "points": {
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                },
+                "x": {
+                  "type": "number",
+                  "minimum": -5,
+                  "maximum": 35
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": -5,
+                  "maximum": 35
+                },
+                "label": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "labelAt": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "n",
+                    "ne",
+                    "e",
+                    "se",
+                    "s",
+                    "sw",
+                    "w",
+                    "nw"
+                  ]
+                },
+                "mark": {
+                  "type": "string",
+                  "enum": [
+                    "cross",
+                    "dot",
+                    "none"
+                  ]
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "given",
+                    "answer"
+                  ]
+                },
+                "group": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                }
+              },
+              "required": [
+                "id",
+                "x",
+                "y",
+                "label",
+                "labelAt",
+                "mark",
+                "role"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "objects": {
+            "maxItems": 120,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "segment"
+                    },
+                    "from": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "extend": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 30
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 30
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "dash": {
+                      "type": "boolean"
+                    },
+                    "label": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "from",
+                    "to",
+                    "extend",
+                    "dash",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "arc"
+                    },
+                    "center": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "radius": {
+                      "type": "number",
+                      "minimum": 0.1,
+                      "maximum": 30
+                    },
+                    "start": {
+                      "type": "number",
+                      "minimum": -720,
+                      "maximum": 720
+                    },
+                    "sweep": {
+                      "type": "number",
+                      "minimum": -360,
+                      "maximum": 360
+                    },
+                    "dash": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "center",
+                    "radius",
+                    "start",
+                    "sweep",
+                    "dash"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "angle"
+                    },
+                    "at": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "from": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "style": {
+                      "type": "string",
+                      "enum": [
+                        "arc",
+                        "right"
+                      ]
+                    },
+                    "reflex": {
+                      "type": "boolean"
+                    },
+                    "label": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "at",
+                    "from",
+                    "to",
+                    "style",
+                    "reflex",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "north"
+                    },
+                    "at": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "length": {
+                      "type": "number",
+                      "minimum": 0.8,
+                      "maximum": 12
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "at",
+                    "length"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "bearing"
+                    },
+                    "from": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "to": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "northLine": {
+                      "type": "boolean"
+                    },
+                    "label": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "from",
+                    "to",
+                    "northLine",
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "polygon"
+                    },
+                    "points": {
+                      "minItems": 3,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                      }
+                    },
+                    "dash": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "points",
+                    "dash"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "text"
+                    },
+                    "x": {
+                      "type": "number",
+                      "minimum": -5,
+                      "maximum": 35
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -5,
+                      "maximum": 35
+                    },
+                    "label": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "italic": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "x",
+                    "y",
+                    "label",
+                    "italic"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "given",
+                        "answer"
+                      ]
+                    },
+                    "group": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "const": "region"
+                    },
+                    "rules": {
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "distance"
+                              },
+                              "from": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                              },
+                              "distance": {
+                                "type": "number",
+                                "minimum": 0.05,
+                                "maximum": 40
+                              },
+                              "side": {
+                                "type": "string",
+                                "enum": [
+                                  "within",
+                                  "beyond"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "from",
+                              "distance",
+                              "side"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "closer"
+                              },
+                              "to": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                              },
+                              "than": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "to",
+                              "than"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "inside"
+                              },
+                              "shape": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z][A-Za-z0-9_'-]{0,15}$"
+                              },
+                              "side": {
+                                "type": "string",
+                                "enum": [
+                                  "within",
+                                  "beyond"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "shape",
+                              "side"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "enum": [
+                        "hatch",
+                        "cross"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "role",
+                    "type",
+                    "rules",
+                    "pattern"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "grid",
+          "border",
+          "caption",
+          "points",
+          "objects"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -3468,6 +4364,186 @@
           "shapes"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      }
+    },
+    "required": [
+      "tool",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
+  "elevations": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tool": {
+        "type": "string",
+        "const": "elevations"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "elevations-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "heights": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "minItems": 1,
+              "maxItems": 6,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              }
+            }
+          },
+          "panels": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "view": {
+                  "type": "string",
+                  "enum": [
+                    "isometric",
+                    "plan",
+                    "front",
+                    "side"
+                  ]
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "drawn",
+                    "blank",
+                    "answer"
+                  ]
+                },
+                "label": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "show": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "hidden"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "show"
+                  ],
+                  "additionalProperties": false
+                },
+                "squares": {
+                  "type": "object",
+                  "properties": {
+                    "across": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 20
+                    },
+                    "up": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 20
+                    }
+                  },
+                  "required": [
+                    "across",
+                    "up"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "view",
+                "state",
+                "label",
+                "squares"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "unitCm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 0.5
+              },
+              {
+                "type": "number",
+                "const": 1
+              },
+              {
+                "type": "number",
+                "const": 2
+              }
+            ]
+          },
+          "arrows": {
+            "type": "boolean"
+          },
+          "isoDots": {
+            "type": "boolean"
+          },
+          "maxWidthCm": {
+            "type": "integer",
+            "minimum": 8,
+            "maximum": 27
+          }
+        },
+        "required": [
+          "heights",
+          "panels",
+          "unitCm",
+          "arrows",
+          "isoDots",
+          "maxWidthCm"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -3629,6 +4705,84 @@
                     },
                     "kind": {
                       "type": "string",
+                      "const": "polygon"
+                    },
+                    "vertices": {
+                      "minItems": 3,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "number",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          },
+                          "y": {
+                            "type": "number",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "shaded": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "vertices"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
                       "const": "point"
                     },
                     "position": {
@@ -3674,6 +4828,13 @@
                         "y"
                       ],
                       "additionalProperties": false
+                    },
+                    "coordinates": {
+                      "type": "string",
+                      "enum": [
+                        "show",
+                        "blank"
+                      ]
                     },
                     "answerOnly": {
                       "type": "boolean",
@@ -3857,6 +5018,33 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "gradientTriangle": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "run": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "labels": {
+                          "type": "string",
+                          "enum": [
+                            "values",
+                            "blank"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "run"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -3866,6 +5054,77 @@
                     "start",
                     "end",
                     "equationVisible"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[a-zA-Z0-9_-]+$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "const": "region"
+                    },
+                    "inequalities": {
+                      "minItems": 1,
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      }
+                    },
+                    "shade": {
+                      "type": "string",
+                      "enum": [
+                        "wanted",
+                        "unwanted"
+                      ]
+                    },
+                    "boundaries": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Z]′?[0-9]{0,2}$"
+                    },
+                    "namePosition": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -1000000,
+                          "maximum": 1000000
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "answerOnly": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "inequalities",
+                    "shade",
+                    "boundaries"
                   ],
                   "additionalProperties": false
                 }
@@ -3918,6 +5177,18 @@
           "selectedObjectId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4000,6 +5271,9 @@
               },
               "variableBelow": {
                 "default": false,
+                "type": "boolean"
+              },
+              "minorTicks": {
                 "type": "boolean"
               }
             },
@@ -4159,6 +5433,36 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "rays": {
+                        "maxItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                            },
+                            "from": {
+                              "type": "string",
+                              "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                            },
+                            "direction": {
+                              "type": "string",
+                              "enum": [
+                                "left",
+                                "right"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "from",
+                            "direction"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
@@ -4233,9 +5537,103 @@
             "type": "number",
             "minimum": 8,
             "maximum": 18
+          },
+          "markers": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,40}$"
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "label": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9]{1,3}$"
+                }
+              },
+              "required": [
+                "id",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "secondary": {
+            "type": "object",
+            "properties": {
+              "minimum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "maximum": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "unit": {
+                "default": "",
+                "type": "string",
+                "maxLength": 4,
+                "pattern": "^[^<>&\"0-9/\\s]*$"
+              },
+              "unitPlace": {
+                "default": "after",
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              "style": {
+                "default": "line",
+                "type": "string",
+                "enum": [
+                  "line",
+                  "bar"
+                ]
+              },
+              "labels": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "value",
+                    "hidden",
+                    "answer-line"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "minimum",
+              "maximum"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4462,6 +5860,18 @@
           "gapMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4733,6 +6143,18 @@
           "gapMm"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -4983,6 +6405,18 @@
           "showOperations"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -5294,6 +6728,11 @@
                 "ticks": {
                   "type": "integer",
                   "minimum": 0,
+                  "maximum": 3
+                },
+                "arrows": {
+                  "type": "integer",
+                  "minimum": 1,
                   "maximum": 3
                 },
                 "dashed": {
@@ -5959,6 +7398,18 @@
           "notToScale": {
             "type": "boolean"
           },
+          "fontPt": {
+            "type": "integer",
+            "minimum": 11,
+            "maximum": 14
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          },
           "sourceId": {
             "anyOf": [
               {
@@ -5986,6 +7437,18 @@
           "sourceId"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -6030,6 +7493,32 @@
               "c": {
                 "type": "string",
                 "maxLength": 32
+              },
+              "cubic": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "reciprocal": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "exponential": {
+                "type": "object",
+                "properties": {
+                  "coefficient": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "base": {
+                    "type": "string",
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "coefficient",
+                  "base"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
@@ -6289,6 +7778,32 @@
                         "c": {
                           "type": "string",
                           "maxLength": 32
+                        },
+                        "cubic": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "reciprocal": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "exponential": {
+                          "type": "object",
+                          "properties": {
+                            "coefficient": {
+                              "type": "string",
+                              "maxLength": 32
+                            },
+                            "base": {
+                              "type": "string",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "coefficient",
+                            "base"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
@@ -6442,6 +7957,18 @@
           "print"
         ],
         "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
       }
     },
     "required": [
@@ -6586,8 +8113,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               }
             },
             "required": [
@@ -6601,6 +8135,18 @@
               "fontPt"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [
@@ -6746,8 +8292,15 @@
               },
               "fontPt": {
                 "type": "number",
-                "minimum": 9,
+                "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               },
               "arrangement": {
                 "type": "string",
@@ -6780,6 +8333,18 @@
               "caption"
             ],
             "additionalProperties": false
+          },
+          "title": {
+            "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "note": {
+            "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
           }
         },
         "required": [

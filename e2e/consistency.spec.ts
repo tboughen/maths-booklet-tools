@@ -182,12 +182,13 @@ for (const tool of tools) {
         .evaluateAll((items) =>
           items.map((i) => i.querySelector("strong")!.textContent),
         );
-      expect(labels.slice(0, 5)).toEqual([
+      expect(labels.slice(0, 6)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
+        "Download PDF (actual size)",
+        "Title and note…",
         "Save editable file",
         "Open editable file",
-        "Copy editable link",
       ]);
       await expect(menu.getByRole("menuitem").first()).toBeFocused();
       await page.keyboard.press("End");
@@ -682,7 +683,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
     await expect(card.getByRole("link")).toHaveAttribute("target", "_blank");
     await card
       .getByRole("button", {
-        name: "Open scaffold",
+        name: "Use this example",
         exact: true,
       })
       .click();
@@ -1012,6 +1013,8 @@ for (const tool of toolIds) {
     expect(common).toEqual([
       ["Download SVG", ""],
       ["Download PNG (600 ppi)", ""],
+      ["Download PDF (actual size)", ""],
+      ["Title and note…", "Saved in the file, never printed."],
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
@@ -1019,7 +1022,7 @@ for (const tool of toolIds) {
     ]);
     // Optional teacher copies sit straight after the pupil images.
     const answers = items.findIndex(([label]) => /^Download answers /.test(label ?? ""));
-    if (answers >= 0) expect(answers).toBe(2);
+    if (answers >= 0) expect(answers).toBe(3);
     await expect(menu.getByRole("separator")).toHaveCount(2);
     await menu.getByRole("menuitem", { name: "First-time Word setup", exact: true }).click();
     const help = page.getByRole("dialog", { name: "Keep full image quality in Word" });

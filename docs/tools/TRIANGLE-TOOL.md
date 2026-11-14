@@ -124,7 +124,10 @@ is tapped. Local history touch releases activate once and consume a matching
 compatibility click; moving/cancelling a touch over history does not undo work.
 Rotate/reflection affects the complete diagram and preserves label identities.
 Right-angle, isosceles and equilateral constraints are geometric. Equal-side
-ticks, angle arcs and dashed sides are independent printed annotations. A
+ticks, parallel arrows, angle arcs and dashed sides are independent printed annotations.
+Parallel arrows (1 to 3 per side, optional `arrows` on an edge) always point rightwards (down
+on a vertical side), so sides given the same number read as parallel; they sit beside any
+equal-side ticks. A side without arrows saves without the field. A
 right-angle square is allowed only on perpendicular rays.
 
 Layouts: single; two separate triangles; two triangles sharing a selected side;
@@ -172,8 +175,12 @@ refuse invalid numerical requests. Helpers do not solve arbitrary symbolic text.
 
 ## Print and files
 
-Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt
-and independent of view zoom. Actual export height follows complete artwork,
+Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt by
+default (11–14 pt, saved as `fontPt` only when not 11; never below 11 because fraction
+parts print at 85%) and independent of view zoom.
+Lines are normal or bold (U111): bold multiplies every stroke by 1.5 and is saved as
+`lines: "bold"`; normal is never saved. A new triangle starts from the house style chosen
+on the overview page (Large print starts at 12 pt). Actual export height follows complete artwork,
 labels and captions with white allowance; an invalid collision/oversized layout
 blocks image export and keeps editable save available. Fit shows the full width
 on narrow screens. Explicit zoom permits scrolling without changing export size.

@@ -29,6 +29,7 @@ import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
+import { toolFailure } from "./tool-error";
 
 /** Worksheets and booklets: print-ready PDF, Word file (same layout) or the editable source. */
 export type WorksheetFormat = "pdf" | "docx" | "json";
@@ -270,7 +271,7 @@ const LAYOUT = [
   "Text never shrinks to fit. Overflow is returned as issues naming side, column and the millimetres needed; fix by moving a card, trimming wording or reducing working space, then create again.",
   "Spare column height goes to working and drawing spaces. Set document.spareSpace 'share' on every new worksheet: a column with none then shares it as working room at the foot of every card. Without spareSpace (older saved sheets, kept as they are) the last card takes it all.",
   "A column more than a third blank is returned as a note (not an issue): the sheet is still print-ready, but offer the teacher another question for that column.",
-  "Fractions always print stacked: set document.notation 'maths' on every new worksheet and write each fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2 or ½. With notation 'maths' answer lines (prefix, suffix, saved answer), table cells and table headings, and circle-one options stack too: 1/3, 2 1/2 and 2½ there print stacked (a mixed number as the whole number beside a stacked fraction), and the row is a little taller. Only card titles and column headings cannot stack; keep fractions out of them. An exact fractional value is never a decimal. A fraction typed inline is returned as a note naming the question.",
+  "Fractions always print stacked: set document.notation 'maths' on every new worksheet and write each fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2 or ½. With notation 'maths' answer lines (prefix, suffix, saved answer), table cells and table headings, and circle-one options stack too: 1/3, 2 1/2 and 2½ there print stacked (a mixed number as the whole number beside a stacked fraction), and the row is a little taller. Only card titles and column headings cannot stack; keep fractions out of them. An exact fractional value is never a decimal. A fraction typed inline is returned as a note naming the question. Maths notation also prints x^2 as x², -3 and x - 2 with a true minus, <= >= as ≤ ≥, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4 and maths letters in italic; type them plainly.",
   "side.score n prints 'Score ____ / n' in the header (one mark per answer). card.working and part.working store a hidden worked solution that is never printed.",
 ];
 
@@ -612,18 +613,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           // spareSpace is never filled in here: a saved sheet sent back keeps its own layout.
           return await result(validate(args.resource), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_worksheet",
-                  message: e instanceof Error ? e.message : "The worksheet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_worksheet", message: "The worksheet could not be made.", pathPrefix: ["resource"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );
@@ -639,18 +629,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         try {
           return await bookletResult(validateBooklet(args.booklet), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_booklet",
-                  message: e instanceof Error ? e.message : "The booklet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_booklet", message: "The booklet could not be made.", pathPrefix: ["booklet"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );

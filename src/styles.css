@@ -76,6 +76,14 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .editor-card, .panel-card { border: 1px solid var(--line); border-radius: 15px; background: var(--paper); box-shadow: var(--shadow); }
 .editor-card { position: relative; min-width: 0; overflow: hidden; }
 .editor-toolbar { min-height: 68px; display: flex; align-items: center; gap: 5px; padding: 10px 12px; border-bottom: 1px solid #e3ddd2; background: #fffdfa; }
+/* "Resource reset. Undo reset" floats at the bottom left of the window, clear of the toolbar, stage controls and the bottom-right toasts,
+   so the resource does not move (U25). It never reaches exports, which render the document only. */
+.editor-reset-status { position: fixed; left: 16px; bottom: 20px; z-index: 40; max-width: calc(100vw - 32px); }
+.editor-reset-notice { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 8px; color: #fff; background: #253e59; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 14px; }
+.editor-reset-notice button { min-height: 44px; min-width: 44px; border: 0; border-radius: 6px; color: #fff; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
+.editor-reset-notice .editor-reset-undo { padding: 0 12px; text-decoration: underline; text-underline-offset: 3px; }
+.editor-reset-notice .editor-reset-undo:disabled { opacity: .6; cursor: default; }
+.editor-reset-notice button:focus-visible { outline: 3px solid #ffd166; outline-offset: 1px; }
 .tool-group { display: flex; align-items: center; gap: 4px; }
 .tool-button, .icon-button { min-height: var(--control-lg); border: 1px solid transparent; border-radius: 8px; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 650; font-size: var(--button-label); line-height: 18px; }
 .tool-button { padding: 0 16px; }
@@ -107,6 +115,15 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-import-preview { overflow: auto; max-height: 55vh; }
 .graph-import-preview svg { width: 100%; height: auto; display: block; }
 .graph-import-actions { display: flex; align-items: center; gap: 16px; }
+/* U34: the File menu's "Title and note…" dialog. */
+.title-note-dialog form { display: grid; gap: 16px; }
+.title-note-help { margin: 4px 0 16px; color: var(--muted); }
+.title-note-field { display: grid; gap: 6px; font-weight: 600; }
+.title-note-field input, .title-note-field textarea { width: 100%; min-height: 44px; padding: 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; font-weight: 400; }
+.title-note-field textarea { resize: vertical; }
+.title-note-field small { color: var(--muted); font-weight: 400; font-size: var(--supporting-text); }
+.title-note-dialog .primary-panel-button { width: auto; }
+.title-note-error { margin: 0; color: var(--red); font-weight: 600; }
 /* WOFF2 for the page (S42); exports embed the OTF subsets (src/export/portable.ts). font-display stays
    block: STIX only draws diagram text, where a fallback font would show the wrong shapes and widths. */
 @font-face { font-family: "STIX Two Text"; font-style: normal; font-weight: 400; font-display: block; src: url("./assets/fonts/STIXTwoText-Regular.woff2") format("woff2"), url("../assets/graph-fonts/STIXTwoText-Regular.otf") format("opentype"); }
@@ -146,6 +163,21 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-point--selected { stroke: var(--blue); stroke-width: 4; }
 /* Answer-only objects: printed on the answers copy only, so the editor shows them in the answer colour. */
 .graph-straight--answer, .graph-point--answer { stroke: #b0125b; }
+.graph-polygon { stroke: #222426; stroke-width: 3; stroke-linejoin: round; fill: none; pointer-events: none; }
+.graph-polygon--shaded { fill: #d4d4d4; }
+.graph-polygon--answer { stroke: #b0125b; }
+.graph-polygon--answer.graph-polygon--shaded { fill: #b0125b; fill-opacity: .18; }
+.graph-polygon--selected { stroke: var(--blue); stroke-width: 4; }
+.gradient-triangle path { stroke: #222426; stroke-width: 2; fill: none; pointer-events: none; }
+.gradient-triangle--answer path { stroke: #b0125b; }
+.graph-canvas .gradient-triangle text.text-halo { fill: #fff; stroke: #fff; stroke-width: 3.6px; stroke-linejoin: round; }
+.gradient-triangle .point-label text { fill: #202224; }
+.gradient-triangle .point-label--answer text { fill: #b0125b; }
+.graph-canvas .gradient-triangle .point-label text.text-halo { fill: #fff; }
+/* Inequality regions (U73): grey shading under the grid; hidden answers in a pale answer colour. */
+.graph-region { fill: #d4d4d4; stroke: none; pointer-events: none; }
+.graph-region--answer { fill: #b0125b; fill-opacity: 0.22; }
+.graph-region--selected { fill: #c9daf8; }
 .segment-preview { stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 6; }
 .selection-handles circle { fill: #fff; stroke: var(--blue); stroke-width: 3; cursor: grab; }
 .selection-handles circle:active { cursor: grabbing; }

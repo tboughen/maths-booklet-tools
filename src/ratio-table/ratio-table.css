@@ -271,14 +271,6 @@
 .ratio-export-menu {
   top: 68px;
 }
-.ratio-edit-hint {
-  margin: 0;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
 .ratio-app .ratio-stage {
   display: block;
   overflow: auto;
@@ -296,22 +288,9 @@
 .ratio-app .ratio-paper {
   max-width: none;
 }
-.ratio-action-pair {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ratio-action-pair .tool-button {
-  border: 1px solid var(--line-strong);
-  background: white;
-  justify-content: center;
-  white-space: nowrap;
-}
 .ratio-column-actions {
   grid-column: 2;
   grid-row: 1;
-  flex-direction: column;
-  align-items: stretch;
 }
 .ratio-row-actions {
   grid-column: 1;
@@ -512,19 +491,6 @@
     position: sticky;
     left: 0;
     max-width: calc(100vw - 70px);
-    gap: 6px;
-  }
-  .ratio-app .ratio-action-pair .tool-button {
-    min-width: 0;
-    padding-inline: 6px;
-    gap: 6px;
-    font-size: 12px;
-  }
-  .ratio-action-pair .tool-button span {
-    white-space: normal;
-  }
-  .ratio-edit-hint {
-    padding-inline: 10px;
   }
   .booklet-editor.ratio-app .ratio-stage {
     height: auto;

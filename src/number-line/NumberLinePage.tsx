@@ -1,3 +1,6 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { NotationPanel } from "./NotationPanel";
@@ -5,6 +8,7 @@ import { ExampleGallery } from "../examples/ExampleGallery";
 import { numberLineGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
@@ -29,8 +33,12 @@ import {
   warnings,
   labelKey,
   valueOf,
+  secondaryTicks,
+  secondaryText,
+  labelled,
   type Envelope,
   type Operation,
+  type Secondary,
 } from "../../packages/number-line-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
@@ -38,7 +46,8 @@ import { RatioDialog as ResourceDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 function initial() {
   try {
@@ -213,11 +222,11 @@ export default function NumberLinePage({
     32,
   );
   const unit = (96 / 25.4) * fitted.scale;
-  function commit(e: Envelope) {
+  function commit(e: Envelope, label?: string) {
     if (recovery)
       throw Error("Download recovery data and choose a fresh start first.");
     const v = validate(e);
-    documentHistory.commit(v);
+    documentHistory.commit(v, label);
     setMessage("");
   }
   function change(ops: Operation[]) {
@@ -234,7 +243,29 @@ export default function NumberLinePage({
               : op,
         ),
       ),
+      operationLabel(ops),
     );
+  }
+  /** Changes the second scale, keeping its other settings and label states. */
+  function secondary(patch: Partial<Secondary>) {
+    const current = d.secondary;
+    if (!current) return;
+    // New first or last values move every label's value, so each tick keeps its label state by position.
+    const next = { ...current, ...patch, labels: {} as Secondary["labels"] };
+    const before = secondaryTicks(d),
+      after = secondaryTicks({ ...d, secondary: next });
+    before.forEach((v, i) => {
+      const state = current.labels[v];
+      if (state) next.labels[labelKey(after[i])] = state;
+    });
+    change([{ op: "set_secondary", secondary: next }]);
+  }
+  function safeSecondary(patch: Partial<Secondary>) {
+    try {
+      secondary(patch);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    }
   }
   function safe(ops: Operation[]) {
     try {
@@ -704,6 +735,7 @@ export default function NumberLinePage({
       ]);
     setSelection(null);
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(history.present), disabled: blocked, onSave: (about) => commit(withAbout(history.present, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor nl-editor">
       <main
@@ -721,6 +753,10 @@ export default function NumberLinePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -761,6 +797,7 @@ export default function NumberLinePage({
               onBusyChange={setBusy}
               onMessage={setMessage}
               actions={diagramFileMenu({
+                about: titleNote.item,
                 svg: {
                   action: () => downloadImage(history.present, "svg"),
                   disabled: blocked,
@@ -771,13 +808,18 @@ export default function NumberLinePage({
                   disabled: blocked,
                   success: "PNG download started.",
                 },
+                pdf: {
+                  action: () => downloadImage(history.present, "pdf"),
+                  disabled: blocked,
+                  success: "PDF download started.",
+                },
                 save: {
                   action: () =>
                     downloadBlob(
                       new Blob([canonical(history.present)], {
                         type: "application/json",
                       }),
-                      "maths-number-line.json",
+                      downloadName("number-line", "json", { resource: history.present }),
                     ),
                   disabled: blocked,
                   success: "Editable file download started.",
@@ -805,18 +847,10 @@ export default function NumberLinePage({
                 },
               })}
             />
+            {titleNote.dialog}
             <div className="nl-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
-              <span>
-                {mode === "select"
-                  ? "Click a circle to change its type; drag to move it."
-                  : mode === "interval"
-                    ? first
-                      ? "Choose the other endpoint"
-                      : "Choose the first endpoint"
-                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}`}
-              </span>
               {mode !== "select" && (
                 <button
                   onClick={() => {
@@ -828,6 +862,20 @@ export default function NumberLinePage({
                 </button>
               )}
             </div>
+            <EditorHint
+              tool="number-line"
+              prompt={
+                mode === "select"
+                  ? undefined
+                  : mode === "interval"
+                    ? first
+                      ? "Choose the other endpoint."
+                      : "Choose the first endpoint."
+                    : `Choose a tick for ${mode === "point" ? "a point" : `a ${mode} ray`}.`
+              }
+            >
+              Click a circle to change its type; drag to move it.
+            </EditorHint>
             <div
               className="nl-scroll"
               ref={fitted.ref}
@@ -999,7 +1047,7 @@ export default function NumberLinePage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "number-line-recovery.json",
+                      downloadName("number-line", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}
@@ -1042,7 +1090,7 @@ export default function NumberLinePage({
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card">
               <h2>Draw</h2>
@@ -1187,6 +1235,50 @@ export default function NumberLinePage({
                         </select>
                       </label>
                     )}
+                    {selectedPoint && s?.kind === "points" && (
+                      <label>
+                        Ray from this point{" "}
+                        <select
+                          aria-label="Ray from this point"
+                          disabled={blocked}
+                          value={
+                            s.rays?.find((ray) => ray.from === selectedPoint.id)
+                              ?.direction ?? "none"
+                          }
+                          onChange={(e) => {
+                            const existing = s.rays?.find(
+                              (ray) => ray.from === selectedPoint.id,
+                            );
+                            const direction = e.target.value as
+                              | "left"
+                              | "right"
+                              | "none";
+                            // One undoable step: remove the old ray, then draw the new one.
+                            safe([
+                              ...(existing
+                                ? [{ op: "remove_point_ray" as const, id: existing.id }]
+                                : []),
+                              ...(direction === "left" || direction === "right"
+                                ? [
+                                    {
+                                      op: "add_point_ray" as const,
+                                      ray: {
+                                        id: `ray-${direction}`,
+                                        from: selectedPoint.id,
+                                        direction,
+                                      },
+                                    },
+                                  ]
+                                : []),
+                            ]);
+                          }}
+                        >
+                          <option value="none">None</option>
+                          <option value="left">← Left, to the end</option>
+                          <option value="right">Right →, to the end</option>
+                        </select>
+                      </label>
+                    )}
                     {selectedPoint && (
                       <button
                         disabled={blocked}
@@ -1265,6 +1357,91 @@ export default function NumberLinePage({
                 {field("Tick step", d.axis.step, (v) => axis("step", v))}
               </div>
             </section>
+            <section className="panel-card" aria-label="Second scale">
+              <h2>Second scale</h2>
+              {d.secondary ? (
+                <div className="nl-settings-body">
+                  <div className="nl-scale-fields">
+                    {field("First value", d.secondary.minimum, (v) => secondary({ minimum: v }))}
+                    {field("Last value", d.secondary.maximum, (v) => secondary({ maximum: v }))}
+                    {field("Unit", d.secondary.unit, (v) => secondary({ unit: v.trim() }))}
+                  </div>
+                  <label>
+                    Unit goes{" "}
+                    <select
+                      aria-label="Unit position"
+                      value={d.secondary.unitPlace}
+                      disabled={blocked}
+                      onChange={(e) => safeSecondary({ unitPlace: e.target.value as Secondary["unitPlace"] })}
+                    >
+                      <option value="after">After the number (25%)</option>
+                      <option value="before">Before the number (£25)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Draw as{" "}
+                    <select
+                      aria-label="Second scale style"
+                      value={d.secondary.style}
+                      disabled={blocked}
+                      onChange={(e) => safeSecondary({ style: e.target.value as Secondary["style"] })}
+                    >
+                      <option value="line">Double number line</option>
+                      <option value="bar">Percentage bar</option>
+                    </select>
+                  </label>
+                  <div className="nl-secondary-labels" role="group" aria-label="Second-scale labels">
+                    {secondaryTicks(d).map((v, i) =>
+                      labelled(d, ticks(d)[i]) ? (
+                        <label key={v}>
+                          {secondaryText(d, v)}{" "}
+                          <select
+                            aria-label={`Second-scale label ${secondaryText(d, v)}`}
+                            value={d.secondary!.labels[v] ?? "value"}
+                            disabled={blocked}
+                            onChange={(e) =>
+                              safe([{ op: "set_secondary_label", value: v, state: e.target.value as "value" | "hidden" | "answer-line" }])
+                            }
+                          >
+                            <option value="value">Show</option>
+                            <option value="answer-line">Answer line</option>
+                            <option value="hidden">Hide</option>
+                          </select>
+                        </label>
+                      ) : null,
+                    )}
+                  </div>
+                  <p className="nl-note">
+                    Labels print above the line, one per tick. An answer line is left for pupils and its value shows only on the
+                    teacher copy.
+                  </p>
+                  <button disabled={blocked} onClick={() => safe([{ op: "set_secondary", secondary: null }])}>
+                    Remove second scale
+                  </button>
+                </div>
+              ) : (
+                <div className="nl-settings-body">
+                  <p className="nl-note">
+                    Pair every tick with a second scale above the line, such as percentages or money, as a double number line
+                    or a percentage bar.
+                  </p>
+                  <button
+                    disabled={blocked || !!s}
+                    onClick={() =>
+                      safe([
+                        {
+                          op: "set_secondary",
+                          secondary: { minimum: "0", maximum: "100", unit: "%", unitPlace: "after", style: "bar", labels: {} },
+                        },
+                      ])
+                    }
+                  >
+                    Add a second scale
+                  </button>
+                  {s && <p className="nl-note">Remove the drawn inequality or points first: a second scale uses the space above the line.</p>}
+                </div>
+              )}
+            </section>
             <section className="panel-card nl-compact-card">
               <details onToggle={keepDraftVisible}>
                 <summary>More settings</summary>
@@ -1320,6 +1497,99 @@ export default function NumberLinePage({
                         />{" "}
                         Variable below arrow
                       </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={!!d.axis.minorTicks}
+                          onChange={(e) =>
+                            safe([
+                              {
+                                op: "set_axis",
+                                axis: { minorTicks: e.target.checked },
+                              },
+                            ])
+                          }
+                        />{" "}
+                        Short ticks between labels
+                      </label>
+                    </div>
+                  </details>
+                  <details onToggle={keepDraftVisible}>
+                    <summary>Arrow markers</summary>
+                    <div className="nl-settings-body">
+                      <p>
+                        Arrows point down at values for &ldquo;What number is
+                        the arrow pointing to?&rdquo; Put the values in the
+                        answer text, not on the line.
+                      </p>
+                      {(d.markers ?? []).map((k, i) => (
+                        <div
+                          key={k.id}
+                          className="nl-marker-row"
+                          data-testid={`marker-${k.id}`}
+                        >
+                          {field(`Arrow ${i + 1} value`, k.value, (v) =>
+                            change([{ op: "set_marker", id: k.id, value: v }]),
+                          )}
+                          {field(`Arrow ${i + 1} letter`, k.label ?? "", (v) => {
+                            if (!/^[A-Za-z0-9]{0,3}$/.test(v.trim()))
+                              throw Error("Use up to 3 letters or digits for an arrow letter, such as A or P1.");
+                            change([
+                              { op: "set_marker", id: k.id, label: v.trim() },
+                            ]);
+                          })}
+                          <button
+                            type="button"
+                            disabled={blocked}
+                            onClick={() =>
+                              safe([{ op: "remove_marker", id: k.id }])
+                            }
+                          >
+                            Remove arrow {i + 1}
+                          </button>
+                        </div>
+                      ))}
+                      {(d.markers?.length ?? 0) < 6 && (
+                        <button
+                          type="button"
+                          disabled={blocked}
+                          onClick={() => {
+                            const used = new Set(
+                              (d.markers ?? []).map((k) => k.id),
+                            );
+                            let n = 1;
+                            while (used.has(`m${n}`)) n++;
+                            const letters = new Set(
+                              (d.markers ?? []).map((k) => k.label),
+                            );
+                            const label = [..."ABCDEF"].find(
+                              (c) => !letters.has(c),
+                            );
+                            const add = (value: string): Operation => ({
+                              op: "add_marker",
+                              marker: {
+                                id: `m${n}`,
+                                value,
+                                ...(label ? { label } : {}),
+                              },
+                            });
+                            // Start the new arrow at the first tick where it fits beside the others.
+                            const value =
+                              ticks(d).find((v) => {
+                                try {
+                                  apply(current.current, [add(v)]);
+                                  return true;
+                                } catch {
+                                  return false;
+                                }
+                              }) ?? d.axis.minimum;
+                            safe([add(value)]);
+                          }}
+                        >
+                          Add arrow
+                        </button>
+                      )}
                     </div>
                   </details>
                   <details onToggle={keepDraftVisible}>
@@ -1520,7 +1790,7 @@ export default function NumberLinePage({
               );
             }}
             onConfirm={() => {
-              commit(pending.envelope);
+              commit(pending.envelope, stepName(pending.title));
               setPending(null);
               setSelection(null);
               window.history.replaceState(

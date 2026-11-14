@@ -440,7 +440,7 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
     .locator("article")
     .filter({ hasText: "One set · even numbers" });
   await card
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await confirm(page);
   const e = await saved(page);
@@ -507,7 +507,7 @@ test("actual 40-member nested exports fit around both labels in circles and oval
 }) => {
   const e = upgrade(changeArrangement(create(), "b-inside-a"));
   e.document.widthCm = 16;
-  e.document.fontPt = 9;
+  e.document.fontPt = 10;
   e.document.definitions = [
     "ξ = {integers from 1 to 40}",
     "A = {integers from 17 to 40}",
@@ -625,13 +625,13 @@ test("combined Examples has teaching first, all six verified source links and no
   ).toHaveCount(0);
   const card = examplesPanel.locator('[data-example-id="venn-nested"]');
   await card
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   expect((await saved(page)).schemaVersion).toBe(1);
   await showExamples(page);
   await card
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await confirm(page);
   expect((await saved(page)).document.regions[3].visibility).toBe("hidden");

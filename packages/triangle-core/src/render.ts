@@ -1,4 +1,5 @@
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines } from "../../envelope-core/src/house-style";
 import {
   add,
   allLabels,
@@ -112,6 +113,7 @@ function intersectsLine(r: Rect, a: Point, b: Point) {
 export function layout(e: Envelope, showAnswers = false): Metrics {
   validate(e);
   const d = e.document,
+    font = ((d.fontPt ?? 11) * 25.4) / 72,
     width = d.widthCm * 10,
     feet = d.heights.map((h) => heightFoot(e, h.id).point),
     raw = [...d.vertices, ...feet];
@@ -149,7 +151,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       proposed: Point,
       candidates: Point[] = [],
       italic = false,
-      size = FONT,
+      size = font,
     ) => {
       const l = getLabel(e, ref),
         text = shown(e, l, showAnswers),
@@ -246,7 +248,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
           );
         }
       }
-      const m = mathMetrics(shown(e, a.label, showAnswers)),
+      const m = mathMetrics(shown(e, a.label, showAnswers), font),
         r = Math.max(
           radius + 4,
           (m.w / 2 + 1.5) / Math.max(0.1, Math.sin(theta / 2)),
@@ -271,7 +273,7 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       const normal = { x: -u.y, y: u.x },
         out = mul(normal, dot(normal, sub(other, mid)) > 0 ? -1 : 1);
       const text = shown(e, edge.label, showAnswers),
-        m = mathMetrics(text),
+        m = mathMetrics(text, font),
         gap = 4.5 + Math.min(3, Math.abs(out.x) * m.w * 0.3);
       place(
         `e:${edge.id}`,
@@ -288,6 +290,22 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
           b = add(tick, mul(normal, 1.5));
         shape.push(drawLine(a, b));
         bounds.push(a, b);
+      }
+      // Parallel arrows point the same way on every side (rightwards, or down when vertical),
+      // so two parallel sides always agree. They sit beside any equal-side ticks.
+      const arrows = edge.arrows ?? 0;
+      if (arrows) {
+        const dir = u.x > 1e-6 || (Math.abs(u.x) <= 1e-6 && u.y > 0) ? u : mul(u, -1),
+          side = { x: -dir.y, y: dir.x },
+          centre = edge.ticks ? add(mid, mul(dir, (edge.ticks - 1) * 0.65 + 2 + arrows * 0.9)) : mid;
+        for (let i = 0; i < arrows; i++) {
+          const tip = add(centre, mul(dir, (i - (arrows - 1) / 2) * 1.7 + 0.65)),
+            back = add(tip, mul(dir, -1.3)),
+            wingA = add(back, mul(side, 1.1)),
+            wingB = add(back, mul(side, -1.1));
+          shape.push(drawLine(wingA, tip), drawLine(tip, wingB));
+          bounds.push(wingA, tip, wingB);
+        }
       }
     }
     for (const h of d.heights) {
@@ -323,10 +341,10 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       ]);
       if (h.footName) {
         const c = add(foot, { x: 0, y: 5 }),
-          m = mathMetrics(h.footName);
+          m = mathMetrics(h.footName, font);
         boxes.push({ x: c.x - m.w / 2, y: c.y - m.h / 2, w: m.w, h: m.h });
         bounds.push({ x: c.x - m.w / 2, y: c.y + m.h / 2 });
-        labels.push(textSvg(h.footName, c, FONT, true));
+        labels.push(textSvg(h.footName, c, font, true));
       }
     }
     // Area annotations follow their own triangle, including after reshape/rotation.
@@ -350,10 +368,10 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       const rows: string[] = [];
       let current = "";
       for (const word of s.split(/\s+/)) {
-        if (measure(word) > width - 8)
+        if (measure(word, font) > width - 8)
           issues.push("A caption word is too long for this print width.");
         const next = current ? current + " " + word : word;
-        if (measure(next) > width - 8 && current) {
+        if (measure(next, font) > width - 8 && current) {
           rows.push(current);
           current = word;
         } else current = next;
@@ -370,20 +388,20 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
         ref: `c:${c.id}`,
         x: width / 2 + c.label.dx,
         y: bottom + c.label.dy,
-        w: Math.min(width - 8, Math.max(20, measure(text))),
-        h: 6,
+        w: Math.min(width - 8, Math.max(20, measure(text, font))),
+        h: 6 * (font / FONT),
       });
       for (const row of rows) {
         const p = { x: width / 2 + c.label.dx, y: bottom + c.label.dy };
         labels.push(
-          `<g data-triangle-label="c:${escapeXml(c.id)}">${textSvg(row, p)}</g>`,
+          `<g data-triangle-label="c:${escapeXml(c.id)}">${textSvg(row, p, font)}</g>`,
         );
-        const m = mathMetrics(row);
+        const m = mathMetrics(row, font);
         bounds.push(
           { x: p.x - m.w / 2, y: p.y - m.h / 2 },
           { x: p.x + m.w / 2, y: p.y + m.h / 2 },
         );
-        bottom += 5.5;
+        bottom += 5.5 * (font / FONT);
       }
       if (!rows.length) bounds.push({ x: width / 2, y: start + 2 });
     }
@@ -435,9 +453,10 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
       x: a.x + translation.x,
       y: a.y + translation.y,
     }));
+    const label = accessibleLabel(e, showAnswers);
     // Blank/hidden angle targets remain available in the labelled inspector even
     // when a narrow wedge makes their transparent direct hit area hard to reach.
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}"><title>Triangle diagram</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`;
+    const svg = boldLines(`<svg xmlns="http://www.w3.org/2000/svg" width="${f(width / 10)}cm" height="${f(height / 10)}cm" viewBox="0 0 ${f(width)} ${f(height)}" role="img" aria-label="${escapeXml(label)}"><title>${escapeXml(label)}</title><rect width="100%" height="100%" fill="white"/><g transform="translate(${f(translation.x)} ${f(translation.y)})" fill="none" stroke="#111" stroke-width=".3" stroke-linecap="round" stroke-linejoin="round">${shape.join("")}</g><g transform="translate(${f(translation.x)} ${f(translation.y)})" font-family="STIX Two Text,STIX Two Math,serif" fill="#111" stroke="none">${labels.join("")}</g></svg>`, d.lines);
     final = {
       width,
       height,
@@ -456,6 +475,46 @@ export function layout(e: Envelope, showAnswers = false): Metrics {
   return final!;
 }
 export const renderSvg = (e: Envelope, showAnswers = false) => layout(e, showAnswers).svg;
+
+const list = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
+const KIND_WORDS = { edge: ["side", "sides"], angle: ["angle", "angles"], height: ["height", "heights"], area: ["area", "areas"], caption: ["note", "notes"] } as const;
+const SUPERSCRIPT: Record<string, string> = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻" };
+const ANSWER_LINE = "____";
+/** Label text as it reads when printed: x^2 is x², line breaks are spaces, an answer line is named. */
+const spoken = (t: string) =>
+  t
+    .replace(/\^(-?\d+)/g, (_, d: string) => [...d].map((c) => SUPERSCRIPT[c] ?? c).join(""))
+    .replace(/\s*\n\s*/g, " ")
+    .replaceAll(ANSWER_LINE, "(answer line)")
+    .trim();
+/**
+ * Accessible label for the artwork (U36): what the copy prints, never more. It names the printed
+ * labels (an answer line by its place, with its prefix and unit) and counts answer lines. A blank or
+ * hidden label prints nothing, so it is not mentioned, and a saved answer is never named on a pupil copy.
+ */
+export function accessibleLabel(e: Envelope, showAnswers = false): string {
+  const d = e.document;
+  const labels = allLabels(e);
+  const texts = (kind: string) => labels.filter((x) => x.kind === kind).map((x) => shown(e, x.label, showAnswers)).filter(Boolean);
+  // A split triangle is one drawn triangle with a line through it; its parts are not separate shapes.
+  const count = d.triangles.some((t) => t.role === "outer") ? 1 : d.triangles.length;
+  const vertices = texts("vertex").map(spoken);
+  const parts = [`${count === 1 ? "Triangle" : `${count} triangles`}${vertices.length ? ` with vertices ${list(vertices)}` : ""}`];
+  const feet = d.heights.map((h) => h.footName).filter((n): n is string => !!n);
+  if (feet.length) parts.push(`${feet.length === 1 ? "point" : "points"} ${list(feet.map(spoken))} at the foot of a height`);
+  for (const kind of Object.keys(KIND_WORDS) as (keyof typeof KIND_WORDS)[]) {
+    const printed = texts(kind).map(spoken);
+    if (!printed.length) continue;
+    // "Area = (answer line) cm²" already says what it is.
+    const word = KIND_WORDS[kind][printed.length === 1 ? 0 : 1];
+    const named = printed.every((t) => t.toLowerCase().startsWith(KIND_WORDS[kind][0]));
+    parts.push(named ? list(printed) : `${word} ${list(printed)}`);
+  }
+  const lines = labels.filter((x) => shown(e, x.label, showAnswers).includes(ANSWER_LINE)).length;
+  if (lines) parts.push(`${lines} answer ${lines === 1 ? "line" : "lines"}`);
+  if (d.notToScale) parts.push("diagram not accurately drawn");
+  return parts.join("; ");
+}
 export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }

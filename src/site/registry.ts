@@ -5,14 +5,17 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
+import { Compass, Cuboid, GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, Sheet, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
 import probabilityTreePreview from "../assets/tool-previews/probability-trees.svg";
 import frequencyTreePreview from "../assets/tool-previews/frequency-trees.svg";
+import twoWayTablePreview from "../assets/tool-previews/two-way-tables.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
+import constructionPreview from "../assets/tool-previews/constructions.svg";
+import elevationsPreview from "../assets/tool-previews/plans-and-elevations.svg";
 
 /** Add booklet editors here; the overview, navigation and page host share this list.
  * Each editor is lazy-loaded so it ships as its own bundle and downloads on first visit. */
@@ -29,6 +32,9 @@ export const bookletTools = [
   { id: "charts", name: "Bar and line charts", description: "Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes.", icon: ChartColumn, component: lazyPage(() => import("../charts/ChartsPage")), preview: { src: chartsPreview, alt: "Dual bar chart of transport to school for boys and girls, with a key and one bar left for pupils to draw." } },
   { id: "probability-tree", name: "Probability trees", description: "Draw exam-style probability tree diagrams, including unequal trees and given-that questions.", icon: GitFork, component: lazyPage(() => import("../probability-tree/ProbabilityTreePage")), preview: { src: probabilityTreePreview, alt: "Two-stage probability tree for two bags of red and green balls, with three probabilities left for pupils." } },
   { id: "frequency-tree", name: "Frequency trees", description: "Draw exam-style frequency trees with a total, groups and counts left for pupils.", icon: Network, component: lazyPage(() => import("../frequency-tree/FrequencyTreePage")), preview: { src: frequencyTreePreview, alt: "Frequency tree of 80 people split into men and women and whether they like coffee, with the women's counts left for pupils." } },
+  { id: "construction", name: "Constructions and loci", description: "Draw true-size constructions, loci, scale drawings and bearings, with compass arcs saved as answers.", icon: Compass, component: lazyPage(() => import("../construction/ConstructionPage")), preview: { src: constructionPreview, alt: "Line AB with two pairs of compass arcs and its perpendicular bisector." } },
+  { id: "elevations", name: "Plans and elevations", description: "Draw solids made of cubes on isometric paper with their plan, front and side elevations.", icon: Cuboid, component: lazyPage(() => import("../elevations/ElevationsPage")), preview: { src: elevationsPreview, alt: "Isometric drawing of a solid made of cubes, with empty grids for its plan, front elevation and side elevation." } },
+  { id: "two-way-table", name: "Two-way tables", description: "Make exam-style two-way tables with totals, and cells left blank or hidden for pupils.", icon: Sheet, component: lazyPage(() => import("../two-way-table/TwoWayTablePage")), preview: { src: twoWayTablePreview, alt: "Two-way table of how Year 7 and Year 8 travel to school, with five cells left for pupils." } },
 ] as const;
 
 /** Site pages outside the booklet tools, loaded the same way. */

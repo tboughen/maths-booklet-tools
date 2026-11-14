@@ -5,10 +5,12 @@ import {
   getBounds,
   gridDivisions,
   isSketch,
+  pointInBounds,
   visibleStraightPoints,
 } from "./diagram";
 import {
   axisTicks,
+  formatAxisValue,
   gridPitchesMm,
   mathsDigits,
   mathsLetter,
@@ -40,10 +42,24 @@ import type {
   PointLabel,
   GraphObject,
   GraphView,
+  PointObject,
   StraightObject,
   SvgLayout,
 } from "./types";
 import { guidance } from "./print-guidance";
+import { polygonCentroid, polygonVisible } from "./polygon";
+
+/** Grey inside a shaded shape: light enough for black lines and names to stay clear in print. */
+export const POLYGON_SHADE = "#d4d4d4";
+/** Shading opacity for a hidden-answer shape, in the answer colour. */
+export const POLYGON_ANSWER_SHADE_OPACITY = 0.18;
+
+/** Exam papers print shape names upright, point names italic and line names bold. */
+export function nameStyle(object: GraphObject): "bold" | "italic" | "upright" {
+  return object.kind === "point" ? "italic" : object.kind === "polygon" || object.kind === "region" ? "upright" : "bold";
+}
+import { gradientTriangleCorners, gradientTriangleValues } from "./gradient-triangle";
+import { regionBoundaries, regionCentroid, regionHalfPlanes, regionPolygon } from "./region";
 
 const UNITS_PER_CM = 100;
 const FIXED_PADDING = { right: 75, top: 70 };
@@ -51,6 +67,9 @@ const EXPORT_CONTENT_MARGIN = 18;
 const POINT_MARK_HALF_SIZE = 14;
 /** The answers copy's colour for hidden answers, shared with ratio tables. */
 export const GRAPH_ANSWER_COLOUR = "#b0125b";
+/** Region shading: light grey on the pupil copy, so grid lines and B/W print stay clear. */
+export const REGION_SHADE = "#d4d4d4";
+const REGION_ANSWER_OPACITY = 0.22;
 
 /** The objects one copy draws: the pupil copy leaves out answer-only objects. */
 export function documentForView(document: DiagramDocumentV1, view: GraphView = "pupil"): DiagramDocumentV1 {
@@ -605,12 +624,15 @@ type Named = GraphObject & { name: string };
 function visibleNames(document: DiagramDocumentV1, layout: SvgLayout): Named[] {
   return document.objects.filter((o): o is Named => {
     if (!o.name) return false;
+    if (o.kind === "region") return regionPolygon(regionHalfPlanes(o), layout.bounds).length > 0;
     return o.kind === "point"
       ? o.position.x >= layout.bounds.xMin - 1e-9 &&
           o.position.x <= layout.bounds.xMax + 1e-9 &&
           o.position.y >= layout.bounds.yMin - 1e-9 &&
           o.position.y <= layout.bounds.yMax + 1e-9
-      : visibleStraightPoints(o, layout.bounds) !== null;
+      : o.kind === "polygon"
+        ? polygonVisible(o, layout.bounds)
+        : visibleStraightPoints(o, layout.bounds) !== null;
   });
 }
 
@@ -628,21 +650,28 @@ export function nameBox(name: string, fontSize = AXIS_LABEL_FONT_SIZE) {
   };
 }
 
+type Axes = DiagramDocumentV1["axes"];
 /**
  * Where a name sits automatically, as the centre of its box in SVG units. Points: up and to the
  * right of the cross. Lines: near the upper end, on the right of the line (above a horizontal
  * one). The box is kept inside the plot.
  */
-function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): Coordinate {
+function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number, axes?: Axes): Coordinate {
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   let centre: Coordinate;
-  if (object.kind === "point") {
+  if (object.kind === "region") {
+    centre = coordinateToSvg(regionCentroid(regionPolygon(regionHalfPlanes(object), layout.bounds)), layout);
+  } else if (object.kind === "point") {
+    // A name with printed coordinates, A(2, 3), is placed as one label; the name is its left part.
+    const total = box.width + coordinatesWidth(object, unitsPerCm, axes);
     const p = coordinateToSvg(object.position, layout);
-    const dx = 0.18 * unitsPerCm + box.width / 2;
+    const dx = 0.18 * unitsPerCm + total / 2;
     const dy = 0.16 * unitsPerCm + box.height / 2;
-    const right = p.x + dx + box.width / 2 <= layout.plotRight;
+    const right = p.x + dx + total / 2 <= layout.plotRight;
     const up = p.y - dy - box.height / 2 >= layout.plotTop;
-    centre = { x: right ? p.x + dx : p.x - dx, y: up ? p.y - dy : p.y + dy };
+    centre = { x: (right ? p.x + dx : p.x - dx) - total / 2 + box.width / 2, y: up ? p.y - dy : p.y + dy };
+  } else if (object.kind === "polygon") {
+    centre = coordinateToSvg(polygonCentroid(object.vertices), layout);
   } else {
     const visible = visibleStraightPoints(object, layout.bounds)!;
     const a = coordinateToSvg(visible[0], layout);
@@ -667,26 +696,86 @@ function autoNameCentre(object: Named, layout: SvgLayout, unitsPerCm: number): C
 }
 
 /** The centre of an object's printed name in the given layout, with its box inside the plot. */
-export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM): Coordinate | null {
+export function nameCentre(object: GraphObject, layout: SvgLayout, unitsPerCm = UNITS_PER_CM, axes?: Axes): Coordinate | null {
   if (!object.name) return null;
   const box = nameBox(object.name, AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM));
   const centre = object.namePosition
     ? coordinateToSvg(object.namePosition, layout)
-    : autoNameCentre(object as Named, layout, unitsPerCm);
+    : autoNameCentre(object as Named, layout, unitsPerCm, axes);
+  // Printed coordinates follow the name, so they must fit inside the plot too.
+  const after = object.kind === "point" ? coordinatesWidth(object, unitsPerCm, axes) : 0;
   return {
-    x: Math.min(layout.plotRight - box.width / 2, Math.max(layout.plotLeft + box.width / 2, centre.x)),
+    x: Math.min(layout.plotRight - box.width / 2 - after, Math.max(layout.plotLeft + box.width / 2, centre.x)),
     y: Math.min(layout.plotBottom - box.height / 2, Math.max(layout.plotTop + box.height / 2, centre.y)),
   };
+}
+
+const COORDINATE_BLANK = "………";
+/** The printed coordinates of a point: (2, −3), or the pupil's blank ( ……… , ……… ). */
+export function coordinatesText(document: DiagramDocumentV1, object: PointObject, view: GraphView): string | null {
+  if (!object.coordinates) return null;
+  if (object.coordinates === "blank" && view === "pupil") return `( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`;
+  return `(${formatAxisValue(object.position.x, document.axes.x)}, ${formatAxisValue(object.position.y, document.axes.y)})`;
+}
+/** Width reserved after the name for the coordinates: the wider of the blank and the values. */
+function coordinatesWidth(object: GraphObject, unitsPerCm: number, axes?: Axes): number {
+  if (object.kind !== "point" || !object.coordinates) return 0;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c) * fontSize, 0);
+  const values = `(${formatAxisValue(object.position.x, axes?.x ?? {})}, ${formatAxisValue(object.position.y, axes?.y ?? {})})`;
+  return Math.max(width(values), object.coordinates === "blank" ? width(`( ${COORDINATE_BLANK} , ${COORDINATE_BLANK} )`) : 0);
+}
+/** Where a point's coordinates are anchored and their vertical centre, in SVG units. After a name
+ * they start at its right edge; alone on the left of the cross they end beside it. */
+export function coordinatesAnchor(
+  object: PointObject,
+  layout: SvgLayout,
+  unitsPerCm = UNITS_PER_CM,
+  axes?: Axes,
+): (Coordinate & { anchor: "start" | "end" }) | null {
+  if (!object.coordinates) return null;
+  const fontSize = AXIS_LABEL_FONT_SIZE * (unitsPerCm / UNITS_PER_CM);
+  if (object.name) {
+    const centre = nameCentre(object, layout, unitsPerCm, axes)!;
+    // Exam papers write A(2, 3) with no space; the name box carries a little side padding.
+    return { x: centre.x + nameBox(object.name, fontSize).width / 2 - fontSize * 0.1, y: centre.y, anchor: "start" };
+  }
+  // No name: the coordinates alone sit where a name would, up and to the right of the cross.
+  const width = coordinatesWidth(object, unitsPerCm, axes),
+    height = fontSize * 1.2;
+  const p = coordinateToSvg(object.position, layout);
+  const right = p.x + 0.18 * unitsPerCm + width <= layout.plotRight;
+  const up = p.y - 0.16 * unitsPerCm - height >= layout.plotTop;
+  const y = up ? p.y - 0.16 * unitsPerCm - height / 2 : p.y + 0.16 * unitsPerCm + height / 2;
+  if (right) return { x: p.x + 0.18 * unitsPerCm, y, anchor: "start" };
+  return { x: Math.max(layout.plotLeft + width, p.x - 0.18 * unitsPerCm), y, anchor: "end" };
+}
+function coordinatesMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: GraphView): string {
+  const marks = document.objects.flatMap((object) => {
+    if (object.kind !== "point" || !object.coordinates) return [];
+    const { x, y } = object.position;
+    if (x < layout.bounds.xMin || x > layout.bounds.xMax || y < layout.bounds.yMin || y > layout.bounds.yMax) return [];
+    const text = coordinatesText(document, object, view)!;
+    const at = coordinatesAnchor(object, layout, UNITS_PER_CM, document.axes)!;
+    // Saved answers print in the answer colour on the answers copy only.
+    const answer = (object.coordinates === "blank" && view === "answer") || object.answerOnly;
+    return [
+      `<g class="point-coordinates${answer ? ` point-coordinates-answer" fill="${GRAPH_ANSWER_COLOUR}` : ""}" data-object-id="${escapeXml(object.id)}">${halo(`<text x="${n(at.x)}" y="${n(at.y + AXIS_LABEL_FONT_SIZE * 0.34)}"${at.anchor === "end" ? ' text-anchor="end"' : ""} font-size="${n(AXIS_LABEL_FONT_SIZE)}">${escapeXml(text)}</text>`)}</g>`,
+    ];
+  });
+  if (!marks.length) return "";
+  return `
+    <g class="point-coordinates-all" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
 function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   const names = visibleNames(document, layout);
   if (!names.length) return "";
   const marks = names.map((object) => {
-    const style = object.kind === "point" ? "italic" : "bold";
+    const style = nameStyle(object);
     const parts = nameParts(object.name);
     const box = nameBox(object.name);
-    const centre = nameCentre(object, layout)!;
+    const centre = nameCentre(object, layout, UNITS_PER_CM, document.axes)!;
     const left = centre.x - box.width / 2 + AXIS_LABEL_FONT_SIZE * 0.08;
     const baseline = centre.y + AXIS_LABEL_FONT_SIZE * 0.34;
     const letter = `${mathsLetter(parts.letter, style)}${parts.prime ? "′" : ""}`;
@@ -700,8 +789,107 @@ function namesMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
     <g class="object-names" fill="#202224" font-family="${svgFontFamily(document)}">${marks.join("")}</g>`;
 }
 
-function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines: string; marks: string } {
+/** The dotted space a blank gradient label prints on the pupil copy. Both copies place labels as
+ * if they held it, so the answers copy shows each value where the pupil writes it. */
+export const GRADIENT_BLANK = "………";
+
+/** The bands the axis numbers print in, in the same units as the layout: under the x-axis and
+ * left of the y-axis. Sketch axes have no numbers. */
+export function axisNumberBands(document: DiagramDocumentV1, layout: SvgLayout, font: number) {
+  if (isSketch(document)) return null;
+  const o = coordinateToSvg(axisOrigin(document), layout);
+  return { xAxisY: o.y, xBottom: o.y + font * 1.65, yAxisX: o.x, yLeft: o.x - font * 2.4 };
+}
+type NumberBands = ReturnType<typeof axisNumberBands>;
+
+/** Where a gradient triangle's run and rise print: outside the triangle, unless that would leave
+ * the grid or sit on the axis numbers, when the label moves to the other side of its leg.
+ * `clash` is set when no side is clear. Shared by the export and the editor. */
+export function gradientLabelPlacement(
+  a: Coordinate,
+  b: Coordinate,
+  e: Coordinate,
+  layout: SvgLayout,
+  font: number,
+  runText: string,
+  riseText: string,
+  bands: NumberBands = null,
+) {
+  const width = (text: string) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * font;
+  const gap = font * 0.45;
+  const climbs = e.y < b.y;
+  const runFits = (below: boolean) => (below ? b.y + gap + font * 0.95 <= layout.plotBottom : b.y - gap - font * 0.75 >= layout.plotTop);
+  const runHitsNumbers = (below: boolean) => {
+    if (!bands) return false;
+    const top = below ? b.y + gap - font * 0.05 : b.y - gap - font * 0.75, bottom = below ? b.y + gap + font * 0.95 : b.y - gap + font * 0.2;
+    const left = (a.x + b.x) / 2 - width(runText) / 2, rightEdge = (a.x + b.x) / 2 + width(runText) / 2;
+    const xBand = top < bands.xBottom && bottom > bands.xAxisY;
+    const yBand = left < bands.yAxisX && rightEdge > bands.yLeft;
+    return xBand || yBand;
+  };
+  let runBelow = climbs;
+  if (!runFits(runBelow) || (runHitsNumbers(runBelow) && runFits(!runBelow) && !runHitsNumbers(!runBelow))) runBelow = !runBelow;
+  if (!runFits(runBelow)) runBelow = !runBelow;
+  const right = b.x > a.x;
+  const riseFits = (onRight: boolean) => (onRight ? b.x + gap + width(riseText) <= layout.plotRight : b.x - gap - width(riseText) >= layout.plotLeft);
+  const riseHitsNumbers = (onRight: boolean) => {
+    if (!bands) return false;
+    const left = onRight ? b.x + gap : b.x - gap - width(riseText), rightEdge = onRight ? b.x + gap + width(riseText) : b.x - gap;
+    const top = Math.min(b.y, e.y), bottom = Math.max(b.y, e.y);
+    const yBand = left < bands.yAxisX && rightEdge > bands.yLeft;
+    const mid = (b.y + e.y) / 2;
+    const xBand = mid - font * 0.5 < bands.xBottom && mid + font * 0.5 > bands.xAxisY && top < bands.xBottom && bottom > bands.xAxisY;
+    return yBand || xBand;
+  };
+  let riseRight = right;
+  if (!riseFits(riseRight) || (riseHitsNumbers(riseRight) && riseFits(!riseRight) && !riseHitsNumbers(!riseRight))) riseRight = !riseRight;
+  const clash = runHitsNumbers(runBelow) || riseHitsNumbers(riseRight);
+  return {
+    clash,
+    run: { x: (a.x + b.x) / 2, y: runBelow ? b.y + gap + font * 0.72 : b.y - gap, anchor: "middle" as const },
+    rise: {
+      x: b.x + (riseRight ? gap : -gap),
+      y: (b.y + e.y) / 2 + font * 0.34,
+      anchor: riseRight ? ("start" as const) : ("end" as const),
+    },
+    runWidth: width(runText),
+  };
+}
+
+/** The legs and labels of a line's gradient triangle (U76), or nothing when it cannot be drawn. */
+export function gradientTriangleMarkup(document: DiagramDocumentV1, object: StraightObject, layout: SvgLayout, view: GraphView): { legs: string; labels: string; answerLabels: string } {
+  const none = { legs: "", labels: "", answerLabels: "" };
+  const c = gradientTriangleCorners(object);
+  if (!c || Math.abs(c.end.y - c.corner.y) < 1e-12) return none;
+  const [a, b, e] = [c.start, c.corner, c.end].map((p) => coordinateToSvg(p, layout));
+  const dash = ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`;
+  const legs = `<path class="gradient-triangle" data-object-id="${escapeXml(object.id)}" d="M ${n(a.x)} ${n(a.y)} H ${n(b.x)} V ${n(e.y)}"${dash}/>`;
+  const mode = object.gradientTriangle?.labels;
+  const inside = [c.start, c.corner, c.end].every((p) => pointInBounds(p, layout.bounds));
+  if (!mode || !inside) return { ...none, legs };
+  const values = gradientTriangleValues(object)!;
+  const text = (x: number, y: number, anchor: string, value: string) =>
+    halo(`<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}">${value}</text>`);
+  // Blank spaces are placed as if they held the longer value, so the answers copy matches.
+  const labels = (run: string, rise: string) => {
+    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, run, mode === "blank" ? GRADIENT_BLANK : rise, axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE));
+    return `<g class="gradient-triangle-labels" data-object-id="${escapeXml(object.id)}">${text(place.run.x, place.run.y, place.run.anchor, run)}${text(place.rise.x, place.rise.y, place.rise.anchor, rise)}</g>`;
+  };
+  if (mode === "values") return { legs, labels: labels(values.run, values.rise), answerLabels: "" };
+  // Blank: dotted spaces for the pupil; the answers copy prints the values in the answer colour.
+  return view === "answer"
+    ? { legs, labels: "", answerLabels: labels(values.run, values.rise) }
+    : { legs, labels: labels(GRADIENT_BLANK, GRADIENT_BLANK), answerLabels: "" };
+}
+
+function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: GraphView = "pupil"): { fills: string; lines: string; marks: string } {
+  // Shape fills sit under the grid and axes so they show through; outlines go before the lines, as in the editor.
+  const fills: string[] = [];
+  const shapes: string[] = [];
+  const answerShapes: string[] = [];
   const straight: string[] = [];
+  const triangleLabels: string[] = [];
+  const answerTriangleLabels: string[] = [];
   const points: string[] = [];
   const labels: string[] = [];
   const answerStraight: string[] = [];
@@ -711,6 +899,20 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
     const [straightOut, pointsOut, labelsOut] = object.answerOnly
       ? [answerStraight, answerPoints, answerLabels]
       : [straight, points, labels];
+    if (object.kind === "region") {
+      if (!object.boundaries) continue;
+      for (const b of regionBoundaries(regionHalfPlanes(object), layout.bounds)) {
+        const start = coordinateToSvg(b.start, layout);
+        const end = coordinateToSvg(b.end, layout);
+        const dash = b.strict
+          ? ` stroke-dasharray="${n(UNITS_PER_CM * STRAIGHT_DASH_LENGTH_CENTIMETRES)} ${n(UNITS_PER_CM * STRAIGHT_DASH_GAP_CENTIMETRES)}"`
+          : "";
+        straightOut.push(
+          `<line class="region-boundary" data-object-id="${escapeXml(object.id)}" x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
+        );
+      }
+      continue;
+    }
     if (object.kind === "point") {
       const point = coordinateToSvg(object.position, layout);
       if (
@@ -726,6 +928,16 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       );
       continue;
     }
+    if (object.kind === "polygon") {
+      if (!polygonVisible(object, layout.bounds)) continue;
+      const points = object.vertices.map((p) => coordinateToSvg(p, layout)).map((p) => `${n(p.x)},${n(p.y)}`).join(" ");
+      if (object.shaded)
+        fills.push(
+          `<polygon class="graph-polygon-fill" points="${points}" ${object.answerOnly ? `fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${POLYGON_ANSWER_SHADE_OPACITY}"` : `fill="${POLYGON_SHADE}"`}/>`,
+        );
+      (object.answerOnly ? answerShapes : shapes).push(`<polygon class="graph-polygon" data-object-id="${escapeXml(object.id)}" points="${points}" stroke-linejoin="round"/>`);
+      continue;
+    }
     const visible = visibleStraightPoints(object, layout.bounds);
     if (visible) {
       const start = coordinateToSvg(visible[0], layout);
@@ -737,6 +949,12 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
       straightOut.push(
         `<line x1="${n(start.x)}" y1="${n(start.y)}" x2="${n(end.x)}" y2="${n(end.y)}"${dash}/>`,
       );
+    }
+    if (object.gradientTriangle) {
+      const triangle = gradientTriangleMarkup(document, object, layout, view);
+      straightOut.push(triangle.legs);
+      (object.answerOnly ? answerTriangleLabels : triangleLabels).push(triangle.labels);
+      answerTriangleLabels.push(triangle.answerLabels);
     }
     if (object.equationVisible && visible) {
       const position = object.equationLabelPosition
@@ -750,10 +968,10 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
   const pupilLabels = pointLabelsMarkup(document, layout, straightObjects(false));
   const answerPointLabels = pointLabelsMarkup(document, layout, straightObjects(true));
   const lines = `
-    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${straight.join("")}</g>${
-      answerStraight.length
+    <g stroke="#202224" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${shapes.join("")}${straight.join("")}</g>${
+      answerStraight.length || answerShapes.length
         ? `
-    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerStraight.join("")}</g>`
+    <g class="graph-answers" stroke="${GRAPH_ANSWER_COLOUR}" stroke-width="${n(GRID_STROKE_WIDTH)}" stroke-linecap="round" fill="none" clip-path="url(#plot-clip)">${answerShapes.join("")}${answerStraight.join("")}</g>`
         : ""
     }`;
   const marks = `
@@ -763,8 +981,71 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout): { lines:
         ? `
     <g class="point-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${pupilLabels}</g>`
         : ""
+    }${
+      triangleLabels.join("")
+        ? `
+    <g class="gradient-labels" fill="#202224" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${triangleLabels.join("")}</g>`
+        : ""
+    }${
+      answerTriangleLabels.join("")
+        ? `
+    <g class="gradient-labels gradient-labels-answer" fill="${GRAPH_ANSWER_COLOUR}" font-family="${svgFontFamily(document)}" font-size="${n(AXIS_LABEL_FONT_SIZE)}">${answerTriangleLabels.join("")}</g>`
+        : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
-  return { lines, marks };
+  const shaded = fills.length ? `
+    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-clip)">${fills.join("")}</g>` : "";
+  return { fills: shaded, lines, marks };
+}
+
+/**
+ * Region shading, drawn under the grid so its lines stay visible. "wanted" fills the region;
+ * "unwanted" fills the grid outside it (even-odd), leaving the answer region clear.
+ */
+function regionsMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
+  const fills = document.objects.flatMap((object) => {
+    if (object.kind !== "region") return [];
+    const polygon = regionPolygon(regionHalfPlanes(object), layout.bounds).map((p) => coordinateToSvg(p, layout));
+    const ring = (points: Coordinate[]) =>
+      points.length ? `M ${points.map((p) => `${n(p.x)} ${n(p.y)}`).join(" L ")} Z` : "";
+    const plot = ring([
+      { x: layout.plotLeft, y: layout.plotTop },
+      { x: layout.plotRight, y: layout.plotTop },
+      { x: layout.plotRight, y: layout.plotBottom },
+      { x: layout.plotLeft, y: layout.plotBottom },
+    ]);
+    const d = object.shade === "wanted" ? ring(polygon) : `${plot} ${ring(polygon)}`.trim();
+    if (!d) return [];
+    const fill = object.answerOnly
+      ? `fill="${GRAPH_ANSWER_COLOUR}" fill-opacity="${REGION_ANSWER_OPACITY}"`
+      : `fill="${REGION_SHADE}"`;
+    return [
+      `<path class="graph-region${object.answerOnly ? " graph-region-answer" : ""}" data-object-id="${escapeXml(object.id)}" d="${d}" fill-rule="evenodd" ${fill}/>`,
+    ];
+  });
+  return fills.length ? `<g class="graph-regions" stroke="none">${fills.join("")}</g>` : "";
+}
+
+/**
+ * Axis numbers sit on small white boxes that hide the grid lines behind them. Over a shaded
+ * region a plain white box would stand out, so the shading is repainted inside each box that
+ * touches the plot (clipped to the box), keeping the grid hidden and the shade continuous.
+ */
+function shadeLabelKnockouts(labels: string, document: DiagramDocumentV1, layout: SvgLayout): string {
+  const fills = regionsMarkup(document, layout)
+    .replace(/ class="graph-region[^"]*"/g, "")
+    .replace(/ data-object-id="[^"]*"/g, "")
+    .replace(/^<g class="graph-regions"/, '<g aria-hidden="true"');
+  if (!fills) return labels;
+  let count = 0;
+  return labels.replace(
+    /(<g class="axis-number[^"]*">)(<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*\/>)/g,
+    (whole, open: string, rect: string, x: string, y: string, w: string, h: string) => {
+      const [left, top, width, height] = [x, y, w, h].map(Number);
+      if (left > layout.plotRight || left + width < layout.plotLeft || top > layout.plotBottom || top + height < layout.plotTop) return whole;
+      const id = `region-knockout-${++count}`;
+      return `${open}${rect}<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath><g clip-path="url(#${id})">${fills}</g>`;
+    },
+  );
 }
 
 /** Hidden answers' crosses and labels, drawn only on the answers copy, in the answer colour. */
@@ -793,17 +1074,33 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   const metrics = getExportMetrics(document);
   const { layout } = metrics;
   const axes = axesMarkup(document, layout);
-  const objects = objectsMarkup(document, layout);
+  const objects = objectsMarkup(document, layout, view);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${n(metrics.widthCm)}cm" height="${n(metrics.heightCm)}cm" viewBox="0 0 ${n(metrics.width)} ${n(metrics.height)}" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">Coordinate graph</title>
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
   <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
-  ${gridMarkup(document, layout)}
+  ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
   ${axes.lines}
   ${objects.lines}
-  ${axes.labels}
-  ${objects.marks}
+  ${shadeLabelKnockouts(axes.labels, document, layout)}
+  ${objects.marks}${coordinatesMarkup(document, layout, view)}
 </svg>`;
+}
+
+/** Gradient-triangle labels that would print on the axis numbers wherever they go (U76). */
+export function gradientLabelClashes(document: DiagramDocumentV1): string[] {
+  const { layout } = getExportMetrics(document);
+  const bands = axisNumberBands(document, layout, AXIS_LABEL_FONT_SIZE);
+  return document.objects.flatMap((object) => {
+    if (object.kind !== "straight" || !object.gradientTriangle?.labels) return [];
+    const c = gradientTriangleCorners(object);
+    if (!c || Math.abs(c.end.y - c.corner.y) < 1e-12 || ![c.start, c.corner, c.end].every((p) => pointInBounds(p, layout.bounds))) return [];
+    const [a, b, e] = [c.start, c.corner, c.end].map((p) => coordinateToSvg(p, layout));
+    const values = gradientTriangleValues(object)!;
+    const blank = object.gradientTriangle.labels === "blank";
+    const place = gradientLabelPlacement(a, b, e, layout, AXIS_LABEL_FONT_SIZE, blank ? GRADIENT_BLANK : values.run, blank ? GRADIENT_BLANK : values.rise, bands);
+    return place.clash ? [`${object.id}: the gradient triangle's labels sit on the axis numbers. Start the triangle at another x, or use a different run.`] : [];
+  });
 }

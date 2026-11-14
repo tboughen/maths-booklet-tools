@@ -429,7 +429,7 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   await showExamples(page);
   const article = page.locator("article").filter({ hasText: "November 2018" });
   await article
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await expect(
     page.getByRole("dialog", { name: /Open November 2018/ }),
@@ -446,7 +446,7 @@ test("source preset cancellation, focus trap and undo", async ({ page }) => {
   expect((await saved(page)).document.regions[1].text).toBe("4");
   await showExamples(page);
   await article
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Use this diagram", exact: true })
@@ -553,7 +553,7 @@ test("largest structure stays editable on a narrow screen", async ({
 }) => {
   const e = create(3);
   e.document.widthCm = 16;
-  e.document.fontPt = 9;
+  e.document.fontPt = 10;
   for (let mask = 0; mask < 8; mask++)
     e.document.regions[mask] = {
       kind: "members",

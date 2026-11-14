@@ -165,7 +165,7 @@ it("rejects stale hashes,partial transactions,unknown IDs and implicit overwrite
     before = canonical(e);
   await expect(
     revise({ envelope: e, baseHash: "0".repeat(64), operations: [] }),
-  ).rejects.toThrow("base_hash_mismatch");
+  ).rejects.toThrow("stale_hash");
   await expect(
     revise({
       envelope: e,
@@ -270,7 +270,7 @@ it("bundles and exact multichunk SVG share identical bytes and retain native pla
   expect(
     (advice.structuredContent as { uniformScale: number }).uniformScale,
   ).toBeCloseTo(0.5);
-});
+}, 20_000); // Rasterises and bundles several PNGs: 5–8 s on CI runners, over the 5 s default.
 it("renders maximum blank writing space and preserves legacy cell dimensions", async () => {
   const c = await start(),
     maximum = await call(c, "create_algebra_grid", { envelope: create(7, 7) });
