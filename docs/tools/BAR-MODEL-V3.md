@@ -36,6 +36,8 @@ lane; overlapping handwriting rectangles move lanes. Actual guide/stroke and
 label occupancy is checked; a crossing guide fails explicitly.
 
 `presentation.barHeightMm` becomes a **requested minimum**, bounded 8..24 mm.
+
+`presentation.lines` (optional, every schema version): `"normal"` (absent) or `"bold"`, which prints every stroke 1.5 times as thick. New models start from the house style chosen on the booklet tools page (U111); `set_presentation` changes it.
 Inside answer lines require uniform actual bars of at least **20 mm**, covering
 the footprint plus at least 2 mm internal clearance on each side. Outside lines
 enlarge their own lanes. The editor shows minimum and actual height;

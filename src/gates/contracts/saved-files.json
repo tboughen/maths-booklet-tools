@@ -483,6 +483,13 @@
                 "minimum": 10,
                 "maximum": 14
               },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
+              },
               "nameWidthMm": {
                 "type": "number",
                 "minimum": 20,
@@ -880,6 +887,13 @@
                 "type": "number",
                 "minimum": 10,
                 "maximum": 14
+              },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
               },
               "titlePt": {
                 "type": "number",
@@ -1370,6 +1384,13 @@
                 "minimum": 10,
                 "maximum": 14
               },
+              "lines": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "bold"
+                ]
+              },
               "titlePt": {
                 "type": "number",
                 "minimum": 12,
@@ -1763,6 +1784,13 @@
                     "type": "number",
                     "minimum": 10,
                     "maximum": 14
+                  },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
                   },
                   "nameWidthMm": {
                     "type": "number",
@@ -2160,6 +2188,13 @@
                     "type": "number",
                     "minimum": 10,
                     "maximum": 14
+                  },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
                   },
                   "titlePt": {
                     "type": "number",
@@ -2648,6 +2683,13 @@
                     "type": "number",
                     "minimum": 10,
                     "maximum": 14
+                  },
+                  "lines": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "bold"
+                    ]
                   },
                   "titlePt": {
                     "type": "number",
