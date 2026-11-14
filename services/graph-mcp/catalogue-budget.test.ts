@@ -15,6 +15,15 @@ import { DIAGRAM_KINDS } from "../../packages/diagram-core/src/registry";
 import budget from "./catalogue-budget.json" with { type: "json" };
 
 const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value), "utf8");
+/** The text a model reads from a tool result; an error result fails rather than counting as small. */
+function textBytes(reply: unknown, name: string) {
+  const result = reply as { isError?: unknown; content?: unknown };
+  expect(result.isError, `${name} returned an error`).toBeFalsy();
+  const content = result.content as { type: string; text?: string }[];
+  expect(content.length, `${name} content`).toBeGreaterThan(0);
+  for (const c of content) expect(c.type, `${name} content type`).toBe("text");
+  return Buffer.byteLength(content.map((c) => c.text ?? "").join(""), "utf8");
+}
 let server: Server, client: Client;
 beforeAll(async () => {
   const reservation = createServer();
@@ -28,8 +37,8 @@ beforeAll(async () => {
   await client.connect(new StreamableHTTPClientTransport(new URL(base + "/mcp")));
 });
 afterAll(async () => {
-  await client.close();
-  await new Promise<void>((r) => server.close(() => r()));
+  await client?.close();
+  if (server) await new Promise<void>((r) => server.close(() => r()));
 });
 
 describe("connector catalogue budget (M2)", () => {
@@ -38,7 +47,9 @@ describe("connector catalogue budget (M2)", () => {
     const total = bytes(tools);
     const rows = tools.map((t) => ({ tool: t.name, bytes: bytes(t), budget: (budget.perTool as Record<string, number>)[t.name] ?? budget.perTool.default, description: t.description?.length ?? 0 }));
     console.log(`catalogue: tools/list ${total} bytes (budget ${budget.toolsList})\n` + rows.map((r) => `  ${r.tool}: ${r.bytes} / ${r.budget} bytes, description ${r.description} chars`).join("\n"));
-    expect(total, "tools/list bytes").toBeLessThanOrEqual(budget.toolsList);
+    expect.soft(total, "tools/list bytes").toBeLessThanOrEqual(budget.toolsList);
+    const names = new Set(tools.map((t) => t.name));
+    expect(Object.keys(budget.perTool).filter((k) => k !== "default" && !names.has(k)), "budgets for unknown tools").toEqual([]);
     for (const r of rows) {
       expect.soft(r.bytes, `${r.tool} bytes`).toBeLessThanOrEqual(r.budget);
       expect.soft(r.description, `${r.tool} description characters`).toBeLessThanOrEqual(budget.descriptionChars);
@@ -48,16 +59,19 @@ describe("connector catalogue budget (M2)", () => {
   it("keeps every family's capabilities and the worksheet capabilities within budget", async () => {
     const caps = budget.capabilities as Record<string, number>;
     const lines: string[] = [];
+    const known = new Set<string>([...DIAGRAM_KINDS, "worksheet", "default"]);
+    expect(Object.keys(caps).filter((k) => !known.has(k)), "budgets for unknown families").toEqual([]);
     for (const kind of DIAGRAM_KINDS) {
       const r = await client.callTool({ name: "diagram_capabilities", arguments: { kind } });
-      const size = bytes(r.content);
+      const size = textBytes(r, `${kind} capabilities`);
       const limit = caps[kind] ?? caps.default;
       lines.push(`  ${kind}: ${size} / ${limit}`);
       expect.soft(size, `${kind} capabilities bytes`).toBeLessThanOrEqual(limit);
     }
     const w = await client.callTool({ name: "worksheet_capabilities", arguments: {} });
-    lines.push(`  worksheet: ${bytes(w.content)} / ${caps.worksheet}`);
+    const worksheet = textBytes(w, "worksheet_capabilities");
+    lines.push(`  worksheet: ${worksheet} / ${caps.worksheet}`);
     console.log("capabilities:\n" + lines.join("\n"));
-    expect(bytes(w.content), "worksheet_capabilities bytes").toBeLessThanOrEqual(caps.worksheet);
+    expect.soft(worksheet, "worksheet_capabilities bytes").toBeLessThanOrEqual(caps.worksheet);
   });
 });

@@ -1,6 +1,6 @@
 {
-  "comment": "Byte budgets for what every conversation pays for when it loads the connector (improvement list M2). tools/list is sent once per conversation; diagram_capabilities and worksheet_capabilities are read before a family's first use, and their text content is what a model reads (the same JSON also travels as structuredContent). Sizes are UTF-8 bytes of the JSON. Measured 14 Nov 2026 on main 657aee1: tools/list 69,974 bytes (create_worksheet 28,927, create_booklet 20,005); longest description create_booklet, 3,867 characters; capabilities text bar-model 50,748, graph 44,052, triangle 38,497, cuboids 20,334, probability-tree 13,874, ratio-table 13,405, every other family under 12,000; worksheet_capabilities 4,836. Each budget has about 5% headroom. Lower a budget when a change makes the catalogue smaller; raising one needs a reason in this comment and in the pull request. Raised 14 Nov 2026 on main 946e205 for features merged since 657aee1 (sizes as the test measures them): graph 64,471 (shaded inequality regions #275, gradient triangles #264, house-style lines #307; most of the growth is the operations schema repeating object shapes, a candidate for trimming), number-line 18,595 (second scale #280), value-graph 13,551 (cubic/reciprocal/exponential #268, lines #308), construction 31,902 (new family #283); tools/list now 72,220.",
-  "toolsList": 73500,
+  "comment": "Byte budgets for what every conversation pays for when it loads the connector (improvement list M2). tools/list is sent once per conversation; diagram_capabilities and worksheet_capabilities are read before a family's first use. tools/list and per-tool sizes are UTF-8 bytes of the JSON a client receives; capabilities sizes are UTF-8 bytes of the result text a model reads (an error result fails the test). Measured 14 Nov 2026 on main 946e205: tools/list 72,220 bytes (create_worksheet 29,530, create_booklet 20,125); longest description create_booklet, 3,867 characters; capabilities text graph 58,016, bar-model 44,336, triangle 34,494, construction 27,591, cuboids 17,118, number-line 16,154, probability-tree 12,405, every other family under 12,000; worksheet_capabilities 4,812. Graph grew from 39,413 on 657aee1 with shaded inequality regions (#275), gradient triangles (#264) and house-style lines (#307); most of that is the operations schema repeating object shapes, a candidate for trimming. Each budget has about 5% headroom. Lower a budget when a change makes the catalogue smaller; raising one needs a reason in this comment and in the pull request.",
+  "toolsList": 76000,
   "perTool": {
     "default": 5000,
     "create_worksheet": 30400,
@@ -8,16 +8,13 @@
   },
   "descriptionChars": 4100,
   "capabilities": {
-    "default": 12500,
-    "bar-model": 53300,
-    "graph": 67700,
-    "triangle": 40500,
-    "cuboids": 21400,
-    "probability-tree": 14600,
-    "ratio-table": 14100,
-    "worksheet": 5100,
-    "number-line": 19600,
-    "value-graph": 14300,
-    "construction": 33500
+    "default": 13100,
+    "graph": 61000,
+    "bar-model": 46600,
+    "triangle": 36300,
+    "construction": 29000,
+    "cuboids": 18000,
+    "number-line": 17000,
+    "worksheet": 5100
   }
 }
