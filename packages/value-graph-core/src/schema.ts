@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 
@@ -104,6 +105,7 @@ export const envelopeSchema = z
     rendererVersion: z.literal("value-graph-1"),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
+    ...aboutShape,
   })
   .strict();
 export type Equation = z.infer<typeof equationSchema>;

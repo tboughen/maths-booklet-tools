@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { MIN_TEXT_PT, LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
@@ -42,6 +43,7 @@ const legacySchema = z
         lines: z.enum(LINE_WEIGHTS).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export const arrangements = [

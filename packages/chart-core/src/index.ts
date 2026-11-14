@@ -1,3 +1,4 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 
@@ -82,6 +83,7 @@ export const envelopeSchema = z
         barMm: z.number().int().min(5).max(20),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
