@@ -2347,7 +2347,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                 expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
-                setHistory((h) => pushHistory(h, create(), { label: "start afresh" }));
+                setHistory((h) => pushHistory(h, create(), { label: stepName("Start a fresh triangle diagram?") }));
                 setSelected(null);
               } catch (err) {
                 setMessage(errorText(err));

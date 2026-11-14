@@ -93,6 +93,8 @@ export default function App({ active = true }: { active?: boolean }) {
     equals: sameDocument,
   });
   const [pendingReset, setPendingReset] = useState(false);
+  // Stable, so the dialog's focus effect runs once rather than on every render.
+  const cancelReset = useCallback(() => setPendingReset(false), []);
   const [pendingExample, setPendingExample] =
     useState<DiagramDocumentV1 | null>(null);
   const [tool, setTool] = useState<DrawingTool>("select");
@@ -631,7 +633,7 @@ export default function App({ active = true }: { active?: boolean }) {
         <RatioDialog
           title="Reset the diagram?"
           confirmLabel="Reset diagram"
-          onCancel={() => setPendingReset(false)}
+          onCancel={cancelReset}
           disabled={blocked}
           onConfirm={confirmReset}
         >

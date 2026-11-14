@@ -53,7 +53,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -1288,7 +1288,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope(), "reset this resource");
+                    commit(defaultEnvelope(), stepName("Reset this resource?"));
                     setSelection(null);
                   },
                 )

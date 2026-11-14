@@ -35,7 +35,7 @@ for (const tool of toolIds) {
     await bar.getByRole("button", { name: /^(Reset|Reset diagram|New model)$/ }).click();
     const confirm = page.getByRole("dialog").last();
     await expect(confirm).toBeVisible();
-    await confirm.getByRole("button").filter({ hasNotText: /cancel|keep|download/i }).first().click();
+    await confirm.getByRole("button", { name: /^(Reset|Start a new|Start fresh|New model)\b/ }).click();
     const notice = page.getByRole("status").filter({ hasText: "Resource reset." });
     await expect(notice).toBeVisible();
     await expect(bar.getByRole("button", { name: "Undo", exact: true })).toHaveAttribute("title", /^Undo (reset|start a new)/);
@@ -44,5 +44,9 @@ for (const tool of toolIds) {
     await notice.getByRole("button", { name: "Undo reset", exact: true }).click();
     await expect(notice).toHaveCount(0);
     await expect.poll(() => saved(page)).toBe(before);
+    // Focus stays in the toolbar, and redoing the reset does not bring the notice back.
+    await expect(bar.locator(":focus")).toHaveCount(1);
+    await bar.getByRole("button", { name: "Redo", exact: true }).click();
+    await expect(notice).toHaveCount(0);
   });
 }

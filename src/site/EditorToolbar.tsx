@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HistoryButtons } from "./HistoryButtons";
 import { isResetStep } from "../editor-kit/labels";
 
@@ -43,9 +43,26 @@ interface EditorToolbarProps {
 export function EditorToolbar(props: EditorToolbarProps) {
   const bar = useRef<HTMLDivElement>(null);
   // Reset is confirmed first; once done, a visible notice offers Undo until the next change (U25).
-  const resetStep = props.canUndo && isResetStep(props.undoLabel);
-  const [dismissedStep, setDismissedStep] = useState<string | undefined>();
-  const noticeDismissed = dismissedStep === props.undoLabel;
+  // The notice follows events, not names: it opens when a reset step is newly made (a new step clears Redo)
+  // and closes on the next undo, redo or change, or when dismissed.
+  const [trackedStep, setTrackedStep] = useState(props.undoLabel);
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  if (trackedStep !== props.undoLabel) {
+    setTrackedStep(props.undoLabel);
+    setNoticeOpen(isResetStep(props.undoLabel) && !props.canRedo);
+  }
+  const focusAfterNotice = useRef(false);
+  useEffect(() => {
+    if (noticeOpen || !focusAfterNotice.current) return;
+    focusAfterNotice.current = false;
+    // The notice's buttons are gone, so keep focus in the toolbar: Undo if it can still act, else Reset.
+    const undo = bar.current?.querySelector<HTMLButtonElement>('button[aria-label="Undo"]:not(:disabled)');
+    (undo ?? bar.current?.querySelector<HTMLButtonElement>(".reset-button"))?.focus();
+  }, [noticeOpen]);
+  const closeNotice = () => {
+    focusAfterNotice.current = true;
+    setNoticeOpen(false);
+  };
   useLayoutEffect(() => {
     const element = bar.current;
     const parent = element?.parentElement;
@@ -156,22 +173,33 @@ export function EditorToolbar(props: EditorToolbarProps) {
           </button>
         </div>
       </div>
-      {resetStep && !noticeDismissed && (
-        <div className="editor-reset-notice" role="status">
-          <span>Resource reset.</span>
-          <button type="button" className="editor-reset-undo" onClick={props.onUndo}>
-            Undo reset
-          </button>
-          <button
-            type="button"
-            className="editor-reset-close"
-            aria-label="Dismiss reset notice"
-            onClick={() => setDismissedStep(props.undoLabel)}
-          >
-            <X size={15} aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      {/* Always mounted, so screen readers announce the text when it appears. */}
+      <div className="editor-reset-status" role="status">
+        {noticeOpen && (
+          <div className="editor-reset-notice">
+            <span>Resource reset.</span>
+            <button
+              type="button"
+              className="editor-reset-undo"
+              disabled={!props.canUndo}
+              onClick={() => {
+                closeNotice();
+                props.onUndo();
+              }}
+            >
+              Undo reset
+            </button>
+            <button
+              type="button"
+              className="editor-reset-close"
+              aria-label="Dismiss reset notice"
+              onClick={closeNotice}
+            >
+              <X size={15} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
