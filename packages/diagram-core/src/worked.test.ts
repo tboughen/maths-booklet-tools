@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DIAGRAM_KINDS, FAMILIES, drawDiagram, svgSizeMm } from "./registry";
-import { WORKED_TEXT_MAX } from "../../envelope-core/src/worked";
+import { WORKED_MARGIN_MM, WORKED_TEXT_MAX } from "../../envelope-core/src/worked";
 import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 
 const corpus = join(__dirname, "../../envelope-core/fixtures/corpus");
@@ -39,10 +39,16 @@ describe("worked-solution notes on every answers copy (U116)", () => {
       expect(revised).toMatchObject({ worked });
       expect(await f.hash(noted)).not.toBe(await f.hash(plain));
     });
-    it(`${kind}: names a note that runs off the artwork`, () => {
+    it(`${kind}: a note in the margin grows only the answers copy's page; past the margin it is named`, () => {
       const plain = f.validate(saved(kind), "pupil") as Record<string, unknown>;
-      const { width } = svgSizeMm(f.svg(plain, "answer"));
-      expect(() => f.validate({ ...plain, worked: [{ text: "Too far", x: width, y: 1 }] }, "pupil")).toThrow(/Worked note 1 runs .* past the right edge/);
+      const size = svgSizeMm(f.svg(plain, "answer"));
+      const beside = f.validate({ ...plain, worked: [{ text: "Add 3", x: size.width + 2, y: 1, widthMm: 20 }] }, "pupil");
+      const grown = svgSizeMm(f.svg(beside, "answer"));
+      expect(grown.width).toBeGreaterThan(size.width + 2);
+      expect(grown.height).toBeCloseTo(size.height, 1);
+      expect(f.svg(beside, "pupil")).toBe(f.svg(plain, "pupil"));
+      const far = [{ text: "Too far", x: size.width + WORKED_MARGIN_MM, y: 1 }];
+      expect(() => f.validate({ ...plain, worked: far }, "pupil")).toThrow(/Worked note 1 runs .* past the 70 mm margin right of the diagram/);
     });
   }
 

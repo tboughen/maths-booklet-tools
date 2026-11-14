@@ -6,10 +6,14 @@ import { artworkSizeMm, withWorked, workedIssues, workedOf } from "../../package
  */
 export const answerArt = (svg: string, envelope: unknown, answers: boolean) => (answers ? withWorked(svg, workedOf(envelope)) : svg);
 
-/** For the on-screen preview: the notes when they fit, else the plain artwork (the issue is shown beside it). */
+/**
+ * For the on-screen preview: the notes when they fit, else the plain artwork (the issue is shown
+ * beside it). The editors' controls sit over the artwork, so it keeps its size on screen and notes
+ * in the margin overflow it; the printed answers copy grows to hold them instead.
+ */
 export function previewArt(svg: string, envelope: unknown, answers: boolean) {
   try {
-    return answerArt(svg, envelope, answers);
+    return answers ? withWorked(svg, workedOf(envelope), { inPlace: true }) : svg;
   } catch {
     return svg;
   }

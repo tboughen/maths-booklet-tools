@@ -1,4 +1,4 @@
-import { WORKED_WIDTH_MM, type WorkedNote } from "../../packages/envelope-core/src/worked";
+import { WORKED_MARGIN_MM, WORKED_WIDTH_MM, type WorkedNote } from "../../packages/envelope-core/src/worked";
 
 /** The undo step name for a worked-note change (U8). */
 export const WORKED_STEP = "change worked notes";
@@ -30,7 +30,8 @@ export function notesFromDrafts(drafts: readonly Draft[]): { notes: WorkedNote[]
     const text = d.text.replace(/\s+/g, " ").trim();
     if (!text) return { notes, issue: `${name} has no text. Type the guidance or remove the note.` };
     const [x, y, width, lx, ly] = [d.x, d.y, d.width, d.lx, d.ly].map(num);
-    if (!(x >= 0) || !(y >= 0)) return { notes, issue: `${name} needs a position of 0 mm or more across and down.` };
+    if (!(x >= -WORKED_MARGIN_MM) || !(y >= -WORKED_MARGIN_MM))
+      return { notes, issue: `${name} needs a position of -${WORKED_MARGIN_MM} mm or more across and down (negative is the margin left of or above the diagram).` };
     if (!(width >= 10 && width <= 200)) return { notes, issue: `${name}'s width must be between 10 and 200 mm.` };
     if (d.leader && (!(lx >= 0) || !(ly >= 0))) return { notes, issue: `${name}'s leader needs an end point of 0 mm or more across and down.` };
     notes.push({ text, x, y, ...(width !== WORKED_WIDTH_MM ? { widthMm: width } : {}), ...(d.leader ? { leader: { x: lx, y: ly } } : {}) });
