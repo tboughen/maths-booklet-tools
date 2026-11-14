@@ -249,6 +249,8 @@ export default function App({ active = true }: { active?: boolean }) {
           : event.key === "ArrowUp"
             ? document.axes.y.unitsPerSquare / 2
             : 0;
+      // A region follows its inequalities, so arrow keys leave it where it is.
+      if (selectedObject.kind === "region") return;
       const moved: GraphObject =
         selectedObject.kind === "point"
           ? {
@@ -298,6 +300,28 @@ export default function App({ active = true }: { active?: boolean }) {
 
   function updateSelected(object: GraphObject) {
     commit(updateObject(document, object));
+  }
+
+  /** Adds an inequality region for the teacher to edit: y ≥ 1, x ≤ 3 and y < x + 1, named R. */
+  function addRegion() {
+    if (locked()) return;
+    const used = new Set(document.objects.map((o) => o.name));
+    const region: GraphObject = {
+      id: makeId("region"),
+      kind: "region",
+      inequalities: ["y >= 1", "x <= 3", "y < x + 1"],
+      shade: "wanted",
+      boundaries: true,
+      ...(used.has("R") ? {} : { name: "R" }),
+    };
+    commit({
+      ...document,
+      objects: [...document.objects, region],
+      selectedObjectId: region.id,
+    });
+    setTool("select");
+    setEquationOpen(false);
+    setEditingEquationId(null);
   }
 
   function openEquationEditor(object?: StraightObject) {
@@ -565,6 +589,7 @@ export default function App({ active = true }: { active?: boolean }) {
                   setEditingEquationId(null);
                 }}
                 onEquation={() => openEquationEditor()}
+                onRegion={addRegion}
               />
             </fieldset>
             <AxisSettings

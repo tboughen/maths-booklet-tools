@@ -146,6 +146,10 @@ h1 { margin: 0; font: 650 31px/1.1 Georgia, "Times New Roman", serif; letter-spa
 .graph-point--selected { stroke: var(--blue); stroke-width: 4; }
 /* Answer-only objects: printed on the answers copy only, so the editor shows them in the answer colour. */
 .graph-straight--answer, .graph-point--answer { stroke: #b0125b; }
+/* Inequality regions (U73): grey shading under the grid; hidden answers in a pale answer colour. */
+.graph-region { fill: #d4d4d4; stroke: none; pointer-events: none; }
+.graph-region--answer { fill: #b0125b; fill-opacity: 0.22; }
+.graph-region--selected { fill: #c9daf8; }
 .segment-preview { stroke: var(--blue); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 6; }
 .selection-handles circle { fill: #fff; stroke: var(--blue); stroke-width: 3; cursor: grab; }
 .selection-handles circle:active { cursor: grabbing; }

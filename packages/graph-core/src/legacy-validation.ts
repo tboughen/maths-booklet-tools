@@ -1,3 +1,4 @@
+import { regionProblem } from "./region";
 import { LABEL_SIDES, MAX_LABEL_TEXT_LENGTH, OBJECT_NAME_PATTERN } from "./axes";
 import { AXIS_LIMITS, isAxisConfig } from "./diagram";
 import type { Coordinate, DiagramDocumentV1, GraphObject } from "./types";
@@ -38,6 +39,14 @@ function isGraphObject(value: unknown): value is GraphObject {
   )
     return false;
   if (candidate.kind === "point") return isCoordinate(candidate.position);
+  if (candidate.kind === "region")
+    return (
+      Array.isArray(candidate.inequalities) &&
+      candidate.inequalities.every((t) => typeof t === "string") &&
+      (candidate.shade === "wanted" || candidate.shade === "unwanted") &&
+      typeof candidate.boundaries === "boolean" &&
+      regionProblem({ inequalities: candidate.inequalities }) === null
+    );
   if (candidate.kind !== "straight") return false;
   return (
     (candidate.display === "segment" || candidate.display === "line") &&

@@ -85,7 +85,19 @@ export interface StraightObject extends BaseObject, NamedObject {
   labels?: PointLabel[];
 }
 
-export type GraphObject = PointObject | StraightObject;
+/** A region shaded by inequalities, such as y > 2x − 1, x ≤ 3 (U73). The inequalities are saved
+ * as typed. "wanted" shades the region that satisfies them all; "unwanted" shades everything
+ * else, leaving the answer region clear, as some papers ask. With boundaries, each boundary line
+ * is drawn across the grid, dashed for < and >, solid for ≤ and ≥. A name, such as R, prints
+ * upright in the middle of the region. Hidden answers (answerOnly) shade only the answers copy. */
+export interface RegionObject extends BaseObject, NamedObject {
+  kind: "region";
+  inequalities: string[];
+  shade: "wanted" | "unwanted";
+  boundaries: boolean;
+}
+
+export type GraphObject = PointObject | StraightObject | RegionObject;
 
 export interface DiagramDocumentV1 {
   version: 1;

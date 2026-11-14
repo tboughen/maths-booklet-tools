@@ -2,7 +2,8 @@ import { GraphDraftField } from "./GraphDraftField";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { Eye, EyeOff, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { equationForObject, formatNumber } from "../domain/equations";
-import type { Coordinate, GraphObject, StraightObject } from "../domain/types";
+import type { Coordinate, GraphObject, RegionObject, StraightObject } from "../domain/types";
+import { MAX_REGION_INEQUALITIES, parseInequality } from "../../packages/graph-core/src/region";
 import {
   OBJECT_NAME_PATTERN,
   normaliseObjectName,
@@ -20,15 +21,15 @@ function NameAndAnswer({
   drafts: GraphDrafts;
   disabled?: boolean;
 }) {
-  const kind = object.kind === "point" ? "point" : "line";
+  const kind = object.kind === "point" ? "point" : object.kind === "region" ? "region" : "line";
   return (
     <div className="object-name-fields">
       <GraphDraftField
         id={object.id + "-name"}
-        label={`Name printed beside the ${kind}`}
+        label={kind === "region" ? "Name printed in the region" : `Name printed beside the ${kind}`}
         displayLabel="Name"
         inputMode="text"
-        hint={kind === "point" ? "For example A, B or P′" : "For example L, L1 or L2"}
+        hint={kind === "point" ? "For example A, B or P′" : kind === "region" ? "For example R" : "For example L, L1 or L2"}
         value={object.name ?? ""}
         drafts={drafts}
         disabled={disabled}
@@ -79,6 +80,87 @@ function NameAndAnswer({
         </span>
       </button>
     </div>
+  );
+}
+
+/** Inequalities, shading side and boundary lines of a shaded region (U73). */
+function RegionFields({
+  object,
+  onUpdate,
+  onDelete,
+  drafts,
+  disabled,
+}: {
+  object: RegionObject;
+  onUpdate: (object: GraphObject) => void;
+  onDelete: () => void;
+  drafts: GraphDrafts;
+  disabled?: boolean;
+}) {
+  const busy = disabled || drafts.pending;
+  return (
+    <section className="panel-card selection-panel">
+      <div className="panel-heading">
+        <div>
+          <p className="eyebrow">SELECTED OBJECT</p>
+          <h2>Shaded region</h2>
+        </div>
+      </div>
+      <GraphDraftField
+        id={object.id + "-inequalities"}
+        label="Inequalities"
+        inputMode="text"
+        hint="Separate with commas, for example y > 2x − 1, x ≤ 3, y ≥ 0. < and > draw dashed lines."
+        value={object.inequalities.join(", ")}
+        drafts={drafts}
+        disabled={disabled}
+        onApplyText={(text) => {
+          const inequalities = text
+            .split(/[,;\n]/)
+            .map((t) => t.trim())
+            .filter(Boolean);
+          if (!inequalities.length || inequalities.length > MAX_REGION_INEQUALITIES)
+            throw Error(`Enter 1 to ${MAX_REGION_INEQUALITIES} inequalities, separated by commas.`);
+          inequalities.forEach(parseInequality);
+          onUpdate({ ...object, inequalities });
+        }}
+      />
+      <div className="line-style-field">
+        <span>Shading</span>
+        <div className="segmented" role="group" aria-label="Shading">
+          {(
+            [
+              ["wanted", "Shade the region"],
+              ["unwanted", "Shade the rest"],
+            ] as const
+          ).map(([shade, label]) => (
+            <button
+              key={shade}
+              disabled={busy}
+              className={object.shade === shade ? "active" : ""}
+              aria-pressed={object.shade === shade}
+              onClick={() => onUpdate({ ...object, shade })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button
+        disabled={busy}
+        className={`visibility-button${object.boundaries ? " active" : ""}`}
+        aria-pressed={object.boundaries}
+        onClick={() => onUpdate({ ...object, boundaries: !object.boundaries })}
+      >
+        {object.boundaries ? <Eye size={16} /> : <EyeOff size={16} />}
+        <span>{object.boundaries ? "Boundary lines drawn" : "Draw boundary lines"}</span>
+      </button>
+      <NameAndAnswer object={object} onUpdate={onUpdate} drafts={drafts} disabled={disabled} />
+      <button disabled={busy} className="danger-button" onClick={onDelete}>
+        <Trash2 size={16} />
+        Delete region
+      </button>
+    </section>
   );
 }
 
@@ -181,6 +263,17 @@ export function ObjectInspector({
       </section>
     );
   }
+
+  if (object.kind === "region")
+    return (
+      <RegionFields
+        object={object}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        drafts={drafts}
+        disabled={disabled}
+      />
+    );
 
   const updateEndpoint = (key: "start" | "end", value: Coordinate) =>
     onUpdate({ ...object, [key]: value, equationLabelPosition: undefined });
