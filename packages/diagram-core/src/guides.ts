@@ -5,6 +5,7 @@
  */
 import { z } from "zod";
 import { DIAGRAM_KINDS, FAMILIES, type DiagramKind } from "./registry";
+import { SPEC_FIELD_DOCS } from "./field-docs";
 import * as graph from "../../graph-core/src/interchange";
 import * as ratio from "../../ratio-table-core/src/interchange";
 import * as ci from "../../cuboid-core/src/interchange";
@@ -217,6 +218,12 @@ const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
   delete s.$schema;
   return s;
 };
+/** M10: the family's top-level spec fields get their short description, unless the core gave one. */
+export function withFieldDocs(spec: unknown, docs: Readonly<Record<string, string>>) {
+  const properties = (spec as { properties?: Record<string, Record<string, unknown>> } | null)?.properties;
+  if (properties) for (const [key, field] of Object.entries(properties)) if (!field.description && docs[key]) field.description = docs[key];
+  return spec;
+}
 /**
  * M1/M14: a family's spec or operations schema, written once. Shapes the schema reuses (a label,
  * an annotation, a point) can go in its own $defs and be referred to with $ref; that form is used
@@ -311,7 +318,7 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: leanSchema(field(f.createSchema, "spec")),
+      specSchema: withFieldDocs(leanSchema(field(f.createSchema, "spec")), SPEC_FIELD_DOCS[kind]),
       operationsSchema: leanSchema(field(f.revisionSchema, "operations")),
     };
     cache.set(kind, v);

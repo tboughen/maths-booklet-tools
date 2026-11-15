@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { DIAGRAM_KINDS, FAMILIES } from "./registry";
-import { familyCapabilities } from "./guides";
+import { familyCapabilities, withFieldDocs } from "./guides";
+import { SPEC_FIELD_DOCS } from "./field-docs";
 
 /** Replaces every {"$ref":"#/$defs/name"} with the shape it names, so the schema reads inline. */
 function resolve(schema: unknown): unknown {
@@ -29,7 +30,8 @@ const inline = (schema: z.ZodType, field: string) => {
 describe("diagram_capabilities schemas (M1, M14)", () => {
   it.each([...DIAGRAM_KINDS])("%s: the shared-shape schemas say exactly what the inline ones say", (kind) => {
     const c = familyCapabilities(kind);
-    expect(resolve(c.specSchema)).toEqual(inline(FAMILIES[kind].createSchema, "spec"));
+    // M10 adds each top-level field's short description on top of the core schema.
+    expect(resolve(c.specSchema)).toEqual(withFieldDocs(inline(FAMILIES[kind].createSchema, "spec"), SPEC_FIELD_DOCS[kind]));
     expect(resolve(c.operationsSchema)).toEqual(inline(FAMILIES[kind].revisionSchema, "operations"));
   });
   it("names shared shapes after what they hold and keeps no unused ones", () => {
