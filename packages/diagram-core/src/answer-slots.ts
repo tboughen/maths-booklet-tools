@@ -177,6 +177,20 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else out.push(slot(path, "blank"));
     });
   },
+  area(doc, out) {
+    // As angles: a given length is supplied; any other label with a saved answer is hidden (or an answer line).
+    const labels = Array.isArray(doc.labels) ? (doc.labels as Node[]) : [];
+    labels.forEach((l, i) => {
+      const path = `document.labels.${i}`,
+        text = str(l.text),
+        answer = str(l.answer);
+      if (l.state === "value") out.push(slot(path, "supplied", text));
+      else if (l.state === "answer-line") out.push(slot(path, "answerLine", answer));
+      else if (answer) out.push(slot(path, "hidden", answer));
+      else if (l.state === "symbol") out.push(slot(path, "supplied", text));
+      else out.push(slot(path, "blank"));
+    });
+  },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

@@ -59,6 +59,8 @@ import { examples as twoWayTables } from "../../packages/two-way-table-core/src/
 import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
 import { examples as angleExamples } from "../../packages/angle-core/src/examples";
 import { renderSvg as angleSvg } from "../../packages/angle-core/src";
+import { examples as areaExamples } from "../../packages/area-core/src/examples";
+import { renderSvg as areaSvg } from "../../packages/area-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -329,5 +331,13 @@ export const anglesGallery = angleExamples.map((example) => ({
   description: example.note,
   make: example.make,
   render: (e: Parameters<typeof angleSvg>[0]) => angleSvg(e),
+  worked: example.worked,
+}));
+export const areaGallery = areaExamples.map((example) => ({
+  id: `area-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
   worked: example.worked,
 }));

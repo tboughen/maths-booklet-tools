@@ -23,6 +23,7 @@ export const toolIds = [
   "elevations",
   "two-way-table",
   "angles",
+  "area",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */
