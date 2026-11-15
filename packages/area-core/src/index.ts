@@ -367,7 +367,7 @@ function interiorPoint(outline: P[], hole: P[] | null): P {
     maxY = Math.max(...ys);
   let best: P = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 },
     bestScore = -Infinity;
-  const steps = 16;
+  const steps = 24;
   for (let i = 1; i < steps; i++)
     for (let j = 1; j < steps; j++) {
       const p = { x: minX + ((maxX - minX) * i) / steps, y: minY + ((maxY - minY) * j) / steps };
@@ -597,8 +597,6 @@ const advance = (c: string, italic: boolean) => EXTRA_ADVANCE[c] ?? glyphAdvance
 /** A run of printed text: a fraction prints stacked, numerator over denominator. */
 type Run = { text: string; italic: boolean } | { top: string; bottom: string };
 const UNIT_LETTERS = new Set(["m", "g", "l"]);
-/** Short words that print upright: units and function names. Other words of up to three letters are algebra. */
-const UPRIGHT = new Set(["mm", "cm", "km", "kg", "mg", "ml", "cl", "in", "ft", "yd", "sin", "cos", "tan", "of", "and", "to", "is", "the"]);
 /** Maths text: single letters italic (not units after a number), a true minus sign, ^2 as ², a/b stacked. */
 export function runs(t: string): Run[] {
   const typed = t
@@ -620,7 +618,7 @@ export function runs(t: string): Run[] {
     else if (/^[A-Za-z]+$/.test(m[0])) {
       const before = typed.slice(0, m.index).trimEnd();
       const unitAfterNumber = UNIT_LETTERS.has(m[0]) && /[\d²]$/.test(before);
-      push(m[0], m[0].length <= 3 && !UPRIGHT.has(m[0]) && !unitAfterNumber);
+      push(m[0], m[0].length === 1 && !unitAfterNumber);
     } else push(m[0], false);
   }
   return out;
@@ -1052,11 +1050,26 @@ export function hitAnchors(e: Envelope, g: Layout = layout(e)): { id: string; na
 /** Stretches a polygon (and its hole) across and up, about its bottom-left corner, keeping labels. */
 export function stretch(d: AreaDocument, kx: number, ky: number): AreaDocument {
   const n = structuredClone(d);
+  if (n.shape.type !== "polygon") return n;
   const r = (v: number) => Math.round(v * 10) / 10;
-  if (n.shape.type === "polygon") n.shape.corners = n.shape.corners.map((c) => ({ x: r(c.x * kx), y: r(c.y * ky) }));
-  if (n.hole?.type === "rectangle") n.hole = { ...n.hole, x: r(n.hole.x * kx), y: r(n.hole.y * ky), w: r(n.hole.w * kx), h: r(n.hole.h * ky) };
-  if (n.hole?.type === "circle") n.hole = { ...n.hole, x: r(n.hole.x * kx), y: r(n.hole.y * ky), r: r(n.hole.r * Math.min(kx, ky)) };
+  const x0 = Math.min(...n.shape.corners.map((c) => c.x)),
+    y0 = Math.min(...n.shape.corners.map((c) => c.y));
+  const at = (x: number, y: number) => ({ x: r(x0 + (x - x0) * kx), y: r(y0 + (y - y0) * ky) });
+  n.shape.corners = n.shape.corners.map((c) => at(c.x, c.y));
+  if (n.hole?.type === "rectangle") n.hole = { ...n.hole, ...at(n.hole.x, n.hole.y), w: r(n.hole.w * kx), h: r(n.hole.h * ky) };
+  if (n.hole?.type === "circle") n.hole = { ...n.hole, ...at(n.hole.x, n.hole.y), r: r(n.hole.r * Math.min(kx, ky)) };
   return n;
+}
+/** A hole that fits: centred on the roomiest place inside the shape, well clear of its sides. */
+export function holeFor(d: AreaDocument, type: Hole["type"]): Hole {
+  const g = geometry({ ...d, hole: null, shaded: d.shaded === "hole" ? "none" : d.shaded, labels: [] });
+  const c = interiorPoint(g.outline, null);
+  let clear = Infinity;
+  for (let k = 0; k < g.outline.length; k++) clear = Math.min(clear, segmentDistance(c, g.outline[k], g.outline[(k + 1) % g.outline.length]));
+  const r = (v: number) => Math.round(v * 10) / 10;
+  if (type === "circle") return { type, x: r(c.x), y: r(c.y), r: r(Math.max(2, clear * 0.6)) };
+  const half = Math.max(2, clear * 0.55);
+  return { type, x: r(c.x - half), y: r(c.y - half), w: r(2 * half), h: r(2 * half) };
 }
 /** The polygon's width and height in mm. */
 export function extent(s: Polygon) {

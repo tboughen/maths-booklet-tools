@@ -161,8 +161,27 @@ describe("review fixes", () => {
   });
   it("prints a letter at the centre angle with a degree sign, and short algebra italic", () => {
     expect(core.printed(core.label("angle", "x", "symbol"), "pupil").text).toBe("x°");
-    expect(core.runs("ab cm")).toEqual([{ text: "ab", italic: true }, { text: " cm", italic: false }]);
-    expect(core.runs("Area")).toEqual([{ text: "Area", italic: false }]);
+    expect(core.runs("3 min")).toEqual([{ text: "3 min", italic: false }]);
+    expect(core.runs("AB = 5 cm")).toEqual([{ text: "AB = 5 cm", italic: false }]);
   });
 });
 
+describe("review round 2", () => {
+  it("puts a new hole inside every preset", () => {
+    for (const p of core.PRESETS)
+      for (const type of ["rectangle", "circle"] as const) {
+        const e = core.starter(p);
+        e.document.hole = core.holeFor(e.document, type);
+        expect(() => core.validate(core.prune(e)), `${p} ${type}`).not.toThrow();
+      }
+  });
+  it("stretches from the bottom-left corner, so a preset can grow to 150 mm", () => {
+    const e = core.starter("rectangle");
+    const wide = core.validate({ ...e, document: core.stretch(e.document, 150 / 60, 1) });
+    expect(core.extent(wide.document.shape as core.Polygon).width).toBeCloseTo(150, 6);
+  });
+  it("refuses an answer on a given length through the connector", async () => {
+    const e = io.create({ spec: { preset: "rectangle", labels: [{ id: "e1", text: "12 cm" }] } });
+    await expect(io.revise({ envelope: e, baseHash: await core.hash(e), operations: [{ op: "set_label", label: { id: "e1", answer: "12 cm" } }] })).rejects.toThrow("cannot hold a saved answer");
+  });
+});

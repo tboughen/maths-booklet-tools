@@ -36,7 +36,7 @@ letter, italic), `blank` (nothing printed: a missing side), `answer-line` and `h
 the answers copy, in the house answer colour, in place of the label; a `value` never holds one. Answers are text, so
 "25π cm²" stays exact. Both copies share one layout sized for the wider text. Nothing is ever calculated or filled in.
 
-Label text is typeset: letters of up to three (algebra such as x or ab) italic, but not units (cm, m after a number) or sin, cos and tan; longer words upright; a
+Label text is typeset: single letters italic (but not `m`, `g` or `l` after a number), units, words and point pairs such as AB upright; a
 true minus sign, `^2` as ², `pi` as π, and `a/b` as a stacked fraction (so the label is taller). The centre angle of
 a sector prints with a degree sign (110°, x°).
 
@@ -59,7 +59,7 @@ after the examples. Delete removes the selected label as one undo step; Escape d
 shape to a preset (rectangle, L, T and U shapes, triangle, parallelogram, trapezium, rectangle and triangle,
 rectangle and semicircle, rectangle with a semicircle cut out, frame, circle, semicircle, quarter circle, sector);
 labels the new shape has no place for are dropped, the message says so and Undo restores them. Width and height
-stretch a polygon and its hole. The corners table edits corners, sides (straight or semicircle) and right-angle marks;
+stretch a polygon and its hole from its bottom-left corner (up to 150 mm). The corners table edits corners, sides (straight or semicircle) and right-angle marks;
 heights have their own rows. The connector's `set_shape` refuses to drop labels unless `dropMissing: true`.
 
 ## Connector
@@ -75,4 +75,4 @@ length, letters alone a letter, an answer alone a hidden label. Revisions: `set_
 Segments and chords, tangents and labelled circle parts, quarter circles on a corner of a polygon, trapezium and
 triangle shapes with semicircles on slanting sides that need a different radius, algebraic side lengths with
 automatic checks (A-15: algebra prints but is not checked), dashed lines splitting a compound shape into rectangles,
-dimension lines with arrows, dragging corners on the preview, and turning a whole circle's radius line.
+dimension lines with arrows, italic products of letters such as xy (they print upright), dragging corners on the preview, and turning a whole circle's radius line.

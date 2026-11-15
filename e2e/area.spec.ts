@@ -65,7 +65,6 @@ test("changes to a sector, keeps the labels it has a place for and warns about r
 test("adds a shaded hole and a grid, and prints Diagram NOT accurately drawn by default", async ({ page }) => {
   await boot(page, example("l-shape"));
   expect(await texts(page)).toContain("Diagram NOT accurately drawn");
-  await page.getByRole("combobox", { name: "Start from a shape" }).selectOption("rectangle");
   await page.getByRole("combobox", { name: "Hole" }).selectOption("circle");
   const d = (await saved(page)).document;
   expect(d.hole.type).toBe("circle");

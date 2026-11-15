@@ -29,7 +29,9 @@ import {
   canonical,
   extent,
   hasHidden,
+  heightFoot,
   hitAnchors,
+  holeFor,
   label as makeLabel,
   layout,
   MAX_CORNERS,
@@ -324,8 +326,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   function resize(axis: "width" | "height", text: string) {
     if (!size) return false;
     const v = num(text);
-    if (!(v >= 10 && v <= 250)) {
-      setMessage("Give a size from 10 to 250 mm.");
+    if (!(v >= 10 && v <= 150)) {
+      setMessage("Give a size from 10 to 150 mm.");
       return false;
     }
     const k = v / size[axis];
@@ -340,19 +342,6 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
       if (next && n.shaded === "none") n.shaded = "shape";
     }, next ? "add hole" : "remove hole");
   }
-  /** A hole that fits: a rectangle or circle in the middle of the shape, a third of its size. */
-  function defaultHole(type: Hole["type"]): Hole {
-    const pts = g.geometry.outline,
-      xs = pts.map((p) => p.x),
-      ys = pts.map((p) => p.y);
-    const cx = round((Math.min(...xs) + Math.max(...xs)) / 2),
-      cy = round((Math.min(...ys) + Math.max(...ys)) / 2),
-      w = Math.max(...xs) - Math.min(...xs),
-      h = Math.max(...ys) - Math.min(...ys);
-    if (type === "circle") return { type, x: cx, y: cy, r: round(Math.max(3, Math.min(w, h) / 5)) };
-    return { type, x: round(cx - w / 6), y: round(cy - h / 6), w: round(Math.max(4, w / 3)), h: round(Math.max(4, h / 3)) };
-  }
-
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   const anchors = hitAnchors(e, g);
@@ -547,7 +536,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           setLabel(current, (l) => {
                             l.text = v.trim();
                             // Typing a length or a letter shows it; clearing it leaves the place blank.
-                            if (!l.text && (l.state === "value" || l.state === "symbol")) l.state = "blank";
+                            if (!l.text && (l.state === "value" || l.state === "symbol")) l.state = l.answer ? "hidden" : "blank";
                             else if (l.text && l.state === "blank") l.state = /\d/.test(l.text) && !l.answer ? "value" : "symbol";
                           }, "edit label")
                         }
@@ -625,11 +614,11 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                   <>
                     <label>
                       Width (mm)
-                      {mmField("Shape width", size.width, (v) => resize("width", String(v)), 10, 250)}
+                      {mmField("Shape width", size.width, (v) => resize("width", String(v)), 10, 150)}
                     </label>
                     <label>
                       Height (mm)
-                      {mmField("Shape height", size.height, (v) => resize("height", String(v)), 10, 250)}
+                      {mmField("Shape height", size.height, (v) => resize("height", String(v)), 10, 150)}
                     </label>
                   </>
                 )}
@@ -736,6 +725,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           const a = p.corners[p.corners.length - 1],
                             b = p.corners[0];
                           p.corners.push({ x: round((a.x + b.x) / 2), y: round((a.y + b.y) / 2) });
+                          // Both halves of the split side are straight; a semicircle on it would change size.
+                          p.arcs[p.arcs.length - 1] = "none";
                           p.arcs.push("none");
                         }, "add corner")
                       }
@@ -750,7 +741,9 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           const n = p.corners.length;
                           p.corners.pop();
                           p.arcs.pop();
-                          p.rightAngles = p.rightAngles.filter((k) => k < n);
+                          // The new closing side is straight, and the corners at its ends have new angles.
+                          p.arcs[p.arcs.length - 1] = "none";
+                          p.rightAngles = p.rightAngles.filter((k) => k < n - 1 && k !== 1);
                           p.heights = p.heights.filter((h) => h.corner < n && h.side < n - 1);
                         }, "remove corner")
                       }
@@ -790,18 +783,24 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                     <button
                       type="button"
                       disabled={blocked || s.heights.length >= 4 || s.corners.length < 3}
-                      onClick={() =>
-                        setPolygon((p) => {
-                          // From the highest corner to the lowest straight side across from it, as exam diagrams draw it.
-                          const n = p.corners.length,
-                            top = p.corners.reduce((best, c, k) => (c.y > p.corners[best].y ? k : best), 0);
-                          const sides = p.corners
-                            .map((c, k) => ({ side: k + 1, y: (c.y + p.corners[(k + 1) % n].y) / 2 }))
-                            .filter((x) => x.side !== top + 1 && x.side % n !== top && p.arcs[x.side - 1] === "none")
-                            .sort((a, b) => a.y - b.y);
-                          if (sides.length) p.heights.push({ corner: top + 1, side: sides[0].side });
-                        }, "add height")
-                      }
+                      onClick={() => {
+                        // From the highest corner to the lowest straight side across from it, as exam diagrams draw it.
+                        const c = s.corners,
+                          n = c.length,
+                          top = c.reduce((best, q, k) => (q.y > c[best].y ? k : best), 0);
+                        const sides = c
+                          .map((a, k) => {
+                            const foot = heightFoot(c, top + 1, k + 1),
+                              b = c[(k + 1) % n];
+                            // A foot on a corner would draw the height along a side.
+                            const clear = Math.min(Math.hypot(foot.x - a.x, foot.y - a.y), Math.hypot(foot.x - b.x, foot.y - b.y)) > 1;
+                            return { side: k + 1, y: (a.y + b.y) / 2, clear };
+                          })
+                          .filter((x) => x.clear && x.side !== top + 1 && x.side % n !== top && s.arcs[x.side - 1] === "none")
+                          .sort((a, b) => a.y - b.y);
+                        if (!sides.length) setMessage("This shape has no side across from its top corner for a height to meet.");
+                        else setPolygon((p) => void p.heights.push({ corner: top + 1, side: sides[0].side }), "add height");
+                      }}
                     >
                       Add a dashed height
                     </button>
@@ -814,7 +813,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
               <div className="pt-fields">
                 <label>
                   Hole
-                  <select aria-label="Hole" value={d.hole?.type ?? "none"} disabled={blocked} onChange={(ev) => setHole(ev.target.value === "none" ? null : defaultHole(ev.target.value as Hole["type"]))}>
+                  <select aria-label="Hole" value={d.hole?.type ?? "none"} disabled={blocked} onChange={(ev) => setHole(ev.target.value === "none" ? null : holeFor(d, ev.target.value as Hole["type"]))}>
                     <option value="none">None</option>
                     <option value="rectangle">Rectangle</option>
                     <option value="circle">Circle</option>
