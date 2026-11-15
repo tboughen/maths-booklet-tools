@@ -5,6 +5,7 @@
  */
 import { z } from "zod";
 import { DIAGRAM_KINDS, FAMILIES, type DiagramKind } from "./registry";
+import { SPEC_FIELD_DOCS } from "./field-docs";
 import * as graph from "../../graph-core/src/interchange";
 import * as ratio from "../../ratio-table-core/src/interchange";
 import * as ci from "../../cuboid-core/src/interchange";
@@ -219,6 +220,12 @@ const jsonSchema = (schema: z.ZodType) => {
   delete s.$schema;
   return s;
 };
+/** M10: the family's top-level spec fields get their short description, unless the core gave one. */
+function withFieldDocs(spec: unknown, docs: Readonly<Record<string, string>>) {
+  const properties = (spec as { properties?: Record<string, Record<string, unknown>> } | null)?.properties;
+  if (properties) for (const [key, field] of Object.entries(properties)) if (!field.description && docs[key]) field.description = docs[key];
+  return spec;
+}
 const cache = new Map<DiagramKind, Record<string, unknown>>();
 /** Everything diagram_capabilities returns for one family, built once per process. */
 export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
@@ -239,7 +246,7 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: create.properties?.spec ?? null,
+      specSchema: withFieldDocs(create.properties?.spec ?? null, SPEC_FIELD_DOCS[kind]),
       operationsSchema: revise.properties?.operations ?? null,
     };
     cache.set(kind, v);
