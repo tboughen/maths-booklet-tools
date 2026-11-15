@@ -7,7 +7,7 @@ import {execFileSync} from "node:child_process";
 const output=resolve(process.argv[2]??"../reports/bar-model-fractions-writing-space-implementation-2026-10-25/native-review");
 await mkdir(output,{recursive:true});
 async function module(path){const r=await build({entryPoints:[path],bundle:true,write:false,platform:"node",format:"esm",target:"node24"});return import(`data:text/javascript;base64,${Buffer.from(r.outputFiles[0].text).toString("base64")}`);}
-const [v,examples,png,stress]=await Promise.all([module("packages/bar-model-core/src/v3.ts"),module("packages/bar-model-core/src/lesson-examples-v3.ts"),module("packages/graph-core/src/png-bytes.ts"),module("packages/bar-model-core/src/stress-fixture-v3.ts")]);
+const [v,examples,png,stress]=await Promise.all([module("packages/bar-model-core/src/v3.ts"),module("packages/bar-model-core/src/examples.ts"),module("packages/graph-core/src/png-bytes.ts"),module("packages/bar-model-core/src/stress-fixture.ts")]);
 const sha=b=>createHash("sha256").update(b).digest("hex");
 const fonts={loadSystemFonts:false,fontFiles:["STIXTwoText-Regular.otf","STIXTwoText-Italic.otf","STIXTwoMath-Regular.otf"].map(f=>resolve("assets/graph-fonts",f)),defaultFontFamily:"STIX Two Text"};
 const records=[];
@@ -35,7 +35,6 @@ if(process.argv.includes("--write-examples")){
  const doc="docs/bar-model-examples/lesson-v3";await mkdir(doc,{recursive:true});
  for(const name of examples.lessonExampleNames){
   for(const worked of[false,true])await writeFile(`${doc}/${name}-${worked?"worked":"pupil"}.json`,v.canonical(examples.lessonExample(name,worked))+"\n");
-  await writeFile(`src/assets/example-previews/bar-lesson-v3-${name}.svg`,await readFile(join(output,`${name}-pupil-grey.svg`)));
  }
  // The All tools card is R1 worked, with a true minus sign (U+2212) in the second working line (U107).
  const card=examples.lessonExample("R1",true);

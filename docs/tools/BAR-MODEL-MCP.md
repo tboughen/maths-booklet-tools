@@ -1,115 +1,89 @@
 # Bar-model MCP contract
 
-Three schema versions are supported by this candidate. New browser models use
-[v3 horizontal fractions and handwriting spaces](BAR-MODEL-V3.md); MCP requires
-explicit `spec.schemaVersion:3`. Existing v1/v2 rendering and bare defaults stay
-preserved. Read [the complete v2
-contract](BAR-MODEL-V2.md) for explicit `spec.schemaVersion:2`, independent slots,
-annotation scope, starters and atomic upgrade operations. Bare/empty legacy specs
-and exact v1 envelopes keep the original contract below. Actual discovery and
-deployment are separate from this source definition.
-
-Version1: kind/route `bar-model`, schemaVersion1, renderer `bar-model-1`, style
-`lesson-v1`. The [brief](BAR-MODEL-BRIEF.md) defines teaching purpose and examples.
-[Complete emitted tool descriptors](BAR-MODEL-EMITTED-SCHEMAS.json) retain every
-input/output field, required array, enum and bound. Actual discovery governs use;
-documentation does not establish deployment or client import.
+Kind/route `bar-model`. Every model uses the single [saved format](BAR-MODEL-V3.md)
+(schemaVersion 3, renderer `bar-model-3`, style `lesson-v3`). The
+[brief](BAR-MODEL-BRIEF.md) defines teaching purpose and examples. Actual discovery
+governs use; documentation does not establish deployment or client import.
 
 ## Creation and capabilities
 
-`diagram_capabilities {kind:"bar-model"}` describes states, rational/structure/print/request bounds,
-example names, geometry, deletion policy, versions and complete revision schema.
+`diagram_capabilities {kind:"bar-model"}` describes states, structure/print/request bounds,
+starters, example names, geometry, deletion policy and the complete revision schema.
 
-`create_diagram` accepts `{kind:"bar-model",spec?:...,envelope?:...}`. Spec and envelope are exclusive.
-Omit both for an unworked BM01 scaffold. `spec.example` selects BM01–BM09,H07,H18 or
-source-sharing; it cannot be mixed with custom bars/spans. `worked:true` requires
-an explicit example. Custom definitions default to empty spans; no missing answer
-is inferred. Spec permits optional presentation overrides. Exact envelopes retain
-saved label states and stable IDs.
+`create_diagram` accepts `{kind:"bar-model",spec?:...,envelope?:...}`. Spec and envelope are
+exclusive. Omit both for a blank two-part part-whole model.
 
 ```json
-{"spec":{"example":"BM03"}}
+{"spec":{"starter":"part-whole"}}
 ```
 
-Custom bars: `{id,name:{text,state},offset,parts:[{id,weight,label:{text,state},shade}]}`.
-Geometry offset/weight are exact numeric strings, not label expressions. All bars
-share presentation.unitMm. Parts have positive weights; offsets are nonnegative.
-Labels accept text≤80 characters and state `value|blank|question|line|hidden`.
-Hidden/blank states retain text; question prints?;line prints an8mm answer space.
-No answer is filled by edits to known quantities or labels.
+Other starters are `comparison`, `equal-sections` and `inline-ratio`. `count` selects 1–24
+equal sections; `ratio:[3,5]` or `[2,3,4]` creates grouped units. Comparison accepts
+`comparisonLengths:[7,4]` (whole numbers, longer first) and `partitioned:true|false`.
+Structural lengths never become printed answers. Custom `bars`, `annotations`, `captions`,
+`title` and partial `presentation` use the saved schemas; `bars` and `starter` are exclusive.
 
-Spans: `{id,from:{barId,partId,edge},to:{barId,partId,edge},label,side,style}`.
-Edge is start/end,side above/below,style brace/dimension. Endpoints must exist and
-run left-to-right in shared-unit coordinates. Cross-bar anchors express differences.
-Adjacent-group anchors and one contiguous whole support sharing totals.
-
-Presentation: unitMm4–16,barHeightMm8–16,fontPt10–14,nameWidthMm20–60. Full bounds
-and layout constraints are in capabilities and the brief. Invalid geometry is
-rejected. Layout overflow fails artifact creation with a useful explanation; it
-does not alter source or silently rescale output.
+`spec.example` selects BM01–BM09, H07, H18 or source-sharing, and must come
+on its own. `worked:true` requires an explicit example. An exact envelope retains saved label
+states and stable IDs. `spec.schemaVersion` is optional and can only be 3.
 
 ## Atomic revision
 
-`revise_diagram {kind:"bar-model",envelope,baseHash,operations}` requires the exact last returned
-envelope and its contentHash, with≤30 operations and32KiB input. Empty operations
-refresh artifacts/links without changing source. Invalid/stale requests have no
-partial result or server state mutation. Keep the newly returned envelope/hash.
+`revise_diagram {kind:"bar-model",envelope,baseHash,operations}` requires the exact last
+returned envelope and its contentHash, with ≤30 operations and a 32 KiB request. Empty
+operations refresh artifacts/links without changing source. Invalid or stale requests have no
+partial result. Keep the newly returned envelope/hash.
 
-| Operation | Complete payload besides op |
+| Operation | Fields besides `op` |
 |---|---|
-| set_label | target:{spanId} OR {barId,partId?};label:{text,state} |
-| set_part | barId,partId,weight?,shade? |
-| add_bar | bar (complete schema),afterId?;omitted appends |
+| set_section_label | barId,partId,slot:inside\|above\|below,label |
+| set_section_labels | barId,partIds,slot,label |
+| move_or_copy_label | from/to:{barId,partId,slot},mode:move\|copy,overwrite? |
+| set_annotation | annotation (complete saved schema) |
+| remove_annotation | annotationId |
+| equal_sections | barId,count,discardContent? |
+| set_fill | barId,partIds,fill |
+| add_caption / update_caption | caption (complete saved schema) |
+| remove_caption | captionId |
+| set_title | label (or null to remove) |
+| set_presentation | presentation (partial),autoName? |
+| set_quantity_name | barId,label |
+| set_relative_length | barId,partId,weight |
+| append_section | barId,part,afterId? |
+| append_bar | bar,afterId? |
+| reorder_bars | barIds (every current ID exactly once) |
 | remove_bar | barId,discardSpans?:false |
-| add_part | barId,part (complete schema),afterId?;omitted appends |
 | remove_part | barId,partId,discardSpans?:false |
-| add_span | span (complete schema) |
-| set_span | span (complete schema,existing id) |
-| remove_span | spanId |
 | set_alignment | barId,offset (exact numeric string) |
-| set_print | presentation:{unitMm?,barHeightMm?,fontPt?,nameWidthMm?,lines?:normal\|bold} (bold prints every stroke 1.5 times as thick; normal is never kept) |
-| reveal_saved_answers | no additional fields;explicit request only |
+| reveal_saved_answers | none; explicit request only |
 
-set_label supplies saved text and state together: retain the existing text when
-changing visibility. A referenced removal needs prior explicit span removal or
-discardSpans:true. It never chooses a new boundary silently. Resizing/relabeling
-does not calculate or reveal answers. This editor has no automatic solver.
+Move/copy needs explicit `overwrite` if the destination holds content. `autoName:true`
+removes a stored manual name width. `equal_sections` keeps the exact total bar length and
+other bars; a changed count that affects labels, fills or fixed ranges needs
+`discardContent:true`. Removing a bar or section an annotation refers to needs
+`discardSpans:true` or removing the annotation first; anchors never reattach. No edit
+calculates or reveals answers.
 
 ```js
 {envelope: result.envelope, baseHash: result.contentHash,
- operations:[{op:"set_part",barId:"b1",partId:"b1p1",shade:true}]}
+ operations:[{op:"set_fill",barId:"b1",partIds:["b1p1"],fill:"neutral"}]}
 ```
 
 ## Returned resources and output tools
 
-Create/revise return canonical envelope/contentHash/rendererVersion,warnings,
-downloads.svg/png/json,editorUrl,physicalSizeCm,printGuidance,printRaster,printDpi600,
-printVerified:true and inline preview. Style/version are also in the envelope.
-Download links are real signed7-day resources. Oversize links yield existing
-bounded embedded resource content; an oversized editor link is null with an editable
-file fallback. Files/links retain hidden answers; pupil artwork hides them.
+Create/revise return the canonical envelope, contentHash, rendererVersion, warnings,
+downloads.svg/png/json, editorUrl, physicalSizeCm, printGuidance, printRaster, printDpi600,
+printVerified:true and an inline preview. Download links are real signed 7-day resources.
+An oversized editor link is null with an editable-file fallback. Files/links retain hidden
+answers; pupil artwork hides them.
 
-`get_diagram_svg {kind:"bar-model",envelope,...}` uses the existing exact UTF-8
-offset/chunk/full-hash protocol. `check_diagram_placement` and
-`download_diagram_bundle` accept the same kind/source. There is no outputView
-parameter for bars: reveal requires an explicit source revision, keeping ordinary
-output pupil-facing. These optional tools never reconstruct artwork from preview.
-See [original SVG delivery](DIRECT-SVG-DELIVERY.md) and
-[diagram outputs](MCP-DIAGRAM-OUTPUTS.md) for complete shared payloads and limits.
+`get_diagram_svg {kind:"bar-model",envelope,...}` uses the shared exact UTF-8
+offset/chunk/full-hash protocol. `check_diagram_placement` and `download_diagram_bundle`
+accept the same kind/source. There is no outputView for bars: reveal requires an explicit
+source revision. See [original SVG delivery](DIRECT-SVG-DELIVERY.md) and
+[diagram outputs](MCP-DIAGRAM-OUTPUTS.md).
 
-Print facts are outside the saved definition/hash. Use returned native dimensions
-and aspect ratio; verify actual saved SVG/PNG/JSON. Browser fonts are embedded;
-service SVG lettering is outlined. Exact chunk saving, native vector-PDF consumption,
-and actual intended-chat execution are separate evidence from SDK/unit tests.
-Native Word insertion, physical printing and real phone use are not established by
-printVerified, a screenshot or a browser download event.
-
-## Preservation and publication
-
-The expected catalogue delta adds exactly the three bar calls; changes only
-check_diagram_placement/download_diagram_bundle/get_diagram_svg to accept the kind;
-and removes nothing. Compare complete descriptors, not counts. Keep all prior
-families, signed files, source hashes, defaults, fonts, keys, quotas and App identity.
-The release playbook owns exact-source qualification, compatibility matrix and
-surface-specific approval. Current plugin guidance must be guarded against its
-actual release, not the historical dev-named plugin. No new connection is needed.
+Print facts are outside the saved definition/hash. Use returned native dimensions and
+verify actual saved SVG/PNG/JSON. Browser fonts are embedded; service SVG lettering is
+outlined. Native Word insertion, physical printing and real phone use are not established
+by printVerified, a screenshot or a browser download event.

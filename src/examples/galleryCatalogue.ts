@@ -1,4 +1,4 @@
-import * as bar from "../../packages/bar-model-core/src";
+import * as bar from "../../packages/bar-model-core/src/versioned";
 import {
   graphExamples,
   ratioExamples,
