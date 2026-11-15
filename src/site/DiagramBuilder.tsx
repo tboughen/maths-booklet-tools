@@ -40,7 +40,7 @@ export function DiagramBuilder() {
   const [search, setSearch] = useState("");
   const [strand, setStrand] = useState<StrandId | "all">("all");
   const [view, setViewState] = useState<View>(() => load(VIEW_KEY, isView, "pictures"));
-  const [favourites, setFavourites] = useState<string[]>(() => load(FAVOURITES_KEY, isIds, []));
+  const [favourites, setFavourites] = useState<string[]>(() => [...new Set(load(FAVOURITES_KEY, isIds, []))]);
   const [peek, setPeek] = useState<Tool | null>(null);
   const root = useRef<HTMLElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
@@ -176,8 +176,8 @@ export function DiagramBuilder() {
             <div className="tool-peek-text">
               <h2>{peek.name}</h2>
               <p>{peek.description}</p>
-              <a className="tool-peek-open" href={pageHref(peek.id)} onClick={() => dialog.current?.close()}>Open {peek.name}</a>
-              <button type="button" className="tool-peek-close" onClick={() => dialog.current?.close()}><X size={15} aria-hidden="true" />Close</button>
+              <a className="tool-peek-open" href={pageHref(peek.id)} onClick={() => dialog.current?.close?.()}>Open {peek.name}</a>
+              <button type="button" className="tool-peek-close" onClick={() => dialog.current?.close?.()}><X size={15} aria-hidden="true" />Close</button>
             </div>
           </div>
         )}
