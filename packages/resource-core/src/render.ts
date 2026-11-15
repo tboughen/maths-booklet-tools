@@ -417,6 +417,13 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       const sub = it.items.length ? items(it.items, w - S.partIndent, ctx, extra) : { h: 0, svg: "" };
       const svg = textSvg([{ text: label, style: "regular" }], 0, head.first ?? baseline(S.body), S.body, ctx.st.ink) + head.svg + at(sub, S.partIndent, head.h + S.itemGap);
       frags.push({ h: head.h + (sub.h ? S.itemGap + sub.h : 0), svg });
+    } else if ((list[i + 1] as Leaf | undefined)?.beside) {
+      const right = list[++i] as Leaf;
+      const lay = besideLayout(it, right, w, ctx);
+      if (lay.problem) issue(ctx, lay.problem);
+      const a = leaf(it, lay.left, ctx, extra);
+      const b = leaf(right, lay.rightDraw, ctx, extra);
+      frags.push({ h: Math.max(a.h, b.h), svg: at(a, 0, 0) + at(b, lay.left + BESIDE_GAP, 0) });
     } else frags.push(leaf(it, w, ctx, extra));
   }
   let y = 0;
@@ -428,6 +435,44 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
     })
     .join("");
   return { h: y, svg };
+}
+
+/** The gap between two items that share a row (beside: true), in mm. */
+export const BESIDE_GAP = 4;
+/** The narrowest text or other flowing item beside a diagram, in mm. */
+export const BESIDE_MIN = 25;
+
+/** The printed width of a diagram or grid paper, which never changes; null for flowing items. */
+export function fixedWidth(item: Leaf, ctx: AnyCtx): number | null {
+  if (item.type === "paper") return item.widthMm;
+  if (item.type !== "diagram") return null;
+  try {
+    return drawDiagram(item.diagram.tool, diagramEnvelope(item.diagram), ctx.view === "answers" ? "answer" : "pupil").widthMm;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Two items in one row: a diagram or grid paper keeps its printed width and a flowing item takes
+ * the rest of the row; two flowing items share it equally. A diagram on the right is centred in
+ * the room left of it. As a single diagram may, the row may use the card's padding. Shared by the
+ * SVG and Word writers.
+ */
+export function besideLayout(a: Leaf, b: Leaf, w: number, ctx: AnyCtx): { left: number; right: number; rightDraw: number; problem?: string } {
+  const fa = fixedWidth(a, ctx),
+    fb = fixedWidth(b, ctx);
+  const left = fa ?? (fb !== null ? Math.max(BESIDE_MIN, w - BESIDE_GAP - fb) : (w - BESIDE_GAP) / 2);
+  const right = w - left - BESIDE_GAP;
+  const need = (fa ?? BESIDE_MIN) + BESIDE_GAP + (fb ?? BESIDE_MIN);
+  const problem =
+    fa === null && fb === null
+      ? undefined
+      : need > w + 2 * (S.cardPad - 0.6) + 0.01
+        ? `Two items side by side need ${n(need - w - 2 * (S.cardPad - 0.6))} mm more width than the card has (${n(w + 2 * (S.cardPad - 0.6))} mm, using its padding as a single diagram may). Diagrams are never shrunk to fit: remove beside to stack them, use a smaller diagram, or use a wider column layout.`
+        : undefined;
+  // An item too wide for its share is drawn at its own width; the issue above reports it once.
+  return { left, right, rightDraw: Math.max(right, fb ?? 0), problem };
 }
 
 export const countSpaces = (list: Item[]): number =>

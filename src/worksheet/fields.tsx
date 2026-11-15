@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Item } from "../../packages/resource-core/src/index";
-import { ANSWER_MAX } from "../../packages/resource-core/src/schema";
+import { ANSWER_MAX, besideProblem } from "../../packages/resource-core/src/schema";
 import { FAMILIES } from "../../packages/diagram-core/src/registry";
 
 /** Editing controls shared by the worksheet and booklet editors. */
@@ -246,5 +246,28 @@ export function WorkingField({ label, value, onCommit, disabled }: { label: stri
       <Field label={label} value={value ?? ""} max={3000} lines disabled={disabled} onCommit={(v) => onCommit(v.trim() ? v : undefined)} />
       <p className="ws-hint">Never printed, in the pupil or the answers copy.</p>
     </details>
+  );
+}
+
+/**
+ * "Beside the item before": prints an item to the right of the one before it, in one row of the
+ * card. Shown only where the item can take it (not the first item, not after a lettered part,
+ * not a third item in a row, not with inline answer lines).
+ */
+export function BesideToggle({ list, index, set, disabled }: { list: readonly Item[]; index: number; set: (on: boolean) => void; disabled: boolean }): ReactNode {
+  const item = list[index];
+  if (item.type === "part") return null;
+  const on = !!item.beside;
+  if (!on) {
+    const problem = besideProblem(list.map((x, i) => (i === index ? { ...x, beside: true as const } : x)));
+    if (problem?.index === index) return null;
+    // Turning this on would make the next item a third in its row.
+    if ((list[index + 1] as Leaf | undefined)?.beside) return null;
+  }
+  return (
+    <label className="ws-check">
+      <input type="checkbox" checked={on} disabled={disabled} onChange={(e) => set(e.target.checked)} />
+      Beside the item before
+    </label>
   );
 }

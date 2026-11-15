@@ -113,3 +113,10 @@ export function addPaper(card: Card, columnWidth: number): void {
     heightMm: 60,
   });
 }
+
+/** The item with beside turned on or off; off removes the field, so the saved file stays minimal. */
+export function withBeside<T extends Leaf>(item: T, on: boolean): T {
+  const { beside: _beside, ...rest } = item;
+  void _beside;
+  return (on ? { ...rest, beside: true } : rest) as T;
+}
