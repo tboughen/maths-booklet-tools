@@ -1421,6 +1421,18 @@
   "pupilSvg": "f0e34882cbbbbbc5882f71abfe977064c2351348bfa4dbdd76f5ff2a9a40e898",
   "answerSvg": "f0e34882cbbbbbc5882f71abfe977064c2351348bfa4dbdd76f5ff2a9a40e898"
  },
+ "angles/example-polygons-meeting-worked": {
+  "schemaVersion": 1,
+  "contentHash": "45bccf51b83bb7c8d17cb8c7cda2bddbd611871bfca18de586d88465f4167fc9",
+  "pupilSvg": "0c17ace7e628aa6e8ff2fcd4827eebe3dddf8a2fb3b839e5f223d7fd568c0941",
+  "answerSvg": "cefcffd64957c2148fa009f3dc83bfbaaed3c63f9c12b18d05d65f057ebbcf07"
+ },
+ "angles/example-polygons-meeting": {
+  "schemaVersion": 1,
+  "contentHash": "7c9a0c0f849188ec5869b6719dce6fe976d4315a4ee65c63bc339675ac25113b",
+  "pupilSvg": "a47a62a2f39d04bf5ab62ed899586c15bd9b82e8c5e34c5d2846ab4edea95ea5",
+  "answerSvg": "a47a62a2f39d04bf5ab62ed899586c15bd9b82e8c5e34c5d2846ab4edea95ea5"
+ },
  "angles/example-regular-polygon-worked": {
   "schemaVersion": 1,
   "contentHash": "56731ab6581ecf31834449df526f5df72926b88dfd0dd4cfdecfe73f219a5ae4",
@@ -1445,6 +1457,18 @@
   "pupilSvg": "8b8c3c7186970334b797c990b1e106d2520a69fabaafe51b9559ae52ff716a4c",
   "answerSvg": "8b8c3c7186970334b797c990b1e106d2520a69fabaafe51b9559ae52ff716a4c"
  },
+ "angles/example-two-transversals-worked": {
+  "schemaVersion": 1,
+  "contentHash": "04d1950076e53d999a23fc8fa7c5a64046497226a83ea2386991726d6df61325",
+  "pupilSvg": "72362d7a040939da29360dc60a1f5c1b0af6033c3827c56ae2ed7487ea9a9169",
+  "answerSvg": "2b6e0443a0ef99eac18cbf23a73c2c8479cee18a66e1b1099d74feec4f61e8cb"
+ },
+ "angles/example-two-transversals": {
+  "schemaVersion": 1,
+  "contentHash": "c308c6b90454b671a005d2cb46243c5fb8e1ddf01f3e817882304b7165ba01a0",
+  "pupilSvg": "72362d7a040939da29360dc60a1f5c1b0af6033c3827c56ae2ed7487ea9a9169",
+  "answerSvg": "72362d7a040939da29360dc60a1f5c1b0af6033c3827c56ae2ed7487ea9a9169"
+ },
  "angles/example-vertically-opposite-worked": {
   "schemaVersion": 1,
   "contentHash": "562590187a451c83ada86411b4bcd8715d467c06c399edaaf64bd47f90196c64",
@@ -1456,6 +1480,18 @@
   "contentHash": "9127ab9b8b28762c52226e26a4f8219ffe280fe50eb00b7f9274807507373762",
   "pupilSvg": "0903ceebe401907a723fccc079eddc47ce57ae80b9c165f211d0d41e78d979b2",
   "answerSvg": "0903ceebe401907a723fccc079eddc47ce57ae80b9c165f211d0d41e78d979b2"
+ },
+ "angles/example-z-shape-worked": {
+  "schemaVersion": 1,
+  "contentHash": "c0e4bbc2f0f577f894bc9b0f58ce9619139ba0428ec34d416dbf19ddeca10a0c",
+  "pupilSvg": "746f2b1e1b00fa155b7b332b1e78a1e8cb4a2533eefa7645402703c1a525455c",
+  "answerSvg": "73e0dfd857e016ba3b2335bbf0da1e061ee2b33b59dd6673115c2e2b503ee2a4"
+ },
+ "angles/example-z-shape": {
+  "schemaVersion": 1,
+  "contentHash": "61d0e9cdf3251139feab9ad487c0370274e14872f5b2a65ec16b4ede02735af5",
+  "pupilSvg": "1f5da4328a94cfb318a57eb200475a568ce8f559f060c123b62e66d74741e31b",
+  "answerSvg": "1f5da4328a94cfb318a57eb200475a568ce8f559f060c123b62e66d74741e31b"
  },
  "area/default": {
   "schemaVersion": 1,

@@ -28,12 +28,16 @@ import {
   angle as makeAngle,
   canonical,
   degrees,
+  dragHandles,
+  dragTo,
+  figurePoint,
   FIGURE_NAMES,
   FIGURES,
   hasHidden,
   hitAnchors,
   irregularCorners,
   layout,
+  letterOf,
   MARKS,
   MAX_SIDES,
   MIN_SIDES,
@@ -41,6 +45,7 @@ import {
   pointIdsOf,
   polygonCorners,
   prune,
+  rawPoints,
   remapRays,
   renderSvg,
   slotsOf,
@@ -53,6 +58,8 @@ import {
   type FigureKind,
   type LabelState,
   type Mark,
+  type P,
+  type ParallelFigure,
 } from "../../packages/angle-core/src";
 import { anglesLink, LINK_PREFIX, parseAnglesLink } from "./links";
 import { copyWord, downloadBoth, downloadEditable, downloadImage, printPng } from "./export";
@@ -71,7 +78,16 @@ const STATE_NAMES: Record<LabelState, string> = {
   hidden: "Hidden",
 };
 const MARK_NAMES: Record<Mark, string> = { arc: "Arc", double: "Double arc", triple: "Triple arc", right: "Right-angle mark", none: "No mark" };
-const POINT_NAMES: Record<string, string> = { left: "Left end of the line", right: "Right end of the line", o: "The vertex", ta: "Bottom of the transversal", tb: "Top of the transversal" };
+const POINT_NAMES: Record<string, string> = {
+  left: "Left end of the line",
+  right: "Right end of the line",
+  o: "The vertex",
+  ta: "Bottom of the transversal",
+  tb: "Top of the transversal",
+  ua: "Bottom of the second transversal",
+  ub: "Top of the second transversal",
+  m: "Where the transversals meet",
+};
 const pointName = (id: string) =>
   POINT_NAMES[id] ??
   (/^r\d+$/.test(id)
@@ -82,6 +98,10 @@ const pointName = (id: string) =>
         ? `End of the extended side at corner ${id.slice(1)}`
         : /^x\d+$/.test(id)
           ? `Where the transversal crosses line ${id.slice(1)}`
+          : /^y\d+$/.test(id)
+            ? `Where the second transversal crosses line ${id.slice(1)}`
+            : /^p\d+v\d+$/.test(id)
+              ? `Shape ${id.slice(1, id.indexOf("v"))}, corner ${id.slice(id.indexOf("v") + 1)}`
           : /^l\d+a$/.test(id)
             ? `Left end of line ${id.slice(1, -1)}`
             : /^l\d+b$/.test(id)
@@ -187,10 +207,14 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
+    [drag, setDrag] = useState<{ e: Envelope; label: string } | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
-  const e = history.present,
+    expected = useRef<string | null>(null),
+    resource = useRef<HTMLDivElement>(null),
+    dragStart = useRef<{ id: string; rect: DOMRect; g: ReturnType<typeof layout>; px: number } | null>(null);
+  // While a handle is dragged the preview follows it; the move is one undo step when it is let go.
+  const e = drag?.e ?? history.present,
     d = e.document,
     f = d.figure,
     g = layout(e),
@@ -244,11 +268,16 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     if (remap) Object.assign(n.document, remapRays(d, n.document));
     const kept = prune(n);
     const lostAngles = d.angles.length - kept.document.angles.length,
-      lostNames = d.names.length - kept.document.names.length;
+      lostNames = d.names.length - kept.document.names.length,
+      lostLetters = (d.letters?.length ?? 0) - (kept.document.letters?.length ?? 0);
     const ok = commit(kept, label);
-    const parts = [...(lostAngles ? [lostAngles === 1 ? "One labelled angle" : `${lostAngles} labelled angles`] : []), ...(lostNames ? [lostNames === 1 ? "one point name" : `${lostNames} point names`] : [])];
+    const parts = [
+      ...(lostAngles ? [lostAngles === 1 ? "One labelled angle" : `${lostAngles} labelled angles`] : []),
+      ...(lostNames ? [lostNames === 1 ? "one point name" : `${lostNames} point names`] : []),
+      ...(lostLetters ? [lostLetters === 1 ? "one Z, F or C shape" : `${lostLetters} Z, F or C shapes`] : []),
+    ];
     if (ok && parts.length) {
-      const one = lostAngles + lostNames === 1;
+      const one = lostAngles + lostNames + lostLetters === 1;
       const list = parts.join(" and ");
       setMessage(`${list[0].toUpperCase()}${list.slice(1)} ${one ? "is" : "are"} not in the new figure and ${one ? "was" : "were"} removed. Undo brings ${one ? "it" : "them"} back.`);
     }
@@ -407,6 +436,105 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
   }
   const corners = f.type === "polygon" ? polygonCorners(f, d.sizeMm) : [];
 
+  /* ---------- Second transversal, Z, F and C shapes, polygons meeting ---------- */
+
+  function setSecond(on: boolean) {
+    if (f.type !== "parallel") return;
+    if (!on) {
+      const { second: _gone, ...rest } = f;
+      void _gone;
+      setFigure(rest, "remove second transversal");
+      return;
+    }
+    // The mirror image of the first transversal, unless that is too close to it; then a clear offset.
+    const angle = Math.abs(180 - 2 * f.crossDeg) >= 20 ? 180 - f.crossDeg : f.crossDeg < 90 ? f.crossDeg + 50 : f.crossDeg - 50;
+    for (const offsetMm of [30, 40, 20, -30, 50]) {
+      const next: ParallelFigure = { ...f, second: { crossDeg: Math.min(160, Math.max(20, angle)), offsetMm } };
+      try {
+        validate({ ...e, document: { ...d, figure: next } });
+        setFigure(next, "add second transversal");
+        return;
+      } catch {
+        // Try the next offset.
+      }
+    }
+    setMessage("There is no clear room for a second transversal. Change the first transversal's angle or the gap between the lines.");
+  }
+  /** Pairs offered for a new shape, in teaching order: alternate, corresponding, co-interior. */
+  const LETTER_PAIRS: [string, string][] = [
+    ["p1-lr", "p2-ul"],
+    ["p1-ur", "p2-ur"],
+    ["p1-lr", "p2-ur"],
+    ["p1-ll", "p2-ur"],
+    ["p1-ul", "p2-ul"],
+    ["p1-ll", "p2-ul"],
+  ];
+  function addLetter() {
+    const have = new Set((d.letters ?? []).map((l) => [l.a, l.b].sort().join(" ")));
+    const offered = f.type === "parallel" && f.second ? [...LETTER_PAIRS, ...LETTER_PAIRS.map(([a, b]) => [a.replace("p", "q"), b.replace("p", "q")] as [string, string])] : LETTER_PAIRS;
+    const pair = offered.find(([a, b]) => !have.has([a, b].sort().join(" ")));
+    if (pair) patch((n) => void (n.letters = [...(n.letters ?? []), { a: pair[0], b: pair[1] }]), "add shape");
+  }
+  const letterSlots = slots.filter((s) => /^[pq]\d-/.test(s.id));
+  /**
+   * Changing one angle of a shape keeps a shape: when the new angle makes no letter with the other one,
+   * the other moves to the nearest angle that does, keeping the same letter where it can.
+   */
+  function withPartner(changed: string, other: string, letter: string | undefined, index: number): string {
+    if (letterOf(changed, other)) return other;
+    const taken = new Set((d.letters ?? []).filter((_, k) => k !== index).map((l) => [l.a, l.b].sort().join(" ")));
+    const line = Number(changed.slice(1, changed.indexOf("-"))),
+      near = (id: string) => Math.abs(Number(id.slice(1, id.indexOf("-"))) - line);
+    const options = letterSlots.map((s) => s.id).filter((id) => letterOf(changed, id) && !taken.has([changed, id].sort().join(" ")));
+    options.sort((x, y) => Number(letterOf(changed, y)!.letter === letter) - Number(letterOf(changed, x)!.letter === letter) || near(x) - near(y));
+    return options[0] ?? other;
+  }
+  function setPolygons(sides: number[], ticks: number, label: string) {
+    if (f.type !== "polygons") return false;
+    return setFigure({ type: "polygons", sides, ticks }, label);
+  }
+
+  /* ---------- Dragging ---------- */
+
+  const handles = blocked && !drag ? [] : dragHandles(d);
+  const points = rawPoints(d);
+  function dragAt(id: string, clientX: number, clientY: number, fine: boolean) {
+    const start = dragStart.current;
+    if (!start || start.id !== id) return;
+    // The drag reads the layout from when it began, so the diagram growing under the pointer does not feed back.
+    const p = figurePoint(start.g, history.present.document.turnDeg, { x: (clientX - start.rect.left) / start.px, y: (clientY - start.rect.top) / start.px });
+    // Each step starts from where the preview has got to, so a long drag of a transversal stops at its limit.
+    const next = dragTo(drag?.e ?? history.present, id, p, fine);
+    if (next) setDrag({ e: next, label: id.startsWith("v") ? "drag corner" : f.type === "parallel" ? "drag transversal" : f.type === "crossing" ? "drag line" : "drag ray" });
+  }
+  function endDrag() {
+    dragStart.current = null;
+    if (drag) commit(drag.e, drag.label);
+    setDrag(null);
+  }
+  /** Arrow keys move a handle: directions by 5° (1° with Shift), points by 1 mm (0.5 mm with Shift). */
+  function nudge(id: string, key: string, fine: boolean, pivot: P | null) {
+    const at = points[id]?.at;
+    if (!at) return;
+    const sign = key === "ArrowRight" || key === "ArrowUp" ? 1 : -1;
+    let p: P;
+    if (pivot) {
+      const r = ((sign * (fine ? 1 : 5)) * Math.PI) / 180,
+        v = { x: at.x - pivot.x, y: at.y - pivot.y };
+      p = { x: pivot.x + v.x * Math.cos(r) - v.y * Math.sin(r), y: pivot.y + v.x * Math.sin(r) + v.y * Math.cos(r) };
+    } else {
+      // Arrow keys move the point across and up the screen, whatever the figure's turn.
+      const step = fine ? 0.5 : 1,
+        sx = key === "ArrowRight" ? step : key === "ArrowLeft" ? -step : 0,
+        sy = key === "ArrowUp" ? step : key === "ArrowDown" ? -step : 0,
+        r = (-d.turnDeg * Math.PI) / 180;
+      p = { x: at.x + sx * Math.cos(r) - sy * Math.sin(r), y: at.y + sx * Math.sin(r) + sy * Math.cos(r) };
+    }
+    const next = dragTo(history.present, id, p, true);
+    if (next) commit(next, id.startsWith("v") ? "move corner" : f.type === "parallel" ? "move transversal" : f.type === "crossing" ? "move line" : "move ray");
+    else setMessage("That handle cannot move further that way: rays stay between their neighbours and polygons stay convex.");
+  }
+
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   const anchors = hitAnchors(e);
@@ -477,11 +605,12 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               <ResourceSize width={g.width / 10} height={g.height / 10} />
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
-            <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Change the figure in the settings.</EditorHint>
+            <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"
+                  ref={resource}
                   data-testid="angles-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                   onClick={(ev) => {
@@ -501,6 +630,37 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                       onClick={() => setSelected(a.id)}
                     />
                   ))}
+                  {handles.map((h) => {
+                    const at = g.map(g.geometry.points[h.id].at);
+                    return (
+                      <button
+                        key={h.id}
+                        type="button"
+                        className="ang-handle"
+                        style={{ left: at.x * pxPerMm, top: at.y * pxPerMm }}
+                        aria-label={`Drag ${h.name}`}
+                        title={`Drag ${h.name}. Arrow keys move it too; hold Shift for small steps.`}
+                        disabled={blocked && !drag}
+                        onPointerDown={(ev) => {
+                          if (blocked || !resource.current) return;
+                          ev.preventDefault();
+                          ev.currentTarget.setPointerCapture?.(ev.pointerId);
+                          dragStart.current = { id: h.id, rect: resource.current.getBoundingClientRect(), g, px: pxPerMm };
+                        }}
+                        onPointerMove={(ev) => dragAt(h.id, ev.clientX, ev.clientY, ev.shiftKey)}
+                        onPointerUp={endDrag}
+                        onPointerCancel={() => {
+                          dragStart.current = null;
+                          setDrag(null);
+                        }}
+                        onKeyDown={(ev) => {
+                          if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key) || blocked) return;
+                          ev.preventDefault();
+                          nudge(h.id, ev.key, ev.shiftKey, h.pivot);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -738,6 +898,144 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                     </select>
                   </label>
                 </div>
+              )}
+              {f.type === "parallel" && (
+                <>
+                  <label className="pt-hide">
+                    <input type="checkbox" disabled={blocked} checked={!!f.second} onChange={(ev) => setSecond(ev.target.checked)} />
+                    Second transversal
+                  </label>
+                  {f.second && (
+                    <div className="pt-fields">
+                      <label>
+                        Its angle (°)
+                        <DraftField
+                          label="Second transversal angle"
+                          value={String(f.second.crossDeg)}
+                          inputMode="decimal"
+                          maxLength={6}
+                          disabled={blocked}
+                          onCommit={(v) => {
+                            const x = num(v);
+                            if (!(x >= 20 && x <= 160)) {
+                              setMessage("Give the second transversal an angle from 20 to 160°.");
+                              return false;
+                            }
+                            return setFigure({ ...f, second: { ...f.second!, crossDeg: x } }, "turn second transversal");
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Along the top line (mm)
+                        <DraftField
+                          label="Second transversal offset"
+                          value={String(f.second.offsetMm)}
+                          inputMode="decimal"
+                          maxLength={6}
+                          disabled={blocked}
+                          onCommit={(v) => {
+                            const x = num(v);
+                            if (!(x >= -80 && x <= 80)) {
+                              setMessage("Give an offset from -80 to 80 mm: how far along the top line the second transversal crosses, right of the first.");
+                              return false;
+                            }
+                            return setFigure({ ...f, second: { ...f.second!, offsetMm: x } }, "move second transversal");
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                  {f.second && <p className="pt-note">Where the two transversals meet between or near the lines, its four angles (m1 to m4) can be marked, and a teacher note checks each triangle adds to 180°.</p>}
+                  <fieldset className="ang-corners ang-letters">
+                    <legend>Z, F and C shapes</legend>
+                    <p className="pt-note">Pick a pair of angles: alternate angles make a Z, corresponding angles an F, co-interior angles a C. The shape prints thick and grey under the lines.</p>
+                    {(d.letters ?? []).map((l, i) => {
+                      const shape = letterOf(l.a, l.b);
+                      const set = (next: { a: string; b: string }) => patch((n) => void (n.letters = (n.letters ?? []).map((x, k) => (k === i ? next : x))), "change shape");
+                      const choose = (side: "a" | "b", id: string) =>
+                        set(side === "a" ? { a: id, b: withPartner(id, l.b, shape?.letter, i) } : { a: withPartner(id, l.a, shape?.letter, i), b: id });
+                      return (
+                        <div key={i} className="pt-row ang-letter">
+                          {(["a", "b"] as const).map((side) => (
+                            <select key={side} aria-label={`Shape ${i + 1} ${side === "a" ? "first" : "second"} angle`} value={l[side]} disabled={blocked} onChange={(ev) => choose(side, ev.target.value)}>
+                              {letterSlots.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.name} ({s.id})
+                                </option>
+                              ))}
+                            </select>
+                          ))}
+                          <span className="ang-letter-name">{shape ? `${shape.letter}: ${shape.name}` : ""}</span>
+                          <button type="button" aria-label={`Remove shape ${i + 1}`} disabled={blocked} onClick={() => patch((n) => void (n.letters = (n.letters ?? []).filter((_, k) => k !== i)), "remove shape")}>
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                    <div className="pt-row">
+                      <button type="button" disabled={blocked || (d.letters?.length ?? 0) >= 3} onClick={addLetter}>
+                        Add a Z, F or C shape
+                      </button>
+                    </div>
+                  </fieldset>
+                </>
+              )}
+              {f.type === "polygons" && (
+                <>
+                  <div className="pt-fields">
+                    <label>
+                      Polygons
+                      <select
+                        aria-label="Number of polygons"
+                        value={f.sides.length}
+                        disabled={blocked}
+                        onChange={(ev) => {
+                          if (Number(ev.target.value) === 2) return void setPolygons(f.sides.slice(0, 2), f.ticks, "remove polygon");
+                          // The third polygon takes the most sides that still fit round the corner.
+                          for (const extra of [8, 6, 5, 4, 3])
+                            try {
+                              validate({ ...e, document: { ...d, figure: { ...f, sides: [...f.sides, extra] } } });
+                              return void setPolygons([...f.sides, extra], f.ticks, "add polygon");
+                            } catch {
+                              // Too wide; try fewer sides.
+                            }
+                          setMessage("There is no room for a third polygon at the shared corner. Use polygons with fewer sides.");
+                        }}
+                      >
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </select>
+                    </label>
+                    {f.sides.map((n, k) => (
+                      <label key={k}>
+                        Shape {k + 1} sides
+                        <select
+                          aria-label={`Sides of shape ${k + 1}`}
+                          value={n}
+                          disabled={blocked}
+                          onChange={(ev) => setPolygons(f.sides.map((x, j) => (j === k ? Number(ev.target.value) : x)), f.ticks, "change sides")}
+                        >
+                          {Array.from({ length: MAX_SIDES - MIN_SIDES + 1 }, (_, j) => j + MIN_SIDES).map((v) => (
+                            <option key={v} value={v}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                    <label>
+                      Equal-side ticks
+                      <select aria-label="Equal-side ticks on every side" value={f.ticks} disabled={blocked} onChange={(ev) => setPolygons(f.sides, Number(ev.target.value), "change ticks")}>
+                        {[0, 1, 2, 3].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 0 ? "None" : `${v} on every side`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <p className="pt-note">Regular polygons round one corner, each sharing a side with the next. Any space left at the corner is the gap angle g.</p>
+                </>
               )}
               {f.type === "polygon" && (
                 <>

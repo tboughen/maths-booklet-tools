@@ -60,6 +60,20 @@ export const examples: { id: string; title: string; note: string; worked: boolea
     make: make({ type: "parallel", count: 2, gapMm: 26, crossDeg: 65, arrows: 2 }, [{ ...given("p1-lr", "115"), shade: true }, { ...find("p2-ur", "p", "65"), shade: true }], { sizeMm: 80 }),
   },
   {
+    id: "z-shape",
+    title: "Parallel lines: the Z shape",
+    note: "A grey Z picks out a pair of alternate angles. One is given; pupils find x and say why.",
+    worked: true,
+    make: make({ type: "parallel", count: 2, gapMm: 26, crossDeg: 64, arrows: 1 }, [given("p1-lr", "116"), find("p2-ul", "x", "116")], { sizeMm: 80, letters: [{ a: "p1-lr", b: "p2-ul" }] }),
+  },
+  {
+    id: "two-transversals",
+    title: "Two transversals and a triangle",
+    note: "Two transversals cross the parallel lines and meet above them. Pupils find x in the triangle.",
+    worked: true,
+    make: make({ type: "parallel", count: 2, gapMm: 26, crossDeg: 62, arrows: 1, second: { crossDeg: 118, offsetMm: 34 } }, [given("p2-ur", "62"), given("q1-ur", "118"), find("m3", "x", "56")], { sizeMm: 80 }),
+  },
+  {
     id: "regular-polygon",
     title: "Interior angle of a regular polygon",
     note: "A regular hexagon with equal-side ticks. Pupils work out the interior angle x.",
@@ -82,5 +96,12 @@ export const examples: { id: string; title: string; note: string; worked: boolea
       { type: "polygon", sides: 5, corners: [{ x: -26, y: -20 }, { x: 24, y: -22 }, { x: 32, y: 8 }, { x: 2, y: 28 }, { x: -30, y: 10 }], exterior: [], diagonals: true, ticks: [0, 0, 0, 0, 0] },
       [given("i1", "102"), given("i2", "100"), given("i3", "115"), find("i4", "x", "110"), given("i5", "113")],
     ),
+  },
+  {
+    id: "polygons-meeting",
+    title: "Two regular polygons meeting",
+    note: "A regular pentagon and a regular hexagon share a side. Pupils find the angle x between them.",
+    worked: true,
+    make: make({ type: "polygons", sides: [5, 6], ticks: 1 }, [find("g", "x", "132")], { sizeMm: 60 }),
   },
 ];

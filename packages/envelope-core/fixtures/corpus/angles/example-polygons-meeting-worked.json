@@ -1,0 +1,31 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "polygons",
+   "sides": [
+    5,
+    6
+   ],
+   "ticks": 1
+  },
+  "angles": [
+   {
+    "id": "g",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": "132"
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 60,
+  "notToScale": true
+ }
+}

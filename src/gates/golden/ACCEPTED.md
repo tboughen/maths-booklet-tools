@@ -595,3 +595,12 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2021_1F_Q18: pixels ac8d35ca01ff53c9 -> 3b83e69e52882db4
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 0e8cdcd13edcf781 -> 6471b80a1d3e244f
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 4ad9169e8a370b33 -> 648a83f51c414026
+
+## 2026-11-15: Angle diagrams extras: three new gallery examples (Z shape, two transversals, polygons meeting), pupil and worked (new outputs only)
+
+- angle diagrams: angles-z-shape: added
+- angle diagrams: angles-z-shape (worked): added
+- angle diagrams: angles-two-transversals: added
+- angle diagrams: angles-two-transversals (worked): added
+- angle diagrams: angles-polygons-meeting: added
+- angle diagrams: angles-polygons-meeting (worked): added

@@ -18,8 +18,10 @@ const figureInput = z
     gapMm: z.number().finite().min(12).max(50).optional(),
     crossDeg: z.number().finite().min(20).max(160).optional(),
     arrows: z.number().int().min(0).max(3).optional(),
-    /** polygon */
-    sides: z.number().int().min(core.MIN_SIDES).max(core.MAX_SIDES).optional(),
+    /** parallel: a second transversal at its own angle, crossing the top line offsetMm right of the first; null removes it. */
+    second: z.object({ crossDeg: z.number().finite().min(20).max(160), offsetMm: z.number().finite().min(-80).max(80) }).strict().nullable().optional(),
+    /** polygon: the number of sides; polygons: 2 or 3 side counts, one per polygon round the shared corner. */
+    sides: z.union([z.number().int().min(core.MIN_SIDES).max(core.MAX_SIDES), z.array(z.number().int().min(core.MIN_SIDES).max(core.MAX_SIDES)).min(2).max(3)]).optional(),
     corners: z.array(z.object({ x: z.number().finite(), y: z.number().finite() }).strict()).min(core.MIN_SIDES).max(core.MAX_SIDES).optional(),
     exterior: z.array(z.number().int().min(1).max(core.MAX_SIDES)).max(core.MAX_SIDES).optional(),
     diagonals: z.boolean().optional(),
@@ -39,6 +41,7 @@ const angleInput = z
   })
   .strict();
 const nameInput = z.object({ point: z.string().max(12), text: z.string().max(3) }).strict();
+const letterInput = z.object({ a: z.string().max(12), b: z.string().max(12) }).strict();
 const settings = z
   .object({
     turnDeg: core.documentSchema.shape.turnDeg,
@@ -57,6 +60,7 @@ export const specSchema = z
     figure: figureInput.optional(),
     angles: z.array(angleInput).max(40).optional(),
     names: z.array(nameInput).max(30).optional(),
+    letters: z.array(letterInput).max(3).optional(),
     settings: settings.optional(),
   })
   .strict();
@@ -66,6 +70,7 @@ export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_angle"), angle: angleInput }).strict(),
   z.object({ op: z.literal("remove_angle"), id: z.string().max(12) }).strict(),
   z.object({ op: z.literal("set_name"), name: nameInput }).strict(),
+  z.object({ op: z.literal("set_letters"), letters: z.array(letterInput).max(3) }).strict(),
   z.object({ op: z.literal("set_settings"), settings }).strict(),
 ]);
 export const revisionSchema = z
@@ -82,9 +87,17 @@ export function toFigure(input: FigureInput, base?: core.Figure): core.Figure {
   if (input.type === "point") return { type: input.type, rays: input.rays ?? (same?.type === input.type ? same.rays : [30, 150, 260]) };
   if (input.type === "crossing") return { type: input.type, lines: input.lines ?? (same?.type === input.type ? same.lines : [15, 70]) };
   if (input.type === "parallel") {
-    const b = same?.type === "parallel" ? same : { count: 2 as const, gapMm: 24, crossDeg: 60, arrows: 1 };
-    return { type: "parallel", count: input.count ?? b.count, gapMm: input.gapMm ?? b.gapMm, crossDeg: input.crossDeg ?? b.crossDeg, arrows: input.arrows ?? b.arrows };
+    const b: core.ParallelFigure = same?.type === "parallel" ? same : { type: "parallel", count: 2, gapMm: 24, crossDeg: 60, arrows: 1 };
+    const second = input.second === null ? undefined : (input.second ?? b.second);
+    return { type: "parallel", count: input.count ?? b.count, gapMm: input.gapMm ?? b.gapMm, crossDeg: input.crossDeg ?? b.crossDeg, arrows: input.arrows ?? b.arrows, ...(second ? { second } : {}) };
   }
+  if (input.type === "polygons") {
+    const b = same?.type === "polygons" ? same : { sides: [5, 6], ticks: 1 };
+    if (typeof input.sides === "number") throw Error("Polygons meeting take sides as a list, such as [5, 6]: one side count per polygon.");
+    const ticks = typeof input.ticks === "number" ? input.ticks : (input.ticks?.[0] ?? b.ticks);
+    return { type: "polygons", sides: input.sides ?? b.sides, ticks };
+  }
+  if (Array.isArray(input.sides)) throw Error("A polygon takes one number of sides. Use the polygons figure for polygons meeting at a corner.");
   const b = same?.type === "polygon" ? same : undefined;
   const sides = input.corners?.length ?? input.sides ?? b?.sides ?? 5;
   const corners = input.corners ?? (input.sides !== undefined && input.sides !== b?.sides ? null : (b?.corners ?? null));
@@ -149,6 +162,7 @@ export function create(input: unknown): core.Envelope {
       else d.angles.push(toAngle(a));
     }
     if (s.names) setNames(d, s.names);
+    if (s.letters) d.letters = s.letters;
   });
 }
 
@@ -170,8 +184,13 @@ export async function revise(input: unknown): Promise<core.Envelope> {
       if (old.type === f.type && count(old) >= 0 && count(old) !== count(f)) Object.assign(next.document, core.remapRays(e.document, next.document));
       const kept = core.prune(next);
       const lostAngles = e.document.angles.length - kept.document.angles.length,
-        lostNames = e.document.names.length - kept.document.names.length;
-      const lost = [...(lostAngles ? [`${lostAngles} labelled angle${lostAngles > 1 ? "s" : ""}`] : []), ...(lostNames ? [`${lostNames} point name${lostNames > 1 ? "s" : ""}`] : [])];
+        lostNames = e.document.names.length - kept.document.names.length,
+        lostLetters = (e.document.letters?.length ?? 0) - (kept.document.letters?.length ?? 0);
+      const lost = [
+        ...(lostAngles ? [`${lostAngles} labelled angle${lostAngles > 1 ? "s" : ""}`] : []),
+        ...(lostNames ? [`${lostNames} point name${lostNames > 1 ? "s" : ""}`] : []),
+        ...(lostLetters ? [`${lostLetters} Z, F or C shape${lostLetters > 1 ? "s" : ""}`] : []),
+      ];
       if (lost.length && !op.dropMissing) throw Error(`The new figure has no place for ${lost.join(" and ")}. Pass dropMissing: true to remove those labels, or remove them first.`);
       e = core.validate(kept);
     } else
@@ -186,6 +205,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
           d.angles = d.angles.filter((a) => a.id !== op.id);
         }
         if (op.op === "set_name") setNames(d, [op.name]);
+        if (op.op === "set_letters") d.letters = op.letters;
         if (op.op === "set_settings") applySettings(d, op.settings);
       });
   }
