@@ -97,7 +97,7 @@ test("adding a corner splits the last side and drops its label; removing one dro
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(ids).toContain("e6");
   await expect(card.getByRole("heading")).toHaveText("Selected label");
-  // Editing a label keeps the selection; Redo of the new corner lets it go.
+  // Editing a label, and undoing and redoing that edit, keeps the selection.
   await page.getByRole("button", { name: "Select the label on side 2 (e2)" }).click();
   await card.getByRole("textbox", { name: "Label text" }).fill("6 cm");
   await card.getByRole("textbox", { name: "Label text" }).press("Enter");

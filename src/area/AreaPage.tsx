@@ -178,9 +178,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
   // Place ids name sides, heights and circle parts by position, so the selection lets go, for good, whenever the
-  // places change (a corner, height, hole or circle part added or removed, by any edit, undo or redo). Moving or
-  // resizing keeps it.
-  const placesKey = `${s.type === "polygon" ? `${s.corners.length}|${s.heights.length}` : s.type}|${slots.map((x) => `${x.id}:${x.name}`).join(",")}`;
+  // places change (by any edit, undo or redo). Moving or resizing keeps it.
+  const placesKey = useMemo(() => slots.map((x) => `${x.id}:${x.name}`).join(","), [slots]);
   const [seenPlaces, setSeenPlaces] = useState(placesKey);
   if (seenPlaces !== placesKey) {
     setSeenPlaces(placesKey);
@@ -344,7 +343,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     return setShape((n) => Object.assign(n, stretch(n, axis === "width" ? k : 1, axis === "height" ? k : 1)), axis === "width" ? "change width" : "change height");
   }
   function applyPreset(p: Preset) {
-    setShape((n) => Object.assign(n, presetShape(p)), "change shape");
+    // A new shape: its sides are not the ones the teacher picked.
+    if (setShape((n) => Object.assign(n, presetShape(p)), "change shape")) setSelected(null);
   }
   function setHole(next: Hole | null) {
     setShape((n) => {
