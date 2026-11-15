@@ -1,0 +1,79 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "polygon",
+   "corners": [
+    {
+     "x": 0,
+     "y": 0
+    },
+    {
+     "x": 70,
+     "y": 0
+    },
+    {
+     "x": 70,
+     "y": 46
+    },
+    {
+     "x": 0,
+     "y": 46
+    }
+   ],
+   "arcs": [
+    "none",
+    "none",
+    "none",
+    "none"
+   ],
+   "heights": [],
+   "rightAngles": []
+  },
+  "hole": {
+   "type": "rectangle",
+   "x": 12,
+   "y": 10,
+   "w": 46,
+   "h": 26
+  },
+  "shaded": "shape",
+  "labels": [
+   {
+    "id": "e1",
+    "state": "value",
+    "text": "20 cm",
+    "answer": ""
+   },
+   {
+    "id": "e2",
+    "state": "value",
+    "text": "13 cm",
+    "answer": ""
+   },
+   {
+    "id": "hw",
+    "state": "value",
+    "text": "14 cm",
+    "answer": ""
+   },
+   {
+    "id": "hh",
+    "state": "value",
+    "text": "7 cm",
+    "answer": ""
+   },
+   {
+    "id": "area",
+    "state": "hidden",
+    "text": "",
+    "answer": "162 cm²"
+   }
+  ],
+  "names": [],
+  "grid": false,
+  "notToScale": true
+ }
+}

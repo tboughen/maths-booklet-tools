@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // U1: every tool's preview bar reads zoom, View at 100%, export size, then view-only controls.
-const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "angles"];
+const tools = ["graph", "ratio-table", "value-table-graph", "cuboids", "number-line", "venn", "expanding-factorising", "bar-model", "triangle", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "two-way-table", "angles", "area"];
 const shared = new Set(["preview-zoom", "preview-detail", "editor-inspector-link"]);
 const viewOnly = new Set(["answer-preview-toggle", "answer-copy-toggle", "checkbox", "button:Finish drawing"]);
 

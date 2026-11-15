@@ -594,7 +594,7 @@ export function runs(t: string): Run[] {
     .replace(/\^3/g, "³")
     .replace(/(^|[\s(=+])-/g, "$1−")
     .replace(/ - /g, " − ")
-    .replace(/\bpi\b/g, "π");
+    .replace(/(?<![A-Za-z])pi(?![A-Za-z])/g, "π");
   const out: Run[] = [];
   const push = (text: string, italic: boolean) => {
     const last = out[out.length - 1];
@@ -850,8 +850,15 @@ export function layout(e: Envelope): Layout {
   // Bounds in y-up mm.
   const xs: number[] = [],
     ys: number[] = [];
-  for (const s of lines) xs.push(s.a.x, s.b.x), ys.push(s.a.y, s.b.y);
-  for (const b of placedBoxes) if (b.w) xs.push(b.x, b.x + b.w), ys.push(b.y, b.y + b.h);
+  for (const s of lines) {
+    xs.push(s.a.x, s.b.x);
+    ys.push(s.a.y, s.b.y);
+  }
+  for (const b of placedBoxes)
+    if (b.w) {
+      xs.push(b.x, b.x + b.w);
+      ys.push(b.y, b.y + b.h);
+    }
   let grid: Layout["grid"] = null;
   if (d.grid) {
     // Whole 1 cm squares round the shape, with a square to spare, lined up with the shape's corners.
