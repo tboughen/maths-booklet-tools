@@ -4,6 +4,7 @@ import { FavouriteStar } from "./FavouriteStar";
 import { bookletTools, pageHref } from "./registry";
 import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, searchTool, strands } from "./toolCatalogue";
+import "./tool-switcher.css";
 
 type Tool = (typeof bookletTools)[number];
 

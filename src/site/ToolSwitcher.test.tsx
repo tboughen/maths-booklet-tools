@@ -1,10 +1,12 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { PageHeading } from "./PageHeading";
 import { bookletTools } from "./registry";
 import { resetFavouriteToolsForTests } from "./favouriteTools";
-import { ToolPageContext } from "./toolPage";
+import { loadToolSwitcher, resetToolSwitcherForTests, toolPage, ToolPageContext } from "./toolPage";
 
+// On the site the switcher arrives with a tool's page, before its heading draws.
+beforeAll(loadToolSwitcher);
 afterEach(() => {
   localStorage.clear();
   resetFavouriteToolsForTests();
@@ -19,6 +21,21 @@ const heading = (tool: (typeof bookletTools)[number]["id"] | null, title: string
 const open = () => fireEvent.click(within(screen.getByRole("heading", { level: 1 })).getByRole("button"));
 
 describe("ToolSwitcher", () => {
+  it("arrives with a tool's page, and a heading drawn before it shows the plain name first", async () => {
+    resetToolSwitcherForTests();
+    heading("graph", "Graph tool");
+    const name = () => within(screen.getByRole("heading", { level: 1, name: "Graph tool" }));
+    expect(name().queryByRole("button")).toBeNull();
+    // The heading asks for the switcher itself and redraws when it lands.
+    await waitFor(() => expect(name().getByRole("button")).toBeTruthy());
+    cleanup();
+    resetToolSwitcherForTests();
+    // Loading a tool's page as the registry does brings the switcher with it.
+    await toolPage(async () => ({ default: () => null })).preload();
+    heading("factor-tree", "Factor trees");
+    expect(within(screen.getByRole("heading", { level: 1 })).getByRole("button")).toBeTruthy();
+  });
+
   it("leaves pages that are not diagram tools with a plain heading", () => {
     heading(null, "Worksheet builder");
     expect(screen.getByRole("heading", { level: 1, name: "Worksheet builder" })).toBeTruthy();

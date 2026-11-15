@@ -68,6 +68,9 @@ the teacher's favourite tools, and every tool grouped by strand. There is no row
   Geometry and measure, Statistics and probability (`src/site/toolCatalogue.ts`), one column each
   in that order. Graph tools are Algebra. The Diagram builder page uses the same four.
 - `PageHeading` adds the switcher by itself on every registered tool's page. A tool does nothing.
+- The switcher's code, styles and search words load with a tool's page (`toolPage` in
+  `src/site/toolPage.ts`), not with the site's first load. If they cannot be fetched the page
+  still opens with a plain heading.
 - Up and down arrows move through the tools, Enter opens one, and Escape closes the switcher and
   returns focus to the name. While searching, Enter opens the first tool found.
 - While the switcher is open its keys are its own: none reaches the editor behind it, so arrows,

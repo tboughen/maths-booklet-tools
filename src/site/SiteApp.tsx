@@ -30,7 +30,6 @@ import {
 } from "./registry";
 import "./house-style.css";
 import "./site.css";
-import "./tool-switcher.css";
 import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
