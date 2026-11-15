@@ -43,7 +43,8 @@ question served only whole:
 
 `verifyQuestionDetail` rejects cuts that miss or repeat a part, or link to a cut that does not exist.
 `question.revision` is the first 16 hex digits of the SHA-256 of the new `question.pdf`; worked
-solutions were moved onto the new revision because their maths is unchanged.
+solutions were drawn on the old images, so they are hidden until each is redrawn for the recut and
+registered again (Tim, 15 November 2026). Their files stay in the bank.
 
 ## Regenerating
 

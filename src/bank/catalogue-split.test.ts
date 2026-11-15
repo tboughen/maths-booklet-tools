@@ -43,7 +43,8 @@ describe("split question-bank catalogue (S43, A15)", () => {
   it("names each paper file by its content and makes the index much lighter", () => {
     expect(split.files).toHaveLength(new Set(catalogue.questions.map(q => q.paperId)).size);
     for (const file of split.files) expect(file.path).toContain(sha256(file.json).slice(0, 16));
-    expect(split.index.length).toBeLessThan(JSON.stringify(catalogue).length / 4);
+    // Worked solutions are hidden until redrawn for the November 2026 recut, so the detail is lighter than before.
+    expect(split.index.length).toBeLessThan(JSON.stringify(catalogue).length / 3);
     expect(splitCatalogue(JSON.parse(source), sha256)).toEqual(split);
   });
   it("loads a paper's detail once and rebuilds exactly the original questions", async () => {

@@ -13,8 +13,8 @@ For each question this sets:
   - revision to the first 16 hex digits of the SHA-256 of the new question.pdf;
   - cuts: the part and stem cuts, with labels as printed, the catalogue parts each covers, context
     and needs-answer links;
-  - an attached worked solution's basedOnQuestionRevision to the new revision (the maths is
-    unchanged; Tim's decision of 15 Nov 2026, "keep them attached").
+  - no worked solution: each was drawn on the old image, so it stays hidden until it is redrawn
+    for the recut (Tim's decision of 15 Nov 2026, "hide until redrawn"). The files stay in the bank.
 
 It fails, writing nothing, if any file is missing, any part label does not match the catalogue or
 any link points at a cut that does not exist.
@@ -147,11 +147,9 @@ def main():
                 view["preview"], _ = asset(f"{folder}/scheme-{i}.png")
             old_revision = q["revision"]
             q["revision"] = revision
-            ws = q.get("workedSolution")
-            if ws is not None:
-                if ws.get("basedOnQuestionRevision") != old_revision:
-                    fail(f"{qid} worked solution was not on the current question revision")
-                ws["basedOnQuestionRevision"] = revision
+            ws = q.pop("workedSolution", None)
+            if ws is not None and ws.get("basedOnQuestionRevision") not in (old_revision, revision):
+                fail(f"{qid} worked solution was not on the current question revision")
 
             # Part and stem cuts.
             catalogue_parts = {canon(p["label"], number): p for p in q["parts"]}
