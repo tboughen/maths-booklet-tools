@@ -171,4 +171,51 @@ export const examples: {
         worked,
       ),
   },
+  {
+    id: "scatter-judges",
+    title: "Mock set 8 3F Q21: plot a point and estimate from a scatter graph",
+    note: "Scores two judges gave eleven skaters, on 2 mm graph paper. Part (a)'s point (4.6, 3.8), a line of best fit and the reading at 3.7 for part (c) are saved as hidden answers; the line is chosen for this example.",
+    sourceId: "1MA1_MOCK_SET_08_3F_Q21",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "scatter";
+      const hide = worked ? "show" : "hidden";
+      e.document.scatter = {
+        points: [
+          ["2", "1"], ["2", "2"], ["3", "3"], ["3.5", "2.5"], ["3.5", "4"], ["4", "3"],
+          ["4.5", "3.5"], ["5", "4"], ["5", "4.5"], ["5", "5"], ["5.5", "4.5"], ["4.6", "3.8"],
+        ].map(([x, y], i) => ({ x, y, show: i === 11 ? hide : "show", ring: false })),
+        xAxis: { min: "0", max: "6", step: "1", title: "Score from judge A", mm: 120 },
+        yAxis: { min: "0", max: "6", step: "1", title: "Score from judge B", mm: 120 },
+        grid: "fine",
+        minor: 10,
+        bestFit: { from: { x: "2", y: "1.5" }, to: { x: "5.5", y: "4.8" }, show: hide },
+        readings: [{ axis: "x", value: "3.7", show: hide }],
+      };
+      return validate(e);
+    },
+  },
+  {
+    id: "scatter-plot",
+    title: "Plot a scatter graph from a table",
+    note: "Teaching example: hours of revision and test marks for ten pupils. Every point is saved as a hidden answer for pupils to plot, with one outlier ringed on the answers copy.",
+    worked: true,
+    make: (worked) => {
+      const e = create();
+      e.document.kind = "scatter";
+      e.document.scatter = {
+        points: [
+          ["1", "22"], ["2", "30"], ["3", "34"], ["4", "45"], ["5", "48"],
+          ["6", "56"], ["7", "60"], ["8", "70"], ["2", "64"], ["9", "76"],
+        ].map(([x, y], i) => ({ x, y, show: worked ? "show" : "hidden", ring: i === 8 })),
+        xAxis: { min: "0", max: "10", step: "1", title: "Hours of revision", mm: 100 },
+        yAxis: { min: "0", max: "80", step: "10", title: "Test mark", mm: 80 },
+        grid: "fine",
+        minor: 5,
+        readings: [],
+      };
+      return validate(e);
+    },
+  },
 ];

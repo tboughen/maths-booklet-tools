@@ -60,6 +60,27 @@ describe("useDraftAutosave", () => {
     expect(localStorage.getItem(KEY)).toBe('{"n":9}');
   });
 
+  it("guards the opened draft from the first save when told what it opened", () => {
+    const onConflict = vi.fn();
+    localStorage.setItem(KEY, '{"n":7}');
+    renderHook(() => useDraftAutosave({ key: KEY, text: '{"n":1}', paused: false, onConflict, opened: '{"n":3}' }));
+    expect(onConflict).toHaveBeenCalledWith('{"n":7}', "newer");
+    expect(localStorage.getItem(KEY)).toBe('{"n":7}');
+  });
+
+  it("guards an empty start too: a draft saved meanwhile by another tab is kept", () => {
+    const onConflict = vi.fn();
+    localStorage.setItem(KEY, '{"n":7}');
+    renderHook(() => useDraftAutosave({ key: KEY, text: '{"n":1}', paused: false, onConflict, opened: null }));
+    expect(onConflict).toHaveBeenCalledWith('{"n":7}', "newer");
+  });
+
+  it("saves over the draft it opened", () => {
+    localStorage.setItem(KEY, '{"n":3}');
+    renderHook(() => useDraftAutosave({ key: KEY, text: '{"n":1}', paused: false, onConflict: vi.fn(), opened: '{"n":3}' }));
+    expect(localStorage.getItem(KEY)).toBe('{"n":1}');
+  });
+
   it("protects a draft another tab saves while this one is open", () => {
     const onConflict = vi.fn();
     hook('{"n":1}', false, onConflict);
