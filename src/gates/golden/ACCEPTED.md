@@ -524,3 +524,12 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - area and perimeter: area-sector (worked): added
 - area and perimeter: area-grid: added
 - area and perimeter: area-grid (worked): added
+
+## 2026-11-15: Angle diagrams extras: three new gallery examples (Z shape, two transversals, polygons meeting), pupil and worked (new outputs only)
+
+- angle diagrams: angles-z-shape: added
+- angle diagrams: angles-z-shape (worked): added
+- angle diagrams: angles-two-transversals: added
+- angle diagrams: angles-two-transversals (worked): added
+- angle diagrams: angles-polygons-meeting: added
+- angle diagrams: angles-polygons-meeting (worked): added

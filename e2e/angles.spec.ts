@@ -81,3 +81,66 @@ test("prints Diagram NOT accurately drawn by default and draws stacked-card sett
   await page.getByRole("checkbox", { name: "Print “Diagram NOT accurately drawn”" }).uncheck();
   expect(await texts(page)).not.toContain("Diagram NOT accurately drawn");
 });
+
+test("adds a Z shape to parallel lines, turns it into a C, and undoes", async ({ page }) => {
+  await boot(page, example("parallel"));
+  await page.getByRole("button", { name: "Add a Z, F or C shape" }).click();
+  expect((await saved(page)).document.letters).toEqual([{ a: "p1-lr", b: "p2-ul" }]);
+  await expect(page.getByText("Z: alternate")).toBeVisible();
+  await expect(art(page).locator('path[stroke="#bdbdbd"]')).toHaveCount(1);
+  await page.getByRole("combobox", { name: "Shape 1 second angle" }).selectOption("p2-ur");
+  await expect(page.getByText("C: co-interior")).toBeVisible();
+  // A pair that makes no letter is refused with a reason, and the shape stays as it was.
+  await page.getByRole("combobox", { name: "Shape 1 second angle" }).selectOption("p1-ul");
+  await expect(page.getByRole("status")).toContainText("not an alternate, corresponding or co-interior pair");
+  expect((await saved(page)).document.letters).toEqual([{ a: "p1-lr", b: "p2-ur" }]);
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.letters).toBeUndefined();
+});
+
+test("drags a ray as one undo step, and moves it with the arrow keys", async ({ page }) => {
+  await boot(page, example("straight-line"));
+  const handle = page.getByRole("button", { name: "Drag ray 1" });
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2 + 6, { steps: 5 });
+  await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 12, { steps: 5 });
+  await page.mouse.up();
+  const rays = (await saved(page)).document.figure.rays as number[];
+  expect(rays[0]).toBeLessThan(48);
+  expect(rays[0] % 5).toBe(0);
+  expect(rays[1]).toBe(115);
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect((await saved(page)).document.figure.rays).toEqual([48, 115]);
+  await handle.focus();
+  await page.keyboard.press("ArrowRight");
+  expect((await saved(page)).document.figure.rays).toEqual([53, 115]);
+  await page.keyboard.press("Shift+ArrowLeft");
+  expect((await saved(page)).document.figure.rays).toEqual([52, 115]);
+  // The handles are never part of the printed artwork.
+  expect(await art(page).locator("circle").count()).toBe(0);
+});
+
+test("adds a second transversal whose meeting angles can be marked", async ({ page }) => {
+  await boot(page, example("parallel"));
+  await page.getByRole("checkbox", { name: "Second transversal" }).check();
+  const second = (await saved(page)).document.figure.second;
+  expect(second.crossDeg).toBe(122);
+  await page.getByRole("button", { name: /Select where the transversals meet, angle 1/ }).click();
+  await expect(page.getByRole("region", { name: "Selected angle" }).getByRole("heading")).toHaveText("Angle: where the transversals meet, angle 1");
+  await page.getByRole("checkbox", { name: "Second transversal" }).uncheck();
+  expect((await saved(page)).document.figure.second).toBeUndefined();
+});
+
+test("draws regular polygons meeting at a corner and adds a third", async ({ page }) => {
+  await boot(page);
+  await page.getByRole("combobox", { name: "Figure" }).selectOption("polygons");
+  expect((await saved(page)).document.figure).toEqual({ type: "polygons", sides: [5, 6], ticks: 1 });
+  await page.getByRole("combobox", { name: "Number of polygons" }).selectOption("3");
+  expect((await saved(page)).document.figure.sides).toEqual([5, 6, 6]);
+  await page.getByRole("combobox", { name: "Sides of shape 3" }).selectOption("10");
+  await expect(page.getByRole("status")).toContainText("overlap at the shared corner");
+  expect((await saved(page)).document.figure.sides).toEqual([5, 6, 6]);
+});

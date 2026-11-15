@@ -240,6 +240,20 @@
    "png600": "1559x1394",
    "pixels": "18dcf90e6014e9af"
   },
+  "angle diagrams: angles-polygons-meeting": {
+   "json": "f4b9dda62f25a485",
+   "svg": "a47a62a2f39d04bf",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "d7e0896bf0ad474c"
+  },
+  "angle diagrams: angles-polygons-meeting (worked)": {
+   "json": "11e0dff482499b1a",
+   "svg": "0c17ace7e628aa6e",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "7e338e513dc41271"
+  },
   "angle diagrams: angles-regular-polygon": {
    "json": "348b20d722fe77f7",
    "svg": "ec904f32f1a88197",
@@ -268,6 +282,20 @@
    "png600": "1942x1096",
    "pixels": "27322f284843fa58"
   },
+  "angle diagrams: angles-two-transversals": {
+   "json": "f166b56a0bb2f03a",
+   "svg": "72362d7a040939da",
+   "mm": "143.5x94.5",
+   "png600": "3390x2232",
+   "pixels": "a2d2c9599216a422"
+  },
+  "angle diagrams: angles-two-transversals (worked)": {
+   "json": "63d3f36377c2207b",
+   "svg": "72362d7a040939da",
+   "mm": "143.5x94.5",
+   "png600": "3390x2232",
+   "pixels": "a2d2c9599216a422"
+  },
   "angle diagrams: angles-vertically-opposite": {
    "json": "8b06a8f31c990d71",
    "svg": "0903ceebe401907a",
@@ -281,6 +309,20 @@
    "mm": "69.8x76.6",
    "png600": "1649x1809",
    "pixels": "700f281cb8248521"
+  },
+  "angle diagrams: angles-z-shape": {
+   "json": "7882ba2c37b7387d",
+   "svg": "1f5da4328a94cfb3",
+   "mm": "84x63",
+   "png600": "1984x1488",
+   "pixels": "144fcafc9d00caaa"
+  },
+  "angle diagrams: angles-z-shape (worked)": {
+   "json": "3bd620d3d6f4a674",
+   "svg": "746f2b1e1b00fa15",
+   "mm": "84x63",
+   "png600": "1984x1488",
+   "pixels": "3a9d6b82a8cd53d7"
   },
   "area and perimeter: area-circle": {
    "json": "269a09be64b4943e",

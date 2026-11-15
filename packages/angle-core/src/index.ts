@@ -1,7 +1,8 @@
 /**
  * Angle diagrams (improvement list G-1, G-2, G-3): angles on a straight line, angles round a point,
- * crossing lines (vertically opposite angles), parallel lines cut by a transversal, and polygons with
- * interior and exterior angles.
+ * crossing lines (vertically opposite angles), parallel lines cut by one or two transversals (with
+ * optional Z, F and C shapes), polygons with interior and exterior angles, and regular polygons meeting
+ * at a corner.
  *
  * The document is a figure (one of five kinds, set by a few numbers) plus the angles a teacher marks
  * on it. Every angle the figure makes has a stable slot ID (s1, s2 ... between rays; p1-ur ... at the
@@ -26,7 +27,7 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 export const RENDERER_VERSION = "angles-1" as const;
 
 export { ANSWER_COLOUR };
-export const FIGURES = ["straight-line", "point", "crossing", "parallel", "polygon"] as const;
+export const FIGURES = ["straight-line", "point", "crossing", "parallel", "polygon", "polygons"] as const;
 export type FigureKind = (typeof FIGURES)[number];
 export const FIGURE_NAMES: Record<FigureKind, string> = {
   "straight-line": "Straight line",
@@ -34,6 +35,7 @@ export const FIGURE_NAMES: Record<FigureKind, string> = {
   crossing: "Crossing lines",
   parallel: "Parallel lines",
   polygon: "Polygon",
+  polygons: "Polygons meeting",
 };
 export const MARKS = ["none", "arc", "double", "triple", "right"] as const;
 export type Mark = (typeof MARKS)[number];
@@ -72,7 +74,11 @@ export const figureSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("point"), rays: z.array(direction).min(2).max(8) }).strict(),
   /** Two or three straight lines through one point, by direction (0 to 180). */
   z.object({ type: z.literal("crossing"), lines: z.array(direction).min(2).max(3) }).strict(),
-  /** Two or three parallel lines (with arrow marks) cut by one transversal at crossDeg. */
+  /**
+   * Two or three parallel lines (with arrow marks) cut by a transversal at crossDeg. A second
+   * transversal, at its own angle, crosses the top line offsetMm to the right of the first (negative
+   * to the left); the two may meet between the lines, outside them, or not in the drawing at all.
+   */
   z
     .object({
       type: z.literal("parallel"),
@@ -80,6 +86,7 @@ export const figureSchema = z.discriminatedUnion("type", [
       gapMm: z.number().finite().min(12).max(50),
       crossDeg: z.number().finite().min(20).max(160),
       arrows: z.number().int().min(0).max(3),
+      second: z.object({ crossDeg: z.number().finite().min(20).max(160), offsetMm: z.number().finite().min(-80).max(80) }).strict().optional(),
     })
     .strict(),
   /**
@@ -98,13 +105,32 @@ export const figureSchema = z.discriminatedUnion("type", [
       ticks: z.array(z.number().int().min(0).max(3)).min(MIN_SIDES).max(MAX_SIDES),
     })
     .strict(),
+  /**
+   * Two or three regular polygons round one shared corner, each sharing a side with the next,
+   * anticlockwise; any space left at the corner is the gap angle. ticks marks every side alike.
+   */
+  z
+    .object({
+      type: z.literal("polygons"),
+      sides: z.array(z.number().int().min(MIN_SIDES).max(MAX_SIDES)).min(2).max(3),
+      ticks: z.number().int().min(0).max(3),
+    })
+    .strict(),
 ]);
+/** A Z, F or C shape drawn over parallel lines, picked by the pair of angles it shows. */
+export const letterSchema = z.object({ a: slotId, b: slotId }).strict();
 export const documentSchema = z
   .object({
     figure: figureSchema,
     angles: z.array(angleSchema).max(40),
     /** Letters printed beside points (A, B, C ...), by point ID. */
     names: z.array(nameSchema).max(30),
+    /** Z, F and C shapes over parallel lines (at most 3). Left out when there are none. */
+    letters: z
+      .array(letterSchema)
+      .max(3)
+      .transform((v) => (v.length ? v : undefined))
+      .optional(),
     /** Turns the whole figure anticlockwise, in degrees. */
     turnDeg: z.number().finite().min(0).max(359),
     /** Overall size: the straight line's length, the rays' reach doubled, the parallel lines' length or the polygon's width. */
@@ -158,9 +184,11 @@ const ccw = (from: number, to: number) => {
 };
 
 export type Segment = { a: P; b: P; dashed?: boolean; arrows?: number; ticks?: number; arrowAt?: number };
+export type ParallelFigure = Extract<Figure, { type: "parallel" }>;
 /** An angle the figure makes: at vertex, from direction start, sweeping anticlockwise. */
 export type Slot = { id: string; vertex: P; start: number; sweep: number; name: string };
-export type Geometry = { segments: Segment[]; points: Record<string, { at: P; out: P }>; slots: Slot[] };
+/** highlights: the Z, F and C shapes, as straight pieces drawn thick and grey under the lines. */
+export type Geometry = { segments: Segment[]; points: Record<string, { at: P; out: P }>; slots: Slot[]; highlights: [P, P][] };
 
 /** Directions for a straight line, a point or crossing lines, sorted, with their slots between. */
 function rayGeometry(rays: number[], reach: number, line: boolean): Geometry {
@@ -190,7 +218,7 @@ function rayGeometry(rays: number[], reach: number, line: boolean): Geometry {
     const wide = slots.reduce((best, s) => (s.sweep > best.sweep ? s : best));
     points.o.out = dir(wide.start + wide.sweep / 2);
   }
-  return { segments, points, slots };
+  return { segments, points, slots, highlights: [] };
 }
 
 export const POSITIONS = ["ur", "ul", "ll", "lr"] as const;
@@ -227,41 +255,8 @@ function rawGeometry(d: AngleDocument): Geometry {
     g.segments = f.lines.map((l) => ({ a: mul(dir(l + 180), size / 2), b: mul(dir(l), size / 2) }));
     return g;
   }
-  if (f.type === "parallel") {
-    const t = dir(f.crossDeg);
-    const segments: Segment[] = [],
-      points: Geometry["points"] = {},
-      slots: Slot[] = [];
-    // Lines run left to right; line 1 is the top one. The transversal crosses each line once.
-    const ys = Array.from({ length: f.count }, (_, k) => ((f.count - 1) / 2 - k) * f.gapMm);
-    // Crossings sit on a line through the origin in the transversal's direction.
-    const xs = ys.map((y) => (y * t.x) / t.y);
-    // The parallel lines always run on past every crossing, however steep the transversal.
-    const half = Math.max(size / 2, Math.max(...xs.map(Math.abs)) + 15);
-    // Arrow marks sit at the same place on every line, on the side with more room from the crossings.
-    const room = half - Math.max(...xs),
-      roomLeft = half + Math.min(...xs);
-    const arrowX = room >= roomLeft ? (Math.max(...xs) + half) / 2 : (Math.min(...xs) - half) / 2;
-    ys.forEach((y, k) => {
-      segments.push({ a: { x: -half, y }, b: { x: half, y }, arrows: f.arrows, arrowAt: (arrowX + half) / (2 * half) });
-      points[`l${k + 1}a`] = { at: { x: -half, y }, out: dir(180) };
-      points[`l${k + 1}b`] = { at: { x: half, y }, out: dir(0) };
-      const at = { x: xs[k], y };
-      points[`x${k + 1}`] = { at, out: dir(90 + f.crossDeg / 2) };
-      const rays = [0, f.crossDeg, 180, 180 + f.crossDeg];
-      POSITIONS.forEach((pos, i) =>
-        slots.push({ id: `p${k + 1}-${pos}`, vertex: at, start: rays[i], sweep: ccw(rays[i], rays[(i + 1) % 4]), name: `line ${k + 1}, ${POSITION_NAMES[pos]}` }),
-      );
-    });
-    // The transversal runs on past the outer lines far enough for their angles to be marked.
-    const ext = Math.max(14, f.gapMm * 0.6);
-    const top = add({ x: xs[0], y: ys[0] }, mul(t, ext)),
-      bottom = add({ x: xs[xs.length - 1], y: ys[ys.length - 1] }, mul(t, -ext));
-    segments.push({ a: bottom, b: top });
-    points.ta = { at: bottom, out: mul(t, -1) };
-    points.tb = { at: top, out: t };
-    return { segments, points, slots };
-  }
+  if (f.type === "parallel") return parallelGeometry(f, size, d.letters ?? []);
+  if (f.type === "polygons") return polygonsGeometry(f, size);
   const c = polygonCorners(f, size),
     n = c.length;
   const segments: Segment[] = [],
@@ -285,7 +280,175 @@ function rawGeometry(d: AngleDocument): Geometry {
     }
   }
   if (f.diagonals) for (let k = 2; k < n - 1; k++) segments.push({ a: c[0], b: c[k], dashed: true });
-  return { segments, points, slots };
+  return { segments, points, slots, highlights: [] };
+}
+
+const cot = (deg: number) => Math.cos(rad(deg)) / Math.sin(rad(deg));
+/** The parallel lines' heights, top line first. */
+const lineYs = (f: ParallelFigure) => Array.from({ length: f.count }, (_, k) => ((f.count - 1) / 2 - k) * f.gapMm);
+/** Meetings further than this beyond the outer lines are not drawn: the transversals are left apart. */
+const MEET_REACH = 40;
+/** Where the second transversal crosses each line, and where it meets the first (null when it does not in the drawing). */
+export function secondTransversal(f: ParallelFigure): { crossDeg: number; xs: number[]; meet: P | null } | null {
+  if (!f.second) return null;
+  const ys = lineYs(f),
+    c1 = cot(f.crossDeg),
+    c2 = cot(f.second.crossDeg),
+    top = ys[0];
+  const xs = ys.map((y) => top * c1 + f.second!.offsetMm + (y - top) * c2);
+  let meet: P | null = null;
+  if (Math.abs(c1 - c2) > 1e-6) {
+    const ym = top + f.second.offsetMm / (c1 - c2);
+    if (ym <= top + MEET_REACH && ym >= ys[ys.length - 1] - MEET_REACH) meet = { x: ym * c1, y: ym };
+  }
+  return { crossDeg: f.second.crossDeg, xs, meet };
+}
+
+const POSITION_FIRST = POSITIONS;
+function parallelGeometry(f: ParallelFigure, size: number, letters: { a: string; b: string }[]): Geometry {
+  const segments: Segment[] = [],
+    points: Geometry["points"] = {},
+    slots: Slot[] = [];
+  // Lines run left to right; line 1 is the top one. Each transversal crosses each line once; the
+  // first one's crossings sit on a line through the origin.
+  const ys = lineYs(f);
+  const xs = ys.map((y) => y * cot(f.crossDeg));
+  const two = secondTransversal(f);
+  const allX = [...xs, ...(two?.xs ?? []), ...(two?.meet ? [two.meet.x] : [])];
+  // The parallel lines always run on past every crossing, however steep the transversals.
+  const half = Math.max(size / 2, Math.max(...allX.map(Math.abs)) + 15);
+  // Arrow marks sit at the same place on every line, on the side with more room from the crossings.
+  const room = half - Math.max(...allX),
+    roomLeft = half + Math.min(...allX);
+  const arrowX = room >= roomLeft ? (Math.max(...allX) + half) / 2 : (Math.min(...allX) - half) / 2;
+  const crossing = (point: string, prefix: string, k: number, x: number, deg: number, which: string) => {
+    const at = { x, y: ys[k] };
+    points[point] = { at, out: dir(90 + deg / 2) };
+    const rays = [0, deg, 180, 180 + deg];
+    POSITION_FIRST.forEach((pos, i) =>
+      slots.push({ id: `${prefix}${k + 1}-${pos}`, vertex: at, start: rays[i], sweep: ccw(rays[i], rays[(i + 1) % 4]), name: `line ${k + 1}, ${which}${POSITION_NAMES[pos]}` }),
+    );
+  };
+  ys.forEach((y, k) => {
+    segments.push({ a: { x: -half, y }, b: { x: half, y }, arrows: f.arrows, arrowAt: (arrowX + half) / (2 * half) });
+    points[`l${k + 1}a`] = { at: { x: -half, y }, out: dir(180) };
+    points[`l${k + 1}b`] = { at: { x: half, y }, out: dir(0) };
+    crossing(`x${k + 1}`, "p", k, xs[k], f.crossDeg, two ? "first transversal, " : "");
+    if (two) crossing(`y${k + 1}`, "q", k, two.xs[k], two.crossDeg, "second transversal, ");
+  });
+  // Each transversal runs on past its outer crossings (and past the meeting) far enough for angles to be marked.
+  const ext = Math.max(14, f.gapMm * 0.6);
+  const run = (txs: number[], deg: number, a: string, b: string) => {
+    const u = dir(deg);
+    const along = ys.map((y, k) => ({ x: txs[k], y }));
+    if (two?.meet) along.push(two.meet);
+    const proj = along.map((p) => p.x * u.x + p.y * u.y);
+    const hi = along[proj.indexOf(Math.max(...proj))],
+      lo = along[proj.indexOf(Math.min(...proj))];
+    const top = add(hi, mul(u, ext)),
+      bottom = add(lo, mul(u, -ext));
+    segments.push({ a: bottom, b: top });
+    points[a] = { at: bottom, out: mul(u, -1) };
+    points[b] = { at: top, out: u };
+  };
+  run(xs, f.crossDeg, "ta", "tb");
+  if (two) {
+    run(two.xs, two.crossDeg, "ua", "ub");
+    if (two.meet) {
+      const dirs = [f.crossDeg, two.crossDeg, f.crossDeg + 180, two.crossDeg + 180].map(norm).sort((a, b) => a - b);
+      dirs.forEach((start, i) => slots.push({ id: `m${i + 1}`, vertex: two.meet!, start, sweep: ccw(start, dirs[(i + 1) % 4]), name: `where the transversals meet, angle ${i + 1}` }));
+      const wide = slots.slice(-4).reduce((best, x) => (x.sweep > best.sweep ? x : best));
+      points.m = { at: two.meet, out: dir(wide.start + wide.sweep / 2) };
+    }
+  }
+  // Z, F and C shapes: each angle's two arms, joined along the transversal.
+  const highlights: Geometry["highlights"] = [];
+  const bySlot = new Map(slots.map((x) => [x.id, x]));
+  for (const pair of letters) {
+    const shape = letterOf(pair.a, pair.b),
+      sa = bySlot.get(pair.a),
+      sb = bySlot.get(pair.b);
+    if (!shape || !sa || !sb) continue;
+    const [upper, lower] = sa.vertex.y > sb.vertex.y ? [pair.a, pair.b] : [pair.b, pair.a];
+    const u = dir(pair.a.startsWith("q") && two ? two.crossDeg : f.crossDeg);
+    const arm = (id: string) => {
+      const x = bySlot.get(id)!,
+        right = id.endsWith("r"),
+        h = { x: right ? 1 : -1, y: 0 };
+      const reach = Math.min(Math.max(10, Math.min(18, f.gapMm * 0.6)), (right ? half - x.vertex.x : x.vertex.x + half) - 3);
+      highlights.push([x.vertex, add(x.vertex, mul(h, reach))]);
+      return x;
+    };
+    const A = arm(upper),
+      B = arm(lower);
+    const along = [A.vertex, B.vertex];
+    const reach = Math.min(Math.max(10, Math.min(18, f.gapMm * 0.6)), ext - 2);
+    // The upper angle's transversal arm points up, away from the lower crossing, only above its line.
+    if (/-u[lr]$/.test(upper)) along.push(add(A.vertex, mul(u, reach)));
+    if (/-l[lr]$/.test(lower)) along.push(add(B.vertex, mul(u, -reach)));
+    const proj = along.map((p) => p.x * u.x + p.y * u.y);
+    highlights.push([along[proj.indexOf(Math.min(...proj))], along[proj.indexOf(Math.max(...proj))]]);
+  }
+  return { segments, points, slots, highlights };
+}
+
+/** Interior angle of a regular polygon with n sides. */
+const interiorOf = (n: number) => 180 - 360 / n;
+/** The space left round the shared corner of a polygons-meeting figure, in degrees (0 when they fit exactly). */
+export function gapOf(f: Extract<Figure, { type: "polygons" }>) {
+  const g = 360 - f.sides.reduce((a, n) => a + interiorOf(n), 0);
+  return Math.abs(g) < 0.5 ? 0 : g;
+}
+function polygonsGeometry(f: Extract<Figure, { type: "polygons" }>, size: number): Geometry {
+  const s = size * 0.32,
+    o = { x: 0, y: 0 };
+  const segments: Segment[] = [],
+    points: Geometry["points"] = { o: { at: o, out: dir(270) } },
+    slots: Slot[] = [];
+  const gap = gapOf(f);
+  let theta = 0;
+  f.sides.forEach((sides, k) => {
+    const turn = 360 / sides;
+    const vs: P[] = [o];
+    for (let j = 1; j < sides; j++) vs.push(add(vs[j - 1], mul(dir(theta + (j - 1) * turn), s)));
+    const centre = mul(vs.reduce(add, { x: 0, y: 0 }), 1 / sides);
+    // A polygon's last side is the next polygon's first side (and, with no gap, the first polygon's): drawn once.
+    const shared = k < f.sides.length - 1 || gap === 0;
+    for (let j = 0; j < sides; j++) {
+      if (j === sides - 1 && shared) continue;
+      segments.push({ a: vs[j], b: vs[(j + 1) % sides], ticks: f.ticks });
+    }
+    slots.push({ id: `a${k + 1}`, vertex: o, start: norm(theta), sweep: interiorOf(sides), name: `shape ${k + 1} at the shared corner` });
+    for (let j = 1; j < sides; j++) {
+      const v = vs[j],
+        next = vs[(j + 1) % sides],
+        prev = vs[j - 1];
+      if (!(j === sides - 1 && shared)) points[`p${k + 1}v${j + 1}`] = { at: v, out: unitOf(sub(v, centre)) };
+      const start = heading(sub(next, v));
+      slots.push({ id: `p${k + 1}-i${j + 1}`, vertex: v, start, sweep: ccw(start, heading(sub(prev, v))), name: `shape ${k + 1}, corner ${j + 1}` });
+    }
+    theta += interiorOf(sides);
+  });
+  if (gap > 0) {
+    slots.push({ id: "g", vertex: o, start: norm(theta), sweep: gap, name: "the gap at the shared corner" });
+    points.o.out = dir(theta + gap / 2);
+  }
+  return { segments, points, slots, highlights: [] };
+}
+
+/**
+ * The shape a pair of angles at two crossings of the same transversal makes: Z for alternate, F for
+ * corresponding, C for co-interior angles. Null for any other pair (same line, vertically opposite or
+ * outside pairs).
+ */
+export function letterOf(a: string, b: string): { letter: "Z" | "F" | "C"; name: string } | null {
+  const x = /^([pq])(\d)-(ur|ul|ll|lr)$/.exec(a),
+    y = /^([pq])(\d)-(ur|ul|ll|lr)$/.exec(b);
+  if (!x || !y || x[1] !== y[1] || x[2] === y[2]) return null;
+  const [up, low] = Number(x[2]) < Number(y[2]) ? [x[3], y[3]] : [y[3], x[3]];
+  if (up === low) return { letter: "F", name: "corresponding" };
+  if (up[0] === "l" && low[0] === "u") return up[1] === low[1] ? { letter: "C", name: "co-interior" } : { letter: "Z", name: "alternate" };
+  return null;
 }
 function unitOf(a: P): P {
   const l = len(a);
@@ -304,6 +467,7 @@ export function geometry(d: AngleDocument): Geometry {
     segments: g.segments.map((x) => ({ ...x, a: r(x.a), b: r(x.b) })),
     points: Object.fromEntries(Object.entries(g.points).map(([k, v]) => [k, { at: r(v.at), out: r(v.out) }])),
     slots: g.slots.map((x) => ({ ...x, vertex: r(x.vertex), start: norm(x.start + turn) })),
+    highlights: g.highlights.map(([a, b]) => [r(a), r(b)] as [P, P]),
   };
 }
 /** Every angle slot of the figure, in order, with a teacher-facing name. */
@@ -326,6 +490,7 @@ function convex(c: P[]) {
   return area > 0;
 }
 
+const f0 = (input: unknown) => (input as { document?: { figure?: { type?: unknown } } } | null)?.document?.figure?.type;
 export function validate(input: unknown): Envelope {
   const parsed = envelopeSchema.safeParse(input);
   if (!parsed.success) {
@@ -335,6 +500,9 @@ export function validate(input: unknown): Envelope {
     if (path.includes("lines") && path.includes("figure")) throw Error("Use 2 or 3 crossing lines, each a direction from 0 to 180 degrees.");
     if (path.includes("text") || path.includes("answer")) throw Error(`Use labels of at most ${MAX_LABEL} characters without markup.`);
     if (path.includes("corners") && path.length > 4) throw Error("Keep every corner within 200 mm of the centre.");
+    if (path.includes("second")) throw Error("Give the second transversal an angle from 20 to 160° and an offset from -80 to 80 mm along the top line.");
+    if (path.includes("letters")) throw Error("Use at most 3 Z, F or C shapes, each a pair of angles.");
+    if (f0(input) === "polygons" && (path.includes("sides") || path.includes("ticks"))) throw Error(`Use 2 or 3 regular polygons, each with ${MIN_SIDES} to ${MAX_SIDES} sides, and 0 to 3 ticks.`);
     if (path.includes("sides") || path.includes("corners") || path.includes("ticks")) throw Error(`Use a polygon of ${MIN_SIDES} to ${MAX_SIDES} sides.`);
     if (path.includes("turnDeg")) throw Error("Turn the figure by 0 to 359 degrees.");
     if (path.includes("sizeMm")) throw Error("Choose a size from 30 to 140 mm.");
@@ -361,6 +529,24 @@ export function validate(input: unknown): Envelope {
     if (f.exterior.some((k) => k > f.sides)) throw Error(`Exterior angles go at corners 1 to ${f.sides}.`);
     if (new Set(f.exterior).size !== f.exterior.length) throw Error("List each exterior-angle corner once.");
   }
+  if (f.type === "polygons") {
+    const total = f.sides.reduce((a, k) => a + interiorOf(k), 0);
+    if (total > 360.5) throw Error(`These polygons overlap at the shared corner: their angles there add to ${Math.round(total * 10) / 10}°, more than 360°. Use fewer sides or fewer polygons.`);
+    const gap = gapOf(f);
+    if (gap > 0 && gap < 5) throw Error("The gap at the shared corner is too narrow to see. Change the polygons.");
+  }
+  if (f.type === "parallel" && f.second) {
+    const two = secondTransversal(f)!,
+      ys = lineYs(f),
+      c1 = cot(f.crossDeg);
+    ys.forEach((y, k) => {
+      if (Math.abs(two.xs[k] - y * c1) < 6) throw Error(`The two transversals cross line ${k + 1} too close together. Move the second one along the top line or change its angle.`);
+    });
+    if (two.meet) {
+      const k = ys.findIndex((y) => Math.abs(y - two.meet!.y) < 4);
+      if (k >= 0) throw Error(`The transversals meet too close to line ${k + 1}. Move the second one so they meet clear of the lines.`);
+    }
+  }
   const slots = new Set(slotsOf(d).map((s) => s.id));
   const seen = new Set<string>();
   for (const a of d.angles) {
@@ -372,6 +558,17 @@ export function validate(input: unknown): Envelope {
     l.answer = l.answer.trim().replace(/\s+/g, " ");
     if (l.state === "value" && l.answer) throw Error(`Angle ${a.id} is a given size, so it cannot hold a saved answer. Clear the answer or change the label.`);
     if ((l.state === "value" || l.state === "symbol") && !l.text) throw Error(`Angle ${a.id} is ${l.state === "value" ? "a given size" : "a letter"} but has no text. Type it, or make the label blank.`);
+  }
+  if (d.letters) {
+    if (f.type !== "parallel") throw Error("Z, F and C shapes go on parallel lines.");
+    const pairs = new Set<string>();
+    for (const l of d.letters) {
+      for (const id of [l.a, l.b]) if (!slots.has(id)) throw Error(`This figure has no angle ${id} for a Z, F or C shape.`);
+      if (!letterOf(l.a, l.b)) throw Error(`Angles ${l.a} and ${l.b} are not an alternate, corresponding or co-interior pair, so no Z, F or C shape fits them.`);
+      const key = [l.a, l.b].sort().join(" ");
+      if (pairs.has(key)) throw Error(`The shape for angles ${l.a} and ${l.b} is listed twice.`);
+      pairs.add(key);
+    }
   }
   const points = new Set(pointIdsOf(d));
   const named = new Set<string>();
@@ -401,6 +598,8 @@ export function prune(e: Envelope): Envelope {
     points = new Set(pointIdsOf(n.document));
   n.document.angles = n.document.angles.filter((a) => slots.has(a.id));
   n.document.names = n.document.names.filter((nm) => points.has(nm.id));
+  const letters = n.document.figure.type === "parallel" ? (n.document.letters ?? []).filter((l) => slots.has(l.a) && slots.has(l.b) && letterOf(l.a, l.b)) : [];
+  n.document.letters = letters.length ? letters : undefined;
   return n;
 }
 
@@ -426,10 +625,14 @@ export function starter(kind: FigureKind = "straight-line"): Envelope {
   } else if (kind === "parallel") {
     d.figure = { type: "parallel", count: 2, gapMm: 24, crossDeg: 60, arrows: 1 };
     d.angles = [angle("p1-ur", label("60")), angle("p2-ul", label("x", "symbol"))];
-  } else {
+  } else if (kind === "polygon") {
     d.figure = { type: "polygon", sides: 6, corners: null, exterior: [], diagonals: false, ticks: [1, 1, 1, 1, 1, 1] };
     d.sizeMm = 50;
     d.angles = [angle("i2", label("x", "symbol"))];
+  } else {
+    d.figure = { type: "polygons", sides: [5, 6], ticks: 1 };
+    d.sizeMm = 60;
+    d.angles = [angle("g", label("x", "symbol"))];
   }
   return validate(e);
 }
@@ -510,13 +713,25 @@ export function sizeNotes(d: AngleDocument): string[] {
     for (let i = 0; i < k; i++) equal(slots[i].id, slots[i + k].id, `Vertically opposite angles ${slots[i].id} and ${slots[i + k].id}`);
   }
   if (f.type === "parallel") {
-    for (let k = 1; k <= f.count; k++) {
-      sum([`p${k}-ur`, `p${k}-ul`], 180, `The angles on line ${k} above the transversal`);
-      equal(`p${k}-ur`, `p${k}-ll`, `Vertically opposite angles on line ${k}`);
-      equal(`p${k}-ul`, `p${k}-lr`, `Vertically opposite angles on line ${k}`);
+    for (const [t, which] of f.second ? ([["p", " the first transversal"], ["q", " the second transversal"]] as const) : ([["p", " the transversal"]] as const)) {
+      for (let k = 1; k <= f.count; k++) {
+        sum([`${t}${k}-ur`, `${t}${k}-ul`], 180, `The angles on line ${k} above${which}`);
+        equal(`${t}${k}-ur`, `${t}${k}-ll`, `Vertically opposite angles on line ${k}`);
+        equal(`${t}${k}-ul`, `${t}${k}-lr`, `Vertically opposite angles on line ${k}`);
+      }
+      for (let k = 1; k < f.count; k++)
+        for (const pos of POSITIONS) equal(`${t}${k}-${pos}`, `${t}${k + 1}-${pos}`, `Corresponding angles ${t}${k}-${pos} and ${t}${k + 1}-${pos}`);
     }
-    for (let k = 1; k < f.count; k++)
-      for (const pos of POSITIONS) equal(`p${k}-${pos}`, `p${k + 1}-${pos}`, `Corresponding angles p${k}-${pos} and p${k + 1}-${pos}`);
+    if (slots.some((s) => s.id === "m1")) {
+      sum(["m1", "m2", "m3", "m4"], 360, "The angles where the transversals meet");
+      equal("m1", "m3", "Vertically opposite angles m1 and m3");
+      equal("m2", "m4", "Vertically opposite angles m2 and m4");
+    }
+    for (const t of triangles(d)) sum(t.ids, 180, `The angles of the triangle between line ${t.line} and the transversals`);
+  }
+  if (f.type === "polygons") {
+    sum([...f.sides.map((_, k) => `a${k + 1}`), ...(gapOf(f) > 0 ? ["g"] : [])], 360, "The angles at the shared corner");
+    f.sides.forEach((sides, k) => sum([`a${k + 1}`, ...Array.from({ length: sides - 1 }, (_, j) => `p${k + 1}-i${j + 2}`)], (sides - 2) * 180, `The interior angles of shape ${k + 1} (${sides} sides)`));
   }
   if (f.type === "polygon") {
     const sides = f.corners?.length ?? f.sides;
@@ -524,6 +739,37 @@ export function sizeNotes(d: AngleDocument): string[] {
     for (const k of f.exterior) sum([`i${k}`, `e${k}`], 180, `The interior and exterior angles at corner ${k}`);
   }
   return [...new Set(notes)];
+}
+
+/**
+ * The triangles two transversals make with the nearest parallel line on each side of where they
+ * meet: for each, the line number and the three angle slots inside it.
+ */
+export function triangles(d: AngleDocument): { line: number; ids: string[] }[] {
+  const f = d.figure;
+  if (f.type !== "parallel") return [];
+  const two = secondTransversal(f);
+  if (!two?.meet) return [];
+  const g = rawGeometry(d),
+    ys = lineYs(f),
+    m = two.meet;
+  const above = ys.map((y, k) => ({ y, k })).filter((x) => x.y > m.y).pop(),
+    below = ys.map((y, k) => ({ y, k })).find((x) => x.y < m.y);
+  const inside = (p: P, t: P[]) => {
+    const side = (a: P, b: P) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+    const s = [side(t[0], t[1]), side(t[1], t[2]), side(t[2], t[0])];
+    return s.every((v) => v > 0) || s.every((v) => v < 0);
+  };
+  const out: { line: number; ids: string[] }[] = [];
+  for (const line of [above, below]) {
+    if (!line) continue;
+    const t = [g.points[`x${line.k + 1}`].at, g.points[`y${line.k + 1}`].at, m];
+    const pick = (prefix: string, at: P) =>
+      g.slots.find((s) => s.id.startsWith(prefix) && len(sub(s.vertex, at)) < 1e-6 && inside(add(at, mul(dir(s.start + s.sweep / 2), 0.5)), t))?.id;
+    const ids = [pick(`p${line.k + 1}-`, t[0]), pick(`q${line.k + 1}-`, t[1]), pick("m", m)];
+    if (ids.every(Boolean)) out.push({ line: line.k + 1, ids: ids as string[] });
+  }
+  return out;
 }
 
 /* ---------- Layout ---------- */
@@ -540,6 +786,8 @@ export type Layout = {
   font: number;
   /** Maps a figure point (mm, y up) to the artwork (mm, y down). */
   map: (p: P) => P;
+  /** Maps an artwork point back to the figure (mm, y up, turned). */
+  unmap: (p: P) => P;
   geometry: Geometry;
   labels: Placed[];
   names: { id: string; text: string; centre: P }[];
@@ -686,6 +934,7 @@ export function layout(e: Envelope): Layout {
     height += captionFont * 1.4;
   }
   const map = (p: P): P => ({ x: p.x - minX, y: maxY - p.y });
+  const unmap = (p: P): P => ({ x: p.x + minX, y: maxY - p.y });
   const width = Math.ceil((maxX - minX) * 10) / 10;
   height = Math.ceil(height * 10) / 10;
   if (width > 270) issues.push(`The diagram is ${n(width / 10)} cm wide. Make it smaller.`);
@@ -693,7 +942,7 @@ export function layout(e: Envelope): Layout {
   const notes = sizeNotes(d);
   for (const a of d.angles)
     if (a.mark === "right" && Math.abs(slots.get(a.id)!.sweep - 90) > 10) notes.push(`Angle ${a.id} has a right-angle mark but is drawn at ${Math.round(slots.get(a.id)!.sweep)}°.`);
-  return { width, height, font, map, geometry: g, labels, names, caption, issues, notes };
+  return { width, height, font, map, unmap, geometry: g, labels, names, caption, issues, notes };
 }
 export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
 export const warnings = (e: Envelope) => {
@@ -764,6 +1013,11 @@ export function renderSvg(e: Envelope, view: View = "pupil"): string {
     const arc = arcPath(l.slot.vertex, r, l.slot.start, l.slot.sweep, map);
     out.push(`<path d="M${n(v.x)} ${n(v.y)}L${arc.slice(1)}Z" fill="#d9d9d9" stroke="none"/>`);
   }
+  // Z, F and C shapes: thick and grey, under the black lines, so they read in black and white.
+  if (g.geometry.highlights.length)
+    out.push(
+      `<path d="${g.geometry.highlights.map(([a, b]) => `M${n(map(a).x)} ${n(map(a).y)}L${n(map(b).x)} ${n(map(b).y)}`).join("")}" fill="none" stroke="#bdbdbd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+    );
   const solid = g.geometry.segments.filter((s) => !s.dashed),
     dashed = g.geometry.segments.filter((s) => s.dashed);
   const seg = (s: Segment) => {
@@ -821,13 +1075,19 @@ export function altText(e: Envelope): string {
         : f.type === "crossing"
           ? `${f.lines.length} straight lines crossing at a point`
           : f.type === "parallel"
-            ? `${f.count} parallel lines cut by a transversal`
-            : `${f.corners ? "an irregular" : "a regular"} polygon with ${f.corners?.length ?? f.sides} sides`;
+            ? `${f.count} parallel lines cut by ${f.second ? "two transversals" : "a transversal"}`
+            : f.type === "polygons"
+              ? `${f.sides.length} regular polygons (${f.sides.join(", ")} sides) meeting at a corner`
+              : `${f.corners ? "an irregular" : "a regular"} polygon with ${f.corners?.length ?? f.sides} sides`;
   const given = d.angles.filter((a) => a.label.state === "value").map((a) => degrees(a.label.text));
   const letters = d.angles.filter((a) => a.label.state === "symbol").map((a) => a.label.text);
   const parts = [`Angle diagram: ${what}`];
   if (given.length) parts.push(`given ${given.join(", ")}`);
   if (letters.length) parts.push(`angles marked ${letters.join(", ")}`);
+  for (const l of d.letters ?? []) {
+    const shape = letterOf(l.a, l.b);
+    if (shape) parts.push(`a ${shape.letter} shape shows ${shape.name} angles`);
+  }
   return parts.join("; ") + (d.notToScale ? ". Not accurately drawn." : ".");
 }
 
@@ -874,7 +1134,7 @@ export function hitAnchors(e: Envelope): { id: string; name: string; at: P }[] {
  */
 export function remapRays(before: AngleDocument, after: AngleDocument): Pick<AngleDocument, "angles" | "names"> {
   const t = after.figure.type;
-  if (before.figure.type !== t || t === "parallel" || t === "polygon") return { angles: after.angles, names: after.names };
+  if (before.figure.type !== t || (t !== "straight-line" && t !== "point" && t !== "crossing")) return { angles: after.angles, names: after.names };
   const same = (a: number, b: number) => Math.abs(norm(a - b + 180) - 180) < 1e-6;
   const was = rawGeometry(before),
     now = rawGeometry(after);
@@ -895,4 +1155,100 @@ export function remapRays(before: AngleDocument, after: AngleDocument): Pick<Ang
     if (id && !names.some((x) => x.id === id)) names.push({ id, text: nm.text });
   }
   return { angles, names };
+}
+
+/* ---------- Dragging (editor only) ---------- */
+
+/** The figure's points before it is turned, for the editor's drag handles. */
+export const rawPoints = (d: AngleDocument) => rawGeometry(d).points;
+/** An artwork point (mm) in the figure's own frame, before the turn. */
+export function figurePoint(g: Layout, turnDeg: number, art: P): P {
+  const t = g.unmap(art),
+    c = Math.cos(rad(-turnDeg)),
+    s = Math.sin(rad(-turnDeg));
+  return { x: t.x * c - t.y * s, y: t.x * s + t.y * c };
+}
+/** The handles a figure can be dragged by: ray and line ends, transversal ends and polygon corners. */
+export function dragHandles(d: AngleDocument): { id: string; name: string; pivot: P | null }[] {
+  const f = d.figure,
+    pts = rawGeometry(d).points,
+    o = { x: 0, y: 0 };
+  if (f.type === "straight-line" || f.type === "point") return f.rays.map((_, i) => ({ id: `r${i + 1}`, name: `ray ${i + 1}`, pivot: o }));
+  if (f.type === "crossing") {
+    // One handle per line, at its end pointing between 0 and 180 degrees.
+    const sorted = [...f.lines].sort((a, b) => a - b);
+    return Object.keys(pts)
+      .filter((k) => /^r\d+$/.test(k) && heading(pts[k].at) < 180 - 1e-6)
+      .map((id) => ({ id, name: `line ${sorted.findIndex((l) => Math.abs(l - heading(pts[id].at)) < 1e-6) + 1}`, pivot: o }));
+  }
+  if (f.type === "parallel") {
+    const out = [{ id: "tb", name: "the transversal", pivot: o as P | null }];
+    if (f.second) out.push({ id: "ub", name: "the second transversal", pivot: pts.y1.at }, { id: "y1", name: "the second transversal along the top line", pivot: null });
+    return out;
+  }
+  if (f.type === "polygon") return polygonCorners(f, d.sizeMm).map((_, k) => ({ id: `v${k + 1}`, name: `corner ${k + 1}`, pivot: null }));
+  return [];
+}
+/**
+ * The diagram with one handle dragged to p (the figure's own frame, before the turn), or null when the
+ * move is refused. Directions snap to 5 degrees (1 with fine); a ray stays between its neighbours, so
+ * every label stays with its angle; a polygon corner keeps the polygon convex.
+ */
+export function dragTo(e: Envelope, id: string, p: P, fine = false): Envelope | null {
+  const n = structuredClone(e),
+    d = n.document,
+    f = d.figure;
+  const step = fine ? 1 : 5;
+  const snap = (v: number) => Math.round(v / step) * step;
+  const between = (list: number[], i: number, v: number, range: [number, number], wrap: number) => {
+    const lo = Math.max(range[0], i > 0 ? list[i - 1] + 5 : wrap ? list[list.length - 1] - wrap + 5 : range[0]);
+    const hi = Math.min(range[1], i < list.length - 1 ? list[i + 1] - 5 : wrap ? list[0] + wrap - 5 : range[1]);
+    return lo > hi ? null : Math.min(hi, Math.max(lo, v));
+  };
+  if ((f.type === "straight-line" || f.type === "point") && /^r\d+$/.test(id)) {
+    const list = [...f.rays].sort((a, b) => a - b),
+      i = Number(id.slice(1)) - 1;
+    if (!(i < list.length)) return null;
+    let v = snap(heading(p));
+    if (f.type === "straight-line" && p.y < 0) v = p.x > 0 ? 5 : 175;
+    // Round a point, a ray near 0° stays on the side of 0° it started on.
+    if (f.type === "point" && Math.abs(v - list[i]) > 180) v += v > list[i] ? -360 : 360;
+    const out = between(list, i, v, f.type === "straight-line" ? [5, 175] : [0, 359], f.type === "point" ? 360 : 0);
+    if (out === null) return null;
+    list[i] = out;
+    f.rays = list;
+  } else if (f.type === "crossing" && /^r\d+$/.test(id)) {
+    const list = [...f.lines].sort((a, b) => a - b),
+      at = heading(rawGeometry(d).points[id]?.at ?? { x: 1, y: 0 });
+    const i = list.findIndex((l) => Math.abs(l - at) < 1e-6);
+    if (i < 0) return null;
+    let v = snap(heading(p) % 180);
+    if (Math.abs(v - list[i]) > 90) v += v > list[i] ? -180 : 180;
+    const out = between(list, i, v, [0, 179], 180);
+    if (out === null) return null;
+    list[i] = out;
+    f.lines = list;
+  } else if (f.type === "parallel" && (id === "tb" || id === "ub")) {
+    const pivot = id === "tb" ? { x: 0, y: 0 } : rawGeometry(d).points.y1.at;
+    const v = Math.min(160, Math.max(20, snap(heading(sub(p, pivot)) % 180)));
+    if (id === "tb") f.crossDeg = v;
+    else if (f.second) f.second = { ...f.second, crossDeg: v };
+  } else if (f.type === "parallel" && id === "y1" && f.second) {
+    const top = lineYs(f)[0];
+    f.second = { ...f.second, offsetMm: Math.min(80, Math.max(-80, Math.round(p.x - top * cot(f.crossDeg)))) };
+  } else if (f.type === "polygon" && /^v\d+$/.test(id)) {
+    const k = Number(id.slice(1)) - 1,
+      corners = polygonCorners(f, d.sizeMm).map((c) => ({ x: Math.round(c.x * 10) / 10, y: Math.round(c.y * 10) / 10 }));
+    if (!(k < corners.length)) return null;
+    const half = fine ? 0.5 : 1;
+    corners[k] = { x: Math.round(p.x / half) * half, y: Math.round(p.y / half) * half };
+    // A dragged regular polygon becomes irregular, so its sides are no longer marked equal.
+    if (!f.corners) f.ticks = f.ticks.map(() => 0);
+    f.corners = corners;
+  } else return null;
+  try {
+    return validate(n);
+  } catch {
+    return null;
+  }
 }

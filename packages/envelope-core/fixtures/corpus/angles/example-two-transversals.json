@@ -1,0 +1,54 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "parallel",
+   "count": 2,
+   "gapMm": 26,
+   "crossDeg": 62,
+   "arrows": 1,
+   "second": {
+    "crossDeg": 118,
+    "offsetMm": 34
+   }
+  },
+  "angles": [
+   {
+    "id": "p2-ur",
+    "label": {
+     "state": "value",
+     "text": "62",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "q1-ur",
+    "label": {
+     "state": "value",
+     "text": "118",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "m3",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 80,
+  "notToScale": true
+ }
+}

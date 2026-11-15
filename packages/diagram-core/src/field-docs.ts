@@ -150,9 +150,10 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
   angles: {
     example,
     worked,
-    figure: "The figure: straight-line, point, crossing, parallel or polygon, with its rays, lines or sides (see angleIds).",
+    figure: "The figure: straight-line, point, crossing, parallel (one or two transversals), polygon or polygons (regular polygons meeting at a corner), with its rays, lines or sides (see angleIds).",
     angles: "The marked angles by slot id: a given size, a letter, a blank arc, an answer line or a hidden answer, with mark and shade.",
     names: "Letters beside points, by point id (see pointIds).",
+    letters: "Z, F or C shapes over parallel lines, each given by its pair of angles {a, b}: alternate (Z), corresponding (F) or co-interior (C).",
     settings: "Turn, printed size, the \"Diagram NOT accurately drawn\" caption, text size and line weight.",
   },
   elevations: {
