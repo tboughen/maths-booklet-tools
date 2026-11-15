@@ -18,7 +18,9 @@ whether it is in the site yet. Implementation, merge and website release are sep
 ## Named values (in the site)
 
 Every value lives in `src/site/house-style.css` as a custom property. Use the name, not the number,
-in new or changed styles, and move old styles over as each area is rebuilt.
+in new or changed styles, and move old styles over as each area is rebuilt. Until then the older
+names in `src/site/site.css` (`--ink`, `--line`, `--blue-soft` and the rest) still style the areas
+that have not moved, and the two sets are not yet the same values. Do not add to the older set.
 
 | Use | Names |
 | --- | --- |

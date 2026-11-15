@@ -26,8 +26,12 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
     if (!row) return;
     // Bring the current tool into view, then show edge fades wherever more tools are hidden.
     const current = row.querySelector<HTMLElement>('[aria-current="page"]');
-    if (current && row.scrollWidth > row.clientWidth)
-      row.scrollLeft = Math.max(0, current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2);
+    const centre = () => {
+      if (current && row.scrollWidth > row.clientWidth)
+        row.scrollLeft = Math.max(0, current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2);
+    };
+    centre();
+    const placed = row.scrollLeft;
     const measure = () => {
       const next = { start: row.scrollLeft > 1, end: row.scrollLeft + row.clientWidth < row.scrollWidth - 1 };
       setMore(old => old.start === next.start && old.end === next.end ? old : next);
@@ -41,10 +45,19 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
       measure();
     };
     measure();
+    // The interface font can arrive after the first paint and change every link's width, so place
+    // the row again once it has loaded, unless the user has already moved it.
+    let live = true;
+    const fonts: FontFaceSet | undefined = document.fonts;
+    void fonts?.ready.then(() => {
+      if (!live) return;
+      if (row.scrollLeft === placed) centre();
+      measure();
+    });
     row.addEventListener("scroll", measure, { passive: true });
     row.addEventListener("focusin", reveal);
     window.addEventListener("resize", measure);
-    return () => { row.removeEventListener("scroll", measure); row.removeEventListener("focusin", reveal); window.removeEventListener("resize", measure); };
+    return () => { live = false; row.removeEventListener("scroll", measure); row.removeEventListener("focusin", reveal); window.removeEventListener("resize", measure); };
   }, [page, booklet]);
   return <header ref={header} className="site-navigation" onClick={event => {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);

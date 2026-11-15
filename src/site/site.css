@@ -42,7 +42,7 @@ body { background: #f2f5f8; }
 .site-sections { display: flex; align-items: stretch; }
 .site-sections a { display: inline-flex; align-items: center; gap: 6px; min-height: var(--md-bar-height); padding: 0 10px; border-block: 2px solid transparent; color: var(--md-bar-ink-2); font-size: var(--md-text-sm); font-weight: 500; text-decoration: none; white-space: nowrap; }
 .site-sections a:hover { color: var(--md-bar-ink); background: #ffffff14; }
-.site-sections a[aria-current] { color: var(--md-bar-ink); font-weight: 600; border-bottom-color: var(--md-bar-ink); --md-icon-accent: currentColor; }
+.site-sections a[aria-current] { color: var(--md-bar-ink); font-weight: 600; border-bottom-color: var(--md-bar-ink); }
 .site-tool-navigation a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 14px; border-radius: 4px; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .site-tool-navigation a:hover { background: var(--surface); }
 .site-tool-navigation a[aria-current] { background: var(--blue-soft); color: #1d518c; }

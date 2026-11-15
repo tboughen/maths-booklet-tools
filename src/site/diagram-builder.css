@@ -19,7 +19,7 @@
 .tool-sections { display: grid; gap: 40px; margin-top: 12px; }
 .tool-strand { display: grid; gap: 14px; padding-top: 18px; border-top: 2px solid var(--line); }
 .tool-sections h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 0; font: 600 21px/1.2 var(--md-font); color: var(--db-navy); }
-.tool-sections h2 small { font-family: Inter, "Segoe UI", system-ui, sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); }
+.tool-sections h2 small { font-family: var(--md-font); font-size: 13px; font-weight: 500; color: var(--muted); }
 
 /* Picture tiles. Every preview sits in the same 4:3 white frame and is never cropped. */
 .tool-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
