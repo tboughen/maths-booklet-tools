@@ -327,3 +327,24 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - venn: venn-languages (worked): json 55559d57a9c16e4e -> b9088bbb766cd463
 - venn: venn-shading: json 5fa1e9ce8a83057a -> e746bd34238ec502
 - venn: venn-shading (worked): json 5fa1e9ce8a83057a -> e746bd34238ec502
+
+## 2026-11-15: New angle diagrams tool: its nine gallery examples, pupil and worked (new outputs only)
+
+- angle diagrams: angles-straight-line: added
+- angle diagrams: angles-straight-line (worked): added
+- angle diagrams: angles-point: added
+- angle diagrams: angles-point (worked): added
+- angle diagrams: angles-vertically-opposite: added
+- angle diagrams: angles-vertically-opposite (worked): added
+- angle diagrams: angles-algebra-line: added
+- angle diagrams: angles-algebra-line (worked): added
+- angle diagrams: angles-parallel: added
+- angle diagrams: angles-parallel (worked): added
+- angle diagrams: angles-co-interior: added
+- angle diagrams: angles-co-interior (worked): added
+- angle diagrams: angles-regular-polygon: added
+- angle diagrams: angles-regular-polygon (worked): added
+- angle diagrams: angles-exterior-angle: added
+- angle diagrams: angles-exterior-angle (worked): added
+- angle diagrams: angles-polygon-sum: added
+- angle diagrams: angles-polygon-sum (worked): added

@@ -156,6 +156,132 @@
    "png600": "931x1181",
    "pixels": "798c35c5a11d4fde"
   },
+  "angle diagrams: angles-algebra-line": {
+   "json": "591a54c3fc52c161",
+   "svg": "d53627a4ebf83720",
+   "mm": "74x41.9",
+   "png600": "1748x990",
+   "pixels": "c111ac7ecf43ce1e"
+  },
+  "angle diagrams: angles-algebra-line (worked)": {
+   "json": "591a54c3fc52c161",
+   "svg": "d53627a4ebf83720",
+   "mm": "74x41.9",
+   "png600": "1748x990",
+   "pixels": "c111ac7ecf43ce1e"
+  },
+  "angle diagrams: angles-co-interior": {
+   "json": "147f998aaf17bc36",
+   "svg": "a129569f13d60261",
+   "mm": "84x63.3",
+   "png600": "1984x1495",
+   "pixels": "927c4845b787db52"
+  },
+  "angle diagrams: angles-co-interior (worked)": {
+   "json": "cc456c94f5a2697a",
+   "svg": "8a8be15fdac77656",
+   "mm": "84x63.3",
+   "png600": "1984x1495",
+   "pixels": "435fd74d7d71fdf3"
+  },
+  "angle diagrams: angles-exterior-angle": {
+   "json": "c7adc7eb8afb83d3",
+   "svg": "4dc2a45946612889",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "c92d2c468e11c45c"
+  },
+  "angle diagrams: angles-exterior-angle (worked)": {
+   "json": "df92ece360775d13",
+   "svg": "8d4ec3e1c0678f01",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "2c9f5e2499e82046"
+  },
+  "angle diagrams: angles-parallel": {
+   "json": "79102fba45a9e137",
+   "svg": "a615968dd1fea637",
+   "mm": "84x57.4",
+   "png600": "1984x1356",
+   "pixels": "5e1429c93ad21c3a"
+  },
+  "angle diagrams: angles-parallel (worked)": {
+   "json": "a5dbb583b4b1d941",
+   "svg": "27ecdc2322ceb83b",
+   "mm": "84x57.4",
+   "png600": "1984x1356",
+   "pixels": "3493147bd571721a"
+  },
+  "angle diagrams: angles-point": {
+   "json": "f84d3f6389289bb3",
+   "svg": "ca0ccde576163e3a",
+   "mm": "61.8x66.9",
+   "png600": "1460x1580",
+   "pixels": "1964f0b739f9f90c"
+  },
+  "angle diagrams: angles-point (worked)": {
+   "json": "f882eaeb73b5da89",
+   "svg": "95ed34e9c7b75496",
+   "mm": "61.8x66.9",
+   "png600": "1460x1580",
+   "pixels": "5678f89654830a49"
+  },
+  "angle diagrams: angles-polygon-sum": {
+   "json": "3d9c564941147229",
+   "svg": "f0e34882cbbbbbc5",
+   "mm": "66x59",
+   "png600": "1559x1394",
+   "pixels": "666d0ec80b2d1696"
+  },
+  "angle diagrams: angles-polygon-sum (worked)": {
+   "json": "1e83faeec89468b8",
+   "svg": "b39f70c07211ace7",
+   "mm": "66x59",
+   "png600": "1559x1394",
+   "pixels": "18dcf90e6014e9af"
+  },
+  "angle diagrams: angles-regular-polygon": {
+   "json": "348b20d722fe77f7",
+   "svg": "ec904f32f1a88197",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "ade4c1a7a9424a9f"
+  },
+  "angle diagrams: angles-regular-polygon (worked)": {
+   "json": "ab6d47bf6551dcea",
+   "svg": "4fa429ca8be884c8",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "f7f25fa2e3c5c686"
+  },
+  "angle diagrams: angles-straight-line": {
+   "json": "2b51bdfd80a8db24",
+   "svg": "8b8c3c7186970334",
+   "mm": "82.2x46.4",
+   "png600": "1942x1096",
+   "pixels": "6986c1dbb8f6edc4"
+  },
+  "angle diagrams: angles-straight-line (worked)": {
+   "json": "8511379e26dc1597",
+   "svg": "d189c241cad74d65",
+   "mm": "82.2x46.4",
+   "png600": "1942x1096",
+   "pixels": "27322f284843fa58"
+  },
+  "angle diagrams: angles-vertically-opposite": {
+   "json": "8b06a8f31c990d71",
+   "svg": "0903ceebe401907a",
+   "mm": "69.8x76.6",
+   "png600": "1649x1809",
+   "pixels": "cb0de7db313d76e8"
+  },
+  "angle diagrams: angles-vertically-opposite (worked)": {
+   "json": "50bb536cece37732",
+   "svg": "471f1cb14cf219e5",
+   "mm": "69.8x76.6",
+   "png600": "1649x1809",
+   "pixels": "700f281cb8248521"
+  },
   "bar model: bar-BM01": {
    "json": "7b280091b4615306",
    "svg": "f8e747b98445d36d",

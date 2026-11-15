@@ -225,8 +225,7 @@ function rawGeometry(d: AngleDocument): Geometry {
     return g;
   }
   if (f.type === "parallel") {
-    const half = size / 2,
-      t = dir(f.crossDeg);
+    const t = dir(f.crossDeg);
     const segments: Segment[] = [],
       points: Geometry["points"] = {},
       slots: Slot[] = [];
@@ -234,6 +233,8 @@ function rawGeometry(d: AngleDocument): Geometry {
     const ys = Array.from({ length: f.count }, (_, k) => ((f.count - 1) / 2 - k) * f.gapMm);
     // Crossings sit on a line through the origin in the transversal's direction.
     const xs = ys.map((y) => (y * t.x) / t.y);
+    // The parallel lines always run on past every crossing, however steep the transversal.
+    const half = Math.max(size / 2, Math.max(...xs.map(Math.abs)) + 15);
     // Arrow marks sit at the same place on every line, on the side with more room from the crossings.
     const room = half - Math.max(...xs),
       roomLeft = half + Math.min(...xs);
@@ -330,7 +331,9 @@ export function validate(input: unknown): Envelope {
     if (path.includes("rays")) throw Error("Use 1 to 5 rays above a straight line (0 to 180 degrees) or 2 to 8 rays round a point (0 to 360 degrees).");
     if (path.includes("lines") && path.includes("figure")) throw Error("Use 2 or 3 crossing lines, each a direction from 0 to 180 degrees.");
     if (path.includes("text") || path.includes("answer")) throw Error(`Use labels of at most ${MAX_LABEL} characters without markup.`);
+    if (path.includes("corners") && path.length > 4) throw Error("Keep every corner within 200 mm of the centre.");
     if (path.includes("sides") || path.includes("corners") || path.includes("ticks")) throw Error(`Use a polygon of ${MIN_SIDES} to ${MAX_SIDES} sides.`);
+    if (path.includes("turnDeg")) throw Error("Turn the figure by 0 to 359 degrees.");
     if (path.includes("sizeMm")) throw Error("Choose a size from 30 to 140 mm.");
     throw Error(path.length ? `${path.join(".")}: ${issue.message}` : "This is not a supported angle diagram file (version 1 is supported).");
   }
@@ -364,6 +367,7 @@ export function validate(input: unknown): Envelope {
     const l = a.label;
     l.text = l.text.trim().replace(/\s+/g, " ");
     l.answer = l.answer.trim().replace(/\s+/g, " ");
+    if (l.state === "value" && l.answer) throw Error(`Angle ${a.id} is a given size, so it cannot hold a saved answer. Clear the answer or change the label.`);
     if ((l.state === "value" || l.state === "symbol") && !l.text) throw Error(`Angle ${a.id} is ${l.state === "value" ? "a given size" : "a letter"} but has no text. Type it, or make the label blank.`);
   }
   const points = new Set(pointIdsOf(d));
@@ -860,19 +864,32 @@ export function hitAnchors(e: Envelope): { id: string; name: string; at: P }[] {
 }
 
 /**
- * After rays are added or removed, keeps each label on the angle that starts at the same ray, so
- * labels never jump to another angle. An angle whose starting ray was removed loses its label.
- * Only for straight lines, points and crossing lines; other figures keep their IDs by meaning.
+ * After rays are added, removed or moved, keeps each label on the angle that starts at the same ray,
+ * and each point name on the ray end in the same direction, so nothing jumps to another angle or ray.
+ * An angle whose starting ray was removed loses its label. Only for straight lines, points and
+ * crossing lines; other figures keep their IDs by meaning.
  */
-export function remapRays(before: AngleDocument, after: AngleDocument): Angle[] {
-  if (before.figure.type !== after.figure.type || after.figure.type === "parallel" || after.figure.type === "polygon") return after.angles;
-  const old = new Map(rawGeometry(before).slots.map((s) => [s.id, s.start]));
-  const fresh = rawGeometry(after).slots;
-  const out: Angle[] = [];
+export function remapRays(before: AngleDocument, after: AngleDocument): Pick<AngleDocument, "angles" | "names"> {
+  const t = after.figure.type;
+  if (before.figure.type !== t || t === "parallel" || t === "polygon") return { angles: after.angles, names: after.names };
+  const same = (a: number, b: number) => Math.abs(norm(a - b + 180) - 180) < 1e-6;
+  const was = rawGeometry(before),
+    now = rawGeometry(after);
+  const old = new Map(was.slots.map((s) => [s.id, s.start]));
+  const angles: Angle[] = [];
   for (const a of before.angles) {
     const start = old.get(a.id);
-    const match = fresh.find((s) => start !== undefined && Math.abs(norm(s.start - start + 180) - 180) < 1e-6);
-    if (match && !out.some((x) => x.id === match.id)) out.push({ ...structuredClone(a), id: match.id });
+    const match = now.slots.find((s) => start !== undefined && same(s.start, start));
+    if (match && !angles.some((x) => x.id === match.id)) angles.push({ ...structuredClone(a), id: match.id });
   }
-  return out;
+  const names: AngleDocument["names"] = [];
+  for (const nm of before.names) {
+    let id: string | undefined = nm.id;
+    if (/^r\d+$/.test(nm.id)) {
+      const p = was.points[nm.id];
+      id = p ? Object.keys(now.points).find((k) => /^r\d+$/.test(k) && same(heading(now.points[k].at), heading(p.at))) : undefined;
+    } else if (!now.points[nm.id]) id = undefined;
+    if (id && !names.some((x) => x.id === id)) names.push({ id, text: nm.text });
+  }
+  return { angles, names };
 }

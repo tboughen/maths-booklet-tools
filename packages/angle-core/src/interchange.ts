@@ -110,6 +110,11 @@ function toAngle(input: AngleInput, base?: core.Angle): core.Angle {
 }
 function applySettings(d: core.AngleDocument, s: z.infer<typeof settings>) {
   const { fontPt, lines, ...rest } = s;
+  // An irregular polygon grows with the size, like a regular one (the editor does the same).
+  if (rest.sizeMm !== undefined && d.figure.type === "polygon" && d.figure.corners) {
+    const k = rest.sizeMm / d.sizeMm;
+    d.figure.corners = d.figure.corners.map((c) => ({ x: Math.round(c.x * k * 10) / 10, y: Math.round(c.y * k * 10) / 10 }));
+  }
   Object.assign(d, rest);
   if (fontPt !== undefined) d.fontPt = fontPt === 11 ? undefined : fontPt;
   if (lines !== undefined) d.lines = lines === "bold" ? "bold" : undefined;
@@ -154,9 +159,16 @@ export async function revise(input: unknown): Promise<core.Envelope> {
     if (op.op === "set_figure") {
       const next = structuredClone(e);
       next.document.figure = toFigure(op.figure, e.document.figure);
+      // Rays are kept in order; labels and names follow their rays, as in the editor.
+      const f = next.document.figure;
+      if (f.type === "crossing") f.lines.sort((a, b) => a - b);
+      if (f.type === "straight-line" || f.type === "point") f.rays.sort((a, b) => a - b);
+      Object.assign(next.document, core.remapRays(e.document, next.document));
       const kept = core.prune(next);
-      const lost = [...e.document.angles.filter((a) => !kept.document.angles.some((k) => k.id === a.id)).map((a) => a.id), ...e.document.names.filter((nm) => !kept.document.names.some((k) => k.id === nm.id)).map((nm) => nm.id)];
-      if (lost.length && !op.dropMissing) throw Error(`The new figure has no ${lost.join(", ")}. Pass dropMissing: true to remove those labels, or remove them first.`);
+      const lostAngles = e.document.angles.length - kept.document.angles.length,
+        lostNames = e.document.names.length - kept.document.names.length;
+      const lost = [...(lostAngles ? [`${lostAngles} labelled angle${lostAngles > 1 ? "s" : ""}`] : []), ...(lostNames ? [`${lostNames} point name${lostNames > 1 ? "s" : ""}`] : [])];
+      if (lost.length && !op.dropMissing) throw Error(`The new figure has no place for ${lost.join(" and ")}. Pass dropMissing: true to remove those labels, or remove them first.`);
       e = core.validate(kept);
     } else
       e = withDoc(e, (d) => {

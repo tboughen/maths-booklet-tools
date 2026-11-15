@@ -157,3 +157,31 @@ describe("angle diagram connector adapter", () => {
     expect(worked.document.angles.some((a) => a.label.answer)).toBe(true);
   });
 });
+
+describe("angle diagram review fixes", () => {
+  it("keeps labels and point names with their rays when rays are added or removed", () => {
+    const before = c.blank({ type: "straight-line", rays: [40, 120] });
+    before.document.angles = [c.angle("s1", c.label("40")), c.angle("s2", c.label("x", "symbol")), c.angle("s3", c.label("60"))];
+    before.document.names = [{ id: "r2", text: "C" }];
+    const after = structuredClone(before);
+    after.document.figure = { type: "straight-line", rays: [40, 90, 120] };
+    const r = c.remapRays(before.document, after.document);
+    expect(r.angles.map((a) => [a.id, a.label.text])).toEqual([["s1", "40"], ["s2", "x"], ["s4", "60"]]);
+    expect(r.names).toEqual([{ id: "r3", text: "C" }]);
+  });
+
+  it("runs parallel lines past every crossing, however steep the transversal", () => {
+    const e = c.blank({ type: "parallel", count: 3, gapMm: 24, crossDeg: 20, arrows: 1 });
+    const g = c.geometry(c.validate(e).document);
+    const line = g.segments[0];
+    for (const k of [1, 2, 3]) expect(Math.abs(g.points[`x${k}`].at.x)).toBeLessThan(Math.max(line.a.x, line.b.x));
+  });
+
+  it("refuses a saved answer on a given size, and names corners out of range", () => {
+    const e = c.blank();
+    e.document.angles = [c.angle("s1", c.label("62", "value", "62"))];
+    expect(() => c.validate(e)).toThrow(/cannot hold a saved answer/);
+    const far: c.Figure = { type: "polygon", sides: 3, corners: [{ x: 0, y: 0 }, { x: 500, y: 0 }, { x: 0, y: 20 }], exterior: [], diagonals: false, ticks: [0, 0, 0] };
+    expect(() => c.validate(c.blank(far))).toThrow(/200 mm/);
+  });
+});

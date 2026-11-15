@@ -241,7 +241,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     if (blocked) return false;
     const n = structuredClone(e);
     n.document.figure = next;
-    if (remap) n.document.angles = remapRays(d, n.document);
+    if (remap) Object.assign(n.document, remapRays(d, n.document));
     const kept = prune(n);
     const lost = d.angles.length - kept.document.angles.length;
     const ok = commit(kept, label);
@@ -351,7 +351,9 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
 
   const rays = f.type === "crossing" ? f.lines : f.type === "straight-line" || f.type === "point" ? f.rays : [];
   const rayRange = f.type === "straight-line" ? [5, 175] : f.type === "crossing" ? [0, 179] : [0, 359.9];
-  function withRays(list: number[]): Figure {
+  /** Rays are kept in order of direction, so "Ray 2" in the settings is always the second ray round. */
+  function withRays(unsorted: number[]): Figure {
+    const list = [...unsorted].sort((a, b) => a - b);
     if (f.type === "crossing") return { ...f, lines: list };
     if (f.type === "straight-line" || f.type === "point") return { ...f, rays: list };
     return f;
@@ -359,16 +361,18 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
   /** Moves one ray. It stays between its neighbours, so every label stays with its angle. */
   function moveRay(i: number, text: string) {
     const v = num(text);
+    // Rays are saved in order, so a ray stays between its neighbours (and never wraps past 0°).
     const sorted = [...rays].sort((a, b) => a - b),
-      at = sorted.indexOf(rays[i]);
-    const lo = at > 0 ? sorted[at - 1] + 5 : f.type === "point" ? sorted[sorted.length - 1] - 355 : rayRange[0];
-    const hi = at < sorted.length - 1 ? sorted[at + 1] - 5 : f.type === "point" ? sorted[0] + 355 : rayRange[1];
+      at = i;
+    const gapAcross = f.type === "point" ? 360 : f.type === "crossing" ? 180 : 0;
+    const lo = Math.max(rayRange[0], at > 0 ? sorted[at - 1] + 5 : gapAcross ? sorted[sorted.length - 1] - gapAcross + 5 : rayRange[0]);
+    const hi = Math.min(rayRange[1], at < sorted.length - 1 ? sorted[at + 1] - 5 : gapAcross ? sorted[0] + gapAcross - 5 : rayRange[1]);
     if (!Number.isFinite(v) || v < lo || v > hi) {
-      setMessage(`Give a direction from ${Math.max(rayRange[0], Math.ceil(lo))} to ${Math.min(rayRange[1], Math.floor(hi))}°, between the neighbouring ${f.type === "crossing" ? "lines" : "rays"}, so every label stays with its angle.`);
+      setMessage(`Give a direction from ${Math.ceil(lo)} to ${Math.floor(hi)}°, between the neighbouring ${f.type === "crossing" ? "lines" : "rays"}, so every label stays with its angle.`);
       return false;
     }
-    const list = [...rays];
-    list[i] = ((v % 360) + 360) % 360;
+    const list = [...sorted];
+    list[at] = v;
     return setFigure(withRays(list), "move ray");
   }
   /** Adds a ray in the middle of the widest angle. */
@@ -381,7 +385,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     setFigure(withRays([...rays, v]), f.type === "crossing" ? "add line" : "add ray", true);
   }
   function removeRay(i: number) {
-    setFigure(withRays(rays.filter((_, k) => k !== i)), f.type === "crossing" ? "remove line" : "remove ray", true);
+    const sorted = [...rays].sort((a, b) => a - b);
+    setFigure(withRays(sorted.filter((_, k) => k !== i)), f.type === "crossing" ? "remove line" : "remove ray", true);
   }
   function changeKind(kind: FigureKind) {
     if (kind === f.type) return;
@@ -545,6 +550,10 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                         disabled={blocked}
                         onChange={(ev) => {
                           const state = ev.target.value as LabelState;
+                          if (state === "value" && marked?.label.answer) {
+                            setMessage("A given size prints on both copies, so it cannot keep a saved answer. Clear the saved answer first.");
+                            return;
+                          }
                           if ((state === "value" || state === "symbol") && !marked?.label.text) {
                             setMessage(state === "value" ? "Type the given size first, such as 62 or 2x + 10." : "Type the letter first, such as x.");
                             return;
@@ -570,7 +579,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                             a.label.text = v.trim();
                             // Typing a size or a letter shows it; clearing it leaves an arc.
                             if (!a.label.text && (a.label.state === "value" || a.label.state === "symbol")) a.label.state = "blank";
-                            else if (a.label.text && (a.label.state === "blank" || a.label.state === "hidden" || a.label.state === "answer-line")) a.label.state = /\d/.test(a.label.text) ? "value" : "symbol";
+                            // Typing on a plain arc shows the text; hidden and answer-line labels stay as they are.
+                            else if (a.label.text && a.label.state === "blank") a.label.state = /\d/.test(a.label.text) && !a.label.answer ? "value" : "symbol";
                           }, "edit label")
                         }
                       />
@@ -651,7 +661,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                   <p className="pt-note">
                     Directions are in degrees, anticlockwise from the right{f.type === "straight-line" ? ", between 5 and 175 above the line" : ""}. The drawing does not have to match the sizes you print.
                   </p>
-                  {rays.map((r, i) => (
+                  {[...rays].sort((a, b) => a - b).map((r, i) => (
                     <div key={i} className="pt-row ang-ray">
                       <label>
                         {f.type === "crossing" ? `Line ${i + 1}` : `Ray ${i + 1}`}
@@ -922,7 +932,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                     disabled={blocked}
                     onCommit={(v) => {
                       const x = num(v);
-                      if (!(x >= 0 && x < 360)) {
+                      if (!(x >= 0 && x <= 359)) {
                         setMessage("Turn the figure by 0 to 359°.");
                         return false;
                       }
