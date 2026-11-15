@@ -59,7 +59,8 @@ test("a starred tool waits in the switcher and on the Diagram builder page", asy
   await expect(shown(page).locator(".tool-favourites").getByRole("link", { name: "Open Venn diagrams" })).toBeVisible();
 });
 
-for (const width of [1920, 820, 390])
+// 1000 px is the narrowest window that still shows four columns.
+for (const width of [1920, 1000, 820, 390])
   test(`the open switcher stays inside the window at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 1920 ? 1080 : 900 });
     await page.goto("/tools/sample-space");

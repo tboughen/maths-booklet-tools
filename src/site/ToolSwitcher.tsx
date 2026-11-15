@@ -7,7 +7,6 @@ import { catalogue, searchTool, strands } from "./toolCatalogue";
 
 type Tool = (typeof bookletTools)[number];
 
-
 /**
  * A diagram tool's heading. The name is a button that opens a switcher: search, favourite tools
  * and every tool grouped by strand, so any tool is one click and one choice away

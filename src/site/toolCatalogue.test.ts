@@ -21,6 +21,9 @@ describe("Diagram builder catalogue", () => {
     expect(searchTool(tool("triangle", "Triangles"), "triangles")).toEqual({ found: true, matched: "" });
     expect(searchTool(tool("venn", "Venn diagrams"), "pythagoras").found).toBe(false);
     expect(searchTool(tool("venn", "Venn diagrams"), "  ")).toEqual({ found: true, matched: "" });
+    // A strand's name finds its tools, and the heading already says why.
+    expect(searchTool(tool("graph", "Graph tool"), "algebra")).toEqual({ found: true, matched: "" });
+    expect(searchTool(tool("venn", "Venn diagrams"), "algebra").found).toBe(false);
   });
   it("shows the New badge for 30 days after a tool is added", () => {
     expect(isNew("angles", new Date("2026-11-20"))).toBe(true);

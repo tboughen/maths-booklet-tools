@@ -53,7 +53,9 @@ export function searchTool(tool: ToolText, query: string): { found: boolean; mat
   const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   if (!words.length) return { found: true, matched: "" };
   const entry = catalogue[tool.id];
-  const text = `${tool.name} ${tool.description} ${entry.keywords} ${entry.topics.join(" ")}`.toLocaleLowerCase();
+  // The strand's own name finds its tools too: "algebra" finds the graph tools.
+  const strand = strands.find((s) => s.id === entry.strand)!.name;
+  const text = `${tool.name} ${tool.description} ${entry.keywords} ${entry.topics.join(" ")} ${strand}`.toLocaleLowerCase();
   if (!words.every((word) => text.includes(word))) return { found: false, matched: "" };
   const name = tool.name.toLocaleLowerCase();
   if (words.every((word) => name.includes(word))) return { found: true, matched: "" };
