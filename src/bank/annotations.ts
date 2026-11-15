@@ -5,7 +5,11 @@
  */
 export type AnnotationTool = "hand" | "pen" | "highlighter" | "eraser" | "laser";
 export type StrokeKind = "pen" | "highlighter";
-export interface Stroke { id: string; kind: StrokeKind; colour: string; size: number; points: [number, number][] }
+/**
+ * `scale` is the zoom the stroke was drawn at, which fixes how fast the pen was moving on screen and so how wide the ink
+ * is. `ruled` strokes (straight lines and snapped shapes) are drawn at an even width through their exact points.
+ */
+export interface Stroke { id: string; kind: StrokeKind; colour: string; size: number; scale: number; points: [number, number][]; ruled?: boolean }
 
 export const PEN_COLOURS = [
   // Cheerful but still at least 3:1 against white, so they read on a projector.
@@ -92,6 +96,13 @@ export function strokePath(points: [number, number][]): string {
   }
   const last = points[points.length - 1];
   return d + `L${f(last[0])} ${f(last[1])}`;
+}
+
+/** Straight segments through the points, for ruled strokes whose corners must stay sharp. */
+export function polylinePath(points: [number, number][]): string {
+  const f = (n: number) => Math.round(n * 100) / 100;
+  if (points.length === 1) { const [x, y] = points[0]; return `M${f(x)} ${f(y)}L${f(x + 0.01)} ${f(y)}`; }
+  return points.map(([x, y], i) => `${i ? "L" : "M"}${f(x)} ${f(y)}`).join("");
 }
 
 /** Drops points closer than `minimum` to the previous kept point, so long strokes stay light. */

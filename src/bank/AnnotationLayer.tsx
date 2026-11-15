@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { addPoint, isStylusEraser, strokePath, touchesStroke, type AnnotationTool, type Stroke, type StrokeKind } from "./annotations";
+import { memo, useEffect, useRef, useState } from "react";
+import { addPoint, isStylusEraser, polylinePath, strokePath, touchesStroke, type AnnotationTool, type Stroke, type StrokeKind } from "./annotations";
+import { highlighterLine, penOutline } from "./inkShape";
 
 export interface AnnotationSettings {
   tool: AnnotationTool;
@@ -25,6 +26,8 @@ interface Props {
 export type ClaimedPointerEvent = PointerEvent & { qbClaimed?: boolean };
 
 const ERASER_RADIUS = 9;
+// Points closer than this on screen to the last kept one are skipped; the shaping smooths between them.
+const CAPTURE_SPACING = 2;
 const LASER_LIFE = 900;
 // Controls that sit on the stage (zoom bar, overview map, error messages) keep their own clicks.
 const MARGIN_IGNORE = "button,a,input,select,textarea,summary,label,[role=alert],.qb-view-error,.qb-overview,.qb-zoom";
@@ -40,7 +43,7 @@ let strokeCount = 0;
 const touchDrops = new Set<() => void>();
 
 type Draft =
-  | { tool: "draw"; kind: StrokeKind; id: number; type: string; points: [number, number][]; start: [number, number] }
+  | { tool: "draw"; kind: StrokeKind; id: number; type: string; points: [number, number][]; start: [number, number]; ruled: boolean; predicted: [number, number][] }
   | { tool: "erase"; id: number; type: string; radius: number; erased: Set<string> }
   | { tool: "laser"; id: number; type: string };
 
@@ -55,6 +58,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     const el = svg.current;
     if (!el || !active) return;
     let current: Draft | undefined;
+    let settle = 0;
     const set = (next: Draft | undefined) => { current = next; setDraft(next ? { ...next } as Draft : undefined); };
     const at = (event: PointerEvent): [number, number] => {
       const rect = el.getBoundingClientRect(), s = live.current.scale || 1;
@@ -101,7 +105,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
         set({ tool: "laser", id: event.pointerId, type: event.pointerType });
         setTrails(t => [...t, { id: event.pointerId, points: [[point[0], point[1], performance.now()]] }]);
       } else {
-        set({ tool: "draw", kind: tool, id: event.pointerId, type: event.pointerType, points: [point], start: point });
+        set({ tool: "draw", kind: tool, id: event.pointerId, type: event.pointerType, points: [point], start: point, ruled: false, predicted: [] });
       }
     };
     const move = (event: PointerEvent) => {
@@ -114,10 +118,16 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
         setTrails(t => t.map(trail => trail.id === id ? { ...trail, points: [...trail.points, ...points.map(p => [p[0], p[1], now] as [number, number, number])] } : trail));
         return;
       }
-      if (live.current.settings.straight || event.shiftKey) { set({ ...current, points: [current.start, points[points.length - 1]] }); return; }
+      if (live.current.settings.straight || event.shiftKey) { set({ ...current, points: [current.start, points[points.length - 1]], ruled: true, predicted: [] }); return; }
       let next = current.points;
-      for (const p of points) next = addPoint(next, p, 0.6 / Math.max(1, live.current.scale));
-      if (next !== current.points) set({ ...current, points: next });
+      for (const p of points) next = addPoint(next, p, CAPTURE_SPACING / Math.max(live.current.scale, 0.01));
+      // The browser's guess at where the pen goes next is drawn on the end of the live stroke to hide lag, and is
+      // replaced by each new reading, so it is never kept.
+      const predicted = (event.getPredictedEvents?.() ?? []).slice(0, 2).map(at);
+      if (next !== current.points || predicted.length || current.predicted.length || current.ruled) set({ ...current, points: next, ruled: false, predicted });
+      // If the pen comes to rest, take the guess away rather than leave it overshooting until the pen lifts.
+      clearTimeout(settle);
+      if (predicted.length) settle = window.setTimeout(() => { if (current?.tool === "draw" && current.predicted.length) set({ ...current, predicted: [] }); }, 60);
     };
     const up = (event: PointerEvent) => {
       if (!current || event.pointerId !== current.id) return;
@@ -128,7 +138,10 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
       if (done.tool === "erase") { if (done.erased.size) commit(existing.filter(stroke => !done.erased.has(stroke.id))); return; }
       if (done.tool === "laser") return;
       const highlighter = done.kind === "highlighter";
-      commit([...existing, { id: `s${Date.now().toString(36)}-${strokeCount++}`, kind: done.kind, colour: highlighter ? s.highlighterColour : s.penColour, size: highlighter ? s.highlighterSize : s.penSize, points: done.points }]);
+      // The pen's last position is kept even when it was too close to the previous point to be captured.
+      const last = at(event), points = done.ruled ? done.points : [...done.points];
+      if (!done.ruled && points.length > 1) { const end = points[points.length - 1]; if (end[0] !== last[0] || end[1] !== last[1]) points.push(last); }
+      commit([...existing, { id: `s${Date.now().toString(36)}-${strokeCount++}`, kind: done.kind, colour: highlighter ? s.highlighterColour : s.penColour, size: highlighter ? s.highlighterSize : s.penSize, scale: live.current.scale || 1, points, ...(done.ruled ? { ruled: true } : {}) }]);
     };
     // The white space around the page is part of the board too: a pen-down there draws on the nearest page,
     // whose layer then takes the pointer, so the stroke can run on and off the page freely.
@@ -153,6 +166,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", up);
     return () => {
+      clearTimeout(settle);
       touchDrops.delete(dropTouch);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
@@ -179,11 +193,22 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
   const visible = erased?.size ? strokes.filter(stroke => !erased.has(stroke.id)) : strokes;
   if (!active && !visible.length && !trails.length) return null;
   const s = settings;
-  const pending = draft?.tool === "draw" ? { kind: draft.kind, colour: draft.kind === "highlighter" ? s.highlighterColour : s.penColour, size: draft.kind === "highlighter" ? s.highlighterSize : s.penSize, points: draft.points } : undefined;
-  const path = (stroke: { colour: string; size: number; points: [number, number][] }, key: string) => <path key={key} d={strokePath(stroke.points)} stroke={stroke.colour} strokeWidth={stroke.size} fill="none" strokeLinecap="round" strokeLinejoin="round"/>;
+  const pending: Stroke | undefined = draft?.tool === "draw" ? { id: "pending", kind: draft.kind, colour: draft.kind === "highlighter" ? s.highlighterColour : s.penColour, size: draft.kind === "highlighter" ? s.highlighterSize : s.penSize, scale: scale || 1, points: draft.predicted.length ? [...draft.points, ...draft.predicted] : draft.points, ruled: draft.ruled } : undefined;
+  const path = (stroke: Stroke, key: string) => <InkPath key={key} stroke={stroke}/>;
   return <svg ref={svg} className={`qb-annotations${active ? ` qb-annotating qb-tool-${s.tool}` : ""}`} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true" data-strokes={visible.length}>
     <g className="qb-ink-highlighter">{visible.filter(stroke => stroke.kind === "highlighter").map(stroke => path(stroke, stroke.id))}{pending?.kind === "highlighter" && path(pending, "pending")}</g>
     <g className="qb-ink-pen">{visible.filter(stroke => stroke.kind === "pen").map(stroke => path(stroke, stroke.id))}{pending?.kind === "pen" && path(pending, "pending")}</g>
     <g className="qb-ink-laser">{trails.map(trail => <path key={trail.id} d={strokePath(trail.points.map(p => [p[0], p[1]]))} stroke="#ff2a2a" strokeWidth={5 / Math.max(scale, 0.01)} fill="none" strokeLinecap="round" strokeLinejoin="round"/>)}</g>
   </svg>;
 }
+
+/**
+ * One stroke of ink. Freehand pen ink is a filled, smoothed outline that is thicker when slow and tapers at the ends,
+ * with a hairline edge so it looks crisp; the highlighter is a smoothed even line; ruled strokes go exactly through
+ * their points. Finished strokes are memoised, so only the stroke being drawn is reshaped on each move.
+ */
+const InkPath = memo(function InkPath({ stroke }: { stroke: Stroke }) {
+  if (stroke.ruled) return <path d={polylinePath(stroke.points)} stroke={stroke.colour} strokeWidth={stroke.size} fill="none" strokeLinecap="round" strokeLinejoin="round"/>;
+  if (stroke.kind === "highlighter") return <path d={highlighterLine(stroke.points)} stroke={stroke.colour} strokeWidth={stroke.size} fill="none" strokeLinecap="round" strokeLinejoin="round"/>;
+  return <path d={penOutline(stroke.points, stroke.size, stroke.scale)} fill={stroke.colour} stroke={stroke.colour} strokeWidth={0.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round"/>;
+});
