@@ -52,7 +52,7 @@ export const barConfig = {
   ].join("\n"),
   reviseDescription: [
     "Revises a bar model. Send the exact returned envelope with baseHash=contentHash; up to 30 operations apply together or not at all. Use the stable returned IDs.",
-    "RULES: no implicit maths, answer reveal or resizing from labels. move_or_copy_label onto a label that already has text or a non-blank state needs overwrite:true. Removing structure an annotation refers to needs discardSpans:true or removing the annotation first; anchors never reattach. Empty operations refresh files and links.",
+    "RULES: no implicit maths, answer reveal or resizing from labels. move_or_copy_label onto a label that already has text or a non-blank state needs overwrite:true. Removing or replacing structure that annotations, labels or fills use needs discardSpans:true (remove_bar, remove_part), discardContent:true (equal_sections with a new count) or removing the annotation first; anchors never reattach. Empty operations refresh files and links.",
     "LABELS: set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to,mode:move|copy,overwrite?:false}; set_quantity_name{barId,label}; set_title{label|null}.",
     "ANNOTATIONS AND CAPTIONS: set_annotation{annotation}; remove_annotation{annotationId}; add_caption/update_caption{caption}; remove_caption{captionId}.",
     "STRUCTURE: equal_sections{barId,count,discardContent?:false}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}; remove_bar{barId,discardSpans?:false}; remove_part{barId,partId,discardSpans?:false}; set_alignment{barId,offset}.",
