@@ -74,8 +74,16 @@ export const scatterAxisSchema = z
     title: plain(40),
     /** Length of the axis on paper. */
     mm: z.number().int().min(SCATTER_MM.minimum).max(SCATTER_MM.maximum),
+    /** A zig-zag on the axis next to the corner, for an axis that does not start at 0. */
+    broken: z.boolean(),
   })
   .strict();
+export const scatterTableChoices = ["none", "all", "plot"] as const;
+export const scatterTableNames: Record<(typeof scatterTableChoices)[number], string> = {
+  none: "No table",
+  all: "All points",
+  plot: "Only the points pupils plot",
+};
 const coordinate = z.object({ x: z.string().max(12), y: z.string().max(12) }).strict();
 export const bestFitSchema = z.object({ from: coordinate, to: coordinate, show: shown }).strict();
 export const scatterSchema = z
@@ -91,6 +99,8 @@ export const scatterSchema = z
     bestFit: bestFitSchema.optional(),
     /** Dashed guides from a value on one axis to the line of best fit and across to the other. */
     readings: z.array(z.object({ axis: z.enum(["x", "y"]), value: z.string().max(12), show: shown }).strict()).max(MAX_READINGS),
+    /** A table of the points' values above the graph, as the papers print the data to plot. */
+    table: z.enum(scatterTableChoices),
   })
   .strict();
 export type ScatterSettings = z.infer<typeof scatterSchema>;
@@ -99,11 +109,12 @@ export type ScatterPoint = ScatterSettings["points"][number];
  * paper. It has no points, so switching kind never draws data nobody entered. */
 export const SCATTER_DEFAULTS: ScatterSettings = {
   points: [],
-  xAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
-  yAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
+  xAxis: { min: "0", max: "10", step: "1", title: "", mm: 100, broken: false },
+  yAxis: { min: "0", max: "10", step: "1", title: "", mm: 100, broken: false },
   grid: "fine",
   minor: 5,
   readings: [],
+  table: "none",
 };
 export const scatterOf = (d: { scatter?: ScatterSettings }): ScatterSettings => d.scatter ?? SCATTER_DEFAULTS;
 
@@ -116,6 +127,11 @@ export const revealed = (c: object) => REVEALED.has(c);
 const ANSWER_KEY = new WeakSet<object>();
 export const markAnswerKey = (c: object) => void ANSWER_KEY.add(c);
 export const answerKey = (c: object) => ANSWER_KEY.has(c);
+/** Scatter points an answer view shows only because they were saved hidden, whether or not
+ * the view is marked pink: a table of only the points pupils plot still lists them. */
+const TO_PLOT = new WeakSet<object>();
+export const markToPlot = (c: object) => void TO_PLOT.add(c);
+export const toPlot = (c: object) => TO_PLOT.has(c);
 /** A pictogram whose key value is hidden for pupils to complete. */
 export const pictogramKeyHidden = (d: { kind: string; pictogram?: PictogramSettings }) =>
   d.kind === "pictogram" && d.pictogram?.key.show === "hidden";
