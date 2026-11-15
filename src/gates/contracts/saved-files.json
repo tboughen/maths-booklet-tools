@@ -909,7 +909,8 @@
               "dual",
               "composite",
               "vline",
-              "pie"
+              "pie",
+              "pictogram"
             ]
           },
           "categories": {
@@ -1083,6 +1084,55 @@
             "required": [
               "radiusMm",
               "labels"
+            ],
+            "additionalProperties": false
+          },
+          "pictogram": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "enum": [
+                  "circle",
+                  "square"
+                ]
+              },
+              "symbolMm": {
+                "type": "integer",
+                "minimum": 6,
+                "maximum": 14
+              },
+              "key": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "value",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              "unit": {
+                "type": "string",
+                "maxLength": 24
+              }
+            },
+            "required": [
+              "symbol",
+              "symbolMm",
+              "key",
+              "unit"
             ],
             "additionalProperties": false
           }

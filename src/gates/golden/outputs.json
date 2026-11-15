@@ -366,6 +366,34 @@
    "png600": "3976x1932",
    "pixels": "1e5ceb2f84c8b7f0"
   },
+  "charts: chart-pictogram-cycles": {
+   "json": "a8a29ecd3444845f",
+   "svg": "9036d438ede8f400",
+   "mm": "155.6x74",
+   "png600": "3676x1748",
+   "pixels": "df9c281cba11c0e5"
+  },
+  "charts: chart-pictogram-cycles (worked)": {
+   "json": "2b50c42fbbc94135",
+   "svg": "31f97ce3abdcc782",
+   "mm": "143.5x74",
+   "png600": "3390x1748",
+   "pixels": "26eca457840ff864"
+  },
+  "charts: chart-pictogram-pictures": {
+   "json": "643e48944e9c0cdb",
+   "svg": "a98a8b00bfe225f0",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "633e6a1ee5958d3e"
+  },
+  "charts: chart-pictogram-pictures (worked)": {
+   "json": "4294c1f1ffd65b91",
+   "svg": "1e2f3add5421580a",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "cc641a11718967a5"
+  },
   "charts: chart-pie-complete": {
    "json": "afefc206d2a7a4bd",
    "svg": "acb544cb6296ec23",

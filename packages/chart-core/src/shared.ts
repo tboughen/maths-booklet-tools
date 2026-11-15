@@ -27,10 +27,40 @@ export type PieSettings = z.infer<typeof pieSchema>;
 export const PIE_DEFAULTS: PieSettings = { radiusMm: PIE_RADIUS.standard, labels: "name" };
 export const pieOf = (d: { pie?: PieSettings }): PieSettings => d.pie ?? PIE_DEFAULTS;
 
+/** Pictogram symbols. Parts are exact: a sector of a circle, or the left part of a square drawn
+ * open on its right, as Edexcel prints them. */
+export const symbolChoices = ["circle", "square"] as const;
+export type PictogramSymbol = (typeof symbolChoices)[number];
+export const symbolNames: Record<PictogramSymbol, string> = { circle: "Circle", square: "Square" };
+export const SYMBOL_MM = { minimum: 6, maximum: 14, standard: 10 } as const;
+export const MAX_SYMBOLS = 20;
+export const pictogramSchema = z
+  .object({
+    symbol: z.enum(symbolChoices),
+    symbolMm: z.number().int().min(SYMBOL_MM.minimum).max(SYMBOL_MM.maximum),
+    /** What one whole symbol represents. Hidden leaves an answer line in the key for pupils. */
+    key: z.object({ value: z.string().max(12), show: z.enum(["show", "hidden"]) }).strict(),
+    /** Printed after the key value: "represents 8 pictures". */
+    unit: z
+      .string()
+      .max(24)
+      .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"), "Use ordinary text without markup."),
+  })
+  .strict();
+export type PictogramSettings = z.infer<typeof pictogramSchema>;
+/** The pictogram settings used when a document has none saved. */
+export const PICTOGRAM_DEFAULTS: PictogramSettings = { symbol: "circle", symbolMm: SYMBOL_MM.standard, key: { value: "4", show: "show" }, unit: "" };
+export const pictogramOf = (d: { pictogram?: PictogramSettings }): PictogramSettings => d.pictogram ?? PICTOGRAM_DEFAULTS;
+
 /** Cells an answer view draws only because they were saved hidden. */
 const REVEALED = new WeakSet<object>();
 export const markRevealed = (c: object) => void REVEALED.add(c);
 export const revealed = (c: object) => REVEALED.has(c);
+/** Pictogram keys an answer view shows only because they were saved hidden, marked or not, so
+ * both copies keep the key's answer-line width. */
+const WAS_HIDDEN = new WeakSet<object>();
+export const markWasHidden = (c: object) => void WAS_HIDDEN.add(c);
+export const wasHidden = (c: object) => WAS_HIDDEN.has(c);
 /** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
 export const CHART_ANSWER_COLOUR = "#b0125b";
 

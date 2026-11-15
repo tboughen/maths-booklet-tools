@@ -139,4 +139,38 @@ export const examples: {
         worked,
       ),
   },
+  {
+    id: "pictogram-pictures",
+    title: "November 2019 1F Q6: read and complete a pictogram",
+    note: "Pictures sold in an art shop, with squares for 8 pictures. Part (b) gives 12 pictures in April, so the April row is saved as a hidden answer.",
+    sourceId: "1MA1_NOV_2019_1F_Q6",
+    worked: true,
+    make: (worked) =>
+      chart(
+        "pictogram",
+        ["January", "February", "March", "April"],
+        [{ name: "pictures", fill: "white", values: ["24", "28", "20", "12"], hidden: [3] }],
+        { min: "0", max: "30", step: "5", minor: 1 },
+        { yTitle: "", xTitle: "", grid: "major", key: false, heightMm: 60, barMm: 7, pictogram: { symbol: "square", symbolMm: 10, key: { value: "8", show: "show" }, unit: "pictures" } },
+        worked,
+      ),
+  },
+  {
+    id: "pictogram-cycles",
+    title: "November 2017 3F Q6: complete a pictogram and its key",
+    note: "Cycles sold, with 20 sold on Tuesday to Thursday. The key (one circle for 4 cycles) and the Friday (8) and Saturday (15) rows are saved as hidden answers.",
+    sourceId: "1MA1_NOV_2017_3F_Q6",
+    worked: true,
+    make: (worked) => {
+      const e = chart(
+        "pictogram",
+        ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        [{ name: "cycles", fill: "white", values: ["4", "10", "6", "8", "15"], hidden: [3, 4] }],
+        { min: "0", max: "16", step: "2", minor: 1 },
+        { yTitle: "", xTitle: "", grid: "major", key: false, heightMm: 60, barMm: 7, pictogram: { symbol: "circle", symbolMm: 10, key: { value: "4", show: worked ? "show" : "hidden" }, unit: "cycles" } },
+        worked,
+      );
+      return e;
+    },
+  },
 ];

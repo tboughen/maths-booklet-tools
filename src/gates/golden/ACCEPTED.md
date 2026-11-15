@@ -466,3 +466,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2017_3F_Q13 (worked): json edd91e3824371975 -> d106633b195329f2
 - graph: graph-1MA1_NOV_2021_1F_Q18: json 320cb0f7ac481726 -> 6b1d6f131727bc66
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): json 50094a4dd9cdab15 -> f3131ffaec134c16
+
+## 2026-11-15: Pictograms added to Statistical charts: four new pictogram example outputs, no existing output changed
+
+- charts: chart-pictogram-pictures: added
+- charts: chart-pictogram-pictures (worked): added
+- charts: chart-pictogram-cycles: added
+- charts: chart-pictogram-cycles (worked): added
