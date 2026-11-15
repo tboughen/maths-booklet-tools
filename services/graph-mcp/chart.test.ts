@@ -67,7 +67,7 @@ it("advertises chart tools with homogeneous schemas", async () => {
   expect(JSON.stringify(revise.inputSchema)).not.toContain('"prefixItems"');
   const caps = await c.callTool({ name: "chart_capabilities", arguments: {} });
   const text = (caps.content as { text: string }[])[0].text;
-  expect(JSON.parse(text).kinds).toEqual(["bar", "dual", "composite", "vline", "pie", "pictogram"]);
+  expect(JSON.parse(text).kinds).toEqual(["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter"]);
 });
 
 // One test per example: each renders SVG and a 600 ppi PNG through the real service.

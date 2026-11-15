@@ -2,7 +2,7 @@
 
 `/tools/charts` (called "Bar and line charts" until 15 Nov 2026) makes the statistical charts
 in GCSE Foundation papers: bar charts, dual (comparative) bar charts, composite (stacked) bar
-charts, vertical line charts, pie charts and pictograms. Browser editing and export need no service; the optional MCP connector adds
+charts, vertical line charts, pie charts, pictograms and scatter graphs. Browser editing and export need no service; the optional MCP connector adds
 `diagram_capabilities` (kind `charts`), `create_diagram` (kind `charts`) and `revise_diagram` (kind `charts`) (see below).
 
 ## Why one tool
@@ -12,6 +12,10 @@ and step, a grid and a key. Exam questions move between them ("draw a dual bar c
 "complete the composite bar chart", "show this information on the graph"), so the chart type
 is a setting of one document (`kind`). Switching type never discards data: a bar chart or
 vertical line chart draws only the first data set and says that the others are kept.
+
+Scatter graphs are a kind too (15 Nov 2026), so they share the editor, files, links, answers
+copies and connector family, but they keep their own data (`scatter`): points on two numerical
+axes do not fit the category table.
 
 Time series graphs and frequency polygons join plotted points on a time or continuous axis
 (class midpoints for frequency polygons). Tim decided on 6 Nov 2026 that each gets its own
@@ -93,6 +97,32 @@ A pictogram is another kind of the same document: one row per category from the 
 - **Not yet:** a frequency column inside the pictogram, other symbols (stick figures), and
   horizontal pictograms.
 
+## Scatter graphs
+
+- **Drawing (Edexcel style):** crosses on graph paper with arrowed axes numbered at every step,
+  the vertical axis title to the left and the horizontal title below. Axes may start away from 0.
+- **Settings (`scatter`):** up to 40 points `{x, y, show, ring}`; `xAxis` and `yAxis` (start, end,
+  step, title and length 40–160 mm on paper); grid (none, lines at each step, graph paper) with
+  small squares per step; an optional line of best fit; up to 3 readings. Without `scatter` a
+  scatter graph starts from eight points on 0–10 axes.
+- **Line of best fit:** the teacher gives two points it passes through and it is drawn across the
+  grid. Nothing is fitted automatically.
+- **Readings:** dashed guides from a value on one axis to the line of best fit and across to the
+  other axis. The value read off is never printed.
+- **Pupil states:** a hidden point is left for pupils to plot, a hidden line for pupils to draw, a
+  hidden reading for pupils to read. Answers copies draw them in pink. A ring circles an outlier
+  (and is hidden with its point). **Hide all points** hides every point; **Show all** shows
+  everything.
+- **Validation:** coordinates must be numbers inside the axes; each axis needs a start below its
+  end and a step that divides the range (at most 40 steps); a reading needs a line of best fit
+  that is inside the grid at that value.
+- **Editor:** Points, Axes and grid, and Line of best fit and readings cards replace the Data and
+  axes cards. Clicking a cross focuses its x value; the round + and − beside the graph add or
+  remove the last point.
+- **Examples:** Mock set 8 3F Q21 (plot a point, line of best fit and an estimate, all hidden) and
+  a "plot a scatter graph from a table" teaching example.
+- **Not yet:** a printed data table, correlation captions, and a broken-axis symbol.
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
@@ -100,7 +130,7 @@ Lines are normal or bold (the Lines control beside Chart height). Bold multiplie
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, time series graphs,
-frequency polygons, scatter graphs, comparative pie charts of different sizes and histograms. Each would be a separate, reviewed extension or tool.
+frequency polygons, comparative pie charts of different sizes and histograms. Each would be a separate, reviewed extension or tool.
 
 ## MCP connector
 
@@ -115,8 +145,9 @@ frequency polygons, scatter graphs, comparative pie charts of different sizes an
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
-  (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`) merge
-  with the current settings.
+  (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`) and `presentation.scatter`
+  (`points`, `xAxis`, `yAxis`, `grid`, `minor`, `bestFit`, `readings`) merge field by field with the
+  current settings; a given `points` array replaces every point.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain

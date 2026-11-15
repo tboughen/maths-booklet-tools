@@ -335,7 +335,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],

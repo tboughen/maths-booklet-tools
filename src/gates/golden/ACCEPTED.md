@@ -473,3 +473,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-pictogram-pictures (worked): added
 - charts: chart-pictogram-cycles: added
 - charts: chart-pictogram-cycles (worked): added
+
+## 2026-11-15: Scatter graphs added to Statistical charts: four new scatter example outputs, no existing output changed
+
+- charts: chart-scatter-judges: added
+- charts: chart-scatter-judges (worked): added
+- charts: chart-scatter-plot: added
+- charts: chart-scatter-plot (worked): added
