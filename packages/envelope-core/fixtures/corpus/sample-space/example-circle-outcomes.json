@@ -47,7 +47,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "3",
@@ -81,7 +82,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "3",
@@ -99,7 +101,8 @@
     "cells": [
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "1",
@@ -115,7 +118,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "3",
@@ -133,7 +137,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "1",
@@ -149,7 +154,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      }
     ]
    },
@@ -167,7 +173,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "1",
@@ -201,7 +208,8 @@
      },
      {
       "text": "2",
-      "show": "show"
+      "show": "show",
+      "ring": "hidden"
      },
      {
       "text": "1",

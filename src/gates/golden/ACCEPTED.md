@@ -349,3 +349,7 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - factor trees: ft-product-of-primes (worked): added
 - factor trees: ft-spot-the-mistake: added
 - factor trees: ft-spot-the-mistake (worked): added
+
+## 2026-11-15: Factor trees and sample space: answers-only circles
+
+- sample space diagrams: ss-circle-outcomes: json 6300c8fa508f4393 -> 3039054869113f6b

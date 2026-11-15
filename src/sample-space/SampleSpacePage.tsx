@@ -580,6 +580,17 @@ export default function SampleSpacePage({ active = true }: { active?: boolean })
                     />
                     Circle this outcome
                   </label>
+                  {selectedCell.ring ? (
+                    <label className="pt-hide" title="Pupils circle this outcome themselves; the circle prints on the answers copy.">
+                      <input
+                        type="checkbox"
+                        disabled={blocked}
+                        checked={selectedCell.ring === "hidden"}
+                        onChange={(ev) => commit(() => setCell(e, selected.row, selected.column, { ring: ev.target.checked ? "hidden" : true }))}
+                      />
+                      Circle only on the answers copy
+                    </label>
+                  ) : null}
                   {!selectedCell.text && <p className="pt-note">This cell is a blank with no answer. Enter the answer first to hide or circle it.</p>}
                 </>
               ) : (

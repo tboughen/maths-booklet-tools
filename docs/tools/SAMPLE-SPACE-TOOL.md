@@ -15,7 +15,8 @@ access is the `sample-space` kind of the generic connector tools, adapted by
   the sign of the combination (`+`, `×`, `−`) or nothing.
 - Every cell is `{ text, show, ring? }`, up to 16 characters: numbers (stacked fractions), or text such as `H3` or
   `(H, 3)`. Empty text is a pupil blank; a hidden cell is a saved answer printed only on the answers copy, in dark
-  pink. `ring: true` circles a chosen outcome, in black and white.
+  pink. `ring: true` circles a chosen outcome, in black and white;
+  `ring: "hidden"` circles it only on the answers copy (pupils circle it). A blank cell cannot be circled.
 - `cellMm` (10 to 30), `lines: "bold"` (U111) and `intentionalError`.
 
 ## Explicit actions only

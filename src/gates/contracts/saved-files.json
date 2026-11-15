@@ -8871,8 +8871,16 @@
                         "additionalProperties": false
                       },
                       "circled": {
-                        "type": "boolean",
-                        "const": true
+                        "anyOf": [
+                          {
+                            "type": "boolean",
+                            "const": true
+                          },
+                          {
+                            "type": "string",
+                            "const": "hidden"
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -9124,8 +9132,16 @@
                         ]
                       },
                       "ring": {
-                        "type": "boolean",
-                        "const": true
+                        "anyOf": [
+                          {
+                            "type": "boolean",
+                            "const": true
+                          },
+                          {
+                            "type": "string",
+                            "const": "hidden"
+                          }
+                        ]
                       }
                     },
                     "required": [

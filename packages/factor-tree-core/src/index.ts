@@ -32,8 +32,8 @@ export const nodeSchema = z
     /** The node this one splits from; null for the tree's number at the top. */
     parent: id.nullable(),
     value: valueSchema,
-    /** Circled, as primes are. Never saved as false. */
-    circled: z.literal(true).optional(),
+    /** Circled, as primes are: true prints for pupils, "hidden" only on the answers copy. Never saved as false. */
+    circled: z.union([z.literal(true), z.literal("hidden")]).optional(),
   })
   .strict();
 export const treeSchema = z
@@ -150,7 +150,7 @@ export function validate(input: unknown): Envelope {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("product")) throw Error(`Write the answer as a product of powers of at most ${MAX_PRODUCT} characters, such as 2^3 × 3^2 × 5.`);
     if (path.includes("value")) throw Error(`Use whole numbers of at most ${MAX_DIGITS} digits.`);
-    if (path.includes("trees") && path.length <= 3) throw Error(`Use 1 to ${MAX_TREES} trees, each with at most ${MAX_NODES} numbers.`);
+    if (path.includes("trees") && (path.length <= 3 || path.at(-1) === "nodes")) throw Error(`Use 1 to ${MAX_TREES} trees, each with at most ${MAX_NODES} numbers.`);
     if (path.includes("levelMm")) throw Error("Choose a level height from 10 to 24 mm.");
     throw Error("This is not a supported factor tree file (version 1 is supported).");
   }
@@ -168,7 +168,7 @@ export function validate(input: unknown): Envelope {
       if (text && !new RegExp(`^[1-9]\\d{0,${MAX_DIGITS - 1}}$`).test(text)) throw Error(`"${n.value.text}": use a whole number from 1 to ${"9".repeat(MAX_DIGITS)}.`);
       n.value.text = text;
       if (!text && n.value.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
-      if (n.circled !== true) delete n.circled;
+      if (n.circled !== true && n.circled !== "hidden") delete n.circled;
     });
     for (const n of t.nodes) {
       const k = childrenOf(t, n.id).length;
@@ -223,14 +223,14 @@ function freshNodeId(t: Tree) {
   while (t.nodes.some((n) => n.id === `n${i}`)) i++;
   return `n${i}`;
 }
-export function setNode(e: Envelope, treeId: string, nodeId: string, change: { text?: string; show?: Value["show"]; circled?: boolean }): Envelope {
+export function setNode(e: Envelope, treeId: string, nodeId: string, change: { text?: string; show?: Value["show"]; circled?: boolean | "hidden" }): Envelope {
   const n = clone(e),
     node = nodeOf(treeOf(n.document, treeId), nodeId);
   if (change.text !== undefined) node.value.text = change.text.trim();
   if (!node.value.text && change.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
   node.value.show = node.value.text ? (change.show ?? node.value.show) : "show";
   if (change.circled !== undefined) {
-    if (change.circled) node.circled = true;
+    if (change.circled) node.circled = change.circled;
     else delete node.circled;
   }
   return validate(n);
@@ -269,7 +269,10 @@ export function addTree(e: Envelope, root?: string): Envelope {
   let i = 1;
   while (d.trees.some((t) => t.id === `t${i}`)) i++;
   const first = d.trees[0];
-  d.trees.push(newTree(`t${i}`, root ?? first.nodes[0].value.text, first.product ? value() : null));
+  const tree = newTree(`t${i}`, root ?? "", first.product ? value() : null);
+  // The same number keeps its saved visibility: a hidden number stays a pupil blank.
+  if (root === undefined) tree.nodes[0].value = structuredClone(first.nodes[0].value);
+  d.trees.push(tree);
   return validate(n);
 }
 export function removeTree(e: Envelope, treeId: string): Envelope {
@@ -305,6 +308,7 @@ export function setProduct(e: Envelope, treeId: string, product: { text?: string
  */
 export function completeTree(e: Envelope, treeId?: string, hidden = false): { envelope: Envelope; filled: number } {
   const n = clone(e);
+  if (treeId) treeOf(n.document, treeId);
   let filled = 0;
   const visibility = hidden ? "hidden" : "show";
   for (const t of n.document.trees) {
@@ -345,7 +349,8 @@ export function completeTree(e: Envelope, treeId?: string, hidden = false): { en
     for (const x of t.nodes) {
       const v = numberOf(x.value);
       if (v !== null && isLeaf(t, x.id) && isPrime(v) && !x.circled) {
-        x.circled = true;
+        // A circle is an answer too: hidden circles print only on the answers copy.
+        x.circled = hidden ? "hidden" : true;
         filled++;
       }
     }
@@ -388,15 +393,22 @@ export function warnings(e: Envelope): string[] {
 /* ---------- Views ---------- */
 
 const REVEALED = new WeakSet<Value>();
+const REVEALED_RING = new WeakSet<TreeNode>();
 /** The answers copy prints hidden answers; with `mark` they print in the answer colour. */
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = clone(e);
-  for (const t of n.document.trees)
+  for (const t of n.document.trees) {
+    for (const x of t.nodes)
+      if (x.circled === "hidden") {
+        x.circled = true;
+        if (mark) REVEALED_RING.add(x);
+      }
     for (const v of [...t.nodes.map((x) => x.value), ...(t.product ? [t.product] : [])]) {
       if (mark && v.show === "hidden" && v.text) REVEALED.add(v);
       v.show = "show";
     }
+  }
   return n;
 }
 
@@ -452,7 +464,8 @@ export function layout(e: Envelope) {
     const treeWidth = next * slot;
     const root = t.nodes[0].value;
     const prefix = root.text && root.show === "show" ? `${root.text} = ` : "";
-    const answerWidth = t.product ? textWidth(prefix) + Math.max(ANSWER_MM, t.product.text ? productWidth(t.product.text) : 0) : 0;
+    // A hidden answer never widens the pupil line, so its length gives nothing away.
+    const answerWidth = t.product ? textWidth(prefix) + Math.max(ANSWER_MM, t.product.text && t.product.show === "show" ? productWidth(t.product.text) : 0) : 0;
     const column = Math.max(treeWidth, answerWidth);
     const shift = left + (column - treeWidth) / 2;
     for (const n of t.nodes) placed.push({ treeId: t.id, id: n.id, x: shift + x.get(n.id)!, y: MARGIN + r + depthOf(t, n.id) * d.levelMm, node: n, leaf: isLeaf(t, n.id) });
@@ -508,10 +521,10 @@ export function renderSvg(e: Envelope): string {
     const showing = !!v.text && v.show === "show";
     if (showing) out.push(text(v.text, p.x, p.y + FONT * 0.33, fill));
     else if (d.blankStyle === "box") out.push(`<rect x="${num(p.x - r + 0.6)}" y="${num(p.y - FONT * 0.8)}" width="${num(2 * r - 1.2)}" height="${num(FONT * 1.6)}" fill="none" stroke="black" stroke-width="0.25"/>`);
-    else if (!(p.node.circled && !v.text)) out.push(dotted(p.x - r + 0.8, p.x + r - 0.8, p.y + FONT * 0.45));
+    else if (!(p.node.circled === true && !v.text)) out.push(dotted(p.x - r + 0.8, p.x + r - 0.8, p.y + FONT * 0.45));
     // A circle is part of the answer when its number is hidden; an empty circle is a scaffold.
-    if (p.node.circled && (showing || !v.text))
-      out.push(`<circle cx="${num(p.x)}" cy="${num(p.y)}" r="${num(showing ? circleRadius(v.text) : r - 0.3)}" fill="none" stroke="${fill}" stroke-width="0.3"/>`);
+    if (p.node.circled === true && (showing || !v.text))
+      out.push(`<circle cx="${num(p.x)}" cy="${num(p.y)}" r="${num(showing ? circleRadius(v.text) : r - 0.3)}" fill="none" stroke="${REVEALED_RING.has(p.node) ? ANSWER_COLOUR : fill}" stroke-width="0.3"/>`);
   }
   for (const a of g.answers) {
     const fill = REVEALED.has(a.product) ? ANSWER_COLOUR : "black";

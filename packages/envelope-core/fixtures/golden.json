@@ -1255,9 +1255,9 @@
  },
  "sample-space/example-circle-outcomes": {
   "schemaVersion": 1,
-  "contentHash": "6300c8fa508f4393476e6e10798aeb693532583063904b5446d25c90488a337d",
+  "contentHash": "3039054869113f6b3454a92fbdd8e4b04e6ff16a91c4d3fc1b815230d5855d7d",
   "pupilSvg": "b1b08fa92d6f6709c3b740798dda2752cb70b9921916078468a5146605c2f217",
-  "answerSvg": "b1b08fa92d6f6709c3b740798dda2752cb70b9921916078468a5146605c2f217"
+  "answerSvg": "2696a4845b262100fd42497b6cc9b1d363301b5a8f0fe34eda05fefbdb1f580b"
  },
  "sample-space/example-coin-dice-worked": {
   "schemaVersion": 1,

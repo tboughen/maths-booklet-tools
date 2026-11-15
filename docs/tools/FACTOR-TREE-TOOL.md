@@ -18,6 +18,9 @@ access is the `factor-tree` kind of the generic connector tools (`diagram_capabi
   `blankStyle`). A hidden number is a saved answer: pupils see the blank, the answers copy prints it in dark pink.
 - `circled: true` circles a number. A hidden number's circle is part of the answer and prints only on the answers
   copy; a circled blank prints as an empty circle (a "this is prime" scaffold).
+- `circled: "hidden"` is a circle the pupils draw: it prints only on the answers copy, in the answer colour.
+  **Complete** with hidden answers circles primes this way, even ones already printed, so the pupil copy gives
+  nothing away. A hidden answer line prints the same 40 mm line as a blank one.
 - `product` is the answer line, or null. Its text is a product of powers saved as `2^3 × 3^2 × 5` (typing `x`, `*`
   or superscripts works); powers print raised. Empty text is a pupil answer line; hidden works as for numbers.
 - `levelMm` (10 to 24) sets the height of each level; slots are wide enough for the widest number and a 10 mm

@@ -8,8 +8,10 @@ import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 export const exampleIds = examples.map((x) => x.id) as [string, ...string[]];
 const show = z.enum(["show", "hidden"]);
 const cellText = z.string().max(core.MAX_CELL);
+/** true circles for pupils; "hidden" circles only on the answers copy. */
+const ring = z.union([z.boolean(), z.literal("hidden")]);
 /** A cell: its text, or { text, hidden?, ring? } to keep it as a saved answer or circle it. */
-const cellInput = z.union([cellText, z.object({ text: cellText, hidden: z.boolean().optional(), ring: z.boolean().optional() }).strict()]);
+const cellInput = z.union([cellText, z.object({ text: cellText, hidden: z.boolean().optional(), ring: ring.optional() }).strict()]);
 const heading = z.string().max(core.MAX_HEADING);
 const title = z.string().max(core.MAX_TITLE);
 export const outputViewSchema = z.enum(["pupil", "answer"]);
@@ -40,7 +42,7 @@ export const createSchema = z
 const rowRef = z.string().max(24).describe('A row ID such as "r1".');
 const columnRef = z.string().max(24).describe('A column ID such as "c1".');
 export const operationSchema = z.discriminatedUnion("op", [
-  z.object({ op: z.literal("set_cell"), rowId: rowRef, columnId: columnRef, text: cellText.optional(), show: show.optional(), ring: z.boolean().optional() }).strict(),
+  z.object({ op: z.literal("set_cell"), rowId: rowRef, columnId: columnRef, text: cellText.optional(), show: show.optional(), ring: ring.optional() }).strict(),
   z
     .object({ op: z.literal("set_heading"), id: z.string().max(24).describe('A row or column ID, or "corner", "rowTitle" or "columnTitle".'), text: title })
     .strict(),
@@ -68,7 +70,7 @@ export const revisionSchema = z
 const toCell = (c: z.infer<typeof cellInput>): core.Cell => {
   if (typeof c === "string") return core.cell(c);
   if (c.hidden && !c.text.trim()) throw Error("A blank cell cannot hold a hidden answer. Give its text, then hide it.");
-  return { ...core.cell(c.text, c.hidden ? "hidden" : "show"), ...(c.ring ? { ring: true as const } : {}) };
+  return { ...core.cell(c.text, c.hidden ? "hidden" : "show"), ...(c.ring ? { ring: c.ring } : {}) };
 };
 function settings(e: core.Envelope, s: { cellMm?: number; intentionalError?: boolean; lines?: "normal" | "bold" }): core.Envelope {
   const n = structuredClone(e),

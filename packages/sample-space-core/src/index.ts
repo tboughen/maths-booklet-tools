@@ -35,8 +35,8 @@ export const cellSchema = z
   .object({
     text: plain(MAX_CELL),
     show,
-    /** Circled: a chosen outcome. Never saved as false. */
-    ring: z.literal(true).optional(),
+    /** Circled, a chosen outcome: true prints for pupils, "hidden" only on the answers copy. Never saved as false. */
+    ring: z.union([z.literal(true), z.literal("hidden")]).optional(),
   })
   .strict();
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,23}$/);
@@ -77,10 +77,14 @@ export type SpaceDocument = Envelope["document"];
 export type Cell = z.infer<typeof cellSchema>;
 
 export const cell = (text = "", visibility: Cell["show"] = "show"): Cell => ({ text, show: visibility });
-const tidy = (s: string) => s.trim().replace(/\s+/g, " ");
+const tidy = (s: string) =>
+  s
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/(\d) ?\/ ?(\d)/g, "$1/$2");
 /** Cell text that reads as a number (integer, decimal, fraction or mixed number). */
 export function numberOf(text: string): Rational | null {
-  if (!/^[-−]?\d/.test(text)) return null;
+  if (!/^[-−]?(\d+(\.\d+)?|\d+\/\d+|\d+ \d+\/\d+)$/.test(text)) return null;
   try {
     return parseRatioNumber(text.replace(/−/g, "-"));
   } catch {
@@ -118,7 +122,8 @@ export function validate(input: unknown): Envelope {
   for (const c of allCells(d)) {
     c.text = tidy(c.text);
     if (!c.text && c.show === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
-    if (c.ring !== true) delete c.ring;
+    if (c.ring !== true && c.ring !== "hidden") delete c.ring;
+    if (c.ring && !c.text) throw Error("A blank cell cannot be circled. Enter the outcome, then circle it.");
   }
   return e;
 }
@@ -166,16 +171,19 @@ export function cellAt(d: SpaceDocument, rowId: string, columnId: string): Cell 
   if (c < 0) throw Error(`There is no column ${columnId}.`);
   return row.cells[c];
 }
-export function setCell(e: Envelope, rowId: string, columnId: string, change: { text?: string; show?: Cell["show"]; ring?: boolean }): Envelope {
+export function setCell(e: Envelope, rowId: string, columnId: string, change: { text?: string; show?: Cell["show"]; ring?: boolean | "hidden" }): Envelope {
   const n = clone(e),
     c = cellAt(n.document, rowId, columnId);
   if (change.text !== undefined) c.text = tidy(change.text);
   if (!c.text && change.show === "hidden") throw Error("A blank cell cannot hold a hidden answer. Enter the answer, then hide it.");
   c.show = c.text ? (change.show ?? c.show) : "show";
   if (change.ring !== undefined) {
-    if (change.ring) c.ring = true;
+    if (change.ring && !c.text) throw Error("A blank cell cannot be circled. Enter the outcome, then circle it.");
+    if (change.ring) c.ring = change.ring;
     else delete c.ring;
   }
+  // Clearing a cell clears its circle.
+  if (!c.text) delete c.ring;
   return validate(n);
 }
 /** targetId is a row or column ID, or "corner", "rowTitle" or "columnTitle". */
@@ -307,12 +315,17 @@ export function warnings(e: Envelope): string[] {
 /* ---------- Views ---------- */
 
 const REVEALED = new WeakSet<Cell>();
+const REVEALED_RING = new WeakSet<Cell>();
 /** The answers copy prints hidden answers; with `mark` they print in the answer colour. */
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = clone(e);
   for (const c of allCells(n.document)) {
     if (mark && c.show === "hidden" && c.text) REVEALED.add(c);
+    if (c.ring === "hidden") {
+      c.ring = true;
+      if (mark) REVEALED_RING.add(c);
+    }
     c.show = "show";
   }
   return n;
@@ -353,7 +366,8 @@ export function layout(e: Envelope) {
     height = y[y.length - 1];
   const issues: string[] = [];
   if (width > MAX_WIDTH_MM) issues.push(`The diagram is ${Math.round(width)} mm wide, over the ${MAX_WIDTH_MM} mm print width. Use narrower columns or fewer outcomes.`);
-  if (d.rowTitle && textWidth(d.rowTitle) > height - top) issues.push(`The name "${d.rowTitle}" is longer than the side of the table. Shorten it or add outcomes.`);
+  if (d.columnTitle && textWidth(d.columnTitle) > width - x[1]) issues.push(`The name "${d.columnTitle}" is longer than the top of the table. Shorten it or add outcomes.`);
+  if (d.rowTitle && textWidth(d.rowTitle) > height - y[1]) issues.push(`The name "${d.rowTitle}" is longer than the side of the table. Shorten it or add outcomes.`);
   d.rows.forEach((r, i) =>
     r.cells.forEach((c, j) => {
       if (c.text && inkWidth(c.text) + (c.ring ? 3.6 : 0) > widths[j] - 2 * PAD + 0.01) issues.push(`Row ${i + 1}, column ${j + 1} is crowded. Widen the columns.`);
@@ -421,10 +435,10 @@ export function renderSvg(e: Envelope): string {
         cy = mid(g.y[i + 1], g.y[i + 2]),
         fill = REVEALED.has(c) ? ANSWER_COLOUR : "black";
       out.push(cellMarkup(c.text, cx, cy, fill));
-      if (c.ring) {
+      if (c.ring === true) {
         const rx = Math.min((g.x[j + 2] - g.x[j + 1]) / 2 - 0.6, Math.max(FONT * 0.8, inkWidth(c.text) / 2 + 1.8)),
           ry = Math.min(g.rowHeight / 2 - 0.6, isFraction(c.text) ? FONT * 1.3 : FONT * 0.8);
-        out.push(`<ellipse cx="${num(cx)}" cy="${num(cy)}" rx="${num(rx)}" ry="${num(ry)}" fill="none" stroke="${fill}" stroke-width="0.3"/>`);
+        out.push(`<ellipse cx="${num(cx)}" cy="${num(cy)}" rx="${num(rx)}" ry="${num(ry)}" fill="none" stroke="${REVEALED_RING.has(c) ? ANSWER_COLOUR : fill}" stroke-width="0.3"/>`);
       }
     }),
   );

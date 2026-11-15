@@ -476,6 +476,7 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                     <label>
                       Number
                       <DraftField
+                        key={`${selected.tree}-${selected.node}`}
                         id="ft-selected-value"
                         label="Selected number"
                         value={selectedNode.value.text}
@@ -504,6 +505,17 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                     />
                     Circle this number
                   </label>
+                  {selectedNode.circled ? (
+                    <label className="pt-hide" title="Pupils draw this circle themselves; it prints on the answers copy.">
+                      <input
+                        type="checkbox"
+                        disabled={blocked}
+                        checked={selectedNode.circled === "hidden"}
+                        onChange={(ev) => commit(() => setNode(e, selected.tree, selected.node, { circled: ev.target.checked ? "hidden" : true }))}
+                      />
+                      Circle only on the answers copy
+                    </label>
+                  ) : null}
                   {isLeaf(selectedTree, selectedNode.id) ? (
                     <>
                       <div className="pt-fields ft-factors">

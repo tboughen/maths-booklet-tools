@@ -38,13 +38,12 @@ export const examples: { id: string; title: string; note: string; make: (worked:
   {
     id: "circle-outcomes",
     title: "Circle the outcomes",
-    note: "Differences between two dice, all printed. The worked version circles the differences of 2.",
+    note: "Differences between two dice, all printed. The differences of 2 are circled on the answers copy only.",
     make: (worked) => {
       let e = fillCells(create(undefined, undefined, "−", { row: "Dice A", column: "Dice B" }), "difference").envelope;
-      if (worked)
-        for (const r of e.document.rows)
-          for (const [j, c] of r.cells.entries()) if (c.text === "2") e = setCell(e, r.id, e.document.columns[j].id, { ring: true });
-      return e;
+      for (const r of e.document.rows)
+        for (const [j, c] of r.cells.entries()) if (c.text === "2") e = setCell(e, r.id, e.document.columns[j].id, { ring: "hidden" });
+      return finish(e, worked);
     },
   },
 ];

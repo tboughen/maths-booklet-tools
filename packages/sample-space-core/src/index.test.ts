@@ -95,4 +95,18 @@ describe("sample space diagrams (P-3)", () => {
     await expect(revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
     expect(() => create({ spec: { example: "dice-sum", rows: ["1"] } })).toThrow(/Examples/);
   });
+  it("measures both event names, refuses circled blanks and circles answers-only outcomes in pink", () => {
+    const long = s.create(["1", "2"], ["1", "2"], "", { column: "A very long spinner name" });
+    expect(s.layout(long).issues.join(" ")).toMatch(/longer than the top/);
+    const side = s.create(["1", "2"], ["1", "2"], "", { row: "A long name for coins" });
+    expect(s.layout(side).issues.join(" ")).toMatch(/longer than the side/);
+    const blank = s.create();
+    expect(() => s.setCell(blank, "r1", "c1", { ring: true })).toThrow(/blank cell cannot be circled/);
+    const filled = s.setCell(blank, "r1", "c1", { text: "2", ring: "hidden" });
+    expect(s.renderSvg(filled)).not.toContain("<ellipse");
+    expect(s.renderSvg(s.forView(filled, "answer", true))).toMatch(/<ellipse[^>]*stroke="#b0125b"/);
+    expect(s.setCell(filled, "r1", "c1", { text: "" }).document.rows[0].cells[0].ring).toBeUndefined();
+    expect(s.numberOf("1/-2")).toBeNull();
+    expect(s.setCell(blank, "r1", "c1", { text: "1 / 36" }).document.rows[0].cells[0].text).toBe("1/36");
+  });
 });

@@ -26,7 +26,7 @@ describe("factor trees (N-5)", () => {
     expect(t.nodes[2].value).toEqual({ text: "10", show: "hidden" });
     expect(t.nodes[1].value).toEqual({ text: "36", show: "show" });
     const primes = t.nodes.filter((n) => f.isLeaf(t, n.id)).map((n) => [n.value.text, n.circled]);
-    expect(primes.every(([, c]) => c === true)).toBe(true);
+    expect(primes.every(([, c]) => c === "hidden")).toBe(true);
     expect(primes.map(([v]) => v).sort()).toEqual(["2", "2", "2", "3", "3", "5"]);
     expect(t.product).toEqual({ text: "2^3 × 3^2 × 5", show: "hidden" });
     expect(filled).toBeGreaterThan(10);
@@ -112,5 +112,27 @@ describe("factor trees (N-5)", () => {
     expect(next.document.lines).toBe("bold");
     await expect(revise({ envelope: e, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
     expect(() => create({ spec: { example: "complete-360", root: "1" } })).toThrow(/Examples/);
+  });
+  it("keeps answers hidden on the pupil copy: circles, a copied hidden number and the answer line's length", () => {
+    // Complete with hidden answers: shown primes are circled only on the answers copy.
+    let e = f.split(f.create("6"), "t1", "n1", ["2", "3"]);
+    e = f.completeTree(e, undefined, true).envelope;
+    expect(e.document.trees[0].nodes.slice(1).map((n) => n.circled)).toEqual(["hidden", "hidden"]);
+    expect(f.renderSvg(e)).not.toContain("<circle");
+    const answers = f.renderSvg(f.forView(e, "answer", true));
+    expect(answers.match(/<circle/g)).toHaveLength(2);
+    expect(answers).toContain('stroke="#b0125b"');
+    expect(() => f.completeTree(e, "t9", true)).toThrow(/t9/);
+    // A hidden number at the top stays hidden in the added tree.
+    const hiddenTop = f.setNode(f.create("360"), "t1", "n1", { show: "hidden" });
+    expect(f.addTree(hiddenTop).document.trees[1].nodes[0].value).toEqual({ text: "360", show: "hidden" });
+    // A long hidden answer prints the same pupil line as a blank one.
+    const blankLine = f.layout(f.create("360")).answers[0].width;
+    const hiddenLong = f.setProduct(f.create("360"), "t1", { text: "2^3 × 3^2 × 5 × 7 × 11 × 13 × 17", show: "hidden" });
+    expect(f.layout(hiddenLong).answers[0].width).toBe(blankLine);
+    // Too many numbers in one tree get the specific message.
+    const big = structuredClone(f.create("6"));
+    for (let i = 2; i <= f.MAX_NODES + 2; i++) big.document.trees[0].nodes.push({ id: `n${i}`, parent: "n1", value: f.value("") });
+    expect(() => f.validate(big)).toThrow(/at most 31 numbers/);
   });
 });

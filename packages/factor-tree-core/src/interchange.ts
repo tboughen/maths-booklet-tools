@@ -11,7 +11,9 @@ const numberText = z.string().max(core.MAX_DIGITS + 4);
 const productText = z.string().max(core.MAX_PRODUCT + 12);
 export const outputViewSchema = z.enum(["pupil", "answer"]);
 
-type NodeInput = { value?: string; hidden?: boolean; circled?: boolean; children?: NodeInput[] };
+type NodeInput = { value?: string; hidden?: boolean; circled?: boolean | "hidden"; children?: NodeInput[] };
+/** true circles for pupils; "hidden" circles only on the answers copy. */
+const circle = z.union([z.boolean(), z.literal("hidden")]);
 const nodeInput: z.ZodType<NodeInput> = z.lazy(() =>
   z
     .object({
@@ -19,7 +21,7 @@ const nodeInput: z.ZodType<NodeInput> = z.lazy(() =>
       value: numberText.optional(),
       /** Keep the number as a saved answer: a blank for pupils. */
       hidden: z.boolean().optional(),
-      circled: z.boolean().optional(),
+      circled: circle.optional(),
       /** Exactly two branches, or none. */
       children: z.array(nodeInput).length(2).optional(),
     })
@@ -52,7 +54,7 @@ export const createSchema = z
 const treeRef = z.string().max(24).describe('A tree ID such as "t1".');
 const nodeRef = z.string().max(24).describe('A number ID such as "n1" (the top number) within the tree.');
 export const operationSchema = z.discriminatedUnion("op", [
-  z.object({ op: z.literal("set_node"), treeId: treeRef, nodeId: nodeRef, text: numberText.optional(), show: show.optional(), circled: z.boolean().optional() }).strict(),
+  z.object({ op: z.literal("set_node"), treeId: treeRef, nodeId: nodeRef, text: numberText.optional(), show: show.optional(), circled: circle.optional() }).strict(),
   z.object({ op: z.literal("split_node"), treeId: treeRef, nodeId: nodeRef, factors: z.array(numberText).length(2).optional() }).strict(),
   z.object({ op: z.literal("remove_split"), treeId: treeRef, nodeId: nodeRef }).strict(),
   z.object({ op: z.literal("add_tree"), root: numberText.optional() }).strict(),
@@ -84,7 +86,7 @@ function buildTree(treeId: string, input: z.infer<typeof treeInput>): core.Tree 
     const nodeId = `n${nodes.length + 1}`,
       text = (n.value ?? "").trim();
     if (n.hidden && !text) throw Error("A blank number cannot hold a hidden answer. Give its value, then hide it.");
-    nodes.push({ id: nodeId, parent, value: core.value(text, n.hidden ? "hidden" : "show"), ...(n.circled ? { circled: true as const } : {}) });
+    nodes.push({ id: nodeId, parent, value: core.value(text, n.hidden ? "hidden" : "show"), ...(n.circled ? { circled: n.circled } : {}) });
     if (n.children) for (const c of n.children) add(c, nodeId);
   };
   add(input.root, null);
