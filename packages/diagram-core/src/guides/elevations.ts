@@ -4,7 +4,7 @@ export const elevationsConfig = {
   capabilities: {
     editor: "The returned editor link opens the views at /tools/elevations, where teachers set cube heights, choose panels and save or print.",
     schemaVersions: [1],
-    rendererVersions: ["elevations-1"],
+    rendererVersions: [core.RENDERER_VERSION],
     solids: "cube solids only, as a height map; prisms, cylinders and pyramids are not supported yet",
     maximumGrid: { rows: core.MAX_SIDE, columns: core.MAX_SIDE, height: core.MAX_HEIGHT },
     views: core.VIEWS,

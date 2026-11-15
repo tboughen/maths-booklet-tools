@@ -3,6 +3,9 @@ import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { defineEnvelope } from "../../envelope-core/src/index";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "elevations-1" as const;
+
 /**
  * Plans and elevations of solids made from centimetre cubes (Hanley GM8.08-09).
  *
@@ -52,7 +55,7 @@ export const documentSchema = z
   })
   .strict();
 export const envelopeSchema = z
-  .object({ tool: z.literal("elevations"), schemaVersion: z.literal(1), rendererVersion: z.literal("elevations-1"), document: documentSchema, ...aboutShape })
+  .object({ tool: z.literal("elevations"), schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), document: documentSchema, ...aboutShape })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type ElevationDocument = Envelope["document"];
@@ -108,7 +111,7 @@ export function blank(): Envelope {
   return {
     tool: "elevations",
     schemaVersion: 1,
-    rendererVersion: "elevations-1",
+    rendererVersion: RENDERER_VERSION,
     document: { heights: [[1]], panels: [panel("isometric")], unitCm: 1, arrows: true, isoDots: false, maxWidthCm: 26 },
   };
 }

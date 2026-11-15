@@ -8,7 +8,7 @@ export const twoWayTableConfig = {
   revision: ti.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["two-way-table-1"],
+    rendererVersions: [twt.RENDERER_VERSION],
     maximumColumns: twt.MAX_CATEGORIES,
     maximumRows: twt.MAX_CATEGORIES,
     headingCharacters: twt.MAX_HEADING,

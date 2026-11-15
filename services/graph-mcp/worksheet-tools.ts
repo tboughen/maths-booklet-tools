@@ -32,6 +32,10 @@ import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
 import { toolFailure } from "./tool-error";
 
+/** The A3 worksheet and A4 booklet layout versions this service writes (M19). */
+export const WORKSHEET_RENDERER_VERSION = "worksheet-a3-1" as const;
+export const BOOKLET_RENDERER_VERSION = "booklet-a4-1" as const;
+
 /** Worksheets and booklets: print-ready PDF, Word file (same layout) or the editable source. */
 export type WorksheetFormat = "pdf" | "docx" | "json";
 /** A worksheet or a booklet: both travel through the same signed download links. */
@@ -195,7 +199,7 @@ const output = z
   .object({
     resource: resourceSchema,
     contentHash: z.string(),
-    rendererVersion: z.literal("worksheet-a3-1"),
+    rendererVersion: z.literal(WORKSHEET_RENDERER_VERSION),
     printReady: z.boolean(),
     issues: z.array(
       z.object({ side: z.number(), column: z.number(), question: z.number().optional(), message: z.string() }).strict(),
@@ -220,7 +224,7 @@ const bookletOutput = z
     // The validated booklet, same shape as the input; not repeated as a schema to keep tools/list small.
     booklet: z.record(z.string(), z.unknown()).describe("The validated booklet, in the create_booklet input shape. Edit it and call create_booklet again to change the booklet."),
     contentHash: z.string(),
-    rendererVersion: z.literal("booklet-a4-1"),
+    rendererVersion: z.literal(BOOKLET_RENDERER_VERSION),
     printReady: z.boolean(),
     pages: z.number().int(),
     issues: z.array(
@@ -477,7 +481,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       structuredContent: {
         booklet,
         contentHash: hash,
-        rendererVersion: "booklet-a4-1" as const,
+        rendererVersion: BOOKLET_RENDERER_VERSION,
         printReady,
         pages: pupil.pages.length,
         issues: pupil.issues,
@@ -574,7 +578,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       structuredContent: {
         resource,
         contentHash: hash,
-        rendererVersion: "worksheet-a3-1" as const,
+        rendererVersion: WORKSHEET_RENDERER_VERSION,
         printReady,
         issues: pupil.issues,
         notes,
@@ -605,13 +609,13 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         inputSchema: z.object({}).strict(),
         // M13: the reply is also structuredContent; the named fields are the ones a client relies on.
         outputSchema: z
-          .object({ rendererVersion: z.literal("worksheet-a3-1"), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal("booklet-a4-1") }).passthrough() })
+          .object({ rendererVersion: z.literal(WORKSHEET_RENDERER_VERSION), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal(BOOKLET_RENDERER_VERSION) }).passthrough() })
           .passthrough(),
         annotations,
       },
       async () => {
         const value = {
-          rendererVersion: "worksheet-a3-1",
+          rendererVersion: WORKSHEET_RENDERER_VERSION,
           kinds: ["worksheet-a3", "booklet-a4"],
           layout: LAYOUT,
           columnWidthsMm: Object.fromEntries(
@@ -626,7 +630,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
           booklet: {
             tool: "create_booklet",
-            rendererVersion: "booklet-a4-1",
+            rendererVersion: BOOKLET_RENDERER_VERSION,
             layout: BOOKLET_LAYOUT,
             limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
             sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],

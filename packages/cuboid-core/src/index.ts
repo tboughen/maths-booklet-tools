@@ -10,6 +10,9 @@ import {
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { toBase64Url } from "../../envelope-core/src/index";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "cuboids-2" as const;
+
 export const axes = ["width", "depth", "height"] as const;
 export const faces = ["front", "top", "side"] as const;
 export const keys = [...axes, ...faces] as const;
@@ -89,7 +92,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("cuboids"),
     schemaVersion: z.literal(2),
-    rendererVersion: z.literal("cuboids-2"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: z
       .object({
         widthCm: z.number().min(4).max(18),
@@ -307,7 +310,7 @@ export function create(): Envelope {
   return {
     tool: "cuboids",
     schemaVersion: 2,
-    rendererVersion: "cuboids-2",
+    rendererVersion: RENDERER_VERSION,
     document: { widthCm: 10, shapes: [{ ...shape, appearance: appearance(shape) }] },
   };
 }

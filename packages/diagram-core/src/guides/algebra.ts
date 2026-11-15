@@ -8,7 +8,7 @@ export const algebraConfig = {
   revision: ai.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["algebra-grid-1"],
+    rendererVersions: [algebra.RENDERER_VERSION],
     styleProfile: "departmental-v1",
     termsPerEdge: { minimum: 1, maximum: 6 },
     cellMm: { minimum: 12, default: 15, maximum: 18 },
