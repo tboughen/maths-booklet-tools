@@ -3,11 +3,12 @@ import { makePapers, type ExportProgress, type ExportResult } from "./export";
 import { assetUrl, downloadBlob } from "./pdf";
 import { PerformanceBadge } from "./PerformanceBadge";
 import type { BankCatalogue, BankListQuestion, BankQuestion, Tier } from "./model";
-import type { PaperEntry } from "./paper-builder";
+import { entryParts, type PaperEntry } from "./paper-builder";
 import { formatCount } from "./format";
+import { addedNote, servedParts, type ServedParts } from "./cuts";
 
 type LoadDetails = <Q extends BankListQuestion>(questions:Q[])=>Promise<(Q&BankQuestion)[]>;
-interface Props { loadDetails:LoadDetails;showPerformance?:boolean;onShowPerformance?:(show:boolean)=>void;catalogue?:BankCatalogue<BankListQuestion>;tier?:Tier;open:boolean;active:boolean;entries:PaperEntry[];version:string;excluded:number;onClose:()=>void;onRemove:(key:string)=>void;onMove:(key:string,direction:number)=>void;onRestore:()=>void }
+interface Props { loadDetails:LoadDetails;showPerformance?:boolean;onShowPerformance?:(show:boolean)=>void;catalogue?:BankCatalogue<BankListQuestion>;tier?:Tier;open:boolean;active:boolean;entries:PaperEntry[];version:string;excluded:number;partsOnly?:boolean;onPartsOnly?:(value:boolean)=>void;onClose:()=>void;onRemove:(key:string)=>void;onMove:(key:string,direction:number)=>void;onRestore:()=>void }
 function QuestionPreview({entry,loadDetails}:{entry:PaperEntry;loadDetails:LoadDetails}) {
   const [open,setOpen]=useState(false),[scheme,setScheme]=useState(false),[q,setQuestion]=useState<BankQuestion>(),[failed,setFailed]=useState("");
   // The views come from the question's paper file, fetched the first time the preview opens.
@@ -15,14 +16,26 @@ function QuestionPreview({entry,loadDetails}:{entry:PaperEntry;loadDetails:LoadD
   return <details className="qb-paper-preview" onToggle={e=>setOpen(e.currentTarget.open)}><summary>View complete question</summary>{open&&!q&&<p role={failed?"alert":"status"}>{failed||"Loading question…"}</p>}{open&&q&&<><div>{q.questionViews.map(v=><figure key={v.id}><img loading="lazy" src={assetUrl(v.preview)} width={v.width} height={v.height} alt={`${q.source} — Question — ${v.label}`}/><figcaption>{v.label}</figcaption></figure>)}</div><details onToggle={e=>setScheme(e.currentTarget.open)}><summary>View mark scheme</summary>{scheme&&<>{q.schemeSourceNote&&<p className="qb-erratum">{q.schemeSourceNote}</p>}{q.schemeViews.map(v=><figure key={v.id}><img loading="lazy" src={assetUrl(v.preview)} width={v.width} height={v.height} alt={`${q.source} — Mark scheme — ${v.label}`}/><figcaption>{v.label}</figcaption></figure>)}</>}</details></>}</details>;
 }
 
-export function PaperReviewDialog({loadDetails,open,active,entries,version,excluded,onClose,onRemove,onMove,onRestore,showPerformance,onShowPerformance,catalogue,tier}:Props) {
+export function PaperReviewDialog({loadDetails,open,active,entries,version,excluded,partsOnly=false,onPartsOnly,onClose,onRemove,onMove,onRestore,showPerformance,onShowPerformance,catalogue,tier}:Props) {
   const dialog=useRef<HTMLDialogElement>(null), abort=useRef<AbortController|undefined>(undefined),generation=useRef(0);
   const [preset,setPreset]=useState<"compact"|"writing">("compact"),[progress,setProgress]=useState<ExportProgress>(),[result,setResult]=useState<ExportResult>(),[error,setError]=useState("");
   const [busy,setBusy]=useState(false);
+  // With "Only the matching parts", each question's cuts come from its paper file, so they load when the option is on.
+  const [served,setServed]=useState<Record<string,ServedParts|undefined>>();
+  const wanted=partsOnly?entryParts(entries):{};
+  const wantedKey=JSON.stringify(wanted);
+  useEffect(()=>{
+    if(!open||!partsOnly){setServed(undefined);return;}
+    let current=true;const picks=JSON.parse(wantedKey) as Record<string,string[]>;
+    const listed=entries.filter(e=>picks[e.question.id]).map(e=>e.question);
+    loadDetails(listed).then(full=>{if(current)setServed(Object.fromEntries(full.map(q=>[q.id,servedParts(q,picks[q.id])])));}).catch(()=>{if(current)setServed({});});
+    return()=>{current=false;};
+  },[open,partsOnly,wantedKey,entries,loadDetails]);
+  const marksOf=(entry:PaperEntry)=>served?.[entry.question.id]?.marks??entry.question.marks;
   useEffect(()=>{
     generation.current++;abort.current?.abort();setResult(undefined);setProgress(undefined);setBusy(false);setError("");
     if(open&&active)dialog.current?.showModal();else dialog.current?.close();
-  },[open,active,entries,preset,version]);
+  },[open,active,entries,preset,version,partsOnly]);
   useEffect(()=>()=>{generation.current++;abort.current?.abort();},[]);
   function cancel() {generation.current++;abort.current?.abort();setBusy(false);setProgress(undefined);setResult(undefined);setError("Export cancelled. Your selection is unchanged.");}
   async function prepare() {
@@ -31,16 +44,17 @@ export function PaperReviewDialog({loadDetails,open,active,entries,version,exclu
     try {
       const questions=structuredClone(await loadDetails(entries.map(e=>e.question)));
       if(current!==generation.current||controller.signal.aborted)return;
-      const next=await makePapers(questions,version,preset,p=>{if(current===generation.current)setProgress(p);},controller.signal);
+      const next=await makePapers(questions,version,preset,p=>{if(current===generation.current)setProgress(p);},controller.signal,wanted);
       if(current===generation.current&&!controller.signal.aborted)setResult(next);
     } catch(e) {if(current===generation.current)setError(controller.signal.aborted?"Export cancelled. Your selection is unchanged.":e instanceof Error?e.message:"Export failed. Try again.");}
     finally {if(current===generation.current){setBusy(false);setProgress(undefined);}}
   }
   return <dialog ref={dialog} className="qb-dialog qb-paper-dialog" aria-labelledby="qb-paper-title" onCancel={e=>{e.preventDefault();onClose();}}>
     <div className="qb-dialog-heading"><h2 id="qb-paper-title">Review your paper</h2><button className="qb-button" aria-label="Close paper review" onClick={onClose}>Close</button></div>
-    <p><strong>{formatCount(entries.length)} complete {entries.length===1?"question":"questions"} · {formatCount(entries.reduce((n,e)=>n+e.question.marks,0))} marks</strong><br/>Both PDFs follow this order. Complete questions include parts mapped to other topics.</p>
+    <p><strong>{formatCount(entries.length)} {partsOnly?"":"complete "}{entries.length===1?"question":"questions"} · {formatCount(entries.reduce((n,e)=>n+marksOf(e),0))} marks</strong><br/>Both PDFs follow this order. {partsOnly?"Questions cut into parts print only their matching parts, with the stem and any earlier part they need; mark schemes print whole.":"Complete questions include parts mapped to other topics."}</p>
+    {onPartsOnly&&<fieldset className="qb-parts-choice" disabled={busy}><legend>Questions</legend><label><input type="radio" name="paper-parts" checked={!partsOnly} onChange={()=>onPartsOnly(false)}/> Whole questions</label><label><input type="radio" name="paper-parts" checked={partsOnly} onChange={()=>onPartsOnly(true)}/> Only the matching parts</label></fieldset>}
     <label className="qb-performance-toggle"><input type="checkbox" checked={!!showPerformance} onChange={e=>onShowPerformance?.(e.target.checked)}/> Show average marks achieved</label>
-    <ol className="qb-paper-review-list">{entries.map((entry,i)=>{const q=entry.question;return <li key={entry.key}><div className="qb-paper-review-row"><div><strong>{i+1}. {q.source}</strong>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={tier}/>}<p>{q.marks} marks · {q.tier==="F"?"Foundation":"Higher"} · {q.calculator?"Calculator":"Non-calculator"}<br/>{entry.matchingCodes.length?`Matching selected codes: ${entry.matchingCodes.join(", ")}`:"Individually selected"}</p>{entry.otherParts.length>0&&<p className="qb-erratum">Additional parts included: {entry.otherParts.join(", ")}.</p>}{q.equivalentSource&&<p className="qb-small">Also appears as {q.equivalentSource}.</p>}{q.scaleSensitive&&<p className="qb-erratum">Scale drawing: print at Actual size / 100%.</p>}{q.sourceErrata?.map((n,j)=><p className="qb-erratum" key={j}>{n.note}</p>)}</div><div className="qb-paper-review-actions"><button className="qb-button" aria-label={`Move question ${i+1} up`} disabled={busy||i===0} onClick={()=>onMove(entry.key,-1)}>↑</button><button className="qb-button" aria-label={`Move question ${i+1} down`} disabled={busy||i===entries.length-1} onClick={()=>onMove(entry.key,1)}>↓</button><button className="qb-button" disabled={busy} aria-label={`Remove question ${i+1}`} onClick={()=>onRemove(entry.key)}>Remove</button></div></div><QuestionPreview entry={entry} loadDetails={loadDetails}/></li>;})}</ol>
+    <ol className="qb-paper-review-list">{entries.map((entry,i)=>{const q=entry.question;return <li key={entry.key}><div className="qb-paper-review-row"><div><strong>{i+1}. {q.source}</strong>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={tier}/>}<p>{marksOf(entry)} marks · {q.tier==="F"?"Foundation":"Higher"} · {q.calculator?"Calculator":"Non-calculator"}<br/>{entry.matchingCodes.length?`Matching selected codes: ${entry.matchingCodes.join(", ")}`:"Individually selected"}</p>{(()=>{const s=served?.[q.id];if(partsOnly&&s)return <p className="qb-small">{s.title} only, from the {q.marks}-mark question.{addedNote(s)?` ${addedNote(s)}`:""}</p>;return entry.otherParts.length>0&&<p className="qb-erratum">{partsOnly&&served?"This question is printed whole. ":""}Additional parts included: {entry.otherParts.join(", ")}.</p>;})()}{q.equivalentSource&&<p className="qb-small">Also appears as {q.equivalentSource}.</p>}{q.scaleSensitive&&<p className="qb-erratum">Scale drawing: print at Actual size / 100%.</p>}{q.sourceErrata?.map((n,j)=><p className="qb-erratum" key={j}>{n.note}</p>)}</div><div className="qb-paper-review-actions"><button className="qb-button" aria-label={`Move question ${i+1} up`} disabled={busy||i===0} onClick={()=>onMove(entry.key,-1)}>↑</button><button className="qb-button" aria-label={`Move question ${i+1} down`} disabled={busy||i===entries.length-1} onClick={()=>onMove(entry.key,1)}>↓</button><button className="qb-button" disabled={busy} aria-label={`Remove question ${i+1}`} onClick={()=>onRemove(entry.key)}>Remove</button></div></div><QuestionPreview entry={entry} loadDetails={loadDetails}/></li>;})}</ol>
     <div className="qb-paper-export-controls"><button className="qb-text-button" disabled={busy||!excluded} onClick={onRestore}>Restore individually removed questions ({excluded})</button><fieldset disabled={busy}><legend>Page layout</legend><label><input type="radio" name="paper-preset" checked={preset==="compact"} onChange={()=>setPreset("compact")}/> Compact practice</label><label><input type="radio" name="paper-preset" checked={preset==="writing"} onChange={()=>setPreset("writing")}/> Writing space</label></fieldset>
     {error&&<p className="qb-export-error" role="alert">{error}</p>}{progress&&<div role="status"><p>{progress.message}</p><progress value={progress.done} max={progress.total}/></div>}
     {result?<div className="qb-export-ready" role="status"><strong>Both PDFs are ready</strong><button className="qb-button qb-primary" onClick={()=>downloadBlob(result.questions,"practice-questions.pdf")}>Questions PDF</button><button className="qb-button" onClick={()=>downloadBlob(result.schemes,"practice-mark-schemes.pdf")}>Mark schemes PDF</button></div>:<div className="qb-dialog-actions">{busy&&<button className="qb-button" onClick={cancel}>Cancel export</button>}<button className="qb-button qb-primary" disabled={busy||!entries.length} onClick={()=>void prepare()}>Prepare both PDFs</button></div>}

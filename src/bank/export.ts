@@ -1,10 +1,11 @@
 import { PDFDocument, StandardFonts, PrintScaling, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { assetUrl } from "./pdf";
 import type { BankQuestion } from "./model";
+import { servedParts } from "./cuts";
 import { auditPaperPdf } from "../../packages/resource-core/src/pdf-audit";
 
 export interface ExportProgress { done: number; total: number; message: string; }
-export interface ExportResult { questions: Blob; schemes: Blob; questionCount: number; marks: number; version: string; }
+export interface ExportResult { questions: Blob; schemes: Blob; questionCount: number; marks: number; version: string; /** The question headings, in order, as printed. */ headings: string[]; }
 
 const plain = (text: string) => text.replace(/[–—]/g, "-").replace(/·/g, "|").replace(/[^\x20-\x7E]/g, " ");
 const A4: [number, number] = [595.276, 841.89];
@@ -56,13 +57,21 @@ function q8SourceRoute(q: BankQuestion): boolean {
   return true;
 }
 
-export async function makePapers(questions: BankQuestion[], version: string, preset: "compact" | "writing", onProgress: (progress: ExportProgress) => void, signal?: AbortSignal): Promise<ExportResult> {
+/**
+ * `parts` maps a question id to the catalogue parts to print on their own. Each such question prints
+ * only its part cuts (with the stems and earlier parts they need, so a part is never served without
+ * them) and counts only their marks; its mark scheme is printed whole.
+ */
+export async function makePapers(questions: BankQuestion[], version: string, preset: "compact" | "writing", onProgress: (progress: ExportProgress) => void, signal?: AbortSignal, parts: Record<string, string[]> = {}): Promise<ExportResult> {
   const snapshots = [...questions];
   if (!snapshots.length || new Set(snapshots.map(q => q.id)).size !== snapshots.length) throw new Error("The export must contain distinct questions.");
+  const served = new Map(snapshots.map(q => [q.id, parts[q.id] ? servedParts(q, parts[q.id]) : undefined]));
+  const marksOf = (q: BankQuestion) => served.get(q.id)?.marks ?? q.marks;
+  const titleOf = (q: BankQuestion) => { const s = served.get(q.id); return s ? `${plain(q.source)} ${plain(s.label)}` : plain(q.source); };
   const student = await PDFDocument.create(); const scheme = await PDFDocument.create();
   const sf = await student.embedFont(StandardFonts.Helvetica); const sb = await student.embedFont(StandardFonts.HelveticaBold);
   const mf = await scheme.embedFont(StandardFonts.Helvetica); const mb = await scheme.embedFont(StandardFonts.HelveticaBold);
-  const marks = snapshots.reduce((n, q) => n + q.marks, 0);
+  const marks = snapshots.reduce((n, q) => n + marksOf(q), 0);
   for (const [doc, name] of [[student, "Questions"], [scheme, "Mark schemes"]] as const) {
     doc.setTitle(`Maths question bank - ${name}`); doc.setSubject(`${snapshots.length} source questions, ${marks} mark${marks === 1 ? "" : "s"}. Catalogue ${version}.`);
     doc.setCreator("Maths Dock question bank"); doc.setLanguage("en-GB");
@@ -79,12 +88,17 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
     // Print regions retain original scale and working grids. Compact uses the reviewed classroom views.
     const q8Source = q8SourceRoute(q);
     const sourcePath = preset === "writing" || (q.scaleSensitive && !q8Source) ? q.printPdf : q.questionPdf;
-    const questionPdf = await PDFDocument.load(await fetchPdf(sourcePath, signal));
-    const pages = await student.embedPages(questionPdf.getPages());
+    const servedHere = served.get(q.id);
+    const pages = [];
+    for (const path of servedHere ? servedHere.cuts.map(c => c.cut.pdf) : [sourcePath]) {
+      const source = await PDFDocument.load(await fetchPdf(path, signal));
+      pages.push(...await student.embedPages(source.getPages()));
+    }
+    const qMarks = marksOf(q);
     for (let p = 0; p < pages.length; p++) {
       abortIfNeeded(signal);
       const embedded = pages[p];
-      const label = `${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | ${q.marks} mark${q.marks === 1 ? "" : "s"}`;
+      const label = `${index + 1}${p ? " (continued)" : ""}. ${titleOf(q)} | ${qMarks} mark${qMarks === 1 ? "" : "s"}`;
       const notes = p === 0 ? noteLines(q.sourceErrata, sf, A4[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       // Reserve the question heading and the footer/calibration area before
@@ -93,10 +107,15 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const scale = q.scaleSensitive ? 1 : Math.min(1, (A4[0] - 48) / embedded.width, availableHeight / embedded.height);
       if (q.scaleSensitive && (embedded.width > A4[0] - 48 || embedded.height > availableHeight)) throw new Error(`The original scale of ${q.source} does not fit A4. Export this item separately from the source PDF.`);
       const h = embedded.height * scale;
-      if (!studentPage || sy - h - 34 - noteHeight < 32 || preset === "writing") addStudent();
-      studentPage!.drawText(label, {x: 24, y: sy - 11, size: 10, font: sb, color: rgb(.12,.22,.34)});
-      studentHeadings.push(label);
-      sy -= 28;
+      // A part's cuts follow straight on under its stem when they fit; a new page repeats the heading.
+      const following = !!servedHere && p > 0 && !!studentPage && sy - h - 12 >= 32;
+      if (!following && (!studentPage || sy - h - 34 - noteHeight < 32 || preset === "writing")) addStudent();
+      if (following) sy += 10;
+      else {
+        studentPage!.drawText(label, {x: 24, y: sy - 11, size: 10, font: sb, color: rgb(.12,.22,.34)});
+        studentHeadings.push(label);
+        sy -= 28;
+      }
       for (const note of notes) {
         studentPage!.drawText(note, {x:24, y:sy, size:8, font:sf, color:rgb(.35,.25,.1)});
         sy -= 10;
@@ -110,7 +129,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       }
     }
     if (preset === "writing" && (q.writingSpacePolicy === undefined || q.writingSpacePolicy === "generated")) {
-      let room = Math.max(100, Math.min(q.marks * 26, 208));
+      let room = Math.max(100, Math.min(qMarks * 26, 208));
       if (sy - room < 42) addStudent();
       studentPage!.drawText(`Working space - question ${index + 1}`, {x: 24, y: sy - 8, size: 9, font: sf, color: rgb(.4,.45,.5)});
       sy -= 24; room -= 24;
@@ -126,7 +145,7 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const notes = q.schemeSourceNote ? noteLines([{note:q.schemeSourceNote}], mf, LANDSCAPE[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       const scale = Math.min(1, (LANDSCAPE[0]-48)/embedded.width, (LANDSCAPE[1]-85-noteHeight)/embedded.height);
-      const heading = `${index + 1}${p ? " (continued)" : ""}. ${plain(q.source)} | Mark scheme | ${q.marks} mark${q.marks === 1 ? "" : "s"}`;
+      const heading = `${index + 1}${p ? " (continued)" : ""}. ${titleOf(q)} | Mark scheme${servedHere ? " for the whole question" : ""} | ${qMarks} mark${qMarks === 1 ? "" : "s"}`;
       page.drawText(heading, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
       schemeHeadings.push(heading);
       notes.forEach((note,i)=>page.drawText(note,{x:24,y:LANDSCAPE[1]-46-i*10,font:mf,size:8,color:rgb(.35,.25,.1)}));
@@ -146,5 +165,5 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
   ];
   abortIfNeeded(signal);
   if (problems.length) throw new Error(`The paper failed its print check. ${problems[0]} No incomplete paper has been produced.`);
-  return {questions:new Blob([new Uint8Array(qBytes).buffer],{type:"application/pdf"}),schemes:new Blob([new Uint8Array(mBytes).buffer],{type:"application/pdf"}),questionCount:snapshots.length,marks,version};
+  return {questions:new Blob([new Uint8Array(qBytes).buffer],{type:"application/pdf"}),schemes:new Blob([new Uint8Array(mBytes).buffer],{type:"application/pdf"}),questionCount:snapshots.length,marks,version,headings:studentHeadings};
 }

@@ -69,4 +69,10 @@ describe("shared paper draft",()=>{
     const route={...emptyRoute,bankView:"topics" as const,tier:"H" as const,collection:"mock" as const,calculator:"yes" as const};
     expect(readRoute(routeQuery(route),fixture)).toEqual(route);
   });
+  it("switches printing only the matching parts on and off without touching the selection",()=>{
+    const start={...emptyDraft("v"),codes:["U1"]};
+    const on=draftReducer(start,{type:"partsOnly",value:true});
+    expect(on).toEqual({...start,partsOnly:true});
+    expect(draftReducer(on,{type:"partsOnly",value:false})).toEqual(start);
+  });
 });

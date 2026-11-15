@@ -58,10 +58,14 @@ export function downloadBlob(blob: Blob, name: string): void {
 export async function questionImage(question: BankQuestion, role: ViewRole, view: BankView, wholeQuestion: boolean): Promise<Blob> {
   const resource = questionResource(question, role);
   const path = wholeQuestion && role === "question" ? question.printPdf : resource.pdf;
-  const pdf = await loadPdf(path);
-  const pageNumbers = wholeQuestion ? Array.from({length: pdf.numPages}, (_, i) => i + 1) : [view.page];
+  const pageNumbers = wholeQuestion ? Array.from({length: (await loadPdf(path)).numPages}, (_, i) => i + 1) : [view.page];
+  return stackImage(pageNumbers.map(page => ({pdf: path, view: {page}})), `${question.source} · ${role !== "question" ? resource.label : wholeQuestion ? "Whole question" : view.label}`);
+}
+
+/** A PNG of the given pages stacked in order, with the source caption underneath. */
+export async function stackImage(items: {pdf: string; view: {page: number}}[], caption: string): Promise<Blob> {
   const pages: HTMLCanvasElement[] = [];
-  for (const number of pageNumbers) pages.push(await renderPage(path, number, 300 / 72));
+  for (const item of items) pages.push(await renderPage(item.pdf, item.view.page, 300 / 72));
   const width = Math.max(...pages.map(p => p.width));
   const gap = 40;
   const footer = 104;
@@ -72,9 +76,10 @@ export async function questionImage(question: BankQuestion, role: ViewRole, view
   if (!context) throw new Error("Image export is unavailable. Download the PDF instead.");
   context.fillStyle = "#fff"; context.fillRect(0, 0, width, height);
   let y = 0;
-  for (const page of pages) {context.drawImage(page, (width - page.width) / 2, y); y += page.height + gap;}
+  // Cuts are trimmed to their ink, so left edges line up as they do on the paper.
+  for (const page of pages) {context.drawImage(page, 0, y); y += page.height + gap;}
   context.fillStyle = "#253e59"; context.font = "28px Arial";
-  context.fillText(`${question.source} · ${role !== "question" ? resource.label : wholeQuestion ? "Whole question" : view.label}`, 24, height - 50, width - 48);
+  context.fillText(caption, 24, height - 50, width - 48);
   context.fillStyle = "#536579"; context.font = "23px Arial";
   context.fillText("Edexcel GCSE Mathematics · Original source notation retained", 24, height - 18, width - 48);
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("The image could not be exported.")), "image/png"));

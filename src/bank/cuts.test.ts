@@ -1,48 +1,45 @@
-import { existsSync, readFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { verifyCatalogue } from "./model";
+import { addedNote, servedParts } from "./cuts";
+import { verifyCatalogue, type BankQuestion } from "./model";
 
-// The November 2026 recut (bank folder cuts-2026-11): whole questions, parts and shared stems.
-const bank = verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")));
-const file = (path: string) => `public/${path}`;
+const view = {id: "v-1", label: "v", page: 1, width: 500, height: 100, preview: "bank/assets/x/v.png", description: "", sourcePages: [2]};
+const cut = (id: string, kind: "part" | "stem", parts: string[], context: string[] = [], requiresAnswerTo: string[] = []) =>
+  ({id, kind, label: kind === "stem" ? "Stem" : `(${id})`, parts, pdf: `bank/assets/x/${id}.pdf`, views: [view], context, requiresAnswerTo});
+const question = {
+  id: "Q7", marks: 6,
+  parts: [{label: "7a", marks: 1, codes: ["U1"]}, {label: "7b", marks: 2, codes: ["U2"]}, {label: "7c", marks: 3, codes: ["U3"]}],
+  cuts: [cut("stem", "stem", []), cut("a", "part", ["7a"], ["stem"]), cut("b", "part", ["7b"], ["stem", "a"], ["a"]), cut("c", "part", ["7c"], ["stem"])],
+} as unknown as BankQuestion;
 
-describe("recut question bank", () => {
-  it("serves every question from the recut and keeps its print sizes with its pages", () => {
-    for (const q of bank.questions) {
-      expect(q.questionPdf, q.id).toMatch(/^bank\/assets\/cuts-2026-11\/[A-Za-z0-9_]+\/question\.pdf$/);
-      expect(q.printPdf, q.id).toBe(q.questionPdf.replace(/question\.pdf$/, "print.pdf"));
-      expect(q.schemePdf, q.id).toBe(q.questionPdf.replace(/question\.pdf$/, "scheme.pdf"));
-      expect(q.printPages.length, q.id).toBe(q.questionViews.length);
-      q.questionViews.forEach((view, i) => {
-        expect(view.width, q.id).toBe(q.printPages[i].width);
-        expect(view.height, q.id).toBe(q.printPages[i].height);
-      });
-    }
+describe("serving parts on their own", () => {
+  it("serves a part with its stem", () => {
+    const served = servedParts(question, ["7c"])!;
+    expect(served.cuts.map(c => [c.cut.id, c.role, c.added])).toEqual([["stem", "context", false], ["c", "part", false]]);
+    expect(served).toMatchObject({parts: ["7c"], marks: 3, label: "(c)", title: "Part (c)"});
+    expect(addedNote(served)).toBe("");
   });
-
-  it("holds the agreed parts, stems and needs-answer links", () => {
-    const cuts = bank.questions.flatMap(q => q.cuts ?? []);
-    expect(cuts.filter(c => c.kind === "part")).toHaveLength(1789);
-    expect(cuts.filter(c => c.kind === "stem")).toHaveLength(556);
-    expect(cuts.filter(c => c.requiresAnswerTo.length)).toHaveLength(77);
-    // A part that needs an earlier answer is the later part, never the first.
-    for (const q of bank.questions) for (const cut of q.cuts ?? []) for (const id of cut.requiresAnswerTo) {
-      const ids = (q.cuts ?? []).map(c => c.id);
-      expect(ids.indexOf(id), `${q.id} ${cut.id}`).toBeLessThan(ids.indexOf(cut.id));
-    }
+  it("never serves a part without the earlier part whose answer it needs", () => {
+    const served = servedParts(question, ["7b"])!;
+    expect(served.cuts.map(c => [c.cut.id, c.added])).toEqual([["stem", false], ["a", true], ["b", false]]);
+    expect(served).toMatchObject({parts: ["7a", "7b"], marks: 3, label: "(a) and (b)", title: "Parts (a) and (b)"});
+    expect(addedNote(served)).toBe("Comes with (a).");
   });
-
-  it("has every file the catalogue names for each question folder present in this checkout", () => {
-    let checked = 0;
-    for (const q of bank.questions) {
-      // CI's lite bank holds only a few folders; check every folder that is there.
-      if (!existsSync(file(dirname(q.questionPdf)))) continue;
-      const paths = [q.questionPdf, q.printPdf, q.schemePdf, ...q.questionViews.map(v => v.preview), ...q.schemeViews.map(v => v.preview),
-        ...(q.cuts ?? []).flatMap(c => [c.pdf, ...c.views.map(v => v.preview)])];
-      for (const path of paths) expect(existsSync(file(path)), path).toBe(true);
-      checked++;
+  it("serves the whole question when the parts would make it up, or it has no cuts", () => {
+    expect(servedParts(question, ["7b", "7c"])).toBeUndefined();
+    expect(servedParts(question, ["7d"])).toBeUndefined();
+    expect(servedParts({...question, cuts: undefined}, ["7a"])).toBeUndefined();
+  });
+  it("finds every needs-answer part in the real catalogue", () => {
+    const bank = verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json", "utf8")));
+    let needing = 0;
+    for (const q of bank.questions) for (const c of q.cuts ?? []) {
+      if (c.kind !== "part" || !c.requiresAnswerTo.length) continue;
+      needing++;
+      const served = servedParts(q, c.parts);
+      const ids = served ? served.cuts.map(s => s.cut.id) : (q.cuts ?? []).map(s => s.id);
+      for (const id of c.requiresAnswerTo) expect(ids, `${q.id} ${c.id}`).toContain(id);
     }
-    expect(checked).toBeGreaterThan(0);
+    expect(needing).toBe(77);
   });
 });

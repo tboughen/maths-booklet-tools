@@ -209,6 +209,9 @@ def main():
     missing = sorted(set(questions) - done)
     if missing:
         fail(f"{len(missing)} catalogue questions have no cut, e.g. {missing[:3]}")
+    # A new version makes saved papers reconcile and caches refetch, as the worked-solution registration does.
+    questions_json = json.dumps(catalogue["questions"], ensure_ascii=False, separators=(",", ":"))
+    catalogue["version"] = "recut-2026-11-" + hashlib.sha256(questions_json.encode()).hexdigest()[:20]
     with open(catalogue_path, "w") as f:
         f.write(json.dumps(catalogue, ensure_ascii=False, separators=(",", ":")))
     n_cuts = sum(len(q.get("cuts", [])) for q in catalogue["questions"])

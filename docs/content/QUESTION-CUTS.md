@@ -57,3 +57,14 @@ python3 -I scripts/bank/apply-recut.py <manifest-dir> public/bank/assets
 It rewrites `public/bank/catalogue.json` and stops, writing nothing, on any missing file, any part
 label that does not match the catalogue or any broken link. The cutter, the original papers and the
 manifests stay outside the repositories.
+
+## In the app
+
+- **Question Bank.** With a topic open, a question cut into parts shows only the parts mapped to that
+  topic, stacked under the stem and any earlier part they need ("Comes with (b)"), as one view.
+  "Show whole question" switches back; the choice holds for the visit. Mark schemes stay whole.
+- **Paper Builder.** "Only the matching parts" in Review your paper prints each code-matched question
+  as its matching parts with the stem and the parts they need (`servedParts` in `src/bank/cuts.ts`),
+  at true size, and counts only their marks. Individually chosen questions, and questions whose
+  matching parts would make up the whole question, print whole. Mark schemes print whole.
+- **Assessment Follow-Up** still uses whole questions.

@@ -18,6 +18,7 @@ export function parsePaperDraft(value: unknown): PaperDraft | null {
   if (!v.manual || typeof v.manual !== "object" || Array.isArray(v.manual) || !Object.values(v.manual).every(id => typeof id === "string")) return null;
   const draft: PaperDraft = { codes: v.codes, manual: { ...(v.manual as Record<string, string>) }, excluded: v.excluded, order: v.order, version: v.version };
   if (v.manuallyOrdered === true) draft.manuallyOrdered = true;
+  if (v.partsOnly === true) draft.partsOnly = true;
   return draft;
 }
 
