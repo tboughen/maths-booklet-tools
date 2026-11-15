@@ -53,7 +53,7 @@ needs Tim's go-ahead.
 
 ## Teacher-prompt evals
 
-`plugins/mathsdock-claude/evals/` holds 16 teacher requests that check the plugin and the
+`plugins/mathsdock-claude/evals/` holds 23 teacher requests that check the plugin and the
 connector together, including requests that tempt the assistant to fill in or reveal
 answers. They run with `claude plugin eval` against the real connector and only when
 someone starts them, before an MCP deploy: `node scripts/evals/run.mjs` from a Claude
