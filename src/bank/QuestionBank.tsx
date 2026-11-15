@@ -6,7 +6,7 @@ import { ZoomControls, ZoomOverview } from "./ZoomControls";
 import { useStageZoom } from "./useStageZoom";
 import { stepZoom } from "./zoom";
 import { AnnotationBar } from "./AnnotationBar";
-import { annotationReducer, readAnnotationPreferences, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
+import { annotationReducer, readAnnotationPreferences, saveAnnotationPreferences, withTool, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
 import type { AnnotationSettings } from "./AnnotationLayer";
 import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
@@ -55,7 +55,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [ink,dispatchInk]=useReducer(annotationReducer,{});
   const [annotating,setAnnotating]=useState(false);
   const [annotatePrefs,setAnnotatePrefs]=useState<AnnotationPreferences>(readAnnotationPreferences);
-  useEffect(()=>{try{localStorage.setItem("qb-annotate",JSON.stringify(annotatePrefs));}catch{/* Optional device preference. */}},[annotatePrefs]);
+  useEffect(()=>saveAnnotationPreferences(annotatePrefs),[annotatePrefs]);
   // Read by the key handler, so quick key presses never see a stale tool.
   const annotateNow=useRef({annotating,tool:annotatePrefs.tool});annotateNow.current={annotating,tool:annotatePrefs.tool};
   const undoKeys=useRef<string[]>([]);const redoKeys=useRef<string[]>([]);
@@ -146,10 +146,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const clearInk=()=>{for(const key of visibleKeys)if(layerOf(ink,key).strokes.length)commitInk(key,[]);};
   const clearAllInk=()=>{for(const [key,layer] of Object.entries(ink))if(layer.strokes.length)undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"clearAll"});};
   const viewHasInk=visibleKeys.some(key=>layerOf(ink,key).strokes.length>0);
-  const sizes=SIZES.find(size=>size.value===annotatePrefs.size)!;
-  const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?sizes.highlighter:sizes.pen,scale):undefined;
-  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize:sizes.pen,highlighterSize:sizes.highlighter,straight:annotatePrefs.straight}),[annotatePrefs,sizes]);
-  const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>({...p,tool}));setAnnotating(true);},[]);
+  const penSize=SIZES.find(size=>size.value===annotatePrefs.penSize)!.pen,highlighterSize=SIZES.find(size=>size.value===annotatePrefs.highlighterSize)!.highlighter;
+  const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
+  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize,highlighterSize,straight:annotatePrefs.straight}),[annotatePrefs,penSize,highlighterSize]);
+  const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>withTool(p,tool));setAnnotating(true);},[]);
   // Answers open at fit; going back to the question restores the zoom and position the teacher left.
   const switchRole=useCallback((next:ViewRole)=>{
     if(!question)return;
@@ -175,7 +175,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           const tool=({h:"highlighter",e:"eraser",l:"laser",v:"hand"} as Record<string,AnnotationTool>)[k];
           if(tool){e.preventDefault();chooseTool(tool);return;}
           const n=Number.parseInt(e.key,10);
-          if(n>=1&&n<=5){const colours=annotateNow.current.tool==="highlighter"?HIGHLIGHTER_COLOURS:PEN_COLOURS;const c=colours[n-1];if(c){e.preventDefault();setAnnotatePrefs(p=>p.tool==="highlighter"?{...p,highlighterColour:c.value}:{...p,penColour:c.value,tool:"pen"});return;}}
+          if(n>=1&&n<=PEN_COLOURS.length){const colours=annotateNow.current.tool==="highlighter"?HIGHLIGHTER_COLOURS:PEN_COLOURS;const c=colours[n-1];if(c){e.preventDefault();setAnnotatePrefs(p=>p.tool==="highlighter"?{...p,highlighterColour:c.value}:{...withTool(p,"pen"),penColour:c.value});return;}}
         }
       }
       if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.startsWith("Arrow")){

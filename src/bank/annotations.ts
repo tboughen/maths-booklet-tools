@@ -12,12 +12,16 @@ export type StrokeKind = "pen" | "highlighter";
 export interface Stroke { id: string; kind: StrokeKind; colour: string; size: number; scale: number; points: [number, number][]; ruled?: boolean }
 
 export const PEN_COLOURS = [
-  // Cheerful but still at least 3:1 against white, so they read on a projector.
+  // Cheerful but still at least 3:1 against white, so they read on a projector. Black first, as teachers reach for
+  // it; purple for writing working; the same eight as CueCurve's pen (Tim, 15 Nov 2026).
   { value: "#1b1b1b", label: "Black" },
-  { value: "#1e6fe8", label: "Blue" },
+  { value: "#6c808c", label: "Grey" },
   { value: "#e8343a", label: "Red" },
+  { value: "#1e6fe8", label: "Blue" },
   { value: "#17a34a", label: "Green" },
   { value: "#d9339c", label: "Pink" },
+  { value: "#7b3fc4", label: "Purple" },
+  { value: "#e8730c", label: "Orange" },
 ] as const;
 export const HIGHLIGHTER_COLOURS = [
   // Standard bright highlighter colours, as Tim chose; they sit under the ink in multiply mode.
@@ -115,27 +119,39 @@ export function addPoint(points: [number, number][], point: [number, number], mi
 /** A stylus eraser end, or a board that reports its own eraser. */
 export const isStylusEraser = (event: { pointerType: string; buttons: number; button: number }) => event.pointerType === "pen" && ((event.buttons & 32) !== 0 || event.button === 5);
 
+/** Settings belong to a tool: the pen and highlighter each keep their own colour and size. */
 export interface AnnotationPreferences {
   tool: AnnotationTool;
   penColour: string;
   highlighterColour: string;
-  size: SizeName;
+  penSize: SizeName;
+  highlighterSize: SizeName;
   straight: boolean;
 }
 
-/** Tool choices are remembered on this device; the ink itself never is. */
-export const defaultAnnotationPreferences: AnnotationPreferences = { tool: "pen", penColour: PEN_COLOURS[0].value, highlighterColour: HIGHLIGHTER_COLOURS[0].value, size: "medium", straight: false };
+export const defaultAnnotationPreferences: AnnotationPreferences = { tool: "pen", penColour: PEN_COLOURS[0].value, highlighterColour: HIGHLIGHTER_COLOURS[0].value, penSize: "medium", highlighterSize: "medium", straight: false };
 
+/** Picks a tool. Straight lines are a one-off, so they turn off whenever the tool changes. */
+export const withTool = (p: AnnotationPreferences, tool: AnnotationTool): AnnotationPreferences => tool === p.tool ? p : { ...p, tool, straight: false };
+
+/**
+ * Colours and sizes are remembered on this device. The tool and straight lines are not, so every visit starts on the
+ * pen with straight lines off and a first touch never surprises; the ink itself is never remembered.
+ */
 export function readAnnotationPreferences(): AnnotationPreferences {
   try {
     const saved = JSON.parse(localStorage.getItem("qb-annotate") || "{}") as Partial<AnnotationPreferences>;
     const p = { ...defaultAnnotationPreferences };
-    if (["hand", "pen", "highlighter", "eraser", "laser"].includes(saved.tool as string)) p.tool = saved.tool!;
     if (PEN_COLOURS.some(c => c.value === saved.penColour)) p.penColour = saved.penColour!;
     if (HIGHLIGHTER_COLOURS.some(c => c.value === saved.highlighterColour)) p.highlighterColour = saved.highlighterColour!;
-    if (SIZES.some(size => size.value === saved.size)) p.size = saved.size!;
+    if (SIZES.some(size => size.value === saved.penSize)) p.penSize = saved.penSize!;
+    if (SIZES.some(size => size.value === saved.highlighterSize)) p.highlighterSize = saved.highlighterSize!;
     return p;
   } catch { return { ...defaultAnnotationPreferences }; }
+}
+
+export function saveAnnotationPreferences({ penColour, highlighterColour, penSize, highlighterSize }: AnnotationPreferences) {
+  try { localStorage.setItem("qb-annotate", JSON.stringify({ penColour, highlighterColour, penSize, highlighterSize })); } catch { /* Optional device preference. */ }
 }
 
 

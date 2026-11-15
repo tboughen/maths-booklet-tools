@@ -167,6 +167,27 @@ test.describe("question viewer annotations", () => {
     await expect.poll(() => strokes(page)).toBe(5);
     expect(await last().getAttribute("fill")).not.toBe("none");
   });
+
+  test("each tool keeps its own size, eight pen colours, and changing tool turns straight lines off", async ({ page }) => {
+    await open(page);
+    await page.keyboard.press("p");
+    const bar = page.locator(".qb-annotate-bar");
+    await expect(bar.getByRole("radiogroup", { name: "Pen colour" }).getByRole("radio")).toHaveCount(8);
+    await page.keyboard.press("7");
+    await expect(bar.getByRole("radio", { name: "Purple" })).toHaveAttribute("aria-checked", "true");
+    await bar.getByRole("radio", { name: "Thin" }).click();
+    await page.keyboard.press("h");
+    await bar.getByRole("radio", { name: "Thick" }).click();
+    await page.keyboard.press("p");
+    await expect(bar.getByRole("radio", { name: "Thin" })).toHaveAttribute("aria-checked", "true");
+    await bar.getByRole("button", { name: "Straight lines" }).click();
+    await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "true");
+    await bar.getByRole("radio", { name: "Blue" }).click();
+    await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("h");
+    await expect(bar.getByRole("radio", { name: "Thick" })).toHaveAttribute("aria-checked", "true");
+    await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "false");
+  });
 });
 
 test.describe("question viewer annotations on touch boards", () => {
