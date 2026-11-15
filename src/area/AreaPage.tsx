@@ -177,13 +177,14 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const viewSvg = useMemo(() => (view === "answer" ? answerSvg : renderSvg(e, "pupil")), [e, view, answerSvg]);
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
-  // Side and height ids renumber when corners or heights change (by any edit, undo or redo), so the selection is
-  // cleared then, for good, rather than pointing at a side or height the teacher did not pick.
-  const structure = useMemo(() => (s.type === "polygon" ? `${s.corners.length}|${JSON.stringify(s.heights)}` : s.type), [s]);
-  const [seenStructure, setSeenStructure] = useState(structure);
-  if (seenStructure !== structure) {
-    setSeenStructure(structure);
-    setSelected(null);
+  // Side ids renumber when the corner count changes, and height ids when the height count does (by any edit, undo
+  // or redo), so a selected side or height is cleared then, for good, rather than pointing at one not picked.
+  const counts = s.type === "polygon" ? { e: s.corners.length, h: s.heights.length } : { e: 0, h: 0 };
+  const [seenCounts, setSeenCounts] = useState(counts);
+  if (seenCounts.e !== counts.e || seenCounts.h !== counts.h) {
+    setSeenCounts(counts);
+    const kind = selected?.match(/^([eh])\d+$/)?.[1] as "e" | "h" | undefined;
+    if (kind && seenCounts[kind] !== counts[kind]) setSelected(null);
   }
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;

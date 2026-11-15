@@ -77,25 +77,24 @@ test("adds a shaded hole and a grid, and prints Diagram NOT accurately drawn by 
 
 test("adding a corner splits the last side and drops its label; removing one drops the joined sides' labels", async ({ page }) => {
   await boot(page, example("l-shape"));
+  const ids = async () => (await saved(page)).document.labels.map((l: Saved) => l.id);
   await page.getByText("Corners, sides and heights").click();
   await page.getByRole("button", { name: "Remove the last corner" }).click();
-  let ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
-  expect(ids).not.toContain("e5");
-  expect(ids).not.toContain("e6");
-  expect(ids).toContain("e4");
   await expect(page.getByRole("status")).toContainText("2 labels have no place on the new shape");
+  await expect.poll(ids).not.toContain("e5");
+  expect(await ids()).not.toContain("e6");
+  expect(await ids()).toContain("e4");
   await page.getByRole("button", { name: "Undo" }).click();
-  // A selected side lets go when the sides renumber, so the card never edits a side the teacher did not pick.
+  await expect.poll(ids).toContain("e6");
+  // A selected side lets go when the sides renumber, and Undo does not bring the selection back.
   await page.getByRole("button", { name: "Select the label on side 6 (e6)" }).click();
   const card = page.getByRole("region", { name: "Selected label" });
   await expect(card.getByRole("heading")).toHaveText("Label: side 6");
   await page.getByRole("button", { name: "Add a corner" }).click();
   await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await expect.poll(ids).not.toContain("e6");
+  expect(await ids()).toContain("e5");
   await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(ids).toContain("e6");
   await expect(card.getByRole("heading")).toHaveText("Selected label");
-  await page.getByRole("button", { name: "Redo" }).click();
-  ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
-  expect(ids).not.toContain("e6");
-  expect(ids).toContain("e5");
-  await expect(page.getByRole("status")).toContainText("One label has no place on the new shape");
 });
