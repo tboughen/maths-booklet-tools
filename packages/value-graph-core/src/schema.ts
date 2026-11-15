@@ -3,6 +3,9 @@ import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "value-graph-1" as const;
+
 export const numeric = z
   .string()
   .max(32)
@@ -108,7 +111,7 @@ export const documentSchema = z
 export const envelopeSchema = z
   .object({
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("value-graph-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
     ...aboutShape,

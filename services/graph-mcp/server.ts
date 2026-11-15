@@ -44,6 +44,19 @@ import { BundleDownloads } from "./bundle-downloads";
 import { diagramOutputTools } from "./diagram-output-tools";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
+import { RENDERER_VERSION as valueVersion } from "../../packages/value-graph-core/src/schema";
+import { RENDERER_VERSION as cuboidVersion } from "../../packages/cuboid-core/src/index";
+import { RENDERER_VERSION as numberLineVersion } from "../../packages/number-line-core/src/index";
+import { RENDERER_VERSION as vennVersion } from "../../packages/venn-core/src/index";
+import { RENDERER_VERSION as barVersion } from "../../packages/bar-model-core/src/v3";
+import { RENDERER_VERSION as algebraVersion } from "../../packages/algebra-grid-core/src/index";
+import { RENDERER_VERSION as chartVersion } from "../../packages/chart-core/src/index";
+import { RENDERER_VERSION as treeVersion } from "../../packages/probability-tree-core/src/index";
+import { RENDERER_VERSION as triangleVersion } from "../../packages/triangle-core/src/model";
+import { RENDERER_VERSION as frequencyTreeVersion } from "../../packages/frequency-tree-core/src/index";
+import { RENDERER_VERSION as twoWayTableVersion } from "../../packages/two-way-table-core/src/index";
+import { RENDERER_VERSION as constructionVersion } from "../../packages/construction-core/src/index";
+import { RENDERER_VERSION as elevationsVersion } from "../../packages/elevation-core/src/index";
 import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** What every client reads first; family detail lives in diagram_capabilities. */
@@ -330,15 +343,19 @@ export function graphService(options: ServiceOptions) {
           ok: true,
           rendererVersion: RENDERER_VERSION,
           ratioRendererVersion: RATIO_RENDERER_VERSION,
-          valueGraphRendererVersion: "value-graph-1",
-          cuboidRendererVersions: ["cuboids-2"],
-          numberLineRendererVersion: "number-line-1",
-          vennRendererVersions: ["venn-2"],
-          barModelRendererVersions: ["bar-model-3"],
-          algebraGridRendererVersion: "algebra-grid-1",
-          chartRendererVersion: "charts-1",
-          probabilityTreeRendererVersion: "probability-tree-1",
-          triangleRendererVersions: ["triangle-2"],
+          valueGraphRendererVersion: valueVersion,
+          cuboidRendererVersions: [cuboidVersion],
+          numberLineRendererVersion: numberLineVersion,
+          vennRendererVersions: [vennVersion],
+          barModelRendererVersions: [barVersion],
+          algebraGridRendererVersion: algebraVersion,
+          chartRendererVersion: chartVersion,
+          probabilityTreeRendererVersion: treeVersion,
+          triangleRendererVersions: [triangleVersion],
+          frequencyTreeRendererVersion: frequencyTreeVersion,
+          twoWayTableRendererVersion: twoWayTableVersion,
+          constructionRendererVersion: constructionVersion,
+          elevationsRendererVersion: elevationsVersion,
           buildId: options.buildId ?? "development",
         });
         return;

@@ -4,6 +4,9 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "charts-1" as const;
+
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
  * line charts share one categorical axis, one numerical axis, one grid and one
@@ -63,7 +66,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("charts"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("charts-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: z
       .object({
         kind: z.enum(kinds),
@@ -107,7 +110,7 @@ export function create(): Envelope {
   return {
     tool: "charts",
     schemaVersion: 1,
-    rendererVersion: "charts-1",
+    rendererVersion: RENDERER_VERSION,
     document: {
       kind: "dual",
       categories: ["Car", "Bus", "Walk", "Cycle"],

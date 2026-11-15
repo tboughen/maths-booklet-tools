@@ -1,3 +1,4 @@
+import { RENDERER_VERSION } from "./schema";
 import {
   canonicalNumber,
   fractionString,
@@ -178,7 +179,7 @@ export function validate(raw: unknown): ValueEnvelope {
 export function wrap(document: ValueDocument): ValueEnvelope {
   return validate({
     schemaVersion: 1,
-    rendererVersion: "value-graph-1",
+    rendererVersion: RENDERER_VERSION,
     styleProfile: "exam-v1",
     document,
   });

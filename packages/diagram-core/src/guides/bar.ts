@@ -10,7 +10,7 @@ export const barConfig = {
   revision: bi.revisionSchema,
   capabilities: {
     schemaVersions: [3],
-    rendererVersions: ["bar-model-3"],
+    rendererVersions: [v3.RENDERER_VERSION],
     styleProfile: "lesson-v3",
     starters: v3.starters,
     slots: v3.slots,
