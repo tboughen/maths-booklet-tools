@@ -117,7 +117,6 @@ function graph(
           },
         ]
       : [],
-    selectedObjectId: null,
   };
 }
 const numberCell = (value: string) => ({ kind: "number" as const, value });

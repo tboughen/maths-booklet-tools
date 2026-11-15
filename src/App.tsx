@@ -171,7 +171,7 @@ export default function App({ active = true }: { active?: boolean }) {
     const timeout = window.setTimeout(() => {
       try {
         const raw = localStorage.getItem(ENVELOPE_STORAGE_KEY),
-          next = JSON.stringify(graphEnvelope(document, false));
+          next = JSON.stringify(graphEnvelope(document));
         if (raw !== expectedStorage.current && raw !== next) {
           setRecoveryReason(
             "The saved graph changed in another tab. Keep a recovery copy before replacing it with this graph.",
@@ -625,7 +625,7 @@ export default function App({ active = true }: { active?: boolean }) {
               active={active}
               disabled={blocked}
               onUse={(resource) => setPendingExample(resource)}
-              onWorked={(resource) => commit(resource, "use worked version")}
+              onWorked={(resource) => commit({ ...resource, selectedObjectId: null }, "use worked version")}
             />
             {/* The equation form opens only from "Line by equation" or Edit equation, so a first
                 visit shows the drawing tools rather than a form. */}
@@ -758,7 +758,7 @@ export default function App({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onConfirm={() => {
             if (locked()) return;
-            commit(pendingExample, "replace with example");
+            commit({ ...pendingExample, selectedObjectId: null }, "replace with example");
             setPendingExample(null);
             setTool("select");
             setEquationOpen(false);

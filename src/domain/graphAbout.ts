@@ -6,18 +6,22 @@
  */
 import { aboutOf, type About } from "../../packages/envelope-core/src/about";
 import { createEnvelope, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
-import type { DiagramDocumentV1 } from "../../packages/graph-core/src/types";
+import type { GraphEditorDocument } from "../../packages/graph-core/src/types";
 import type { WorkedNote } from "../../packages/envelope-core/src/worked";
 
-export type GraphDocument = DiagramDocumentV1 & { about?: About };
+/** The editor's document: the drawing, its selection (editor state, never saved: U35) and its title and note. */
+export type GraphDocument = GraphEditorDocument & { about?: About };
 
-export function graphEnvelope(document: GraphDocument, clearSelection = true): GraphEnvelope {
+/** A graph document as saved: everything but the editor's selection. */
+export type SavedGraphDocument = Omit<GraphDocument, "selectedObjectId">;
+
+export function graphEnvelope(document: SavedGraphDocument): GraphEnvelope {
   const { about, ...drawing } = document;
-  return { ...createEnvelope(drawing, clearSelection), ...aboutOf(about) };
+  return { ...createEnvelope(drawing), ...aboutOf(about) };
 }
 
 export function graphDocument(envelope: GraphEnvelope): GraphDocument {
-  const document: GraphDocument = documentFromEnvelope(envelope);
+  const document: GraphDocument = { ...documentFromEnvelope(envelope), selectedObjectId: null };
   const about = aboutOf(envelope);
   if (Object.keys(about).length) document.about = about;
   return document;

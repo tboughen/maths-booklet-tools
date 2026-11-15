@@ -128,7 +128,7 @@ describe("Edexcel-style graphs", () => {
 
   it("leaves graphs without the new settings exactly as they were", async () => {
     const plain = createGraph({ objects: [{ kind: "point", position: { x: 1, y: 2 } }] });
-    expect(Object.keys(plain.document).sort()).toEqual(["axes", "objects", "selectedObjectId", "version"]);
+    expect(Object.keys(plain.document).sort()).toEqual(["axes", "objects", "version"]);
     expect(Object.keys(plain.document.axes.x).sort()).toEqual(["negativeSquares", "positiveSquares", "unitsPerSquare"]);
     const svg = renderDiagramSvg(documentFromEnvelope(plain));
     expect(svg).toContain("A one centimetre square grid");
