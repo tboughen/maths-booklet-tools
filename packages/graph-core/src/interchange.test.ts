@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import {
+  createEnvelope,
   createGraph,
   decodeEnvelope,
   documentFromEnvelope,
@@ -48,16 +49,24 @@ describe("portable graph interchange", () => {
     expect(svg).toContain("𝑥");
     expect(svg).toMatch(/width="[0-9.]+cm"/);
   });
-  it("hashes equivalent JSON independently of key ordering and selection", async () => {
+  it("hashes equivalent JSON independently of key ordering", async () => {
     const graph = createGraph(spec),
       reordered = structuredClone(graph);
     reordered.document = {
-      selectedObjectId: "point",
       objects: graph.document.objects,
       axes: graph.document.axes,
       version: 1,
     };
     expect(await graphHash(reordered)).toBe(await graphHash(graph));
+  });
+  it("keeps the editor's selection out of saved graphs, links and hashes (U35)", async () => {
+    const graph = createGraph(spec);
+    expect(graph.document).not.toHaveProperty("selectedObjectId");
+    const selected = { ...documentFromEnvelope(graph), selectedObjectId: "point" };
+    const saved = createEnvelope(selected);
+    expect(saved.document).not.toHaveProperty("selectedObjectId");
+    expect(await graphHash(saved)).toBe(await graphHash(graph));
+    expect(() => validateEnvelope({ ...graph, document: { ...graph.document, selectedObjectId: null } })).toThrow(/selectedObjectId/);
   });
   it("applies revisions atomically and retains every unchanged object", async () => {
     const graph = createGraph(spec),

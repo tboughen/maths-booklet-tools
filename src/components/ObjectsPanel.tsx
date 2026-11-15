@@ -3,10 +3,10 @@ import { formatVertices, polygonInBounds } from "../../packages/graph-core/src/p
 import { regionHalfPlanes, regionPolygon } from "../../packages/graph-core/src/region";
 import { getBounds, pointInBounds, visibleStraightPoints } from "../domain/diagram";
 import { equationForObject, formatNumber } from "../domain/equations";
-import type { DiagramDocumentV1, GraphObject } from "../domain/types";
+import type { GraphEditorDocument, GraphObject } from "../domain/types";
 
 interface ObjectsPanelProps {
-  document: DiagramDocumentV1;
+  document: GraphEditorDocument;
   expanded: boolean;
   onToggle: () => void;
   onSelect: (id: string) => void;
