@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addPoint, annotationReducer, hasInk, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
 
-const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, points });
+const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, scale: 1, points });
 
 describe("screen-only annotations", () => {
   it("keeps one undoable history per view and never mixes views", () => {
