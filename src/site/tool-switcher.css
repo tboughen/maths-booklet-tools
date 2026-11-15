@@ -14,7 +14,7 @@
 .tool-switcher-star.is-favourite { color: var(--md-amber); }
 .tool-switcher-star.is-favourite svg { fill: currentColor; }
 
-.tool-switcher-panel { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; display: grid; gap: 10px; width: min(720px, calc(100vw - 40px)); max-height: calc(100dvh - 150px); overflow: auto; padding: 12px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius-card); background: var(--md-paper); box-shadow: var(--md-shadow-pop); color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); letter-spacing: 0; }
+.tool-switcher-panel { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; display: grid; gap: 10px; width: min(980px, calc(100vw - 40px)); max-height: calc(100dvh - 150px); overflow: auto; padding: 12px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius-card); background: var(--md-paper); box-shadow: var(--md-shadow-pop); color: var(--md-ink); font: 400 var(--md-text-sm)/1.4 var(--md-font); letter-spacing: 0; }
 .tool-switcher-panel:focus { outline: 0; }
 .tool-switcher-panel ul { display: contents; margin: 0; padding: 0; list-style: none; }
 .tool-switcher-panel li { display: contents; }
@@ -29,9 +29,11 @@
 .tool-switcher-favourites small { color: var(--md-ink-3); font-size: var(--md-text-xs); }
 .tool-switcher-favourites a { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px solid var(--md-line); border-radius: var(--md-radius-pill); background: var(--md-paper); color: var(--md-ink); font-size: var(--md-text-xs); font-weight: 500; }
 .tool-switcher-favourites a:hover { border-color: var(--md-line-strong); background: var(--md-page); }
-.tool-switcher-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; align-items: start; }
-.tool-switcher-groups > div { display: grid; gap: 10px; }
+/* One column for each of the four strands, in the scheme's order. */
+.tool-switcher-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; align-items: start; }
 .tool-switcher-groups section { display: grid; gap: 1px; }
+/* A search that leaves one strand gives it the whole width, so a match line stays on one line. */
+.tool-switcher-groups section:only-child { grid-column: 1 / -1; }
 .tool-switcher-groups h2 { margin: 0 0 3px; padding: 0 8px; color: var(--md-ink-2); font: 600 var(--md-text-xs)/1.4 var(--md-font); letter-spacing: 0; }
 .tool-switcher-groups a { display: flex; align-items: center; gap: 8px; min-height: var(--md-control); padding: 4px 8px; border-radius: var(--md-radius); color: var(--md-ink); font-weight: 500; }
 .tool-switcher-groups a > span { flex: 1; min-width: 0; }
@@ -45,6 +47,9 @@
 .tool-switcher-foot a { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 6px; border-radius: var(--md-radius); color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 500; }
 .tool-switcher-foot a:hover { background: var(--md-page); }
 .tool-switcher-foot kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-right: 4px; padding: 0 5px; border: 1px solid var(--md-line); border-radius: var(--md-radius-key); background: var(--md-page); color: var(--md-ink-2); font: 500 var(--md-text-2xs)/1 var(--md-font); }
+/* Two strands left share the width in halves. */
+@media (min-width: 961px) { .tool-switcher-groups section:first-child:nth-last-child(2), .tool-switcher-groups section:first-child:nth-last-child(2) + section { grid-column: span 2; } }
+@media (max-width: 960px) { .tool-switcher-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 620px) {
   /* The Menu button above already names the Diagram builder, and the switcher links to it. */
   .tool-switcher-crumb, .tool-switcher-sep { display: none; }

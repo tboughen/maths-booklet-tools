@@ -7,8 +7,6 @@ import { catalogue, searchTool, strands } from "./toolCatalogue";
 
 type Tool = (typeof bookletTools)[number];
 
-/** The four strands share three columns; the two short ones stack in the first. */
-const COLUMNS = [["number", "algebra"], ["geometry"], ["statistics"]] as const;
 
 /**
  * A diagram tool's heading. The name is a button that opens a switcher: search, favourite tools
@@ -49,10 +47,10 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
   }, [open]);
 
   const results = bookletTools.map((item) => ({ item, ...searchTool(item, search) })).filter((r) => r.found);
-  // Columns that still hold a tool, each strand with its matches, in the order they are drawn.
-  const columns = COLUMNS.map((column) => column.map((id) => ({ id, list: results.filter((r) => catalogue[r.item.id].strand === id) })).filter((group) => group.list.length)).filter((column) => column.length);
+  // One column for each strand that still holds a tool, in the scheme's order.
+  const groups = strands.map((strand) => ({ ...strand, list: results.filter((r) => catalogue[r.item.id].strand === strand.id) })).filter((group) => group.list.length);
   // While searching, Enter opens the first tool drawn.
-  const first = query ? columns[0]?.[0]?.list[0]?.item.id : undefined;
+  const first = query ? groups[0]?.list[0]?.item.id : undefined;
 
   function keys(event: KeyboardEvent<HTMLDivElement>) {
     // Editors listen for keys on the window (arrows nudge, Delete removes, Escape deselects).
@@ -137,18 +135,11 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
           )}
           {results.length ? (
             <div className="tool-switcher-groups">
-              {columns.map((column) => (
-                <div key={column[0].id}>
-                  {column.map(({ id, list }) => {
-                    const heading = `${panel}-${id}`;
-                    return (
-                      <section key={id} aria-labelledby={heading}>
-                        <h2 id={heading}>{strands.find((s) => s.id === id)!.name}</h2>
-                        <ul>{list.map((r) => link(r.item, r.matched))}</ul>
-                      </section>
-                    );
-                  })}
-                </div>
+              {groups.map(({ id, name, list }) => (
+                <section key={id} aria-labelledby={`${panel}-${id}`}>
+                  <h2 id={`${panel}-${id}`}>{name}</h2>
+                  <ul>{list.map((r) => link(r.item, r.matched))}</ul>
+                </section>
               ))}
             </div>
           ) : (
