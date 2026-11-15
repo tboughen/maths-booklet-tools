@@ -7,7 +7,7 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
@@ -62,7 +62,7 @@ import {
 } from "../../packages/frequency-tree-core/src";
 import { LINK_PREFIX, frequencyTreeLink, parseFrequencyTreeLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:frequency-tree:v1");
@@ -75,19 +75,8 @@ function fresh() {
   return e;
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return { e: fresh(), recovery: raw, message: "Saved tree data needs recovery. Download the original before starting afresh." };
-      }
-    }
-  } catch {
-    return { e: fresh(), recovery: null, message: "Device storage is unavailable. Save an editable file to keep your work." };
-  }
-  return { e: fresh(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh, recoveryMessage: "Saved tree data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Keeps its draft while typing; Enter or leaving applies, Escape restores. */
@@ -165,15 +154,13 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
     [selected, setSelected] = useState<string | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
@@ -230,35 +217,17 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (expected.current !== null && raw !== expected.current && raw !== text) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage("A newer draft exists in another tab. Its saved data is protected.");
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage("Saved tree data changed in another tab. Download its data before replacing it.");
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved tree data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -748,14 +717,12 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage("Saved data changed again. Download this latest copy first.");
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {
