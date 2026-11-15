@@ -92,6 +92,10 @@ test.describe("question viewer annotations", () => {
     await page.getByRole("button", { name: "Display" }).click();
     await page.locator(".qb-display-dock").getByRole("button", { name: "Annotate" }).click();
     await expect(page.locator(".qb-annotate-bar")).toBeVisible();
+    // The rail runs down the right of the board, and Annotate and zoom sit just left of it.
+    const [dock, rail] = [(await page.locator(".qb-display-dock").boundingBox())!, (await page.locator(".qb-annotate-bar").boundingBox())!];
+    expect(dock.x + dock.width).toBeLessThanOrEqual(rail.x);
+    expect(rail.x - (dock.x + dock.width)).toBeLessThan(40);
     await draw(page, [100, 100], [300, 140]);
     await page.keyboard.press("Escape");
     await expect(page.locator(".qb-annotate-bar")).toHaveCount(0);
@@ -189,12 +193,15 @@ test.describe("question viewer annotations", () => {
     await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  test("the tools sit on a rail beside the page; arrow keys move along it, and a tapped button doesn't keep focus", async ({ page }) => {
+  test("the tools sit on a rail right of the page above Annotate; arrow keys move along it, and a tapped button doesn't keep focus", async ({ page }) => {
     await open(page);
     await page.keyboard.press("p");
     const bar = page.locator(".qb-annotate-bar"), stage = page.locator(".qb-stage");
     const [rail, view] = [(await bar.boundingBox())!, (await stage.boundingBox())!];
-    expect(rail.x + rail.width).toBeLessThanOrEqual(view.x + 1);
+    expect(rail.x).toBeGreaterThanOrEqual(view.x + view.width - 1);
+    // Annotate sits at the right of the footer, under the rail.
+    const annotate = (await page.locator(".qb-footer .qb-annotate-toggle").boundingBox())!;
+    expect(annotate.x + annotate.width).toBeGreaterThan(rail.x);
     expect(rail.height).toBeGreaterThan(rail.width);
     // Every control is in view without scrolling the rail.
     for (const name of ["Pen", "Orange", "Thick", "Clear this view", "Close annotation tools"]) await expect(bar.getByRole("button", { name, exact: true })).toBeInViewport();
@@ -205,7 +212,8 @@ test.describe("question viewer annotations", () => {
     await page.keyboard.press("+");
     const toggle = page.locator(".qb-overview-toggle, .qb-overview").first();
     await expect(toggle).toBeVisible();
-    expect((await toggle.boundingBox())!.x).toBeGreaterThanOrEqual(rail.x + rail.width);
+    const map = (await toggle.boundingBox())!;
+    expect(map.x + map.width).toBeLessThanOrEqual(rail.x);
     await bar.getByRole("button", { name: "Pen", exact: true }).focus();
     const before = await page.locator(".qb-navigation strong").textContent();
     await page.keyboard.press("ArrowDown");
@@ -214,6 +222,17 @@ test.describe("question viewer annotations", () => {
     await expect(bar.getByRole("button", { name: "Close annotation tools" })).toBeFocused();
     await page.keyboard.press("ArrowRight");
     await expect(page.locator(".qb-navigation strong")).toHaveText(before!);
+  });
+
+  for (const [width, height] of [[1280, 800], [1600, 900], [1920, 1080]]) test(`Annotate stays at the right of the footer under the rail at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await page.keyboard.press("p");
+    const button = page.locator(".qb-footer .qb-annotate-toggle");
+    await expect(button).toBeInViewport({ ratio: 1 });
+    const [annotate, rail] = [(await button.boundingBox())!, (await page.locator(".qb-annotate-bar").boundingBox())!];
+    expect(Math.abs(annotate.x + annotate.width - (rail.x + rail.width))).toBeLessThan(40);
+    await expect(page.locator(".qb-footer .qb-image-actions")).toBeInViewport({ ratio: 1 });
   });
 });
 
