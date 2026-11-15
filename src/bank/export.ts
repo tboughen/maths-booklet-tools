@@ -145,7 +145,8 @@ export async function makePapers(questions: BankQuestion[], version: string, pre
       const notes = q.schemeSourceNote ? noteLines([{note:q.schemeSourceNote}], mf, LANDSCAPE[0]-48) : [];
       const noteHeight = notes.length ? notes.length * 10 + 5 : 0;
       const scale = Math.min(1, (LANDSCAPE[0]-48)/embedded.width, (LANDSCAPE[1]-85-noteHeight)/embedded.height);
-      const heading = `${index + 1}${p ? " (continued)" : ""}. ${titleOf(q)} | Mark scheme${servedHere ? " for the whole question" : ""} | ${qMarks} mark${qMarks === 1 ? "" : "s"}`;
+      // A part-only question prints its whole mark scheme, so the heading gives the whole question's marks.
+      const heading = `${index + 1}${p ? " (continued)" : ""}. ${titleOf(q)} | ${servedHere ? `Mark scheme for the whole question | ${q.marks} mark${q.marks === 1 ? "" : "s"}` : `Mark scheme | ${qMarks} mark${qMarks === 1 ? "" : "s"}`}`;
       page.drawText(heading, {x:24,y:LANDSCAPE[1]-30,font:mb,size:12,color:rgb(.12,.22,.34)});
       schemeHeadings.push(heading);
       notes.forEach((note,i)=>page.drawText(note,{x:24,y:LANDSCAPE[1]-46-i*10,font:mf,size:8,color:rgb(.35,.25,.1)}));

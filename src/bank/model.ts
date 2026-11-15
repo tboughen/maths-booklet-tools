@@ -284,10 +284,11 @@ function cutsValid(q: BankQuestion): boolean {
   if (!Array.isArray(cuts) || !cuts.length) return false;
   const ids = new Set(cuts.map(c => c.id));
   if (ids.size !== cuts.length) return false;
+  if (!cuts.every(c => c && Array.isArray(c.parts))) return false;
   const covered = cuts.flatMap(c => c.parts);
   const labels = q.parts.map(p => p.label);
   if (covered.length !== labels.length || new Set(covered).size !== covered.length || covered.some(l => !labels.includes(l))) return false;
-  return cuts.every(c => (c.kind === "part" ? c.parts.length > 0 : c.kind === "stem" && c.parts.length === 0)
+  return cuts.every(c => Array.isArray(c.parts) && Array.isArray(c.context) && Array.isArray(c.requiresAnswerTo) && (c.kind === "part" ? c.parts.length > 0 : c.kind === "stem" && c.parts.length === 0)
     && typeof c.label === "string" && !!c.label && bankAssetPath(c.pdf, "pdf") && Array.isArray(c.views) && c.views.length > 0 && c.views.every(v => bankAssetPath(v.preview, "png"))
     && [...c.context, ...c.requiresAnswerTo].every(id => id !== c.id && ids.has(id))
     && c.requiresAnswerTo.every(id => c.context.includes(id) && cuts.find(o => o.id === id)?.kind === "part"));

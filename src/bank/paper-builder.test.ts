@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { catalogueCoverage } from "./coverage";
-import { draftEntries, draftReducer, emptyDraft } from "./paper-builder";
+import { draftEntries, draftReducer, emptyDraft, entryParts } from "./paper-builder";
 import { emptyRoute, questionIdentity, readRoute, routeQuery, verifyCatalogue, type BankCatalogue, type BankQuestion } from "./model";
 
 const bank=verifyCatalogue(JSON.parse(readFileSync("public/bank/catalogue.json","utf8")));
@@ -75,4 +75,22 @@ describe("shared paper draft",()=>{
     expect(on).toEqual({...start,partsOnly:true});
     expect(draftReducer(on,{type:"partsOnly",value:false})).toEqual(start);
   });
+  it("names a part matched on either crossover appearance by the chosen question's own label",()=>{
+    const part=(label:string,codes:string[])=>({label,codes,marks:2});
+    const foundation={...q("q21",["U1","U2"],"F","q1h"),parts:[part("21a",["U1"]),part("21b",["U2"])]} as BankQuestion;
+    const higher={...q("q1h",["U3","U2"],"H","q21"),parts:[part("a",["U2"]),part("b",["U3"])]} as BankQuestion;
+    const pair={...fixture,questions:[foundation,higher],topics:["U1","U2","U3"].map(code=>({...bank.topics[0],code}))} as BankCatalogue;
+    const coverage=catalogueCoverage(pair,emptyRoute);
+    const both=draftEntries(coverage,[tick("U1"),tick("U3")].reduce(draftReducer,emptyDraft()));
+    expect(both).toHaveLength(1);
+    const chosen=both[0];
+    // U1 is on the Foundation (a), U3 on the Higher (b): both parts match, whichever appearance is chosen.
+    expect(chosen.matchedParts).toEqual(chosen.question.parts.map(p=>p.label));
+    expect(chosen.otherParts).toEqual([]);
+    expect(entryParts(both)).toEqual({});
+    const one=draftEntries(coverage,[tick("U3")].reduce(draftReducer,emptyDraft()))[0];
+    expect(one.matchedParts).toEqual([one.question.parts[1].label]);
+    expect(entryParts([one])).toEqual({[one.question.id]:[one.question.parts[1].label]});
+  });
 });
+

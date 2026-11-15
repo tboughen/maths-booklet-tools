@@ -21,14 +21,14 @@ export function PaperReviewDialog({loadDetails,open,active,entries,version,exclu
   const [preset,setPreset]=useState<"compact"|"writing">("compact"),[progress,setProgress]=useState<ExportProgress>(),[result,setResult]=useState<ExportResult>(),[error,setError]=useState("");
   const [busy,setBusy]=useState(false);
   // With "Only the matching parts", each question's cuts come from its paper file, so they load when the option is on.
-  const [served,setServed]=useState<Record<string,ServedParts|undefined>>();
+  const [served,setServed]=useState<Record<string,ServedParts|undefined>|null>();
   const wanted=partsOnly?entryParts(entries):{};
   const wantedKey=JSON.stringify(wanted);
   useEffect(()=>{
     if(!open||!partsOnly){setServed(undefined);return;}
     let current=true;const picks=JSON.parse(wantedKey) as Record<string,string[]>;
     const listed=entries.filter(e=>picks[e.question.id]).map(e=>e.question);
-    loadDetails(listed).then(full=>{if(current)setServed(Object.fromEntries(full.map(q=>[q.id,servedParts(q,picks[q.id])])));}).catch(()=>{if(current)setServed({});});
+    loadDetails(listed).then(full=>{if(current)setServed(Object.fromEntries(full.map(q=>[q.id,servedParts(q,picks[q.id])])));}).catch(()=>{if(current)setServed(null);});
     return()=>{current=false;};
   },[open,partsOnly,wantedKey,entries,loadDetails]);
   const marksOf=(entry:PaperEntry)=>served?.[entry.question.id]?.marks??entry.question.marks;
@@ -52,6 +52,7 @@ export function PaperReviewDialog({loadDetails,open,active,entries,version,exclu
   return <dialog ref={dialog} className="qb-dialog qb-paper-dialog" aria-labelledby="qb-paper-title" onCancel={e=>{e.preventDefault();onClose();}}>
     <div className="qb-dialog-heading"><h2 id="qb-paper-title">Review your paper</h2><button className="qb-button" aria-label="Close paper review" onClick={onClose}>Close</button></div>
     <p><strong>{formatCount(entries.length)} {partsOnly?"":"complete "}{entries.length===1?"question":"questions"} · {formatCount(entries.reduce((n,e)=>n+marksOf(e),0))} marks</strong><br/>Both PDFs follow this order. {partsOnly?"Questions cut into parts print only their matching parts, with the stem and any earlier part they need; mark schemes print whole.":"Complete questions include parts mapped to other topics."}</p>
+    {partsOnly&&served===null&&<p className="qb-export-error" role="alert">The parts of these questions could not be loaded, so the marks above are for whole questions. Preparing the PDFs tries again.</p>}
     {onPartsOnly&&<fieldset className="qb-parts-choice" disabled={busy}><legend>Questions</legend><label><input type="radio" name="paper-parts" checked={!partsOnly} onChange={()=>onPartsOnly(false)}/> Whole questions</label><label><input type="radio" name="paper-parts" checked={partsOnly} onChange={()=>onPartsOnly(true)}/> Only the matching parts</label></fieldset>}
     <label className="qb-performance-toggle"><input type="checkbox" checked={!!showPerformance} onChange={e=>onShowPerformance?.(e.target.checked)}/> Show average marks achieved</label>
     <ol className="qb-paper-review-list">{entries.map((entry,i)=>{const q=entry.question;return <li key={entry.key}><div className="qb-paper-review-row"><div><strong>{i+1}. {q.source}</strong>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={tier}/>}<p>{marksOf(entry)} marks · {q.tier==="F"?"Foundation":"Higher"} · {q.calculator?"Calculator":"Non-calculator"}<br/>{entry.matchingCodes.length?`Matching selected codes: ${entry.matchingCodes.join(", ")}`:"Individually selected"}</p>{(()=>{const s=served?.[q.id];if(partsOnly&&s)return <p className="qb-small">{s.title} only, from the {q.marks}-mark question.{addedNote(s)?` ${addedNote(s)}`:""}</p>;return entry.otherParts.length>0&&<p className="qb-erratum">{partsOnly&&served?"This question is printed whole. ":""}Additional parts included: {entry.otherParts.join(", ")}.</p>;})()}{q.equivalentSource&&<p className="qb-small">Also appears as {q.equivalentSource}.</p>}{q.scaleSensitive&&<p className="qb-erratum">Scale drawing: print at Actual size / 100%.</p>}{q.sourceErrata?.map((n,j)=><p className="qb-erratum" key={j}>{n.note}</p>)}</div><div className="qb-paper-review-actions"><button className="qb-button" aria-label={`Move question ${i+1} up`} disabled={busy||i===0} onClick={()=>onMove(entry.key,-1)}>↑</button><button className="qb-button" aria-label={`Move question ${i+1} down`} disabled={busy||i===entries.length-1} onClick={()=>onMove(entry.key,1)}>↓</button><button className="qb-button" disabled={busy} aria-label={`Remove question ${i+1}`} onClick={()=>onRemove(entry.key)}>Remove</button></div></div><QuestionPreview entry={entry} loadDetails={loadDetails}/></li>;})}</ol>

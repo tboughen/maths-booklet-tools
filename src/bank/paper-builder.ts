@@ -66,7 +66,10 @@ export function draftEntries<Q extends BankListQuestion>(coverage: Coverage<Q>, 
     if (!matchingCodes.length && !state.manual[key]) continue;
     const mapped = appearances.filter(q => q.codes.some(c => selected.has(c)));
     const question = appearances.find(q => q.id === state.manual[key]) || mapped[0] || appearances[0];
-    const matchedParts = [...new Set(appearances.flatMap(q => q.parts.filter(p => p.codes.some(c => selected.has(c))).map(p => p.label)))];
+    // A crossover pair labels its parts differently ("21a" on one tier, "a" on the other), so a part
+    // matched on either appearance is named by the chosen question's label in the same position.
+    const matchedAt = new Set(appearances.flatMap(q => q.parts.length === question.parts.length ? q.parts.flatMap((p, i) => p.codes.some(c => selected.has(c)) ? [i] : []) : []));
+    const matchedParts = question.parts.filter((p, i) => matchedAt.has(i) || p.codes.some(c => selected.has(c))).map(p => p.label);
     entries.push({key, question, matchingCodes, matchedParts, otherParts: matchingCodes.length ? question.parts.filter(p => !matchedParts.includes(p.label)).map(p => p.label) : []});
   }
   const position = new Map(state.order.map((key,i) => [key,i]));

@@ -59,11 +59,11 @@ export async function questionImage(question: BankQuestion, role: ViewRole, view
   const resource = questionResource(question, role);
   const path = wholeQuestion && role === "question" ? question.printPdf : resource.pdf;
   const pageNumbers = wholeQuestion ? Array.from({length: (await loadPdf(path)).numPages}, (_, i) => i + 1) : [view.page];
-  return stackImage(pageNumbers.map(page => ({pdf: path, view: {page}})), `${question.source} · ${role !== "question" ? resource.label : wholeQuestion ? "Whole question" : view.label}`);
+  return stackImage(pageNumbers.map(page => ({pdf: path, view: {page}})), `${question.source} · ${role !== "question" ? resource.label : wholeQuestion ? "Whole question" : view.label}`, "centre");
 }
 
 /** A PNG of the given pages stacked in order, with the source caption underneath. */
-export async function stackImage(items: {pdf: string; view: {page: number}}[], caption: string): Promise<Blob> {
+export async function stackImage(items: {pdf: string; view: {page: number}}[], caption: string, align: "left" | "centre" = "left"): Promise<Blob> {
   const pages: HTMLCanvasElement[] = [];
   for (const item of items) pages.push(await renderPage(item.pdf, item.view.page, 300 / 72));
   const width = Math.max(...pages.map(p => p.width));
@@ -76,8 +76,8 @@ export async function stackImage(items: {pdf: string; view: {page: number}}[], c
   if (!context) throw new Error("Image export is unavailable. Download the PDF instead.");
   context.fillStyle = "#fff"; context.fillRect(0, 0, width, height);
   let y = 0;
-  // Cuts are trimmed to their ink, so left edges line up as they do on the paper.
-  for (const page of pages) {context.drawImage(page, 0, y); y += page.height + gap;}
+  // Stacked cuts are trimmed to their ink and line up on the left, as in the viewer and printed paper.
+  for (const page of pages) {context.drawImage(page, align === "left" ? 0 : (width - page.width) / 2, y); y += page.height + gap;}
   context.fillStyle = "#253e59"; context.font = "28px Arial";
   context.fillText(caption, 24, height - 50, width - 48);
   context.fillStyle = "#536579"; context.font = "23px Arial";
