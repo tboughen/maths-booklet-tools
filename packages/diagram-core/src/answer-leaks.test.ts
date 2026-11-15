@@ -34,7 +34,7 @@ function withAnswers(): [DiagramKind, Any][] {
   return [
     ["ratio-table", ratio], ["frequency-tree", ftree], ["probability-tree", ptree], ["charts", chart], ["venn", venn],
     ["number-line", line], ["algebra-grid", grid], ["graph", graph],
-    ["triangle", load("triangle", "file-fixtures-triangle-area-v2")], ["bar-model", load("bar-model", "default")],
+    ["triangle", load("triangle", "file-fixtures-triangle-area-v2")], ["bar-model", load("bar-model", "past-paper-bm08")],
   ];
 }
 
