@@ -2,26 +2,26 @@
  "graph/blank": {
   "schemaVersion": 1,
   "contentHash": "4a7f52ed497e65a889e0721aad95982a199a5db0deef620adc16be1d9645cec8",
-  "pupilSvg": "af052c73d9598c6efda678cbe8b2b1c4bbdaf158363c0f5c258cd9cb64d22c60",
-  "answerSvg": "af052c73d9598c6efda678cbe8b2b1c4bbdaf158363c0f5c258cd9cb64d22c60"
+  "pupilSvg": "d72b0d669ffcdf3f49d789138da90179c406de686dcd617162fd30f096b2415b",
+  "answerSvg": "d72b0d669ffcdf3f49d789138da90179c406de686dcd617162fd30f096b2415b"
  },
  "graph/file-tool-card-preview-examples-graph-tool": {
   "schemaVersion": 1,
   "contentHash": "69ed84740cc49f128ed25d44aadffc634b6c5048be9edf09c56861d913b9d04c",
-  "pupilSvg": "6321fa70908bd57298fb58ed85c1b21f2ce0b7620c6db00856180e17be74a1db",
-  "answerSvg": "6321fa70908bd57298fb58ed85c1b21f2ce0b7620c6db00856180e17be74a1db"
+  "pupilSvg": "da3b52e3a844338f7e54ab224846b97ab6774d5e45b214212245f1e22a014b08",
+  "answerSvg": "da3b52e3a844338f7e54ab224846b97ab6774d5e45b214212245f1e22a014b08"
  },
  "graph/named-line-and-points": {
   "schemaVersion": 1,
   "contentHash": "2dc5fa33479c41b3feedda3152d759e68e1af19029fe4752ab0f37d9a801899b",
-  "pupilSvg": "355d64f163f017767b7fd05fac0e8712d469a5c888ccbcd80b378882d30ae422",
-  "answerSvg": "355d64f163f017767b7fd05fac0e8712d469a5c888ccbcd80b378882d30ae422"
+  "pupilSvg": "7c3dec06c61fb5d9560fb341b5d112d6328accb0e5963614a9b68b58e9494e94",
+  "answerSvg": "7c3dec06c61fb5d9560fb341b5d112d6328accb0e5963614a9b68b58e9494e94"
  },
  "graph/print-consumption": {
   "schemaVersion": 1,
   "contentHash": "f0fcae4a6ab7615f3a9f7b5ff664a1c5259cf4e8ce3eab8fff817670acc937b2",
-  "pupilSvg": "b8cadf69d17abdbd8a50f723c1625f9f0b12e91230b7ff04a11ec76067adce4b",
-  "answerSvg": "b8cadf69d17abdbd8a50f723c1625f9f0b12e91230b7ff04a11ec76067adce4b"
+  "pupilSvg": "81b8cac3399dd7407cfb4b9b6d233fabd34b3dc69192269d974be629f1cc2e4b",
+  "answerSvg": "81b8cac3399dd7407cfb4b9b6d233fabd34b3dc69192269d974be629f1cc2e4b"
  },
  "ratio-table/default": {
   "schemaVersion": 2,

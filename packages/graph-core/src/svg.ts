@@ -1,5 +1,5 @@
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
-import { boldLines } from "../../envelope-core/src/house-style";
+import { BOLD_LINE_FACTOR, boldLines } from "../../envelope-core/src/house-style";
 import {
   axisOrigin,
   coordinateToSvg,
@@ -100,6 +100,15 @@ const GRID_STROKE_WIDTH = pointsToDiagramUnits(
   GRID_STROKE_POINTS,
   UNITS_PER_CM,
 );
+/**
+ * The plot clip reaches half a line's width past the grid, so a line or segment lying on the edge
+ * of the grid (a distance-time graph stopped at its top value) prints at full weight instead of
+ * half clipped (Tim, A7.11 marking, 15 Nov 2026). A line crossing the edge ends in its round cap.
+ * Bold lines are heavier, so their clip reaches further. Polygon fills keep the exact plot clip.
+ */
+export function plotClipBleed(lines: DiagramDocumentV1["lines"]): number {
+  return (GRID_STROKE_WIDTH * (lines === "bold" ? BOLD_LINE_FACTOR : 1)) / 2;
+}
 const AXIS_STROKE_WIDTH = pointsToDiagramUnits(
   AXIS_STROKE_POINTS,
   UNITS_PER_CM,
@@ -985,7 +994,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: Gra
         : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
   const shaded = fills.length ? `
-    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-clip)">${fills.join("")}</g>` : "";
+    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-fill-clip)">${fills.join("")}</g>` : "";
   return { fills: shaded, lines, marks };
 }
 
@@ -1079,12 +1088,13 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   const { layout } = metrics;
   const axes = axesMarkup(document, layout);
   const objects = objectsMarkup(document, layout, view);
+  const bleed = plotClipBleed(document.lines);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${n(metrics.widthCm)}cm" height="${n(metrics.heightCm)}cm" viewBox="0 0 ${n(metrics.width)} ${n(metrics.height)}" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">Coordinate graph</title>
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
-  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
+  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft - bleed)}" y="${n(layout.plotTop - bleed)}" width="${n(layout.plotRight - layout.plotLeft + 2 * bleed)}" height="${n(layout.plotBottom - layout.plotTop + 2 * bleed)}"/></clipPath><clipPath id="plot-fill-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
   ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
   ${boldInk(axes.lines, document.lines)}
   ${boldInk(objects.lines, document.lines)}
