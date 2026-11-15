@@ -52,6 +52,61 @@ export type PictogramSettings = z.infer<typeof pictogramSchema>;
 export const PICTOGRAM_DEFAULTS: PictogramSettings = { symbol: "circle", symbolMm: SYMBOL_MM.standard, key: { value: "4", show: "show" }, unit: "" };
 export const pictogramOf = (d: { pictogram?: PictogramSettings }): PictogramSettings => d.pictogram ?? PICTOGRAM_DEFAULTS;
 
+const plain = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((t) => ![...t].some((c) => c.charCodeAt(0) < 32 || c === "<" || c === ">"), "Use ordinary text without markup.");
+const shown = z.enum(["show", "hidden"]);
+
+/**
+ * Scatter graphs: points (x, y) on two numerical axes with graph paper, an optional teacher-drawn
+ * line of best fit, rings round outliers and dashed reading guides. Values stay as typed.
+ */
+export const MAX_POINTS = 40;
+export const MAX_READINGS = 3;
+export const SCATTER_MM = { minimum: 40, maximum: 160 } as const;
+export const scatterAxisSchema = z
+  .object({
+    min: z.string().max(12),
+    max: z.string().max(12),
+    step: z.string().max(12),
+    title: plain(40),
+    /** Length of the axis on paper. */
+    mm: z.number().int().min(SCATTER_MM.minimum).max(SCATTER_MM.maximum),
+  })
+  .strict();
+const coordinate = z.object({ x: z.string().max(12), y: z.string().max(12) }).strict();
+export const bestFitSchema = z.object({ from: coordinate, to: coordinate, show: shown }).strict();
+export const scatterSchema = z
+  .object({
+    points: z
+      .array(z.object({ x: z.string().max(12), y: z.string().max(12), show: shown, ring: z.boolean() }).strict())
+      .max(MAX_POINTS),
+    xAxis: scatterAxisSchema,
+    yAxis: scatterAxisSchema,
+    grid: z.enum(["none", "major", "fine"]),
+    minor: z.union([z.literal(1), z.literal(2), z.literal(4), z.literal(5), z.literal(10)]),
+    /** Teacher-drawn: two points the line passes through; it is drawn across the grid. */
+    bestFit: bestFitSchema.optional(),
+    /** Dashed guides from a value on one axis to the line of best fit and across to the other. */
+    readings: z.array(z.object({ axis: z.enum(["x", "y"]), value: z.string().max(12), show: shown }).strict()).max(MAX_READINGS),
+  })
+  .strict();
+export type ScatterSettings = z.infer<typeof scatterSchema>;
+export type ScatterPoint = ScatterSettings["points"][number];
+/** The scatter graph a document starts with when it has none saved: empty 0–10 axes on graph
+ * paper. It has no points, so switching kind never draws data nobody entered. */
+export const SCATTER_DEFAULTS: ScatterSettings = {
+  points: [],
+  xAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
+  yAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
+  grid: "fine",
+  minor: 5,
+  readings: [],
+};
+export const scatterOf = (d: { scatter?: ScatterSettings }): ScatterSettings => d.scatter ?? SCATTER_DEFAULTS;
+
 /** Cells an answer view draws only because they were saved hidden. */
 const REVEALED = new WeakSet<object>();
 export const markRevealed = (c: object) => void REVEALED.add(c);

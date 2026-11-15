@@ -35,15 +35,32 @@ const presentation = z
     lines: core.envelopeSchema.shape.document.shape.lines,
     pie: core.pieSchema.partial().optional(),
     pictogram: core.pictogramSchema.partial().optional(),
+    /** Fields merge; axes merge field by field; bestFit null removes the line; points replaces all points. */
+    scatter: core.scatterSchema
+      .partial()
+      .extend({
+        xAxis: core.scatterAxisSchema.partial().optional(),
+        yAxis: core.scatterAxisSchema.partial().optional(),
+        bestFit: core.bestFitSchema.nullable().optional(),
+      })
+      .optional(),
   })
   .strict();
 type Presentation = z.infer<typeof presentation>;
-/** Pie and pictogram settings merge with the current ones; everything else replaces. */
+/** Pie, pictogram and scatter settings merge field by field with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, pictogram, ...rest } = p;
+  const { pie, pictogram, scatter, ...rest } = p;
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
+  if (scatter) {
+    const { xAxis, yAxis, bestFit, ...fields } = scatter,
+      now = core.scatterOf(d),
+      next: core.ScatterSettings = { ...now, ...fields, xAxis: { ...now.xAxis, ...xAxis }, yAxis: { ...now.yAxis, ...yAxis } };
+    if (bestFit === null) delete next.bestFit;
+    else if (bestFit) next.bestFit = bestFit;
+    d.scatter = next;
+  }
 }
 export const createSchema = z
   .object({
@@ -212,6 +229,15 @@ export function editorLink(e: core.Envelope, base: string) {
 
 export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil") {
   const shown = core.forView(e, view);
+  if (shown.document.kind === "scatter") {
+    const g = core.scatterLayout(shown),
+      sc = g.settings,
+      steps = [g.plot.width / g.xs.count, g.plot.height / g.ys.count];
+    return guidance({
+      textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4),
+      gridPitchMm: sc.grid === "none" ? [] : [...steps, ...(sc.grid === "fine" ? steps.map((x) => x / sc.minor) : [])],
+    });
+  }
   if (!core.axisKind(shown.document.kind))
     return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [] });
   const g = core.axesLayout(shown);
