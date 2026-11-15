@@ -1,10 +1,11 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
-import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
 import { pieLayout, pieSvg } from "./pie";
-export { pieLayout } from "./pie";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, esc, formatNumber, markRevealed, n, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+export * from "./shared";
+export { pieLayout, round1 } from "./pie";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
@@ -25,26 +26,7 @@ export const kindNames: Record<Kind, string> = {
 };
 /** Kinds drawn on a categorical axis with a numerical scale. */
 export const axisKind = (kind: Kind) => kind !== "pie";
-/** What each pie sector prints: its category name, optionally with its angle or percentage. */
-export const pieLabelChoices = ["name", "name-angle", "name-percent", "none"] as const;
-export type PieLabels = (typeof pieLabelChoices)[number];
-export const pieLabelNames: Record<PieLabels, string> = {
-  name: "Category names",
-  "name-angle": "Names and angles",
-  "name-percent": "Names and percentages",
-  none: "No labels",
-};
-export const PIE_RADIUS = { minimum: 25, maximum: 70, standard: 40 } as const;
-export const pieSchema = z
-  .object({
-    radiusMm: z.number().int().min(PIE_RADIUS.minimum).max(PIE_RADIUS.maximum),
-    labels: z.enum(pieLabelChoices),
-  })
-  .strict();
-export type PieSettings = z.infer<typeof pieSchema>;
-/** Pie settings are saved only once a teacher changes them from these. */
-export const PIE_DEFAULTS: PieSettings = { radiusMm: PIE_RADIUS.standard, labels: "name" };
-export const pieOf = (d: { pie?: PieSettings }): PieSettings => d.pie ?? PIE_DEFAULTS;
+
 export const fills = [
   "grey",
   "hatch",
@@ -207,16 +189,11 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = structuredClone(e);
   for (const s of n.document.series)
     for (const c of s.values) {
-      if (mark && c.show === "hidden" && c.value.trim()) REVEALED.add(c);
+      if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
       c.show = "show";
     }
   return n;
 }
-/** Cells an answer view draws only because they were saved hidden. */
-const REVEALED = new WeakSet<Cell>();
-export const revealed = (c: Cell) => REVEALED.has(c);
-/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
-export const CHART_ANSWER_COLOUR = "#b0125b";
 export const hasHidden = (e: Envelope) =>
   drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
 
@@ -227,20 +204,7 @@ export function drawnSeries(e: Envelope): Series[] {
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
 }
 
-const NUMBER = /^-?\d{1,9}(\.\d{1,4})?$/;
-export function readNumber(text: string): number | null {
-  const t = text.trim().replace("−", "-");
-  return NUMBER.test(t) ? Number(t) : null;
-}
-export function formatNumber(n: number) {
-  const text = String(Math.round(n * 1e6) / 1e6);
-  return text.startsWith("-") ? "−" + text.slice(1) : text;
-}
 
-export const FONT = (11 * 25.4) / 72;
-export const MARGIN = 2;
-export const textWidth = (text: string, font = FONT) =>
-  [...text].reduce((n, c) => n + glyphAdvance(c), 0) * font;
 function wrap(text: string, width: number): string[] {
   const lines: string[] = [];
   for (const word of text.trim().split(/\s+/).filter(Boolean)) {
@@ -393,7 +357,7 @@ export function axesLayout(e: Envelope) {
         // A vertical line chart draws a single thick line; width 0 marks it.
         const top = y(clamp(Math.max(0, v ?? 0)));
         if (v !== null)
-          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: revealed(cell) });
         targets.push({ series: si, category: ci, x: centre - 2.5, y: Math.min(top, y0 + H - 4), width: 5, height: Math.max(y0 + H - top, 4) });
         return;
       }
@@ -405,7 +369,7 @@ export function axesLayout(e: Envelope) {
       const by = y(clamp(top)),
         bh = y(clamp(base)) - by;
       if (v !== null)
-        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: revealed(cell) });
       targets.push({
         series: si,
         category: ci,
@@ -462,11 +426,6 @@ export function axesLayout(e: Envelope) {
 }
 export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
 
-export const n = (v: number) => String(Math.round(v * 1000) / 1000);
-export const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-export const text = (t: string, x: number, y: number, anchor = "middle", fill = "black") =>
-  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="${fill}">${esc(t)}</text>`;
 const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
 export function renderSvg(e: Envelope): string {

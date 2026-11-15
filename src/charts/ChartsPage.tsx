@@ -57,6 +57,7 @@ import {
   pieLabelNames,
   pieOf,
   pieLayout,
+  round1,
   removeCategory,
   removeSeries,
   renderSvg,
@@ -192,7 +193,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     expected = useRef<string | null>(null);
   const e = history.present,
     d = e.document,
-    displayed = forView(e, view),
+    displayed = forView(e, view, true),
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit(
@@ -201,7 +202,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     zoom,
     (w) => (w < 500 ? 72 : 120),
   );
-  const answerSvg = renderSvg(forView(e, "answer"));
+  const answerSvg = renderSvg(forView(e, "answer", true));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline",
@@ -209,6 +210,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     mark = pie ? "sector" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const angles = pie ? pieLayout(e).sectors.map((x) => x.end - x.start) : [];
+  /** A hidden sector's angle is a saved answer: the Angle column shows it only on the teacher copy. */
+  const s0Hidden = (ci: number) => d.series[0].values[ci]?.show === "hidden";
 
   function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
@@ -359,6 +362,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const linesControl = (
+    <label>
+      Lines
+      <select
+        aria-label="Lines"
+        value={d.lines ?? "normal"}
+        disabled={blocked}
+        onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
+      >
+        {LINE_WEIGHTS.map((v) => (
+          <option key={v} value={v}>
+            {LINE_WEIGHT_NAMES[v]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
@@ -725,7 +745,11 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         })}
                         {pie && (
                           <td className="ch-angle" aria-label={`Angle for ${c || `category ${ci + 1}`}`}>
-                            {angles[ci] !== undefined && !g.issues.length ? `${Math.round(angles[ci] * 10) / 10}°` : "—"}
+                            {angles[ci] === undefined || g.issues.length
+                              ? "—"
+                              : s0Hidden(ci) && view === "pupil"
+                                ? "Hidden"
+                                : `${round1(angles[ci])}°`}
                           </td>
                         )}
                       </tr>
@@ -735,7 +759,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               </div>
               <p className="ch-note">
                 {pie
-                  ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw."
+                  ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw; its angle shows here only on the teacher copy."
                   : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
               </p>
               <div className="ch-row">
@@ -810,21 +834,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       ))}
                     </select>
                   </label>
-                  <label>
-                    Lines
-                    <select
-                      aria-label="Lines"
-                      value={d.lines ?? "normal"}
-                      disabled={blocked}
-                      onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
-                    >
-                      {LINE_WEIGHTS.map((v) => (
-                        <option key={v} value={v}>
-                          {LINE_WEIGHT_NAMES[v]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  {linesControl}
                 </div>
                 <p className="ch-note">
                   The circle and the starting radius print at true size for protractor work. Sectors
@@ -937,21 +947,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
                 </label>
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    disabled={blocked}
-                    onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {linesControl}
                 <label>
                   Chart height (mm)
                   <select

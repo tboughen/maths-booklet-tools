@@ -11,9 +11,8 @@ import {
   revealed,
   text,
   textWidth,
-  type Envelope,
-  type Target,
-} from "./index";
+} from "./shared";
+import type { Envelope, Target } from "./index";
 
 /**
  * Pie charts: sectors in category order, clockwise from the radius drawn upwards from the
@@ -36,13 +35,19 @@ export type PieLabel = { category: number; lines: string[]; x: number; y: number
 /** A sector edge, clockwise from 12 o'clock. Pink edges print only on answers copies. */
 export type Edge = { angle: number; revealed: boolean };
 
-// No module-level values from ./index: it imports this file, so they are read at call time.
-const lineHeight = () => FONT * 1.2;
+const LINE_HEIGHT = FONT * 1.2;
 const GAP = 0.8;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 /** A point at `radius` and `angle` (clockwise from 12 o'clock), relative to the centre. */
 const polar = (radius: number, angle: number) => ({ x: radius * Math.sin(rad(angle)), y: -radius * Math.cos(rad(angle)) });
-const round1 = (v: number) => formatNumber(Math.round(v * 10) / 10);
+/** Angles and percentages as printed and as the editor's Angle column shows them. */
+export const round1 = (v: number) => formatNumber(Math.round(v * 10) / 10);
+type Box = { x: number; y: number; width: number; height: number };
+const overlaps = (a: Box, b: Box) =>
+  a.x < b.x + b.width + 0.5 && b.x < a.x + a.width + 0.5 && a.y < b.y + b.height + 0.3 && b.y < a.y + a.height + 0.3;
+/** The distance from the centre to the nearest point of a centre-relative box. */
+const nearest = (b: Box) =>
+  Math.hypot(Math.max(b.x, 0, -(b.x + b.width)), Math.max(b.y, 0, -(b.y + b.height)));
 
 /** Whether a box (centre-relative) lies inside a sector, clear of its edges and the circle. */
 function fits(box: { x: number; y: number; width: number; height: number }, r: number, start: number, end: number) {
@@ -106,6 +111,17 @@ export function pieLayout(e: Envelope) {
   });
   if (total > 0 && sectors.some((x) => Math.abs((x.end - x.start) - Math.round(x.end - x.start)) > 1e-6))
     notes.push("Some sector angles are not whole numbers, so pupils can draw them only to the nearest degree.");
+  // A hidden sector whose neighbours are both drawn has both edges printed, so pupils only label it.
+  // The last sector ends at the starting radius, which always prints.
+  sectors.forEach((x, i) => {
+    if (s.values[i].show !== "hidden" || x.value <= 0) return;
+    const before = i === 0 || s.values[i - 1].show === "show",
+      after = i === sectors.length - 1 || s.values[i + 1].show === "show";
+    if (before && after)
+      notes.push(
+        `${d.categories[i] || `Category ${i + 1}`}: both edges of this hidden sector print, so pupils only label it. To leave it for pupils to draw, hide the sector after it too, or move it to the end of the table with the other hidden sectors.`,
+      );
+  });
 
   // An edge prints in this view when a sector on either side is drawn. It is pink when neither
   // neighbour would be drawn on the pupil copy. The starting radius always prints in black.
@@ -132,27 +148,42 @@ export function pieLayout(e: Envelope) {
     if (settings.labels === "name-percent") lines.push(`${round1((x.value / total) * 100)}%`);
     if (!lines.length) continue;
     const width = Math.max(...lines.map((l) => textWidth(l))) + 0.6,
-      height = lines.length * lineHeight(),
+      height = lines.length * LINE_HEIGHT,
       mid = (x.start + x.end) / 2;
-    let box: { x: number; y: number } | null = null;
+    let box: Box | null = null;
     for (const f of [0.6, 0.5, 0.7, 0.4, 0.78, 0.3]) {
       const p = polar(r * f, mid),
         b = { x: p.x - width / 2, y: p.y - height / 2, width, height };
-      if (fits(b, r, x.start, x.end)) {
+      if (fits(b, r, x.start, x.end) && !labels.some((l) => overlaps(l, b))) {
         box = b;
         break;
       }
     }
     if (!box) {
-      const p = polar(r + 1.5, mid),
-        sx = Math.sin(rad(mid)),
+      // Outside: beside the middle of the sector, moved outwards until it clears the circle
+      // and the labels already placed.
+      const sx = Math.sin(rad(mid)),
         cy = Math.cos(rad(mid));
-      box = {
-        x: sx > 0.3 ? p.x : sx < -0.3 ? p.x - width : p.x - width / 2,
-        y: cy > 0.3 ? p.y - height : cy < -0.3 ? p.y : p.y - height / 2,
-      };
+      for (let out = 1.5; out <= 16; out += 0.5) {
+        const p = polar(r + out, mid),
+          b = {
+            x: sx > 0.3 ? p.x : sx < -0.3 ? p.x - width : p.x - width / 2,
+            y: cy > 0.3 ? p.y - height : cy < -0.3 ? p.y : p.y - height / 2,
+            width,
+            height,
+          };
+        box ??= b;
+        if (nearest(b) >= r + 1 && !labels.some((l) => overlaps(l, b))) {
+          box = b;
+          break;
+        }
+      }
+      if (nearest(box!) < r + 1 || labels.some((l) => overlaps(l, box!))) {
+        if (!issues.some((i) => i.startsWith("Sector labels overlap")))
+          issues.push("Sector labels overlap. Use a larger radius, shorter category names, or labels without angles or percentages.");
+      }
     }
-    labels.push({ category: x.category, lines, x: box.x, y: box.y, width, height, drawn: x.drawn, revealed: x.revealed });
+    labels.push({ category: x.category, lines, x: box!.x, y: box!.y, width, height, drawn: x.drawn, revealed: x.revealed });
   }
   const left = Math.min(-r, ...labels.map((l) => l.x)),
     top = Math.min(-r, ...labels.map((l) => l.y)),
@@ -167,8 +198,10 @@ export function pieLayout(e: Envelope) {
   const width = Math.ceil((right - left + 2 * MARGIN) * 10) / 10,
     height = Math.ceil((bottom - top + 2 * MARGIN) * 10) / 10;
   if (width > 180) issues.push("The pie chart is wider than 18 cm. Use a smaller radius or shorter labels.");
-  // Click targets: each label, or a small square inside the sector when it has no label.
-  const targets: Target[] = sectors.map((x) => {
+  if (height > 180) issues.push("The pie chart is taller than 18 cm. Use a smaller radius or shorter labels.");
+  // Click targets: each label inside its sector, or a small square inside the sector. A zero
+  // sector has no area to click; its value is edited in the Data table.
+  const targets: Target[] = sectors.filter((x) => x.value > 0).map((x) => {
     const l = labels.find((b) => b.category === x.category);
     if (l && l.x >= cx - r && l.x + l.width <= cx + r)
       return { series: 0, category: x.category, x: l.x, y: l.y, width: l.width, height: l.height };
@@ -195,7 +228,7 @@ export function pieSvg(e: Envelope): string {
   for (const l of g.labels) {
     if (!l.drawn) continue;
     l.lines.forEach((line, i) =>
-      out.push(text(line, l.x + l.width / 2, l.y + i * FONT * 1.2 + FONT * 0.92, "middle", l.revealed ? CHART_ANSWER_COLOUR : "black")),
+      out.push(text(line, l.x + l.width / 2, l.y + i * LINE_HEIGHT + FONT * 0.92, "middle", l.revealed ? CHART_ANSWER_COLOUR : "black")),
     );
   }
   const d = e.document;

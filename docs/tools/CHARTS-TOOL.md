@@ -25,7 +25,9 @@ tool later rather than a mode here.
   Mock set 8 3F Q8 vertical line chart) and one blank "draw a bar chart" scaffold.
 - **Pupil states:** each value is blank (no bar or line), a number (0 draws nothing above the
   axis but is stored as 0), or a number hidden for pupils to draw. Hidden values are saved
-  answers shown only by **Teacher copy: show hidden answers** or the worked example.
+  answers shown only by **Teacher copy: show hidden answers** or the worked example, in the
+  house answer colour (pink) in the editor, its downloads and the pupil-and-answers ZIP (since
+  15 Nov 2026; before that the browser drew them in black).
 - **Direct editing:** clicking a bar, line or category label focuses its field in the Data
   table. Round + and − controls beside the chart add or remove the last category.
 - **Validation:** values and axis numbers stay as typed. Non-numbers, negative values, values
@@ -50,15 +52,17 @@ anything. The axis, grid and bar settings are kept but not used.
   value is an error, because the other angles depend on the total. A hidden value leaves its
   sector for pupils to draw: its label is not printed, and an edge prints only when a sector on
   either side of it is drawn. The answers copy draws the missing edges and labels in the house
-  answer colour; the starting radius stays black.
+  answer colour; the starting radius stays black. If both neighbours of a hidden sector are
+  drawn, both of its edges print and pupils only label it; a teacher note says so.
 - **Settings (`pie`):** radius 25–70 mm (default 40) and sector labels: category names, names
   and angles, names and percentages, or none. Angles and percentages print to 1 decimal place.
   `pie` is saved only once a teacher changes a pie setting; without it the defaults apply.
 - **Labels** sit inside their sector when they fit, otherwise just outside the circle beside the
   middle of the sector, with no leader line. Every label is placed (drawn or not), so the pupil
   and answers copies are the same size.
-- **Editor:** the Data table adds an Angle column for the teacher (not printed). Clicking a sector
-  focuses its value. The Pie chart card replaces Axes and grid.
+- **Editor:** the Data table adds an Angle column for the teacher (not printed). A hidden sector's
+  angle shows there only with **Teacher copy: show hidden answers**. Clicking a sector focuses its
+  value. Labels that cannot be placed without overlapping are an error that blocks export. The Pie chart card replaces Axes and grid.
 - **Examples:** June 2018 2F Q12 (draw a pie chart, every sector hidden) and a "complete the pie
   chart" teaching example.
 - **Notes:** angles that are not whole numbers are flagged, because pupils draw to the nearest degree.

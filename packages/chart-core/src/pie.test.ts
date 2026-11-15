@@ -97,3 +97,33 @@ describe("pie charts", () => {
     expect(io.printFacts(r).referenceFeatures.gridPitchMm).toEqual([]);
   });
 });
+
+describe("pie chart review fixes", () => {
+  it("outside labels of small neighbouring sectors never overlap, or the chart says so", () => {
+    const e = pie([["100", "show"], ["2", "show"], ["2", "show"], ["2", "show"]], ["most", "a", "b", "c"]);
+    e.document.pie = { radiusMm: 40, labels: "name-angle" };
+    const g = pieLayout(e);
+    const clash = g.labels.some((a, i) => g.labels.some((b, j) => i < j && a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height));
+    expect(clash && !g.issues.some((x) => /overlap/.test(x))).toBe(false);
+    // Outside labels clear the circle.
+    for (const l of g.labels.slice(1)) {
+      const nx = Math.max(l.x - g.cx, 0, g.cx - (l.x + l.width)), ny = Math.max(l.y - g.cy, 0, g.cy - (l.y + l.height));
+      expect(Math.hypot(nx, ny)).toBeGreaterThanOrEqual(g.r);
+    }
+  });
+  it("a wide outside label near 12 o'clock clears the circle", () => {
+    const e = pie([["5", "show"], ["90", "show"]], ["a long label here", "rest"]);
+    const g = pieLayout(e);
+    const l = g.labels[0];
+    expect(l.y + l.height).toBeLessThanOrEqual(g.cy - g.r);
+  });
+  it("notes a hidden sector whose edges both print", () => {
+    const e = pie([["24", "show"], ["15", "show"], ["12", "hidden"], ["9", "show"]], ["football", "tennis", "rugby", "swimming"]);
+    expect(pieLayout(e).notes.join(" ")).toMatch(/rugby: both edges of this hidden sector print/);
+    const end = pie([["24", "show"], ["15", "hidden"], ["12", "hidden"]]);
+    expect(pieLayout(end).notes.join(" ")).not.toMatch(/both edges/);
+  });
+  it("zero sectors have no click target", () => {
+    expect(pieLayout(pie([["0", "show"], ["3", "show"]])).targets.map((t) => t.category)).toEqual([1]);
+  });
+});
