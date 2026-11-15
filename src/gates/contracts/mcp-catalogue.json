@@ -1780,6 +1780,10 @@
             "pupil",
             "answer"
           ]
+        },
+        "dryRun": {
+          "description": "true checks and describes the result (envelope, contentHash, summary, notes, size) without making files or links.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -1942,13 +1946,9 @@
         "envelope",
         "contentHash",
         "rendererVersion",
-        "printDpi",
-        "printVerified",
         "summary",
         "altText",
         "warnings",
-        "downloads",
-        "editorUrl",
         "physicalSizeCm",
         "next"
       ],
@@ -5066,6 +5066,10 @@
             "pupil",
             "answer"
           ]
+        },
+        "dryRun": {
+          "description": "true checks and describes the result (envelope, contentHash, summary, notes, size) without making files or links.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -5231,13 +5235,9 @@
         "envelope",
         "contentHash",
         "rendererVersion",
-        "printDpi",
-        "printVerified",
         "summary",
         "altText",
         "warnings",
-        "downloads",
-        "editorUrl",
         "physicalSizeCm",
         "next"
       ],
