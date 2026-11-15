@@ -431,7 +431,8 @@ export function validate(input: unknown): Envelope {
       if (h.side === h.corner || h.side % n === h.corner - 1) throw Error(`A height from corner ${h.corner} goes to a side that touches it; choose a side across the shape.`);
       if (s.arcs[h.side - 1] !== "none") throw Error(`Side ${h.side} is a semicircle, so a height cannot meet it.`);
     }
-    if (new Set(s.heights.map((h) => `${h.corner}-${h.side}`)).size < s.heights.length) throw Error("The same height is drawn twice.");
+    const twice = s.heights.find((h, i) => s.heights.findIndex((x) => x.corner === h.corner && x.side === h.side) < i);
+    if (twice) throw Error(`The height from corner ${twice.corner} to side ${twice.side} is drawn twice.`);
     if (s.rightAngles.some((k) => k > n)) throw Error(`Right-angle marks go at corners 1 to ${n}.`);
     if (new Set(s.rightAngles).size !== s.rightAngles.length) throw Error("List each right-angle corner once.");
   }
@@ -504,12 +505,17 @@ export function prune(e: Envelope): Envelope {
 export function dropHeights(d: AreaDocument, drop: (h: Polygon["heights"][number], i: number) => boolean, labelIds: string[] = []) {
   if (d.shape.type !== "polygon") return;
   const s = d.shape,
-    rename = new Map<string, string | null>();
-  let next = 0;
-  s.heights.forEach((h, i) => rename.set(`h${i + 1}`, drop(h, i) ? null : `h${++next}`));
-  s.heights = s.heights.filter((h, i) => !drop(h, i));
+    rename = new Map<string, string | null>(),
+    kept: Polygon["heights"] = [];
+  s.heights.forEach((h, i) => {
+    const gone = drop(h, i);
+    if (!gone) kept.push(h);
+    rename.set(`h${i + 1}`, gone ? null : `h${kept.length}`);
+  });
+  s.heights = kept;
+  const remove = new Set(labelIds);
   d.labels = d.labels
-    .filter((l) => !labelIds.includes(l.id) && rename.get(l.id) !== null)
+    .filter((l) => !remove.has(l.id) && rename.get(l.id) !== null)
     .map((l) => (rename.has(l.id) ? { ...l, id: rename.get(l.id)! } : l));
 }
 

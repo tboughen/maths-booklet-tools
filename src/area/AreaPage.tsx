@@ -733,7 +733,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           p.arcs.push("none");
                           // The split side's label and any height to it no longer fit half of it.
                           dropHeights(doc, (h) => h.side === n, [`e${n}`]);
-                        }, "add corner")
+                        }, "add corner") && setSelected(null)
                       }
                     >
                       Add a corner
@@ -746,13 +746,13 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           const p = doc.shape as Polygon,
                             n = p.corners.length;
                           // Heights from the last corner or to the two sides that become one go, with their labels.
-                          dropHeights(doc, (h) => h.corner === n || h.side >= n - 1, [`e${n - 1}`]);
+                          dropHeights(doc, (h) => h.corner === n || h.side >= n - 1, [`e${n - 1}`, `e${n}`]);
                           p.corners.pop();
                           p.arcs.pop();
                           // The new closing side is straight, and the corners at its ends have new angles.
                           p.arcs[p.arcs.length - 1] = "none";
                           p.rightAngles = p.rightAngles.filter((k) => k < n - 1 && k !== 1);
-                        }, "remove corner")
+                        }, "remove corner") && setSelected(null)
                       }
                     >
                       Remove the last corner
@@ -781,7 +781,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           ))}
                         </select>
                       </label>
-                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setShape((doc) => dropHeights(doc, (_, j) => j === i), "remove height")}>
+                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setShape((doc) => dropHeights(doc, (_, j) => j === i), "remove height") && selected?.startsWith("h") && setSelected(null)}>
                         Remove
                       </button>
                     </div>
