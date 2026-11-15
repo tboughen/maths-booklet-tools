@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canonical, create, forView, hasHidden, layout, parseFile, renderSvg, setAllShown, type Envelope } from "./index";
 import { scatterLayout } from "./scatter";
-import { SCATTER_DEFAULTS, type ScatterSettings } from "./shared";
+import { SCATTER_DEFAULTS, n, type ScatterSettings } from "./shared";
 import { examples } from "./examples";
 import * as io from "./interchange";
 
@@ -151,5 +151,75 @@ describe("scatter graphs", () => {
     });
     expect(r.document.scatter!.xAxis).toEqual({ ...SCATTER_DEFAULTS.xAxis, title: "Mass" });
     expect(r.document.scatter!.bestFit).toBeUndefined();
+  });
+
+  it("a table of values lists every point, or only the hidden points pupils plot, on both copies", () => {
+    const all = scatter((s) => {
+      s.table = "all";
+      s.xAxis.title = "Hours";
+    });
+    const g = scatterLayout(all);
+    expect(g.table.blocks).toHaveLength(1);
+    expect(g.table.blocks[0].columns.map((c) => c.x)).toEqual(["1", "2", "3", "4", "5", "6", "7", "8"]);
+    expect(g.table.blocks[0].rows.map((r) => r.header)).toEqual([["Hours"], ["y"]]);
+    expect(g.plot.y).toBeGreaterThan(scatterLayout(scatter()).plot.y + g.table.height);
+    expect(renderSvg(all)).toContain(">Hours<");
+    const plot = scatter((s) => {
+      s.table = "plot";
+      s.points[6].show = "hidden";
+      s.points[7].show = "hidden";
+    });
+    expect(scatterLayout(plot).table.blocks[0].columns.map((c) => c.x)).toEqual(["7", "8"]);
+    const answer = forView(plot, "answer", true);
+    expect(scatterLayout(answer).table.blocks[0].columns.map((c) => c.x)).toEqual(["7", "8"]);
+    expect(layout(answer).height).toBe(layout(plot).height);
+    // An unmarked answer view (sizes, checks) lists the same points.
+    expect(scatterLayout(forView(plot, "answer")).table.blocks[0].columns.map((c) => c.x)).toEqual(["7", "8"]);
+    expect(layout(answer).width).toBe(layout(plot).width);
+    // No hidden points: no table, with a note.
+    const none = scatterLayout(scatter((s) => void (s.table = "plot")));
+    expect(none.table.blocks).toEqual([]);
+    expect(none.notes.join(" ")).toContain("no point is hidden");
+  });
+
+  it("a long table continues in a second block underneath", () => {
+    const e = scatter((s) => {
+      s.table = "all";
+      s.xAxis.max = "100";
+      s.xAxis.step = "10";
+      s.points = Array.from({ length: 30 }, (_, i) => ({ x: String(i * 3 + 0.25), y: "5", show: "show" as const, ring: false }));
+    });
+    const g = scatterLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.table.blocks.length).toBeGreaterThan(1);
+    expect(g.table.blocks.flatMap((b) => b.columns)).toHaveLength(30);
+    expect(g.width).toBeLessThanOrEqual(180);
+  });
+
+  it("a broken axis moves the grid off the corner, draws a zig-zag and labels the corner 0", () => {
+    const plain = scatterLayout(scatter((s) => void Object.assign(s.yAxis, { min: "20", max: "30" })));
+    const e = scatter((s) => {
+      Object.assign(s.yAxis, { min: "20", max: "30", broken: true });
+      s.points = [{ x: "1", y: "25", show: "show", ring: false }];
+      s.bestFit = { from: { x: "0", y: "20" }, to: { x: "10", y: "30" }, show: "show" };
+      s.readings = [{ axis: "x", value: "5", show: "show" }];
+    });
+    const g = scatterLayout(e);
+    expect(g.issues).toEqual([]);
+    expect(g.corner.y - (g.plot.y + g.plot.height)).toBe(6);
+    expect(g.corner.x).toBe(g.plot.x);
+    expect(g.height).toBeCloseTo(plain.height + 6, 5);
+    const svg = renderSvg(e);
+    expect(svg).toContain("v-1.5l-2,-1l4,-1.5l-2,-1");
+    expect(svg).not.toContain("h1.5l1,-2");
+    expect(svg).toContain(">0<");
+    // The reading's guides reach the axes, past the gap.
+    const guide = svg.match(/<path d="([^"]+)"[^>]*stroke-dasharray="1.2 0.8"/)![1];
+    expect(guide.startsWith(`M${n(g.readings[0].x)},${n(g.corner.y)}V`)).toBe(true);
+    expect(guide.endsWith(`H${n(g.corner.x)}`)).toBe(true);
+    const x = scatterLayout(scatter((s) => Object.assign(s.xAxis, { min: "5", max: "15", broken: true })));
+    expect(x.plot.x - x.corner.x).toBe(6);
+    // Breaking an axis that starts at 0 is allowed but noted.
+    expect(scatterLayout(scatter((s) => void (s.xAxis.broken = true))).notes.join(" ")).toContain("zig-zag is not needed");
   });
 });

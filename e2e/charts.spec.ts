@@ -232,3 +232,21 @@ test("scatter graphs: points edit from the graph, hidden answers stay saved and 
   await page.getByRole("button", { name: "Scatter graph" }).click();
   expect((await saved(page)).document.scatter.points).toHaveLength(13);
 });
+
+test("scatter graphs: a table of values and a broken axis are options that undo", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "scatter-judges")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await page.getByLabel("Table of values").selectOption("plot");
+  // Only the hidden point (4.6, 3.8) is listed, for pupils to plot.
+  await expect(art.locator("text", { hasText: /^4\.6$/ })).toHaveCount(1);
+  await expect(art.locator("text", { hasText: /^5\.5$/ })).toHaveCount(0);
+  await expect.poll(async () => (await saved(page)).document.scatter.table).toBe("plot");
+  await page.getByLabel("Vertical axis start").fill("1");
+  await page.getByLabel("Vertical axis start").press("Enter");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByLabel("Break the vertical axis").check();
+  await expect(art.locator("path[d*='v-1.5l-2,-1l4,-1.5l-2,-1']")).toHaveCount(1);
+  await expect.poll(async () => (await saved(page)).document.scatter.yAxis.broken).toBe(true);
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(art.locator("path[d*='v-1.5l-2,-1l4,-1.5l-2,-1']")).toHaveCount(0);
+});

@@ -2111,6 +2111,9 @@
                     "type": "integer",
                     "minimum": 40,
                     "maximum": 160
+                  },
+                  "broken": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -2118,7 +2121,8 @@
                   "max",
                   "step",
                   "title",
-                  "mm"
+                  "mm",
+                  "broken"
                 ],
                 "additionalProperties": false
               },
@@ -2145,6 +2149,9 @@
                     "type": "integer",
                     "minimum": 40,
                     "maximum": 160
+                  },
+                  "broken": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -2152,7 +2159,8 @@
                   "max",
                   "step",
                   "title",
-                  "mm"
+                  "mm",
+                  "broken"
                 ],
                 "additionalProperties": false
               },
@@ -2274,6 +2282,14 @@
                   ],
                   "additionalProperties": false
                 }
+              },
+              "table": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "all",
+                  "plot"
+                ]
               }
             },
             "required": [
@@ -2282,7 +2298,8 @@
               "yAxis",
               "grid",
               "minor",
-              "readings"
+              "readings",
+              "table"
             ],
             "additionalProperties": false
           }

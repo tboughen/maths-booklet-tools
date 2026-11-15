@@ -1,6 +1,6 @@
 import { questionEligible, questionIdentity, type BankCatalogue, type BankListQuestion, type BankRoute } from "./model";
 
-export type PaperFilters = Pick<BankRoute, "tier" | "collection" | "calculator">;
+export type PaperFilters = Pick<BankRoute, "tier" | "collection" | "calculator" | "crossover">;
 export interface Coverage<Q extends BankListQuestion = BankListQuestion> {
   groups: Map<string, Q[]>;
   codes: Map<string, Set<string>>;
