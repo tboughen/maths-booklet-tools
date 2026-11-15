@@ -1,20 +1,13 @@
 import { z } from "zod";
-import * as old from "./interchange";
 import * as v1 from "./index";
-import * as v2 from "./v2";
 import * as v3 from "./v3";
 import * as c from "./versioned";
+import { example, exampleNames } from "./examples";
 import { toBase64Url } from "../../envelope-core/src/index";
-const id = v2.idSchema,
-  slot = z.enum(v2.slots);
+const id = v3.idSchema,
+  slot = z.enum(v3.slots);
 const location = z.object({ barId: id, partId: id, slot }).strict();
-export const newOperationSchema = z.discriminatedUnion("op", [
-  z
-    .object({
-      op: z.literal("upgrade_document"),
-      targetSchemaVersion: z.literal(3).optional(),
-    })
-    .strict(),
+export const operationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("set_section_label"),
@@ -45,7 +38,7 @@ export const newOperationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("set_annotation"),
-      annotation: v2.annotationSchema,
+      annotation: v3.annotationSchema,
     })
     .strict(),
   z.object({ op: z.literal("remove_annotation"), annotationId: id }).strict(),
@@ -62,19 +55,19 @@ export const newOperationSchema = z.discriminatedUnion("op", [
       op: z.literal("set_fill"),
       barId: id,
       partIds: z.array(id).min(1).max(24),
-      fill: z.enum(v2.fills),
+      fill: z.enum(v3.fills),
     })
     .strict(),
   z
     .object({
       op: z.literal("add_caption"),
-      caption: z.union([v2.captionSchema, v3.captionSchema]),
+      caption: v3.captionSchema,
     })
     .strict(),
   z
     .object({
       op: z.literal("update_caption"),
-      caption: z.union([v2.captionSchema, v3.captionSchema]),
+      caption: v3.captionSchema,
     })
     .strict(),
   z.object({ op: z.literal("remove_caption"), captionId: id }).strict(),
@@ -107,14 +100,14 @@ export const newOperationSchema = z.discriminatedUnion("op", [
     .object({
       op: z.literal("append_section"),
       barId: id,
-      part: v2.partSchema,
+      part: v3.partSchema,
       afterId: id.optional(),
     })
     .strict(),
   z
     .object({
       op: z.literal("append_bar"),
-      bar: v2.barSchema,
+      bar: v3.barSchema,
       afterId: id.optional(),
     })
     .strict(),
@@ -124,16 +117,34 @@ export const newOperationSchema = z.discriminatedUnion("op", [
       barIds: z.array(id).min(1).max(6),
     })
     .strict(),
-]);
-export const operationSchema = z.discriminatedUnion("op", [
-  ...old.operationSchema.options,
-  ...newOperationSchema.options,
+  z
+    .object({
+      op: z.literal("remove_bar"),
+      barId: id,
+      discardSpans: z.boolean().default(false),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal("remove_part"),
+      barId: id,
+      partId: id,
+      discardSpans: z.boolean().default(false),
+    })
+    .strict(),
+  z
+    .object({ op: z.literal("set_alignment"), barId: id, offset: z.string().max(24) })
+    .strict(),
+  z.object({ op: z.literal("reveal_saved_answers") }).strict(),
 ]);
 export type Operation = z.input<typeof operationSchema>;
-export const specV2Schema = z
+export const specSchema = z
   .object({
-    schemaVersion: z.literal(2),
-    starter: z.enum(v2.starters).optional(),
+    // Optional: every bar model is schema 3. Earlier connector guidance asked for it explicitly.
+    schemaVersion: z.literal(3).optional(),
+    example: z.enum(exampleNames).optional(),
+    worked: z.boolean().optional(),
+    starter: z.enum(v3.starters).optional(),
     count: z.number().int().min(1).max(24).optional(),
     ratio: z.array(z.number().int().positive()).min(2).max(6).optional(),
     partitioned: z.boolean().optional(),
@@ -142,21 +153,13 @@ export const specV2Schema = z
       .min(2)
       .max(2)
       .optional(),
-    bars: z.array(v2.barSchema).min(1).max(6).optional(),
-    annotations: z.array(v2.annotationSchema).max(18).optional(),
-    captions: z.array(v2.captionSchema).max(3).optional(),
-    title: v1.labelSchema.optional(),
-    presentation: v2.presentationSchema.partial().optional(),
-  })
-  .strict();
-export const specV3Schema = specV2Schema
-  .extend({
-    schemaVersion: z.literal(3),
+    bars: z.array(v3.barSchema).min(1).max(6).optional(),
+    annotations: z.array(v3.annotationSchema).max(18).optional(),
     captions: z.array(v3.captionSchema).max(3).optional(),
+    title: v1.labelSchema.optional(),
     presentation: v3.presentationSchema.partial().optional(),
   })
   .strict();
-export const specSchema = z.union([old.specSchema, specV2Schema, specV3Schema]);
 export const createSchema = z
   .object({ spec: specSchema.optional(), envelope: c.schema.optional() })
   .strict();
@@ -176,12 +179,17 @@ export function create(raw: unknown): c.Envelope {
   const v = createSchema.parse(raw);
   if (v.spec && v.envelope) throw Error("Supply spec or envelope, not both.");
   if (v.envelope) return c.validate(v.envelope);
-  if (!v.spec || !("schemaVersion" in v.spec)) return old.create(v);
-  const s = v.spec;
+  const s = v.spec ?? {};
   if (s.bars && s.starter)
     throw Error("Supply a starter or custom bars, not both.");
-  const core = s.schemaVersion === 3 ? v3 : v2;
-  const e = core.fresh(
+  if (s.example) {
+    if (Object.keys(s).some((k) => !["example", "worked", "schemaVersion"].includes(k)))
+      throw Error("Supply an example on its own, or build from a starter or bars.");
+    return example(s.example, s.worked);
+  }
+  if (s.worked)
+    throw Error("A worked copy needs an explicit example. Use reveal_saved_answers for a saved resource.");
+  const e = v3.fresh(
     s.starter ?? "part-whole",
     s.count,
     s.ratio,
@@ -194,10 +202,10 @@ export function create(raw: unknown): c.Envelope {
   if (s.captions) e.document.captions = s.captions;
   if (s.title) e.document.title = s.title;
   Object.assign(e.document.presentation, s.presentation);
-  return core.validate(e);
+  return v3.validate(e);
 }
 export function affectedContent(
-  e: v2.Envelope | v3.Envelope,
+  e: v3.Envelope,
   barId: string,
   count: number,
 ) {
@@ -226,33 +234,7 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
   if (operations.length > 30)
     throw Error("Use at most 30 revision operations.");
   const ops = operations.map((o) => operationSchema.parse(o));
-  const upgrades = ops.flatMap((o, i) =>
-    o.op === "upgrade_document" ? [i] : [],
-  );
-  const upgrade = ops.find((o) => o.op === "upgrade_document");
-  const target = upgrade?.targetSchemaVersion ?? 2;
-  if (
-    upgrades.length &&
-    (upgrades.length !== 1 ||
-      upgrades[0] !== 0 ||
-      (target === 2 ? source.schemaVersion !== 1 : source.schemaVersion === 3))
-  )
-    throw Error(
-      "Use upgrade_document exactly once, first, on an older resource; targetSchemaVersion:3 explicitly selects the new profile.",
-    );
-  if (source.schemaVersion === 1 && !upgrades.length) {
-    if (ops.some((o) => !old.operationSchema.safeParse(o).success))
-      throw Error("Use upgrade_document first before v2 features.");
-    return old.apply(source, ops as old.Operation[]);
-  }
-  const core =
-    source.schemaVersion === 3 || (upgrade && target === 3) ? v3 : v2;
-  const e =
-      upgrade && target === 3
-        ? v3.upgrade(source as v1.Envelope | v2.Envelope)
-        : source.schemaVersion === 1
-          ? v2.upgrade(source)
-          : core.validate(source),
+  const e = v3.validate(structuredClone(source)),
     d = e.document;
   const bar = (id: string) => {
     const b = d.bars.find((b) => b.id === id);
@@ -288,8 +270,6 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
   }
   for (const op of ops) {
     switch (op.op) {
-      case "upgrade_document":
-        break;
       case "set_section_label":
         part(op.barId, op.partId).labels[op.slot] = op.label;
         break;
@@ -329,7 +309,7 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
         break;
       case "equal_sections": {
         const b = bar(op.barId),
-          weight = v2.divided(v2.sum(b.parts.map((p) => p.weight)), op.count);
+          weight = v3.divided(v3.sum(b.parts.map((p) => p.weight)), op.count);
         if (
           (Number(v1.exact(weight).n) / Number(v1.exact(weight).d)) *
             d.presentation.unitMm <
@@ -352,10 +332,10 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
               (a.scope.from.barId !== b.id && a.scope.to.barId !== b.id),
           );
           // Allocate against old IDs before replacement, so fixed references can never reattach.
-          const parts: v2.Part[] = [];
+          const parts: v3.Part[] = [];
           for (let i = 0; i < op.count; i++) {
             const id = unique("section");
-            const p: v2.Part = {
+            const p: v3.Part = {
               id,
               weight,
               labels: { inside: v1.label() },
@@ -374,9 +354,7 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
         op.partIds.forEach((id) => (part(op.barId, id).fill = op.fill));
         break;
       case "add_caption":
-        if (e.schemaVersion === 3)
-          e.document.captions.push(v3.captionSchema.parse(op.caption));
-        else e.document.captions.push(v2.captionSchema.parse(op.caption));
+        d.captions.push(op.caption);
         break;
       case "update_caption": {
         const i = d.captions.findIndex((c) => c.id === op.caption.id);
@@ -428,28 +406,8 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
           throw Error("Supply every bar ID exactly once.");
         d.bars = op.barIds.map(bar);
         break;
-      case "set_label":
-        if (op.target.spanId && !op.target.barId && !op.target.partId) {
-          const a = d.annotations.find((a) => a.id === op.target.spanId);
-          if (!a) throw Error("Unknown annotation.");
-          a.label = op.label;
-        } else if (op.target.barId && !op.target.spanId) {
-          if (op.target.partId)
-            part(op.target.barId, op.target.partId).labels.inside = op.label;
-          else bar(op.target.barId).name = op.label;
-        } else throw Error("Choose a label target.");
-        break;
-      case "set_part": {
-        const p = part(op.barId, op.partId);
-        if (op.weight !== undefined) p.weight = op.weight;
-        if (op.shade !== undefined) p.fill = op.shade ? "neutral" : "none";
-        break;
-      }
       case "set_alignment":
         bar(op.barId).offset = op.offset;
-        break;
-      case "set_print":
-        Object.assign(d.presentation, op.presentation);
         break;
       case "remove_part": {
         const b = bar(op.barId);
@@ -466,70 +424,15 @@ export function apply(source: c.Envelope, operations: Operation[]): c.Envelope {
         orphan((a) => a.barId === op.barId, op.discardSpans);
         d.bars = d.bars.filter((b) => b.id !== op.barId);
         break;
-      case "remove_span":
-        if (!d.annotations.some((a) => a.id === op.spanId))
-          throw Error("Unknown annotation.");
-        d.annotations = d.annotations.filter((a) => a.id !== op.spanId);
-        break;
-      case "add_span":
-      case "set_span": {
-        const s = op.span,
-          a: v2.Annotation = {
-            id: s.id,
-            scope: { kind: "range", from: s.from, to: s.to },
-            label: s.label,
-            decoration: s.style,
-            placement: s.side,
-          };
-        const i = d.annotations.findIndex((a) => a.id === s.id);
-        if (op.op === "set_span" && i < 0) throw Error("Unknown annotation.");
-        if (op.op === "add_span") d.annotations.push(a);
-        else d.annotations[i] = a;
-        break;
-      }
-      case "add_part": {
-        const p = op.part,
-          b = bar(op.barId),
-          i = op.afterId
-            ? b.parts.findIndex((p) => p.id === op.afterId)
-            : b.parts.length - 1;
-        if (i < 0) throw Error("Unknown preceding section.");
-        b.parts.splice(i + 1, 0, {
-          id: p.id,
-          weight: p.weight,
-          labels: { inside: p.label },
-          fill: p.shade ? "neutral" : "none",
-        });
-        break;
-      }
-      case "add_bar": {
-        const b = op.bar,
-          i = op.afterId
-            ? d.bars.findIndex((b) => b.id === op.afterId)
-            : d.bars.length - 1;
-        if (i < 0) throw Error("Unknown preceding bar.");
-        d.bars.splice(i + 1, 0, {
-          id: b.id,
-          name: b.name,
-          offset: b.offset,
-          parts: b.parts.map((p) => ({
-            id: p.id,
-            weight: p.weight,
-            labels: { inside: p.label },
-            fill: p.shade ? "neutral" : "none",
-          })),
-        });
-        break;
-      }
       case "reveal_saved_answers":
-        core.allLabels(e as never).forEach((l) => {
+        v3.allLabels(e).forEach((l) => {
           if (l.state === "hidden") l.state = "value";
         });
         break;
     }
   }
-  const valid = core.validate(e),
-    issue = core.exportIssue(valid as never);
+  const valid = v3.validate(e),
+    issue = v3.exportIssue(valid);
   if (issue) throw Error(issue);
   return valid;
 }

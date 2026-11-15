@@ -2,9 +2,8 @@ import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import * as legacy from "./index";
-import fontMetrics from "./v2-font-metrics.json" with { type: "json" };
+import fontMetrics from "./font-metrics.json" with { type: "json" };
 import { mathematicalLine, WRITING } from "./math-text";
-import * as v2 from "./v2";
 import { guidance } from "../../graph-core/src/print-guidance";
 
 // Frozen v1/v2 renderers remain separate; this profile reserves actual handwriting space.
@@ -225,20 +224,6 @@ export function validate(raw: unknown): Envelope {
   return e;
 }
 export const canonical = (e: Envelope) => JSON.stringify(validate(e));
-export function upgrade(source: legacy.Envelope | v2.Envelope): Envelope {
-  const e =
-    source.schemaVersion === 1 ? v2.upgrade(source) : v2.validate(source);
-  return validate({
-    ...e,
-    schemaVersion: 3,
-    rendererVersion: "bar-model-3",
-    styleProfile: "lesson-v3",
-    document: {
-      ...e.document,
-      captions: e.document.captions.map((c) => ({ ...c, format: "maths" })),
-    },
-  });
-}
 export const starters = [
   "part-whole",
   "comparison",

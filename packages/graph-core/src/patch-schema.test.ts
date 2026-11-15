@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { patchSchema } from "./patch-schema";
 import * as algebra from "../../algebra-grid-core/src/interchange";
-import * as barV1 from "../../bar-model-core/src/interchange";
 import * as bar from "../../bar-model-core/src/versioned-interchange";
 import * as cuboid from "../../cuboid-core/src/interchange";
 import * as graph from "./interchange";
@@ -33,7 +32,6 @@ describe("patchSchema", () => {
 // silently overwrites saved values. Saved envelopes are skipped: their defaults are intended.
 const inputs: Record<string, unknown> = {
   "algebra-grid create": algebra.createSchema, "algebra-grid revise": algebra.revisionSchema,
-  "bar-model v1 create": barV1.createSchema, "bar-model v1 revise": barV1.revisionSchema,
   "bar-model create": bar.createSchema, "bar-model revise": bar.revisionSchema,
   "cuboid create": cuboid.createSchema, "cuboid revise": cuboid.revisionSchema,
   "graph spec": graph.graphSpecSchema, "graph revise": graph.revisionSchema,

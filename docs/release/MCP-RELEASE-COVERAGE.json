@@ -9,11 +9,9 @@
     "caseRemovalAllowed": false
   },
   "additionalJourneyCases": {
-    "total": 4,
+    "total": 2,
     "consumer": [
       "e2e/mcp-roundtrip.spec.ts",
-      "e2e/bar-model-roundtrip.spec.ts",
-      "e2e/bar-model-v2-roundtrip.spec.ts",
       "e2e/bar-model-v3-roundtrip.spec.ts"
     ],
     "provenance": "real local SDK/HTTP and browser saved-file roundtrip, not actual ChatGPT acceptance"
@@ -145,31 +143,21 @@
       "inferredFromLocalChecks": false
     },
     {
-      "guarantee": "bar-model shared units,spans,hidden answers,maximum and editor/MCP roundtrip",
+      "guarantee": "bar-model shared units, section slots, anchored annotations, exact repartitioning, hidden answers, maximum, protected storage and editor/MCP roundtrip",
       "owner": [
-        "packages/bar-model-core/src/bar-model.test.ts",
+        "packages/bar-model-core/src/v3.test.ts",
+        "packages/bar-model-core/src/house-style.test.ts",
+        "src/bar-model/storage.test.ts",
+        "src/bar-model/LessonBarModelPage.test.tsx",
         "services/graph-mcp/bar-model.test.ts",
-        "e2e/bar-model.spec.ts",
-        "e2e/bar-model-roundtrip.spec.ts",
+        "e2e/bar-model-editor.spec.ts",
+        "e2e/bar-model-v3-roundtrip.spec.ts",
         "full protocol collector",
         "independent vector consumer"
       ]
     },
     {
-      "guarantee": "bar-model v2 slots,compact annotations,exact repartitioning,retained v1,storage and dense vector/Linux output",
-      "owner": [
-        "packages/bar-model-core/src/v2.test.ts",
-        "src/bar-model/storage.test.ts",
-        "src/bar-model/LessonBarModelPage.test.tsx",
-        "e2e/bar-model-v2.spec.ts",
-        "e2e/bar-model-v2-roundtrip.spec.ts",
-        "services/graph-mcp/verify-consumption.ts",
-        "services/graph-mcp/smoke.ts",
-        "scripts/verify-diagram-consumption.py"
-      ]
-    },
-    {
-      "guarantee": "horizontal fraction runs preserve original input and measured ink; 12mm above upper stroke/3mm below lower stroke, all placements and effective bar height; frozen v1/v2 controls, explicit target3 atomic upgrade and protected storage; actual SDK create/revise/originalSVG/native vector and bounded Linux dense output; both clipboard routes, responsive focused drafts, invalid format guards and Undo",
+      "guarantee": "horizontal fraction runs preserve original input and measured ink; 12mm above upper stroke/3mm below lower stroke, all placements and effective bar height; protected storage; actual SDK create/revise/originalSVG/native vector and bounded Linux dense output; both clipboard routes, responsive focused drafts, invalid format guards and Undo",
       "owner": [
         "packages/bar-model-core/src/v3.test.ts",
         "e2e/bar-model-v3.spec.ts",

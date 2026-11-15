@@ -25,4 +25,4 @@ for(const code of supported){
   entries[char]=[owner.advance(code),...box?[(box.x-200)/100,(200-box.y-box.height)/100,(box.x+box.width-200)/100,(200-box.y)/100]:[0,0,0,0]].map(n=>Math.round(n*100000)/100000);
 }
 const output={fonts:fonts.map(({filename,sha256})=>({filename,sha256})),units:"em; advance,xMin,yMin,xMax,yMax",entries};
-writeFileSync("packages/bar-model-core/src/v2-font-metrics.json",JSON.stringify(output)+"\n");console.log(JSON.stringify({glyphs:Object.keys(entries).length,fonts:output.fonts}));
+writeFileSync("packages/bar-model-core/src/font-metrics.json",JSON.stringify(output)+"\n");console.log(JSON.stringify({glyphs:Object.keys(entries).length,fonts:output.fonts}));
