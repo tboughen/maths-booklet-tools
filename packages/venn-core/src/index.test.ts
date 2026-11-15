@@ -224,7 +224,7 @@ describe("Venn mathematical and teaching states", () => {
   it("qualifies 40 members in all eight regions at the largest print width", () => {
     const e = create(3);
     e.document.widthCm = 16;
-    e.document.fontPt = 9;
+    e.document.fontPt = 10;
     for (let i = 0; i < 8; i++)
       e.document.regions[i] = {
         kind: "members",
@@ -242,6 +242,6 @@ describe("Venn mathematical and teaching states", () => {
     expect(renderSvg(e)).not.toContain("<script>");
     expect(renderSvg(e)).toContain("&lt;script&gt;");
     expect(() => parseFile(" ".repeat(40001))).toThrow(/large/);
-    expect(() => validate({ ...e, rendererVersion: "venn-2" })).toThrow();
+    expect(() => validate({ ...e, rendererVersion: "venn-1" })).toThrow();
   });
 });

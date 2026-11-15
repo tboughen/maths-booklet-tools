@@ -1,6 +1,5 @@
 import {
   create,
-  createExtended,
   activeMasks,
   validate,
   type Envelope,
@@ -174,7 +173,7 @@ function teaching(
   values: Record<number, string>,
   worked: boolean,
 ) {
-  const e = createExtended(sets);
+  const e = create(sets);
   e.document.arrangement = arrangement;
   e.document.definitions = definitions;
   e.document.showDefinitions = true;

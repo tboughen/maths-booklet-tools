@@ -3,8 +3,6 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   create,
-  createExtended,
-  upgrade,
   activeMasks,
   arrangement,
   changeArrangement,
@@ -21,7 +19,6 @@ import {
   exportIssue,
   validate,
 } from "./index";
-import { renderSvg as legacySvg } from "./legacy";
 import { teachingExamples } from "./examples";
 
 describe("Venn layout relationships", () => {
@@ -56,9 +53,9 @@ describe("Venn layout relationships", () => {
     "keeps blank %i-set diagrams printable throughout supported sizes",
     (sets) => {
       for (const widthCm of [8, 12, 16])
-        for (const fontPt of [9, 11, 14])
+        for (const fontPt of [10, 11, 14])
           for (const shape of ["circles", "ovals"] as const) {
-            const e = createExtended(sets);
+            const e = create(sets);
             e.document.widthCm = widthCm;
             e.document.fontPt = fontPt;
             e.document.shape = shape;
@@ -68,7 +65,7 @@ describe("Venn layout relationships", () => {
     },
   );
   it("one set has just inside/outside and accepts only A in expressions", () => {
-    const e = createExtended(1);
+    const e = create(1);
     expect(activeMasks(e)).toEqual([0, 1]);
     expect(expressionMasks("A'", 1, activeMasks(e))).toEqual([0]);
     expect(() => expressionMasks("B", 1, activeMasks(e))).toThrow(/A/);
@@ -122,7 +119,7 @@ describe("Venn layout relationships", () => {
     expect(e.document.regions[2].text).toBe("0");
   });
   it("new one-set transitions clear all region meanings without losing print settings or labels", () => {
-    const e = upgrade(create());
+    const e = create();
     e.document.regions[1].text = "retained draft";
     e.document.widthCm = 16;
     e.document.definitions[1] = "A = {even numbers}";
@@ -140,21 +137,21 @@ describe("Venn layout relationships", () => {
     expect(one.document.regions[1].text).toBe("2,4");
   });
   it("rejects unsupported or contradictory version/relationship combinations", () => {
-    const e = createExtended(1);
+    const e = create(1);
     e.document.arrangement = "separate";
     expect(() => validate(e)).toThrow(/two sets/);
-    const n = createExtended();
+    const n = create();
     n.document.caption = "relationship";
     expect(() => validate(n)).toThrow(/captions/);
     expect(() =>
-      validate({ ...create(), rendererVersion: "venn-2" }),
+      validate({ ...create(), rendererVersion: "venn-1" }),
     ).toThrow();
     const nested = changeArrangement(create(), "b-inside-a");
     nested.document.regions[2].shade = "grey";
     expect(() => validate(nested)).toThrow(/impossible/);
   });
   it("captions express non-strict containment and print outside the universal rectangle", () => {
-    const e = upgrade(changeArrangement(create(), "b-inside-a"));
+    const e = changeArrangement(create(), "b-inside-a");
     e.document.caption = "relationship";
     expect(relationship(e)).toBe("B ⊆ A");
     const g = layout(e);
@@ -170,7 +167,7 @@ describe("Venn layout relationships", () => {
     expect(exportIssue(changeArrangement(e, "overlap"))).toBe("");
   });
   it("answer view only reveals entered content and does not alter the saved pupil document", () => {
-    const e = createExtended(1);
+    const e = create(1);
     e.document.regions[0] = {
       kind: "frequency",
       text: "0",
@@ -212,19 +209,16 @@ describe("Venn layout relationships", () => {
       );
     },
   );
-  it("preserves every retained schema-1 file and exact legacy SVG bytes", () => {
+  it("opens every documented example as schema 2 and saves it unchanged", () => {
     const dir = resolve("docs/venn-examples");
     for (const name of readdirSync(dir).filter((n) => n.endsWith(".json"))) {
       const e = parseFile(readFileSync(resolve(dir, name), "utf8"));
-      expect(e.schemaVersion).toBe(1);
-      expect(renderSvg(e)).toBe(
-        legacySvg(e as Parameters<typeof legacySvg>[0]),
-      );
+      expect(e.schemaVersion).toBe(2);
       expect(parseFile(canonical(e))).toEqual(e);
     }
   });
   it("rejects an inner label that would erase the outer boundary while preserving it for correction", () => {
-    const e = upgrade(changeArrangement(create(), "b-inside-a"));
+    const e = changeArrangement(create(), "b-inside-a");
     e.document.labels[2].text = "ABCDEFGHIJKLMNOPQRSTUVWX";
     expect(exportIssue(e)).toContain("inner set label");
     expect(parseFile(canonical(e)).document.labels[2].text).toBe(
@@ -241,10 +235,10 @@ describe("Venn layout relationships", () => {
     (value) => {
       const e =
         value === "one"
-          ? createExtended(1)
-          : upgrade(changeArrangement(create(), value));
+          ? create(1)
+          : changeArrangement(create(), value);
       e.document.widthCm = 16;
-      e.document.fontPt = 9;
+      e.document.fontPt = 10;
       const masks = activeMasks(e),
         counts = masks.length === 2 ? [20, 20] : [16, 14, 10];
       let n = 1;

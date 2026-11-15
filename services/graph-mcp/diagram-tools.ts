@@ -7,14 +7,25 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
-import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, describeIssues, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
-import { FAMILY_LIST, familyCapabilities } from "../../packages/diagram-core/src/guides";
+import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
+import { FAMILY_LIST, NOT_DRAWN, familyCapabilities } from "../../packages/diagram-core/src/guides";
 import { GraphError } from "../../packages/graph-core/src/interchange";
-import { RatioError } from "../../packages/ratio-table-core/src/interchange";
 import { describeGraph } from "../../packages/graph-core/src/interchange";
 import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
 import * as line from "../../packages/number-line-core/src/index";
 import { diagramSource, type DiagramSource } from "./diagram-source";
+import { toolFailure } from "./tool-error";
+import { prefixFields } from "../../packages/envelope-core/src/errors";
+import { answerLeaks } from "../../packages/diagram-core/src/answer-leaks";
+import { describeAlgebraGrid, describeCuboids, describeValueGraph } from "../../packages/diagram-core/src/summaries";
+
+/** M15: a content summary where the artwork's own label names only the family. */
+function summaryOf(source: DiagramSource): string | null {
+  if (source.kind === "value-graph") return describeValueGraph(source.envelope);
+  if (source.kind === "cuboids") return describeCuboids(source.envelope);
+  if (source.kind === "algebra-grid") return describeAlgebraGrid(source.envelope, "outputView" in source && source.outputView === "answer" ? "answer" : "pupil");
+  return null;
+}
 
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
 /** Builds the finished result (preview, files, links, print facts) for one validated source. */
@@ -62,23 +73,35 @@ export const diagramOutput = z
   })
   .passthrough();
 
-/** An error a model can act on: a stable code, the message and, for schema problems, the fields. */
+/**
+ * diagram_capabilities returns either the family list or one family's guide (M13). Only the
+ * fields every reply of that kind carries are named; each family adds its own options.
+ */
+const capabilitiesOutput = z
+  .object({
+    families: z.array(z.object({ kind: diagramKindSchema, summary: z.string(), topics: z.array(z.string()), answerView: z.boolean() }).strict()).optional(),
+    notDrawn: z.array(z.string()).optional(),
+    next: z.string().optional(),
+    kind: diagramKindSchema.optional(),
+    label: z.string().optional(),
+    createGuide: z.string().optional(),
+    reviseGuide: z.string().optional(),
+  })
+  .passthrough();
+
+/** An error a model can act on, in the connector's one error shape (see tool-error.ts). */
 export function diagramFailure(error: unknown, kindName?: string) {
-  const fields = describeIssues(error);
-  const code = error instanceof GraphError || error instanceof RatioError ? error.code : fields ? "invalid_input" : "invalid_diagram";
-  let message = fields ?? (error instanceof Error ? error.message : "The diagram could not be processed.");
-  if (code === "render_failed" || (!(error instanceof Error) && !fields)) message = "The diagram could not be rendered. Try again or simplify it.";
-  const hint = kindName ? ` Check diagram_capabilities {kind:"${kindName}"} for the expected fields.` : "";
-  return {
-    isError: true,
-    content: [{ type: "text" as const, text: JSON.stringify({ code, message: message + (fields ? hint : "") }) }],
-  };
+  return toolFailure(error, {
+    code: "invalid_diagram",
+    message: "The diagram could not be processed.",
+    fieldHint: kindName ? `Check diagram_capabilities {kind:"${kindName}"} for the expected fields.` : undefined,
+  });
 }
 
 function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Checked", size: { width: number; height: number }, alt: string, warnings: string[]) {
   const f = FAMILIES[source.kind];
   const what =
-    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : alt;
+    source.kind === "graph" ? describeGraph(source.envelope) : source.kind === "ratio-table" ? describeRatio(source.envelope, ("outputView" in source && source.outputView) || "pupil") : source.kind === "number-line" ? line.describe(source.envelope) : summaryOf(source) ?? alt;
   const viewNote = f.answerView ? ` Artwork view: ${("outputView" in source && source.outputView) || "pupil"}.` : "";
   const notes = warnings.length ? ` ${warnings.length} note${warnings.length === 1 ? "" : "s"}: ${warnings.join(" ")}` : "";
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;
@@ -88,8 +111,10 @@ const MIME = { svg: "image/svg+xml", png: "image/png", json: "application/json" 
 async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Checked", build: ResultBuilder, signal: AbortSignal) {
   const r = await build(source, signal);
   const s = r.structuredContent as { physicalSizeCm: { width: number; height: number }; warnings: string[]; downloads: Partial<Record<keyof typeof MIME, { url: string }>> };
-  const view = "outputView" in source && source.outputView ? source.outputView : "pupil";
-  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, view));
+  // M16: alt text always describes the pupil copy, so it never reveals hidden answers.
+  const alt = altText(source.kind, FAMILIES[source.kind].svg(source.envelope, "pupil"));
+  // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
+  for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);
   // Files as MCP resource links, so clients can offer them directly instead of retyping URLs.
   const links: ContentBlock[] = (Object.keys(MIME) as (keyof typeof MIME)[]).flatMap((format) => {
@@ -110,12 +135,19 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
     server.registerTool(
       "diagram_capabilities",
       {
-        description: `List the diagram families, or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: ${DIAGRAM_KINDS.join(", ")}.`,
+        description: `List the diagram families with the KS3/GCSE topics each draws (and common requests none draws), or read one family's options, spec schema, operations and rules before create_diagram or revise_diagram. Families: ${DIAGRAM_KINDS.join(", ")}.`,
         inputSchema: capabilitiesInput,
+        outputSchema: capabilitiesOutput,
         annotations,
       },
       async (input) => {
-        const value = input.kind ? familyCapabilities(input.kind) : { families: FAMILY_LIST, next: "Call diagram_capabilities with one kind for its spec and operations." };
+        const value = input.kind
+          ? familyCapabilities(input.kind)
+          : {
+              families: FAMILY_LIST,
+              notDrawn: NOT_DRAWN,
+              next: "Pick the family whose topics match the lesson, then call diagram_capabilities with that kind for its spec and operations. For a whole A3 worksheet or unit booklet, call worksheet_capabilities. Say so plainly when a request is in notDrawn.",
+            };
         return { structuredContent: value, content: [{ type: "text" as const, text: JSON.stringify(value) }] };
       },
     );
@@ -132,7 +164,14 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
         try {
           const f = FAMILIES[input.kind];
           if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", `outputView applies only to ${ANSWER_VIEW_KINDS}.`);
-          const envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
+          let envelope;
+          try {
+            envelope = f.create({ ...(input.spec !== undefined ? { spec: input.spec } : {}), ...(input.envelope !== undefined ? { envelope: input.envelope } : {}) });
+          } catch (error) {
+            // Field paths read from the tool's arguments. A spec-built envelope's own document.*
+            // paths are not in what the caller sent, so those fields are dropped (the message stays).
+            throw input.envelope !== undefined ? prefixFields(error, "envelope") : prefixFields(error, "spec", (path) => !/^(document|tool|schemaVersion|rendererVersion)\b/.test(path));
+          }
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
           return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], AbortSignal.any([extra.signal, connection]));
         } catch (error) {

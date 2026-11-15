@@ -1,5 +1,8 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
+import { withFields } from "../../envelope-core/src/errors";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
@@ -80,8 +83,14 @@ export const envelopeSchema = z
         key: z.boolean(),
         heightMm: z.number().int().min(40).max(140),
         barMm: z.number().int().min(5).max(20),
+        /** Bold lines (U111) multiply the chart's black strokes by 1.5; the grid keeps its weight. Normal is never saved. */
+        lines: z
+          .enum(LINE_WEIGHTS)
+          .transform((v) => (v === "bold" ? v : undefined))
+          .optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
@@ -130,22 +139,22 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("categories"))
-      throw Error(
+      throw withFields(Error(
         `Use 1 to ${MAX_CATEGORIES} category labels of at most 16 characters, without markup.`,
-      );
+      ), parsed.error);
     if (path.includes("name"))
-      throw Error("Use data set names of at most 24 characters, without markup.");
+      throw withFields(Error("Use data set names of at most 24 characters, without markup."), parsed.error);
     if (path.includes("series"))
-      throw Error(
+      throw withFields(Error(
         `Use 1 to ${MAX_SERIES} data sets, each with one value of at most 12 characters per category.`,
-      );
+      ), parsed.error);
     if (path.includes("heightMm"))
-      throw Error("Choose a chart height from 40 to 140 mm.");
+      throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
-      throw Error("Choose a bar width from 5 to 20 mm.");
+      throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
     if (path.includes("xTitle") || path.includes("yTitle"))
-      throw Error("Use axis titles of at most 40 characters, without markup.");
-    throw Error("This is not a supported chart file (version 1 is supported).");
+      throw withFields(Error("Use axis titles of at most 40 characters, without markup."), parsed.error);
+    throw withFields(Error("This is not a supported chart file (version 1 is supported)."), parsed.error);
   }
   const e = parsed.data;
   if (e.document.series.some((s) => s.values.length !== e.document.categories.length))
@@ -432,6 +441,8 @@ export function renderSvg(e: Envelope): string {
     out.push(
       `<path d="${g.ticks.slice(1).map((t) => `M${n(p.x)},${n(t.y)}H${n(right)}`).join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`,
     );
+  // The grid stays at its usual weight; bold lines apply to everything drawn after it.
+  const gridEnd = out.length;
   for (const b of g.bars) {
     // A bar drawn only for the answers copy prints in the answer colour; solid grey or black
     // fills turn pink too, so the outline still shows.
@@ -472,7 +483,7 @@ export function renderSvg(e: Envelope): string {
     }
   }
   const label = `${kindNames[d.kind]}${d.yTitle ? ` of ${d.yTitle}` : ""}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(g.width)}mm" height="${n(g.height)}mm" viewBox="0 0 ${n(g.width)} ${n(g.height)}" role="img" aria-label="${esc(label)}"><defs>${defs}</defs>${out.slice(0, gridEnd).join("")}${boldLines(out.slice(gridEnd).join(""), d.lines)}</svg>`;
 }
 
 /** Structural edits. Each returns a new valid envelope. */

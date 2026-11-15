@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LoaderCircle, Plus, Redo2, RotateCcw, Trash2, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Download, LoaderCircle, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { EditorDownloadMenu } from "../site/EditorDownloadMenu";
@@ -7,6 +7,7 @@ import { AnswerPreviewToggle } from "../site/AnswerPreviewToggle";
 import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import {
+  A4,
   bookletFileName,
   lessonFileName,
   lessonPagesOf,
@@ -32,7 +33,9 @@ import { isPlaceholder } from "./ai/make";
 import * as edit from "./edit";
 import "../worksheet/worksheet.css";
 import "./booklet.css";
-import { handleUndoKeys, pushHistory, useDocumentHistory } from "../editor-kit";
+import { HistoryButtons } from "../site/HistoryButtons";
+import { usePrintSize } from "../site/usePrintSize";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
@@ -95,6 +98,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const [message, setMessage] = useState(startup.message);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
+  const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -108,25 +112,27 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const shown = useMemo(() => renderBooklet(b, { view: answers ? "answers" : "pupil" }), [b, answers]);
   const issues = shown.issues;
 
-  function commit(next: Booklet) {
-    if (recovery !== null) return;
+  function commit(next: Booklet): boolean {
+    if (recovery !== null) return false;
     try {
       const valid = validateBooklet(next);
       documentHistory.commit(valid);
       setMessage("");
+      return true;
     } catch (e) {
       // Invalid edits are refused with the specific reason; the last valid booklet stays.
       setMessage(e instanceof Error ? e.message : String(e));
+      return false;
     }
   }
   function apply(f: (b: Booklet) => Booklet) {
     if (!blocked) commit(f(b));
   }
   function patch(update: (doc: BookletDoc) => void) {
-    if (blocked) return;
+    if (blocked) return false;
     const next = structuredClone(b);
     update(next.document);
-    commit(next);
+    return commit(next);
   }
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
@@ -182,7 +188,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
     const r = lesson === undefined ? renderBooklet(b, { view }) : lessonPagesOf(b, lesson, { view });
     if (r.issues.length) throw Error("Fix the layout checks before downloading.");
     const pages = r.pages;
-    downloadBlob(await pagesPdf(pages, d.title), pdfName(b, view, lesson));
+    downloadBlob(await pagesPdf(pages, d.title, "Page"), pdfName(b, view, lesson));
   }
   /** The Word file: the same pages as the PDF, written here with the connector's own writer. */
   async function downloadWord(view: "pupil" | "answers", lesson?: number) {
@@ -396,12 +402,14 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <div className="editor-toolbar" role="group" aria-label="Resource utilities">
               <div className="tool-group" role="group" aria-label="History and reset">
-                <button className="icon-button" disabled={blocked || !history.past.length} aria-label="Undo" title="Undo (Ctrl+Z)" onClick={undo}>
-                  <Undo2 size={18} aria-hidden="true" />
-                </button>
-                <button className="icon-button" disabled={blocked || !history.future.length} aria-label="Redo" title="Redo (Ctrl+Y)" onClick={redo}>
-                  <Redo2 size={18} aria-hidden="true" />
-                </button>
+                <HistoryButtons
+                  canUndo={!blocked && !!history.past.length}
+                  canRedo={!blocked && !!history.future.length}
+                  onUndo={undo}
+                  onRedo={redo}
+                  undoLabel={undoStepName(history)}
+                  redoLabel={redoStepName(history)}
+                />
                 <button className="tool-button reset-button" disabled={blocked} aria-label="Open the example booklet" onClick={() => setPending({ b: a7Booklet, title: "Open the example booklet? It replaces the current one. You can undo it." })}>
                   <RotateCcw size={17} aria-hidden="true" />
                   <span>Example</span>
@@ -450,6 +458,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
               <span className="resource-size">
                 A4 portrait, {shown.pages.length} pages
               </span>
+              {printSize.controls}
               <span className="bk-jump">
                 <select
                   aria-label="Go to a page"
@@ -513,11 +522,11 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             )}
-            <div className="bk-pages" data-testid="booklet-pages" ref={pagesRef}>
+            <div className={`bk-pages${printSize.actual ? " ws-actual" : ""}`} data-testid="booklet-pages" ref={pagesRef}>
               {shown.pages.map((svg, i) => (
                 <figure key={i} className="ws-page bk-page" id={`bk-page-${i + 1}`}>
                   <figcaption>Page {i + 1}</figcaption>
-                  <div className="ws-art" dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
+                  <div className="ws-art" style={{ width: printSize.width(A4.page.width) }} dangerouslySetInnerHTML={{ __html: svg.replace('font-family="Inter, sans-serif"', 'font-family="MathsDock Worksheet, Inter, sans-serif"') }} />
                 </figure>
               ))}
             </div>
@@ -555,7 +564,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                 <input type="checkbox" checked={d.nameLine} disabled={blocked} onChange={(e) => patch((x) => void (x.nameLine = e.target.checked))} /> Name and class lines
               </label>
               <label className="ws-check">
-                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Stacked fractions: {"{3/4}"} prints as a fraction
+                <input type="checkbox" checked={d.notation === "maths"} disabled={blocked} onChange={(e) => patch((x) => void (x.notation = e.target.checked ? "maths" : "plain"))} /> Maths printing: stacked {"{3/4}"}, x², a true minus, ≤ and italic x
               </label>
               <details className="ws-side">
                 <summary>Unit introduction</summary>

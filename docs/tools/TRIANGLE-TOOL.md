@@ -29,12 +29,9 @@ area label is undoable. No numerical area is inferred from drawn proportions.
 The existing explicit calculation helpers can save an area answer to this
 label; connected givens and calculation ownership use its exact triangle.
 
-Old files and presets retain schemaVersion 1 / triangle-1 and identical output.
-Adding a centre area uses schemaVersion 2 / triangle-2: each triangle may have
-an optional area: Label, reached as r:`<triangle-id>`. Captions keep their original
-meaning and two-caption limit. Both versions are validated; version/renderer
-mismatches and area fields in version 1 are rejected. Old clients cannot open
-version 2. Removal of the last area in this editor returns to version 1. Area
+Every file is schemaVersion 2 / triangle-2 (schema 1 is no longer read): each
+triangle may have an optional area: Label, reached as r:`<triangle-id>`. Captions
+keep their original meaning and two-caption limit. Area
 labels follow reshape, transforms, split/restore and worked-copy operations.
 
 ## Visible label controls, 17 October 2026 (local review refinement)
@@ -85,8 +82,10 @@ Add separate triangle remains direct. After adding, show the named added
 triangle's removal, or Remove split to restore the outer triangle. Keep these
 actions in blue space beneath the complete white resource, without dead Add
 controls. The current limit remains two component triangles.
-Preview zoom, temporary saved-answer visibility, actual size and worked copy
-share a responsive view strip. Fit reserves room for the structure controls.
+Preview zoom, temporary saved-answer visibility and actual size share a
+responsive view strip. In the settings, Selected object, Worked version, Start
+a new triangle and Print size are open cards with headings; More tools and
+Editing help stay folded (U20). Fit reserves room for the structure controls.
 Simple label editors show the common state/text/unit fields first; saved
 answers, presentation/marks and offsets expand without changing stored data.
 An error remains outside the collapsed groups. Native print/export artwork,
@@ -94,7 +93,7 @@ schema, renderer and saved pupil states are retained. The shared mathematical
 helper adds the explicit inverse-area height method h = 2A/base; existing
 methods and exported preset artwork remain unchanged.
 
-Route: /tools/triangle. Renderers: triangle-1/triangle-2; file kind triangle, schemaVersion 1/2,
+Route: /tools/triangle. Renderer: triangle-2; file kind triangle, schemaVersion 2,
 style exam-v1. Core: packages/triangle-core/src. Browser: src/triangle.
 This implementation is local and uncommitted. No MCP adapter is included.
 
@@ -124,7 +123,10 @@ is tapped. Local history touch releases activate once and consume a matching
 compatibility click; moving/cancelling a touch over history does not undo work.
 Rotate/reflection affects the complete diagram and preserves label identities.
 Right-angle, isosceles and equilateral constraints are geometric. Equal-side
-ticks, angle arcs and dashed sides are independent printed annotations. A
+ticks, parallel arrows, angle arcs and dashed sides are independent printed annotations.
+Parallel arrows (1 to 3 per side, optional `arrows` on an edge) always point rightwards (down
+on a vertical side), so sides given the same number read as parallel; they sit beside any
+equal-side ticks. A side without arrows saves without the field. A
 right-angle square is allowed only on perpendicular rays.
 
 Layouts: single; two separate triangles; two triangles sharing a selected side;
@@ -172,8 +174,12 @@ refuse invalid numerical requests. Helpers do not solve arbitrary symbolic text.
 
 ## Print and files
 
-Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt
-and independent of view zoom. Actual export height follows complete artwork,
+Print width is 6–18 cm; defaults are 12 cm single and 16 cm paired. Text is 11 pt by
+default (11–14 pt, saved as `fontPt` only when not 11; never below 11 because fraction
+parts print at 85%) and independent of view zoom.
+Lines are normal or bold (U111): bold multiplies every stroke by 1.5 and is saved as
+`lines: "bold"`; normal is never saved. A new triangle starts from the house style chosen
+on the overview page (Large print starts at 12 pt). Actual export height follows complete artwork,
 labels and captions with white allowance; an invalid collision/oversized layout
 blocks image export and keeps editable save available. Fit shows the full width
 on narrow screens. Explicit zoom permits scrolling without changing export size.

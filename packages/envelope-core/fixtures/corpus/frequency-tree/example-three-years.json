@@ -1,0 +1,144 @@
+{
+ "tool": "frequency-tree",
+ "schemaVersion": 1,
+ "rendererVersion": "frequency-tree-1",
+ "document": {
+  "total": {
+   "text": "120",
+   "show": "show"
+  },
+  "nodes": [
+   {
+    "id": "n1",
+    "parent": null,
+    "category": {
+     "text": "Year 9",
+     "show": "show"
+    },
+    "count": {
+     "text": "45",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n2",
+    "parent": "n1",
+    "category": {
+     "text": "French",
+     "show": "show"
+    },
+    "count": {
+     "text": "20",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n3",
+    "parent": "n1",
+    "category": {
+     "text": "Spanish",
+     "show": "show"
+    },
+    "count": {
+     "text": "25",
+     "show": "hidden"
+    }
+   },
+   {
+    "id": "n4",
+    "parent": null,
+    "category": {
+     "text": "Year 10",
+     "show": "show"
+    },
+    "count": {
+     "text": "40",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n5",
+    "parent": "n4",
+    "category": {
+     "text": "French",
+     "show": "show"
+    },
+    "count": {
+     "text": "18",
+     "show": "hidden"
+    }
+   },
+   {
+    "id": "n6",
+    "parent": "n4",
+    "category": {
+     "text": "Spanish",
+     "show": "show"
+    },
+    "count": {
+     "text": "22",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n7",
+    "parent": null,
+    "category": {
+     "text": "Year 11",
+     "show": "show"
+    },
+    "count": {
+     "text": "35",
+     "show": "hidden"
+    }
+   },
+   {
+    "id": "n8",
+    "parent": "n7",
+    "category": {
+     "text": "French",
+     "show": "show"
+    },
+    "count": {
+     "text": "21",
+     "show": "show"
+    }
+   },
+   {
+    "id": "n9",
+    "parent": "n7",
+    "category": {
+     "text": "Spanish",
+     "show": "show"
+    },
+    "count": {
+     "text": "14",
+     "show": "hidden"
+    }
+   }
+  ],
+  "linkLabels": true,
+  "labelPlace": "branch",
+  "nodeShape": "oval",
+  "questions": [
+   {
+    "id": "q1",
+    "text": "P(a Spanish student is in Year 10) =",
+    "answer": {
+     "text": "22/61",
+     "show": "hidden"
+    },
+    "numerator": [
+     "n6"
+    ],
+    "denominator": [
+     "n3",
+     "n6",
+     "n9"
+    ]
+   }
+  ],
+  "branchMm": 30,
+  "gapMm": 16
+ }
+}

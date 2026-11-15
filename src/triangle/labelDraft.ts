@@ -18,6 +18,7 @@ export type LabelDraft = {
   text: string;
   mark: Envelope["document"]["angles"][number]["mark"];
   ticks: number;
+  arrows: number;
   dashed: boolean;
   footName: string;
 };
@@ -36,6 +37,7 @@ export function labelDraft(e: Envelope, ref: string): LabelDraft {
     text: textOf(e, l),
     mark: kind === "a" ? angle!.mark : "none",
     ticks: kind === "e" ? edge!.ticks : 0,
+    arrows: kind === "e" ? (edge!.arrows ?? 0) : 0,
     dashed: kind === "e" ? edge!.dashed : false,
     footName:
       kind === "h" ? e.document.heights.find((h) => h.id === id)!.footName : "",
@@ -65,8 +67,6 @@ export function applyLabelDraft(e: Envelope, draft: LabelDraft) {
     const t = source.document.triangles.find((t) => `r:${t.id}` === draft.ref);
     if (!t) throw Error("Choose an existing triangle for this area.");
     t.area = label("", "blank", "cm²");
-    source.schemaVersion = 2;
-    source.rendererVersion = "triangle-2";
   }
   const n = editLabel(source, draft.ref, { ...draft.value, text: draft.text }),
     [kind, id] = draft.ref.split(":");
@@ -75,6 +75,9 @@ export function applyLabelDraft(e: Envelope, draft: LabelDraft) {
   if (kind === "e") {
     const edge = n.document.edges.find((a) => a.id === id)!;
     edge.ticks = draft.ticks;
+    // No arrows leaves the field out, so the saved file is unchanged.
+    if (draft.arrows) edge.arrows = draft.arrows;
+    else delete edge.arrows;
     edge.dashed = draft.dashed;
   }
   if (kind === "h")

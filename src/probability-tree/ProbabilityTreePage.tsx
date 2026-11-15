@@ -1,11 +1,25 @@
+import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { treeGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
-import { EditorDownloadMenu, LINK_DESCRIPTION } from "../site/EditorDownloadMenu";
+import {
+  EditorDownloadMenu,
+} from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
@@ -52,16 +66,23 @@ import {
   type Label,
 } from "../../packages/probability-tree-core/src";
 import { parseTreeLink, treeEditorLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./probability-tree.css";
-import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave } from "../editor-kit";
+import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:probability-tree:v1");
 type Doc = Envelope["document"];
 type LabelKey = "outcome" | "probability" | "endOutcome" | "endProbability";
 
+/** A new tree starts from the house style's lines (U111). */
+function fresh() {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+}
 function initial() {
-  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: create, recoveryMessage: "Saved tree data needs recovery. Download the original before starting afresh." });
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh, recoveryMessage: "Saved tree data needs recovery. Download the original before starting afresh." });
   return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
@@ -155,12 +176,13 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(forView(e, "answer"));
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const depth = maxDepth(d);
   const paths = leaves(d);
   const selectedBranch = d.branches.find((b) => b.id === selected?.split(":")[1]) ?? null;
 
-  function commit(next: Envelope | null, failure = "That change is not possible for this tree.") {
+  function commit(next: Envelope | null, failure = "That change is not possible for this tree.", label?: string) {
     if (recovery !== null) return;
     if (!next) {
       setMessage(failure);
@@ -168,7 +190,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
     }
     try {
       const valid = validate(next);
-      documentHistory.commit(valid);
+      documentHistory.commit(valid, label);
       setMessage("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -288,6 +310,8 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
   const branchName = (b: Branch) => pathName(d, b.id);
   const fieldId = (key: string, id: string) => `pt-${key}-${id}`;
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), undefined, TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), undefined, WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor pt-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
@@ -301,43 +325,52 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(create(), "Reset the tree?")}
+              onReset={() => replace(fresh(), "Reset the tree?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
               busy={busy}
               onCopy={() =>
-                void run(() => copyWord(displayed), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")
+                void run(() => copyWord(displayed, view === "answer"), "Copied for Word at " + formatResourceSize(g.width / 10, g.height / 10) + ". Paste with Ctrl+V.")
               }
-              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed)))}
+              onCopyClipboard={() => void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))}
               menuId="tree-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="tree-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                { label: "Download SVG", action: () => downloadImage(displayed, "svg"), disabled: blocked || !!issue, success: "SVG download started." },
-                { label: "Download PNG (600 ppi)", action: () => downloadImage(displayed, "png"), disabled: blocked || !!issue, success: "PNG download started." },
-                { label: "Save editable file", action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started.", separator: true },
-                { label: "Open editable file", action: () => file.current?.click(), disabled: blocked, success: "", picker: true },
-                {
-                  label: "Copy editable link",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                worked: worked.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
+                svg: { action: () => downloadImage(displayed, "svg", view === "answer"), disabled: blocked || !!issue, success: "SVG download started." },
+                png: { action: () => downloadImage(displayed, "png", view === "answer"), disabled: blocked || !!issue, success: "PNG download started." },
+                pdf: { action: () => downloadImage(displayed, "pdf", view === "answer"), disabled: blocked || !!issue, success: "PDF download started." },
+                save: { action: () => downloadEditable(e), disabled: blocked, success: "Editable file download started." },
+                open: { action: () => file.current?.click(), disabled: blocked, success: "" },
+                link: {
                   action: () => navigator.clipboard.writeText(treeEditorLink(e, location.href)),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -358,6 +391,10 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="probability-tree">
+              Click a label on the tree to edit it. Enter applies; Escape
+              restores.
+            </EditorHint>
             <div className="pt-scroll" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
@@ -365,7 +402,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   data-testid="tree-resource"
                   style={{ width: ((g.width * 96) / 25.4) * fitted.scale, height: ((g.height * 96) / 25.4) * fitted.scale }}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }} />
                   {g.targets.map((t) => {
                     const id = fieldId(t.kind, t.id);
                     const b = d.branches.find((x) => x.id === t.id);
@@ -393,30 +430,28 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                     );
                   })}
                 </div>
-                <div className="pt-structure" role="group" aria-label="Stages">
-                  <button
-                    type="button"
-                    disabled={blocked || depth >= MAX_DEPTH}
-                    aria-label="Add a stage after every path that reaches the last stage"
-                    title="Add stage"
-                    onClick={() => {
+                <StructureStepper
+                 
+                  vertical
+                  name="Stages"
+                  caption=""
+                  add={{
+                    label: "Add a stage after every path that reaches the last stage",
+                    title: "Add stage",
+                    disabled: blocked || depth >= MAX_DEPTH,
+                    onClick: () => {
                       // A tree that fitted the page keeps fitting: the new stage shortens branches if it must (one undo step).
                       const next = addStage(e);
                       commit(layout(e).width <= 180 && next !== e ? fitBranchLength(next) : next, "This tree has too many paths for another stage.");
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || depth <= 1}
-                    aria-label="Remove the last stage"
-                    title="Remove last stage"
-                    onClick={() => commit(removeStage(e))}
-                  >
-                    −
-                  </button>
-                </div>
+                    },
+                  }}
+                  remove={{
+                    label: "Remove the last stage",
+                    title: "Remove last stage",
+                    disabled: blocked || depth <= 1,
+                    onClick: () => commit(removeStage(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (
@@ -443,7 +478,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, undefined, "use worked version")}
             />
             {selectedBranch && (
               <section className="panel-card pt-panel" aria-label="Selected branch">
@@ -720,6 +755,16 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
                   </select>
                 </label>
                 <label>
+                  Lines
+                  <select aria-label="Lines" value={d.lines ?? "normal"} disabled={blocked} onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}>
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   Branch length (mm)
                   <select aria-label="Branch length" value={d.branchMm} disabled={blocked} onChange={(ev) => patch((n) => void (n.branchMm = Number(ev.target.value)))}>
                     {[...new Set([20, 24, 28, 32, 36, 40, 45, 50, d.branchMm])].sort((a, b) => a - b).map((x) => (
@@ -760,7 +805,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             <p>{message}</p>
             <button
               onClick={() => {
-                downloadBlob(new Blob([recovery], { type: "application/json" }), "probability-tree-recovery.json");
+                downloadBlob(new Blob([recovery], { type: "application/json" }), downloadName("probability-tree", "json", { recovery: true }));
                 setProtectedCopy(true);
               }}
             >
@@ -799,7 +844,7 @@ export default function ProbabilityTreePage({ active = true }: { active?: boolea
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, undefined, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

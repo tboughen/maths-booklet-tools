@@ -95,6 +95,14 @@ describe("number-line notation", () => {
         stop: "3",
       }),
     ).toBe("Custom drawing");
+    expect(
+      notationSummary({
+        kind: "points",
+        id: "s",
+        points: [{ id: "p", value: "2", included: true }],
+        rays: [{ id: "r", from: "p", direction: "right" }],
+      }),
+    ).toBe("Custom drawing");
     expect(notationSummary(null)).toBe("Blank number line");
   });
 });

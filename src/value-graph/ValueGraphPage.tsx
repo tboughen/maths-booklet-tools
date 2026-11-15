@@ -1,14 +1,19 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { quadraticGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import {
@@ -22,7 +27,6 @@ import {
   apply,
   canonical,
   decode,
-  defaultEnvelope,
   editorLink,
   metrics,
   number,
@@ -46,14 +50,16 @@ import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { downloadBlob, copyPngToClipboard } from "../export/clipboard";
 import { download, copyForWord, printPng } from "./export";
-import { recovery, save, STORAGE_KEY } from "./persistence";
+import { freshValueGraph, recovery, save, STORAGE_KEY } from "./persistence";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
 import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Selection =
   | { kind: "cell"; id: string; row: "x" | "y" }
@@ -148,13 +154,13 @@ export default function ValueGraphPage({
       }),
     [],
   );
-  const commit = useCallback((next: ValueEnvelope) => {
+  const commit = useCallback((next: ValueEnvelope, label?: string) => {
     renderSvg(next);
-    record(next);
+    record(next, label);
     setMessage("");
   }, [record]);
   function change(ops: ValueOperation[]) {
-    commit(apply(current.current, ops));
+    commit(apply(current.current, ops), operationLabel(ops));
   }
   function act(action: () => void) {
     if (blocked) return;
@@ -621,8 +627,9 @@ export default function ValueGraphPage({
   );
   const close = () => {
     if (!blocked) {
-      anchor?.focus();
       setSelection(null);
+      // The editor card sits above its opener (U21), so focus the opener after the card has gone.
+      requestAnimationFrame(() => anchor?.focus());
     }
   };
   const removeSelectedPoint = () => {
@@ -659,7 +666,7 @@ export default function ValueGraphPage({
               true,
             )}
             <p>
-              Use expanded form, for example y = x² − x − 6. Existing values and
+              Use expanded form, for example y = x² − x − 6, y = x³ − 4x, y = 3/x or y = 2ˣ. Existing values and
               plots are retained.
             </p>
           </>
@@ -878,6 +885,12 @@ export default function ValueGraphPage({
                     },
                   },
                 ]),
+            )}
+            {option(
+              "Lines",
+              d.print.lines ?? "normal",
+              LINE_WEIGHTS.map((v) => [v, LINE_WEIGHT_NAMES[v]]),
+              (v) => change([{ op: "set_print", settings: { lines: (v as LineWeight) === "bold" ? "bold" : undefined } }]),
             )}
             {toggle("showEquation", "Equation heading")}
           </>
@@ -1259,6 +1272,7 @@ export default function ValueGraphPage({
     selection &&
     ["equation", "axis", "bound", "cell", "point"].includes(selection.kind);
 
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: blocked, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor vg-editor">
       <main
@@ -1268,7 +1282,7 @@ export default function ValueGraphPage({
       >
         <PageHeading
           title="Plotting quadratics"
-          description="Click the equation, table or graph to edit your resource."
+          description="Make tables of values and plot quadratic graphs on exam-style axes."
         >
           <ResourceSaveStatus
             text={saved ? "Saved on this device" : "Not saved on device"}
@@ -1278,6 +1292,10 @@ export default function ValueGraphPage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
@@ -1286,7 +1304,7 @@ export default function ValueGraphPage({
                   "Reset this resource?",
                   "Replace with the June 2018 scaffold. You can undo this.",
                   () => {
-                    commit(defaultEnvelope());
+                    commit(freshValueGraph(), stepName("Reset this resource?"));
                     setSelection(null);
                   },
                 )
@@ -1314,51 +1332,51 @@ export default function ValueGraphPage({
               onToggleMenu={() => setExportOpen(!exportOpen)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="quadratics-downloads"
               open={exportOpen}
               active={active}
               onClose={() => setExportOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                svg: {
                   action: () => download(envelope, "svg"),
                   disabled: blocked || !!renderError,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => download(envelope, "png"),
                   disabled: blocked || !!renderError,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => download(envelope, "pdf"),
+                  disabled: blocked || !!renderError,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => download(envelope, "json"),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(envelope, location.href)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
             <input
               type="file"
               accept=".json,application/json"
@@ -1388,6 +1406,10 @@ export default function ValueGraphPage({
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize width={m.widthCm} height={m.heightCm} />
             </div>
+            <EditorHint tool="value-table-graph">
+              Click the equation, table or graph to edit it. Blank cells stay
+              blank until you choose to calculate.
+            </EditorHint>
             {!!message && (
               <p role="status" className="resource-feedback">
                 {message}
@@ -1403,7 +1425,7 @@ export default function ValueGraphPage({
                   onClick={() => {
                     downloadBlob(
                       new Blob([recoverRaw], { type: "application/json" }),
-                      "value-graph-recovery.json",
+                      downloadName("value-table-graph", "json", { recovery: true }),
                     );
                     setMessage(
                       "Recovery download prepared. You can now start afresh.",
@@ -1421,12 +1443,12 @@ export default function ValueGraphPage({
                       return;
                     try {
                       expected.current = save(
-                        defaultEnvelope(),
+                        freshValueGraph(),
                         recoverRaw,
                         storageKey,
                       );
                       setRecoverRaw(null);
-                      commit(defaultEnvelope());
+                      commit(freshValueGraph());
                     } catch (e) {
                       setMessage(errorText(e));
                     }
@@ -1723,38 +1745,34 @@ export default function ValueGraphPage({
                   >
                     <div className="vg-actions">
                       <strong><em>x</em> values</strong>
-                      <button
-                        aria-label="Add column"
-                        title="Add column"
-                        disabled={blocked || d.columns.length >= 13}
-                        onClick={() => act(appendColumn)}
-                      >
-                        +
-                      </button>
-                      <button
-                        aria-label={
-                          selectedColumn
+                      <StructureStepper
+                        name="x values"
+                        caption=""
+                        add={{
+                          label: "Add column",
+                          disabled: blocked || d.columns.length >= 13,
+                          onClick: () => act(appendColumn),
+                        }}
+                        remove={{
+                          label: selectedColumn
                             ? "Remove selected column"
-                            : "Remove last column"
-                        }
-                        title="Remove column"
-                        disabled={blocked || d.columns.length <= 2}
-                        onClick={() =>
-                          act(() => {
-                            change([
-                              {
-                                op: "remove_column",
-                                columnId:
-                                  selectedColumn?.id ??
-                                  d.columns[d.columns.length - 1].id,
-                              },
-                            ]);
-                            setSelection(null);
-                          })
-                        }
-                      >
-                        −
-                      </button>
+                            : "Remove last column",
+                          title: "Remove column",
+                          disabled: blocked || d.columns.length <= 2,
+                          onClick: () =>
+                            act(() => {
+                              change([
+                                {
+                                  op: "remove_column",
+                                  columnId:
+                                    selectedColumn?.id ??
+                                    d.columns[d.columns.length - 1].id,
+                                },
+                              ]);
+                              setSelection(null);
+                            }),
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -1860,8 +1878,25 @@ export default function ValueGraphPage({
                 );
                 setExamplePreview(resource);
               }}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
+            {/* U20, U21: the editor for what is selected is the first card; the hint holds its place. */}
+            {selection && !localSelection ? (
+              <InspectorEditor
+                title={contextTitle}
+                active={active && !pending}
+                blocked={blocked}
+                onClose={close}
+              >
+                <div key={JSON.stringify(selection)}>{contextContent()}</div>
+              </InspectorEditor>
+            ) : (
+              <section className="panel-card vg-selected-empty" aria-label="Selected item">
+                <p className="inspector-hint">
+                  Click a value or object to edit it, or choose a tool below.
+                </p>
+              </section>
+            )}
             <section className="panel-card specialist-tools vg-workflow">
               <h2>Table and graph</h2>
               <div className="specialist-actions">
@@ -1970,20 +2005,6 @@ export default function ValueGraphPage({
                 </div>
               )}
             </section>
-            {selection && !localSelection ? (
-              <InspectorEditor
-                title={contextTitle}
-                active={active && !pending}
-                blocked={blocked}
-                onClose={close}
-              >
-                <div key={JSON.stringify(selection)}>{contextContent()}</div>
-              </InspectorEditor>
-            ) : (
-              <p className="inspector-hint">
-                Click a value or object to edit it.
-              </p>
-            )}
           </aside>
         </section>
         {active && pending && (

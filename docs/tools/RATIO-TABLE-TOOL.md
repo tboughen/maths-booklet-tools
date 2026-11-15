@@ -8,7 +8,11 @@ Human editing and exports use the browser; the MCP service is not required.
 
 One to three columns and one to six data rows, plus headings. The ratio-lesson-v1 profile
 uses a 3 cm table body, 1 cm rows, 12 pt bundled STIX text and 2.25 pt centre/header
-rules at Standard size. Compact is 80%; Large is 120%. The exported size includes
+rules at Standard size; fraction parts and operation labels print at 10 pt, the house
+minimum. Large is 120%. There is no smaller size: Compact (80%) printed text below the
+10 pt minimum and was removed (Tim, 14 Nov 2026). Lines are normal or bold (U111): bold multiplies
+every stroke by 1.5 and is saved as `lines: "bold"`; normal is never saved. A new table
+starts with the house style's lines. The exported size includes
 margins and scaling annotation gutters. Preview zoom changes screen size only.
 There is a divider between each pair of columns and one rule under the headings;
 there is no outer box or printed row grid. Two-column diagrams keep the original
@@ -129,12 +133,10 @@ automatically printed or inferred.
 ## Saving, sharing and recovery
 
 The ratio draft uses maths-booklet-tools:ratio-table-envelope:v1, independent of
-all graph keys. Save editable table downloads the complete JSON envelope. Two-column tables with at least two rows
-retain schemaVersion 1 / ratio-1 and their hashes; one-row, one-column or three-column tables use
-schemaVersion 2 / ratio-2. Existing saved files, links and the storage key are
-unchanged. Removing a column is immediate and undoable. Returning to two columns with at least two rows
-returns to the original format. Older website versions cannot open three-column
-files; the current editor can open both formats.
+all graph keys. Save editable table downloads the complete JSON envelope. Every table is
+schemaVersion 2 / ratio-2, whatever its shape; schema 1 files are no longer read
+(Tim, 14 Nov 2026: no backwards compatibility). Removing a column is immediate and
+undoable.
 Open saved table and ratio links first show a confirmation preview. Cancel leaves
 the current table unchanged; a confirmed opening is one undoable change.
 Share links, including those from the MCP service, use /tools/ratio-table#ratio-table=... (older ?tool=ratio-table links still redirect); the fragment stays in the browser.

@@ -18,10 +18,12 @@ process.once(
     print: boolean;
     outlined: boolean;
     fontRoot: string;
-    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "triangle" | "worksheet";
+    artifactKind?: "graph" | "ratio-table" | "value-graph" | "cuboids" | "number-line" | "venn" | "algebra-grid" | "bar-model" | "charts" | "probability-tree" | "frequency-tree" | "two-way-table" | "triangle" | "construction" | "elevations" | "worksheet";
     /** Worksheet text fonts (assets/resource-fonts), loaded beside the diagram fonts. */
     textFontRoot?: string;
     pdf?: { pages: string[]; title: string };
+    /** W31: write each copy's PDF and read it back with pdf.js; only the problems are returned. */
+    pdfCheck?: { copies: string[][]; title: string };
     /** A validated worksheet and the view to write as a Word file. */
     docx?: { resource: unknown; view: "pupil" | "answers" };
     /** A validated booklet (or one lesson of it, with its numbering) to write as a Word file. */
@@ -43,6 +45,21 @@ process.once(
           (pdf) => process.send?.({ pdf }, () => process.exit(0)),
           () => process.send?.({ code: "render_failed", error: "The PDF could not be made." }, () => process.exit(1)),
         );
+        return;
+      }
+      if (job.pdfCheck) {
+        if (!job.textFontRoot) throw Error("Worksheet fonts are missing.");
+        const { copies, title } = job.pdfCheck, roots = { text: job.textFontRoot, diagrams: job.fontRoot };
+        Promise.all([import("./worksheet-pdf"), import("../../packages/resource-core/src/page-check"), import("pdfjs-dist/legacy/build/pdf.mjs")])
+          .then(async ([{ worksheetPdf }, { checkRenderedPages }, pdfjs]) => {
+            const problems = [];
+            for (const pages of copies) problems.push(await checkRenderedPages(pdfjs.getDocument as never, await worksheetPdf(pages, title, roots), pages));
+            return problems;
+          })
+          .then(
+            (problems) => process.send?.({ problems }, () => process.exit(0)),
+            () => process.send?.({ code: "render_failed", error: "The page check could not be made." }, () => process.exit(1)),
+          );
         return;
       }
       if (job.docx) {
@@ -114,7 +131,8 @@ process.once(
           svg = svg
             .replace(/\bwidth="[^"]+"/, `width="${width}"`)
             .replace(/\bheight="[^"]+"/, `height="${height}"`);
-        const metadata = job.artifactKind === "triangle" ? "<title>Triangle diagram</title><desc>Use the accompanying editable JSON; pupil blanks and saved answer visibility are retained.</desc>" : job.artifactKind === "probability-tree" ? "<title>Probability tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "frequency-tree" ? "<title>Frequency tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "charts" ? "<title>Statistical chart</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "bar-model" ? "<title>Bar model</title><desc>Use accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
+        const ownTitle = job.svg.match(/<title\b[^>]*>[^<]*<\/title>/)?.[0];
+        const metadata = job.artifactKind === "triangle" ? (ownTitle ?? "<title>Triangle diagram</title>") + "<desc>Use the accompanying editable JSON; pupil blanks and saved answer visibility are retained.</desc>" : job.artifactKind === "probability-tree" ? "<title>Probability tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "frequency-tree" ? "<title>Frequency tree</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "construction" ? "<title>Construction drawing</title><desc>True size. Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "elevations" ? "<title>Plans and elevations</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "two-way-table" ? "<title>Two-way table</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "charts" ? "<title>Statistical chart</title><desc>Use the accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "bar-model" ? "<title>Bar model</title><desc>Use accompanying JSON for editing; hidden answers are retained in source.</desc>" : job.artifactKind === "algebra-grid" ? "<title>Expanding and factorising grid</title><desc>Use the accompanying JSON for editing; pupil blanks are retained.</desc>" : job.artifactKind === "cuboids" ? "<title>Cuboid diagrams</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "number-line" ? "<title>Number line</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "venn" ? "<title>Venn diagram</title><desc>Use the accompanying JSON for editing.</desc>"
           : job.artifactKind === "value-graph"

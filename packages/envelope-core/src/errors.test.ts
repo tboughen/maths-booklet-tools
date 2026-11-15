@@ -1,0 +1,91 @@
+// @vitest-environment node
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { MathsDockError, prefixFields, toErrorBody } from "./errors";
+
+const defaults = { code: "invalid_diagram", message: "The diagram could not be processed.", fieldHint: "Check the schema." };
+
+describe("toErrorBody", () => {
+  it("turns a zod error into invalid_input with dotted field paths", () => {
+    const r = z.object({ spec: z.object({ n: z.number() }) }).safeParse({ spec: { n: "x" } });
+    const body = toErrorBody(r.error, { ...defaults, pathPrefix: ["resource"] });
+    expect(body).toMatchObject({ code: "invalid_input", fields: [{ path: "resource.spec.n" }], hint: "Check the schema.", retry: "fix_input" });
+    expect(body.message).toMatch(/^resource\.spec\.n: /);
+  });
+  it("keeps a coded error's code, fields and hint", () => {
+    const e = new MathsDockError("label_clash", "Labels B and C overlap.", { fields: [{ path: "document.labels.1", message: "overlaps label C" }], hint: "Widen the tree." });
+    expect(toErrorBody(e, defaults)).toEqual({ code: "label_clash", message: "Labels B and C overlap.", fields: [{ path: "document.labels.1", message: "overlaps label C" }], hint: "Widen the tree.", retry: "fix_input" });
+  });
+  it("reads every older stale-hash spelling as stale_hash", () => {
+    for (const m of ["stale_hash: use the exact returned envelope and contentHash.", "stale_hash: The baseHash does not match this definition. Use the last returned envelope and hash."]) {
+      const body = toErrorBody(new Error(m), defaults);
+      expect(body.code, m).toBe("stale_hash");
+      expect(body.retry).toBe("refresh_envelope");
+      expect(body.message).not.toMatch(/^stale_hash:/);
+    }
+  });
+  it("uses the default code for a plain error and never leaks a non-Error", () => {
+    expect(toErrorBody(new Error("Each data set needs exactly one value."), defaults)).toEqual({ code: "invalid_diagram", message: "Each data set needs exactly one value.", retry: "fix_input" });
+    expect(toErrorBody({ secret: 1 }, defaults)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+  });
+  it("reads only known codes from a message prefix, and stale wording only where cores use it", () => {
+    for (const m of ["arx: must be a positive number", "discriminator: expected one of point, line", "objects: too many lines"]) {
+      expect(toErrorBody(new Error(m), defaults), m).toEqual({ code: "invalid_diagram", message: m, retry: "fix_input" });
+    }
+    expect(toErrorBody(new Error("Labels mention stale_hash and refresh."), defaults).code).toBe("invalid_diagram");
+  });
+  it("hides an uncoded runtime error's text where the tool asks for it", () => {
+    const opaque = { ...defaults, opaque: true };
+    expect(toErrorBody(new Error("ENOENT: /srv/cache/x.png"), opaque)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+    expect(toErrorBody(new MathsDockError("too_wide", "The diagram is wider than the page."), opaque).message).toBe("The diagram is wider than the page.");
+    expect(toErrorBody(new Error("stale_hash: use the returned envelope."), opaque).code).toBe("invalid_diagram");
+    const enoent = Object.assign(new Error("ENOENT: no such file, open '/srv/cache/x.png'"), { code: "ENOENT" });
+    expect(toErrorBody(enoent, opaque)).toEqual({ code: "invalid_diagram", message: defaults.message, retry: "fix_input" });
+    expect(toErrorBody(enoent, defaults).code).toBe("invalid_diagram");
+    expect(toErrorBody(new Error("Labels say the base hash is stale."), defaults).code).toBe("invalid_diagram");
+  });
+  it("marks temporary limits as try_later", () => {
+    expect(toErrorBody(new MathsDockError("rate_limited", "Today's allowance has been reached."), defaults).retry).toBe("try_later");
+    expect(toErrorBody(new MathsDockError("busy", "The renderer is busy."), defaults).retry).toBe("try_later");
+  });
+});
+
+describe("union errors name the failing branch (M11)", () => {
+  const point = z.object({ kind: z.literal("point"), x: z.number() }).strict();
+  const line = z.object({ kind: z.literal("line"), slope: z.string().regex(/^-?\d+(\/\d+)?$/, "Use an integer or fraction such as 1/2.") }).strict();
+  const spec = z.object({ objects: z.array(z.union([point, line])) });
+  it("reports only the branch whose kind matched, at the full path", () => {
+    const r = spec.safeParse({ objects: [{ kind: "line", slope: "a/b" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.slope", message: "Use an integer or fraction such as 1/2." }]);
+  });
+  it("lists the accepted kinds when none matched", () => {
+    const r = spec.safeParse({ objects: [{ kind: "curve" }] });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "objects.0.kind", message: 'Use one of: "point", "line".' }]);
+  });
+  it("picks the version branch for a versioned union with an optional legacy version", () => {
+    const v1 = z.object({ bars: z.array(z.string()) }).strict();
+    const v3 = z.object({ schemaVersion: z.literal(3), bars: z.array(z.string()) }).strict();
+    const r = z.union([v1, v3]).safeParse({ schemaVersion: 3, bars: "x" });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "bars", message: expect.stringContaining("expected array") }]);
+  });
+  it("names every accepted value of a literal union, not only the first", () => {
+    const r = z.object({ sets: z.union([z.literal(1), z.literal(2), z.literal(3)]) }).safeParse({ sets: 4 });
+    expect(toErrorBody(r.error, defaults).fields).toEqual([{ path: "sets", message: "Use one of: 1, 2, 3." }]);
+    const mixed = z.object({ cell: z.union([z.string(), z.object({ v: z.string() })]) }).safeParse({ cell: 4 });
+    expect(toErrorBody(mixed.error, defaults).fields).toEqual([{ path: "cell", message: "Invalid input" }]);
+  });
+  it("treats an enum field that shares a discriminator name as an ordinary field", () => {
+    const a = z.object({ kind: z.literal("a"), op: z.enum(["x", "y"]) }).strict();
+    const b = z.object({ kind: z.literal("b") }).strict();
+    const r = z.union([a, b]).safeParse({ kind: "a", op: "z" });
+    expect(toErrorBody(r.error, defaults).fields?.map((f) => f.path)).toEqual(["op"]);
+  });
+  it("prefixes attached fields with the tool argument and caps them at 20", () => {
+    const many = new MathsDockError("invalid_graph", "Bad.", { fields: Array.from({ length: 30 }, (_, i) => ({ path: `objects.${i}`, message: "x" })) });
+    const body = toErrorBody(prefixFields(many, "spec"), defaults);
+    expect(body.fields?.length).toBe(20);
+    expect(body.fields?.[0].path).toBe("spec.objects.0");
+    const internal = prefixFields(new MathsDockError("invalid_input", "Bad.", { fields: [{ path: "document.sets", message: "x" }, { path: "rows", message: "y" }] }), "spec", (p) => !p.startsWith("document"));
+    expect(toErrorBody(internal, defaults).fields).toEqual([{ path: "spec.rows", message: "y" }]);
+  });
+});

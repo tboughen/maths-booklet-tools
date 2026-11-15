@@ -1,4 +1,12 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { speakRatio } from "./speakRatio";
+import { houseRatio } from "./house";
 import { pathLink } from "../site/routes";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import {
@@ -6,11 +14,12 @@ import {
   ratioTeachingGallery,
 } from "../examples/galleryCatalogue";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
 import { copyPngToClipboard } from "../export/clipboard";
@@ -34,7 +43,7 @@ import type {
   RatioEnvelope,
 } from "../../packages/ratio-table-core/src/interchange";
 import { downloadBlob } from "../export/clipboard";
-import { copyRatioForWord, downloadRatioImage, hasRatioAnswers } from "./export";
+import { copyRatioForWord, downloadRatioBoth, downloadRatioImage, hasRatioAnswers } from "./export";
 import {
   loadRatioRecovery,
   saveRatio,
@@ -47,7 +56,8 @@ import { RatioDialog } from "./RatioDialog";
 import { EditorToolbar } from "../site/EditorToolbar";
 import { PageHeading, Panel } from "../site/PageHeading";
 import "./ratio-table.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 
 type Pending = {
   title: string;
@@ -118,7 +128,9 @@ export default function RatioTablePage({
   const envelope = history.present,
     document = envelope.document,
     metrics = ratioMetrics(document),
-    warnings = ratioWarnings(envelope);
+    warnings = ratioWarnings(envelope),
+    answerSvg = renderRatioSvg(document, "answer"),
+    notesIssue = workedIssue(answerSvg, envelope);
   const exportDisabled = !!recovery || busy || pendingInputs.size > 0;
   const onInputPending = useCallback(
     (key: string, value: boolean) =>
@@ -131,13 +143,13 @@ export default function RatioTablePage({
       }),
     [],
   );
-  const commit = useCallback((next: RatioEnvelope) => {
+  const commit = useCallback((next: RatioEnvelope, label?: string) => {
     if (blocked.current)
       throw Error("Save the recovery copy before replacing the saved table.");
-    record(next);
+    record(next, label);
   }, [record]);
   function operations(ops: RatioOperation[]) {
-    commit(applyRatioOperations(current.current, ops));
+    commit(applyRatioOperations(current.current, ops), operationLabel(ops));
   }
   function attempt(action: () => void) {
     try {
@@ -240,10 +252,21 @@ export default function RatioTablePage({
         setTool("edit");
         setArrowFrom(null);
       }
+      const command = objectKeyCommand(e);
+      if (command?.kind === "deselect" && !pendingInputs.size) setSelection(null);
+      // U9: Delete removes the selected arrow, never a row or column.
+      if (command?.kind === "delete" && selection?.kind === "step" && !pendingInputs.size && !recovery) {
+        e.preventDefault();
+        const from = selection.from;
+        attempt(() => {
+          operations([{ op: "remove_transition", from }]);
+          setSelection(null);
+        });
+      }
     }
     window.addEventListener("keydown", keyboard);
     return () => window.removeEventListener("keydown", keyboard);
-  }, [active, undo, redo]);
+  });
   async function runExport(action: () => Promise<void>, success = "") {
     if (exportDisabled) return;
     setBusy(true);
@@ -469,6 +492,8 @@ export default function RatioTablePage({
     selection?.kind === "cell" || selection?.kind === "heading"
       ? selection.column
       : document.headings.length - 1;
+  const titleNote = useTitleNote({ active, about: aboutOf(envelope), disabled: exportDisabled, onSave: (about) => commit(withAbout(envelope, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(envelope), size: answerSize(answerSvg), disabled: exportDisabled, onSave: (notes) => commit(withWorkedNotes(envelope, notes), WORKED_STEP) });
   return (
     <div ref={editor} className="app-shell booklet-editor ratio-app">
       <main
@@ -516,7 +541,7 @@ export default function RatioTablePage({
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "maths-ratio-table-recovery.json",
+                  downloadName("ratio-table", "json", { recovery: true }),
                 );
                 setRecoveryDownloaded(true);
               }}
@@ -546,10 +571,14 @@ export default function RatioTablePage({
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!recovery && !!history.past.length}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!recovery && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(starterRatioTable(), "Reset this table?")}
+              onReset={() => replace(houseRatio(starterRatioTable()), "Reset this table?")}
               resetDisabled={structureDisabled}
               exportDisabled={exportDisabled}
               busy={busy}
@@ -573,73 +602,79 @@ export default function RatioTablePage({
             />
             <EditorDownloadMenu
               id="ratio-table-downloads"
+              wordHelp
               open={exportsOpen}
               active={active}
               onClose={() => setExportsOpen(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                worked: worked.item,
+                svg: {
                   action: () => downloadRatioImage(envelope, "svg"),
                   disabled: exportDisabled,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadRatioImage(envelope, "png"),
                   disabled: exportDisabled,
                   success: "PNG download started.",
                 },
-                ...(hasRatioAnswers(envelope)
-                  ? [
-                      {
-                        label: "Download answers SVG",
+                pdf: {
+                  action: () => downloadRatioImage(envelope, "pdf"),
+                  disabled: exportDisabled,
+                  success: "PDF download started.",
+                },
+                answers: hasRatioAnswers(envelope)
+                  ? {
+                      svg: {
                         action: () => downloadRatioImage(envelope, "svg", "answer"),
-                        disabled: exportDisabled,
+                        disabled: exportDisabled || !!notesIssue,
                         success: "Answers SVG download started.",
-                        description: "Hidden answers printed in the answer colour.",
                       },
-                      {
-                        label: "Download answers PNG (600 ppi)",
+                      png: {
                         action: () => downloadRatioImage(envelope, "png", "answer"),
-                        disabled: exportDisabled,
+                        disabled: exportDisabled || !!notesIssue,
                         success: "Answers PNG download started.",
                       },
-                    ]
-                  : []),
-                {
-                  label: "Save editable file",
+                    }
+                  : undefined,
+                both: hasRatioAnswers(envelope)
+                  ? {
+                      action: () => downloadRatioBoth(envelope),
+                      disabled: exportDisabled || !!notesIssue,
+                      success: "Pupil and answers ZIP download started.",
+                    }
+                  : undefined,
+                save: {
                   action: () =>
                     downloadBlob(
                       new Blob([JSON.stringify(envelope, null, 2)], {
                         type: "application/json",
                       }),
-                      "maths-ratio-table.json",
+                      downloadName("ratio-table", "json", { resource: envelope }),
                     ),
                   disabled: exportDisabled,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: exportDisabled,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(ratioEditorLink(envelope, location.href)),
                     ),
                   disabled: exportDisabled,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               className="sr-only"
@@ -674,13 +709,19 @@ export default function RatioTablePage({
                 </label>
               )}
             </div>
-            <p className="ratio-edit-hint">
-              {tool === "arrow"
-                ? arrowFrom
-                  ? "Select the row immediately below."
-                  : "Select a source row, then the row below, or use the arrow settings."
-                : "Click a heading, cell or arrow number and type. Click a curved arrow for its settings."}
-            </p>
+            <EditorHint
+              tool="ratio-table"
+              prompt={
+                tool === "arrow"
+                  ? arrowFrom
+                    ? "Select the row immediately below."
+                    : "Select a source row, then the row below, or use the arrow settings."
+                  : undefined
+              }
+            >
+              Click a heading, cell or arrow number and type. Click a curved
+              arrow for its settings.
+            </EditorHint>
             <RatioCanvas
               envelope={envelope}
               zoom={zoom}
@@ -722,69 +763,9 @@ export default function RatioTablePage({
               active={active}
               disabled={exportDisabled || !!pending}
               onUse={(resource, title) => replace(resource, `Open ${title}?`)}
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <fieldset disabled={!!recovery} className="ratio-settings">
-              <section className="panel-card specialist-tools">
-                <h2>Table tools</h2>
-                <div
-                  className="tool-group"
-                  role="group"
-                  aria-label="Ratio editing tools"
-                >
-                  <button
-                    className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
-                    aria-pressed={tool === "edit"}
-                    disabled={structureDisabled}
-                    onClick={() => {
-                      setTool("edit");
-                      setArrowFrom(null);
-                      setSelection(null);
-                      setSelectionActive(false);
-                      setMessage("");
-                    }}
-                  >
-                    <MousePointer2 size={18} />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
-                    aria-pressed={tool === "arrow"}
-                    data-ratio-select
-                    disabled={structureDisabled || document.rows.length < 2}
-                    onClick={() => {
-                      setTool("arrow");
-                      setArrowFrom(null);
-                      showSelection({
-                        kind: "step",
-                        from: document.rows[0].id,
-                      });
-                      setMessage("");
-                    }}
-                  >
-                    <ArrowDown size={18} />
-                    <span>Add arrow</span>
-                  </button>
-                  <button
-                    className="tool-button"
-                    disabled={structureDisabled}
-                    data-ratio-select
-                    onClick={() => {
-                      setTool("edit");
-                      setArrowFrom(null);
-                      showSelection({ kind: "headings" });
-                    }}
-                  >
-                    <Type size={18} />
-                    <span>Edit headings</span>
-                  </button>
-                </div>
-
-                <p className="panel-note">
-                  Edit values on the table. Add and remove rows or columns
-                  beside its edges.
-                </p>
-              </section>
               <RatioInspector
                 document={document}
                 selection={selection}
@@ -798,8 +779,77 @@ export default function RatioTablePage({
                 onOperations={operations}
                 onAction={(ops) => attempt(() => operations(ops))}
                 onFill={fill}
+                tools={
+                  <section className="panel-card specialist-tools">
+                    <h2>Table tools</h2>
+                    <div
+                      className="tool-group"
+                      role="group"
+                      aria-label="Ratio editing tools"
+                    >
+                      <button
+                        className={`tool-button${tool === "edit" ? " tool-button--active" : ""}`}
+                        aria-pressed={tool === "edit"}
+                        disabled={structureDisabled}
+                        onClick={() => {
+                          setTool("edit");
+                          setArrowFrom(null);
+                          setSelection(null);
+                          setSelectionActive(false);
+                          setMessage("");
+                        }}
+                      >
+                        <MousePointer2 size={18} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        className={`tool-button${tool === "arrow" ? " tool-button--active" : ""}`}
+                        aria-pressed={tool === "arrow"}
+                        data-ratio-select
+                        disabled={structureDisabled || document.rows.length < 2}
+                        onClick={() => {
+                          setTool("arrow");
+                          setArrowFrom(null);
+                          showSelection({
+                            kind: "step",
+                            from: document.rows[0].id,
+                          });
+                          setMessage("");
+                        }}
+                      >
+                        <ArrowDown size={18} />
+                        <span>Add arrow</span>
+                      </button>
+                      <button
+                        className="tool-button"
+                        disabled={structureDisabled}
+                        data-ratio-select
+                        onClick={() => {
+                          setTool("edit");
+                          setArrowFrom(null);
+                          showSelection({ kind: "headings" });
+                        }}
+                      >
+                        <Type size={18} />
+                        <span>Edit headings</span>
+                      </button>
+                    </div>
+
+                    <p className="panel-note">
+                      Edit values on the table. Add and remove rows or columns
+                      beside its edges.
+                    </p>
+                  </section>
+                }
               />
             </fieldset>
+            {notesIssue && (
+              <section className="panel-card ratio-warnings" role="alert">
+                <h2>Fix the worked notes</h2>
+                <p>{notesIssue}</p>
+                <p>The answers copy cannot be downloaded until they fit. Change them from File, Worked notes.</p>
+              </section>
+            )}
             {warnings.length > 0 && (
               <section className="panel-card ratio-warnings">
                 <h2>Check the maths</h2>
@@ -825,7 +875,7 @@ export default function RatioTablePage({
           onConfirm={() => {
             attempt(() => {
               if (pending.envelope) {
-                commit(pending.envelope);
+                commit(pending.envelope, stepName(pending.title));
                 setInputVersion((v) => v + 1);
                 setSelection(null);
                 setTool("edit");

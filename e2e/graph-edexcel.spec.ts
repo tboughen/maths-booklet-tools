@@ -101,3 +101,40 @@ test("sketch axes show no grid or numbers, with the line's labels in the answer 
   await expect.poll(async () => (await saved(page))?.grid).toBe("none");
   expect((await saved(page)).objects[0].labels).toHaveLength(2);
 });
+
+test("a point prints its coordinates or a pupil blank, as an undoable edit", async ({ page }) => {
+  const envelope = createGraph({ objects: [{ kind: "point", id: "p", position: { x: 2, y: -3 }, name: "A" }] });
+  envelope.document.selectedObjectId = "p";
+  const raw = JSON.stringify(envelope);
+  await page.addInitScript(({ key, raw }) => localStorage.setItem(key, raw), { key, raw });
+  await page.goto("/tools/graph");
+  const canvas = page.locator(".graph-canvas");
+  const select = page.getByLabel("Coordinates printed after the point");
+  await select.selectOption("show");
+  await expect(canvas.locator(".point-coordinates text:not(.text-halo)")).toHaveText(["(2, −3)"]);
+  await expect.poll(async () => (await saved(page))?.objects[0].coordinates).toBe("show");
+  await select.selectOption("blank");
+  await expect(canvas.locator(".point-coordinates text:not(.text-halo)")).toHaveText(["( ……… , ……… )"]);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page))?.objects[0].coordinates).toBe("show");
+  await select.selectOption("none");
+  await expect(canvas.locator(".point-coordinates text")).toHaveCount(0);
+  await expect.poll(async () => "coordinates" in ((await saved(page))?.objects[0] ?? {})).toBe(false);
+});
+
+test("bold lines are saved, drawn heavier and undoable; the grid keeps its weight (U111)", async ({ page }) => {
+  await page.goto("/tools/graph");
+  await page.getByText("Exam-style axes and grid").click();
+  const canvas = page.locator(".graph-canvas");
+  const width = (selector: string) => canvas.locator(selector).first().evaluate((el) => parseFloat(getComputedStyle(el).strokeWidth));
+  const axes = await width(".graph-axes"),
+    grid = await width(".grid-lines");
+  await page.getByRole("group", { name: "Lines" }).getByRole("button", { name: "Bold" }).click();
+  await expect.poll(async () => (await saved(page))?.lines).toBe("bold");
+  await expect.poll(() => width(".graph-axes")).toBeCloseTo(axes * 1.5, 2);
+  expect(await width(".grid-lines")).toBeCloseTo(grid, 3);
+  await page.getByRole("group", { name: "Lines" }).getByRole("button", { name: "Normal" }).click();
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => (await saved(page))?.lines).toBe("bold");
+});

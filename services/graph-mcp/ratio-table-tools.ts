@@ -1,9 +1,10 @@
+import { FAMILIES } from "../../packages/diagram-core/src/registry";
+import { copyMetrics } from "./worked-size";
 import { ratioPrintFacts } from "../../packages/ratio-table-core/src/svg";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
   ratioMetrics,
-  renderRatioSvg,
   describeRatio,
   ratioWarnings,
   ratioHash,
@@ -16,6 +17,7 @@ import type { DownloadFormat } from "./downloads";
 import { RatioDownloads } from "./ratio-downloads";
 import type { RasterQueue } from "./raster";
 import type { TrafficLimits } from "./limits";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 export function ratioTools(
   raster: RasterQueue,
@@ -34,8 +36,8 @@ export function ratioTools(
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
         type: "application/json",
       };
-    const metrics = ratioMetrics(envelope.document),
-      svg = renderRatioSvg(envelope.document, view);
+    const svg = FAMILIES["ratio-table"].svg(envelope, view),
+      metrics = copyMetrics(svg, ratioMetrics(envelope.document));
     const size =
       format === "svg"
         ? {
@@ -54,13 +56,13 @@ export function ratioTools(
     );
     return {
       body:
-        format === "svg" ? Buffer.from(result.svg!) : Buffer.from(result.png!),
+        format === "svg" ? Buffer.from(tidySvgRoot(result.svg!)) : Buffer.from(result.png!),
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };
   }
   /** Files and preview for one copy: pupil (default) or answer, which prints hidden answers. */
   async function result(envelope: RatioEnvelope, signal: AbortSignal, view: "pupil" | "answer" = "pupil") {
-    const metrics = ratioMetrics(envelope.document),
+    const metrics = copyMetrics(FAMILIES["ratio-table"].svg(envelope, view), ratioMetrics(envelope.document)),
       hash = await ratioHash(envelope),
       description = describeRatio(envelope, view),
       warnings = ratioWarnings(envelope);
@@ -71,7 +73,7 @@ export function ratioTools(
       ),
       height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderRatioSvg(envelope.document, view),
+      FAMILIES["ratio-table"].svg(envelope, view),
       width,
       height,
       false,

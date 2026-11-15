@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ArrowDown, Grid3X3, Table2, Trash2 } from "lucide-react";
 import type {
   RatioDocument,
@@ -6,6 +7,7 @@ import type {
 import type { RatioSelection } from "./RatioCanvas";
 import { NumberInput } from "./NumberInput";
 import { HeadingInput } from "./HeadingInput";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { headingText, headingFromText } from "./headingText";
 
 type RatioCellValue = RatioDocument["rows"][number]["cells"][number];
@@ -39,6 +41,7 @@ export function RatioInspector({
   onOperations,
   onAction,
   onFill,
+  tools,
 }: {
   document: RatioDocument;
   selection: RatioSelection;
@@ -50,6 +53,8 @@ export function RatioInspector({
   onOperations: (operations: RatioOperation[]) => void;
   onAction: (operations: RatioOperation[]) => void;
   onFill: (from: string) => void;
+  /** The table tools card, shown after the selected item and before the table settings (U21). */
+  tools?: ReactNode;
 }) {
   function headingControls(column: number) {
     const heading = document.headings[column];
@@ -347,6 +352,7 @@ export function RatioInspector({
           </>
         )}
       </section>
+      {tools}
       <section className="panel-card">
         <div className="panel-heading">
           <Grid3X3 size={17} />
@@ -367,9 +373,25 @@ export function RatioInspector({
               ])
             }
           >
-            <option value="compact">Compact · 80%</option>
             <option value="standard">Standard · lesson size</option>
             <option value="large">Large · 120%</option>
+          </select>
+        </label>
+        <label className="ratio-label">
+          Lines
+          <select
+            aria-label="Lines"
+            disabled={pendingInputs}
+            value={document.lines ?? "normal"}
+            onChange={(event) =>
+              onAction([{ op: "set_lines", lines: event.target.value as LineWeight }])
+            }
+          >
+            {LINE_WEIGHTS.map((v) => (
+              <option key={v} value={v}>
+                {LINE_WEIGHT_NAMES[v]}
+              </option>
+            ))}
           </select>
         </label>
         <label className="ratio-label">

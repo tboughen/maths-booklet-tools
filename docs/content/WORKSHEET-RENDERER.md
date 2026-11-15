@@ -30,7 +30,9 @@ The MCP tool (step 2), a small browser editor (step 3) and A4 booklets (step 4) 
 - Columns hold titled question cards. Numbers are computed, running across both sides.
 - Card items: `text`, `info` (pale card), `claim` (a pupil's statement), `bullets`, `table`
   (cells supplied, blank or hidden), `choice` (circle one or tick one), `answerLine` (prefix,
-  suffix, inline groups), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
+  suffix, inline groups, and a saved answer of up to 160 characters, printed only on the answers copy;
+  raised from 60 on 14 November 2026 at Tim's choice, R27. An answer wider than its line is still
+  reported, so the maker shortens it or gives it a longer line rather than letting it run past), `space` (working or drawing room), `paper` (blank squared, dotted or graph paper at its printed
   size, optionally with blank axes: arrows, *x*, *y* and *O* but no numbers, so pupils choose the
   scale), `diagram` (a full editable Charts or Probability tree envelope) and `part` (a, b, c… holding further items).
 - Text is plain Unicode with `**bold**` and `*italic*` only. Nothing is evaluated. A sheet with
@@ -124,6 +126,54 @@ moving questions; at 11 pt they fit with small wording trims. Dyslexia guidance 
 rendered SVG at its own millimetre size, text kept as text with subset embedded fonts (Inter for
 the sheet, STIX Two for diagrams), no raster images. It needs no browser, so the free Render
 service can run it. The Inter files are TrueType because the PDF writer cannot subset WOFF2.
+
+Every worksheet and booklet PDF, from the connector and from the website, is re-opened and audited
+before it is offered (`packages/resource-core/src/pdf-audit.ts`, improvement item W30): the page
+count and each page's size and orientation match the drawn SVG pages (within 0.1 mm), no page holds
+more raster images than its artwork drew (bank question images are allowed, so text and diagrams
+cannot have been rasterised), every font is embedded and has a text map, and every page that drew
+text has selectable text. A failed audit is an error naming the page and the problem, never a
+silent download.
+
+Worksheet and booklet PDFs then get a rendered-page check (`packages/resource-core/src/page-check.ts`,
+improvement item W31). pdf.js reads the written file back, so each run of text is placed where it
+actually landed, measured with the embedded fonts' real glyph widths. Each run is then checked
+against the page's trim and against the boxes the page SVG draws: every card frame and every
+diagram box. Text within 5 mm of the paper's edge (`SAFE_EDGE_MM`, what printers leave unprinted) is
+named, and so is text that crosses a card's frame or a diagram's box instead of sitting wholly
+inside or outside it: a word running out of its card, a diagram label cut off at its edge, or
+question text running into a diagram.
+- **Website:** a failed check refuses the download with the first problems, naming the side or
+  page (`pagesPdf(pages, title, "Side" | "Page")`).
+- **Connector:** `create_worksheet` and `create_booklet` write both copies of a sheet that
+  otherwise fits and return each problem as a layout issue, by side and column or by lesson and page
+  (`services/graph-mcp/page-check.ts`). The sheet is then not print-ready.
+
+Every worksheet and booklet fixture passes the check in both views
+(`services/graph-mcp/page-check.test.ts`).
+
+The worksheet and booklet editors can show their pages at actual size (improvement item W31).
+"Actual size" sets each page to its printed width on screen, so type and writing space look as
+pupils will see them. The page list then scrolls sideways. Browsers assume 96 pixels to the inch,
+which few screens match, so "Calibrate…" asks the teacher to match a bar to a bank card (85.6 mm).
+The calibration is stored on that device in device pixels (`src/site/printSizeData.ts`), so it still
+holds after the browser is zoomed. It changes only the screen view, never a download.
+
+The question-bank paper builder (`src/bank/export.ts`) checks both of its papers the same way
+before offering them (`auditPaperPdf`, improvement item L23): page count, every page's MediaBox
+(A4 portrait questions, A4 landscape mark schemes) with no page rotation, no raster image drawn
+directly on a page (each source question or scheme page stays a vector form with its own
+artwork), every font the paper writes with embedded or one of the standard 14, and every
+question heading present in the text layer, in order. A failure stops the export with the
+problem named; no incomplete paper is produced.
+
+Invalid drafts stay visible (improvement item W12). In the worksheet and booklet editors a text
+field whose change the page refuses keeps what was typed, marked invalid, beside the page's
+specific message; Escape restores the saved text. A diagram block that cannot be drawn stays on
+the page as a dashed box holding its problem, at least 24 mm tall, and its issue blocks every
+export. With maths notation on, fraction markup that did not parse (an unmatched brace, or braces
+round a slash that is not a fraction) is reported even in text without a stacked fraction; set
+notation such as {1, 2, 3} stays allowed there.
 
 ## MCP tools
 

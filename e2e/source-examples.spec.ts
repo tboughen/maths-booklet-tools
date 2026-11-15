@@ -51,7 +51,7 @@ for (const [tool, examples, key, confirm] of [
       const before = await stored();
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
+          name: "Use this example",
           exact: true,
         })
         .click();
@@ -65,7 +65,7 @@ for (const [tool, examples, key, confirm] of [
       await showExamples(page);
       await card
         .getByRole("button", {
-          name: tool === "graph" ? "Open blank grid" : "Open scaffold",
+          name: "Use this example",
           exact: true,
         })
         .click();
@@ -195,9 +195,10 @@ test("quadratic controls match the clear Graph design and keep exact bounds in a
     expect(style).toEqual({ size: 48, font: "24px", radius: "8px" });
   }
   await expect(page.locator(".vg-bound-value")).toHaveCount(0);
+  // The x-value controls are the shared 44 px structure stepper (U6).
   for (const button of await page.locator(".vg-table-tools button").all()) {
     expect(await button.evaluate((b) => b.getBoundingClientRect().width)).toBe(
-      48,
+      44,
     );
   }
   await page

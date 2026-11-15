@@ -17,6 +17,7 @@ const settings = z
     nodeShape: core.documentSchema.shape.nodeShape,
     branchMm: core.documentSchema.shape.branchMm,
     gapMm: core.documentSchema.shape.gapMm,
+    lines: core.documentSchema.shape.lines,
   })
   .partial()
   .strict();
@@ -166,7 +167,7 @@ export function create(input: unknown): core.Envelope {
 
 export async function revise(input: unknown): Promise<core.Envelope> {
   const v = revisionSchema.parse(input);
-  if ((await core.hash(v.envelope)) !== v.baseHash) throw Error("base_hash_mismatch: Use the exact returned envelope and contentHash.");
+  if ((await core.hash(v.envelope)) !== v.baseHash) throw Error("stale_hash: Use the exact returned envelope and contentHash.");
   let e = core.validate(structuredClone(v.envelope));
   for (const op of v.operations) {
     switch (op.op) {

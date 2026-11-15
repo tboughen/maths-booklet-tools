@@ -3,10 +3,10 @@
 // region's anchor lies inside it, over seeded random diagrams of 1–3 sets in every arrangement.
 import { describe, expect, it } from "vitest";
 import { forAll, type Random } from "../../../src/testing/random";
-import { activeMasks, arrangements, changeArrangement, createExtended, geometry, membership, validate, type Envelope } from "./index";
+import { activeMasks, arrangements, changeArrangement, create, geometry, membership, validate, type Envelope } from "./index";
 
 function diagram(r: Random): Envelope {
-  const sets = r.pick([1, 2, 3] as const), e = structuredClone(sets === 2 ? changeArrangement(createExtended(2), r.pick(arrangements)) : createExtended(sets));
+  const sets = r.pick([1, 2, 3] as const), e = structuredClone(sets === 2 ? changeArrangement(create(2), r.pick(arrangements)) : create(sets));
   e.document.shape = r.pick(["circles", "ovals"] as const);
   e.document.widthCm = r.int(8, 16);
   return validate(e);

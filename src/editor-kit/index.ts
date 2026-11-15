@@ -6,3 +6,4 @@ export * from "./history";
 export * from "./shortcuts";
 export * from "./useDocumentHistory";
 export * from "./drafts";
+export * from "./labels";

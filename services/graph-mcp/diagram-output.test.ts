@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { PDFDocument } from "pdf-lib";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { withFamilyNames } from "./family-tool-names";
@@ -58,16 +59,16 @@ describe("physical facts and independent placement", () => {
     line.start = {x: 100, y: 100}; line.end = {x: 101, y: 100};
     expect(graphPrintFacts(labelled.document).referenceFeatures.textSizesPt).toEqual([12]);
   });
-  it.each(["compact", "standard", "large"] as const)("measures actual ratio text/fraction/answer space at %s size", (size) => {
+  it.each(["standard", "large"] as const)("measures actual ratio text/fraction/answer space at %s size", (size) => {
     const e = createRatioTable({ ...ratioSpec, size });
     e.document.rows[0].cells[0] = {kind: "number", value: "1/2"};
     e.document.transitions[0].factor = "1/2";
     const facts = ratioPrintFacts(e.document).referenceFeatures;
-    const scale = {compact: 0.8, standard: 1, large: 1.2}[size];
+    const scale = {standard: 1, large: 1.2}[size];
     expect(facts.answerLineLengthsMm[0]).toBeCloseTo(6 * scale);
     expect(facts.tableRowHeightsMm[0]).toBeCloseTo(10 * scale);
-    expect(facts.textSizesPt).toHaveLength(3);
-    for (const [i, pt] of [7.68, 9.6, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
+    expect(facts.textSizesPt).toHaveLength(2);
+    for (const [i, pt] of [10, 12].entries()) expect(facts.textSizesPt[i]).toBeCloseTo(pt * scale);
     const actual = [...renderRatioSvg(e.document).matchAll(/font-size="([\d.]+)"/g)].map((m) => +m[1] / 100 * scale * 72 / 2.54);
     for (const f of actual) expect(facts.textSizesPt.some((pt) => Math.abs(pt - f) < 1e-7)).toBe(true);
   });
@@ -148,7 +149,7 @@ describe("bounded bundle signing and workers", () => {
   it("bounds archive members and resulting bytes independently", () => {
     const members = Object.fromEntries(ARCHIVE_NAMES.map((n) => [n, new Uint8Array(1)]));
     expect(Object.keys(unzipSync(packArchive(members)))).toEqual(ARCHIVE_NAMES);
-    expect(() => packArchive({...members, "../escape": new Uint8Array(1)})).toThrow("five");
+    expect(() => packArchive({...members, "../escape": new Uint8Array(1)})).toThrow("six");
     expect(() => packArchive({...members, "diagram.png": new Uint8Array(11 * 1024 * 1024)})).toThrow("10 MiB");
     expect(() => packArchive({...members, "diagram.png": new Uint8Array(21 * 1024 * 1024)})).toThrow("20 MiB");
   });
@@ -198,6 +199,14 @@ describe("real MCP output workflows", () => {
     verifyPrintBytes(files["diagram.png"], pngSize.width, pngSize.height);
     expect(Buffer.from(files["diagram.svg"]).toString()).toBe(await (await fetch(moved.downloads.svg.url)).text());
     expect(Buffer.from(files["README.txt"]).toString()).not.toMatch(/signature=|token=/);
+    // M24: a vector PDF page holding the diagram at actual size.
+    const pdf = await PDFDocument.load(files["diagram.pdf"]);
+    expect(pdf.getPageCount()).toBe(1);
+    const { width, height } = pdf.getPage(0).getSize();
+    expect([Math.round(width / 72 * 25.4), Math.round(height / 72 * 25.4)]).toEqual([210, 297]);
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("diagram.pdf holds the diagram at actual size");
+    // M16: the bundle carries the pupil-safe alt text for Word and PowerPoint.
+    expect(Buffer.from(files["README.txt"]).toString()).toContain("Alt text (for Word or PowerPoint): Coordinate graph\n");
     const broken = await client.callTool({name: "download_diagram_bundle", arguments: {kind: "ratio-table", envelope: moved.envelope}});
     expect(broken.isError).toBe(true);
     expect((await client.callTool({name: "create_graph", arguments: graphSpec})).isError).not.toBe(true);

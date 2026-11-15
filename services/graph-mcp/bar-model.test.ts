@@ -9,8 +9,10 @@ import { unzipSync } from "fflate";
 import { graphService } from "./server";
 import { receiveSvg } from "./svg-consumer";
 import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
-import * as c from "../../packages/bar-model-core/src";
-import { parseLink } from "../../packages/bar-model-core/src/interchange";
+import * as c from "../../packages/bar-model-core/src/versioned";
+import { parseLink } from "../../packages/bar-model-core/src/versioned-interchange";
+import * as v from "../../packages/bar-model-core/src/v3";
+import { lessonExample } from "../../packages/bar-model-core/src/examples";
 const clients: Client[] = [],
   servers: Server[] = [];
 afterEach(async () => {
@@ -66,7 +68,8 @@ it("advertises complete bar schemas with homogeneous arrays and preserves named 
   expect(instructions).toContain("one shared unit width");
   expect(instructions).toContain("Do not fill pupil answers");
   expect(instructions).toContain("Do not silently redraw");
-  expect(instructions).toContain("schemaVersion 3");
+  expect(instructions).toContain("12 mm above/3 mm below handwriting space");
+  expect(instructions).not.toContain("schemaVersion");
   expect(instructions).toContain("equationVisible false");
   expect(names.filter((n) => n.endsWith("_diagram") || n === "diagram_capabilities").sort()).toEqual([
     "create_diagram",
@@ -115,19 +118,20 @@ it("creates, downloads and revises exact saved resources with native print facts
     if (format === "svg") {
       const svg = new TextDecoder().decode(bytes);
       expect(svg).not.toMatch(/<text\b|<image\b/);
-      expect(svg).toContain(`width="${r.physicalSizeCm.width * 10}mm"`);
+      expect(Number(/<svg[^>]*\bwidth="([\d.]+)mm"/.exec(svg)?.[1])).toBeCloseTo(r.physicalSizeCm.width * 10, 6);
     }
   }
   const n = await call(client, "revise_bar_model", {
     envelope: r.envelope,
     baseHash: r.contentHash,
-    operations: [{ op: "set_part", barId: "b1", partId: "b1p1", shade: true }],
+    operations: [{ op: "set_fill", barId: "b1", partIds: ["b1p1"], fill: "neutral" }],
   });
-  expect(n.envelope.document.bars[0].parts[3].label).toEqual(
+  expect(n.envelope.document.bars[0].parts[0].fill).toBe("neutral");
+  expect(n.envelope.document.bars[0].parts[3].labels.inside).toEqual(
     c.label("18", "hidden"),
   );
   expect(n.physicalSizeCm).toEqual(r.physicalSizeCm);
-  expect(n.envelope.document.spans).toEqual(r.envelope.document.spans);
+  expect(n.envelope.document.annotations).toEqual(r.envelope.document.annotations);
   const old = await client.callTool({
     name: "revise_bar_model",
     arguments: {
@@ -159,6 +163,7 @@ it("creates, downloads and revises exact saved resources with native print facts
   );
   expect(Object.keys(members).sort()).toEqual([
     "README.txt",
+    "diagram.pdf",
     "diagram.png",
     "diagram.svg",
     "print-info.json",
@@ -187,39 +192,13 @@ it("creates, downloads and revises exact saved resources with native print facts
   expect(control.status).toBe(200);
   expect(direct.body).toEqual(Buffer.from(await control.arrayBuffer()));
 }, 30000);
-it("creates explicit v2, revises secondary labels and captions, and saves original SVG and bundle bytes",async()=>{
-  const v=await import("../../packages/bar-model-core/src/v2"),api=await import("../../packages/bar-model-core/src/versioned-interchange"),core=await import("../../packages/bar-model-core/src/versioned");
-  const client=await start();
-  const made=await client.callTool({name:"create_bar_model",arguments:{spec:{schemaVersion:2,starter:"equal-sections",count:5}}});
-  expect(made.isError,JSON.stringify(made.content)).not.toBe(true);
-  const initial=made.structuredContent as unknown as Result;
-  const envelope=v.validate(initial.envelope),b=envelope.document.bars[0];
-  expect(api.parseLink(initial.editorUrl)).toEqual(envelope);
-  const changed=await client.callTool({name:"revise_bar_model",arguments:{envelope,baseHash:initial.contentHash,operations:[{op:"set_section_labels",barId:b.id,partIds:b.parts.map(p=>p.id),slot:"above",label:v.label("9")},{op:"add_caption",caption:{id:"calculation",label:v.label("4/5 × 45 = 36"),alignment:"centre"}}]}});
-  expect(changed.isError,JSON.stringify(changed.content)).not.toBe(true);
-  const r=changed.structuredContent as unknown as Result,n=v.validate(r.envelope);
-  expect(n.document.bars[0].parts.every(p=>p.labels.above?.text==="9")).toBe(true);
-  expect(n.document.bars[0].parts.every(p=>p.labels.inside.state==="blank")).toBe(true);
-  expect(r.contentHash).toBe(await core.hash(n));
-  const direct=await receiveSvg(async args=>{const result=await client.callTool({name:"get_diagram_svg",arguments:args});expect(result.isError).not.toBe(true);return result.structuredContent;},{kind:"bar-model",envelope:n},{expectedSourceContentHash:r.contentHash,expectedPhysicalSizeCm:r.physicalSizeCm});
-  const svg=Buffer.from(await(await fetch(r.downloads.svg.url)).arrayBuffer());expect(direct.body).toEqual(svg);expect(svg.toString()).not.toMatch(/<text\b|<image\b/);
-  const print=new Uint8Array(await(await fetch(r.downloads.png.url)).arrayBuffer());verifyPrintBytes(print,r.printRaster.width,r.printRaster.height);
-  const bundle=await client.callTool({name:"download_diagram_bundle",arguments:{kind:"bar-model",envelope:n}});expect(bundle.isError).not.toBe(true);
-  const members=unzipSync(new Uint8Array(await(await fetch((bundle.structuredContent as {download:{url:string}}).download.url)).arrayBuffer()));
-  expect(Buffer.from(members["diagram.svg"])).toEqual(svg);expect(Buffer.from(members["diagram.png"])).toEqual(Buffer.from(print));expect(JSON.parse(new TextDecoder().decode(members["source.json"]))).toEqual(n);
-},30000);
-it("keeps the legacy base hash atomic when an upgrade batch fails",async()=>{
-  const client=await start(),r=await call(client,"create_bar_model",{}),before=c.canonical(r.envelope);
-  const failed=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"},{op:"set_section_label",barId:"missing",partId:"p",slot:"above",label:c.label("9")}]}});expect(failed.isError).toBe(true);expect(c.canonical(r.envelope)).toBe(before);
-  const upgraded=await client.callTool({name:"revise_bar_model",arguments:{envelope:r.envelope,baseHash:r.contentHash,operations:[{op:"upgrade_document"}]}});expect(upgraded.isError,JSON.stringify(upgraded.content)).not.toBe(true);expect((upgraded.structuredContent as {envelope:{schemaVersion:number}}).envelope.schemaVersion).toBe(2);
-},30000);
-it("creates v3 horizontal working and handwriting spaces through actual SDK discovery and original SVG delivery",async()=>{
-  const v=await import("../../packages/bar-model-core/src/v3"),core=await import("../../packages/bar-model-core/src/versioned"),examples=await import("../../packages/bar-model-core/src/lesson-examples-v3");
+it("creates horizontal working and handwriting spaces through actual SDK discovery and original SVG delivery",async()=>{
+  const core=c;
   const client=await start();
   const caps=await client.callTool({name:"bar_model_capabilities",arguments:{}});
   const cap=JSON.parse((caps.content as {type:string;text:string}[]).find(c=>c.type==="text")!.text);
-  expect(cap.schemaVersions).toEqual([1,2,3]);expect(cap.rendererVersions).toContain("bar-model-3");
-  const initial=await call(client,"create_bar_model",{envelope:examples.lessonExample("R4",true)});
+  expect(cap.schemaVersions).toEqual([3]);expect(cap.rendererVersions).toContain("bar-model-3");
+  const initial=await call(client,"create_bar_model",{envelope:lessonExample("R4",true)});
   const changed=await client.callTool({name:"revise_bar_model",arguments:{envelope:initial.envelope,baseHash:initial.contentHash,operations:[{op:"set_section_label",barId:"b1",partId:"b1p1",slot:"inside",label:v.label("1/5","line")},{op:"update_caption",caption:{id:"caption1",label:v.label("n/5 of 45 = 36"),alignment:"left",format:"maths"}}]}});
   expect(changed.isError,JSON.stringify(changed.content)).not.toBe(true);
   const r=changed.structuredContent as unknown as Result,n=v.validate(r.envelope);
@@ -241,7 +220,7 @@ it("exports maximum structure, rejects impossible layout and keeps source atomic
     arguments: {
       envelope: max.envelope,
       baseHash: max.contentHash,
-      operations: [{ op: "set_print", presentation: { unitMm: 16 } }],
+      operations: [{ op: "set_presentation", presentation: { unitMm: 16 } }],
     },
   });
   expect(bad.isError).toBe(true);

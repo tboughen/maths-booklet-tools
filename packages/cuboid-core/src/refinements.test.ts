@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createHash } from "node:crypto";
-import fixtures from "./fixtures/v1.json";
 import {
   create,
-  upgrade,
   validate,
   parseFile,
   canonical,
@@ -17,16 +14,8 @@ import {
   encode,
   decode,
 } from "./index";
-const sha = (s: string) => createHash("sha256").update(s).digest("hex");
-const fresh = () => upgrade(create());
+const fresh = () => create();
 describe("Cuboid refinements", () => {
-  it("retains canonical bytes and artwork of all 20 production resources", () => {
-    for (const fixture of fixtures) {
-      const e = validate(fixture.envelope);
-      expect(sha(canonical(e))).toBe(fixture.canonicalSha256);
-      expect(sha(renderSvg(e))).toBe(fixture.svgSha256);
-    }
-  });
   it("rejects silently mixing old and new version fields", () => {
     const e = fresh();
     expect(() => validate({ ...e, rendererVersion: "cuboids-1" })).toThrow();

@@ -1,3 +1,5 @@
+import { aboutShape } from "../../packages/envelope-core/src/about";
+import { artworkSizeMm, workedOf } from "../../packages/envelope-core/src/worked";
 import { z } from "zod";
 import { GraphError, documentFromEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import { getExportMetrics, graphPrintFacts } from "../../packages/graph-core/src/svg";
@@ -19,6 +21,12 @@ import * as tree from "../../packages/probability-tree-core/src/index";
 import { printFacts as treePrintFacts } from "../../packages/probability-tree-core/src/interchange";
 import * as ftree from "../../packages/frequency-tree-core/src/index";
 import { printFacts as ftreePrintFacts } from "../../packages/frequency-tree-core/src/interchange";
+import * as construction from "../../packages/construction-core/src/index";
+import { printFacts as constructionPrintFacts } from "../../packages/construction-core/src/interchange";
+import * as elevations from "../../packages/elevation-core/src/index";
+import { printFacts as elevationsPrintFacts } from "../../packages/elevation-core/src/interchange";
+import * as twt from "../../packages/two-way-table-core/src/index";
+import { printFacts as twtPrintFacts } from "../../packages/two-way-table-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
@@ -32,6 +40,9 @@ export const diagramSourceSchema = z.object({
   envelope: z.object({
     schemaVersion: z.number().int(), rendererVersion: z.string(), styleProfile: z.string().optional(),
     document: z.record(z.string(), z.unknown()), kind: z.string().optional(), tool: z.string().optional(),
+    title: aboutShape.title, note: aboutShape.note,
+    // Worked notes (U116) are checked by the family; the outer schema only lets them through.
+    worked: z.array(z.unknown()).optional(),
   }).strict(),
   outputView: z.enum(["pupil", "answer"]).optional(),
 }).strict();
@@ -47,6 +58,9 @@ export type DiagramSource =
   | { kind: "charts"; envelope: chart.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "probability-tree"; envelope: tree.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "frequency-tree"; envelope: ftree.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "construction"; envelope: construction.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "elevations"; envelope: elevations.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "two-way-table"; envelope: twt.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
@@ -59,7 +73,20 @@ export function diagramSource(raw: unknown): DiagramSource {
     throw new GraphError("invalid_diagram", `Use a supported ${String((raw as {kind?: unknown})?.kind ?? "diagram")} envelope: ${describeIssues(error) ?? (error instanceof Error ? error.message : "invalid source")}`);
   }
 }
+/**
+ * Print information for one copy. Worked notes in the margin (U116) grow the answers copy's page
+ * round the artwork, so its printed size is that page's, read from the answers SVG itself.
+ */
 export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
+  const info = familyPrintInfo(source, crop);
+  const view = ("outputView" in source && source.outputView) || "pupil";
+  if (view !== "answer" || !workedOf(source.envelope).length || !FAMILIES[source.kind].answerView) return info;
+  const page = artworkSizeMm(FAMILIES[source.kind].svg(source.envelope, "answer"));
+  const cm = (mm: number) => Math.round(mm * 100) / 1000;
+  const grown = Math.abs(page.width / 10 - info.physicalSizeCm.width) > 0.001 || Math.abs(page.height / 10 - info.physicalSizeCm.height) > 0.001;
+  return grown && page.width > 0 && page.height > 0 ? { ...info, physicalSizeCm: { width: cm(page.width), height: cm(page.height) } } : info;
+}
+function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if(source.kind==="bar-model") {const g=bar.layout(bar.forView(source.envelope, source.outputView ?? "pupil"));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:bar.printFacts(source.envelope)};}
   if(source.kind==="charts") { const view=source.outputView ?? "pupil", g=chart.layout(chart.forView(source.envelope, view));return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:chartPrintFacts(source.envelope, view)}; }
   if(source.kind==="triangle") {const g=triangle.layout(source.envelope);return {physicalSizeCm:{width:g.width/10,height:g.height/10},printGuidance:ti.printFacts(source.envelope)};}
@@ -71,6 +98,18 @@ export function diagramPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "frequency-tree") {
     const view = source.outputView ?? "pupil", g = ftree.layout(ftree.forView(source.envelope, view));
     return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: ftreePrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "construction") {
+    const view = source.outputView ?? "pupil", g = construction.layout(source.envelope, view);
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: constructionPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "elevations") {
+    const view = source.outputView ?? "pupil", g = elevations.layout(source.envelope, view);
+    return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: elevationsPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "two-way-table") {
+    const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: twtPrintFacts(source.envelope, view) };
   }
   if (source.kind === "cuboids") {
     if (!crop) throw new GraphError("invalid_diagram", "Cuboid print information requires measured cropped artwork.");

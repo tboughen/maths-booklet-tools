@@ -1,5 +1,6 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
-import * as legacy from "./legacy";
+import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   parseNumber,
   canonicalNumber,
@@ -87,14 +88,20 @@ export const shapeSchema = baseShapeSchema.extend({
 export const envelopeSchema = z
   .object({
     tool: z.literal("cuboids"),
-    schemaVersion: z.union([z.literal(1), z.literal(2)]),
-    rendererVersion: z.enum(["cuboids-1", "cuboids-2"]),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal("cuboids-2"),
     document: z
       .object({
         widthCm: z.number().min(4).max(18),
         shapes: z.array(shapeSchema).min(1).max(3),
+        /** Bold lines (U111). Normal lines are the default and are never saved. */
+        lines: z
+          .enum(LINE_WEIGHTS)
+          .transform((v) => (v === "bold" ? v : undefined))
+          .optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Shape = z.infer<typeof shapeSchema>;
@@ -116,20 +123,6 @@ export function appearance(s: Shape): Appearance {
       },
     }
   );
-}
-export function upgrade(e: Envelope): Envelope {
-  return validate({
-    ...e,
-    schemaVersion: 2,
-    rendererVersion: "cuboids-2",
-    document: {
-      ...e.document,
-      shapes: e.document.shapes.map((s) => ({
-        ...s,
-        appearance: appearance(s),
-      })),
-    },
-  });
 }
 export function faceArea(s: Shape, face: FaceName) {
   const a =
@@ -310,25 +303,17 @@ export function newShape(id = "cuboid-1"): Shape {
   };
 }
 export function create(): Envelope {
+  const shape = newShape();
   return {
     tool: "cuboids",
-    schemaVersion: 1,
-    rendererVersion: "cuboids-1",
-    document: { widthCm: 10, shapes: [newShape()] },
+    schemaVersion: 2,
+    rendererVersion: "cuboids-2",
+    document: { widthCm: 10, shapes: [{ ...shape, appearance: appearance(shape) }] },
   };
 }
 export function validate(value: unknown): Envelope {
-  if (
-    value &&
-    typeof value === "object" &&
-    "schemaVersion" in value &&
-    value.schemaVersion === 1
-  )
-    return legacy.validate(value);
   const e = envelopeSchema.parse(value),
     ids = new Set<string>();
-  if (e.schemaVersion !== 2 || e.rendererVersion !== "cuboids-2")
-    throw Error("Unsupported cuboid version.");
   for (const s of e.document.shapes) {
     if (s.view === "layers" && appearance(s).mode === "one")
       throw Error(
@@ -413,6 +398,8 @@ export const escapeXml = (s: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 const font = 3.88;
+/** Clearance (mm) between a depth label's nearest corner and the receding edge. */
+const DEPTH_GAP = 1.2;
 export function textWidth(s: string) {
   return [...s].reduce((n, c) => n + glyphAdvance(c), 0) * font;
 }
@@ -467,8 +454,10 @@ function wrap(s: string, width: number): string[] {
   return lines;
 }
 export function layout(envelope: Envelope): Layout {
-  if (envelope.schemaVersion === 1)
-    return legacy.layout(envelope as legacy.Envelope);
+  const drawn = layoutCurrent(envelope);
+  return { ...drawn, svg: boldLines(drawn.svg, envelope.document.lines) };
+}
+function layoutCurrent(envelope: Envelope): Layout {
   const e = validate(envelope),
     width = e.document.widthCm * 10,
     shapes = e.document.shapes;
@@ -716,10 +705,22 @@ export function layout(envelope: Envelope): Layout {
       }
       if (l === layers - 1) {
         localTargets.width = [baseX + w / 2, bottom + 8];
-        localTargets.depth = [
-          sideFront[0] + dx + (dx > 0 ? 3 : -3),
-          bottom + v / 2 + 4,
-        ];
+        if (s.arrows && s.view !== "layers")
+          localTargets.depth = [
+            sideFront[0] + dx + (dx > 0 ? 3 : -3),
+            bottom + v / 2 + 4,
+          ];
+        else {
+          // Beside the middle of the receding edge it labels, offset at right angles to it,
+          // so the label's nearest corner sits DEPTH_GAP mm off the edge, away from the cuboid.
+          const len = Math.hypot(dx, v) || 1,
+            nx = (dx > 0 ? -v : v) / len,
+            ny = Math.abs(dx) / len;
+          localTargets.depth = [
+            sideFront[0] + dx / 2 + nx * DEPTH_GAP,
+            bottom + v / 2 + ny * DEPTH_GAP + font * 0.7,
+          ];
+        }
         localTargets.height = [
           s.arrows && s.view !== "layers"
             ? baseX + (dx > 0 ? w + dx + 6 : dx - 6)

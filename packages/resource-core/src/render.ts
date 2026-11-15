@@ -1,4 +1,6 @@
+import { typesetForPrint } from "./typeset";
 import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
+import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
 import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
@@ -82,6 +84,12 @@ function para(source: string, width: number, ctx: AnyCtx, opts: { size?: number;
   const size = opts.size ?? S.body;
   const lines = wrap(source, size, width, opts.base, ctx.maths);
   const lh = lineBox(size);
+  // W12: with maths notation on, fraction markup that did not parse is reported even when the text
+  // has no stacked fraction: an unmatched brace, or braces round a slash that is not a fraction.
+  // Set notation such as {1, 2, 3}, {1/2, 1/4} or {x : x/2 > 1} stays allowed in text without fractions.
+  const loose = lines.map((l) => l.filter((r) => !r.frac).map((r) => r.text).join("")).join(" ");
+  const unparsed = (loose.match(/\{/g)?.length ?? 0) !== (loose.match(/\}/g)?.length ?? 0) || /\{[^{}:,]*\/[^{}:,]*\}/.test(loose);
+  if (ctx.maths && !lines.some(hasFraction) && unparsed) issue(ctx, "A brace is not part of a fraction. Write a stacked fraction as {3/4}.");
   if (!lines.some(hasFraction)) {
     const svg = lines.map((l, i) => textSvg(l, opts.x ?? 0, i * lh + baseline(size), size, opts.fill ?? ctx.st.ink)).join("");
     return { h: lines.length * lh, svg };
@@ -151,26 +159,40 @@ function table(item: Extract<Leaf, { type: "table" }>, w: number, ctx: AnyCtx): 
   return { h: y, svg: out.join("") };
 }
 
+/**
+ * W12: a diagram that cannot be drawn stays on the page as a dashed box holding its specific
+ * problem, so the teacher sees where it is and what to fix. The issue blocks every export.
+ */
+function brokenDiagram(message: string, w: number, ctx: AnyCtx): Frag {
+  issue(ctx, message);
+  const pad = 3;
+  const text = para(`${message} Fix it in its editor, or replace it.`, w - 2 * pad, ctx, { size: S.body, x: pad });
+  const h = Math.max(24, text.h + 2 * pad);
+  return {
+    h,
+    svg: `<g data-broken-diagram="true"><rect x="0.3" y="0.3" width="${n(w - 0.6)}" height="${n(h - 0.6)}" fill="none" stroke="${ctx.st.ink}" stroke-width="0.6" stroke-dasharray="2 1.5"/><g transform="translate(0 ${n(pad)})">${text.svg}</g></g>`,
+  };
+}
+
 function diagram(d: Diagram, w: number, ctx: AnyCtx): Frag {
   // The larger of the pupil and answer sizes is reserved so both views share one layout.
   let drawn: ReturnType<typeof drawDiagram>;
   try {
-    drawn = drawDiagram(d.tool, diagramEnvelope(d), ctx.view === "answers" ? "answer" : "pupil");
+    const envelope = diagramEnvelope(d);
+    drawn = drawDiagram(d.tool, envelope, ctx.view === "answers" ? "answer" : "pupil");
+    // W90: a pupil copy never shows a saved answer.
+    if (ctx.view !== "answers") for (const leak of answerLeaks(d.tool, envelope, drawn.svg)) issue(ctx, leak.message);
   } catch (error) {
-    issue(ctx, `A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`);
-    return { h: 0, svg: "" };
+    return brokenDiagram(`A diagram could not be drawn: ${error instanceof Error ? error.message : "unknown problem"}`, w, ctx);
   }
   let svg = drawn.svg;
   const open = svg.match(/^<svg[^>]*>/)?.[0] ?? "";
   const { widthMm: width, heightMm: height } = drawn;
   const own = svgSizeMm(svg);
-  if (!(width > 0 && height > 0)) {
-    issue(ctx, "A diagram did not report its physical size.");
-    return { h: 0, svg: "" };
-  }
+  if (!(width > 0 && height > 0)) return brokenDiagram("A diagram did not report its physical size.", w, ctx);
   // A diagram may use the card's padding, but is never shrunk to fit.
   const room = w + 2 * (S.cardPad - 0.6);
-  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room));
+  if (width > room + 0.01) issue(ctx, tooWideMessage(d.tool, width, room, drawn.artworkWidthMm <= room + 0.01));
   const k = `d${++ctx.diagrams}-`;
   svg = svg
     .replace(/ id="/g, ` id="${k}`)
@@ -410,7 +432,9 @@ export const countSpaces = (list: Item[]): number =>
 /** Families whose printed width is set by spec.widthCm. */
 const WIDTH_CM = new Set(["number-line", "venn", "triangle"]);
 /** The issue for a diagram wider than its card, with the change that makes it fit. */
-export function tooWideMessage(tool: string, width: number, room: number): string {
+export function tooWideMessage(tool: string, width: number, room: number, workedMargin = false): string {
+  if (workedMargin)
+    return `A diagram with its worked notes in the margin beside it is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit. Move the notes inside the diagram or closer to it, or use a wider column layout.`;
   const fit = Math.floor(room / 5) / 2;
   const hint = WIDTH_CM.has(tool)
     ? ` Set the ${tool}'s widthCm to ${fit} or less, or use a wider column layout.`
@@ -418,6 +442,10 @@ export function tooWideMessage(tool: string, width: number, room: number): strin
       ? " Reduce the tree's settings.branchMm (30 fits a two-level frequency tree in a three-column card), or use a wider column layout."
       : tool === "probability-tree"
         ? ` Reduce the tree's settings.branchMm (each stage gets 1 mm narrower per 1 mm; the minimum is 20), drop the end probability column (settings.endColumn "outcome" or "none"), or use a wider column layout. A three-stage tree with both end columns needs a wider column.`
+      : tool === "construction"
+        ? " Constructions print at true size: reduce the drawing's widthCm (and move points inside it), or use a wider column layout."
+      : tool === "elevations"
+        ? " Use settings.maxWidthCm to wrap the panels onto more rows, a smaller unitCm, or a wider column layout."
       : " Use a wider column layout (two, wide-narrow or narrow-wide) or a smaller diagram.";
   return `A diagram is ${n(width)} mm wide; the card has ${n(room)} mm. Diagrams are never shrunk to fit.${hint}`;
 }
@@ -628,7 +656,8 @@ export function missingGlyphIssues(resource: Resource): Issue[] {
   return [...found.values()];
 }
 
-export function renderResource(resource: Resource, options: RenderOptions = {}): Rendered {
+export function renderResource(saved: Resource, options: RenderOptions = {}): Rendered {
+  const resource = typesetForPrint(saved);
   const doc = resource.document;
   const st = styles[options.style ?? "mathsdock"];
   const ctx: Ctx<{ side: number; column: number; question?: number }> = {

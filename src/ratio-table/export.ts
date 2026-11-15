@@ -1,3 +1,4 @@
+import { downloadBothCopies } from "../export/bothCopies";
 import {
   renderRatioSvg,
   ratioMetrics,
@@ -17,17 +18,25 @@ import {
   copyWordSizedHtml,
   blobToDataUrl,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
+import { answerArt, copySizeCm } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
 
-/** Whether the table has an answers copy: hidden cells or hidden operations. */
+/** Whether the table has an answers copy: hidden cells, hidden operations or worked notes (U116). */
 export const hasRatioAnswers = (envelope: RatioEnvelope) =>
+  workedOf(envelope).length > 0 ||
   envelope.document.rows.some((r) => r.cells.some((c) => c.kind === "hidden")) ||
   envelope.document.transitions.some((t) => t.hidden);
+/** The table's artwork for one copy; worked notes (U116) print on the answers copy only. */
+const ratioArt = (valid: RatioEnvelope, view: RatioView) => answerArt(renderRatioSvg(valid.document, view), valid, view === "answer");
 export async function ratioPrintPng(envelope: RatioEnvelope, view: RatioView = "pupil"): Promise<Blob> {
   const valid = validateRatioEnvelope(envelope),
     metrics = ratioMetrics(valid.document);
-  const svg = await embedPortableFonts(renderRatioSvg(valid.document, view));
-  const png = await svgToPng(svg, metrics.widthCm, metrics.heightCm);
-  const size = printRasterSize(metrics.widthCm, metrics.heightCm);
+  const svg = await embedPortableFonts(ratioArt(valid, view));
+  const cm = copySizeCm(svg, metrics.widthCm, metrics.heightCm);
+  const png = await svgToPng(svg, cm.width, cm.height);
+  const size = printRasterSize(cm.width, cm.height);
   verifyPrintBytes(
     new Uint8Array(await png.arrayBuffer()),
     size.width,
@@ -37,17 +46,19 @@ export async function ratioPrintPng(envelope: RatioEnvelope, view: RatioView = "
 }
 export async function downloadRatioImage(
   envelope: RatioEnvelope,
-  format: "svg" | "png",
+  format: "svg" | "png" | "pdf",
   view: RatioView = "pupil",
 ): Promise<void> {
   const valid = validateRatioEnvelope(envelope);
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf(ratioArt(valid, view))
+      : format === "png"
       ? await ratioPrintPng(valid, view)
-      : new Blob([await embedPortableFonts(renderRatioSvg(valid.document, view))], {
+      : new Blob([await embedPortableFonts(ratioArt(valid, view))], {
           type: "image/svg+xml;charset=utf-8",
         });
-  downloadBlob(blob, `maths-ratio-table${view === "answer" ? "-answers" : ""}.${format}`);
+  downloadBlob(blob, downloadName("ratio-table", format, { resource: valid, answers: view === "answer" }));
 }
 export async function copyRatioForWord(envelope: RatioEnvelope): Promise<void> {
   const valid = validateRatioEnvelope(envelope),
@@ -66,4 +77,13 @@ export async function copyRatioForWord(envelope: RatioEnvelope): Promise<void> {
       "The browser blocked copying. Download PNG (600 ppi) and insert it into Word instead.",
     );
   }
+}
+
+/** Pupil and answers copies in one ZIP (U28); the editor's view is not used. */
+export async function downloadRatioBoth(envelope: RatioEnvelope) {
+  const valid = validateRatioEnvelope(envelope);
+  await downloadBothCopies("ratio-table", valid, async (view) => ({
+    svg: await embedPortableFonts(ratioArt(valid, view)),
+    png: await ratioPrintPng(valid, view),
+  }));
 }

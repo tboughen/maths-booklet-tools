@@ -11,6 +11,8 @@
  * missing one), its guide in guides.ts and its result adapter in services/graph-mcp/families.ts.
  */
 import { z } from "zod";
+import { tidySvgRoot } from "../../envelope-core/src/svg-root";
+import { artworkSizeMm, withWorked, withWorkedPage, workedIssues, workedOf } from "../../envelope-core/src/worked";
 import * as graph from "../../graph-core/src/interchange";
 import { renderDiagramSvg } from "../../graph-core/src/svg";
 import * as ratio from "../../ratio-table-core/src/interchange";
@@ -30,8 +32,14 @@ import * as tree from "../../probability-tree-core/src/index";
 import * as treeIo from "../../probability-tree-core/src/interchange";
 import * as ftree from "../../frequency-tree-core/src/index";
 import * as ftreeIo from "../../frequency-tree-core/src/interchange";
+import * as twt from "../../two-way-table-core/src/index";
+import * as twtIo from "../../two-way-table-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
+import * as construction from "../../construction-core/src/index";
+import * as constructionIo from "../../construction-core/src/interchange";
+import * as elevations from "../../elevation-core/src/index";
+import * as elevationsIo from "../../elevation-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -45,7 +53,10 @@ export const DIAGRAM_KINDS = [
   "charts",
   "probability-tree",
   "frequency-tree",
+  "two-way-table",
   "triangle",
+  "construction",
+  "elevations",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -76,7 +87,26 @@ export interface DiagramFamily<E = unknown> {
   svg(envelope: E, view: View): string;
 }
 
-const family = <E>(f: DiagramFamily<E>) => f as DiagramFamily<unknown>;
+// Every family's artwork leaves with tidy root numbers (U38): same print size, readable bytes.
+// Worked-solution notes (U116) print in dark pink on the answers copy of every family with one,
+// and every saved or supplied envelope is checked so its notes fit inside that copy's artwork.
+const family = <E>(f: DiagramFamily<E>) => {
+  const svg = (e: E, view: View) => {
+    const art = f.svg(e, view);
+    return tidySvgRoot(view === "answer" && f.answerView ? withWorked(art, workedOf(e)) : art);
+  };
+  const validate = (raw: unknown, view: View) => {
+    const e = f.validate(raw, view);
+    const notes = workedOf(e);
+    if (notes.length) {
+      if (!f.answerView) throw Error(`A ${f.label} has no answers copy yet, so it cannot hold worked notes. Remove the worked list.`);
+      const issue = workedIssues(notes, artworkSizeMm(f.svg(e, "answer")))[0];
+      if (issue) throw Error(issue);
+    }
+    return e;
+  };
+  return { ...f, svg, validate } as DiagramFamily<unknown>;
+};
 /** Families whose create input is the flat spec itself rather than { spec, envelope }. */
 const flatCreate = (create: (spec: unknown) => unknown, validate: (raw: unknown) => unknown) =>
   (input: { spec?: unknown; envelope?: unknown }) => {
@@ -125,7 +155,7 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   "value-graph": family<value.ValueEnvelope>({
     kind: "value-graph",
     label: "table of values and graph",
-    summary: "Exam table of values with graph paper, plotted points and an optional quadratic curve.",
+    summary: "Exam table of values with graph paper, plotted points and an optional quadratic, cubic, reciprocal or exponential curve.",
     route: "/tools/value-table-graph",
     answerView: false,
     envelopeSchema: value.envelopeSchema,
@@ -292,6 +322,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     hash: ftree.hash,
     svg: (e, view) => ftree.renderSvg(ftree.forView(e, view, true)),
   }),
+  "two-way-table": family<twt.Envelope>({
+    kind: "two-way-table",
+    label: "two-way table",
+    summary: "Exam two-way table: up to 5 column and 5 row categories with optional totals; cells are numbers, decimals or stacked fractions, blank or hidden for pupils.",
+    route: "/tools/two-way-table",
+    answerView: true,
+    envelopeSchema: twt.envelopeSchema,
+    createSchema: twtIo.createSchema,
+    revisionSchema: twtIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = twt.validate(raw);
+      check(twt.exportIssue(twt.forView(e, view)));
+      return e;
+    },
+    create: (input) => twtIo.create(input),
+    revise: (input) => twtIo.revise(input),
+    hash: twt.hash,
+    svg: (e, view) => twt.renderSvg(twt.forView(e, view, true)),
+  }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",
     label: "triangle diagram",
@@ -310,6 +359,44 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => triangleIo.revise(input),
     hash: triangleIo.hash,
     svg: (e, view) => triangle.renderSvg(e, view === "answer"),
+  }),
+  construction: family<construction.Envelope>({
+    kind: "construction",
+    label: "construction drawing",
+    summary: "True-size constructions, loci, scale drawings, maps and bearings: points, lines, compass arcs, bisectors, shaded regions and north lines; constructions saved as hidden answers.",
+    route: "/tools/construction",
+    answerView: true,
+    envelopeSchema: construction.envelopeSchema,
+    createSchema: constructionIo.createSchema,
+    revisionSchema: constructionIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = construction.validate(raw);
+      check(construction.exportIssue(e, view));
+      return e;
+    },
+    create: (input) => constructionIo.create(input),
+    revise: (input) => constructionIo.revise(input),
+    hash: construction.hash,
+    svg: (e, view) => construction.renderSvg(e, view),
+  }),
+  elevations: family<elevations.Envelope>({
+    kind: "elevations",
+    label: "plans and elevations diagram",
+    summary: "Solids made of cubes: isometric drawing, plan, front and side elevations on cm squares, each drawn, blank or a hidden answer.",
+    route: "/tools/elevations",
+    answerView: true,
+    envelopeSchema: elevations.envelopeSchema,
+    createSchema: elevationsIo.createSchema,
+    revisionSchema: elevationsIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = elevations.validate(raw);
+      check(elevations.exportIssue(e, view));
+      return e;
+    },
+    create: (input) => elevationsIo.create(input),
+    revise: (input) => elevationsIo.revise(input),
+    hash: elevations.hash,
+    svg: (e, view) => elevations.renderSvg(e, view),
   }),
 };
 
@@ -334,28 +421,37 @@ export function svgSizeMm(svg: string): { width: number; height: number } {
 /** Short alt text: the artwork's own aria-label when it has one, else the family name. */
 export function altText(kind: DiagramKind, svg: string): string {
   const label = svg.match(/<svg\b[^>]*\saria-label="([^"]*)"/)?.[1] ?? svg.match(/<title\b[^>]*>([^<]*)<\/title>/)?.[1];
-  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+  const text = label?.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&apos;/g, "'").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
   const name = FAMILIES[kind].label;
   return text ? text : `${name[0].toUpperCase()}${name.slice(1)}`;
 }
 
 /**
  * Artwork for a worksheet or booklet: the family's own SVG at its printed size, with the larger
- * of the pupil and answer sizes so both copies share one layout.
+ * of the pupil and answer sizes so both copies share one layout. When worked notes sit in the
+ * margin, the pupil copy takes the answers copy's grown page with the margin left blank, so the two
+ * copies take the same space and their artwork lines up.
  */
 export function drawDiagram(kind: DiagramKind, envelope: unknown, view: View) {
   const f = FAMILIES[kind];
   // Embedded artwork starts at its <svg> element: no XML declaration inside a page.
   const bare = (svg: string) => svg.replace(/^\s*<\?xml[^>]*\?>\s*/, "").trimStart();
-  const pupil = bare(f.svg(envelope, "pupil"));
+  const notes = f.answerView ? workedOf(envelope) : [];
+  const plain = f.svg(envelope, "pupil");
+  // The answers artwork without its notes: the notes are placed against it.
+  const unnoted = notes.length ? svgSizeMm(f.svg({ ...(envelope as object), worked: undefined }, "answer")) : undefined;
+  const pupil = bare(withWorkedPage(plain, notes, unnoted));
   const answer = f.answerView ? bare(f.svg(envelope, "answer")) : pupil;
   const a = svgSizeMm(pupil),
-    b = svgSizeMm(answer);
+    b = svgSizeMm(answer),
+    own = svgSizeMm(plain);
   return {
     svg: view === "answer" ? answer : pupil,
     widthMm: Math.max(a.width, b.width),
     heightMm: Math.max(a.height, b.height),
     altText: altText(kind, pupil),
+    /** The width without worked notes in the margin, to tell when only those notes make it too wide. */
+    artworkWidthMm: Math.max(own.width, unnoted?.width ?? b.width),
   };
 }
 

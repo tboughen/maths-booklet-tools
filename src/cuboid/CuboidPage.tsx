@@ -1,20 +1,26 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink, readPage } from "../site/routes";
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { cuboidGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   appearance,
-  upgrade,
   faceNames,
   faceAreaLabel,
   type Appearance,
@@ -58,9 +64,15 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
-import { createHistory, handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
-const newDocument = () => upgrade(create());
+/** A new drawing starts from the house style's lines (U111); its text is always 11 pt. */
+const newDocument = () => {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+};
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -86,6 +98,13 @@ function initial() {
   }
   return { e: newDocument(), recovery: null, error: "" };
 }
+type SettingsCard = "shape" | "labels" | "shading";
+/** Shape, Labels, Shading, with the card for what was clicked moved to the top (U20, U21). */
+function cardOrder(focus: SettingsCard | null): SettingsCard[] {
+  const all: SettingsCard[] = ["shape", "labels", "shading"];
+  return focus ? [focus, ...all.filter((k) => k !== focus)] : all;
+}
+
 export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
@@ -105,7 +124,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0),
     [dirty, setDirty] = useState<Set<string>>(new Set());
-  const [tab, setTab] = useState<"shape" | "labels" | "shading">("shape");
   const [inputEpoch, setInputEpoch] = useState(0);
   const inlineField = useRef<FieldHandle>(null);
   const file = useRef<HTMLInputElement>(null),
@@ -179,11 +197,11 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       alive = false;
     };
   }, [active, cropKey, e, issue]);
-  function commit(value: Envelope) {
+  function commit(value: Envelope, label?: string) {
     if (recovery !== null)
       throw Error("Protect recovery data before starting afresh.");
     const valid = validate(value);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function changeShape(update: (shape: Shape) => Shape) {
@@ -197,11 +215,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
         ),
       },
     };
-    commit(
-      prev.schemaVersion === 1 && next.document.shapes.some((x) => x.appearance)
-        ? upgrade(next)
-        : next,
-    );
+    commit(next);
   }
   function paint(p: Partial<Appearance>) {
     changeShape((x) => ({ ...x, appearance: { ...appearance(x), ...p } }));
@@ -350,6 +364,9 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       />
     );
   }
+  /** The card for the label or area being edited on the diagram comes first (U20, U21). */
+  const focus: SettingsCard | null =
+    inline === null ? null : inline === "area" ? "shading" : "labels";
   function selectShape(id: string) {
     if (blocked) return;
     setSelected(id);
@@ -360,7 +377,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     if (blocked) return;
     setSelected(shapeId);
     if (k !== "area") setLabelKey(k);
-    setTab(k === "area" ? "shading" : "labels");
     setInline(k);
   }
   function view(value: Shape["view"]) {
@@ -435,6 +451,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
       {label}
     </label>
   );
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   return (
     <div className="app-shell booklet-editor cb-editor">
       <main
@@ -452,6 +469,10 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
@@ -479,51 +500,51 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="cuboids-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                svg: {
                   action: () => downloadImage(e, "svg"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
+                png: {
                   action: () => downloadImage(e, "png"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(e, "pdf"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       pathLink(editorLink(e, location.origin + location.pathname)),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
             <div className="cb-preview-bar">
               <PreviewControls zoom={zoom} onZoom={setZoom} />
               <ResourceSize
@@ -536,32 +557,8 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 }
                 error={!!issue || cropSize.error}
               />
-              <label>
-                View{" "}
-                <select
-                  aria-label="View"
-                  value={s.view}
-                  disabled={blocked}
-                  onChange={(ev) => view(ev.target.value as Shape["view"])}
-                >
-                  <option value="plain">Exam diagram</option>
-                  <option value="cubes">Show cubes</option>
-                  <option value="layers" disabled={a.mode === "one"}>
-                    Separate layers
-                  </option>
-                </select>
-              </label>
-              <button
-                className="cb-quick-cubes"
-                disabled={blocked}
-                onClick={() =>
-                  safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
-                }
-              >
-                Show 1 cm³ cubes
-              </button>
-              <span>Click a label to edit</span>
             </div>
+            <EditorHint tool="cuboids">Click a label to edit it.</EditorHint>
             {issue && (
               <p className="cb-export-warning" role="alert">
                 {issue}
@@ -632,45 +629,39 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               )}
             </div>
             <div className="cb-structure" aria-label="Cuboid structure">
-              <div className="cb-structure-group">
-                <button
-                  disabled={blocked || d.shapes.length >= 3}
-                  onClick={addShape}
-                  aria-label="Add cuboid"
-                >
-                  + Cuboid
-                </button>
-                <button
-                  disabled={blocked || d.shapes.length <= 1}
-                  onClick={removeShape}
-                  aria-label="Remove selected cuboid"
-                >
-                  − Cuboid
-                </button>
-              </div>
+              <StructureStepper
+                className="cb-structure-group"
+                name="Cuboids"
+                add={{
+                  label: "Add cuboid",
+                  disabled: blocked || d.shapes.length >= 3,
+                  onClick: addShape,
+                }}
+                remove={{
+                  label: "Remove selected cuboid",
+                  disabled: blocked || d.shapes.length <= 1,
+                  onClick: removeShape,
+                }}
+              />
               {s.view !== "plain" &&
                 axes.map((a) => (
-                  <div className="cb-structure-group" key={a}>
-                    <span>{a[0].toUpperCase() + a.slice(1)}</span>
-                    <button
-                      aria-label={`Remove one cube from ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, -1)))
-                      }
-                    >
-                      −
-                    </button>
-                    <button
-                      aria-label={`Add one cube to ${a}`}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() => changeShape((x) => grow(x, a, 1)))
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
+                  <StructureStepper
+                    key={a}
+                    className="cb-structure-group"
+                    name={a[0].toUpperCase() + a.slice(1)}
+                    add={{
+                      label: `Add one cube to ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, 1))),
+                    }}
+                    remove={{
+                      label: `Remove one cube from ${a}`,
+                      disabled: blocked,
+                      onClick: () =>
+                        safe(() => changeShape((x) => grow(x, a, -1))),
+                    }}
+                  />
                 ))}
             </div>
             {dirty.size > 0 && (
@@ -691,7 +682,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                   onClick={() => {
                     downloadBlob(
                       new Blob([recovery], { type: "application/json" }),
-                      "cuboids-recovery.json",
+                      downloadName("cuboids", "json", { recovery: true }),
                     );
                     setRecoverySaved(true);
                   }}
@@ -748,449 +739,423 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
-            <section className="panel-card cb-settings">
-              {d.shapes.length > 1 && (
-                <label>
-                  Selected cuboid{" "}
-                  <select
-                    aria-label="Selected cuboid"
-                    disabled={blocked}
-                    value={s.id}
-                    onChange={(ev) => selectShape(ev.target.value)}
-                  >
-                    {d.shapes.map((shape, i) => (
-                      <option key={shape.id} value={shape.id}>
-                        {shape.title || `Cuboid ${i + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <div
-                className="cb-tabs"
-                role="tablist"
-                aria-label="Cuboid settings sections"
-              >
-                {(["shape", "labels", "shading"] as const).map((t) => (
-                  <button
-                    key={t}
-                    role="tab"
-                    id={`cb-tab-${t}`}
-                    aria-selected={tab === t}
-                    tabIndex={tab === t ? 0 : -1}
-                    onKeyDown={(ev) => {
-                      const tabs = ["shape", "labels", "shading"] as const;
-                      const index = tabs.indexOf(t);
-                      const next =
-                        ev.key === "ArrowRight"
-                          ? tabs[(index + 1) % 3]
-                          : ev.key === "ArrowLeft"
-                            ? tabs[(index + 2) % 3]
-                            : ev.key === "Home"
-                              ? tabs[0]
-                              : ev.key === "End"
-                                ? tabs[2]
-                                : null;
-                      if (next) {
-                        ev.preventDefault();
-                        setTab(next);
-                        document.getElementById(`cb-tab-${next}`)?.focus();
-                      }
-                    }}
-                    aria-controls={`cb-panel-${t}`}
-                    onClick={() => setTab(t)}
-                  >
-                    {t[0].toUpperCase() + t.slice(1)}
-                  </button>
-                ))}
-              </div>
-              <div
-                role="tabpanel"
-                id="cb-panel-shape"
-                aria-labelledby="cb-tab-shape"
-                hidden={tab !== "shape"}
-              >
-                <div className="cb-dimensions">
-                  {axes.map((axis) =>
-                    field(
-                      axis[0].toUpperCase() + axis.slice(1),
-                      s.dimensions[axis],
-                      (v) => changeShape((x) => setDimension(x, axis, v)),
-                    ),
-                  )}
-                </div>
-                <div className="cb-units-row">
+            {d.shapes.length > 1 && (
+              <section className="panel-card cb-settings" aria-label="Cuboids">
                   <label>
-                    Units{" "}
+                    Selected cuboid{" "}
                     <select
-                      aria-label="Units"
+                      aria-label="Selected cuboid"
                       disabled={blocked}
-                      value={s.unit}
-                      onChange={(ev) =>
-                        safe(() =>
-                          changeShape((x) =>
-                            setUnit(x, ev.target.value as Shape["unit"]),
-                          ),
-                        )
-                      }
+                      value={s.id}
+                      onChange={(ev) => selectShape(ev.target.value)}
                     >
-                      <option>cm</option>
-                      <option>mm</option>
-                      <option>m</option>
+                      {d.shapes.map((shape, i) => (
+                        <option key={shape.id} value={shape.id}>
+                          {shape.title || `Cuboid ${i + 1}`}
+                        </option>
+                      ))}
                     </select>
                   </label>
-                  {check("Cube (equal edges)", s.cube, (v) =>
-                    patch({
-                      cube: v,
-                      ...(v
-                        ? {
-                            dimensions: {
-                              width: s.dimensions.width,
-                              depth: s.dimensions.width,
-                              height: s.dimensions.width,
-                            },
-                          }
-                        : {}),
-                    }),
-                  )}
-                </div>
-                {
-                  <details>
-                    <summary>Cube size and counts</summary>
-                    {field("Cube side length", cubeSideInUnit(s), (v) =>
-                      changeShape((x) => setCubeSide(x, v)),
-                    )}
-                    <p className="cb-note">{cubes}</p>
-                    {check("Show cube counts", s.counts, (v) =>
-                      patch({ counts: v }),
-                    )}
-                    {s.view === "layers" &&
-                      check("Number the layers", s.layerNumbers, (v) =>
-                        patch({ layerNumbers: v }),
-                      )}
-                  </details>
-                }
-                <details>
-                  <summary>More shape options</summary>
-                  {field("Cuboid title", s.title, (v) => patch({ title: v }))}
-                  <label>
-                    Receding direction{" "}
-                    <select
-                      aria-label="Receding direction"
-                      disabled={blocked}
-                      value={s.direction}
-                      onChange={(ev) =>
-                        safe(() =>
-                          patch({
-                            direction: ev.target.value as Shape["direction"],
-                          }),
-                        )
-                      }
-                    >
-                      <option value="right">Right</option>
-                      <option value="left">Left</option>
-                    </select>
-                  </label>
-                  <label>
-                    Drawing depth{" "}
-                    <select
-                      aria-label="Drawing depth"
-                      disabled={blocked}
-                      value={s.projection}
-                      onChange={(ev) =>
-                        safe(() =>
-                          patch({
-                            projection: ev.target.value as Shape["projection"],
-                          }),
-                        )
-                      }
-                    >
-                      <option value="compact">Compact</option>
-                      <option value="standard">Standard</option>
-                      <option value="deep">Deep</option>
-                    </select>
-                  </label>
-                  {check(
-                    "Dashed hidden edges (exam view)",
-                    s.hiddenEdges,
-                    (v) => patch({ hiddenEdges: v }),
-                  )}
-                  {check("Dimension arrows (exam view)", s.arrows, (v) =>
-                    patch({ arrows: v }),
-                  )}
-                  {e.schemaVersion === 1 && (
-                    <>
-                      <p className="cb-note">
-                        Original saved layout is retained.
-                      </p>
-                      <button
-                        className="cb-action"
-                        disabled={blocked}
-                        onClick={() => safe(() => commit(upgrade(e)))}
-                      >
-                        Use current exam layout
-                      </button>
-                    </>
-                  )}
-                  {check(
-                    "Schematic proportions (exam view)",
-                    s.schematic,
-                    (v) => patch({ schematic: v }),
-                  )}
-                  {s.schematic &&
-                    axes.map((axis) =>
-                      field(`Drawing ${axis} ratio`, s.proportions[axis], (v) =>
-                        patch({
-                          proportions: {
-                            ...s.proportions,
-                            [axis]: dimension(v),
-                          },
-                        }),
-                      ),
-                    )}
-                </details>
-                {warnings(s).map((w) => (
-                  <p className="cb-note" key={w}>
-                    {w}
-                  </p>
-                ))}
-              </div>
-              <div
-                role="tabpanel"
-                id="cb-panel-labels"
-                aria-labelledby="cb-tab-labels"
-                hidden={tab !== "labels"}
-              >
-                <label>
-                  Edge or face{" "}
-                  <select
-                    aria-label="Edge or face"
-                    disabled={blocked}
-                    value={labelKey}
-                    onChange={(ev) => {
-                      setLabelKey(ev.target.value as LabelKey);
-                      setInline(null);
-                    }}
-                  >
-                    {keys.map((k) => (
-                      <option key={k} value={k}>
-                        {k[0].toUpperCase() + k.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Label appearance{" "}
-                  <select
-                    aria-label="Label appearance"
-                    disabled={blocked}
-                    value={l.mode}
-                    onChange={(ev) =>
-                      safe(() =>
-                        patchLabel({ mode: ev.target.value as Label["mode"] }),
-                      )
-                    }
-                  >
-                    <option value="hidden">Hidden</option>
-                    {axes.includes(labelKey as (typeof axes)[number]) ? (
-                      <option value="value">Dimension</option>
-                    ) : (
-                      <option value="area">Face area</option>
-                    )}
-                    <option value="blank">Answer line</option>
-                    <option value="text">Custom text</option>
-                  </select>
-                </label>
-                {l.mode === "text" &&
-                  field("Label text", l.text, (v) => patchLabel({ text: v }))}
-                <details>
-                  <summary>Position and advanced</summary>
-                  {s.view === "layers" && labelKey === "height" ? (
-                    <p className="cb-note">
-                      Full height is fixed below the complete layers.
-                    </p>
-                  ) : (
-                    <div className="cb-grid">
-                      {field("Label horizontal offset", l.x, (v) =>
-                        patchLabel({ x: Number(v) }),
-                      )}
-                      {field("Label vertical offset", l.y, (v) =>
-                        patchLabel({ y: Number(v) }),
+              </section>
+            )}
+            {/* U20: stacked cards, no tabs. Clicking a label or a face brings its card to the top. */}
+            {((cards: Record<SettingsCard, ReactNode>) =>
+              cardOrder(focus).map((key) => cards[key]))({
+                shape: (
+                  <section key="shape" className="panel-card cb-settings" aria-labelledby="cb-card-shape">
+                    <h2 id="cb-card-shape">{"Shape"}</h2>
+                    <div className="cb-dimensions">
+                      {axes.map((axis) =>
+                        field(
+                          axis[0].toUpperCase() + axis.slice(1),
+                          s.dimensions[axis],
+                          (v) => changeShape((x) => setDimension(x, axis, v)),
+                        ),
                       )}
                     </div>
-                  )}
-                  {check(
-                    "Show editing targets for hidden labels",
-                    showHidden,
-                    (v) => setShowHidden(v),
-                  )}
-                </details>
-                <details>
-                  <summary>Worked values and captions</summary>
-                  {check("Show worked volume", s.workedVolume, (v) =>
-                    patch({ workedVolume: v }),
-                  )}
-                  {check("Show worked surface area", s.workedArea, (v) =>
-                    patch({ workedArea: v }),
-                  )}
-                  {field("Caption", s.caption, (v) => patch({ caption: v }))}
-                  <p className="cb-note">
-                    Calculations use the actual dimensions. Pupil blanks and
-                    custom labels remain unchanged.
-                  </p>
-                </details>
-              </div>
-              <div
-                role="tabpanel"
-                id="cb-panel-shading"
-                aria-labelledby="cb-tab-shading"
-                hidden={tab !== "shading"}
-              >
-                <div className="cb-shade-options" aria-label="Shading style">
-                  {(
-                    [
-                      ["outline", "Outline"],
-                      ["faces", "Grey faces"],
-                      ["one", "One face"],
-                    ] as const
-                  ).map(([mode, name]) => (
-                    <button
-                      key={mode}
-                      className="cb-action"
-                      aria-pressed={a.mode === mode}
-                      disabled={blocked}
-                      onClick={() =>
-                        safe(() =>
-                          changeShape((x) => ({
-                            ...x,
-                            ...(mode === "one" && x.view === "layers"
-                              ? { view: "plain" as const }
-                              : {}),
-                            appearance: { ...appearance(x), mode },
-                          })),
-                        )
-                      }
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-                {a.mode !== "outline" && (
-                  <label>
-                    Print tones{" "}
-                    <select
-                      aria-label="Print tones"
-                      disabled={blocked}
-                      value={a.tone}
-                      onChange={(ev) =>
-                        safe(() =>
-                          paint({
-                            tone: ev.target.value as Appearance["tone"],
-                          }),
-                        )
-                      }
-                    >
-                      <option value="light">Light</option>
-                      <option value="strong">Strong</option>
-                    </select>
-                  </label>
-                )}
-                {a.mode === "faces" && (
-                  <p className="cb-note">
-                    Three neutral face tones, with black outlines and cube
-                    grids.
-                  </p>
-                )}
-                {a.mode === "one" && (
-                  <>
-                    <label>
-                      Shaded face{" "}
-                      <select
-                        aria-label="Shaded face"
-                        disabled={blocked}
-                        value={a.face}
-                        onChange={(ev) =>
-                          safe(() =>
-                            paint({
-                              face: ev.target.value as Appearance["face"],
-                            }),
-                          )
-                        }
-                      >
-                        {faceNames.map((face) => (
-                          <option key={face} value={face}>
-                            {face === "bottom"
-                              ? "Bottom (base)"
-                              : face[0].toUpperCase() + face.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <p className="cb-note">
-                      An existing face, shown through the unshaded outline. Use
-                      an assembled view; choose Outline or Grey faces to
-                      separate layers.
-                    </p>
-                    <label>
-                      Area label{" "}
-                      <select
-                        aria-label="Area label"
-                        disabled={blocked}
-                        value={a.area.mode}
-                        onChange={(ev) =>
-                          safe(() =>
-                            area({
-                              mode: ev.target
-                                .value as Appearance["area"]["mode"],
-                            }),
-                          )
-                        }
-                      >
-                        <option value="hidden">Hidden</option>
-                        <option value="blank">Answer line</option>
-                        <option value="value">Calculated value</option>
-                        <option value="text">Custom text</option>
-                      </select>
-                    </label>
-                    {a.area.mode !== "hidden" && (
+                    <div className="cb-units-row">
                       <label>
-                        Area heading{" "}
+                        Units{" "}
                         <select
-                          aria-label="Area heading"
+                          aria-label="Units"
                           disabled={blocked}
-                          value={a.area.heading}
+                          value={s.unit}
                           onChange={(ev) =>
                             safe(() =>
-                              area({
-                                heading: ev.target
-                                  .value as Appearance["area"]["heading"],
+                              changeShape((x) =>
+                                setUnit(x, ev.target.value as Shape["unit"]),
+                              ),
+                            )
+                          }
+                        >
+                          <option>cm</option>
+                          <option>mm</option>
+                          <option>m</option>
+                        </select>
+                      </label>
+                      {check("Cube (equal edges)", s.cube, (v) =>
+                        patch({
+                          cube: v,
+                          ...(v
+                            ? {
+                                dimensions: {
+                                  width: s.dimensions.width,
+                                  depth: s.dimensions.width,
+                                  height: s.dimensions.width,
+                                },
+                              }
+                            : {}),
+                        }),
+                      )}
+                    </div>
+                    <div className="cb-units-row">
+                      <label>
+                        View{" "}
+                        <select
+                          aria-label="View"
+                          value={s.view}
+                          disabled={blocked}
+                          onChange={(ev) => view(ev.target.value as Shape["view"])}
+                        >
+                          <option value="plain">Exam diagram</option>
+                          <option value="cubes">Show cubes</option>
+                          <option value="layers" disabled={a.mode === "one"}>
+                            Separate layers
+                          </option>
+                        </select>
+                      </label>
+                      <button
+                        className="cb-quick-cubes"
+                        disabled={blocked}
+                        onClick={() =>
+                          safe(() => patch({ view: "cubes", cubeSideCm: "1" }))
+                        }
+                      >
+                        Show 1 cm³ cubes
+                      </button>
+                    </div>
+                    {
+                      <details>
+                        <summary>Cube size and counts</summary>
+                        {field("Cube side length", cubeSideInUnit(s), (v) =>
+                          changeShape((x) => setCubeSide(x, v)),
+                        )}
+                        <p className="cb-note">{cubes}</p>
+                        {check("Show cube counts", s.counts, (v) =>
+                          patch({ counts: v }),
+                        )}
+                        {s.view === "layers" &&
+                          check("Number the layers", s.layerNumbers, (v) =>
+                            patch({ layerNumbers: v }),
+                          )}
+                      </details>
+                    }
+                    <details>
+                      <summary>More shape options</summary>
+                      {field("Cuboid title", s.title, (v) => patch({ title: v }))}
+                      <label>
+                        Receding direction{" "}
+                        <select
+                          aria-label="Receding direction"
+                          disabled={blocked}
+                          value={s.direction}
+                          onChange={(ev) =>
+                            safe(() =>
+                              patch({
+                                direction: ev.target.value as Shape["direction"],
                               }),
                             )
                           }
                         >
-                          {[
-                            "Base area",
-                            "Cross-sectional area",
-                            "Face area",
-                          ].map((h) => (
-                            <option key={h}>{h}</option>
-                          ))}
+                          <option value="right">Right</option>
+                          <option value="left">Left</option>
+                        </select>
+                      </label>
+                      <label>
+                        Drawing depth{" "}
+                        <select
+                          aria-label="Drawing depth"
+                          disabled={blocked}
+                          value={s.projection}
+                          onChange={(ev) =>
+                            safe(() =>
+                              patch({
+                                projection: ev.target.value as Shape["projection"],
+                              }),
+                            )
+                          }
+                        >
+                          <option value="compact">Compact</option>
+                          <option value="standard">Standard</option>
+                          <option value="deep">Deep</option>
+                        </select>
+                      </label>
+                      {check(
+                        "Dashed hidden edges (exam view)",
+                        s.hiddenEdges,
+                        (v) => patch({ hiddenEdges: v }),
+                      )}
+                      {check("Dimension arrows (exam view)", s.arrows, (v) =>
+                        patch({ arrows: v }),
+                      )}
+                      {check(
+                        "Schematic proportions (exam view)",
+                        s.schematic,
+                        (v) => patch({ schematic: v }),
+                      )}
+                      {s.schematic &&
+                        axes.map((axis) =>
+                          field(`Drawing ${axis} ratio`, s.proportions[axis], (v) =>
+                            patch({
+                              proportions: {
+                                ...s.proportions,
+                                [axis]: dimension(v),
+                              },
+                            }),
+                          ),
+                        )}
+                    </details>
+                    {warnings(s).map((w) => (
+                      <p className="cb-note" key={w}>
+                        {w}
+                      </p>
+                    ))}
+                  </section>
+                ),
+                labels: (
+                  <section key="labels" className="panel-card cb-settings" aria-labelledby="cb-card-labels">
+                    <h2 id="cb-card-labels">{focus === "labels" ? `Selected label: ${inline}` : "Labels"}</h2>
+                    <label>
+                      Edge or face{" "}
+                      <select
+                        aria-label="Edge or face"
+                        disabled={blocked}
+                        value={labelKey}
+                        onChange={(ev) => {
+                          setLabelKey(ev.target.value as LabelKey);
+                          setInline(null);
+                        }}
+                      >
+                        {keys.map((k) => (
+                          <option key={k} value={k}>
+                            {k[0].toUpperCase() + k.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Label appearance{" "}
+                      <select
+                        aria-label="Label appearance"
+                        disabled={blocked}
+                        value={l.mode}
+                        onChange={(ev) =>
+                          safe(() =>
+                            patchLabel({ mode: ev.target.value as Label["mode"] }),
+                          )
+                        }
+                      >
+                        <option value="hidden">Hidden</option>
+                        {axes.includes(labelKey as (typeof axes)[number]) ? (
+                          <option value="value">Dimension</option>
+                        ) : (
+                          <option value="area">Face area</option>
+                        )}
+                        <option value="blank">Answer line</option>
+                        <option value="text">Custom text</option>
+                      </select>
+                    </label>
+                    {l.mode === "text" &&
+                      field("Label text", l.text, (v) => patchLabel({ text: v }))}
+                    <details>
+                      <summary>Position and advanced</summary>
+                      {s.view === "layers" && labelKey === "height" ? (
+                        <p className="cb-note">
+                          Full height is fixed below the complete layers.
+                        </p>
+                      ) : (
+                        <div className="cb-grid">
+                          {field("Label horizontal offset", l.x, (v) =>
+                            patchLabel({ x: Number(v) }),
+                          )}
+                          {field("Label vertical offset", l.y, (v) =>
+                            patchLabel({ y: Number(v) }),
+                          )}
+                        </div>
+                      )}
+                      {check(
+                        "Show editing targets for hidden labels",
+                        showHidden,
+                        (v) => setShowHidden(v),
+                      )}
+                    </details>
+                    <details>
+                      <summary>Worked values and captions</summary>
+                      {check("Show worked volume", s.workedVolume, (v) =>
+                        patch({ workedVolume: v }),
+                      )}
+                      {check("Show worked surface area", s.workedArea, (v) =>
+                        patch({ workedArea: v }),
+                      )}
+                      {field("Caption", s.caption, (v) => patch({ caption: v }))}
+                      <p className="cb-note">
+                        Calculations use the actual dimensions. Pupil blanks and
+                        custom labels remain unchanged.
+                      </p>
+                    </details>
+                  </section>
+                ),
+                shading: (
+                  <section key="shading" className="panel-card cb-settings" aria-labelledby="cb-card-shading">
+                    <h2 id="cb-card-shading">{focus === "shading" ? "Selected: area label" : "Shading"}</h2>
+                    <div className="cb-shade-options" aria-label="Shading style">
+                      {(
+                        [
+                          ["outline", "Outline"],
+                          ["faces", "Grey faces"],
+                          ["one", "One face"],
+                        ] as const
+                      ).map(([mode, name]) => (
+                        <button
+                          key={mode}
+                          className="cb-action"
+                          aria-pressed={a.mode === mode}
+                          disabled={blocked}
+                          onClick={() =>
+                            safe(() =>
+                              changeShape((x) => ({
+                                ...x,
+                                ...(mode === "one" && x.view === "layers"
+                                  ? { view: "plain" as const }
+                                  : {}),
+                                appearance: { ...appearance(x), mode },
+                              })),
+                            )
+                          }
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                    {a.mode !== "outline" && (
+                      <label>
+                        Print tones{" "}
+                        <select
+                          aria-label="Print tones"
+                          disabled={blocked}
+                          value={a.tone}
+                          onChange={(ev) =>
+                            safe(() =>
+                              paint({
+                                tone: ev.target.value as Appearance["tone"],
+                              }),
+                            )
+                          }
+                        >
+                          <option value="light">Light</option>
+                          <option value="strong">Strong</option>
                         </select>
                       </label>
                     )}
-                    {a.area.mode === "text" &&
-                      field("Area text", a.area.text, (v) => area({ text: v }))}
-                    {a.area.mode === "value" &&
-                      check(
-                        "Show area multiplication",
-                        a.area.expression,
-                        (v) => area({ expression: v }),
-                      )}
-                  </>
-                )}
-              </div>
+                    {a.mode === "faces" && (
+                      <p className="cb-note">
+                        Three neutral face tones, with black outlines and cube
+                        grids.
+                      </p>
+                    )}
+                    {a.mode === "one" && (
+                      <>
+                        <label>
+                          Shaded face{" "}
+                          <select
+                            aria-label="Shaded face"
+                            disabled={blocked}
+                            value={a.face}
+                            onChange={(ev) =>
+                              safe(() =>
+                                paint({
+                                  face: ev.target.value as Appearance["face"],
+                                }),
+                              )
+                            }
+                          >
+                            {faceNames.map((face) => (
+                              <option key={face} value={face}>
+                                {face === "bottom"
+                                  ? "Bottom (base)"
+                                  : face[0].toUpperCase() + face.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <p className="cb-note">
+                          An existing face, shown through the unshaded outline. Use
+                          an assembled view; choose Outline or Grey faces to
+                          separate layers.
+                        </p>
+                        <label>
+                          Area label{" "}
+                          <select
+                            aria-label="Area label"
+                            disabled={blocked}
+                            value={a.area.mode}
+                            onChange={(ev) =>
+                              safe(() =>
+                                area({
+                                  mode: ev.target
+                                    .value as Appearance["area"]["mode"],
+                                }),
+                              )
+                            }
+                          >
+                            <option value="hidden">Hidden</option>
+                            <option value="blank">Answer line</option>
+                            <option value="value">Calculated value</option>
+                            <option value="text">Custom text</option>
+                          </select>
+                        </label>
+                        {a.area.mode !== "hidden" && (
+                          <label>
+                            Area heading{" "}
+                            <select
+                              aria-label="Area heading"
+                              disabled={blocked}
+                              value={a.area.heading}
+                              onChange={(ev) =>
+                                safe(() =>
+                                  area({
+                                    heading: ev.target
+                                      .value as Appearance["area"]["heading"],
+                                  }),
+                                )
+                              }
+                            >
+                              {[
+                                "Base area",
+                                "Cross-sectional area",
+                                "Face area",
+                              ].map((h) => (
+                                <option key={h}>{h}</option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
+                        {a.area.mode === "text" &&
+                          field("Area text", a.area.text, (v) => area({ text: v }))}
+                        {a.area.mode === "value" &&
+                          check(
+                            "Show area multiplication",
+                            a.area.expression,
+                            (v) => area({ expression: v }),
+                          )}
+                      </>
+                    )}
+                  </section>
+                ),
+            })}
+            <section className="panel-card cb-settings" aria-label="Print settings">
               <details className="cb-settings-footer">
                 <summary>Print settings</summary>
                 <p className="cb-note">
@@ -1201,6 +1166,24 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 {field("Print width (cm)", d.widthCm, (v) =>
                   commit({ ...e, document: { ...d, widthCm: Number(v) } }),
                 )}
+                <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    onChange={(ev) => {
+                      const next = { ...d };
+                      setLines(next, ev.target.value as LineWeight);
+                      commit({ ...e, document: next });
+                    }}
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <p className="cb-note">
                   Width before trimming. Images keep their scale and trim unused
                   outer space. Preview zoom does not change printing.
@@ -1248,7 +1231,7 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
           disabled={blocked}
           onCancel={() => setPending(null)}
           onConfirm={() => {
-            commit(pending.e);
+            commit(pending.e, stepName(pending.title));
             setSelected(pending.e.document.shapes[0].id);
             setInline(null);
             setPending(null);

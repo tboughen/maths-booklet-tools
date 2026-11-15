@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { copyMetrics } from "./worked-size";
 import type { IncomingMessage } from "node:http";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { resolve } from "node:path";
@@ -20,7 +21,6 @@ import {
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
   getExportMetrics,
-  renderDiagramSvg,
   graphPrintFacts,
 } from "../../packages/graph-core/src/svg";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
@@ -37,17 +37,18 @@ import type { DocumentStore } from "./document-store";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools, type NewSource } from "./resource-tools";
 import { diagramTools, type ResultBuilder } from "./diagram-tools";
-import type { DiagramKind } from "../../packages/diagram-core/src/registry";
+import { FAMILIES, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
 import { BundleDownloads } from "./bundle-downloads";
 import { diagramOutputTools } from "./diagram-output-tools";
 import { PRINT_INSTRUCTIONS } from "./placement";
 import { RatioError, RATIO_RENDERER_VERSION } from "../../packages/ratio-table-core/src/interchange";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** What every client reads first; family detail lives in diagram_capabilities. */
 export const SERVER_INSTRUCTIONS =
-  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees, frequency trees and triangles. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. For horizontal fractions and 12 mm above/3 mm below handwriting space, request bar-model spec.schemaVersion 3. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
+  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees, frequency trees, triangles, two-way tables and true-size constructions (loci, scale drawings, bearings) and plans and elevations of cube solids. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. Every bar model has horizontal working fractions and 12 mm above/3 mm below handwriting space. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
 export interface ServiceOptions {
   buildId?: string;
   publicUrl: string;
@@ -133,8 +134,8 @@ export function graphService(options: ServiceOptions) {
     view: "pupil" | "answer" = "pupil",
   ) => {
     const document = documentFromEnvelope(envelope),
-      metrics = getExportMetrics(document),
-      svg = renderDiagramSvg(document, view);
+      svg = FAMILIES.graph.svg(envelope, view),
+      metrics = copyMetrics(svg, getExportMetrics(document));
     if (format === "json")
       return {
         body: Buffer.from(JSON.stringify(envelope, null, 2)),
@@ -158,7 +159,7 @@ export function graphService(options: ServiceOptions) {
     return {
       body:
         format === "svg"
-          ? Buffer.from(rendered.svg!)
+          ? Buffer.from(tidySvgRoot(rendered.svg!))
           : Buffer.from(rendered.png!),
       type: format === "svg" ? "image/svg+xml" : "image/png",
     };
@@ -169,7 +170,7 @@ export function graphService(options: ServiceOptions) {
       case "graph": return artifacts(source.envelope, format, signal, source.outputView);
       case "ratio-table": return ratios.artifacts(source.envelope, format, signal, source.outputView);
       case "value-graph": return values.artifacts(source.envelope, format, signal);
-      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "frequency-tree": case "triangle": return resources.artifacts(source, format, signal);
+      case "cuboids": case "number-line": case "venn": case "algebra-grid": case "bar-model": case "charts": case "probability-tree": case "frequency-tree": case "two-way-table": case "triangle": case "construction": case "elevations": return resources.artifacts(source, format, signal);
     }
   });
   const resource: ResultBuilder = (s, signal) => resources.result(s as NewSource, signal);
@@ -178,7 +179,7 @@ export function graphService(options: ServiceOptions) {
     "ratio-table": (s, signal) => ratios.result(s.envelope as RatioEnvelope, signal, "outputView" in s ? s.outputView : undefined),
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
-    "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, triangle: resource,
+    "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, "two-way-table": resource, triangle: resource, construction: resource, elevations: resource,
   } satisfies Record<DiagramKind, ResultBuilder>);
   async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
@@ -190,7 +191,7 @@ export function graphService(options: ServiceOptions) {
         })
       : raw;
     const document = documentFromEnvelope(envelope),
-      metrics = getExportMetrics(document);
+      metrics = copyMetrics(FAMILIES.graph.svg(envelope, view), getExportMetrics(document));
     // Generate and independently verify the print artifact before advertising it.
     const printFile = await artifacts(envelope, "png", signal, view);
     const width = Math.min(
@@ -199,7 +200,7 @@ export function graphService(options: ServiceOptions) {
     );
     const height = Math.round((width * metrics.height) / metrics.width);
     const preview = await raster.render(
-      renderDiagramSvg(document, view),
+      FAMILIES.graph.svg(envelope, view),
       width,
       height,
       false,
@@ -330,15 +331,14 @@ export function graphService(options: ServiceOptions) {
           rendererVersion: RENDERER_VERSION,
           ratioRendererVersion: RATIO_RENDERER_VERSION,
           valueGraphRendererVersion: "value-graph-1",
-          cuboidRendererVersions: ["cuboids-1", "cuboids-2"],
+          cuboidRendererVersions: ["cuboids-2"],
           numberLineRendererVersion: "number-line-1",
-          vennRendererVersions: ["venn-1", "venn-2"],
-          barModelRendererVersion: "bar-model-1",
-          barModelRendererVersions: ["bar-model-1","bar-model-2","bar-model-3"],
-            algebraGridRendererVersion: "algebra-grid-1",
+          vennRendererVersions: ["venn-2"],
+          barModelRendererVersions: ["bar-model-3"],
+          algebraGridRendererVersion: "algebra-grid-1",
           chartRendererVersion: "charts-1",
           probabilityTreeRendererVersion: "probability-tree-1",
-          triangleRendererVersions: ["triangle-1", "triangle-2"],
+          triangleRendererVersions: ["triangle-2"],
           buildId: options.buildId ?? "development",
         });
         return;
@@ -346,7 +346,7 @@ export function graphService(options: ServiceOptions) {
       limits.request(clientAddress(req, options.trustForwardedFor ?? false));
       if (req.method === "GET" && url.pathname === "/resource/download") {
         const {source, format} = resourceDownloads.verify(url);
-        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "frequency-tree" && source.kind !== "triangle") throw new GraphError("invalid_download", "Use the original download route for this resource.");
+        if (source.kind !== "cuboids" && source.kind !== "number-line" && source.kind !== "venn" && source.kind !== "algebra-grid" && source.kind !== "bar-model" && source.kind !== "charts" && source.kind !== "probability-tree" && source.kind !== "frequency-tree" && source.kind !== "two-way-table" && source.kind !== "triangle" && source.kind !== "construction" && source.kind !== "elevations") throw new GraphError("invalid_download", "Use the original download route for this resource.");
         const abort = new AbortController();
         res.once("close", () => {if (!res.writableFinished) abort.abort();});
         const file = await resources.artifacts(source, format, abort.signal);

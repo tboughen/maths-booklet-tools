@@ -19,7 +19,7 @@ import {
 } from "./interchange";
 const scaffold = () =>
   createRatioTable({
-    schemaVersion: 1,
+    schemaVersion: 2,
     rows: [
       {
         id: "start",
@@ -44,7 +44,7 @@ describe("exact ratio-table documents and revisions", () => {
       { kind: "number", value: String(64 / 2**i) }, { kind: "number", value: String(128 / 2**i) },
     ] }));
     const transitions = Array.from({ length: 5 }, (_, i) => ({ from: `r${i}`, to: `r${i+1}`, operation: "divide", factor: "2" }));
-    const envelope = createRatioTable({ schemaVersion: 1, rows, transitions, mode: "annotated", size: "large" });
+    const envelope = createRatioTable({ rows, transitions, mode: "annotated", size: "large" });
     expect(ratioWarnings(envelope)).toEqual([]);
     const faded = applyRatioOperations(envelope, [{ op: "set_annotation_visibility", showOperations: false }]);
     expect(faded.document.transitions).toEqual(envelope.document.transitions);
@@ -114,7 +114,7 @@ describe("exact ratio-table documents and revisions", () => {
     expect(envelope).toEqual(scaffold());
     await expect(
       reviseRatioTable({ envelope, baseHash: "0".repeat(64), operations: [] }),
-    ).rejects.toMatchObject({ code: "stale_document" });
+    ).rejects.toMatchObject({ code: "stale_hash" });
     await expect(
       reviseRatioTable({
         envelope,
@@ -191,7 +191,7 @@ describe("exact ratio-table documents and revisions", () => {
   it("refuses malformed/oversized/foreign documents and visual overflow", () => {
     const envelope = scaffold();
     expect(() =>
-      validateRatioEnvelope({ ...envelope, rendererVersion: "ratio-2" }),
+      validateRatioEnvelope({ ...envelope, rendererVersion: "ratio-1" }),
     ).toThrow();
     expect(() =>
       validateRatioEnvelope({ ...envelope, kind: "coordinate-graph" }),

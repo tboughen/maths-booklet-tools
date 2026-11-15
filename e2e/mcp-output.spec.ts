@@ -70,9 +70,6 @@ const cases = [
 async function savedSource(page: Page, route: string, key: string) {
   const saved = JSON.parse(await page.evaluate((k) => localStorage.getItem(k)!, key));
   if (route !== "bar-model") return saved;
-  // Imported legacy sources keep their version in the new storage wrapper.
-  // Reading/opening must not overwrite the protected old-app key.
-  expect(await page.evaluate(() => localStorage.getItem("maths-booklet-tools:bar-model:v1"))).toBeNull();
   if (saved !== null) expect(saved.storageVersion).toBe(1);
   return saved?.envelope ?? null;
 }

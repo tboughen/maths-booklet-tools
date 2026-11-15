@@ -517,3 +517,35 @@ test("paired axis controls extend the grid without enlarging the exam numbers", 
     before.document.graph.bounds,
   );
 });
+
+test("bold lines are saved, printed and undoable; the grid keeps its weight (U111)", async ({ page }) => {
+  await open(page);
+  const art = page.locator("svg[aria-label='Table of values and coordinate graph']").first();
+  const axis = async () => Number((await art.innerHTML()).match(/data-layer="axes" stroke="black" stroke-width="([\d.]+)"/)![1]);
+  const grid = async () => (await art.innerHTML()).match(/<g data-layer="grid">[^]*?<\/g>/)?.[0];
+  const normal = await axis(),
+    gridMarkup = await grid();
+  await page.getByRole("button", { name: "Layout", exact: true }).click();
+  const lines = page.getByLabel("Lines", { exact: true });
+  await lines.selectOption("bold");
+  await expect.poll(async () => (await stored(page))?.document.print.lines).toBe("bold");
+  await expect.poll(axis).toBeCloseTo(normal * 1.5, 3);
+  expect(await grid()).toBe(gridMarkup);
+  await lines.selectOption("normal");
+  await expect.poll(async () => JSON.stringify(await stored(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await stored(page))?.document.print.lines).toBe("bold");
+});
+
+test("the selected editor is the first settings card and Close returns focus to its opener (U21)", async ({ page }) => {
+  await page.goto("/tools/value-table-graph");
+  const stack = page.locator(".inspector-stack").filter({ visible: true }).first();
+  const cards = stack.locator(":scope > .panel-card");
+  await expect(cards.first()).toHaveAccessibleName("Selected item");
+  const opener = page.getByRole("button", { name: "Table settings", exact: true });
+  await opener.click();
+  await expect(cards.first()).toHaveClass(/vg-inspector-editor/);
+  await cards.first().getByRole("button", { name: /^Close/ }).click();
+  await expect(cards.first()).toHaveAccessibleName("Selected item");
+  await expect(opener).toBeFocused();
+});

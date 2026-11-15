@@ -1,7 +1,9 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { MIN_TEXT_PT, LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
-import { renderSvg as renderLegacySvg } from "./legacy";
+import { withFields } from "../../envelope-core/src/errors";
 
 export const visibility = ["show", "hidden", "line"] as const;
 export const kinds = [
@@ -23,25 +25,6 @@ export const regionSchema = z
     shade: z.enum(["none", "grey", "hatch"]),
   })
   .strict();
-const legacySchema = z
-  .object({
-    tool: z.literal("venn"),
-    schemaVersion: z.literal(1),
-    rendererVersion: z.literal("venn-1"),
-    document: z
-      .object({
-        sets: z.union([z.literal(2), z.literal(3)]),
-        shape: z.enum(["circles", "ovals"]),
-        labels: z.array(labelSchema).length(4),
-        regions: z.array(regionSchema).length(8),
-        definitions: z.array(z.string().max(120)).length(4),
-        showDefinitions: z.boolean(),
-        widthCm: z.number().min(8).max(16),
-        fontPt: z.number().min(9).max(14),
-      })
-      .strict(),
-  })
-  .strict();
 export const arrangements = [
   "overlap",
   "separate",
@@ -49,21 +32,30 @@ export const arrangements = [
   "a-inside-b",
 ] as const;
 export type Arrangement = (typeof arrangements)[number];
-const extendedSchema = legacySchema.extend({
-  schemaVersion: z.literal(2),
-  rendererVersion: z.literal("venn-2"),
-  document: legacySchema.shape.document.extend({
-    sets: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-    arrangement: z.enum(arrangements),
-    caption: z.enum(["off", "relationship", "line"]),
-  }),
-});
-export const envelopeSchema = z.discriminatedUnion("schemaVersion", [
-  legacySchema,
-  extendedSchema,
-]);
+export const envelopeSchema = z
+  .object({
+    tool: z.literal("venn"),
+    schemaVersion: z.literal(2),
+    rendererVersion: z.literal("venn-2"),
+    document: z
+      .object({
+        sets: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+        shape: z.enum(["circles", "ovals"]),
+        labels: z.array(labelSchema).length(4),
+        regions: z.array(regionSchema).length(8),
+        definitions: z.array(z.string().max(120)).length(4),
+        showDefinitions: z.boolean(),
+        widthCm: z.number().min(8).max(16),
+        fontPt: z.number().min(MIN_TEXT_PT).max(14),
+        lines: z.enum(LINE_WEIGHTS).optional(),
+        arrangement: z.enum(arrangements),
+        caption: z.enum(["off", "relationship", "line"]),
+      })
+      .strict(),
+    ...aboutShape,
+  })
+  .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
-export type ExtendedEnvelope = z.infer<typeof extendedSchema>;
 export type Region = Envelope["document"]["regions"][number];
 export type Label = Envelope["document"]["labels"][number];
 export const emptyRegion = (): Region => ({
@@ -72,11 +64,11 @@ export const emptyRegion = (): Region => ({
   visibility: "show",
   shade: "none",
 });
-export function create(sets: 2 | 3 = 2): Envelope {
+export function create(sets: 1 | 2 | 3 = 2): Envelope {
   return {
     tool: "venn",
-    schemaVersion: 1,
-    rendererVersion: "venn-1",
+    schemaVersion: 2,
+    rendererVersion: "venn-2",
     document: {
       sets,
       shape: "circles",
@@ -89,29 +81,13 @@ export function create(sets: 2 | 3 = 2): Envelope {
       showDefinitions: false,
       widthCm: 12,
       fontPt: 11,
+      arrangement: "overlap",
+      caption: "off",
     },
   };
-}
-export function upgrade(e: Envelope): ExtendedEnvelope {
-  const n = structuredClone(e);
-  return {
-    ...n,
-    schemaVersion: 2,
-    rendererVersion: "venn-2",
-    document: {
-      ...n.document,
-      arrangement: arrangement(e),
-      caption: e.schemaVersion === 2 ? e.document.caption : "off",
-    },
-  };
-}
-export function createExtended(sets: 1 | 2 | 3 = 2): ExtendedEnvelope {
-  const e = upgrade(create(sets === 3 ? 3 : 2));
-  e.document.sets = sets;
-  return e;
 }
 export function arrangement(e: Envelope): Arrangement {
-  return e.schemaVersion === 2 ? e.document.arrangement : "overlap";
+  return e.document.arrangement;
 }
 export function activeMasks(e: Envelope): number[] {
   if (e.document.sets === 1) return [0, 1];
@@ -130,7 +106,7 @@ export function hasRegionData(r: Region) {
   );
 }
 export function changeArrangement(e: Envelope, value: Arrangement) {
-  const n = upgrade(e);
+  const n = structuredClone(e);
   n.document.arrangement = value;
   if (value === "overlap") n.document.caption = "off";
   const active = activeMasks(n);
@@ -187,22 +163,22 @@ export function validate(input: unknown): Envelope {
   if (!parsed.success) {
     const path = parsed.error.issues[0]?.path ?? [];
     if (path.includes("labels"))
-      throw Error(
+      throw withFields(Error(
         "Use set labels of at most 24 characters and a supported pupil display choice.",
-      );
+      ), parsed.error);
     if (path.includes("definitions"))
-      throw Error("Use definition lines of at most 120 characters.");
+      throw withFields(Error("Use definition lines of at most 120 characters."), parsed.error);
     if (path.includes("widthCm"))
-      throw Error("Choose a print width from 8 to 16 cm.");
+      throw withFields(Error("Choose a print width from 8 to 16 cm."), parsed.error);
     if (path.includes("fontPt"))
-      throw Error("Choose a text size from 9 to 14 pt.");
+      throw withFields(Error("Choose a text size from 10 to 14 pt."), parsed.error);
     if (path.includes("regions"))
-      throw Error(
+      throw withFields(Error(
         "A region has unsupported content or display settings. Keep member lists within 660 characters.",
-      );
-    throw Error(
+      ), parsed.error);
+    throw withFields(Error(
       "This is not a supported Venn diagram file (versions 1 and 2 are supported).",
-    );
+    ), parsed.error);
   }
   const e = parsed.data;
   for (const value of [
@@ -248,7 +224,7 @@ export function validate(input: unknown): Envelope {
   if (count > 40) throw Error("Use at most 40 members across the diagram.");
   if (e.document.sets === 2 && e.document.regions.slice(4).some(hasRegionData))
     throw Error("A two-set document cannot contain third-set region data.");
-  if (e.schemaVersion === 2) {
+  {
     if (e.document.sets !== 2 && e.document.arrangement !== "overlap")
       throw Error("Choose an arrangement only for two sets.");
     if (
@@ -278,7 +254,7 @@ export function regionName(mask: number, e: Envelope) {
     : `${inside.join(" and ")}${outside.length ? `, outside ${outside.join(" and ")}` : ""}`;
 }
 export function changeSets(e: Envelope, sets: 1 | 2 | 3) {
-  const n = upgrade(e);
+  const n = structuredClone(e);
   n.document.sets = sets;
   n.document.arrangement = "overlap";
   n.document.caption = "off";
@@ -402,7 +378,7 @@ export function geometry(e: Envelope) {
     : [];
   const font = (d.fontPt * 25.4) / 72;
   const head = definitions.length ? definitions.length * (font + 2) + 4 : 0;
-  const caption = e.schemaVersion === 2 ? e.document.caption : "off";
+  const caption = e.document.caption;
   const footer = caption === "off" ? 0 : 12;
   const height = (d.sets === 3 ? 105 : 85) * scale + head + footer;
   const points =
@@ -505,22 +481,19 @@ export function geometry(e: Envelope) {
     anchors,
     labelPoints,
     definitions,
-    labelBoxes:
-      e.schemaVersion === 1
-        ? []
-        : labelPoints.flatMap((p, i) => {
-            const l = d.labels[i];
-            if (
-              l.visibility === "hidden" ||
-              (!l.text && l.visibility !== "line")
-            )
-              return [];
-            const f = font * 1.1,
-              w = l.visibility === "line" ? 9 : textWidth(l.text, f) + 2;
-            return [
-              { x: p.x - w / 2, y: p.y - f * 0.7, width: w, height: f * 1.3 },
-            ];
-          }),
+    labelBoxes: labelPoints.flatMap((p, i) => {
+      const l = d.labels[i];
+      if (
+        l.visibility === "hidden" ||
+        (!l.text && l.visibility !== "line")
+      )
+        return [];
+      const f = font * 1.1,
+        w = l.visibility === "line" ? 9 : textWidth(l.text, f) + 2;
+      return [
+        { x: p.x - w / 2, y: p.y - f * 0.7, width: w, height: f * 1.3 },
+      ];
+    }),
     footer,
     caption,
     box: {
@@ -717,7 +690,6 @@ export function layout(e: Envelope) {
         `Set label ${i === 0 ? "universe" : "ABC"[i - 1]} is too long for this layout. Shorten it or increase print width.`,
       );
     if (
-      e.schemaVersion === 2 &&
       e.document.sets === 2 &&
       arrangement(e).includes("inside")
     ) {
@@ -760,7 +732,9 @@ export function exportIssue(e: Envelope) {
   return layout(e).issues.join(" ");
 }
 export function renderSvg(e: Envelope) {
-  if (e.schemaVersion === 1) return renderLegacySvg(e);
+  return boldLines(renderDocument(e), e.document.lines);
+}
+function renderDocument(e: Envelope) {
   const d = e.document,
     g = layout(e),
     b = g.box;

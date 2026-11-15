@@ -105,9 +105,13 @@ async function edit(page: Page, ref: string, text: string, state?: string) {
 async function section(page: Page, title: string) {
   if (["Calculate a value", "Construct from measurements"].includes(title))
     await section(page, "More tools");
+  // U20: common settings are open cards with a heading; rarer ones stay folded.
+  const card = page.locator(`section.tr-card:has(> h2:text-is("${title}"))`);
   const item = page.locator(
     `details.tr-section:has(> summary:text-is("${title}"))`,
   );
+  await card.or(item).first().waitFor();
+  if (await card.count()) return card;
   if ((await item.getAttribute("open")) === null)
     await item.locator("summary").first().click();
   return item;
@@ -273,7 +277,8 @@ test("a disabled Use worked version says why", async ({
   const blank = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(blank).toBeDisabled();
   await expect(blank).toHaveAccessibleDescription(hint);
-  await expect(blank).toHaveAttribute("title", hint);
+  // U1: the reason is printed beside the button in the settings, not hidden in a tooltip.
+  await expect(blank.locator("xpath=ancestor::section[1]").getByText(hint, { exact: true })).toBeVisible();
 });
 
 test("an enabled Use worked version carries no disabled reason", async ({
@@ -284,7 +289,7 @@ test("an enabled Use worked version carries no disabled reason", async ({
   const ready = page.getByRole("button", { name: "Use worked version", exact: true }).first();
   await expect(ready).toBeEnabled();
   await expect(ready).toHaveAccessibleDescription("");
-  await expect(ready).not.toHaveAttribute("title", hint);
+  await expect(page.getByText(hint, { exact: true })).toHaveCount(0);
 });
 
 test("worked version replaces immediately and Undo restores the complete pupil scaffold", async ({
@@ -756,11 +761,15 @@ test("contextual inspector, keyboard selection and local attachment preserve the
   await expect(
     page.getByRole("group", { name: "Triangle editing mode", exact: true }),
   ).toHaveCount(0);
+  // U20: Start a new triangle is an open card; rarer tools stay folded.
   await expect(
-    page.locator('details:has(> summary:text-is("Start a new triangle"))'),
-  ).not.toHaveAttribute("open");
+    page.getByRole("heading", { name: "Start a new triangle", exact: true }),
+  ).toBeVisible();
   await expect(
     page.locator('details:has(> summary:text-is("More tools"))'),
+  ).not.toHaveAttribute("open");
+  await expect(
+    page.locator('details:has(> summary:text-is("Editing help"))'),
   ).not.toHaveAttribute("open");
   const chooser = page.getByRole("combobox", {
     name: "Selected object",
@@ -890,10 +899,6 @@ test("precise position and new-diagram replacement preserve pending edits and Un
     .getByRole("button", { name: "Cancel position", exact: true })
     .click();
   expect(canonical(await saved(page))).toBe(original);
-  await page
-    .locator("summary")
-    .getByText("Start a new triangle", { exact: true })
-    .click();
   await page.getByRole("button", { name: "Equilateral", exact: true }).click();
   await page
     .getByRole("dialog")
@@ -1928,7 +1933,7 @@ test("centre area entry cancels cleanly then applies as one undoable edit with r
   await page
     .getByRole("button", { name: "Remove area label", exact: true })
     .click();
-  expect((await saved(page)).schemaVersion).toBe(1);
+  expect((await saved(page)).schemaVersion).toBe(2);
   await expect(page.locator(".tr-art")).not.toContainText("24 cm²");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.locator(".tr-art")).toContainText("24 cm²");
@@ -2091,4 +2096,20 @@ test("wedge hover reveals only its own angle and leaves no selected shading behi
   ).toBeVisible();
   await page.keyboard.press("Escape");
   expect(canonical(await saved(page))).toBe(canonical(e));
+});
+test("text size and bold lines are saved, printed and undoable; normal lines are not saved (U111)", async ({
+  page,
+}) => {
+  await boot(page);
+  const panel = await section(page, "Print size");
+  await panel.getByLabel("Text size").selectOption("13");
+  await panel.getByLabel("Lines").selectOption("bold");
+  await expect.poll(async () => (await saved(page)).document.lines).toBe("bold");
+  expect((await saved(page)).document.fontPt).toBe(13);
+  const svg = (await download(page, "Download SVG")).toString();
+  expect(svg).toContain('stroke-width="0.45"');
+  await panel.getByLabel("Lines").selectOption("normal");
+  await expect.poll(async () => JSON.stringify(await saved(page))).not.toContain('"lines"');
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await saved(page)).document.lines).toBe("bold");
 });

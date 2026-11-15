@@ -1,3 +1,4 @@
+import { LINE_WEIGHTS } from "../../packages/envelope-core/src/house-style";
 import { GraphDraftField } from "./GraphDraftField";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { AXIS_LIMITS, getBounds, isUnitsPerSquare } from "../domain/diagram";
@@ -212,6 +213,30 @@ export function AxisSettings({
                   }}
                 >
                   {label === "O" ? <em>O</em> : "0"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="exam-axes-row">
+          <span>Lines</span>
+          <div className="segmented" role="group" aria-label="Lines">
+            {LINE_WEIGHTS.map((weight) => {
+              const active = (document.lines ?? "normal") === weight;
+              return (
+                <button
+                  key={weight}
+                  disabled={disabled || drafts.pending}
+                  className={active ? "active" : ""}
+                  aria-pressed={active}
+                  onClick={() => {
+                    const next = { ...document };
+                    if (weight === "bold") next.lines = "bold";
+                    else delete next.lines;
+                    onDocument(next);
+                  }}
+                >
+                  {weight === "bold" ? "Bold" : "Normal"}
                 </button>
               );
             })}

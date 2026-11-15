@@ -27,8 +27,10 @@ import {
 } from "../../packages/resource-core/src/index";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import type { RasterQueue } from "./raster";
+import { renderedProblems } from "./page-check";
 import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
+import { toolFailure } from "./tool-error";
 
 /** Worksheets and booklets: print-ready PDF, Word file (same layout) or the editable source. */
 export type WorksheetFormat = "pdf" | "docx" | "json";
@@ -270,7 +272,7 @@ const LAYOUT = [
   "Text never shrinks to fit. Overflow is returned as issues naming side, column and the millimetres needed; fix by moving a card, trimming wording or reducing working space, then create again.",
   "Spare column height goes to working and drawing spaces. Set document.spareSpace 'share' on every new worksheet: a column with none then shares it as working room at the foot of every card. Without spareSpace (older saved sheets, kept as they are) the last card takes it all.",
   "A column more than a third blank is returned as a note (not an issue): the sheet is still print-ready, but offer the teacher another question for that column.",
-  "Fractions always print stacked: set document.notation 'maths' on every new worksheet and write each fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2 or ½. With notation 'maths' answer lines (prefix, suffix, saved answer), table cells and table headings, and circle-one options stack too: 1/3, 2 1/2 and 2½ there print stacked (a mixed number as the whole number beside a stacked fraction), and the row is a little taller. Only card titles and column headings cannot stack; keep fractions out of them. An exact fractional value is never a decimal. A fraction typed inline is returned as a note naming the question.",
+  "Fractions always print stacked: set document.notation 'maths' on every new worksheet and write each fraction as {3/4} (a mixed number as 2{1/2}, algebra as {x/2}) in question text, options, steps, bullets, claims and parts; never 1/2 or ½. With notation 'maths' answer lines (prefix, suffix, saved answer), table cells and table headings, and circle-one options stack too: 1/3, 2 1/2 and 2½ there print stacked (a mixed number as the whole number beside a stacked fraction), and the row is a little taller. Only card titles and column headings cannot stack; keep fractions out of them. An exact fractional value is never a decimal. A fraction typed inline is returned as a note naming the question. Maths notation also prints x^2 as x², -3 and x - 2 with a true minus, <= >= as ≤ ≥, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4 and maths letters in italic; type them plainly.",
   "side.score n prints 'Score ____ / n' in the header (one mark per answer). card.working and part.working store a hidden worked solution that is never printed.",
 ];
 
@@ -335,6 +337,15 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const pupil = renderBooklet(booklet, { view: "pupil" });
     const hash = worksheetHash(booklet);
     const doc = booklet.document;
+    // W31: a booklet that fits is written and read back; text near the edge or crossing a card or
+    // diagram is an issue like any other, named by lesson and page.
+    if (!pupil.issues.length) {
+      const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderBooklet(booklet, { view: "answers" }).pages }];
+      for (const p of await renderedProblems(raster, copies, doc.title, signal)) {
+        const lesson = pupil.lessonPages.reduce((found, first, i) => (first <= p.page + 1 ? i + 1 : found), 0);
+        pupil.issues.push({ lesson, page: p.page + 1, message: p.message });
+      }
+    }
     const printReady = pupil.issues.length === 0;
     const content: ContentBlock[] = [
       {
@@ -482,6 +493,17 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
     const hash = worksheetHash(resource);
     const height = Math.round((PREVIEW_WIDTH * SIZE.page.height) / SIZE.page.width);
     const content: ContentBlock[] = [];
+    // W31: a sheet that fits is written and read back; text near the edge or crossing a card or
+    // diagram is an issue like any other, named by side and column.
+    if (!pupil.issues.length) {
+      const copies = [{ view: "pupil" as const, pages: pupil.pages }, { view: "answers" as const, pages: renderResource(resource, { view: "answers" }).pages }];
+      for (const p of await renderedProblems(raster, copies, resource.document.title, signal)) {
+        const boxes = columnBoxes(resource.document.sides[p.page]);
+        // Column 0 is the header, as in the renderer's own issues.
+        const column = p.y < SIZE.margin + SIZE.headerHeight ? 0 : boxes.reduce((found, box, i) => (box.x <= p.x + 0.5 ? i + 1 : found), 1);
+        pupil.issues.push({ side: p.page + 1, column, message: p.message });
+      }
+    }
     const printReady = pupil.issues.length === 0;
     const notes = printReady ? pupil.notes : [];
     const space = notes.filter((i) => i.question === undefined);
@@ -564,40 +586,40 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       {
         description: "Read the A3 worksheet and A4 booklet layouts, item types and limits before PRODUCE. Use with create_worksheet or create_booklet.",
         inputSchema: z.object({}).strict(),
+        // M13: the reply is also structuredContent; the named fields are the ones a client relies on.
+        outputSchema: z
+          .object({ rendererVersion: z.literal("worksheet-a3-1"), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal("booklet-a4-1") }).passthrough() })
+          .passthrough(),
         annotations,
       },
-      async () => ({
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              rendererVersion: "worksheet-a3-1",
-              kinds: ["worksheet-a3", "booklet-a4"],
-              layout: LAYOUT,
-              columnWidthsMm: Object.fromEntries(
-                (Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]).map((layout) => [layout, columnBoxes({ layout }).map((b) => Math.round(b.w * 10) / 10)]),
-              ),
-              limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
-              items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
-              diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
-              cellStates: ["supplied", "blank", "hidden"],
-              markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
-              outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
-              fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
-              booklet: {
-                tool: "create_booklet",
-                rendererVersion: "booklet-a4-1",
-                layout: BOOKLET_LAYOUT,
-                limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
-                sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
-                cardWidthsMm: { full: 186, half: 90.5 },
-                outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "a pupil and answers PDF and Word file per lesson", "page previews"],
-                fileNames: "[code]_[title]_Booklet_A4.pdf, [code]_[title]_Booklet_Answers_A4.pdf and [code]_[title]_Lesson N_A4.pdf, with the same names ending .docx for Word",
-              },
-            }),
+      async () => {
+        const value = {
+          rendererVersion: "worksheet-a3-1",
+          kinds: ["worksheet-a3", "booklet-a4"],
+          layout: LAYOUT,
+          columnWidthsMm: Object.fromEntries(
+            (Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]).map((layout) => [layout, columnBoxes({ layout }).map((b) => Math.round(b.w * 10) / 10)]),
+          ),
+          limits: { sides: 2, columnsPerSide: 3, cardsPerColumn: 6, itemsPerCard: 16, itemsPerPart: 8, cardTitleChars: 60, headingChars: 40 },
+          items: ["text", "info", "claim", "bullets", "table", "choice", "answerLine", "space", "diagram", "paper", "steps", "checklist", "part"],
+          diagrams: { kinds: DIAGRAM_KINDS, source: "envelope returned by create_diagram, or spec as diagram_capabilities describes; diagrams print at their own size and are never shrunk" },
+          cellStates: ["supplied", "blank", "hidden"],
+          markup: "**bold** and *italic* only; no HTML. With document.notation 'maths', {3/4} prints as a stacked fraction (native equation in Word): write every fraction this way",
+          outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "side previews"],
+          fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
+          booklet: {
+            tool: "create_booklet",
+            rendererVersion: "booklet-a4-1",
+            layout: BOOKLET_LAYOUT,
+            limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
+            sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],
+            cardWidthsMm: { full: 186, half: 90.5 },
+            outputs: ["pupil PDF", "answers PDF", "pupil Word file (.docx)", "answers Word file (.docx)", "editable JSON", "a pupil and answers PDF and Word file per lesson", "page previews"],
+            fileNames: "[code]_[title]_Booklet_A4.pdf, [code]_[title]_Booklet_Answers_A4.pdf and [code]_[title]_Lesson N_A4.pdf, with the same names ending .docx for Word",
           },
-        ],
-      }),
+        };
+        return { structuredContent: value, content: [{ type: "text" as const, text: JSON.stringify(value) }] };
+      },
     );
     server.registerTool(
       "create_worksheet",
@@ -612,18 +634,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           // spareSpace is never filled in here: a saved sheet sent back keeps its own layout.
           return await result(validate(args.resource), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_worksheet",
-                  message: e instanceof Error ? e.message : "The worksheet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_worksheet", message: "The worksheet could not be made.", pathPrefix: ["resource"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );
@@ -639,18 +650,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         try {
           return await bookletResult(validateBooklet(args.booklet), AbortSignal.any([connection, extra.signal]));
         } catch (e) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  code: e instanceof GraphError ? e.code : "invalid_booklet",
-                  message: e instanceof Error ? e.message : "The booklet could not be made.",
-                }),
-              },
-            ],
-          };
+          return toolFailure(e, { code: "invalid_booklet", message: "The booklet could not be made.", pathPrefix: ["booklet"], fieldHint: "Check worksheet_capabilities for the layouts, item types and limits." });
         }
       },
     );

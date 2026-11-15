@@ -1,3 +1,4 @@
+import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
@@ -297,7 +298,7 @@ export function picture(d: Diagram, w: number, indent: number, ctx: WordCtx): st
     return gap(END_MM, indent);
   }
   const room = w + 2 * (S.cardPad - 0.6);
-  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: tooWideMessage(d.tool, drawn.widthMm, room) });
+  if (drawn.widthMm > room + 0.01) ctx.issues.push({ ...ctx.where, message: tooWideMessage(d.tool, drawn.widthMm, room, drawn.artworkWidthMm <= room + 0.01) });
   return drawing(drawn, w, indent, ctx);
 }
 /** Grid paper: the same SVG as the page, as a picture at its printed size. */
@@ -847,7 +848,8 @@ function stylesXml(st: HouseStyle): string {
 }
 
 /** The Word file for one view of a worksheet. */
-export async function writeWorksheetDocx(resource: Resource, options: DocxOptions): Promise<RenderedDocx> {
+export async function writeWorksheetDocx(saved: Resource, options: DocxOptions): Promise<RenderedDocx> {
+  const resource = typesetForPrint(saved);
   const view = options.view ?? "pupil";
   const st = styles.mathsdock;
   // The SVG layout's own checks come first: Word output never hides a problem the pages have.

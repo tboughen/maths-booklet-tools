@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { FAMILIES, describeIssues, diagramKindSchema, type DiagramKind } from "../../diagram-core/src/registry";
+import { withFields } from "../../envelope-core/src/errors";
+
+/** The longest saved answer on an answer line (R27, Tim 14 Nov 2026). */
+export const ANSWER_MAX = 160;
 
 /**
  * A two-sided A3 worksheet, as Tim's finalised question sets describe it: each side has three
@@ -64,7 +68,7 @@ const answerLine = z
     /** Printed after the line, e.g. "cm". */
     suffix: text(20).default(""),
     /** Saved answer: printed only in the answers view. */
-    answer: text(60).default(""),
+    answer: text(ANSWER_MAX).default(""),
     /** Several short lines side by side on one row (e.g. three totals). */
     inline: z.boolean().default(false),
   })
@@ -231,12 +235,13 @@ export const resourceSchema = z
         nameLine: z.boolean().default(true),
         /**
          * plain (saved files from before, and the default): text prints as typed. maths: {3/4} in
-         * question text prints as a stacked fraction, and as a native equation in Word.
+         * question text prints as a stacked fraction, and as a native equation in Word, and typed
+         * maths prints as a paper prints it (typeset.ts).
          */
         notation: z
           .enum(["plain", "maths"])
           .default("plain")
-          .describe("maths (every new worksheet): {3/4} in question text, options, steps, bullets and parts prints as a stacked fraction. plain (older saved sheets): text prints as typed."),
+          .describe("maths (every new worksheet): {3/4} prints as a stacked fraction, and typed maths prints as on a paper: x^2 as x², -3 and x - 2 with a true minus, <= >= != as ≤ ≥ ≠, sqrt 16 as √16, pi as π, 3 x 4 as 3 × 4, and letters used as maths (x, 2n + 1) in italic. plain: text prints as typed."),
         /**
          * How a column without working spaces uses its spare height. share: every card gets an
          * equal share at its foot as working room. Left out (saved files from before): the last
@@ -263,7 +268,7 @@ export function validate(input: unknown): Resource {
   const r = resourceSchema.safeParse(input);
   if (!r.success) {
     const issue = r.error.issues[0];
-    throw Error(`${issue.path.join(".") || "document"}: ${issue.message}`);
+    throw withFields(Error(`${issue.path.join(".") || "document"}: ${issue.message}`), r.error);
   }
   return resolveDiagrams(r.data);
 }

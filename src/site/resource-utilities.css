@@ -268,3 +268,99 @@
     gap: 8px;
   }
 }
+
+/* U6: one structure-control style in every editor. */
+.structure-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.structure-stepper--vertical {
+  flex-direction: column;
+}
+.structure-stepper-caption {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove) {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--blue-dark);
+  box-shadow: 0 2px 4px #15335125;
+  cursor: pointer;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):hover:not(:disabled) {
+  background: var(--blue-soft);
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.structure-stepper > :is(.structure-stepper-add, .structure-stepper-remove):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* U22: one hint line, directly under every editor's preview bar. Theme tokens, so it follows dark mode. */
+.editor-hint-live {
+  margin: 0;
+}
+.editor-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 4px 0 12px;
+  min-height: 44px;
+  background: var(--blue-soft);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.editor-hint > svg {
+  flex: none;
+  color: var(--blue);
+}
+.editor-hint p {
+  flex: 1;
+  margin: 0;
+  padding: 6px 0;
+}
+.editor-hint--prompt {
+  padding: 6px 12px;
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+.editor-hint-dismiss {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.editor-hint-dismiss:hover {
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+}
+.editor-hint-dismiss:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}

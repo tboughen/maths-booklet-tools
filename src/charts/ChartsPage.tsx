@@ -1,19 +1,31 @@
+import { housePreference, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { useTitleNote } from "../site/TitleNote";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { downloadName } from "../export/filenames";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { chartGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { StructureStepper } from "../site/StructureStepper";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
@@ -49,13 +61,19 @@ import {
   type Fill,
 } from "../../packages/chart-core/src";
 import { chartEditorLink, parseChartLink } from "./links";
-import { copyWord, downloadEditable, downloadImage, printPng } from "./export";
+import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
 
+/** A new chart starts from the house style's lines (U111). */
+function fresh() {
+  const e = create();
+  if (housePreference().lines === "bold") e.document.lines = "bold";
+  return e;
+}
 function initial() {
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -64,7 +82,7 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: fresh(),
           recovery: raw,
           message:
             "Saved chart data needs recovery. Download the original before starting afresh.",
@@ -73,13 +91,13 @@ function initial() {
     }
   } catch {
     return {
-      e: create(),
+      e: fresh(),
       recovery: null,
       message:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: fresh(), recovery: null, message: "" };
 }
 
 /** Text field that keeps its draft while typing and commits on Enter or leaving
@@ -177,14 +195,15 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     zoom,
     (w) => (w < 500 ? 72 : 120),
   );
-  const issue = g.issues.join(" ");
+  const answerSvg = renderSvg(forView(e, "answer"));
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
   const line = d.kind === "vline";
 
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
   function patch(update: (n: Doc) => void) {
@@ -330,6 +349,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor ch-editor">
       <main
@@ -347,75 +368,82 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset the chart?")}
+              onReset={() => replacement(fresh(), "Reset the chart?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
               busy={busy}
               onCopy={() =>
                 void run(
-                  () => copyWord(displayed),
+                  () => copyWord(displayed, view === "answer"),
                   "Copied for Word at " +
                     formatResourceSize(g.width / 10, g.height / 10) +
                     ". Paste with Ctrl+V.",
                 )
               }
               onCopyClipboard={() =>
-                void run(() => copyPngToClipboard(() => printPng(displayed)))
+                void run(() => copyPngToClipboard(() => printPng(displayed, view === "answer")))
               }
               menuId="chart-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="chart-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
-                  action: () => downloadImage(displayed, "svg"),
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                worked: worked.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
+                svg: {
+                  action: () => downloadImage(displayed, "svg", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
-                  action: () => downloadImage(displayed, "png"),
+                png: {
+                  action: () => downloadImage(displayed, "png", view === "answer"),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(displayed, "pdf", view === "answer"),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       chartEditorLink(e, location.href),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -436,6 +464,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint tool="charts">
+              Click a bar, line or category label to edit its value. Enter
+              applies; Escape restores.
+            </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
               <div className="ch-stage">
                 <div
@@ -448,7 +480,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 >
                   <div
                     className="ch-art"
-                    dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }}
+                    dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }}
                   />
                   {g.targets.map((t) => {
                     const cell = d.series[t.series].values[t.category];
@@ -496,35 +528,28 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
-                <div
-                  className="ch-structure"
-                  role="group"
-                  aria-label="Categories"
-                >
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length >= MAX_CATEGORIES}
-                    aria-label="Add a category at the end"
-                    title="Add category"
-                    onClick={() => {
+                <StructureStepper
+                                    vertical
+                  name="Categories"
+                  caption=""
+                  add={{
+                    label: "Add a category at the end",
+                    title: "Add category",
+                    disabled: blocked || d.categories.length >= MAX_CATEGORIES,
+                    onClick: () => {
                       commit(addCategory(e));
                       requestAnimationFrame(() =>
                         focusField(`ch-cat-${d.categories.length}`),
                       );
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    disabled={blocked || d.categories.length <= 1}
-                    aria-label={`Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`}
-                    title="Remove last category"
-                    onClick={() => commit(removeCategory(e))}
-                  >
-                    −
-                  </button>
-                </div>
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last category (${d.categories[d.categories.length - 1] || "unnamed"})`,
+                    title: "Remove last category",
+                    disabled: blocked || d.categories.length <= 1,
+                    onClick: () => commit(removeCategory(e)),
+                  }}
+                />
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (
@@ -553,7 +578,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card ch-panel">
               <h2>Chart type</h2>
@@ -836,6 +861,21 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   />
                 </label>
                 <label>
+                  Lines
+                  <select
+                    aria-label="Lines"
+                    value={d.lines ?? "normal"}
+                    disabled={blocked}
+                    onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
+                  >
+                    {LINE_WEIGHTS.map((v) => (
+                      <option key={v} value={v}>
+                        {LINE_WEIGHT_NAMES[v]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   Chart height (mm)
                   <select
                     aria-label="Chart height"
@@ -941,7 +981,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "chart-recovery.json",
+                  downloadName("charts", "json", { recovery: true }),
                 );
                 setProtectedCopy(true);
               }}
@@ -989,7 +1029,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
             onConfirm={() => {
               if (busy || recovery !== null) return;
               consumeLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

@@ -7,6 +7,7 @@ import { drawDiagram, FAMILIES } from "./registry";
 import * as line from "../../number-line-core/src/index";
 import { create as createBar } from "../../bar-model-core/src/versioned-interchange";
 import * as bar from "../../bar-model-core/src/versioned";
+import { tidySvgRoot } from "../../envelope-core/src/svg-root";
 
 const ANSWER = "#b0125b";
 
@@ -18,7 +19,7 @@ describe("number line answers copy", () => {
   });
   it("is listed as an answer-view family", () => expect(FAMILIES["number-line"].answerView).toBe(true));
   it("leaves the pupil copy unchanged", () => {
-    expect(drawDiagram("number-line", e, "pupil").svg).toBe(line.renderSvg(e));
+    expect(drawDiagram("number-line", e, "pupil").svg).toBe(tidySvgRoot(line.renderSvg(e)));
     expect(line.renderSvg(e)).not.toContain(ANSWER);
   });
   it("prints the hidden solution, answer-line ticks and saved answer in pink; hidden ticks stay hidden", () => {
@@ -46,24 +47,18 @@ describe("bar model answers copy", () => {
     const e = createBar({ spec: { example } });
     const pupil = drawDiagram("bar-model", e, "pupil").svg;
     const answer = drawDiagram("bar-model", e, "answer").svg;
-    expect(pupil).toBe(bar.renderSvg(e));
+    expect(pupil).toBe(tidySvgRoot(bar.renderSvg(e)));
     expect(pupil).not.toContain(ANSWER);
     if (bar.hasHiddenAnswers(e)) expect(answer).toContain(ANSWER);
     else expect(answer).toBe(pupil);
   });
-  it("v1, v2 and v3 files all colour a saved hidden part label", () => {
-    for (const schemaVersion of [1, 2, 3]) {
-      const base = (schemaVersion === 1 ? createBar({ spec: { example: "BM08" } }) : createBar({ spec: { schemaVersion } })) as {
-        schemaVersion: number;
-        document: { bars: { parts: { labels?: { inside: unknown } }[] }[] };
-      };
-      if (schemaVersion > 1) base.document.bars[0].parts[0].labels!.inside = { text: "18", state: "hidden" };
-      expect(base.schemaVersion).toBe(schemaVersion);
-      const answer = drawDiagram("bar-model", base, "answer").svg;
-      expect(answer).toContain(ANSWER);
-      expect(answer).toMatch(/>18</);
-      expect(drawDiagram("bar-model", base, "pupil").svg).not.toMatch(/>18</);
-    }
+  it("a fresh model colours a saved hidden part label", () => {
+    const base = createBar({}) as { document: { bars: { parts: { labels: { inside: unknown } }[] }[] } };
+    base.document.bars[0].parts[0].labels.inside = { text: "18", state: "hidden" };
+    const answer = drawDiagram("bar-model", base, "answer").svg;
+    expect(answer).toContain(ANSWER);
+    expect(answer).toMatch(/>18</);
+    expect(drawDiagram("bar-model", base, "pupil").svg).not.toMatch(/>18</);
   });
   it("never edits the saved document", () => {
     const e = createBar({ spec: { example: "BM08" } });

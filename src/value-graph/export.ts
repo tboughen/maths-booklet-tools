@@ -15,7 +15,10 @@ import {
   downloadBlob,
   blobToDataUrl,
   copyWordSizedHtml,
+  svgAlt,
 } from "../export/clipboard";
+import { downloadName } from "../export/filenames";
+import { svgPdf } from "../export/diagram-pdf";
 export async function printPng(e: ValueEnvelope) {
   const valid = validate(e),
     m = metrics(valid),
@@ -31,18 +34,20 @@ export async function printPng(e: ValueEnvelope) {
 }
 export async function download(
   e: ValueEnvelope,
-  format: "svg" | "png" | "json",
+  format: "svg" | "png" | "pdf" | "json",
 ) {
   const valid = validate(e);
   const blob =
-    format === "png"
+    format === "pdf"
+      ? await svgPdf(renderSvg(valid))
+      : format === "png"
       ? await printPng(valid)
       : format === "svg"
         ? new Blob([await embedPortableFonts(renderSvg(valid))], {
             type: "image/svg+xml",
           })
         : new Blob([canonical(valid)], { type: "application/json" });
-  downloadBlob(blob, `mathsdock-values-and-graph.${format}`);
+  downloadBlob(blob, downloadName("value-table-graph", format, { resource: valid }));
 }
 export async function copyForWord(e: ValueEnvelope) {
   const m = metrics(e),
@@ -50,7 +55,7 @@ export async function copyForWord(e: ValueEnvelope) {
     url = await blobToDataUrl(png);
   if (
     !copyWordSizedHtml(
-      `<img src="${url}" width="${m.widthCm}cm" height="${m.heightCm}cm" style="width:${m.widthCm}cm;height:${m.heightCm}cm" alt="Table of values and graph">`,
+      `<img src="${url}" width="${m.widthCm}cm" height="${m.heightCm}cm" style="width:${m.widthCm}cm;height:${m.heightCm}cm" alt="${svgAlt(renderSvg(validate(e)), "Table of values and graph")}">`,
     )
   )
     throw Error(

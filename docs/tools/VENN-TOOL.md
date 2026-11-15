@@ -22,11 +22,12 @@ runtime dependencies or newly published question-bank assets.
   and preserves pupil visibility in autosave/editable files. It is disabled
   during pending edits/replacements/recovery/export like the previous control.
 - One Edit/Shade switch above the diagram is the only mode control. Edit shows
-  Diagram/Contents tabs; Shade shows shading controls instead. Direct region
+  the Diagram and Region contents cards, stacked; Shade shows the Region
+  shading card instead (U20: no settings tabs). Direct region
   clicks follow the chosen mode, whose active state is explicit. Labels can
   still be edited directly. Drafts block conflicting mode changes; navigation
-  preserves mode, view and unfinished editing. The old Shading tab and three
-  separate mode actions are removed. Two Edit tabs retain arrow/Home/End keys.
+  preserves mode, view and unfinished editing. The old tabs and three separate
+  mode actions are removed.
 - Labels and definitions are together in one collapsed section; direct label
   and printed-definition editing stays available. Print size has its own
   collapsed section. Essential keyboard alternatives remain labelled.
@@ -47,9 +48,9 @@ runtime dependencies or newly published question-bank assets.
 - Version 2 / venn-2 adds sets=1, arrangement (overlap|separate|b-inside-a|
   a-inside-b) and caption (off|relationship|line). Caption requires separate or
   nested two-set geometry; other counts use arrangement=overlap. Version 1
-  documents retain their format and exact legacy renderer in legacy.ts. New
-  structure/caption operations explicitly upgrade to version 2; ordinary edits
-  to version 1 keep version 1. Existing fixtures and card artwork are retained.
+  and its legacy renderer were removed on 14 November 2026 (no backwards
+  compatibility); its two- and three-set overlap artwork was byte-identical to
+  version 2's, so every example and fixture moved to version 2 unchanged.
 - Realizable masks: single 0,1; separate 0,1,2; B inside A 0,1,3;
   A inside B 0,2,3; overlap unchanged. Incompatible region data is rejected.
   activeMasks drives all editing, content, shading and expression choices.
@@ -101,8 +102,8 @@ runtime dependencies or newly published question-bank assets.
 
 ## Representation
 
-Envelope: tool=venn, schemaVersion=1, rendererVersion=venn-1.
-document has sets (2|3), shape, four labels (universe,A,B,C), eight regions,
+Envelope: tool=venn, schemaVersion=2, rendererVersion=venn-2.
+document has sets (1|2|3), arrangement, caption, shape, four labels (universe,A,B,C), eight regions,
 four definitions, showDefinitions, widthCm and fontPt. Every label has text
 and visibility (show|hidden|line). Every region has kind (empty|members|
 frequency|number|algebra|text), text, visibility and shade (none|grey|hatch).
@@ -115,7 +116,7 @@ Neither operation merges values or silently calculates frequencies.
 
 ## Bounds and errors
 
-Print width 8..16 cm; text size 9..14 pt. UI offers integer widths/sizes.
+Print width 8..16 cm; text size 10..14 pt (house minimum 10 pt). UI offers integer widths/sizes. `lines: "normal" | "bold"` (optional, absent = normal) prints every stroke 1.5 times as thick; `set_print` and the create spec accept it. New diagrams start from the house style chosen on the booklet tools page.
 40 members total, 20 per region, 32 characters per member/ordinary region
 label, 24 per set label, 120 per definition line. Editable files <=40k characters.
 Numbers use the existing bounded exact rational parser. Frequency disagreements
@@ -134,7 +135,7 @@ newline. One draft can be open at a time; a pending draft blocks other edits
 and exports. It stays present through scrolling, resizing and tool navigation;
 inactive overlays are hidden/inert. Floating editors are portal children of
 document.body, clamped to the visual viewport, with their own scroll overflow.
-Diagram/Contents/Shading tabs support arrows, Home and End. All essential
+All essential
 actions have keyboard alternatives. A separate shading mode distinguishes
 editing from painting. The white artwork contains only transparent edit hits;
 buttons and utilities are in the surrounding workspace or inspector.

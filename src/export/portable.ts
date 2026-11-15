@@ -4,6 +4,7 @@ import mathUrl from "../../assets/graph-fonts/STIXTwoMath-Regular.otf?url";
 import subsetterUrl from "harfbuzzjs/dist/harfbuzz-subset.wasm?url";
 import fontLicense from "../../assets/graph-fonts/OFL.txt?raw";
 import { loadSubsetter, subsetFont, svgCodepoints } from "./font-subset";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 type Subsetter = Awaited<ReturnType<typeof loadSubsetter>>;
 let fonts: Promise<Uint8Array[]> | undefined;
@@ -39,6 +40,17 @@ function loadFontSubsetter(): Promise<Subsetter | null> {
   return subsetter;
 }
 
+/**
+ * Starts fetching the print fonts and the subsetter as soon as a teacher shows an intent to export
+ * (pointer over, or focus on, Copy image, Copy for Word or File), so the first copy does not wait
+ * for about 1.5 MB of fonts (improvement item U57). Both stay cached for the page's lifetime; a
+ * failed preload is forgotten and the export itself reports any error.
+ */
+export function preloadPortableFonts(): void {
+  void loadFonts().catch(() => undefined);
+  void loadFontSubsetter();
+}
+
 function base64(bytes: Uint8Array): string {
   let binary = "";
   for (let offset = 0; offset < bytes.length; offset += 8192)
@@ -65,5 +77,5 @@ export async function embedPortableFonts(svg: string): Promise<string> {
     "<!-- Bundled STIX fonts, subset to the characters in this file: " +
     fontLicense.replaceAll("--", "—") +
     " -->";
-  return svg.replace(/(<svg\b[^>]*>)/, `$1${notice}${style}`);
+  return tidySvgRoot(svg).replace(/(<svg\b[^>]*>)/, `$1${notice}${style}`);
 }

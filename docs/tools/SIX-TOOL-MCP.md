@@ -96,9 +96,7 @@ Operations and complete payload fields:
 | set_appearance | id, appearance:{mode,tone,face,area:{mode,heading,text,expression}} |
 | set_presentation | id, settings:{title?,hiddenEdges?,arrows?,workedVolume?,workedArea?,counts?,layerNumbers?,caption?} |
 | set_print | widthCm:number |
-| upgrade_document | no additional fields |
 
-Use explicit `upgrade_document` before version-2 appearance in a version-1 file.
 Limits: 1–3 shapes, layout width 4–18 cm; cube view up to 40 cubes per edge and
 10,000 per shape; at most 20 separate layers; minimum 2 mm printed cube cells.
 The service also has a 32-million-pixel print bound, smaller than the browser's
@@ -130,7 +128,8 @@ Revise using the returned envelope/hash and:
 Other operations: `set_axis {axis}`; `set_solution {solution}`;
 `add_point {point:{id,value,included?}}`; `set_point {id,value?,included?}`;
 `connect_points {interval:{id,from,to}}`; `remove_interval {id}`;
-`remove_point {id}`; `set_tick_label {value,state}`;
+`remove_point {id}` (also removes its joins and ray);
+`add_point_ray {ray:{id,from,direction}}`; `remove_point_ray {id}`; `set_tick_label {value,state}`;
 `set_presentation {teaching}`; `set_print {widthCm}`. `set_endpoint` also accepts
 `included` and endpoint lower/value as appropriate. Presentation teaching fields
 are solutionVisible, labels, prompt, answer, answerVisible and responseLines.
@@ -175,7 +174,7 @@ Operations: `set_region {mask,region:{kind?,text?,visibility?,shade?}}`;
 `set_definitions_visible {visible}`; `set_layout
 {sets?,shape?,arrangement?,caption?,discardIncompatible?}`;
 `shade_regions {masks,style,mode}`; `shade_expression {expression,style,mode}`;
-`clear_shading {}`; `set_print {widthCm?,fontPt?}`; `upgrade_document {}`.
+`clear_shading {}`; `set_print {widthCm?,fontPt?,lines?}`.
 
 Kinds: empty/members/frequency/number/algebra/text. Visibility: show/hidden/line.
 Shade: none/grey/hatch. Replace clears current active-region shading first; add

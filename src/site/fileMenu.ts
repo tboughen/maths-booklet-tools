@@ -1,0 +1,45 @@
+import { LINK_DESCRIPTION, SAVE_DESCRIPTION, SAVE_EDITABLE_LABEL, type DownloadAction } from "./EditorDownloadMenu";
+
+export type FileMenuItem = Omit<DownloadAction, "label" | "separator" | "description">;
+/**
+ * The one File menu for diagram editors (improvement item U4): the same items, order, notes and separators in
+ * every tool. Pages give only what each item does; the labels and hidden-answer notes are defined here.
+ */
+export function diagramFileMenu(items: {
+  svg: FileMenuItem;
+  png: FileMenuItem;
+  /** The diagram on an A4 or A3 PDF page at actual size (U32). */
+  pdf?: FileMenuItem;
+  /** Teacher copies with hidden answers printed, for tools that offer them. */
+  answers?: { svg: FileMenuItem; png: FileMenuItem };
+  /** Pupil and answers SVG and PNG in one ZIP (U28), whatever the editor is showing. */
+  both?: FileMenuItem;
+  /** "Title and note…" (U34): from `useTitleNote`. */
+  about: FileMenuItem;
+  /** "Worked notes…" (U116): from `useWorkedNotes`, for tools with an answers copy. */
+  worked?: FileMenuItem;
+  save: FileMenuItem;
+  open: FileMenuItem;
+  link: FileMenuItem;
+}): DownloadAction[] {
+  return [
+    { ...items.svg, label: "Download SVG" },
+    { ...items.png, label: "Download PNG (600 ppi)" },
+    ...(items.pdf ? [{ ...items.pdf, label: "Download PDF (actual size)" }] : []),
+    ...(items.answers
+      ? [
+          { ...items.answers.svg, label: "Download answers SVG", description: "Hidden answers printed in the answer colour." },
+          { ...items.answers.png, label: "Download answers PNG (600 ppi)" },
+        ]
+      : []),
+    ...(items.both
+      ? [{ ...items.both, label: "Download pupil and answers (ZIP)", description: "SVG and PNG of both copies. The view on screen does not change." }]
+      : []),
+    { ...items.about, label: "Title and note…", description: "Saved in the file, never printed.", separator: true },
+    ...(items.worked ? [{ ...items.worked, label: "Worked notes…", description: "Dark-pink guidance on the answers copy only." }] : []),
+    { ...items.save, label: SAVE_EDITABLE_LABEL, description: SAVE_DESCRIPTION },
+    { picker: true, ...items.open, label: "Open editable file" },
+    { ...items.link, label: "Copy editable link", description: LINK_DESCRIPTION },
+  ];
+}
+

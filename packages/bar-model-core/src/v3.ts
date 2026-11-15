@@ -1,8 +1,9 @@
+import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { LINE_WEIGHTS, boldLines } from "../../envelope-core/src/house-style";
 import * as legacy from "./index";
-import fontMetrics from "./v2-font-metrics.json" with { type: "json" };
+import fontMetrics from "./font-metrics.json" with { type: "json" };
 import { mathematicalLine, WRITING } from "./math-text";
-import * as v2 from "./v2";
 import { guidance } from "../../graph-core/src/print-guidance";
 
 // Frozen v1/v2 renderers remain separate; this profile reserves actual handwriting space.
@@ -63,6 +64,8 @@ export const presentationSchema = z
     unitMm: z.number().min(4).max(16),
     barHeightMm: z.number().min(8).max(24),
     fontPt: z.number().min(10).max(14),
+    // Normal is the default and is never kept, so one picture has one saved form.
+    lines: z.enum(LINE_WEIGHTS).transform((v) => (v === "bold" ? v : undefined)).optional(),
     titlePt: z.number().min(12).max(18),
     nameWidthMm: z.number().min(8).max(60).optional(),
     output: z.enum(["grey", "colour"]),
@@ -84,6 +87,7 @@ export const schema = z
         sourceId: z.string().max(100).optional(),
       })
       .strict(),
+    ...aboutShape,
   })
   .strict();
 export type Envelope = z.infer<typeof schema>;
@@ -220,20 +224,6 @@ export function validate(raw: unknown): Envelope {
   return e;
 }
 export const canonical = (e: Envelope) => JSON.stringify(validate(e));
-export function upgrade(source: legacy.Envelope | v2.Envelope): Envelope {
-  const e =
-    source.schemaVersion === 1 ? v2.upgrade(source) : v2.validate(source);
-  return validate({
-    ...e,
-    schemaVersion: 3,
-    rendererVersion: "bar-model-3",
-    styleProfile: "lesson-v3",
-    document: {
-      ...e.document,
-      captions: e.document.captions.map((c) => ({ ...c, format: "maths" })),
-    },
-  });
-}
 export const starters = [
   "part-whole",
   "comparison",
@@ -1024,6 +1014,9 @@ function alignedX(
   return alignment === "left" ? 4.2 : width - 4.2;
 }
 export function renderSvg(e: Envelope) {
+  return boldLines(drawSvg(e), e.document.presentation.lines);
+}
+function drawSvg(e: Envelope) {
   validate(e);
   const g = layout(e),
     p = e.document.presentation;

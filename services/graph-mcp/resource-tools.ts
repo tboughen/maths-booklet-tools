@@ -1,3 +1,4 @@
+import { withWorked, workedOf } from "../../packages/envelope-core/src/worked";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import * as cuboid from "../../packages/cuboid-core/src/index";
 import * as line from "../../packages/number-line-core/src/index";
@@ -11,6 +12,9 @@ import * as chart from "../../packages/chart-core/src/index";
 import * as chi from "../../packages/chart-core/src/interchange";
 import * as tree from "../../packages/probability-tree-core/src/index";
 import * as ftree from "../../packages/frequency-tree-core/src/index";
+import * as construction from "../../packages/construction-core/src/index";
+import * as elevations from "../../packages/elevation-core/src/index";
+import * as twt from "../../packages/two-way-table-core/src/index";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as tri from "../../packages/triangle-core/src/interchange";
 import { renderPortableSvg } from "../../packages/venn-core/src/portable";
@@ -23,9 +27,10 @@ import type { TrafficLimits } from "./limits";
 import type { ResourceDownloads } from "./resource-downloads";
 import type { DownloadFormat } from "./downloads";
 import { PRINT_INSTRUCTIONS } from "./placement";
+import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** Families served by the shared /resource/download route and this result builder. */
-export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "triangle"] as const;
+export const RESOURCE_KINDS = ["cuboids", "number-line", "venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "triangle", "construction", "elevations"] as const;
 export type ResourceKind = (typeof RESOURCE_KINDS)[number];
 export type NewSource = Extract<DiagramSource, { kind: ResourceKind }>;
 export const isResourceSource = (source: DiagramSource): source is NewSource =>
@@ -38,6 +43,9 @@ function warningsOf(source: NewSource): string[] {
     case "triangle": return triangle.warnings(source.envelope);
     case "probability-tree": return tree.warnings(source.envelope);
     case "frequency-tree": return ftree.warnings(source.envelope);
+    case "construction": return construction.warnings(source.envelope);
+    case "elevations": return elevations.warnings(source.envelope);
+    case "two-way-table": return twt.warnings(source.envelope);
     case "charts": return [...chart.layout(source.envelope).notes];
     case "bar-model": return bar.warnings(source.envelope);
     case "algebra-grid": return algebra.warnings(source.envelope);
@@ -51,6 +59,9 @@ function editorLinkOf(source: NewSource, base: string): string | null {
     case "triangle": return tri.editorLink(source.envelope, base);
     case "probability-tree": return tree.editorLink(source.envelope, base);
     case "frequency-tree": return ftree.editorLink(source.envelope, base);
+    case "construction": return construction.editorLink(source.envelope, base);
+    case "elevations": return elevations.editorLink(source.envelope, base);
+    case "two-way-table": return twt.editorLink(source.envelope, base);
     case "charts": return chi.editorLink(source.envelope, base);
     case "bar-model": try { return bi.editorLink(source.envelope, base); } catch { return null; }
     case "algebra-grid": return ai.editorLink(source.envelope, base);
@@ -61,9 +72,9 @@ function editorLinkOf(source: NewSource, base: string): string | null {
 }
 /** Longest editor link a chat client handles reliably for each family's link format. */
 const editorLimit = (source: NewSource) =>
-  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || (source.kind === "bar-model" && source.envelope.schemaVersion === 2) ? 16_000 : 7500;
+  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" ? 16_000 : 7500;
 /** Families whose editable files can hold answers hidden from the pupil artwork. */
-const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "triangle"];
+const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "triangle", "construction", "elevations"];
 
 export function resourceTools(
   raster: RasterQueue,
@@ -74,7 +85,10 @@ export function resourceTools(
   /** The artwork for the requested view; cuboids use the measured crop, Venn SVG files outline text. */
   function artwork(source: NewSource, info: Awaited<ReturnType<typeof prepareDiagram>>, format: DownloadFormat | "preview") {
     if (source.kind === "cuboids") return info.crop!.svg;
-    if (source.kind === "venn" && format === "svg") return renderPortableSvg(venn.forView(source.envelope, viewOf(source), true));
+    if (source.kind === "venn" && format === "svg") {
+      const svg = renderPortableSvg(venn.forView(source.envelope, viewOf(source), true));
+      return viewOf(source) === "answer" ? withWorked(svg, workedOf(source.envelope)) : svg;
+    }
     return FAMILIES[source.kind].svg(source.envelope, viewOf(source));
   }
   async function artifacts(source: NewSource, format: DownloadFormat, signal?: AbortSignal) {
@@ -84,7 +98,7 @@ export function resourceTools(
     const { width: w, height: h } = info.physicalSizeCm;
     const size = format === "png" ? printRasterSize(w, h) : { width: 1200, height: Math.max(1, Math.round((1200 * h) / w)) };
     const r = await raster.render(artwork(source, info, format), size.width, size.height, format === "png", format === "svg", signal, source.kind);
-    return { body: Buffer.from(format === "svg" ? r.svg! : r.png!), type: format === "svg" ? "image/svg+xml" : "image/png" };
+    return { body: Buffer.from(format === "svg" ? tidySvgRoot(r.svg!) : r.png!), type: format === "svg" ? "image/svg+xml" : "image/png" };
   }
   async function result(source: NewSource, signal: AbortSignal) {
     const info = await prepareDiagram(source, raster, signal);

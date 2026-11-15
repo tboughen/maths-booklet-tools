@@ -1,4 +1,5 @@
 import { showExamples, closeExamples } from "./example-gallery";
+import { toolIds } from "../src/site/routes";
 import { test, expect, editorBase, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { cloneDefaultDocument } from "../packages/graph-core/src/diagram";
@@ -106,6 +107,8 @@ const tools = [
   "number-line",
   "venn",
 ];
+// Tools without an answers copy have no "Worked notes…" item (U116).
+const noAnswersCopy = new Set(["value-table-graph", "cuboids"]);
 async function openMenu(page: Page) {
   const trigger = page.getByRole("button", {
     name: "File",
@@ -181,12 +184,15 @@ for (const tool of tools) {
         .evaluateAll((items) =>
           items.map((i) => i.querySelector("strong")!.textContent),
         );
-      expect(labels.slice(0, 5)).toEqual([
+      // Optional answers-copy downloads (U28) sit among the images; the shared order is the rest.
+      expect(labels.filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? "")).slice(0, noAnswersCopy.has(tool) ? 6 : 7)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
+        "Download PDF (actual size)",
+        "Title and note…",
+        ...(noAnswersCopy.has(tool) ? [] : ["Worked notes…"]),
         "Save editable file",
         "Open editable file",
-        "Copy editable link",
       ]);
       await expect(menu.getByRole("menuitem").first()).toBeFocused();
       await page.keyboard.press("End");
@@ -681,7 +687,7 @@ test("quadratic source cards keep scaffolds and intentional errors, and worked v
     await expect(card.getByRole("link")).toHaveAttribute("target", "_blank");
     await card
       .getByRole("button", {
-        name: "Open scaffold",
+        name: "Use this example",
         exact: true,
       })
       .click();
@@ -997,3 +1003,36 @@ test("Graph point, segment endpoints and equation labels still drag accurately a
   expect(saved.objects[1].equationLabelPosition.x).toBeCloseTo(0, 1);
   expect(saved.objects[1].equationLabelPosition.y).toBeCloseTo(2, 1);
 });
+
+// U4: one File menu, defined once, with the same items, notes and order in every tool.
+for (const tool of toolIds) {
+  test(`${tool}: the File menu matches every other tool`, async ({ page }) => {
+    await page.goto(`/tools/${tool}`);
+    await page.getByRole("button", { name: "File", exact: true }).click();
+    const menu = page.getByRole("menu");
+    const items = await menu.getByRole("menuitem").evaluateAll((nodes) =>
+      nodes.map((n) => [n.getAttribute("aria-label"), n.querySelector("small")?.textContent ?? ""]),
+    );
+    const common = items.filter(([label]) => !/^Download (answers |pupil and answers)/.test(label ?? ""));
+    expect(common).toEqual([
+      ["Download SVG", ""],
+      ["Download PNG (600 ppi)", ""],
+      ["Download PDF (actual size)", ""],
+      ["Title and note…", "Saved in the file, never printed."],
+      ...(noAnswersCopy.has(tool) ? [] : [["Worked notes…", "Dark-pink guidance on the answers copy only."]]),
+      ["Save editable file", "Includes hidden answers."],
+      ["Open editable file", ""],
+      ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],
+      ["First-time Word setup", ""],
+    ]);
+    // Optional teacher copies sit straight after the pupil images.
+    const answers = items.findIndex(([label]) => /^Download answers /.test(label ?? ""));
+    if (answers >= 0) expect(answers).toBe(3);
+    await expect(menu.getByRole("separator")).toHaveCount(2);
+    await menu.getByRole("menuitem", { name: "First-time Word setup", exact: true }).click();
+    const help = page.getByRole("dialog", { name: "Keep full image quality in Word" });
+    await expect(help).toBeVisible();
+    await help.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(help).toHaveCount(0);
+  });
+}

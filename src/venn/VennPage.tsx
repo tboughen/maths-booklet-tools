@@ -1,14 +1,22 @@
+import { useTitleNote } from "../site/TitleNote";
+import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
+import { useWorkedNotes } from "../site/WorkedNotes";
+import { WORKED_STEP, withWorkedNotes } from "../site/workedNotesData";
+import { answerSize, previewArt, workedIssue } from "../export/worked";
+import { workedOf } from "../../packages/envelope-core/src/worked";
+import { aboutOf } from "../../packages/envelope-core/src/about";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { vennGallery } from "../examples/galleryCatalogue";
 import { copyStorageKey } from "../site/copyDocument";
 import { PreviewControls } from "../site/PreviewControls";
+import { EditorHint } from "../site/EditorHint";
 import { ResourceSaveStatus } from "../site/ResourceSaveStatus";
 import { vennEditorLink, parseVennLink } from "./links";
 import {
   EditorDownloadMenu,
-  LINK_DESCRIPTION,
 } from "../site/EditorDownloadMenu";
+import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { AnswerCopyToggle } from "../site/AnswerPreviewToggle";
 import { formatResourceSize } from "../site/resourceSizeFormat";
@@ -25,7 +33,6 @@ import {
   arrangement,
   changeArrangement,
   hasRegionData,
-  upgrade,
   forView,
   relationship,
   type Arrangement,
@@ -40,13 +47,24 @@ import {
   type Region,
 } from "../../packages/venn-core/src";
 import { EditorToolbar } from "../site/EditorToolbar";
-import { handleUndoKeys, useDocumentHistory } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
-import { printPng, downloadImage, copyWord, downloadEditable } from "./export";
+import { houseStyled, setLines } from "../site/houseStyle";
+import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, type LineWeight } from "../../packages/envelope-core/src/house-style";
+import { printPng, downloadImage, copyWord, downloadEditable, downloadBoth } from "./export";
 import { VennFloatingEditor } from "./VennFloatingEditor";
 import "./venn.css";
+import { downloadName } from "../export/filenames";
+
+
+/** A new Venn diagram at the teacher's house style text size (U111); its own setting overrides it. */
+function freshVenn() {
+  const e = create();
+  houseStyled(e.document, { max: 14 });
+  return e;
+}
 
 const STORAGE = copyStorageKey("maths-booklet-tools:venn:v1");
 const arrangementNames: Record<Arrangement, string> = {
@@ -96,7 +114,7 @@ function initial() {
         return { e: parseFile(raw), recovery: null, message: "" };
       } catch {
         return {
-          e: create(),
+          e: freshVenn(),
           recovery: raw,
           message:
             "Saved Venn data needs recovery. Download the original before starting afresh.",
@@ -105,13 +123,13 @@ function initial() {
     }
   } catch {
     return {
-      e: create(),
+      e: freshVenn(),
       recovery: null,
       message:
         "Device storage is unavailable. Save an editable file to keep your work.",
     };
   }
-  return { e: create(), recovery: null, message: "" };
+  return { e: freshVenn(), recovery: null, message: "" };
 }
 type Draft = {
   type: "region" | "label" | "definition" | "expression";
@@ -133,7 +151,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [selected, setSelected] = useState<number | null>(null),
-    [tab, setTab] = useState("Diagram"),
     [mode, setMode] = useState("edit"),
     [shade, setShade] = useState<Region["shade"]>("grey"),
     [zoom, setZoom] = useState(0),
@@ -150,6 +167,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
+    answers = view === "answer",
+    answerSvg = renderSvg(forView(e, "answer")),
     g = layout(displayed),
     blocked = busy || recovery !== null || draft !== null || pending !== null;
   const fitted = useResourceFit(
@@ -157,7 +176,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     (g.height * 96) / 25.4,
     zoom,
   );
-  const issue = g.issues.join(" "),
+  const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" "),
     note = warnings(e);
   const nested = d.sets === 2 && arrangement(e).includes("inside");
   function labelName(index: number) {
@@ -172,17 +191,17 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     const name = labelName(index);
     return name[0].toUpperCase() + name.slice(1);
   };
-  function commit(next: Envelope) {
+  function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
     const valid = validate(next);
-    documentHistory.commit(valid);
+    documentHistory.commit(valid, label);
     setMessage("");
   }
-  function patch(update: (n: Envelope["document"]) => void) {
+  function patch(update: (n: Envelope["document"]) => void, label?: string) {
     if (blocked) return;
     const n = structuredClone(e);
     update(n.document);
-    commit(n);
+    commit(n, label);
   }
   function undo() {
     if (blocked) return;
@@ -286,7 +305,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
     });
     if (type === "region") {
       setSelected(index);
-      setTab("Contents");
     }
   }
   function applyDraft() {
@@ -382,7 +400,22 @@ export default function VennPage({ active = true }: { active?: boolean }) {
         closeDraft();
         return;
       }
-      handleUndoKeys(event, { undo, redo });
+      if (handleUndoKeys(event, { undo, redo })) return;
+      // U9: Escape deselects; Delete clears the selected region's shading (never a set or region).
+      const command = objectKeyCommand(event);
+      if (!command || draft || selected === null || blocked) return;
+      if (command.kind === "deselect") setSelected(null);
+      else if (
+        command.kind === "delete" &&
+        d.regions[selected] &&
+        d.regions[selected].shade !== "none"
+      ) {
+        event.preventDefault();
+        const mask = selected;
+        patch((n) => {
+          n.regions[mask].shade = "none";
+        }, "clear shading");
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -446,6 +479,8 @@ export default function VennPage({ active = true }: { active?: boolean }) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
+  const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
+  const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
     <div className="app-shell booklet-editor vn-editor">
       <main
@@ -463,17 +498,21 @@ export default function VennPage({ active = true }: { active?: boolean }) {
           <Panel className="editor-card">
             <EditorToolbar
               canUndo={!blocked && history.past.length > 0}
+              undoLabel={undoStepName(history)}
+              resetStep={history.resetStep}
+              active={active}
+              redoLabel={redoStepName(history)}
               canRedo={!blocked && history.future.length > 0}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replacement(create(), "Reset the Venn diagram?")}
+              onReset={() => replacement(freshVenn(), "Reset the Venn diagram?")}
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
               menuDisabled={blocked}
               busy={busy}
               onCopy={() =>
                 void run(
-                  () => copyWord(displayed),
+                  () => copyWord(displayed, answers),
                   false,
                   "Copied for Word at " +
                     formatResourceSize(g.width / 10, g.height / 10) +
@@ -481,58 +520,61 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 )
               }
               onCopyClipboard={() =>
-                void run(() => copyPngToClipboard(() => printPng(displayed)))
+                void run(() => copyPngToClipboard(() => printPng(displayed, answers)))
               }
               menuId="venn-downloads"
               menuOpen={menu}
               onToggleMenu={() => setMenu(!menu)}
             />
             <EditorDownloadMenu
+              wordHelp
               id="venn-downloads"
               open={menu}
               active={active}
               onClose={() => setMenu(false)}
               onBusyChange={setBusy}
               onMessage={setMessage}
-              actions={[
-                {
-                  label: "Download SVG",
-                  action: () => downloadImage(displayed, "svg"),
+              actions={diagramFileMenu({
+                about: titleNote.item,
+                worked: worked.item,
+                both: { action: () => downloadBoth(e), disabled: blocked || !!issue, success: "Pupil and answers ZIP download started." },
+                svg: {
+                  action: () => downloadImage(displayed, "svg", answers),
                   disabled: blocked || !!issue,
                   success: "SVG download started.",
                 },
-                {
-                  label: "Download PNG (600 ppi)",
-                  action: () => downloadImage(displayed, "png"),
+                png: {
+                  action: () => downloadImage(displayed, "png", answers),
                   disabled: blocked || !!issue,
                   success: "PNG download started.",
                 },
-                {
-                  label: "Save editable file",
+                pdf: {
+                  action: () => downloadImage(displayed, "pdf", answers),
+                  disabled: blocked || !!issue,
+                  success: "PDF download started.",
+                },
+                save: {
                   action: () => downloadEditable(e),
                   disabled: blocked,
                   success: "Editable file download started.",
-                  separator: true,
                 },
-                {
-                  label: "Open editable file",
+                open: {
                   action: () => file.current?.click(),
                   disabled: blocked,
                   success: "",
-                  picker: true,
                 },
-                {
-                  label: "Copy editable link",
+                link: {
                   action: () =>
                     navigator.clipboard.writeText(
                       vennEditorLink(e, location.href),
                     ),
                   disabled: blocked,
                   success: "Editable link copied.",
-                  description: LINK_DESCRIPTION,
                 },
-              ]}
+              })}
             />
+            {titleNote.dialog}
+            {worked.dialog}
             <input
               ref={file}
               type="file"
@@ -553,6 +595,16 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                 onChange={(checked) => setView(checked ? "answer" : "pupil")}
               />
             </div>
+            <EditorHint
+              tool="venn"
+              prompt={
+                mode === "shade"
+                  ? "Shade mode: click a region to shade or clear it."
+                  : undefined
+              }
+            >
+              Click a region or label to edit it.
+            </EditorHint>
             <div
               className="vn-scroll"
               ref={fitted.ref}
@@ -586,7 +638,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               >
                 <div
                   className="vn-art"
-                  dangerouslySetInnerHTML={{ __html: renderSvg(displayed) }}
+                  dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, answers) }}
                 />
                 {activeMasks(e).map((mask) => {
                   const p = g.anchors[mask];
@@ -687,7 +739,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onUse={(resource, title) =>
                 replacement(resource, `Open ${title}?`)
               }
-              onWorked={(resource) => commit(resource)}
+              onWorked={(resource) => commit(resource, "use worked version")}
             />
             <section className="panel-card vn-layout-tools">
               <h2>Diagram tools</h2>
@@ -718,12 +770,6 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                     Shade
                   </button>
                 </div>
-                <span>
-                  {d.sets} {d.sets === 1 ? "set" : "sets"} ·{" "}
-                  {mode === "shade"
-                    ? "Click a region to shade or clear it"
-                    : "Click a region or label to edit"}
-                </span>
                 <label>
                   Number of sets
                   <select
@@ -784,294 +830,265 @@ export default function VennPage({ active = true }: { active?: boolean }) {
                   : "Answer view · exports reveal saved answers only. Editable files keep the pupil settings."}
               </p>
             </section>
-            <section className="panel-card vn-inspector">
-              {mode === "edit" && (
-                <div
-                  className="vn-tabs"
-                  role="tablist"
-                  aria-label="Venn settings"
-                >
-                  {["Diagram", "Contents"].map((t) => (
-                    <button
-                      key={t}
-                      role="tab"
-                      id={`vn-tab-${t}`}
-                      aria-selected={tab === t}
-                      tabIndex={tab === t ? 0 : -1}
-                      onKeyDown={(ev) => {
-                        const tabs = ["Diagram", "Contents"];
-                        let index = tabs.indexOf(t);
-                        if (ev.key === "ArrowRight") index = (index + 1) % 2;
-                        else if (ev.key === "ArrowLeft")
-                          index = (index + 1) % 2;
-                        else if (ev.key === "Home") index = 0;
-                        else if (ev.key === "End") index = 1;
-                        else return;
-                        ev.preventDefault();
-                        setTab(tabs[index]);
-                        document
-                          .getElementById(`vn-tab-${tabs[index]}`)
-                          ?.focus();
+            {/* U20: stacked cards, no tabs. Edit mode shows the diagram and its contents; Shade shows shading. */}
+            {mode === "edit" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-card-diagram">
+                <h2 id="vn-card-diagram">Diagram</h2>
+                <label>
+                  Outline
+                  <select
+                    aria-label="Outline"
+                    disabled={blocked || d.sets === 3}
+                    value={d.shape}
+                    onChange={(ev) =>
+                      patch((n) => {
+                        n.shape = ev.target.value as "circles" | "ovals";
+                      })
+                    }
+                  >
+                    <option value="circles">Circles</option>
+                    <option value="ovals">Wider ovals</option>
+                  </select>
+                </label>
+                {relationship(e) && (
+                  <label>
+                    Relationship caption
+                    <select
+                      aria-label="Relationship caption"
+                      disabled={blocked}
+                      value={e.document.caption}
+                      onChange={(ev) => {
+                        const n = structuredClone(e);
+                        n.document.caption = ev.target.value as
+                          | "off"
+                          | "relationship"
+                          | "line";
+                        commit(n);
                       }}
-                      aria-controls={`vn-panel-${t}`}
-                      onClick={() => setTab(t)}
                     >
-                      {t}
+                      <option value="off">No caption</option>
+                      <option value="relationship">
+                        {relationship(e)}
+                      </option>
+                      <option value="line">Pupil answer line</option>
+                    </select>
+                  </label>
+                )}
+                <details>
+                  <summary>Labels and definitions</summary>
+                  <p className="vn-note">
+                    Click a label on the diagram or choose it here.
+                  </p>
+                  {d.labels.slice(0, d.sets + 1).map((l, i) => (
+                    <div className="vn-label-row" key={i}>
+                      <button
+                        data-vn-anchor={"panel-label-" + i}
+                        disabled={blocked}
+                        onClick={() => open("label", i, "panel-label-" + i)}
+                      >
+                        {panelName(i)}: {l.text || "(empty)"}
+                        <small>
+                          {l.visibility === "hidden"
+                            ? "Hidden"
+                            : l.visibility === "line"
+                              ? "Answer line"
+                              : "Edit label"}
+                        </small>
+                      </button>
+                    </div>
+                  ))}
+                  <label className="vn-check">
+                    <input
+                      type="checkbox"
+                      checked={d.showDefinitions}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.showDefinitions = ev.target.checked;
+                        })
+                      }
+                    />
+                    Show definitions above diagram
+                  </label>
+                  {d.definitions.slice(0, d.sets + 1).map((text, i) => (
+                    <button
+                      className="vn-definition"
+                      key={i}
+                      data-vn-anchor={"definition-" + i}
+                      disabled={blocked}
+                      onClick={() =>
+                        open("definition", i, "definition-" + i)
+                      }
+                    >
+                      {panelName(i)} definition: {text || "Add text"}
+                    </button>
+                  ))}
+                  <p className="vn-note">
+                    Definitions describe your sets; they do not fill or
+                    calculate regions. Geometry is schematic.
+                  </p>
+                </details>
+                <details>
+                  <summary>Print size</summary>
+                  <label>
+                    Print width
+                    <select
+                      aria-label="Print width"
+                      disabled={blocked}
+                      value={d.widthCm}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.widthCm = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
+                        <option key={v} value={v}>
+                          {v} cm
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Text size
+                    <select
+                      aria-label="Text size"
+                      value={d.fontPt}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          n.fontPt = Number(ev.target.value);
+                        })
+                      }
+                    >
+                      {[10, 11, 12, 13, 14].filter((v) => v >= MIN_TEXT_PT).map((v) => (
+                        <option key={v} value={v}>
+                          {v} pt
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Lines
+                    <select
+                      aria-label="Lines"
+                      value={d.lines ?? "normal"}
+                      disabled={blocked}
+                      onChange={(ev) =>
+                        patch((n) => {
+                          setLines(n, ev.target.value as LineWeight);
+                        })
+                      }
+                    >
+                      {LINE_WEIGHTS.map((v) => (
+                        <option key={v} value={v}>
+                          {LINE_WEIGHT_NAMES[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </details>
+              </section>
+            )}
+            {mode === "edit" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-card-contents">
+                <h2 id="vn-card-contents">Region contents</h2>
+                <p className="vn-note">
+                  Click the diagram or choose a region. Lists, frequencies,
+                  fractions, algebra and pupil blanks stay editable.
+                </p>
+                <div className="vn-regions">
+                  {activeMasks(e).map((mask) => (
+                    <button
+                      key={mask}
+                      data-vn-anchor={`panel-region-${mask}`}
+                      disabled={blocked}
+                      onClick={() => {
+                        open("region", mask, `panel-region-${mask}`);
+                      }}
+                    >
+                      <span>{regionName(mask, e)}</span>
+                      <small>
+                        {d.regions[mask].visibility === "hidden"
+                          ? "Hidden saved content"
+                          : d.regions[mask].visibility === "line"
+                            ? "Answer line"
+                            : d.regions[mask].text ||
+                              (d.regions[mask].kind === "members"
+                                ? "Empty member list"
+                                : "Empty space")}
+                      </small>
                     </button>
                   ))}
                 </div>
-              )}
-              <div
-                role={mode === "edit" ? "tabpanel" : "region"}
-                id={mode === "edit" ? `vn-panel-${tab}` : "vn-panel-shading"}
-                aria-labelledby={
-                  mode === "edit" ? `vn-tab-${tab}` : "vn-shading-heading"
-                }
-              >
-                {mode === "edit" && tab === "Diagram" && (
-                  <>
-                    <h2>Diagram</h2>
-                    <label>
-                      Outline
-                      <select
-                        aria-label="Outline"
-                        disabled={blocked || d.sets === 3}
-                        value={d.shape}
-                        onChange={(ev) =>
-                          patch((n) => {
-                            n.shape = ev.target.value as "circles" | "ovals";
-                          })
-                        }
-                      >
-                        <option value="circles">Circles</option>
-                        <option value="ovals">Wider ovals</option>
-                      </select>
-                    </label>
-                    {relationship(e) && (
-                      <label>
-                        Relationship caption
-                        <select
-                          aria-label="Relationship caption"
-                          disabled={blocked}
-                          value={
-                            e.schemaVersion === 2 ? e.document.caption : "off"
-                          }
-                          onChange={(ev) => {
-                            const n = upgrade(e);
-                            n.document.caption = ev.target.value as
-                              | "off"
-                              | "relationship"
-                              | "line";
-                            commit(n);
-                          }}
-                        >
-                          <option value="off">No caption</option>
-                          <option value="relationship">
-                            {relationship(e)}
-                          </option>
-                          <option value="line">Pupil answer line</option>
-                        </select>
-                      </label>
-                    )}
-                    <details>
-                      <summary>Labels and definitions</summary>
-                      <p className="vn-note">
-                        Click a label on the diagram or choose it here.
-                      </p>
-                      {d.labels.slice(0, d.sets + 1).map((l, i) => (
-                        <div className="vn-label-row" key={i}>
-                          <button
-                            data-vn-anchor={"panel-label-" + i}
-                            disabled={blocked}
-                            onClick={() => open("label", i, "panel-label-" + i)}
-                          >
-                            {panelName(i)}: {l.text || "(empty)"}
-                            <small>
-                              {l.visibility === "hidden"
-                                ? "Hidden"
-                                : l.visibility === "line"
-                                  ? "Answer line"
-                                  : "Edit label"}
-                            </small>
-                          </button>
-                        </div>
-                      ))}
-                      <label className="vn-check">
-                        <input
-                          type="checkbox"
-                          checked={d.showDefinitions}
-                          disabled={blocked}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.showDefinitions = ev.target.checked;
-                            })
-                          }
-                        />
-                        Show definitions above diagram
-                      </label>
-                      {d.definitions.slice(0, d.sets + 1).map((text, i) => (
-                        <button
-                          className="vn-definition"
-                          key={i}
-                          data-vn-anchor={"definition-" + i}
-                          disabled={blocked}
-                          onClick={() =>
-                            open("definition", i, "definition-" + i)
-                          }
-                        >
-                          {panelName(i)} definition: {text || "Add text"}
-                        </button>
-                      ))}
-                      <p className="vn-note">
-                        Definitions describe your sets; they do not fill or
-                        calculate regions. Geometry is schematic.
-                      </p>
-                    </details>
-                    <details>
-                      <summary>Print size</summary>
-                      <label>
-                        Print width
-                        <select
-                          aria-label="Print width"
-                          disabled={blocked}
-                          value={d.widthCm}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.widthCm = Number(ev.target.value);
-                            })
-                          }
-                        >
-                          {[8, 9, 10, 11, 12, 13, 14, 15, 16].map((v) => (
-                            <option key={v} value={v}>
-                              {v} cm
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Text size
-                        <select
-                          aria-label="Text size"
-                          value={d.fontPt}
-                          disabled={blocked}
-                          onChange={(ev) =>
-                            patch((n) => {
-                              n.fontPt = Number(ev.target.value);
-                            })
-                          }
-                        >
-                          {[9, 10, 11, 12, 13, 14].map((v) => (
-                            <option key={v} value={v}>
-                              {v} pt
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </details>
-                  </>
-                )}
-                {mode === "edit" && tab === "Contents" && (
-                  <>
-                    <h2>Region contents</h2>
-                    <p className="vn-note">
-                      Click the diagram or choose a region. Lists, frequencies,
-                      fractions, algebra and pupil blanks stay editable.
-                    </p>
-                    <div className="vn-regions">
-                      {activeMasks(e).map((mask) => (
-                        <button
-                          key={mask}
-                          data-vn-anchor={`panel-region-${mask}`}
-                          disabled={blocked}
-                          onClick={() => {
-                            setMode("edit");
-                            open("region", mask, `panel-region-${mask}`);
-                          }}
-                        >
-                          <span>{regionName(mask, e)}</span>
-                          <small>
-                            {d.regions[mask].visibility === "hidden"
-                              ? "Hidden saved content"
-                              : d.regions[mask].visibility === "line"
-                                ? "Answer line"
-                                : d.regions[mask].text ||
-                                  (d.regions[mask].kind === "members"
-                                    ? "Empty member list"
-                                    : "Empty space")}
-                          </small>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {mode === "shade" && (
-                  <>
-                    <h2 id="vn-shading-heading">Region shading</h2>
-                    <label>
-                      Shading style
-                      <select
-                        aria-label="Shading style"
-                        disabled={blocked}
-                        value={shade}
-                        onChange={(ev) =>
-                          setShade(ev.target.value as Region["shade"])
-                        }
-                      >
-                        <option value="grey">Neutral grey</option>
-                        <option value="hatch">Monochrome hatching</option>
-                      </select>
-                    </label>
+              </section>
+            )}
+            {mode === "shade" && (
+              <section className="panel-card vn-inspector" aria-labelledby="vn-shading-heading">
+                <h2 id="vn-shading-heading">Region shading</h2>
+                <label>
+                  Shading style
+                  <select
+                    aria-label="Shading style"
+                    disabled={blocked}
+                    value={shade}
+                    onChange={(ev) =>
+                      setShade(ev.target.value as Region["shade"])
+                    }
+                  >
+                    <option value="grey">Neutral grey</option>
+                    <option value="hatch">Monochrome hatching</option>
+                  </select>
+                </label>
+                <button
+                  disabled={blocked}
+                  data-vn-anchor="expression"
+                  onClick={() => open("expression", 0, "expression")}
+                >
+                  Shade a set expression
+                </button>
+                <p className="vn-note">
+                  Use stable set IDs:{" "}
+                  {d.labels
+                    .slice(1, d.sets + 1)
+                    .map((l, i) => `${"ABC"[i]} = ${l.text || "unnamed"}`)
+                    .join("; ")}
+                  . ∩ means both; ∪ means either; ' means complement.
+                </p>
+                <button
+                  disabled={blocked}
+                  onClick={() =>
+                    patch((n) =>
+                      n.regions.forEach((r) => {
+                        r.shade = "none";
+                      }),
+                    )
+                  }
+                >
+                  Clear all shading
+                </button>
+                <div className="vn-regions">
+                  {activeMasks(e).map((mask) => (
                     <button
+                      key={mask}
                       disabled={blocked}
-                      data-vn-anchor="expression"
-                      onClick={() => open("expression", 0, "expression")}
-                    >
-                      Shade a set expression
-                    </button>
-                    <p className="vn-note">
-                      Use stable set IDs:{" "}
-                      {d.labels
-                        .slice(1, d.sets + 1)
-                        .map((l, i) => `${"ABC"[i]} = ${l.text || "unnamed"}`)
-                        .join("; ")}
-                      . ∩ means both; ∪ means either; ' means complement.
-                    </p>
-                    <button
-                      disabled={blocked}
+                      aria-pressed={d.regions[mask].shade !== "none"}
                       onClick={() =>
-                        patch((n) =>
-                          n.regions.forEach((r) => {
-                            r.shade = "none";
-                          }),
-                        )
+                        patch((n) => {
+                          n.regions[mask].shade =
+                            n.regions[mask].shade === shade
+                              ? "none"
+                              : shade;
+                        })
                       }
                     >
-                      Clear all shading
+                      {regionName(mask, e)}
+                      <small>{d.regions[mask].shade}</small>
                     </button>
-                    <div className="vn-regions">
-                      {activeMasks(e).map((mask) => (
-                        <button
-                          key={mask}
-                          disabled={blocked}
-                          aria-pressed={d.regions[mask].shade !== "none"}
-                          onClick={() =>
-                            patch((n) => {
-                              n.regions[mask].shade =
-                                n.regions[mask].shade === shade
-                                  ? "none"
-                                  : shade;
-                            })
-                          }
-                        >
-                          {regionName(mask, e)}
-                          <small>{d.regions[mask].shade}</small>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="panel-card vn-inspector">
               <details>
@@ -1099,7 +1116,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
               onClick={() => {
                 downloadBlob(
                   new Blob([recovery], { type: "application/json" }),
-                  "venn-recovery.json",
+                  downloadName("venn", "json", { recovery: true }),
                 );
                 setProtectedCopy(true);
               }}
@@ -1147,7 +1164,7 @@ export default function VennPage({ active = true }: { active?: boolean }) {
             onConfirm={() => {
               if (busy || recovery !== null || draft !== null) return;
               consumeVennLink();
-              commit(pending.e);
+              commit(pending.e, stepName(pending.title));
               setPending(null);
               setSelected(null);
               setView("pupil");

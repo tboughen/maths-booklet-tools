@@ -10,6 +10,7 @@ import { teachingExamples, sourceExamples } from "./examples";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex } from "../../envelope-core/src/index";
+import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
 const id = m.documentSchema.shape.vertices.element.shape.id;
 const ref = z.string().max(43);
@@ -46,7 +47,7 @@ const inputs = z.record(z.string().max(24), z.string().max(80)).refine(v => Obje
 export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("set_label"), ref, patch }).strict(),
   z.object({ op: z.literal("set_angle_mark"), id, mark: z.enum(["none", "arc", "double", "triple", "right"]) }).strict(),
-  z.object({ op: z.literal("set_edge_style"), id, ticks: z.number().int().min(0).max(3).optional(), dashed: z.boolean().optional() }).strict(),
+  z.object({ op: z.literal("set_edge_style"), id, ticks: z.number().int().min(0).max(3).optional(), arrows: z.number().int().min(0).max(3).optional().describe("Parallel-side arrowheads: give parallel sides the same number (0 removes them)."), dashed: z.boolean().optional() }).strict(),
   z.object({ op: z.literal("move_vertex"), id, x: z.number().min(-10000).max(10000), y: z.number().min(-10000).max(10000) }).strict(),
   z.object({ op: z.literal("transform"), kind: z.enum(["left", "right", "reflect", "vertical"]) }).strict(),
   z.object({ op: z.literal("set_constraint"), triangleId: id, type: z.enum(["right", "equal", "equilateral", "none"]), vertex: id }).strict(),
@@ -59,7 +60,8 @@ export const operationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("remove_caption"), id }).strict(),
   z.object({ op: z.literal("set_shared_label"), id, text: z.string().max(40) }).strict(),
   z.object({ op: z.literal("link_label"), ref, sharedId: id.nullable() }).strict(),
-  z.object({ op: z.literal("set_print"), widthCm: z.number().min(6).max(18) }).strict(),
+  z.object({ op: z.literal("set_print"), widthCm: z.number().min(6).max(18).optional(), fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional() }).strict()
+    .refine(o => o.widthCm !== undefined || o.fontPt !== undefined || o.lines !== undefined, "set_print needs widthCm, fontPt or lines."),
   z.object({ op: z.literal("set_not_to_scale"), visible: z.boolean() }).strict(),
   z.object({ op: z.literal("construct"), triangleId: id, method: z.enum(["SSS", "SAS", "ASA", "AAS", "right"]), inputs }).strict(),
   z.object({ op: z.literal("calculate_and_store"), ref, triangleId: id, method: z.enum(maths.methods), inputs: inputs.optional(), branch: z.string().max(80).optional(), rounding: z.object({ kind: z.enum(["dp", "sf", "exact"]), digits: z.number().int().min(0).max(10) }).strict(), overwrite: z.boolean().default(false) }).strict(),
@@ -75,6 +77,7 @@ export const createSchema = z.object({
     shape: z.enum(["right", "scalene", "isosceles", "equilateral"]).optional(),
     example: z.string().max(80).optional(),
     widthCm: z.number().min(6).max(18).optional(), notToScale: z.boolean().optional(),
+    fontPt: z.number().int().min(m.TRIANGLE_MIN_PT).max(14).optional(), lines: z.enum(LINE_WEIGHTS).optional(),
     labels: z.array(labelEdit).max(40).optional(), operations: z.array(operationSchema).max(30).optional(),
   }).strict().optional(),
 }).strict();
@@ -122,6 +125,11 @@ function calculate(e: m.Envelope, op: Extract<z.infer<typeof operationSchema>, {
   const unit = result.dimension === "angle" ? "°" : result.dimension === "area" ? `${context.unit}²` as m.Label["unit"] : context.unit;
   return maths.saveAnswer(e, op.ref, result, op.rounding, unit, op.overwrite);
 }
+/** 0 removes the field, so a file without arrows saves exactly as before. */
+function setArrows(edge: m.Envelope["document"]["edges"][number], arrows: number) {
+  if (arrows) edge.arrows = arrows;
+  else delete edge.arrows;
+}
 export function applyOperations(source: m.Envelope, operations: z.infer<typeof operationSchema>[]) {
   let e = structuredClone(source);
   for (const op of operations) {
@@ -132,6 +140,7 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
       case "set_edge_style": {
         const edge = found(d.edges, op.id);
         if (op.ticks !== undefined) edge.ticks = op.ticks;
+        if (op.arrows !== undefined) setArrows(edge, op.arrows);
         if (op.dashed !== undefined) edge.dashed = op.dashed;
         break;
       }
@@ -149,8 +158,6 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
         const t = triangle(e, op.triangleId);
         if (op.label === null) delete t.area;
         else t.area = { ...(t.area ?? m.label("", "blank", "cm²")), ...op.label };
-        e.schemaVersion = d.triangles.some(t => t.area) ? 2 : 1;
-        e.rendererVersion = e.schemaVersion === 2 ? "triangle-2" : "triangle-1";
         break;
       }
       case "add_caption": e = g.caption(e); Object.assign(e.document.captions.at(-1)!.label, op.label); break;
@@ -168,7 +175,13 @@ export function applyOperations(source: m.Envelope, operations: z.infer<typeof o
         if (!op.sharedId) l.text = oldText;
         break;
       }
-      case "set_print": d.widthCm = op.widthCm; break;
+      case "set_print":
+        if (op.widthCm !== undefined) d.widthCm = op.widthCm;
+        if (op.fontPt === 11) delete d.fontPt;
+        else if (op.fontPt !== undefined) d.fontPt = op.fontPt;
+        if (op.lines === "bold") d.lines = "bold";
+        else if (op.lines === "normal") delete d.lines;
+        break;
       case "set_not_to_scale": d.notToScale = op.visible; break;
       case "construct": triangle(e, op.triangleId); e = maths.construct(e, op.triangleId, op.method, op.inputs); break;
       case "calculate_and_store": e = calculate(e, op); break;
@@ -201,12 +214,14 @@ export function create(input: unknown): m.Envelope {
   let e = example ? example.build() : g.create(s?.shape);
   if (s?.widthCm !== undefined) e.document.widthCm = s.widthCm;
   if (s?.notToScale !== undefined) e.document.notToScale = s.notToScale;
+  if (s?.fontPt !== undefined && s.fontPt !== 11) e.document.fontPt = s.fontPt;
+  if (s?.lines === "bold") e.document.lines = "bold";
   for (const l of s?.labels ?? []) e = m.editLabel(e, l.ref, l.label);
   return applyOperations(m.validate(e), s?.operations ?? []);
 }
 export async function revise(input: unknown) {
   const v = revisionSchema.parse(input), e = m.validate(v.envelope);
-  if (await hash(e) !== v.baseHash) throw Error("base_hash_mismatch: Use the exact returned envelope and contentHash.");
+  if (await hash(e) !== v.baseHash) throw Error("stale_hash: Use the exact returned envelope and contentHash.");
   return applyOperations(e, v.operations);
 }
 export function editorLink(e: m.Envelope, base: string): string | null {
@@ -220,6 +235,6 @@ export function printFacts(e: m.Envelope) {
   const svg = layout(e).svg;
   const hasLines = m.allLabels(e).some(({label:l}) => l.state === "answer-line" && !(l.answer && l.answerVisible));
   return guidance({ textSizesPt: renderedTextSizesPt(svg, 72 / 25.4),
-    answerLineLengthsMm: hasLines ? [4 * glyphAdvance("_") * 11 * 25.4 / 72] : [],
+    answerLineLengthsMm: hasLines ? [4 * glyphAdvance("_") * (e.document.fontPt ?? 11) * 25.4 / 72] : [],
   });
 }

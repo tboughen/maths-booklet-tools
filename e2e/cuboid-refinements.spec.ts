@@ -3,7 +3,7 @@ import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { create, upgrade } from "../packages/cuboid-core/src";
+import { create } from "../packages/cuboid-core/src";
 import { examples } from "../packages/cuboid-core/src/examples";
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 const report = join(
@@ -12,8 +12,6 @@ const report = join(
 );
 mkdirSync(join(report, "exports"), { recursive: true });
 const resource = (p: Page) => p.getByTestId("cuboid-resource");
-const tab = (p: Page, name: string) =>
-  p.getByRole("tab", { name, exact: true }).click();
 async function input(p: Page, name: string, value: string) {
   const f = p.getByRole("textbox", { name, exact: true });
   await f.fill(value);
@@ -80,21 +78,6 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
   ).toBeDisabled();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
 });
-test("inspector tabs support arrow-key navigation", async ({ page }) => {
-  await page.getByRole("tab", { name: "Shape", exact: true }).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(
-    page.getByRole("tab", { name: "Labels", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("End");
-  await expect(
-    page.getByRole("tab", { name: "Shading", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("Home");
-  await expect(
-    page.getByRole("tab", { name: "Shape", exact: true }),
-  ).toBeFocused();
-});
 test("replacement confirmation hides the non-modal editor and cancellation restores it", async ({
   page,
 }) => {
@@ -107,7 +90,7 @@ test("replacement confirmation hides the non-modal editor and cancellation resto
     .filter({
       has: page.getByRole("heading", { name: "Shaded base area", exact: true }),
     })
-    .getByRole("button", { name: "Open scaffold", exact: true })
+    .getByRole("button", { name: "Use this example", exact: true })
     .click();
   await expect(page.locator("[aria-modal=true]")).toBeVisible();
   await expect(
@@ -145,34 +128,30 @@ test("starting afresh after protected recovery clears an invalid draft deliberat
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
-  await tab(page, "Shape");
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("4");
   await other.close();
 });
-test("compact inspector shows one panel and fits the ordinary workflow", async ({
+test("settings are stacked cards, and clicking a label brings its card to the top (U20)", async ({
   page,
 }) => {
-  await expect(page.getByRole("tab")).toHaveCount(3);
+  await expect(page.getByRole("tab")).toHaveCount(0);
   await expect(page.getByLabel("Selected cuboid", { exact: true })).toHaveCount(
     0,
   );
-  const inspector = (await page.locator(".cb-inspector").boundingBox())!;
-  expect(inspector.y + inspector.height).toBeLessThanOrEqual(
-    page.viewportSize()!.height - 16,
-  );
-  await expect(page.getByRole("tabpanel")).toHaveCount(1);
+  const headings = page.locator(".cb-inspector h2");
+  await expect(headings.first()).toHaveText("Shape");
   await expect(page.getByLabel("Width", { exact: true })).toBeVisible();
   await expect(
     page.getByLabel("Label appearance", { exact: true }),
-  ).not.toBeVisible();
-  await tab(page, "Labels");
-  await expect(
-    page.getByLabel("Label appearance", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("Width", { exact: true })).not.toBeVisible();
-  await tab(page, "Shape");
+  await expect(page.getByRole("button", { name: "Grey faces", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /^Edit height label/ }).click();
+  await expect(headings.first()).toHaveText("Selected label: height");
+  // Deselecting puts the cards back in their usual order.
+  await page.keyboard.press("Escape");
+  await expect(headings.first()).toHaveText("Shape");
   await page.screenshot({
     path: join(report, "compact-desktop.png"),
     fullPage: true,
@@ -246,7 +225,7 @@ test("invalid floating input remains visible, cancels safely and restores focus"
 test("a scrolled-away full-height editor docks and retains its invalid draft", async ({
   page,
 }) => {
-  const e = upgrade(create());
+  const e = create();
   e.document.widthCm = 16;
   e.document.shapes[0].view = "layers";
   e.document.shapes[0].dimensions = { width: "20", depth: "20", height: "20" };
@@ -274,7 +253,6 @@ test("a scrolled-away full-height editor docks and retains its invalid draft", a
 test("greyscale faces retain black grids, stay neutral and mirror correctly", async ({
   page,
 }) => {
-  await tab(page, "Shading");
   await page.getByRole("button", { name: "Grey faces", exact: true }).click();
   await expect(resource(page).locator('polygon[fill="#f2f2f2"]')).toHaveCount(
     1,
@@ -284,7 +262,6 @@ test("greyscale faces retain black grids, stay neutral and mirror correctly", as
     .getByRole("button", { name: "Show 1 cm³ cubes", exact: true })
     .click();
   await expect(resource(page).locator('[data-cube-count="24"]')).toHaveCount(1);
-  await tab(page, "Shape");
   await page.getByText("More shape options", { exact: true }).click();
   await page
     .getByLabel("Receding direction", { exact: true })
@@ -300,7 +277,6 @@ test("greyscale faces retain black grids, stay neutral and mirror correctly", as
 test("base and cross-section face labels have exact area and squared unit conversions", async ({
   page,
 }) => {
-  await tab(page, "Shading");
   await page.getByRole("button", { name: "One face", exact: true }).click();
   await expect(resource(page).locator("polygon")).toHaveCount(1);
   await expect(resource(page)).not.toContainText("Base area");
@@ -311,10 +287,8 @@ test("base and cross-section face labels have exact area and squared unit conver
     .getByLabel("Area heading", { exact: true })
     .selectOption("Cross-sectional area");
   await expect(resource(page)).toContainText("Cross-sectional area = 8 cm²");
-  await tab(page, "Shape");
   await page.getByLabel("Units", { exact: true }).selectOption("mm");
   await expect(resource(page)).toContainText("Cross-sectional area = 800 mm²");
-  await tab(page, "Shading");
   await page.getByLabel("Area label", { exact: true }).selectOption("blank");
   await expect(resource(page)).not.toContainText("800 mm²");
   await page.getByLabel("Area label", { exact: true }).selectOption("value");
@@ -330,7 +304,6 @@ test("hidden faces are visible in the outline and one-face mode handles layer sw
   page,
 }) => {
   await page.getByLabel("View", { exact: true }).selectOption("layers");
-  await tab(page, "Shading");
   await page.getByRole("button", { name: "One face", exact: true }).click();
   await expect(page.getByLabel("View", { exact: true })).toHaveValue("plain");
   await expect(resource(page).locator("[stroke-dasharray]")).toHaveCount(3);
@@ -342,18 +315,8 @@ test("hidden faces are visible in the outline and one-face mode handles layer sw
   await page.getByLabel("View", { exact: true }).selectOption("layers");
   await expect(resource(page).locator("[data-layer]")).toHaveCount(2);
 });
-test("old arrow files retain their original artwork until the current exam layout is chosen", async ({
-  page,
-}) => {
+test("exam examples draw the current exam arrow layout", async ({ page }) => {
   await load(page, examples.find((e) => e.id.includes("06"))!.create(false));
-  await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
-    0,
-  );
-  await tab(page, "Shape");
-  await page.getByText("More shape options", { exact: true }).click();
-  await page
-    .getByRole("button", { name: "Use current exam layout", exact: true })
-    .click();
   await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
     2,
   );
@@ -361,15 +324,10 @@ test("old arrow files retain their original artwork until the current exam layou
     path: join(report, "corrected-exam-arrows.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(resource(page).locator('[data-dimension="height"]')).toHaveCount(
-    0,
-  );
 });
 test("shading and area save through editable exports and real greyscale image downloads", async ({
   page,
 }) => {
-  await tab(page, "Shading");
   await page.getByRole("button", { name: "Grey faces", exact: true }).click();
   await page
     .getByRole("button", { name: "File", exact: true })
@@ -384,7 +342,6 @@ test("shading and area save through editable exports and real greyscale image do
     await (await dl).saveAs(join(report, "exports", file));
   }
   await page.reload();
-  await tab(page, "Shading");
   await expect(
     page.getByRole("button", { name: "Grey faces", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");

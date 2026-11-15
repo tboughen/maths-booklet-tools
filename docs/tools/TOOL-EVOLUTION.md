@@ -32,7 +32,7 @@ The initial ratio tool established the lesson-style representation: explicit val
 
 Two choices are worth preserving together. First, a scaling step is shared across the columns, so editing one displayed factor updates every copy. Second, this does not recalculate the cells: a teacher may be preparing a scaffold or an error-spotting task. Consistency of representation and preservation of teaching intent are separate requirements.
 
-Compatibility also shaped the extension. Existing two-column tables with at least two rows retain schema 1 and renderer ratio-1. Other supported shapes use schema 2 and ratio-2. Removing a column can return a table to the earlier canonical format, so clients must continue with the returned document and hash. The details are in [Ratio table MCP](RATIO-TABLE-MCP.md).
+Compatibility also shaped the extension: two-column tables with at least two rows kept schema 1 and renderer ratio-1, and other shapes used schema 2 and ratio-2. On 14 Nov 2026 schema 1 was removed (no backwards compatibility), so every table is now schema 2 / ratio-2. The details are in [Ratio table MCP](RATIO-TABLE-MCP.md).
 
 ## All tools output previews
 

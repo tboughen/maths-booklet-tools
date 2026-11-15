@@ -5,12 +5,11 @@ import { withFamilyNames } from "./family-tool-names";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createServer } from "node:net";
 import type { Server } from "node:http";
-import { readFileSync } from "node:fs";
 import { graphService } from "./server";
 import { sliceSvg, svgDeliveryResult, svgSha256, SVG_CHUNK_BYTES, SVG_RESPONSE_BYTES, SVG_FILE_BYTES, type SvgDelivery, type SvgDeliveryInput } from "./svg-delivery";
 import { receiveSvg } from "./svg-consumer";
 import { createGraph } from "../../packages/graph-core/src/interchange";
-import { create as createLegacyVenn } from "../../packages/venn-core/src/index";
+import { create as createVenn } from "../../packages/venn-core/src/index";
 
 const servers: Server[] = [], clients: Client[] = [];
 afterEach(async () => { await Promise.all(clients.splice(0).map(c => c.close())); await Promise.all(servers.splice(0).map(s => new Promise<void>(r => s.close(() => r())))); });
@@ -96,7 +95,7 @@ describe("bounded original SVG byte transport", () => {
 describe("real MCP SVG delivery with artifact downloads disabled in the consumer", () => {
   const fixtures = [
     { kind: "graph", name: "graph", args: { schemaVersion: 1, objects: [] } },
-    { kind: "ratio-table", name: "ratio_table", args: { schemaVersion: 1, rows: [{ cells: [{ kind: "number", value: "2/3" }, { kind: "answer-line" }] }, { cells: [{ kind: "number", value: "0" }, { kind: "empty" }] }] } },
+    { kind: "ratio-table", name: "ratio_table", args: { rows: [{ cells: [{ kind: "number", value: "2/3" }, { kind: "answer-line" }] }, { cells: [{ kind: "number", value: "0" }, { kind: "empty" }] }] } },
     { kind: "value-graph", name: "value_graph", args: {} },
     { kind: "cuboids", name: "cuboid", args: { spec: { shapes: [{ labels: { width: { mode: "blank" } } }] } } },
     { kind: "number-line", name: "number_line", args: { spec: { teaching: { labels: { "0": "answer-line" }, answer: "x > 0", answerVisible: false } } } },
@@ -140,17 +139,17 @@ describe("real MCP SVG delivery with artifact downloads disabled in the consumer
     expect(result.body).toEqual(Buffer.from(original!, "utf8"));
     expect(result.chunks).toBeGreaterThan(1);
   }, 30000);
-  it.each(["cuboids", "venn"])("retains legacy %s schema and exact SVG", async kind => {
+  it("retains a saved venn envelope and exact SVG", async () => {
+    const kind = "venn" as const;
     const { client } = await start();
-    const file = kind === "cuboids" ? "packages/cuboid-core/src/fixtures/v1.json" : "";
-    const envelope = kind === "cuboids" ? JSON.parse(readFileSync(file, "utf8"))[0].envelope : createLegacyVenn();
+    const envelope = createVenn();
     const before = JSON.stringify(envelope);
-    const r = await call(client, { kind: kind as "cuboids" | "venn", envelope });
-    expect(r.rendererVersion).toBe(kind === "cuboids" ? "cuboids-1" : "venn-1");
-    const created = await client.callTool({ name: kind === "cuboids" ? "create_cuboid" : "create_venn", arguments: { envelope } });
+    const r = await call(client, { kind, envelope });
+    expect(r.rendererVersion).toBe("venn-2");
+    const created = await client.callTool({ name: "create_venn", arguments: { envelope } });
     expect(created.isError).not.toBe(true);
     const url = (created.structuredContent as { downloads: { svg: { url: string } } }).downloads.svg.url;
-    const full = await receiveSvg(i => call(client, i), { kind: kind as "cuboids" | "venn", envelope });
+    const full = await receiveSvg(i => call(client, i), { kind, envelope });
     expect(full.body).toEqual(Buffer.from(await (await fetch(url)).arrayBuffer()));
     expect(JSON.stringify(envelope)).toBe(before);
   }, 30000);
