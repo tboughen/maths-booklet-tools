@@ -122,6 +122,12 @@ describe("pie chart review fixes", () => {
     expect(pieLayout(e).notes.join(" ")).toMatch(/rugby: both edges of this hidden sector print/);
     const end = pie([["24", "show"], ["15", "hidden"], ["12", "hidden"]]);
     expect(pieLayout(end).notes.join(" ")).not.toMatch(/both edges/);
+    // A lone hidden last sector still has both edges (the last one is the starting radius).
+    expect(pieLayout(pie([["24", "show"], ["15", "show"], ["12", "hidden"]])).notes.join(" ")).toMatch(/c3: both edges/);
+    // A zero sector shares its edge with the sector beyond it.
+    expect(pieLayout(pie([["5", "hidden"], ["0", "hidden"], ["5", "show"]])).notes.join(" ")).toMatch(/c1: both edges/);
+    // A single hidden sector is a full circle with no second edge.
+    expect(pieLayout(pie([["5", "hidden"]])).notes.join(" ")).not.toMatch(/both edges/);
   });
   it("zero sectors have no click target", () => {
     expect(pieLayout(pie([["0", "show"], ["3", "show"]])).targets.map((t) => t.category)).toEqual([1]);

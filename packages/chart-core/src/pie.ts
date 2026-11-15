@@ -101,6 +101,8 @@ export function pieLayout(e: Envelope) {
   });
   const total = values.reduce((a, b) => a + b, 0);
   if (!issues.length && total <= 0) issues.push("The values must add up to more than 0.");
+  /** Every value is a number and the total is positive, so the angles are known. */
+  const valuesValid = !issues.length;
   const sectors: Sector[] = [];
   let at = 0;
   values.forEach((v, ci) => {
@@ -111,15 +113,15 @@ export function pieLayout(e: Envelope) {
   });
   if (total > 0 && sectors.some((x) => Math.abs((x.end - x.start) - Math.round(x.end - x.start)) > 1e-6))
     notes.push("Some sector angles are not whole numbers, so pupils can draw them only to the nearest degree.");
-  // A hidden sector whose neighbours are both drawn has both edges printed, so pupils only label it.
-  // The last sector ends at the starting radius, which always prints.
+  // A hidden sector with both edges printed on the pupil copy leaves pupils only a label to add.
+  // Edges print beside drawn sectors; the starting radius (0° and 360°) always prints.
+  const printed = [0, 360, ...sectors.slice(0, -1).filter((x, i) => s.values[i].show === "show" || s.values[i + 1].show === "show").map((x) => x.end)];
+  const prints = (angle: number) => printed.some((a) => Math.abs(a - angle) < 1e-6);
   sectors.forEach((x, i) => {
-    if (s.values[i].show !== "hidden" || x.value <= 0) return;
-    const before = i === 0 || s.values[i - 1].show === "show",
-      after = i === sectors.length - 1 || s.values[i + 1].show === "show";
-    if (before && after)
+    if (s.values[i].show !== "hidden" || x.value <= 0 || x.end - x.start >= 360 - 1e-6) return;
+    if (prints(x.start) && prints(x.end))
       notes.push(
-        `${d.categories[i] || `Category ${i + 1}`}: both edges of this hidden sector print, so pupils only label it. To leave it for pupils to draw, hide the sector after it too, or move it to the end of the table with the other hidden sectors.`,
+        `${d.categories[i] || `Category ${i + 1}`}: both edges of this hidden sector print, so pupils only label it. Hide a neighbouring sector too to leave it for pupils to draw.`,
       );
   });
 
@@ -208,7 +210,7 @@ export function pieLayout(e: Envelope) {
     const p = polar(r * 0.6, (x.start + x.end) / 2);
     return { series: 0, category: x.category, x: cx + p.x - 3, y: cy + p.y - 3, width: 6, height: 6 };
   });
-  return { width, height, cx, cy, r, total, sectors, edges, labels, targets, issues, notes };
+  return { width, height, cx, cy, r, total, valuesValid, sectors, edges, labels, targets, issues, notes };
 }
 
 export function pieSvg(e: Envelope): string {

@@ -209,7 +209,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     pie = d.kind === "pie",
     mark = pie ? "sector" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
-  const angles = pie ? pieLayout(e).sectors.map((x) => x.end - x.start) : [];
+  const pieAngles = pie ? pieLayout(e) : null,
+    angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
   /** A hidden sector's angle is a saved answer: the Angle column shows it only on the teacher copy. */
   const s0Hidden = (ci: number) => d.series[0].values[ci]?.show === "hidden";
 
@@ -745,7 +746,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         })}
                         {pie && (
                           <td className="ch-angle" aria-label={`Angle for ${c || `category ${ci + 1}`}`}>
-                            {angles[ci] === undefined || g.issues.length
+                            {angles[ci] === undefined
                               ? "—"
                               : s0Hidden(ci) && view === "pupil"
                                 ? "Hidden"
