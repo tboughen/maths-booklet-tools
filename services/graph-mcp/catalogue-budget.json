@@ -1,5 +1,5 @@
 {
-  "comment": "Byte budgets for what every conversation pays for when it loads the connector (improvement list M2). tools/list is sent once per conversation; diagram_capabilities and worksheet_capabilities are read before a family's first use. tools/list and per-tool sizes are UTF-8 bytes of the JSON a client receives; capabilities sizes are UTF-8 bytes of the result text a model reads (an error result fails the test). Measured 14 Nov 2026 on main 946e205: tools/list 72,220 bytes (create_worksheet 29,530, create_booklet 20,125); longest description create_booklet, 3,867 characters; capabilities text graph 58,016, bar-model 44,336, triangle 34,494, construction 27,591, cuboids 17,118, number-line 16,154, probability-tree 12,405, every other family under 12,000; worksheet_capabilities 4,812. Graph grew from 39,413 on 657aee1 with shaded inequality regions (#275), gradient triangles (#264) and house-style lines (#307); most of that is the operations schema repeating object shapes, a candidate for trimming. Each budget has about 5% headroom. Lower a budget when a change makes the catalogue smaller; raising one needs a reason in this comment and in the pull request. The family list (diagram_capabilities with no kind) gained topics and notDrawn for M89: 4,698 bytes on 14 Nov 2026.",
+  "comment": "Byte budgets for what every conversation pays for when it loads the connector (improvement list M2). tools/list is sent once per conversation; diagram_capabilities and worksheet_capabilities are read before a family's first use. tools/list and per-tool sizes are UTF-8 bytes of the JSON a client receives; capabilities sizes are UTF-8 bytes of the result text a model reads (an error result fails the test). Measured 14 Nov 2026 on main 946e205: tools/list 72,220 bytes (create_worksheet 29,530, create_booklet 20,125); longest description create_booklet, 3,867 characters; capabilities text graph 58,016, bar-model 44,336, triangle 34,494, construction 27,591, cuboids 17,118, number-line 16,154, probability-tree 12,405, every other family under 12,000; worksheet_capabilities 4,812. Graph grew from 39,413 on 657aee1 with shaded inequality regions (#275), gradient triangles (#264) and house-style lines (#307); most of that is the operations schema repeating object shapes, a candidate for trimming. Each budget has about 5% headroom. Lower a budget when a change makes the catalogue smaller; raising one needs a reason in this comment and in the pull request. The family list (diagram_capabilities with no kind) gained topics and notDrawn for M89: 4,698 bytes on 14 Nov 2026. Raised list to 5,300 on 15 Nov 2026 for the angles family (its summary and topics, about 400 bytes); every family adds a line here.",
   "toolsList": 76000,
   "perTool": {
     "default": 5000,
@@ -16,6 +16,6 @@
     "cuboids": 18000,
     "number-line": 17000,
     "worksheet": 5100,
-    "list": 4950
+    "list": 5300
   }
 }

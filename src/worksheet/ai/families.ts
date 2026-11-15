@@ -20,6 +20,7 @@ const CUES: Record<DiagramKind, RegExp> = {
   "probability-tree": /tree diagram|probabilit|combined event|independent|dependent|conditional/,
   "frequency-tree": /frequency tree/,
   "two-way-table": /two-way|two way/,
+  angles: /angles? on a (straight )?line|round a point|around a point|angles? at a point|vertically opposite|parallel lines|transversal|alternate|corresponding|co-interior|allied|interior angle|exterior angle|polygon|angle fact/,
   elevations: /plans? and elevation|elevation|plan view|isometric|\bplan\b/,
   construction: /construct|bisect|perpendicular|locus|loci|bearing|scale drawing|map scale|compass/,
   triangle: /triangle|pythagoras|trigonometr|\bsine\b|cosine|tangent|soh ?cah|angle|hypotenuse/,

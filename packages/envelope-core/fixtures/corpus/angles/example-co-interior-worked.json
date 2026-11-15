@@ -1,0 +1,40 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "parallel",
+   "count": 2,
+   "gapMm": 26,
+   "crossDeg": 65,
+   "arrows": 2
+  },
+  "angles": [
+   {
+    "id": "p1-lr",
+    "label": {
+     "state": "value",
+     "text": "115",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": true
+   },
+   {
+    "id": "p2-ur",
+    "label": {
+     "state": "symbol",
+     "text": "p",
+     "answer": "65"
+    },
+    "mark": "arc",
+    "shade": true
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 80,
+  "notToScale": true
+ }
+}

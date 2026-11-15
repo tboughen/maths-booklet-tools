@@ -67,8 +67,8 @@ test("overview search matches teaching vocabulary, handles no results and retain
   page,
 }) => {
   await page.goto("/tools");
-  await expect(page.locator(".overview-tool-card")).toHaveCount(15);
-  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model", "/tools/charts", "/tools/probability-tree", "/tools/frequency-tree", "/tools/construction", "/tools/elevations", "/tools/two-way-table"].sort());
+  await expect(page.locator(".overview-tool-card")).toHaveCount(16);
+  expect(await page.locator(".overview-tool-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")).sort())).toEqual([...tools.map(([tool]) => `/tools/${tool}`), "/tools/bar-model", "/tools/charts", "/tools/probability-tree", "/tools/frequency-tree", "/tools/construction", "/tools/elevations", "/tools/two-way-table", "/tools/angles"].sort());
   await page.getByRole("searchbox", { name: "Search tools" }).fill("sharing");
   await expect(page.locator(".overview-tool-card")).toHaveAttribute("href", "/tools/bar-model");
   await page

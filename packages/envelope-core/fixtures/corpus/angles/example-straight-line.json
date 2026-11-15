@@ -1,0 +1,63 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "straight-line",
+   "rays": [
+    48,
+    115
+   ]
+  },
+  "angles": [
+   {
+    "id": "s1",
+    "label": {
+     "state": "value",
+     "text": "48",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s2",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s3",
+    "label": {
+     "state": "value",
+     "text": "65",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [
+   {
+    "id": "left",
+    "text": "A"
+   },
+   {
+    "id": "o",
+    "text": "B"
+   },
+   {
+    "id": "right",
+    "text": "C"
+   }
+  ],
+  "turnDeg": 0,
+  "sizeMm": 70,
+  "notToScale": true
+ }
+}
