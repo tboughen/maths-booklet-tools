@@ -178,8 +178,17 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
   // Place ids name sides, heights and circle parts by position, so the selection lets go, for good, whenever the
-  // places change (by any edit, undo or redo). Moving or resizing keeps it.
-  const placesKey = useMemo(() => slots.map((x) => `${x.id}:${x.name}`).join(","), [slots]);
+  // places or the outline's form change (by any edit, undo or redo). Width and height stretches keep it.
+  const placesKey = useMemo(() => {
+    let form: string = s.type === "circle" ? s.part : "";
+    if (s.type === "polygon") {
+      const { width, height } = extent(s),
+        x0 = Math.min(...s.corners.map((c) => c.x)),
+        y0 = Math.min(...s.corners.map((c) => c.y));
+      form = s.corners.map((c) => `${Math.round(((c.x - x0) / width) * 100)},${Math.round(((c.y - y0) / height) * 100)}`).join(" ");
+    }
+    return `${form}|${slots.map((x) => `${x.id}:${x.name}`).join(",")}`;
+  }, [s, slots]);
   const [seenPlaces, setSeenPlaces] = useState(placesKey);
   if (seenPlaces !== placesKey) {
     setSeenPlaces(placesKey);
@@ -343,8 +352,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     return setShape((n) => Object.assign(n, stretch(n, axis === "width" ? k : 1, axis === "height" ? k : 1)), axis === "width" ? "change width" : "change height");
   }
   function applyPreset(p: Preset) {
-    // A new shape: its sides are not the ones the teacher picked.
-    if (setShape((n) => Object.assign(n, presetShape(p)), "change shape")) setSelected(null);
+    setShape((n) => Object.assign(n, presetShape(p)), "change shape");
   }
   function setHole(next: Hole | null) {
     setShape((n) => {

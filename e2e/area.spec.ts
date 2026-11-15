@@ -106,4 +106,12 @@ test("adding a corner splits the last side and drops its label; removing one dro
   await page.getByRole("button", { name: "Undo" }).click();
   await page.getByRole("button", { name: "Redo" }).click();
   await expect(card.getByRole("heading")).toHaveText("Label: side 2");
+  // A stretch keeps the selection; a new shape lets it go.
+  const width = page.getByRole("textbox", { name: "Shape width" });
+  await width.fill("80");
+  await width.press("Enter");
+  await expect.poll(async () => Math.max(...(await saved(page)).document.shape.corners.map((c: { x: number }) => c.x))).toBeGreaterThan(70);
+  await expect(card.getByRole("heading")).toHaveText("Label: side 2");
+  await page.getByRole("combobox", { name: "Start from a shape" }).selectOption("rectangle");
+  await expect(card.getByRole("heading")).toHaveText("Selected label");
 });
