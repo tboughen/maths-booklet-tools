@@ -699,10 +699,11 @@ export function GraphCanvas({
             })}
           </g>
           {!isSketch(document) && (
-          <g className="grid-lines">
+          <g className={gridDivisions(document) > 1 ? "grid-lines grid-lines--tiered" : "grid-lines"}>
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
               <line
                 key={`x-${index}`}
+                className={(index - document.axes.x.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft + index * layout.square}
                 y1={layout.plotTop}
                 x2={layout.plotLeft + index * layout.square}
@@ -712,6 +713,7 @@ export function GraphCanvas({
             {Array.from({ length: verticalSquares + 1 }, (_, index) => (
               <line
                 key={`y-${index}`}
+                className={(verticalSquares - index - document.axes.y.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft}
                 y1={layout.plotTop + index * layout.square}
                 x2={layout.plotRight}
