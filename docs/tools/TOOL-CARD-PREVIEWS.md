@@ -1,6 +1,6 @@
-# All tools card previews
+# Diagram builder previews
 
-Every new MathsDock booklet tool should have both its small Lucide icon and a representative output image on the **All tools** page (`/tools`). The icon supports recognition; the image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
+Every new MathsDock diagram tool needs a representative output image on the **Diagram builder** page (`/tools`), and a small Lucide icon for the tool bar. The image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
 
 ## Choose an honest example
 
@@ -42,20 +42,18 @@ preview: {
 
 The static import lets Vite include and fingerprint the SVG for the deployment's base path. Do not depend on an expiring connector download or a developer's local file path.
 
-Reuse `Overview.tsx` and the `.overview-tool-*` styles in `src/site/site.css`:
+The Diagram builder page (`src/site/DiagramBuilder.tsx`, styles in `src/site/diagram-builder.css`) shows every tool as a picture tile, grouped by GCSE strand, with Pictures, Compact and Topics views and a Favourite tools panel:
 
-- Keep the icon, title, description and Open link on the left; give the image roughly 40% of the card on the right.
-- Keep two cards per row on wide screens. The original layout uses one column of cards at 900 px and below, then places the image beneath the text at 480 px and below.
-- Reserve image space and use `object-fit: contain` so graphs and tables are neither stretched nor clipped. Centre naturally shorter artwork such as the ratio table within that space.
-- Use one ordinary link for the whole card, including the image. Preserve keyboard focus, modified-click behaviour, existing routes and the Open label. Add concise alternative text describing the sample output; keep the icon decorative to assistive technology.
-- Scope these styles to the booklet-tool cards so Home cards and editor exports retain their existing layout.
+- Add the tool's strand, GCSE topics and search words to `src/site/toolCatalogue.ts`; it fails to compile without them. Give an `added` date to show a New badge for 30 days.
+- Every preview sits in the same 4:3 white frame with `object-fit: contain`, so it is never cropped or stretched. Check the picture reads well in all three views and at 375 px; favour an example that is roughly 4:3 or square (a very wide example shrinks to a thin strip).
+- The whole tile is one ordinary link named "Open <tool name>". Keep concise alternative text describing the sample output.
 
 ![Original published All tools layout](../tool-card-preview-examples/all-tools-desktop.png)
 
 ## Acceptance and release
 
 - [ ] The SVG is actual tool output; the saved example reopens and its mathematics and pupil blanks are correct.
-- [ ] The icon remains visible, and the sample is recognisable at its real card size.
+- [ ] The sample is recognisable at its real tile size in Pictures, Compact and Topics views.
 - [ ] Alternative text is meaningful; keyboard focus is visible; clicking the image or text opens the correct tool.
 - [ ] Desktop, tablet, 375 px and 320 px layouts have legible text, complete artwork and no horizontal page overflow. Review the longest tool name alongside the other cards.
 - [ ] Navigation away and back still preserves existing tool work. Home cards remain unchanged.

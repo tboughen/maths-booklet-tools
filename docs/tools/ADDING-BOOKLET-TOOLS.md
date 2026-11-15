@@ -10,7 +10,7 @@ The website has two main sections: **Question bank** and **Booklet tools**. Grap
 
 Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, Lucide icon, React component and `preview: { src, alt }`. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
 
-Generate a real sample output and import its SVG from `src/assets/tool-previews/`. Keep the icon and use the shared card's preview area on the right, with its narrow-screen stacking. Follow [All tools card previews](TOOL-CARD-PREVIEWS.md) for generation, saved examples, implementation history and acceptance checks. That page also explains how to handle a checkout predating the shared preview-card implementation.
+Generate a real sample output and import its SVG from `src/assets/tool-previews/`, then add the tool's strand, GCSE topics and search words to `src/site/toolCatalogue.ts` so it appears on the Diagram builder page. Follow [Diagram builder previews](TOOL-CARD-PREVIEWS.md) for generation, saved examples and acceptance checks.
 
 Keep existing IDs stable: the ID is the tool's address. Every page has its own path: `/` is the site overview, `/tools` the tool overview, `/tools/<id>` each editor (for example `/tools/graph`), `/question-bank` and `/assessment-follow-up`. Add the new ID to `toolIds` in `src/site/routes.ts` as well; the registry fails to type-check if the two lists differ. Build links with `pageHref()` rather than writing paths by hand, so they respect the site base path. Unknown addresses show the not-found page. Old `?tool=<id>` links are upgraded to the path form on load (`src/site/upgradeAddress.ts`), so saved links, booklets and MCP editor links keep working.
 

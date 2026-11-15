@@ -1,0 +1,98 @@
+/* Diagram builder: picture tiles grouped by GCSE strand, a favourites panel and three views. */
+.diagram-builder { --db-navy: #213c59; --db-paper: #ffffff; }
+.tool-controls { display: grid; gap: 10px; margin-bottom: 8px; }
+.diagram-builder .tool-search-row { flex-wrap: wrap; margin: 0; }
+.diagram-builder .tool-search label { position: relative; }
+.diagram-builder .tool-search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 3px; font-size: 11px; font-weight: 600; line-height: 1.4; color: var(--muted); pointer-events: none; }
+.diagram-builder .tool-search-row .house-style-menu { margin-left: auto; }
+.tool-views { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 5px; overflow: hidden; background: white; }
+.tool-views button { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 12px; border: 0; background: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tool-views button + button { border-left: 1px solid var(--line); }
+.tool-views button[aria-pressed="true"] { background: var(--blue-soft); color: #1d518c; }
+.tool-strands { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.tool-strands button { flex: 0 0 auto; padding: 5px 12px; border: 1px solid var(--line-strong); border-radius: 99px; background: white; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.tool-strands small { margin-left: 5px; font-weight: 500; color: var(--muted); }
+.tool-strands button[aria-pressed="true"] { background: var(--db-navy); border-color: var(--db-navy); color: white; }
+.tool-strands button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+.diagram-builder .tool-search-status { margin: 0; }
+
+.tool-sections { display: grid; gap: 40px; margin-top: 12px; }
+.tool-strand { display: grid; gap: 14px; padding-top: 18px; border-top: 2px solid var(--line); }
+.tool-sections h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 0; font: 600 21px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--db-navy); }
+.tool-sections h2 small { font-family: Inter, "Segoe UI", system-ui, sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); }
+
+/* Picture tiles. Every preview sits in the same 4:3 white frame and is never cropped. */
+.tool-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.is-compact .tool-grid, .tool-favourites .tool-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tool-tile { position: relative; min-width: 0; }
+.tool-tile .overview-tool-card { display: grid; grid-template-rows: auto 1fr; height: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: white; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.tool-tile .overview-tool-card:hover, .tool-tile .overview-tool-card:focus-visible { border-color: #1d518c; box-shadow: 0 6px 18px rgba(23,43,77,.14); transform: translateY(-2px); }
+.tool-picture { display: block; aspect-ratio: 4 / 3; padding: 10px; background: var(--db-paper); border-bottom: 1px solid var(--line); }
+.tool-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.tool-tile-text { display: grid; align-content: start; gap: 4px; padding: 10px 12px 12px; min-width: 0; }
+.tool-tile-text h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; color: var(--db-navy); }
+.tool-tile-description { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.tool-match { font-size: 11.5px; font-weight: 600; color: #1d518c; }
+.tool-new { padding: 1px 5px; border-radius: 3px; background: #e4f3ea; color: #1f6b44; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.is-compact .tool-tile-description, .tool-favourites .tool-tile-description { display: none; }
+.is-compact .tool-tile-text, .tool-favourites .tool-tile-text { padding: 8px 10px 10px; }
+.is-compact .tool-tile-text h3, .tool-favourites .tool-tile-text h3 { font-size: 13px; }
+.tool-tile-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+.tool-tile:hover .tool-tile-actions, .tool-tile:focus-within .tool-tile-actions, .tool-tile-actions:has(.is-favourite) { opacity: 1; }
+.tool-icon-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; background: white; color: var(--db-navy); cursor: pointer; }
+.tool-icon-button.is-favourite { border-color: #b7791f; color: #b7791f; }
+.tool-icon-button.is-favourite svg { fill: currentColor; }
+
+/* Favourite tools: a slim bar until something is starred, then a navy panel unlike the strands. */
+.tool-favourites { display: grid; gap: 14px; padding: 16px 18px 18px; border-radius: 10px; background: var(--db-navy); color: white; }
+.tool-favourites h2, .tool-favourites h2 small { color: white; font-size: 17px; }
+.tool-favourites h2 small { font-size: 13px; color: #c3d3e6; }
+.tool-favourites h2 svg { align-self: center; fill: #f3c552; stroke: #f3c552; }
+.tool-favourites.is-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; }
+.tool-favourites.is-empty h2 { font-size: 15px; }
+.tool-favourites.is-empty p { margin: 0; font-size: 13px; color: #c3d3e6; }
+.tool-favourites .overview-tool-card { border-color: transparent; background: #2c4c6f; }
+.tool-favourites .overview-tool-card:hover, .tool-favourites .overview-tool-card:focus-visible { border-color: white; }
+.tool-favourites .tool-picture { border-bottom: 0; }
+.tool-favourites .tool-tile-text h3 { color: white; }
+.tool-favourites .tool-icon-button { border-color: white; }
+
+/* Topics view: each picture with the GCSE topics the tool covers. */
+.tool-topic-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+.tool-topic-row { display: grid; grid-template-columns: 128px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: white; }
+.tool-topic-row:hover, .tool-topic-row:focus-within { border-color: #1d518c; }
+.tool-topic-row .tool-picture { align-self: start; padding: 6px; border-bottom: 0; border-right: 1px solid var(--line); }
+.tool-topic-text { display: grid; align-content: start; gap: 8px; padding: 10px 12px; min-width: 0; }
+.tool-topic-text h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; }
+.tool-topic-text h3 a { color: var(--db-navy); text-decoration: underline; text-decoration-color: transparent; }
+.tool-topic-text h3 a:hover { text-decoration-color: currentColor; }
+.tool-topics { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.tool-topics button { padding: 2px 9px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); font-size: 12px; cursor: pointer; }
+.tool-topics button:hover { border-color: #1d518c; color: #1d518c; }
+.tool-topics button.is-match { border-color: #1d518c; background: var(--blue-soft); color: #1d518c; font-weight: 600; }
+
+/* Preview dialog */
+.tool-peek { width: min(760px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: 10px; background: white; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.tool-peek::backdrop { background: rgba(15,25,40,.45); }
+.tool-peek-body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.tool-peek .tool-picture { padding: 18px; border-bottom: 0; border-right: 1px solid var(--line); }
+.tool-peek-text { display: grid; align-content: start; gap: 12px; padding: 20px; }
+.tool-peek-text h2 { margin: 0; font: 600 19px/1.25 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--db-navy); }
+.tool-peek-text p { margin: 0; color: var(--muted); }
+.tool-peek-open { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; border-radius: 5px; background: #1d518c; color: white; font-weight: 600; text-decoration: none; }
+.tool-peek-close { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 5px; background: white; font-weight: 600; cursor: pointer; }
+
+@media (max-width: 640px) {
+  .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .is-compact .tool-grid, .tool-favourites .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tool-tile-description { display: none; }
+  .diagram-builder .tool-search kbd { display: none; }
+  .tool-topic-grid { grid-template-columns: 1fr; }
+  .tool-topic-row { grid-template-columns: 92px minmax(0, 1fr); }
+  .tool-peek-body { grid-template-columns: 1fr; }
+  .tool-peek .tool-picture { border-right: 0; border-bottom: 1px solid var(--line); }
+  .tool-sections h2 { font-size: 19px; }
+}
+@media (hover: none) { .tool-tile-actions { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tool-tile .overview-tool-card, .tool-tile-actions { transition: none; } .tool-tile .overview-tool-card:hover { transform: none; } }
+@media print { .tool-controls, .tool-tile-actions { display: none; } }

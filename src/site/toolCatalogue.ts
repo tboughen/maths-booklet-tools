@@ -1,0 +1,65 @@
+/**
+ * How the Diagram builder page groups, describes and searches the diagram tools. Every tool in
+ * the registry needs a strand, its GCSE topics and search words; this fails to compile otherwise.
+ */
+import type { ToolId } from "./routes";
+
+export const strands = [
+  { id: "number", name: "Number and algebra" },
+  { id: "graphs", name: "Graphs" },
+  { id: "geometry", name: "Geometry and measures" },
+  { id: "statistics", name: "Statistics and probability" },
+] as const;
+export type StrandId = (typeof strands)[number]["id"];
+
+type Entry = {
+  strand: StrandId;
+  /** GCSE topics the tool covers, shown in the Topics view; clicking one searches for it. */
+  topics: readonly string[];
+  /** Extra teaching words that should find the tool. */
+  keywords: string;
+  /** The day the tool first went on the site; it shows a New badge for 30 days. */
+  added?: string;
+};
+
+export const catalogue: Record<ToolId, Entry> = {
+  "bar-model": { strand: "number", topics: ["Sharing in a ratio", "Fractions of amounts", "Percentages", "Part-whole", "Comparison", "Forming equations"], keywords: "ratio sharing fractions amount comparison part whole" },
+  "expanding-factorising": { strand: "number", topics: ["Expanding single brackets", "Expanding double brackets", "Factorising", "Factorising quadratics", "Grid method"], keywords: "algebra brackets multiplication factorise factorize" },
+  "ratio-table": { strand: "number", topics: ["Ratio", "Direct proportion", "Unitary method", "Recipes", "Scaling", "Best buys"], keywords: "proportion scaling unitary fractions" },
+  "number-line": { strand: "number", topics: ["Inequalities", "Integer solutions", "Negative numbers", "Ordering numbers", "Error intervals"], keywords: "inequality inequalities interval ray" },
+  graph: { strand: "graphs", topics: ["Plotting coordinates", "Straight-line graphs", "Gradient", "y = mx + c", "Simultaneous equations"], keywords: "coordinate straight line points axes grid" },
+  "value-table-graph": { strand: "graphs", topics: ["Tables of values", "Quadratic graphs", "Roots and turning points", "Graph paper"], keywords: "table values quadratic parabola plotting" },
+  triangle: { strand: "geometry", topics: ["Pythagoras", "SOHCAHTOA", "Sine rule", "Cosine rule", "Area ½ab sin C"], keywords: "pythagoras trigonometry sine cosine area angles hypotenuse" },
+  angles: { strand: "geometry", topics: ["Angles on a straight line", "Angles round a point", "Vertically opposite angles", "Parallel lines", "Interior and exterior angles"], keywords: "angles straight line point vertically opposite parallel transversal alternate corresponding co-interior polygon interior exterior geometry G3", added: "2026-11-15" },
+  area: { strand: "geometry", topics: ["Area of rectangles", "Triangles and trapeziums", "Compound shapes", "Circles", "Sectors and arcs", "Perimeter"], keywords: "area perimeter compound shape rectilinear rectangle triangle parallelogram trapezium circle circumference semicircle quarter sector arc radius diameter pi shaded frame counting squares G16 G17 G18", added: "2026-11-15" },
+  cuboids: { strand: "geometry", topics: ["Volume", "Surface area", "Counting cubes", "Layers"], keywords: "volume surface area cubes layers" },
+  construction: { strand: "geometry", topics: ["Perpendicular bisector", "Angle bisector", "Loci", "Scale drawings", "Bearings"], keywords: "constructions loci locus perpendicular bisector angle bisector compasses ruler scale drawing map bearings north GM8", added: "2026-11-14" },
+  elevations: { strand: "geometry", topics: ["Plans", "Front elevation", "Side elevation", "Isometric drawing", "3D solids"], keywords: "plans elevations plan front side isometric cubes 3D solids views GM8", added: "2026-11-14" },
+  charts: { strand: "statistics", topics: ["Bar charts", "Dual bar charts", "Pie charts", "Pictograms", "Line charts", "Scatter graphs"], keywords: "statistics bar chart dual comparative composite stacked vertical line chart frequency data pie pictogram scatter correlation" },
+  venn: { strand: "statistics", topics: ["Sets", "Intersection and union", "Shading regions", "Venn probability"], keywords: "sets probability shading intersection union" },
+  "probability-tree": { strand: "statistics", topics: ["Tree diagrams", "Independent events", "With and without replacement", "Conditional probability"], keywords: "probability tree diagram branches replacement independent dependent conditional given that" },
+  "frequency-tree": { strand: "statistics", topics: ["Frequency trees", "Counts to probability"], keywords: "frequency tree probability counts groups statistics" },
+  "two-way-table": { strand: "statistics", topics: ["Two-way tables", "Totals", "Probability from tables"], keywords: "two-way two way table totals frequency probability statistics fractions" },
+};
+
+export type ToolText = { id: ToolId; name: string; description: string };
+
+/** Whether a tool matches every search word, and which topic or word to name when the match
+ * is not in the tool's own name. */
+export function searchTool(tool: ToolText, query: string): { found: boolean; matched: string } {
+  const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return { found: true, matched: "" };
+  const entry = catalogue[tool.id];
+  const text = `${tool.name} ${tool.description} ${entry.keywords} ${entry.topics.join(" ")}`.toLocaleLowerCase();
+  if (!words.every((word) => text.includes(word))) return { found: false, matched: "" };
+  const name = tool.name.toLocaleLowerCase();
+  if (words.every((word) => name.includes(word))) return { found: true, matched: "" };
+  const topic = entry.topics.find((t) => words.some((word) => t.toLocaleLowerCase().includes(word)));
+  const keyword = entry.keywords.split(" ").find((k) => words.some((word) => k.toLocaleLowerCase().includes(word)));
+  return { found: true, matched: topic ?? keyword ?? "" };
+}
+
+export function isNew(id: ToolId, today = new Date()): boolean {
+  const added = catalogue[id].added;
+  return !!added && today.getTime() - Date.parse(added) < 30 * 86_400_000;
+}

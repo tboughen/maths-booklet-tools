@@ -28,7 +28,7 @@ qualified repository checkout; a plugin does not bundle the release scripts.
 - Start from what the teacher needs to produce and what the pupil should see, including print dimensions and deliberate blanks.
 - Use the shared MathsDock shell, styles and tool registry. Make common values and labels editable on the diagram, with labelled keyboard alternatives and contextual settings.
 - Reuse EditorToolbar for common utilities. Put specialist modes and settings in the right-hand inspector, retaining useful direct value editing and paired structure controls beside the resource.
-- Include an actual output preview on every new tool's All tools card while preserving its small icon. Follow [All tools card previews](../../../docs/tools/TOOL-CARD-PREVIEWS.md) for editable examples, renderer-derived SVGs, registry integration and responsive acceptance checks.
+- Include an actual output preview on every new tool's Diagram builder tile, and give the tool a strand and GCSE topics in `src/site/toolCatalogue.ts`. Follow [Diagram builder previews](../../../docs/tools/TOOL-CARD-PREVIEWS.md) for editable examples, renderer-derived SVGs and acceptance checks.
 - Keep the white resource rectangle clean for snipping; visible utilities belong beyond it in blue space, aligned with their effect.
 - Include editable examples linked to verified past-paper questions wherever suitable sources exist, preserving pupil blanks and making worked variants explicit.
 - Put image-only Copy image first, keeping Copy for Word for physical-size insertion and a download fallback.
