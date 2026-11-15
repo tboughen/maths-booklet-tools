@@ -72,7 +72,7 @@ export interface DraftAutosaveOptions {
  * which resolves recovery data once the stored draft is unchanged since it was protected.
  */
 export function useDraftAutosave({ key, text, paused, onConflict, opened }: DraftAutosaveOptions) {
-  const [saveState, setSaveState] = useState(SAVED);
+  const [saveState, setSaveState] = useState(paused ? NOT_SAVED : SAVED);
   const expected = useRef<string | null>(opened ?? null),
     guarded = useRef(opened !== undefined);
   const conflict = useRef(onConflict);
