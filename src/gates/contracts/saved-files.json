@@ -4625,7 +4625,7 @@
               "0",
               "O"
             ],
-            "description": "O prints an italic O at the origin, as Edexcel papers do. Default 0."
+            "description": "The origin mark: an italic O, as Edexcel papers print it (default), or 0."
           },
           "lines": {
             "type": "string",

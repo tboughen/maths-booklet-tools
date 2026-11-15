@@ -95,13 +95,14 @@ describe("print SVG export", () => {
     const metrics = getExportMetrics(cloneDefaultDocument());
     const axisLines = [...svg.matchAll(/<line x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)" marker-end="url\(#axis-arrow\)"\/>/g)];
 
-    expect(svg).toContain('class="grid-lines" stroke="#a9abaa" stroke-width="5.292"');
-    expect(svg).toContain('class="graph-axes" stroke="#1f2224" stroke-width="7.056"');
+    expect(svg).toContain('class="grid-lines" stroke="#a9abaa" stroke-width="3.528"');
+    expect(svg).toContain('class="graph-axes" stroke="#1f2224" stroke-width="5.292"');
     expect(svg).toContain("font-family=\"'Cambria Math', Cambria, 'Times New Roman', serif\"");
     expect(svg).toContain('font-size="42.333"');
     expect(svg.match(/class="axis-number/g)).toHaveLength(21);
     expect(svg).toContain('class="axis-number axis-number-origin"');
-    expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*transform="[^"]*skewX\(-12\)[^"]*"[^>]*>0<\/text>/);
+    // The origin prints an italic O by default, as Edexcel papers do.
+    expect(svg).toMatch(/axis-number-origin[^]*?<text[^>]*>𝑂<\/text>/);
     expect(svg.match(/class="axis-number[^]*?<rect[^>]*fill="#ffffff"/g)).toHaveLength(21);
     expect(svg).toContain(">−5</text>");
     expect(Number(axisLines[0]?.[3]) - metrics.layout.plotRight).toBeCloseTo(23.333, 3);

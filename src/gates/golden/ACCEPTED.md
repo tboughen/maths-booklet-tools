@@ -542,6 +542,60 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - charts: chart-scatter-plot (worked): png600 3187x2395 -> 3907x3243
 - charts: chart-scatter-plot (worked): pixels e85f0c821daeeb73 -> 12683f5f6b01c105
 
+## 2026-11-15: Exam parity: Edexcel axis and grid line weights in the Graph tool and the value graph
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg 57e383be780c3676 -> bb6a24aebb1bd375
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels 8f04b786f07e2f75 -> b00f5703b13463c2
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg b18cf14f655d949d -> aae596df8fd18b82
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels dc83af7d19c429cd -> 2d102c4272954f09
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg b302fb81856bd9c3 -> 92c8b17e6313594f
+- graph: graph-1MA1_NOV_2017_3F_Q13: pixels b1e3fd71cbaea7be -> 6b7b0a1fb0d5953e
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 0b621984c8518128 -> a7ed04b26376c025
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels ed8ac3c567240f31 -> 04b028771a7be3ae
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 48df159e1eaa672b -> 35614de6117042cb
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels 5a2e2773015f1b66 -> ac8d35ca01ff53c9
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg d7c6def019a98198 -> 0e8cdcd13edcf781
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 68ad6c047e5303ba -> 4ad9169e8a370b33
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5: svg 513612a887963c61 -> 91887f76e7e55555
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5: pixels 5d361414d6270d49 -> 6d05475760d671f1
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked): svg 9f64c19b4b6b4ed6 -> 40bbefca8a685f34
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked): pixels 02a0239df428b47f -> bbc81336503f25ad
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13: svg b48362984ef02bdb -> 0bca156862e9d770
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13: pixels ef8d6afe91b6f317 -> 64f6881dae2c03aa
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked): svg d3d154a3f12ee20b -> 00a5a28da98605c8
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked): pixels 2908e00a981c8195 -> e0a5e6f55fef3439
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7: svg 9c18032360178a13 -> 875f26c54b7d579b
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7: pixels 1ba8996705ef9ba7 -> ffdcf2785d4a8d7e
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked): svg 41b426341c083e2b -> 9d1d78f4c8d9d14a
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked): pixels eb87a77a2d9db346 -> 2bbb31102eea1b6a
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3: svg 4aabbaa2c771ddbd -> 538e9b8d3374e087
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3: pixels 68aa81c36f06a9f4 -> ba1f802676728e5e
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked): svg 26f0c0537442b62a -> 112ebb5febb48cb3
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked): pixels fc75288b96314112 -> 146290897cb3d5db
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4: svg 5a99cd13ebb46526 -> 83e65bf042eb02aa
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4: pixels dc2e101a84af5008 -> 524185922ac40e4d
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked): svg 7ef868d8f57d3b35 -> 834eacff16764842
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked): pixels b337318eec3ffb34 -> 263df6b79cfb3f3a
+- plotting quadratics: quadratic-fractions: svg cf36101557f9172e -> 9dc00e4a104bf8e5
+- plotting quadratics: quadratic-fractions: pixels 552d38ee876f26eb -> fc1728774a47f6f9
+- plotting quadratics: quadratic-fractions (worked): svg 27d8dde9e4449e9c -> ca50c7501a6b5fad
+- plotting quadratics: quadratic-fractions (worked): pixels 318a7273a4a13565 -> 84d999b102f7811d
+
+## 2026-11-15: Exam parity: graphs print an italic O at the origin by default, as Edexcel papers do
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg bb6a24aebb1bd375 -> db54a06e0ac7dcf8
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels b00f5703b13463c2 -> 2b18446b7ec3ebef
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg aae596df8fd18b82 -> 472d2466e790793c
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels 2d102c4272954f09 -> 86dc7884d2f4fe9c
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 92c8b17e6313594f -> 145cb8c3c0b2d30a
+- graph: graph-1MA1_NOV_2017_3F_Q13: pixels 6b7b0a1fb0d5953e -> 9fb33ec5ac4fe5fb
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg a7ed04b26376c025 -> 871ac49825d066a6
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels 04b028771a7be3ae -> 1afa69c158c6d99d
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 35614de6117042cb -> 46fbf64b172c8dd9
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels ac8d35ca01ff53c9 -> 3b83e69e52882db4
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 0e8cdcd13edcf781 -> 6471b80a1d3e244f
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 4ad9169e8a370b33 -> 648a83f51c414026
+
 ## 2026-11-15: Angle diagrams extras: three new gallery examples (Z shape, two transversals, polygons meeting), pupil and worked (new outputs only)
 
 - angle diagrams: angles-z-shape: added
