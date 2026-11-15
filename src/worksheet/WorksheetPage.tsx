@@ -173,7 +173,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Worksheets" description="Make an A3 worksheet from a learning objective with your own AI key, or open a worksheet file. Change its wording and answer spaces, and download the A3 PDFs.">
+        <PageHeading title="Worksheet builder" description="Make an A3 worksheet from a learning objective with your own AI key, or open a worksheet file. Change its wording and answer spaces, and download the A3 PDFs.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">

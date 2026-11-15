@@ -1,6 +1,6 @@
 # Maths Booklet Tools
 
-The website uses **Maths Tools** as its shared identity. **Question bank** and **Booklet tools** are its two main sections; Graph tool and Ratio tables belong to Booklet tools. The home overview is at `/`, the tools overview at `/tools`, and each tool at `/tools/<id>`. Old `?tool=` links still open the right page.
+The website uses **MathsDock** as its shared identity. Its main pages, in order, are **Question bank**, **Paper builder**, **Assessment follow-up**, **Diagram builder** (the diagram tools, such as Graph tool and Ratio tables), **Worksheet builder** and **Booklet builder**. The home overview is at `/`, the Diagram builder at `/tools`, each diagram tool at `/tools/<id>`, the Worksheet builder at `/worksheets` and the Booklet builder at `/booklets`.
 
 For new tools, start with [Creating MathsDock tools](docs/tools/TOOL-CREATION-GUIDE.md) and the [new tool brief](docs/tools/TOOL-BRIEF-TEMPLATE.md). The guide turns the evolution of Graph tool and Ratio tables into practical design, teaching, export and compatibility principles, with [linked development examples](docs/tools/TOOL-EVOLUTION.md).
 

@@ -54,7 +54,7 @@ test("worked solutions are deliberately revealed, mutually exclusive and scoped 
   await expect(page.locator(".qb-view-info")).toContainText("Worked solution");
   await expect(page.getByRole("img",{name:/Synthetic Q1 worked solution, original page 8/})).toBeVisible();
   const sections=page.getByRole("navigation",{name:"Main sections",exact:true});
-  await sections.getByRole("link",{name:"Booklet tools",exact:true}).click();
+  await sections.getByRole("link",{name:"Diagram builder",exact:true}).click();
   await sections.getByRole("link",{name:"Question bank",exact:true}).click();
   await expect(page.getByRole("button",{name:"Show worked solution",exact:true})).toHaveAttribute("aria-pressed","false");
   await expect(page.getByRole("img",{name:"Synthetic printed question",exact:true})).toBeVisible();

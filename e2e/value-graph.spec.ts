@@ -276,11 +276,11 @@ test("zero and answer lines survive direct editing, undo, navigation and reload"
     value: "0",
   });
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Graph tool", exact: true })
     .click();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Plotting quadratics", exact: true })
     .click();
   expect((await stored(page)).document.columns[1].y.value).toBe("0");
@@ -305,11 +305,11 @@ test("invalid input survives navigation, blocks export and cancels without chang
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Graph tool", exact: true })
     .click();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Plotting quadratics", exact: true })
     .click();
   await expect(field).toHaveValue("1/0");

@@ -712,7 +712,7 @@ test("All tools uses the actual renderer preview and navigation retains triangle
   expect(canonical(await saved(page))).toBe(before);
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "Booklet tools", exact: true }),
+    page.getByRole("heading", { name: "Diagram builder", exact: true }),
   ).toBeVisible();
   await page.goForward();
   await expect(

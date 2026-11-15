@@ -6,7 +6,7 @@ const graphKey = "maths-booklet-tools:graph-envelope:v1";
 const ratioKey = "maths-booklet-tools:ratio-table-envelope:v1";
 const current = (page: Page) => page.locator(".site-page:not([hidden])");
 const tools = (page: Page) =>
-  page.getByRole("navigation", { name: "Booklet tools", exact: true });
+  page.getByRole("navigation", { name: "Diagram builder", exact: true });
 const sections = (page: Page) =>
   page.getByRole("navigation", { name: "Main sections" });
 
@@ -24,7 +24,7 @@ test("the wide header does not repeat the current tool's name beside the section
   await page.goto("/tools/graph");
   await expect(page.locator(".site-tool-navigation [aria-current=page]")).toContainText("Graph tool");
   await expect(page.locator(".site-navigation-row")).not.toContainText("Graph tool");
-  await expect(page.locator(".site-navigation-row").getByRole("link", { name: "Booklet tools", exact: true })).toHaveAttribute("aria-current", "true");
+  await expect(page.locator(".site-navigation-row").getByRole("link", { name: "Diagram builder", exact: true })).toHaveAttribute("aria-current", "true");
 });
 
 test("home has one visible page heading and navigation focuses it", async ({
@@ -44,7 +44,7 @@ test("the booklet tool row shows when it scrolls and keeps the current tool in v
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const row = page.getByRole("navigation", { name: "Booklet tools" });
+  const row = page.getByRole("navigation", { name: "Diagram builder" });
   await page.goto("/tools/bar-model");
   await expect(row).toHaveClass(/has-more-end/);
   await expect(row).not.toHaveClass(/has-more-start/);
@@ -93,7 +93,7 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
   await current(page)
-    .getByRole("link", { name: /Explore booklet tools/ })
+    .getByRole("link", { name: /Make a diagram/ })
     .click();
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
@@ -107,10 +107,10 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
     page.getByRole("main", { name: "Home", exact: true }),
   ).toBeVisible();
   await current(page)
-    .getByRole("link", { name: /Explore booklet tools/ })
+    .getByRole("link", { name: /Make a diagram/ })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Booklet tools", exact: true }),
+    page.getByRole("heading", { name: "Diagram builder", exact: true }),
   ).toBeVisible();
   await current(page)
     .getByRole("link", { name: /Open Ratio tables/ })
@@ -121,7 +121,7 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
   ).toHaveAttribute("aria-current", "page");
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "Booklet tools", exact: true }),
+    page.getByRole("heading", { name: "Diagram builder", exact: true }),
   ).toBeVisible();
   await page.goForward();
   await expect(
@@ -231,7 +231,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
     .locator(".qb-source-heading strong")
     .innerText();
   await sections(page)
-    .getByRole("link", { name: "Booklet tools", exact: true })
+    .getByRole("link", { name: "Diagram builder", exact: true })
     .click();
   await sections(page)
     .getByRole("link", { name: "Question bank", exact: true })
@@ -254,7 +254,7 @@ test("Question bank keeps filters, question, scheme and selection through sectio
   ).toBeVisible();
   await page.goBack();
   await expect(
-    page.getByRole("heading", { name: "Booklet tools", exact: true }),
+    page.getByRole("heading", { name: "Diagram builder", exact: true }),
   ).toBeVisible();
   await page.goForward();
   await expect(page).toHaveURL(bankUrl);
@@ -298,12 +298,12 @@ test("a late bank response cannot hijack another page or lock its scrolling", as
   });
   await page.goto("/question-bank");
   await sections(page)
-    .getByRole("link", { name: "Booklet tools", exact: true })
+    .getByRole("link", { name: "Diagram builder", exact: true })
     .click();
   release();
   await expect(page).toHaveURL(/\/tools$/);
   await expect(
-    page.getByRole("heading", { name: "Booklet tools", exact: true }),
+    page.getByRole("heading", { name: "Diagram builder", exact: true }),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -420,7 +420,7 @@ test("every page has its own address; old ?tool= links and unknown addresses are
   await page.goto("/?tool=ratio-table");
   await expect(page).toHaveURL(/\/tools\/ratio-table$/);
   await page
-    .getByRole("navigation", { name: "Booklet tools" })
+    .getByRole("navigation", { name: "Diagram builder" })
     .getByRole("link", { name: "Graph tool" })
     .click();
   await expect(page).toHaveURL(/\/tools\/graph$/);

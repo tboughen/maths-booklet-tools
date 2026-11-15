@@ -56,9 +56,9 @@ export const siteSections = [
   { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: BookOpen, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
   { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: FileSpreadsheet, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
-  { id: "worksheets", name: "Worksheets", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
-  { id: "booklets", name: "Booklets", href: pageHref("booklets"), icon: BookOpenCheck, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
-  { id: "booklet-tools", name: "Booklet tools", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Explore booklet tools" },
+  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Make a diagram" },
+  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
+  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookOpenCheck, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
 ] as const;
 export type SectionId = PageId | "paper-builder";
 export function readSection(where: { pathname: string; search: string } = location): SectionId {
@@ -70,11 +70,11 @@ export function sectionName(section: SectionId): string {
 }
 export function pageName(id: PageId): string {
   if (id === "home") return "Home";
-  if (id === "booklet-tools") return "Booklet tools";
+  if (id === "booklet-tools") return "Diagram builder";
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
-  if (id === "worksheets") return "Worksheets";
-  if (id === "booklets") return "Booklets";
+  if (id === "worksheets") return "Worksheet builder";
+  if (id === "booklets") return "Booklet builder";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
 }

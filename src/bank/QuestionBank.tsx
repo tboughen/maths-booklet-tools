@@ -225,15 +225,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
-      {!topicsMode&&<><div className="qb-page-search">
-      <form onSubmit={submitSearch} className="qb-search-form">
-        <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
-        <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
-        <button className="qb-button qb-primary" type="submit">Find</button>
-      </form>
-      <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
-      </div>
-      <div className="qb-toolbar">
+      {!topicsMode&&<><div className="qb-toolbar">
         <div className="qb-topic">
           {route.code&&<span className="qb-code">{route.code}</span>}
           <div><h1 tabIndex={-1}>{topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{topic?`${formatCount(topic.bankCount)} matched in full bank · ${formatCount(topic.availableCount??topic.pilotCount)} ${catalogue?.publication?"available":"in this pilot"}`:catalogue?.publication?.description||(catalogue?`${formatCount(catalogue.questions.length)} reviewed questions`:"")}</span></div>
@@ -246,9 +238,17 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           <button className="qb-button qb-primary" disabled={!question} onClick={()=>{setDisplay(true);(document.activeElement as HTMLElement)?.blur();}}><Maximize2 size={18}/> Display</button>
         </div>
       </div>
-      </>}
+<div className="qb-page-search">
+      <form onSubmit={submitSearch} className="qb-search-form">
+        <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
+        <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
+        <button className="qb-button qb-primary" type="submit">Find</button>
+      </form>
+      <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
+      </div>
+            </>}
       {notice&&<div className="qb-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={()=>setNotice("")}><X size={16}/></button></div>}
-      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<h1 tabIndex={-1}>Paper builder</h1>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
+      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<div className="page-heading"><div><h1 tabIndex={-1}>Paper builder</h1><p>Tick Sparx codes, review your questions and download a paper with its mark scheme.</p></div></div>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
         {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${listed?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={route.tier}/>}<small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
         <section className="qb-question-card" aria-label="Question viewer">
           <div className="qb-source">
