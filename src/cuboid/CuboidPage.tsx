@@ -18,7 +18,7 @@ import {
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   appearance,
   faceNames,
@@ -64,7 +64,7 @@ import {
 import { FloatingEditor } from "./FloatingEditor";
 import { CuboidField as Field, type FieldHandle } from "./CuboidField";
 import "./cuboid.css";
-import { createHistory, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { createHistory, handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:cuboids:v1");
 /** A new drawing starts from the house style's lines (U111); its text is always 11 pt. */
@@ -74,29 +74,8 @@ const newDocument = () => {
   return e;
 };
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, error: "" };
-      } catch {
-        return {
-          e: newDocument(),
-          recovery: raw,
-          error:
-            "Saved cuboids need recovery. Download the original data before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      e: newDocument(),
-      recovery: null,
-      error:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { e: newDocument(), recovery: null, error: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: newDocument, recoveryMessage: "Saved cuboids need recovery. Download the original data before starting afresh." });
+  return { e: start.document, recovery: start.recovery, error: start.message };
 }
 type SettingsCard = "shape" | "labels" | "shading";
 /** Shape, Labels, Shading, with the card for what was clicked moved to the top (U20, U21). */
@@ -110,7 +89,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
     { history, setHistory } = documentHistory;
   const [message, setMessage] = useState(startup.error),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [recoverySaved, setRecoverySaved] = useState(false);
   const [selected, setSelected] = useState(startup.e.document.shapes[0].id),
@@ -127,7 +105,6 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
   const [inputEpoch, setInputEpoch] = useState(0);
   const inlineField = useRef<FieldHandle>(null);
   const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null),
     current = useRef(history.present);
   current.current = history.present;
   const inputPending = useCallback(
@@ -263,43 +240,18 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
     }
     setPending({ e: next, title });
   }
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== text
-      ) {
-        setRecovery(raw ?? "");
-        setRecoverySaved(false);
-        setMessage(
-          "A newer draft exists in another tab. Its data is protected.",
-        );
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setRecoverySaved(false);
-        setMessage(
-          "Saved cuboids changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  // Autosave with protection for another tab's newer draft.
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setRecoverySaved(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its data is protected." : "Saved cuboids changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const handle = () => {
@@ -692,7 +644,18 @@ export default function CuboidPage({ active = true }: { active?: boolean }) {
                 <button
                   disabled={!recoverySaved}
                   onClick={() => {
-                    expected.current = null;
+                    let unchanged = true;
+                    try {
+                      unchanged = keepStored(recovery);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
+                    }
+                    if (!unchanged) {
+                      setRecovery(localStorage.getItem(STORAGE) ?? "");
+                      setRecoverySaved(false);
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
                     setRecovery(null);
                     setHistory(createHistory(newDocument()));
                     setSelected("cuboid-1");
