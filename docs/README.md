@@ -14,6 +14,7 @@ Start here for any new tool or substantial tool change.
 - [Lessons from Graph tool and Ratio tables](tools/TOOL-EVOLUTION.md): worked examples behind the guide.
 - [New tool brief](tools/TOOL-BRIEF-TEMPLATE.md): copy this for each proposed tool.
 - [Adding a booklet tool](tools/ADDING-BOOKLET-TOOLS.md) and the [shared booklet editor contract](tools/BOOKLET-CONSISTENCY.md).
+- [App house style](tools/APP-HOUSE-STYLE.md): the website's named colours and sizes, interface font, icon bank and app bar.
 - [All tools card previews](tools/TOOL-CARD-PREVIEWS.md).
 - [Using the guidance in future conversations](tools/USING-TOOL-GUIDANCE.md).
 

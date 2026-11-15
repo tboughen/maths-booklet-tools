@@ -60,8 +60,7 @@
     border-radius: 4px;
     color: #174d89;
     font:
-      600 13px/1.4 "Segoe UI",
-      sans-serif;
+      600 13px/1.4 var(--md-font);
   }
 }
 .booklet-editor .example-launch {
@@ -163,9 +162,7 @@
   color: #18283c;
   background: #f5f8fb;
   font:
-    15px/1.5 "IBM Plex Sans",
-    "Segoe UI",
-    sans-serif;
+    15px/1.5 var(--md-font);
   overflow: auto;
 }
 .example-gallery::backdrop {
@@ -194,9 +191,7 @@
 }
 .example-gallery button {
   font:
-    600 14px/1.4 "IBM Plex Sans",
-    "Segoe UI",
-    sans-serif;
+    600 14px/1.4 var(--md-font);
   border: 1px solid #aabfd2;
   border-radius: 5px;
   padding: 10px 12px;
@@ -316,8 +311,7 @@
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   font:
-    16px "Segoe UI",
-    sans-serif;
+    16px var(--md-font);
 }
 .quick-input-panel .quick-actions {
   display: flex;
@@ -374,8 +368,7 @@
     border-radius: 4px;
     color: #174d89;
     font:
-      600 13px/1.4 "Segoe UI",
-      sans-serif;
+      600 13px/1.4 var(--md-font);
   }
   .booklet-editor .example-launch {
     grid-column: 1 / -1;
@@ -495,8 +488,7 @@
   border-radius: 4px;
   color: #174d89;
   font:
-    600 13px/1.4 "Segoe UI",
-    sans-serif;
+    600 13px/1.4 var(--md-font);
   cursor: pointer;
 }
 .booklet-editor .nl-scroll {
