@@ -140,7 +140,7 @@ function toLabel(input: LabelInput, base?: core.Label): core.Label {
   if (input.text !== undefined) out.text = input.text;
   if (input.answer !== undefined) out.answer = input.answer;
   if (input.state) out.state = input.state;
-  else if (!out.text && (out.state === "value" || out.state === "symbol")) out.state = out.answer.trim() ? "hidden" : "blank";
+  else if (!out.text.trim() && (out.state === "value" || out.state === "symbol")) out.state = out.answer.trim() ? "hidden" : "blank";
   else if (out.state === "blank") out.state = defaultState(out.text, out.answer);
   if (!input.state && out.state === "value" && out.answer.trim()) throw Error(`Label ${out.id} is given, so it cannot hold a saved answer. Set state (symbol, hidden or answer-line) as well.`);
   return out;

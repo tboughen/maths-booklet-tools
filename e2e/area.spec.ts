@@ -75,16 +75,19 @@ test("adds a shaded hole and a grid, and prints Diagram NOT accurately drawn by 
   expect(await texts(page)).not.toContain("Diagram NOT accurately drawn");
 });
 
-test("adding a corner splits the last side and drops its label; removing it drops the joined sides' labels", async ({ page }) => {
+test("adding a corner splits the last side and drops its label; removing one drops the joined sides' labels", async ({ page }) => {
   await boot(page, example("l-shape"));
   await page.getByText("Corners, sides and heights").click();
-  await page.getByRole("button", { name: "Add a corner" }).click();
-  let ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
-  expect(ids).not.toContain("e6");
-  expect(ids).toContain("e5");
-  await expect(page.getByRole("status")).toContainText("One label has no place on the new shape");
   await page.getByRole("button", { name: "Remove the last corner" }).click();
+  let ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
+  expect(ids).not.toContain("e5");
+  expect(ids).not.toContain("e6");
+  expect(ids).toContain("e4");
+  await expect(page.getByRole("status")).toContainText("2 labels have no place on the new shape");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Add a corner" }).click();
   ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
   expect(ids).not.toContain("e6");
   expect(ids).toContain("e5");
+  await expect(page.getByRole("status")).toContainText("One label has no place on the new shape");
 });

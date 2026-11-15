@@ -177,6 +177,13 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const viewSvg = useMemo(() => (view === "answer" ? answerSvg : renderSvg(e, "pupil")), [e, view, answerSvg]);
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
+  // Height labels renumber when a height goes (by any edit, undo or redo), so a selected height lets go.
+  const heightsKey = s.type === "polygon" ? JSON.stringify(s.heights) : "";
+  const [seenHeights, setSeenHeights] = useState(heightsKey);
+  if (seenHeights !== heightsKey) {
+    setSeenHeights(heightsKey);
+    if (selected && /^h\d+$/.test(selected)) setSelected(null);
+  }
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
@@ -733,7 +740,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           p.arcs.push("none");
                           // The split side's label and any height to it no longer fit half of it.
                           dropHeights(doc, (h) => h.side === n, [`e${n}`]);
-                        }, "add corner") && setSelected(null)
+                        }, "add corner")
                       }
                     >
                       Add a corner
@@ -746,13 +753,13 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           const p = doc.shape as Polygon,
                             n = p.corners.length;
                           // Heights from the last corner or to the two sides that become one go, with their labels.
-                          dropHeights(doc, (h) => h.corner === n || h.side >= n - 1, [`e${n - 1}`, `e${n}`]);
+                          dropHeights(doc, (h) => h.corner === n || h.side >= n - 1, [`e${n - 1}`]);
                           p.corners.pop();
                           p.arcs.pop();
                           // The new closing side is straight, and the corners at its ends have new angles.
                           p.arcs[p.arcs.length - 1] = "none";
                           p.rightAngles = p.rightAngles.filter((k) => k < n - 1 && k !== 1);
-                        }, "remove corner") && setSelected(null)
+                        }, "remove corner")
                       }
                     >
                       Remove the last corner
@@ -781,7 +788,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           ))}
                         </select>
                       </label>
-                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setShape((doc) => dropHeights(doc, (_, j) => j === i), "remove height") && selected?.startsWith("h") && setSelected(null)}>
+                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setShape((doc) => dropHeights(doc, (_, j) => j === i), "remove height")}>
                         Remove
                       </button>
                     </div>
