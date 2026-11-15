@@ -9,6 +9,7 @@ import {
   pieOf,
   readNumber,
   revealed,
+  singleSetNote,
   text,
   textWidth,
 } from "./shared";
@@ -81,7 +82,7 @@ export function pieLayout(e: Envelope) {
     issues: string[] = [],
     notes: string[] = [];
   if (d.series.length > 1)
-    notes.push("A pie chart draws only the first data set. The other data sets are kept for dual and composite bar charts.");
+    notes.push(singleSetNote("Pie chart"));
   const values = s.values.map((c, ci) => {
     const where = d.categories[ci] || `Category ${ci + 1}`;
     if (!c.value.trim()) {

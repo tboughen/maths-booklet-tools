@@ -2,7 +2,7 @@
 
 `/tools/charts` (called "Bar and line charts" until 15 Nov 2026) makes the statistical charts
 in GCSE Foundation papers: bar charts, dual (comparative) bar charts, composite (stacked) bar
-charts, vertical line charts and pie charts. Browser editing and export need no service; the optional MCP connector adds
+charts, vertical line charts, pie charts and pictograms. Browser editing and export need no service; the optional MCP connector adds
 `diagram_capabilities` (kind `charts`), `create_diagram` (kind `charts`) and `revise_diagram` (kind `charts`) (see below).
 
 ## Why one tool
@@ -67,13 +67,39 @@ anything. The axis, grid and bar settings are kept but not used.
   chart" teaching example.
 - **Notes:** angles that are not whole numbers are flagged, because pupils draw to the nearest degree.
 
+## Pictograms
+
+A pictogram is another kind of the same document: one row per category from the first data set.
+
+- **Drawing (Edexcel style):** a ruled table with the categories on the left and the symbols on
+  the right, and a framed key beside it: "Key: [symbol] represents 8 pictures". If side by side
+  would be wider than 18 cm, the key goes under the table. Each row draws value ÷ key symbols
+  (at most 20). Part symbols are exact: part of a square is its left part drawn open on the right,
+  and part of a circle is a sector anticlockwise from 12 o'clock, so a half is the left half,
+  as in the papers.
+- **Settings (`pictogram`):** symbol (circle or square), symbol size 6–14 mm (default 10), the
+  key value (`key: {value, show}`) and the unit printed after it. The horizontal and vertical
+  axis titles become the category and symbol column headings; with both empty there is no
+  heading row. `pictogram` is saved once a teacher changes a pictogram setting.
+- **Pupil states:** a blank value is an empty row; 0 draws nothing; a hidden value leaves the row
+  for pupils to draw. A hidden key value prints a dotted answer line in the key (pupils complete
+  the key) and keeps that width on the answers copy. Answers copies draw hidden rows and the key
+  value in pink. **Show all** also shows a hidden key; **Hide all** leaves the key as it is.
+- **Validation:** the key value must be a positive number; values must be numbers and not
+  negative; a row needing more than 20 symbols is an error. Circle parts that are not whole
+  quarters, and parts under 1 mm wide, get a teacher note because they are hard to read.
+- **Examples:** November 2019 1F Q6 (squares, April row hidden) and November 2017 3F Q6 (circles,
+  key and two rows hidden).
+- **Not yet:** a frequency column inside the pictogram, other symbols (stick figures), and
+  horizontal pictograms.
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
 
 ## Not yet included
 
-Horizontal bars, a printed data table beside the chart, pictograms, time series graphs,
+Horizontal bars, a printed data table beside the chart, time series graphs,
 frequency polygons, scatter graphs, comparative pie charts of different sizes and histograms. Each would be a separate, reviewed extension or tool.
 
 ## MCP connector
@@ -89,7 +115,8 @@ frequency polygons, scatter graphs, comparative pie charts of different sizes an
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
   `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
-  (`radiusMm`, `labels`) merges with the current pie settings.
+  (`radiusMm`, `labels`) and `presentation.pictogram` (`symbol`, `symbolMm`, `key`, `unit`) merge
+  with the current settings.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain
