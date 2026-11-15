@@ -9,6 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const SAVED = "Saved on this device";
 export const SAVE_UNAVAILABLE = "Save unavailable — download editable file";
+/** Shown while recovery data is protected: this tab is not saving until it is resolved. */
+export const NOT_SAVED = "Not saved on device";
 export const STORAGE_UNAVAILABLE = "Device storage is unavailable. Save an editable file to keep your work.";
 
 /** What an editor starts from: the saved draft, or a fresh document with the unreadable draft kept as recovery. */
@@ -77,11 +79,15 @@ export function useDraftAutosave({ key, text, paused, onConflict, opened }: Draf
   conflict.current = onConflict;
 
   useEffect(() => {
-    if (paused) return;
+    if (paused) {
+      setSaveState(NOT_SAVED);
+      return;
+    }
     try {
       const raw = localStorage.getItem(key);
       if ((guarded.current || expected.current !== null) && raw !== expected.current && raw !== text) {
         conflict.current(raw ?? "", "newer");
+        setSaveState(NOT_SAVED);
         return;
       }
       localStorage.setItem(key, text);

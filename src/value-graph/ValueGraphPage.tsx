@@ -1446,17 +1446,19 @@ export default function ValueGraphPage({
                       "Recovery download prepared. You can now start afresh."
                     )
                       return;
+                    let unchanged = true;
                     try {
-                      if (!keepStored(recoverRaw)) {
-                        setRecoverRaw(localStorage.getItem(storageKey) ?? "");
-                        setMessage("Saved data changed again. Download this latest copy first.");
-                        return;
-                      }
-                      setRecoverRaw(null);
-                      commit(freshValueGraph());
-                    } catch (e) {
-                      setMessage(errorText(e));
+                      unchanged = keepStored(recoverRaw);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
                     }
+                    if (!unchanged) {
+                      setRecoverRaw(localStorage.getItem(storageKey) ?? "");
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
+                    setRecoverRaw(null);
+                    commit(freshValueGraph());
                   }}
                 >
                   Start afresh after downloading
