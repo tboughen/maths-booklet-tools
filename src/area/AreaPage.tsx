@@ -352,7 +352,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     return setShape((n) => Object.assign(n, stretch(n, axis === "width" ? k : 1, axis === "height" ? k : 1)), axis === "width" ? "change width" : "change height");
   }
   function applyPreset(p: Preset) {
-    setShape((n) => Object.assign(n, presetShape(p)), "change shape");
+    // A new shape lets go of the selection even when its outline has the same form.
+    if (setShape((n) => Object.assign(n, presetShape(p)), "change shape")) setSelected(null);
   }
   function setHole(next: Hole | null) {
     setShape((n) => {

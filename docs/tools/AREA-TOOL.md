@@ -56,8 +56,9 @@ the half-centimetres. Only plain numbers (with or without a unit) are checked.
 
 Click a place on the preview (each has a round button) or choose it in the Selected label card, which comes first
 after the examples. Delete removes the selected label as one undo step; Escape deselects. Place IDs go
-by position, so any change to the outline or its places (a corner moved, added or removed, a new shape, a height
-or hole added or removed, a side made a semicircle) also deselects; Width and Height stretches do not. "Start from" changes the
+by position, so a new shape, a change in the outline's form (a corner moved, added or removed) or in its places (a
+height or hole added or removed, a side made a semicircle) also deselects; Width and Height stretches keep the
+selection. "Start from" changes the
 shape to a preset (rectangle, L, T and U shapes, triangle, parallelogram, trapezium, rectangle and triangle,
 rectangle and semicircle, rectangle with a semicircle cut out, frame, circle, semicircle, quarter circle, sector);
 labels the new shape has no place for are dropped, the message says so and Undo restores them. Width and height
