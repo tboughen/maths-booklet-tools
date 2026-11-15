@@ -36,6 +36,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import {
   addCategory,
   addSeries,
+  axisKind,
   canonical,
   create,
   drawnSeries,
@@ -51,6 +52,12 @@ import {
   MAX_SERIES,
   minorChoices,
   parseFile,
+  PIE_RADIUS,
+  pieLabelChoices,
+  pieLabelNames,
+  pieOf,
+  pieLayout,
+  round1,
   removeCategory,
   removeSeries,
   renderSvg,
@@ -186,7 +193,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     expected = useRef<string | null>(null);
   const e = history.present,
     d = e.document,
-    displayed = forView(e, view),
+    displayed = forView(e, view, true),
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit(
@@ -195,10 +202,17 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     zoom,
     (w) => (w < 500 ? 72 : 120),
   );
-  const answerSvg = renderSvg(forView(e, "answer"));
+  const answerSvg = renderSvg(forView(e, "answer", true));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
-  const line = d.kind === "vline";
+  const line = d.kind === "vline",
+    pie = d.kind === "pie",
+    mark = pie ? "sector" : line ? "line" : "bar";
+  /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
+  const pieAngles = pie ? pieLayout(e) : null,
+    angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
+  /** A hidden sector's angle is a saved answer: the Angle column shows it only on the teacher copy. */
+  const s0Hidden = (ci: number) => d.series[0].values[ci]?.show === "hidden";
 
   function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
@@ -349,6 +363,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const linesControl = (
+    <label>
+      Lines
+      <select
+        aria-label="Lines"
+        value={d.lines ?? "normal"}
+        disabled={blocked}
+        onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
+      >
+        {LINE_WEIGHTS.map((v) => (
+          <option key={v} value={v}>
+            {LINE_WEIGHT_NAMES[v]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
@@ -359,8 +390,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         tabIndex={-1}
       >
         <PageHeading
-          title="Bar and line charts"
-          description="Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes."
+          title="Statistical charts"
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, and pie charts at true size."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -465,7 +496,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               />
             </div>
             <EditorHint tool="charts">
-              Click a bar, line or category label to edit its value. Enter
+              Click a {pie ? "sector" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
@@ -494,7 +525,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
-                        aria-label={`Edit ${line ? "line" : "bar"}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
+                        aria-label={`Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
                         title={
                           hiddenHere
                             ? "Hidden answer (pupils draw this)"
@@ -511,18 +542,18 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       />
                     );
                   })}
-                  {d.categories.map((c, i) => (
+                  {g.labels.map(({ category: i, ...box }) => (
                     <button
                       key={`cat-${i}`}
                       type="button"
                       className={`ch-hit ${selected === `ch-cat-${i}` ? "ch-selected" : ""}`}
-                      aria-label={`Edit category label ${c || i + 1}`}
+                      aria-label={`Edit category label ${d.categories[i] || i + 1}`}
                       disabled={blocked}
                       style={{
-                        left: px(g.centres[i] - g.slot / 2, g.width),
-                        top: px(g.labelY - 4, g.height),
-                        width: px(g.slot, g.width),
-                        height: px(5.5, g.height),
+                        left: px(box.x, g.width),
+                        top: px(box.y, g.height),
+                        width: px(box.width, g.width),
+                        height: px(box.height, g.height),
                       }}
                       onClick={() => focusField(`ch-cat-${i}`)}
                     />
@@ -622,7 +653,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                               patch((n) => void (n.series[si].name = v))
                             }
                           />
-                          {!line && (
+                          {!line && !pie && (
                             <select
                               aria-label={`Fill for ${s.name || `data set ${si + 1}`}`}
                               value={s.fill}
@@ -644,6 +675,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                           )}
                         </th>
                       ))}
+                      {pie && <th scope="col">Angle</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -712,15 +744,24 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                             </td>
                           );
                         })}
+                        {pie && (
+                          <td className="ch-angle" aria-label={`Angle for ${c || `category ${ci + 1}`}`}>
+                            {angles[ci] === undefined
+                              ? "—"
+                              : s0Hidden(ci) && view === "pupil"
+                                ? "Hidden"
+                                : `${round1(angles[ci])}°`}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <p className="ch-note">
-                Leave a value blank for no {line ? "line" : "bar"}; 0 is a
-                value. Hide keeps the value as a saved answer for pupils to
-                draw.
+                {pie
+                  ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw; its angle shows here only on the teacher copy."
+                  : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
               </p>
               <div className="ch-row">
                 {!singleSet(d.kind) && (
@@ -757,6 +798,53 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            {pie && (
+              <section className="panel-card ch-panel">
+                <h2>Pie chart</h2>
+                <div className="ch-fields">
+                  <label>
+                    Radius (mm)
+                    <select
+                      aria-label="Pie chart radius"
+                      value={pieOf(d).radiusMm}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pie = { ...pieOf(n), radiusMm: Number(ev.target.value) }))}
+                    >
+                      {[...new Set([25, 30, 35, 40, 45, 50, 60, 70, pieOf(d).radiusMm])]
+                        .filter((x) => x >= PIE_RADIUS.minimum && x <= PIE_RADIUS.maximum)
+                        .sort((a, b) => a - b)
+                        .map((x) => (
+                          <option key={x} value={x}>
+                            {x}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Sector labels
+                    <select
+                      aria-label="Sector labels"
+                      value={pieOf(d).labels}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pie = { ...pieOf(n), labels: ev.target.value as (typeof pieLabelChoices)[number] }))}
+                    >
+                      {pieLabelChoices.map((x) => (
+                        <option key={x} value={x}>
+                          {pieLabelNames[x]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {linesControl}
+                </div>
+                <p className="ch-note">
+                  The circle and the starting radius print at true size for protractor work. Sectors
+                  run clockwise from the radius in table order. Labels that do not fit inside a sector
+                  sit just outside the circle.
+                </p>
+              </section>
+            )}
+            {axisKind(d.kind) && (
             <section className="panel-card ch-panel">
               <h2>Axes and grid</h2>
               <div className="ch-fields">
@@ -860,21 +948,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
                 </label>
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    disabled={blocked}
-                    onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {linesControl}
                 <label>
                   Chart height (mm)
                   <select
@@ -955,14 +1029,15 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </label>
               </div>
             </section>
+            )}
             <section className="panel-card ch-panel">
               <details>
                 <summary>Editing and printing help</summary>
                 <p className="ch-note">
-                  Click a bar, line or category label to edit its value in the
+                  Click a bar, line, sector or category label to edit its value in the
                   Data table. Enter applies; Escape restores. Switching chart
-                  type keeps every data set. Nothing is calculated or filled in
-                  for you.
+                  type keeps every data set. Pie charts draw sector angles from
+                  the values; nothing else is calculated or filled in for you.
                 </p>
                 <p className="ch-note">
                   Copy for Word carries the physical size shown above the chart;

@@ -10,7 +10,7 @@ Eight tools in total (about 56 KB of `tools/list`, down from about 478 KB):
 
 | Tool | Purpose |
 | --- | --- |
-| `diagram_capabilities {kind?}` | With no kind: the short family list. With a kind: that family's options, create and revise guides, `specSchema` and `operationsSchema` (as `structuredContent` and JSON text). |
+| `diagram_capabilities {kind?}` | With no kind: the short family list. With a kind: that family's options, create and revise guides, `specSchema` and `operationsSchema` (as `structuredContent` and JSON text). A shape a schema reuses is written once under that schema's own `$defs` and referred to with `$ref`, when that is smaller. |
 | `create_diagram {kind, spec?, envelope?, outputView?}` | Builds a new diagram, or re-delivers a saved envelope. |
 | `revise_diagram {kind, envelope, baseHash, operations, outputView?}` | Applies operations to the returned envelope; a stale `baseHash` is refused. |
 | `check_diagram_placement`, `download_diagram_bundle`, `get_diagram_svg` | Print outputs (unchanged; see MCP-DIAGRAM-OUTPUTS.md). |
