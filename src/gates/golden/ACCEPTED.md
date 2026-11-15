@@ -525,6 +525,23 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - area and perimeter: area-grid: added
 - area and perimeter: area-grid (worked): added
 
+## 2026-11-15: Scatter graphs: table of values and broken axes (scatter-plot example now prints its table and a broken test-mark axis; scatter-judges only gains stroke-linejoin on the axes and new saved fields, pixels unchanged)
+
+- charts: chart-scatter-judges: json 14388e3ef03afe71 -> 0f15450b2e48c34f
+- charts: chart-scatter-judges: svg f6edbb52d9fefa75 -> cf7e1a6dfe560d90
+- charts: chart-scatter-judges (worked): json 09e08a8b780fbbbc -> 90a977249513ccf2
+- charts: chart-scatter-judges (worked): svg e8f7639c701065b5 -> da548f3d91128bd7
+- charts: chart-scatter-plot: json cd620a3b775e721c -> be9354b1adda9767
+- charts: chart-scatter-plot: svg b7ee827bac63a7b8 -> 051713d9a0a42216
+- charts: chart-scatter-plot: mm 134.9x101.4 -> 165.4x137.3
+- charts: chart-scatter-plot: png600 3187x2395 -> 3907x3243
+- charts: chart-scatter-plot: pixels c5b9e046fca68e2b -> 385320d90c5cb0f7
+- charts: chart-scatter-plot (worked): json 9fe27b663b9830c8 -> ef2b82f371a9122b
+- charts: chart-scatter-plot (worked): svg f8f6d3baa56cc905 -> c54aa779f2a81798
+- charts: chart-scatter-plot (worked): mm 134.9x101.4 -> 165.4x137.3
+- charts: chart-scatter-plot (worked): png600 3187x2395 -> 3907x3243
+- charts: chart-scatter-plot (worked): pixels e85f0c821daeeb73 -> 12683f5f6b01c105
+
 ## 2026-11-15: Exam parity: Edexcel axis and grid line weights in the Graph tool and the value graph
 
 - graph: graph-1MA1_JUN_2019_2H_Q2: svg 57e383be780c3676 -> bb6a24aebb1bd375

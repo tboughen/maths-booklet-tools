@@ -3,16 +3,11 @@ import ModernPage from "./LessonBarModelPage";
 import { readStorage, type Startup } from "./storage";
 import { copyStorageKey } from "../site/copyDocument";
 const key = copyStorageKey("maths-booklet-tools:bar-model:v2");
-const retiredKey = copyStorageKey("maths-booklet-tools:bar-model:v1");
 export default function BarModelRoute({ active = true }: { active?: boolean }) {
   const [startup, setStartup] = useState<Startup | null>(null);
   useEffect(() => {
     let current = true;
-    void readStorage(
-      { getItem: (key) => localStorage.getItem(key) },
-      key,
-      retiredKey,
-    ).then((s) => {
+    void readStorage({ getItem: (key) => localStorage.getItem(key) }, key).then((s) => {
       if (current) setStartup(s);
     });
     return () => {

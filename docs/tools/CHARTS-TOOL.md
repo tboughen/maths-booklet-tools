@@ -100,11 +100,17 @@ A pictogram is another kind of the same document: one row per category from the 
 ## Scatter graphs
 
 - **Drawing (Edexcel style):** crosses on graph paper with arrowed axes numbered at every step,
-  the vertical axis title to the left and the horizontal title below. Axes may start away from 0.
+  the vertical axis title to the left and the horizontal title below. Axes may start away from 0,
+  optionally with a zig-zag break next to the corner (each broken axis labels the corner 0), which moves the grid 6 mm off
+  that axis.
 - **Settings (`scatter`):** up to 40 points `{x, y, show, ring}`; `xAxis` and `yAxis` (start, end,
-  step, title and length 40–160 mm on paper); grid (none, lines at each step, graph paper) with
-  small squares per step; an optional line of best fit; up to 3 readings. Without `scatter` a
-  scatter graph starts from eight points on 0–10 axes.
+  step, title, length 40–160 mm on paper and `broken`); grid (none, lines at each step, graph paper) with
+  small squares per step; an optional line of best fit; up to 3 readings; `table` (`none`, `all`, `plot`).
+  Without `scatter` a scatter graph starts with no points on 0–10 axes.
+- **Table of values:** a ruled table above the graph with the axis titles as row headings and one
+  column per point, as typed. **Only the points pupils plot** lists the hidden points, so pupils
+  get the data and plot it; the table prints the same on both copies. A long table continues in
+  a second block underneath.
 - **Line of best fit:** the teacher gives two points it passes through and it is drawn across the
   grid. Nothing is fitted automatically.
 - **Readings:** dashed guides from a value on one axis to the line of best fit and across to the
@@ -120,8 +126,8 @@ A pictogram is another kind of the same document: one row per category from the 
   axes cards. Clicking a cross focuses its x value; the round + and − beside the graph add or
   remove the last point.
 - **Examples:** Mock set 8 3F Q21 (plot a point, line of best fit and an estimate, all hidden) and
-  a "plot a scatter graph from a table" teaching example.
-- **Not yet:** a printed data table, correlation captions, and a broken-axis symbol.
+  a "plot a scatter graph from a table" teaching example with a table and a broken axis.
+- **Left to the worksheet:** correlation captions and other answers in words (Tim, 15 Nov 2026).
 
 ## Line weight (U111)
 

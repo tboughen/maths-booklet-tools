@@ -6,7 +6,7 @@ import { pieLayout, pieSvg } from "./pie";
 import { pictogramLayout, pictogramSvg } from "./pictogram";
 import { scatterLayout, scatterSvg } from "./scatter";
 export { scatterLayout } from "./scatter";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, markToPlot, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -214,7 +214,10 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const sc = n.document.kind === "scatter" ? n.document.scatter : undefined;
   if (sc)
     for (const item of [...sc.points, ...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) {
-      if (mark && item.show === "hidden") markRevealed(item);
+      if (item.show === "hidden") {
+        if (mark) markRevealed(item);
+        markToPlot(item);
+      }
       item.show = "show";
     }
   for (const s of n.document.series)
