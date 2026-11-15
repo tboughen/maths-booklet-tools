@@ -592,17 +592,18 @@
 /* Diagram builder: search with a small house-style menu beside it. */
 .tool-search-row {
   display: flex;
-  flex-wrap: wrap;
   align-items: end;
   gap: 10px;
   margin: 0 0 22px;
 }
 .tool-search-row .tool-search {
   flex: 0 1 560px;
+  min-width: 0;
   margin: 0;
 }
 .house-style-menu {
   position: relative;
+  flex: 0 0 auto;
 }
 .house-style-menu > summary {
   display: inline-flex;
@@ -624,7 +625,7 @@
 .house-style-menu > .house-style {
   position: absolute;
   top: calc(100% + 6px);
-  left: 0;
+  right: 0;
   z-index: 20;
   width: max-content;
   max-width: min(440px, calc(100vw - 32px));

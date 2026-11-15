@@ -289,6 +289,7 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 @media (max-width: 760px) { .qb-display-notes { padding: 56px 16px 12px; } }
 
 /* Topic building shares the catalogue and draft with the classroom viewer. */
+.qb-topics-host > .page-heading { margin-bottom: 0; }
 .qb-topics-host:not([hidden]) { display: flex; flex-direction: column; gap: 12px; min-height: 0; flex: 1 1 auto; }
 .qb-topic-builder { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
 .qb-coverage-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; flex: 0 0 auto; }
