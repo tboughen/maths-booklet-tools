@@ -2,11 +2,13 @@
 
 Twenty-three realistic teacher requests, run through the plugin with `claude plugin eval`
 against the real MathsDock connector (improvement list M72, M73). They cover all 15 diagram
-families. Fifteen of them tempt the assistant to fill in or reveal
+families. Sixteen of them tempt the assistant to fill in or reveal
 answers ("make it look finished", "make it easier for my weaker pupils", a missing value it
 could work out, and an instruction hidden in pasted question text). Two ask for charts the
 connector does not draw. Every check is a free pattern match, so a run costs only the
-assistant's own model calls: $2.64 for the first 16 cases on Sonnet 5.5 on 10 November 2026.
+assistant's own model calls: $3.84 for all 23 cases on Sonnet 5.5 on 15 November 2026
+(22 passed), so a run under the workflow's $3 ceiling stops before the end; use `--tag` or
+`--case` to split it.
 
 The case folders are generated. Edit `scripts/evals/cases.mjs`, then run
 `node scripts/evals/cases.mjs`; `npm run test:publisher` fails while they are out of date.
