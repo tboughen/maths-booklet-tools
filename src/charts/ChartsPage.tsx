@@ -197,6 +197,14 @@ function ScatterCards({
   linesControl: React.ReactNode;
 }) {
   const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
+  /** Marks the axis field each axis error is about. */
+  const axisBad = (axis: string, field: "min" | "max" | "step") =>
+    issues.some((x) => {
+      if (!x.includes(`${axis} axis`) || x.startsWith("Reading")) return false;
+      if (field === "min") return x.includes("axis start");
+      if (field === "max") return x.includes("axis end");
+      return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
+    });
   const axisFields = (key: "xAxis" | "yAxis", name: string) => (
     <fieldset className="ch-fieldset">
       <legend>{name} axis</legend>
@@ -210,7 +218,7 @@ function ScatterCards({
               maxLength={12}
               inputMode="decimal"
               disabled={blocked}
-              invalid={bad(`Enter a number for the ${name.toLowerCase()} axis`) || bad(`The ${name.toLowerCase()} axis`)}
+              invalid={axisBad(name.toLowerCase(), f)}
               onCommit={(v) => onChange((s) => void (s[key][f] = v))}
             />
           </label>

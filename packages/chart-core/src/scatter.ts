@@ -38,14 +38,16 @@ function wrap(t: string, width: number): string[] {
   return lines;
 }
 
-function scale(a: Axis, name: string, length: number, minor: number, fine: boolean, issues: string[]): Scale {
+function scale(a: Axis, name: string, length: number, minor: number, fine: boolean, issues: string[]): Scale & { ok: boolean } {
   const min = readNumber(a.min),
     max = readNumber(a.max),
     step = readNumber(a.step);
   if (min === null) issues.push(`Enter a number for the ${name} axis start.`);
   if (max === null) issues.push(`Enter a number for the ${name} axis end.`);
   if (step === null || step <= 0) issues.push(`Enter a positive number for the ${name} axis step.`);
-  const fallback = { lo: 0, hi: 10, step: 1, count: 10 };
+  // An axis that cannot be drawn falls back to 0–10 so the editor still shows something; points
+  // are not checked against it.
+  const fallback = { lo: 0, hi: 10, step: 1, count: 10, ok: false };
   if (min === null || max === null || step === null || step <= 0) return fallback;
   if (max <= min) {
     issues.push(`The ${name} axis end must be greater than its start.`);
@@ -62,7 +64,7 @@ function scale(a: Axis, name: string, length: number, minor: number, fine: boole
   }
   if (fine && length / Math.round(count) / minor < 1)
     issues.push(`Small grid squares on the ${name} axis would be under 1 mm. Use fewer small squares or a longer axis.`);
-  return { lo: min, hi: max, step, count: Math.round(count) };
+  return { lo: min, hi: max, step, count: Math.round(count), ok: true };
 }
 
 /** Where the infinite line through p and q crosses the rectangle, or null if it misses. */
@@ -118,7 +120,7 @@ export function scatterLayout(e: Envelope) {
       issues.push(`${where}: enter a number for both x and y.`);
       return [];
     }
-    if (!inX(x) || !inY(y)) {
+    if (xs.ok && ys.ok && (!inX(x) || !inY(y))) {
       issues.push(`${where}: (${formatNumber(x)}, ${formatNumber(y)}) is outside the axes.`);
       return [];
     }
@@ -154,6 +156,7 @@ export function scatterLayout(e: Envelope) {
       return [];
     }
     if (!line) return [];
+    if (!xs.ok || !ys.ok) return [];
     if (r.axis === "x" ? !inX(v) : !inY(v)) {
       issues.push(`${where}: ${formatNumber(v)} is outside the ${r.axis === "x" ? "horizontal" : "vertical"} axis.`);
       return [];
@@ -161,11 +164,17 @@ export function scatterLayout(e: Envelope) {
     // The point on the line: the teacher's line, read at the given value.
     let px: number, py: number;
     if (r.axis === "x") {
-      if (line.slope === null) return void issues.push(`${where}: a vertical line cannot be read from the horizontal axis.`), [];
+      if (line.slope === null) {
+        issues.push(`${where}: a vertical line cannot be read from the horizontal axis.`);
+        return [];
+      }
       px = v;
       py = line.through.y + line.slope * (v - line.through.x);
     } else {
-      if (line.slope === 0) return void issues.push(`${where}: a horizontal line cannot be read from the vertical axis.`), [];
+      if (line.slope === 0) {
+        issues.push(`${where}: a horizontal line cannot be read from the vertical axis.`);
+        return [];
+      }
       py = v;
       px = line.slope === null ? line.through.x : line.through.x + (v - line.through.y) / line.slope;
     }
@@ -173,16 +182,25 @@ export function scatterLayout(e: Envelope) {
       issues.push(`${where}: the line of best fit is outside the grid at ${formatNumber(v)}.`);
       return [];
     }
-    return [{ index: i, x: X(px), y: Y(py), axis: r.axis, drawn: r.show === "show", revealed: revealed(r) }];
+    // A guide ends on the line, so it is drawn only with the line: a reading never gives away a
+    // line left for pupils to draw.
+    if (r.show === "show" && !line.drawn)
+      notes.push(`${where} is hidden while the line of best fit is hidden, because its guide would show where the line is.`);
+    return [{ index: i, x: X(px), y: Y(py), axis: r.axis, drawn: r.show === "show" && line.drawn, revealed: revealed(r) || (line.revealed && r.show === "show") }];
   });
 
+  // The horizontal title wraps to the plot width (at least 40 mm) and is centred under the plot.
+  const xTitle = wrap(sc.xAxis.title, Math.max(W, 40)),
+    xTitleWidth = Math.max(0, ...xTitle.map((l) => textWidth(l)));
   const xLabelY = y0 + H + 1.5 + FONT * 0.8,
-    xTitleY = xLabelY + (sc.xAxis.title.trim() ? FONT * 1.7 : 0);
-  const width = Math.ceil((x0 + W + ARROW + 1 + MARGIN) * 10) / 10,
-    height = Math.ceil((xTitleY + FONT * 0.3 + MARGIN) * 10) / 10;
+    xTitleY = xLabelY + (xTitle.length ? FONT * 1.7 : 0);
+  const titleRight = x0 + W / 2 + xTitleWidth / 2;
+  const width = Math.ceil((Math.max(x0 + W + ARROW + 1, titleRight) + MARGIN) * 10) / 10,
+    height = Math.ceil((xTitleY + (xTitle.length - 1) * FONT * 1.15 + FONT * 0.3 + MARGIN) * 10) / 10;
+  if (x0 + W / 2 - xTitleWidth / 2 < 0) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
   if (width > 180) issues.push("The scatter graph is wider than 18 cm. Use a shorter horizontal axis or a shorter title.");
   const targets: Target[] = points.map((p) => ({ series: 0, category: p.index, x: p.x - 2.5, y: p.y - 2.5, width: 5, height: 5 }));
-  return { width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, xTicks, yTicks, X, Y, yTitle, xLabelY, xTitleY, points, line, readings, targets, issues, notes, settings: sc };
+  return { width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, xTicks, yTicks, X, Y, yTitle, xTitle, xLabelY, xTitleY, points, line, readings, targets, issues, notes, settings: sc };
 }
 
 export function scatterSvg(e: Envelope): string {
@@ -219,7 +237,7 @@ export function scatterSvg(e: Envelope): string {
   g.yTicks.forEach((t, i) => out.push(text(formatNumber(t), p.x - 2.2, bottom - i * stepY + FONT * 0.33, "end")));
   const midY = p.y + p.height / 2 - ((g.yTitle.length - 1) * FONT * 1.15) / 2;
   g.yTitle.forEach((line, i) => out.push(text(line, MARGIN, midY + i * FONT * 1.15 + FONT * 0.33, "start")));
-  if (sc.xAxis.title.trim()) out.push(text(sc.xAxis.title, p.x + p.width / 2, g.xTitleY));
+  g.xTitle.forEach((line, i) => out.push(text(line, p.x + p.width / 2, g.xTitleY + i * FONT * 1.15)));
   const ink = (pink: boolean) => (pink ? CHART_ANSWER_COLOUR : "black");
   for (const r of g.readings) {
     if (!r.drawn) continue;

@@ -35,7 +35,15 @@ const presentation = z
     lines: core.envelopeSchema.shape.document.shape.lines,
     pie: core.pieSchema.partial().optional(),
     pictogram: core.pictogramSchema.partial().optional(),
-    scatter: core.scatterSchema.partial().optional(),
+    /** Fields merge; axes merge field by field; bestFit null removes the line; points replaces all points. */
+    scatter: core.scatterSchema
+      .partial()
+      .extend({
+        xAxis: core.scatterAxisSchema.partial().optional(),
+        yAxis: core.scatterAxisSchema.partial().optional(),
+        bestFit: core.bestFitSchema.nullable().optional(),
+      })
+      .optional(),
   })
   .strict();
 type Presentation = z.infer<typeof presentation>;
@@ -45,7 +53,14 @@ function present(d: core.ChartDocument, p: Presentation) {
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
   if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
-  if (scatter) d.scatter = { ...core.scatterOf(d), ...scatter };
+  if (scatter) {
+    const { xAxis, yAxis, bestFit, ...fields } = scatter,
+      now = core.scatterOf(d),
+      next: core.ScatterSettings = { ...now, ...fields, xAxis: { ...now.xAxis, ...xAxis }, yAxis: { ...now.yAxis, ...yAxis } };
+    if (bestFit === null) delete next.bestFit;
+    else if (bestFit) next.bestFit = bestFit;
+    d.scatter = next;
+  }
 }
 export const createSchema = z
   .object({

@@ -208,7 +208,7 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
     markAnswerKey(key);
     if (mark && key.value.trim()) markRevealed(key);
   }
-  const sc = n.document.scatter;
+  const sc = n.document.kind === "scatter" ? n.document.scatter : undefined;
   if (sc)
     for (const item of [...sc.points, ...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) {
       if (mark && item.show === "hidden") markRevealed(item);
@@ -230,7 +230,9 @@ export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || k
 const scatterHidden = (d: ChartDocument) =>
   d.kind === "scatter" &&
   !!d.scatter &&
-  [...d.scatter.points, ...d.scatter.readings, ...(d.scatter.bestFit ? [d.scatter.bestFit] : [])].some((x) => x.show === "hidden");
+  [...d.scatter.points.filter((p) => p.x.trim() && p.y.trim()), ...d.scatter.readings, ...(d.scatter.bestFit ? [d.scatter.bestFit] : [])].some(
+    (x) => x.show === "hidden",
+  );
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
@@ -582,9 +584,9 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   const n2 = structuredClone(e);
   for (const s of n2.document.series) for (const c of s.values) c.show = show;
   // Show all also shows a hidden pictogram key; hiding every value keeps the key as it is.
-  if (show === "show" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
+  if (show === "show" && n2.document.kind === "pictogram" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
   // Scatter graphs: hide every point (pupils plot them); show all also shows the line and readings.
-  const sc = n2.document.scatter;
+  const sc = n2.document.kind === "scatter" ? n2.document.scatter : undefined;
   if (sc) {
     for (const p of sc.points) p.show = show;
     if (show === "show") for (const item of [...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) item.show = "show";

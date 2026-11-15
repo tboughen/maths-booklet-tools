@@ -10,6 +10,9 @@ function scatter(change: (s: ScatterSettings) => void = () => {}): Envelope {
   const e = create();
   e.document.kind = "scatter";
   e.document.scatter = structuredClone(SCATTER_DEFAULTS);
+  e.document.scatter.points = [
+    ["1", "2"], ["2", "3"], ["3", "3"], ["4", "5"], ["5", "4"], ["6", "6"], ["7", "7"], ["8", "7"],
+  ].map(([x, y]) => ({ x, y, show: "show" as const, ring: false }));
   change(e.document.scatter);
   return e;
 }
@@ -104,5 +107,45 @@ describe("scatter graphs", () => {
     expect(r.document.scatter!.points).toHaveLength(12);
     expect(io.printFacts(r).referenceFeatures.gridPitchMm).toEqual([20]);
     expect(() => parseFile(canonical({ ...r, document: { ...r.document, scatter: { ...r.document.scatter!, xAxis: { ...r.document.scatter!.xAxis, mm: 200 } } } }))).toThrow(/axis lengths from 40 to 160 mm/);
+  });
+
+  it("review fixes: no invented points, hidden lines stay hidden, long titles, invalid axes and connector edits", async () => {
+    // A chart switched to scatter has no points of its own.
+    const e = create();
+    e.document.kind = "scatter";
+    expect(scatterLayout(e).points).toEqual([]);
+    expect(layout(e).notes.join(" ")).toMatch(/no points/);
+    // A shown reading on a hidden line is not drawn on the pupil copy.
+    const hiddenLine = scatter((s) => {
+      s.bestFit = { from: { x: "0", y: "1" }, to: { x: "8", y: "8" }, show: "hidden" };
+      s.readings = [{ axis: "x", value: "4", show: "show" }];
+    });
+    expect(renderSvg(hiddenLine)).not.toContain("stroke-dasharray");
+    expect(layout(hiddenLine).notes.join(" ")).toMatch(/Reading 1 is hidden while the line of best fit is hidden/);
+    expect(renderSvg(forView(hiddenLine, "answer", true))).toMatch(/stroke="#b0125b" stroke-width="0.3" stroke-dasharray/);
+    // A long horizontal title wraps and widens the drawing instead of being cut off.
+    const long = scatter((s) => {
+      s.xAxis.mm = 40;
+      s.minor = 2;
+      s.xAxis.title = "Number of hours spent revising per week";
+    });
+    const g = scatterLayout(long);
+    expect(g.xTitle.length).toBeGreaterThan(1);
+    expect(g.issues).toEqual([]);
+    // An axis that cannot be drawn does not also flag every point.
+    expect(scatterLayout(scatter((s) => (s.xAxis.step = ""))).issues).toEqual(["Enter a positive number for the horizontal axis step."]);
+    // Hiding all on another kind leaves saved scatter points alone.
+    const bar = scatter();
+    bar.document.kind = "bar";
+    expect(setAllShown(bar, "hidden").document.scatter!.points.every((p) => p.show === "show")).toBe(true);
+    // The connector can merge one axis field and remove the line.
+    const withLine = scatter((s) => (s.bestFit = { from: { x: "0", y: "1" }, to: { x: "8", y: "8" }, show: "show" }));
+    const r = await io.revise({
+      envelope: withLine,
+      baseHash: await io.hash(withLine),
+      operations: [{ op: "set_presentation", presentation: { scatter: { xAxis: { title: "Mass" }, bestFit: null } } }],
+    });
+    expect(r.document.scatter!.xAxis).toEqual({ ...SCATTER_DEFAULTS.xAxis, title: "Mass" });
+    expect(r.document.scatter!.bestFit).toBeUndefined();
   });
 });

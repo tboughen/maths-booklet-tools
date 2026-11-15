@@ -66,7 +66,7 @@ const shown = z.enum(["show", "hidden"]);
 export const MAX_POINTS = 40;
 export const MAX_READINGS = 3;
 export const SCATTER_MM = { minimum: 40, maximum: 160 } as const;
-const scatterAxis = z
+export const scatterAxisSchema = z
   .object({
     min: z.string().max(12),
     max: z.string().max(12),
@@ -77,35 +77,28 @@ const scatterAxis = z
   })
   .strict();
 const coordinate = z.object({ x: z.string().max(12), y: z.string().max(12) }).strict();
+export const bestFitSchema = z.object({ from: coordinate, to: coordinate, show: shown }).strict();
 export const scatterSchema = z
   .object({
     points: z
       .array(z.object({ x: z.string().max(12), y: z.string().max(12), show: shown, ring: z.boolean() }).strict())
       .max(MAX_POINTS),
-    xAxis: scatterAxis,
-    yAxis: scatterAxis,
+    xAxis: scatterAxisSchema,
+    yAxis: scatterAxisSchema,
     grid: z.enum(["none", "major", "fine"]),
     minor: z.union([z.literal(1), z.literal(2), z.literal(4), z.literal(5), z.literal(10)]),
     /** Teacher-drawn: two points the line passes through; it is drawn across the grid. */
-    bestFit: z.object({ from: coordinate, to: coordinate, show: shown }).strict().optional(),
+    bestFit: bestFitSchema.optional(),
     /** Dashed guides from a value on one axis to the line of best fit and across to the other. */
     readings: z.array(z.object({ axis: z.enum(["x", "y"]), value: z.string().max(12), show: shown }).strict()).max(MAX_READINGS),
   })
   .strict();
 export type ScatterSettings = z.infer<typeof scatterSchema>;
 export type ScatterPoint = ScatterSettings["points"][number];
-/** The scatter graph a document starts with when it has none saved: eight points on 0–10 axes. */
+/** The scatter graph a document starts with when it has none saved: empty 0–10 axes on graph
+ * paper. It has no points, so switching kind never draws data nobody entered. */
 export const SCATTER_DEFAULTS: ScatterSettings = {
-  points: [
-    ["1", "2"],
-    ["2", "3"],
-    ["3", "3"],
-    ["4", "5"],
-    ["5", "4"],
-    ["6", "6"],
-    ["7", "7"],
-    ["8", "7"],
-  ].map(([x, y]) => ({ x, y, show: "show" as const, ring: false })),
+  points: [],
   xAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
   yAxis: { min: "0", max: "10", step: "1", title: "", mm: 100 },
   grid: "fine",
