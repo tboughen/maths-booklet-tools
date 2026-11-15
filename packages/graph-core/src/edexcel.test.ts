@@ -330,3 +330,17 @@ describe("point coordinates", () => {
     expect(renderDiagramSvg(d)).not.toContain("point-coordinates");
   });
 });
+
+describe("lines on the edge of the grid (Tim, A7.11 marking)", () => {
+  const clip = (svg: string, id: string) => svg.match(new RegExp(`<clipPath id="${id}"><rect x="([\\d.]+)"`))![1];
+  it("clips plotted lines half a stroke outside the grid, more for bold lines, and fills exactly", () => {
+    const base = { objects: [{ kind: "line", equation: { kind: "slope", slope: 0, intercept: 4 } }] };
+    const normal = renderDiagramSvg(doc(base)),
+      bold = renderDiagramSvg(doc({ ...base, lines: "bold" }));
+    const edge = Number(clip(normal, "plot-fill-clip"));
+    const half = edge - Number(clip(normal, "plot-clip"));
+    expect(half).toBeGreaterThan(0);
+    expect(edge - Number(clip(bold, "plot-clip"))).toBeCloseTo(half * 1.5, 1);
+    expect(Number(clip(bold, "plot-fill-clip"))).toBe(edge);
+  });
+});

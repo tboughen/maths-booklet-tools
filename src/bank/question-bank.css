@@ -397,16 +397,34 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-ink-laser { filter: drop-shadow(0 0 3px #ff2a2a); }
 .qb-annotate-toggle { position: relative; }
 .qb-ink-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #c81e1e; }
-/* A band above the stage, so it never covers the question. */
-.qb-annotate-bar { order: -1; flex: 0 0 auto; z-index: 7; display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 4px 10px; padding: 4px 8px; border-bottom: 1px solid #dce4ec; background: #f7f9fc; }
-.qb-annotate-group { display: flex; align-items: center; gap: 2px; }
-.qb-annotate-group + .qb-annotate-group { padding-left: 8px; border-left: 1px solid #dce4ec; }
+/* A rail down the left edge of the viewer, beside the page rather than over it: the top of a whiteboard is often out
+   of reach, and portrait pages leave room at the side. Quiet neutral colours, so the only strong colours are the ink. */
+.qb-stage-frame:has(> .qb-annotate-bar) { flex-direction: row; --qb-rail-width: 95px; }
+/* The overview map moves right of the rail so the rail never covers it. */
+.qb-stage-frame:has(> .qb-annotate-bar) :is(.qb-overview, .qb-overview-toggle) { left: calc(var(--qb-rail-width) + 12px); }
+.qb-annotate-bar { order: -1; flex: 0 0 auto; z-index: 7; display: flex; flex-direction: column; gap: 6px; padding: 6px; overflow-y: auto; border-right: 1px solid #dce4ec; background: #f7f9fc; }
+.qb-annotate-group { display: grid; grid-template-columns: repeat(2, 40px); gap: 2px; }
+.qb-annotate-group + .qb-annotate-group { padding-top: 6px; border-top: 1px solid #dce4ec; }
 .qb-annotate-tool, .qb-annotate-colour, .qb-annotate-size { display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #253e59; cursor: pointer; }
 .qb-annotate-tool:hover:not(:disabled), .qb-annotate-colour:hover, .qb-annotate-size:hover { background: #edf4ff; }
-.qb-annotate-tool[aria-checked=true], .qb-annotate-tool[aria-pressed=true], .qb-annotate-colour[aria-checked=true], .qb-annotate-size[aria-checked=true] { border-color: #1d6fd6; background: #e3eefc; }
+.qb-annotate-tool[aria-pressed=true], .qb-annotate-colour[aria-pressed=true], .qb-annotate-size[aria-pressed=true] { border-color: #1d6fd6; background: #e3eefc; }
 .qb-annotate-tool:disabled { opacity: .4; cursor: default; }
 .qb-annotate-colour span { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #0003; }
 .qb-annotate-size span { display: block; border-radius: 50%; background: #253e59; }
+.qb-annotate-text { grid-column: 1 / -1; }
+/* On a short screen the rail gets a little smaller so it fits. */
+@media (max-height: 880px) {
+  .qb-stage-frame:has(> .qb-annotate-bar) { --qb-rail-width: 79px; }
+  .qb-annotate-bar { gap: 4px; padding: 4px; }
+  .qb-annotate-group { grid-template-columns: repeat(2, 34px); }
+  .qb-annotate-group + .qb-annotate-group { padding-top: 4px; }
+  .qb-annotate-tool, .qb-annotate-colour, .qb-annotate-size, .qb-annotate-text { min-width: 34px; min-height: 34px; }
+  .qb-annotate-colour span { width: 18px; height: 18px; }
+}
+/* On a very short screen (a laptop outside Display) the rail goes four buttons wide, so every tool stays in view. */
+@media (max-height: 800px) { .qb-annotate-group { grid-template-columns: repeat(4, 34px); } .qb-stage-frame:has(> .qb-annotate-bar) { --qb-rail-width: 151px; } }
+/* Windows contrast themes: the chosen tool, colour and size get an outline in the theme's highlight colour. */
+@media (forced-colors: active) { .qb-annotate-bar [aria-pressed=true] { outline: 3px solid Highlight; outline-offset: -3px; } }
 .qb-annotate-text { min-height: 40px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #253e59; font: inherit; font-size: 13px; cursor: pointer; }
 .qb-annotate-text:hover:not(:disabled) { background: #edf4ff; }
 .qb-annotate-text:disabled { opacity: .4; cursor: default; }

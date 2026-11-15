@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { addPoint, annotationReducer, hasInk, isStylusEraser, layerOf, readAnnotationPreferences, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
+import { addPoint, annotationReducer, hasInk, isStylusEraser, layerOf, readAnnotationPreferences, saveAnnotationPreferences, defaultAnnotationPreferences, withTool, strokePath, toolCursor, touchesStroke, type AnnotationState, type Stroke } from "./annotations";
 
-const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, points });
+const stroke = (id: string, points: [number, number][], size = 2): Stroke => ({ id, kind: "pen", colour: "#000", size, scale: 1, points });
 
 describe("screen-only annotations", () => {
   it("keeps one undoable history per view and never mixes views", () => {
@@ -56,13 +56,19 @@ describe("screen-only annotations", () => {
     expect(isStylusEraser({ pointerType: "pen", buttons: 1, button: 0 })).toBe(false);
     expect(isStylusEraser({ pointerType: "mouse", buttons: 32, button: 0 })).toBe(false);
   });
-  it("remembers tool choices safely", () => {
-    localStorage.setItem("qb-annotate", JSON.stringify({ tool: "laser", penColour: "#e8343a", size: "huge", fistEraser: false }));
-    expect(readAnnotationPreferences()).toMatchObject({ tool: "laser", penColour: "#e8343a", size: "medium" });
-    expect(readAnnotationPreferences()).not.toHaveProperty("fistEraser");
+  it("remembers each tool's colour and size, but always starts on the pen with straight lines off", () => {
+    localStorage.setItem("qb-annotate", JSON.stringify({ tool: "laser", straight: true, penColour: "#7b3fc4", highlighterColour: "#00f900", penSize: "thick", highlighterSize: "huge" }));
+    expect(readAnnotationPreferences()).toEqual({ tool: "pen", straight: false, penColour: "#7b3fc4", highlighterColour: "#00f900", penSize: "thick", highlighterSize: "medium" });
+    saveAnnotationPreferences({ ...defaultAnnotationPreferences, tool: "eraser", straight: true, penSize: "thin" });
+    expect(JSON.parse(localStorage.getItem("qb-annotate")!)).toEqual({ penColour: "#1b1b1b", highlighterColour: "#fffc00", penSize: "thin", highlighterSize: "medium" });
     localStorage.setItem("qb-annotate", "not json");
-    expect(readAnnotationPreferences().tool).toBe("pen");
+    expect(readAnnotationPreferences()).toEqual(defaultAnnotationPreferences);
     localStorage.removeItem("qb-annotate");
+  });
+  it("turns straight lines off when the tool changes, and only then", () => {
+    const on = { ...defaultAnnotationPreferences, straight: true };
+    expect(withTool(on, "highlighter")).toMatchObject({ tool: "highlighter", straight: false });
+    expect(withTool(on, "pen")).toBe(on);
   });
   it("draws a pointer for each tool, and none for Move", () => {
     const pen = decodeURIComponent(toolCursor("pen", "#e8343a", 3.5, 2)!);

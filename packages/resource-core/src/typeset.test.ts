@@ -51,17 +51,18 @@ const sheet = (notation: "plain" | "maths"): Resource => {
 };
 
 describe("maths notation typesets printed text", () => {
-  it("prints a plain sheet exactly as typed", () => {
+  it("prints a plain sheet as typed, apart from keeping a short last word with the one before", () => {
     const r = sheet("plain");
-    expect(typesetForPrint(r)).toBe(r);
-    expect(renderResource(r).pages.join("")).toContain("Solve 3x - 2 &lt;= x^2.");
+    expect(typesetForPrint(r).document.sides[0].columns[0].cards[0].items[0]).toEqual({ type: "text", text: "Solve 3x - 2 <=\u00a0x^2." });
+    expect(renderResource(r).pages.join("")).toContain("Solve 3x - 2 &lt;=\u00a0x^2.");
   });
 
   it("prints true minus, ≤, x² and italic letters, and leaves the saved file alone", () => {
     const r = sheet("maths");
     const before = JSON.stringify(r);
     const svg = renderResource(r).pages.join("");
-    expect(svg).toContain('Solve 3<tspan font-style="italic">x</tspan> − 2 ≤ <tspan font-style="italic">x</tspan>².');
+    // The short inequality stays on one line: its spaces are no-break spaces.
+    expect(svg).toContain('Solve 3<tspan font-style="italic">x</tspan>\u00a0−\u00a02\u00a0≤\u00a0<tspan font-style="italic">x</tspan>².');
     expect(JSON.stringify(r)).toBe(before);
     // A printed copy is never typeset a second time.
     const printed = typesetForPrint(r);
@@ -76,7 +77,7 @@ describe("maths notation typesets printed text", () => {
       picture: (svg) => ({ svg, png: new Uint8Array([137, 80, 78, 71]) }),
     });
     const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
-    expect(xml).toContain("− 2 ≤ ");
+    expect(xml).toContain("\u00a0−\u00a02\u00a0≤\u00a0");
     expect(xml).toMatch(/<w:i\/>[^]*?<w:t xml:space="preserve">x<\/w:t>/);
     expect(xml).not.toContain("&lt;=");
   });
@@ -88,9 +89,9 @@ describe("maths notation typesets printed text", () => {
     b.document.lessons[0].teacherNotes = "x^2 stays as typed in notes";
     const booklet = validateBooklet(b);
     const printed = typesetForPrint(booklet);
-    expect(printed.document.lessons[0].keyIdea).toBe("The gradient of *y* = 2*x* − 1 is 2.");
+    expect(printed.document.lessons[0].keyIdea).toBe("The gradient of *y*\u00a0=\u00a02*x*\u00a0−\u00a01 is\u00a02.");
     expect(printed.document.lessons[0].teacherNotes).toBe("x^2 stays as typed in notes");
-    expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-style=\"italic\">x</tspan> − 1");
+    expect(renderBooklet(booklet).pages.join("")).toContain("2<tspan font-style=\"italic\">x</tspan>\u00a0−\u00a01");
   });
 
   it("keeps units, addresses and named parts as typed, and finds a minus beside fractions and negatives", () => {

@@ -604,3 +604,21 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - angle diagrams: angles-two-transversals (worked): added
 - angle diagrams: angles-polygons-meeting: added
 - angle diagrams: angles-polygons-meeting (worked): added
+
+## 2026-11-15: Graph plot clip reaches half a line width past the grid, so a line on the grid edge prints at full weight (Tim, A7.11 marking, 15 Nov 2026)
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg db54a06e0ac7dcf8 -> 7f3517753657ba57
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg 472d2466e790793c -> 62cd6d84903ab4df
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 145cb8c3c0b2d30a -> 35766a6554e6e54a
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 871ac49825d066a6 -> 60a5ac6edc9d5f36
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 46fbf64b172c8dd9 -> bad8a5f1b14c9c64
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 6471b80a1d3e244f -> 2dc3563bf945df71
+
+## 2026-11-15: Bold lines get a wider plot clip; polygon fills keep the exact plot clip (review of A7.11 edge-line fix)
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg 7f3517753657ba57 -> 12a0af07a17e5f4b
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg 62cd6d84903ab4df -> c42d256a343643d5
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 35766a6554e6e54a -> 8e52bc398906fc46
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 60a5ac6edc9d5f36 -> 98467927ce31fcd8
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg bad8a5f1b14c9c64 -> 24831fc4b21e9286
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 2dc3563bf945df71 -> 1e4d146e65ced02b

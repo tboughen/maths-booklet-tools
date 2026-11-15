@@ -1,7 +1,7 @@
 {
   "graph": {
-    "source": "32fd4c53d5c9b263feb1b4b3b7fe1bcc23804ec5f77168be7210e8b67ad0980b",
-    "svg": "deea125cc7e513cbc56632871ebc4052dbe9457ae819b0b4b393f915cf3f7356",
+    "source": "c981b7b2f8b4285ae2b0e3a4680e343d968d377b0f34b036cf648e627bee776d",
+    "svg": "0570690a9d9025139678acabce59d56d0c6ba7a16b5532851bebd722c6ba0841",
     "png": "a5feb11ee41675f318e08886b098b823fbb4e5cab8107d9280461da399a20bfc",
     "svgEqual": true,
     "pngEqual": true,
@@ -45,7 +45,7 @@
   },
   "value-table-graph": {
     "source": "563a238dc445b7269253130987a8a1f71078912142dc099e099d3c1172dd5689",
-    "svg": "26005bd669fc7570759176b67a6786710689dd7644e7085cba6149994b73ed87",
+    "svg": "aac22d5b977f33c7e9b2d7f343b84a46b5adfe13ceec5e0f44afb4deaed7cfa1",
     "png": "5e09248a30918e6c3f93fbbd033d31573e608246a5a5ef373e421d8ec0206fe0",
     "svgEqual": true,
     "pngEqual": true,

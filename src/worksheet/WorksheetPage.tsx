@@ -8,9 +8,9 @@ import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import { LAYOUTS, SIZE, columnBoxes, isReminder, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
-import { Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
+import { BesideToggle, Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
-import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
+import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
@@ -438,7 +438,10 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                 <div key={i} className="ws-part">
                                   <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                                   {item.items.map((leaf, j) => (
-                                    <div key={j}>{leafEditor(leaf, (next) => setItem([i, j], next), "")}</div>
+                                    <div key={j}>
+                                      {leafEditor(leaf, (next) => setItem([i, j], next), "")}
+                                      <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
+                                    </div>
                                   ))}
                                   <WorkingField
                                     label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)} hidden working`}
@@ -456,8 +459,9 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                               ) : (
                                 <div key={i}>
                                   {leafEditor(item, (next) => setItem([i], next), "")}
+                                  <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                                   {item.type === "paper" && (
-                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => void cd.items.splice(i, 1))}>
+                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => removeItem(cd.items, i))}>
                                       <Trash2 size={15} aria-hidden="true" /> Remove grid paper
                                     </button>
                                   )}
