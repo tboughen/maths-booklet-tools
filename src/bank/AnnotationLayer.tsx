@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { addPoint, isStylusEraser, polylinePath, strokePath, touchesStroke, type AnnotationTool, type Stroke, type StrokeKind } from "./annotations";
 import { highlighterLine, penOutline } from "./inkShape";
+import { HOLD_MS, HOLD_PX, isRoughlyStraight, recogniseShape, snapLevel } from "./inkSnap";
 
 export interface AnnotationSettings {
   tool: AnnotationTool;
@@ -43,7 +44,7 @@ let strokeCount = 0;
 const touchDrops = new Set<() => void>();
 
 type Draft =
-  | { tool: "draw"; kind: StrokeKind; id: number; type: string; points: [number, number][]; start: [number, number]; ruled: boolean; predicted: [number, number][] }
+  | { tool: "draw"; kind: StrokeKind; id: number; type: string; points: [number, number][]; start: [number, number]; ruled: boolean; predicted: [number, number][]; snapped?: "line" | "shape"; anchor: [number, number] }
   | { tool: "erase"; id: number; type: string; radius: number; erased: Set<string> }
   | { tool: "laser"; id: number; type: string };
 
@@ -58,7 +59,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     const el = svg.current;
     if (!el || !active) return;
     let current: Draft | undefined;
-    let settle = 0;
+    let settle = 0, hold = 0;
     const set = (next: Draft | undefined) => { current = next; setDraft(next ? { ...next } as Draft : undefined); };
     const at = (event: PointerEvent): [number, number] => {
       const rect = el.getBoundingClientRect(), s = live.current.scale || 1;
@@ -73,6 +74,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     // A pinch keeps the finger's capture, so the stage zoom still follows it off the stage.
     const drop = (draft: Draft, release = true) => {
       if (draft.tool === "laser") setTrails(t => t.filter(trail => trail.id !== draft.id));
+      clearTimeout(hold);
       if (release) try { el.releasePointerCapture(draft.id); } catch { /* Capture is optional. */ }
       set(undefined);
     };
@@ -105,9 +107,19 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
         set({ tool: "laser", id: event.pointerId, type: event.pointerType });
         setTrails(t => [...t, { id: event.pointerId, points: [[point[0], point[1], performance.now()]] }]);
       } else {
-        set({ tool: "draw", kind: tool, id: event.pointerId, type: event.pointerType, points: [point], start: point, ruled: false, predicted: [] });
+        set({ tool: "draw", kind: tool, id: event.pointerId, type: event.pointerType, points: [point], start: point, ruled: false, predicted: [], anchor: point });
+        holdStill();
       }
     };
+    // Draw and hold: when the pen stays still for HOLD_MS at the end of a freehand stroke, a rough shape snaps to a
+    // circle, ellipse, triangle, quadrilateral, pentagon or hexagon, and a rough line snaps straight.
+    const snap = () => {
+      if (current?.tool !== "draw" || current.ruled) return;
+      const scale = live.current.scale || 1, shape = recogniseShape(current.points, scale);
+      if (shape) { set({ ...current, points: shape.points, ruled: true, predicted: [], snapped: "shape" }); return; }
+      if (isRoughlyStraight(current.points, scale)) set({ ...current, points: [current.start, snapLevel(current.start, current.points[current.points.length - 1])], ruled: true, predicted: [], snapped: "line" });
+    };
+    const holdStill = () => { clearTimeout(hold); hold = window.setTimeout(snap, HOLD_MS); };
     const move = (event: PointerEvent) => {
       if (!current || event.pointerId !== current.id) return;
       const events = event.getCoalescedEvents?.() ?? [];
@@ -118,7 +130,12 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
         setTrails(t => t.map(trail => trail.id === id ? { ...trail, points: [...trail.points, ...points.map(p => [p[0], p[1], now] as [number, number, number])] } : trail));
         return;
       }
-      if (live.current.settings.straight || event.shiftKey) { set({ ...current, points: [current.start, points[points.length - 1]], ruled: true, predicted: [] }); return; }
+      const end = points[points.length - 1];
+      // A snapped shape stays put until the pen lifts; a snapped or ruled line follows the pen, level when nearly level.
+      if (current.snapped === "shape") return;
+      if (current.snapped === "line" || live.current.settings.straight || event.shiftKey) { set({ ...current, points: [current.start, snapLevel(current.start, end)], ruled: true, predicted: [] }); return; }
+      const scale = live.current.scale || 1;
+      if (Math.hypot(end[0] - current.anchor[0], end[1] - current.anchor[1]) * scale > HOLD_PX) { current = { ...current, anchor: end }; holdStill(); }
       let next = current.points;
       for (const p of points) next = addPoint(next, p, CAPTURE_SPACING / Math.max(live.current.scale, 0.01));
       // The browser's guess at where the pen goes next is drawn on the end of the live stroke to hide lag, and is
@@ -132,6 +149,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     const up = (event: PointerEvent) => {
       if (!current || event.pointerId !== current.id) return;
       const done = current; set(undefined);
+      clearTimeout(hold);
       try { el.releasePointerCapture(event.pointerId); } catch { /* Capture is optional. */ }
       if (event.type === "pointercancel") return;
       const { strokes: existing, settings: s, onCommit: commit } = live.current;
@@ -167,6 +185,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     window.addEventListener("pointercancel", up);
     return () => {
       clearTimeout(settle);
+      clearTimeout(hold);
       touchDrops.delete(dropTouch);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
