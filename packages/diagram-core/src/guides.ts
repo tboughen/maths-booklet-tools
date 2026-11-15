@@ -195,12 +195,8 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "algebra-grid": fromConfig(algebraConfig),
   "bar-model": {
     capabilities: { ...barConfig.capabilities, maximumRequestBytes: 32768 },
-    create:
-      "Bar models keep one shared unit width and stable anchored annotations; labels never set widths or calculate answers. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
-      barConfig.createDescription,
-    revise:
-      "Deleting structure an annotation refers to needs explicit annotation removal or discard intent. " +
-      barConfig.reviseDescription,
+    create: barConfig.createDescription,
+    revise: barConfig.reviseDescription,
   },
   charts: fromConfig(chartConfig),
   "probability-tree": fromConfig(treeConfig),
