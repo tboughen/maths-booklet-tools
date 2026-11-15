@@ -47,6 +47,7 @@ for (const directory of [
   "packages/construction-core",
   "packages/elevation-core",
   "packages/two-way-table-core",
+  "packages/angle-core",
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",

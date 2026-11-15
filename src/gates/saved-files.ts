@@ -30,6 +30,8 @@ import * as elevations from "../../packages/elevation-core/src/index";
 import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
 import * as twoWayTable from "../../packages/two-way-table-core/src/index";
 import { examples as twoWayTableExamples } from "../../packages/two-way-table-core/src/examples";
+import * as angles from "../../packages/angle-core/src/index";
+import { examples as angleExamples } from "../../packages/angle-core/src/examples";
 
 export type Tool = {
   name: string;
@@ -54,6 +56,7 @@ export const tools: Tool[] = [
   { name: "constructions", envelopes: () => constructionExamples.flatMap(x => [x.make(false), x.make(true)]), validate: construction.validate, parseFile: construction.parseFile, link: { encode: construction.linkHash, decode: construction.decodeLinkHash } },
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, parseFile: elevations.parseFile, link: { encode: elevations.linkHash, decode: elevations.decodeLinkHash } },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, parseFile: twoWayTable.parseFile, link: { encode: twoWayTable.linkHash, decode: twoWayTable.decodeLinkHash } },
+  { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, parseFile: angles.parseFile, link: { encode: angles.linkHash, decode: angles.decodeLinkHash } },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, parseFile: venn.parseFile },
   { name: "plotting quadratics", envelopes: () => quadraticSources.flatMap(x => [valueGraph.preset(x.name), workedQuadraticExample(x.name)]), validate: (raw: unknown) => valueGraph.parseFile(JSON.stringify(raw)), parseFile: valueGraph.parseFile, link: { encode: valueGraph.encode, decode: valueGraph.decode } },

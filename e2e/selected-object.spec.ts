@@ -13,6 +13,7 @@ const tools: { tool: string; select?: (page: Page) => Promise<void> }[] = [
   { tool: "probability-tree", select: (page) => page.locator(".pt-hit").filter({ visible: true }).first().click() },
   { tool: "frequency-tree", select: (page) => page.locator(".pt-hit").filter({ visible: true }).first().click() },
   { tool: "two-way-table" },
+  { tool: "angles", select: (page) => page.getByRole("button", { name: /^Select angle 1 / }).click() },
   { tool: "construction", select: (page) => page.getByRole("button", { name: /^Select point / }).first().click() },
 ];
 

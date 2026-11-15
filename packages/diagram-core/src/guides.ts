@@ -23,6 +23,7 @@ import { twoWayTableConfig } from "./guides/two-way-table";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
 import { elevationsConfig } from "./guides/elevations";
+import { anglesConfig } from "./guides/angles";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -211,6 +212,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   },
   construction: fromConfig(constructionConfig),
   elevations: fromConfig(elevationsConfig),
+  angles: fromConfig(anglesConfig),
 };
 
 const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
@@ -347,6 +349,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
   elevations: ["plans and elevations", "isometric drawings of cube solids"],
+  angles: ["angles on a line and round a point", "vertically opposite angles", "angles in parallel lines", "polygon interior and exterior angles"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
 export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];

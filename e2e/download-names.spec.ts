@@ -15,7 +15,7 @@ for (const tool of toolIds) {
   });
 }
 
-for (const tool of ["venn", "charts", "probability-tree", "frequency-tree", "construction", "elevations"]) {
+for (const tool of ["venn", "charts", "probability-tree", "frequency-tree", "construction", "elevations", "angles"]) {
   test(`${tool}: the teacher copy's download says "answers"`, async ({ page }) => {
     await page.goto(`/tools/${tool}`);
     await page.getByRole("checkbox", { name: /answers/i }).filter({ visible: true }).first().check();

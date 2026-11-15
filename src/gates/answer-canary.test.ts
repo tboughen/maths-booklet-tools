@@ -23,6 +23,8 @@ import * as elevations from "../../packages/elevation-core/src/index";
 import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
 import * as twoWayTable from "../../packages/two-way-table-core/src/index";
 import { examples as twoWayTableExamples } from "../../packages/two-way-table-core/src/examples";
+import * as angles from "../../packages/angle-core/src/index";
+import { examples as angleExamples } from "../../packages/angle-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
 import { examples as vennExamples, teachingExamples as vennTeaching } from "../../packages/venn-core/src/examples";
 
@@ -72,6 +74,7 @@ const tools: Tool[] = [
   { name: "constructions", envelopes: () => constructionExamples.flatMap(x => [x.make(false), x.make(true)]), validate: construction.validate, pupilSvg: construction.renderSvg },
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, pupilSvg: elevations.renderSvg },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, pupilSvg: twoWayTable.renderSvg },
+  { name: "angle diagrams", envelopes: () => angleExamples.flatMap(x => [x.make(false), x.make(true)]), validate: angles.validate, pupilSvg: (e: angles.Envelope) => angles.renderSvg(e) },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, pupilSvg: numberLine.renderSvg },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, pupilSvg: triangle.renderSvg },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, pupilSvg: venn.renderSvg },
