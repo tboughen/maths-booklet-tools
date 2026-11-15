@@ -120,7 +120,9 @@ export function scatterLayout(e: Envelope) {
       issues.push(`${where}: enter a number for both x and y.`);
       return [];
     }
-    if (xs.ok && ys.ok && (!inX(x) || !inY(y))) {
+    // Points are placed only on axes that can be drawn.
+    if (!xs.ok || !ys.ok) return [];
+    if (!inX(x) || !inY(y)) {
       issues.push(`${where}: (${formatNumber(x)}, ${formatNumber(y)}) is outside the axes.`);
       return [];
     }
@@ -189,15 +191,15 @@ export function scatterLayout(e: Envelope) {
     return [{ index: i, x: X(px), y: Y(py), axis: r.axis, drawn: r.show === "show" && line.drawn, revealed: revealed(r) || (line.revealed && r.show === "show") }];
   });
 
-  // The horizontal title wraps to the plot width (at least 40 mm) and is centred under the plot.
-  const xTitle = wrap(sc.xAxis.title, Math.max(W, 40)),
+  // The horizontal title wraps to the plot width and is centred under the plot.
+  const xTitle = wrap(sc.xAxis.title, W),
     xTitleWidth = Math.max(0, ...xTitle.map((l) => textWidth(l)));
   const xLabelY = y0 + H + 1.5 + FONT * 0.8,
     xTitleY = xLabelY + (xTitle.length ? FONT * 1.7 : 0);
   const titleRight = x0 + W / 2 + xTitleWidth / 2;
   const width = Math.ceil((Math.max(x0 + W + ARROW + 1, titleRight) + MARGIN) * 10) / 10,
-    height = Math.ceil((xTitleY + (xTitle.length - 1) * FONT * 1.15 + FONT * 0.3 + MARGIN) * 10) / 10;
-  if (x0 + W / 2 - xTitleWidth / 2 < 0) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
+    height = Math.ceil((xTitleY + Math.max(0, xTitle.length - 1) * FONT * 1.15 + FONT * 0.3 + MARGIN) * 10) / 10;
+  if (x0 + W / 2 - xTitleWidth / 2 < MARGIN) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
   if (width > 180) issues.push("The scatter graph is wider than 18 cm. Use a shorter horizontal axis or a shorter title.");
   const targets: Target[] = points.map((p) => ({ series: 0, category: p.index, x: p.x - 2.5, y: p.y - 2.5, width: 5, height: 5 }));
   return { width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, xTicks, yTicks, X, Y, yTitle, xTitle, xLabelY, xTitleY, points, line, readings, targets, issues, notes, settings: sc };

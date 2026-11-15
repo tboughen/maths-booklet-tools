@@ -201,7 +201,7 @@ function ScatterCards({
   const axisBad = (axis: string, field: "min" | "max" | "step") =>
     issues.some((x) => {
       if (!x.includes(`${axis} axis`) || x.startsWith("Reading")) return false;
-      if (field === "min") return x.includes("axis start");
+      if (field === "min") return x.includes("axis start") || x.includes("greater than its start");
       if (field === "max") return x.includes("axis end");
       return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
     });

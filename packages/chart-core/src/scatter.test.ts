@@ -132,7 +132,11 @@ describe("scatter graphs", () => {
     const g = scatterLayout(long);
     expect(g.xTitle.length).toBeGreaterThan(1);
     expect(g.issues).toEqual([]);
-    // An axis that cannot be drawn does not also flag every point.
+    // Without a horizontal title the axis numbers stay inside the drawing.
+    const plain = scatterLayout(scatter());
+    expect(plain.height).toBeGreaterThanOrEqual(plain.xLabelY + 1);
+    // An axis that cannot be drawn does not also flag (or place) every point.
+    expect(scatterLayout(scatter((s) => (s.yAxis.step = "0"))).points).toEqual([]);
     expect(scatterLayout(scatter((s) => (s.xAxis.step = ""))).issues).toEqual(["Enter a positive number for the horizontal axis step."]);
     // Hiding all on another kind leaves saved scatter points alone.
     const bar = scatter();
