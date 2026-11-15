@@ -563,3 +563,18 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - plotting quadratics: quadratic-fractions: pixels 552d38ee876f26eb -> fc1728774a47f6f9
 - plotting quadratics: quadratic-fractions (worked): svg 27d8dde9e4449e9c -> ca50c7501a6b5fad
 - plotting quadratics: quadratic-fractions (worked): pixels 318a7273a4a13565 -> 84d999b102f7811d
+
+## 2026-11-15: Exam parity: graphs print an italic O at the origin by default, as Edexcel papers do
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg bb6a24aebb1bd375 -> db54a06e0ac7dcf8
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels b00f5703b13463c2 -> 2b18446b7ec3ebef
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg aae596df8fd18b82 -> 472d2466e790793c
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels 2d102c4272954f09 -> 86dc7884d2f4fe9c
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 92c8b17e6313594f -> 145cb8c3c0b2d30a
+- graph: graph-1MA1_NOV_2017_3F_Q13: pixels 6b7b0a1fb0d5953e -> 9fb33ec5ac4fe5fb
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg a7ed04b26376c025 -> 871ac49825d066a6
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels 04b028771a7be3ae -> 1afa69c158c6d99d
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 35614de6117042cb -> 46fbf64b172c8dd9
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels ac8d35ca01ff53c9 -> 3b83e69e52882db4
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 0e8cdcd13edcf781 -> 6471b80a1d3e244f
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 4ad9169e8a370b33 -> 648a83f51c414026

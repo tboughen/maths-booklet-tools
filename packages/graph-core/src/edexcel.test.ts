@@ -100,7 +100,7 @@ describe("Edexcel-style graphs", () => {
   });
 
   it("keeps every new setting through files, links, hashes and revisions", async () => {
-    const e = createGraph({ ...travel, originLabel: "O", objects: [...travel.objects, { kind: "point", id: "p", position: { x: 765, y: 25 }, name: "P" }] });
+    const e = createGraph({ ...travel, originLabel: "0", objects: [...travel.objects, { kind: "point", id: "p", position: { x: 765, y: 25 }, name: "P" }] });
     expect(parseGraphFile(JSON.stringify(e))).toEqual(e);
     const link = editorLink(e, "https://mathsdock.co.uk/");
     expect(decodeEnvelope(new URL(link).hash.slice("#graph=".length))).toEqual(JSON.parse(canonicalEnvelope(e)));
@@ -112,7 +112,7 @@ describe("Edexcel-style graphs", () => {
       operations: [
         { op: "set_name", id: "out", name: "L" },
         { op: "set_name", id: "p", position: { x: 780, y: 20 } },
-        { op: "set_grid", grid: "1cm", originLabel: "0" },
+        { op: "set_grid", grid: "1cm", originLabel: "O" },
       ],
     });
     const r = documentFromEnvelope(revised);
@@ -134,7 +134,7 @@ describe("Edexcel-style graphs", () => {
     expect(svg).toContain("A one centimetre square grid");
     expect(svg).not.toContain("object-name");
     expect(svg).not.toContain("axis-title");
-    expect(texts(svg)).toContain("0");
+    expect(texts(svg)).toContain("𝑂"); // the default origin mark, as Edexcel papers print it
   });
 });
 

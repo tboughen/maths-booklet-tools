@@ -198,7 +198,7 @@ export function AxisSettings({
           <span>Origin label</span>
           <div className="segmented" role="group" aria-label="Origin label">
             {(["0", "O"] as const).map((label) => {
-              const active = (document.originLabel ?? "0") === label;
+              const active = (document.originLabel ?? "O") === label;
               return (
                 <button
                   key={label}
@@ -207,8 +207,8 @@ export function AxisSettings({
                   aria-pressed={active}
                   onClick={() => {
                     const next = { ...document };
-                    if (label === "0") delete next.originLabel;
-                    else next.originLabel = "O";
+                    if (label === "O") delete next.originLabel;
+                    else next.originLabel = "0";
                     onDocument(next);
                   }}
                 >

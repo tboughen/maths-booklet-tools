@@ -121,9 +121,10 @@ describe("graph builder", () => {
     const xNumber = [
       ...container.querySelectorAll<SVGTextElement>(".axis-number text"),
     ].find((label) => label.getAttribute("text-anchor") === "middle");
-    const originLabel = container.querySelector<SVGTextElement>(
-      ".axis-number--origin text",
-    );
+    // The origin prints an italic O by default, as Edexcel papers do.
+    const originLabel = [
+      ...container.querySelectorAll<SVGTextElement>(".axis-number text"),
+    ].find((label) => label.textContent === "𝑂");
     const plotRect = container.querySelector<SVGRectElement>(
       "#editor-plot-clip rect",
     );
@@ -154,7 +155,7 @@ describe("graph builder", () => {
     expect(yName).toHaveTextContent("𝑦");
     expect(xName?.getAttribute("font-family")).toContain("Cambria Math");
     expect(yName?.getAttribute("font-family")).toContain("Cambria Math");
-    expect(originLabel?.getAttribute("transform")).toContain("skewX(-12)");
+    expect(originLabel).toBeDefined();
     expect(
       Number(xAxis?.getAttribute("x2")) -
         (Number(plotRect?.getAttribute("x")) +

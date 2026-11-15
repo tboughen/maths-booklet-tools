@@ -46,7 +46,8 @@ test("exam-style axis, grid, name and answer-only controls are undoable edits", 
 
   await page.getByText("Exam-style axes and grid").click();
   await page.getByRole("group", { name: "Grid squares" }).getByRole("button", { name: "2 mm" }).click();
-  await page.getByRole("group", { name: "Origin label" }).getByRole("button", { name: "O" }).click();
+  // O is the default origin mark, as on Edexcel papers.
+  await expect(page.getByRole("group", { name: "Origin label" }).getByRole("button", { name: "O" })).toHaveAttribute("aria-pressed", "true");
   await page.getByLabel("x-axis title").fill("Time (s)");
   await page.getByLabel("x-axis title").press("Enter");
   await page.getByLabel("y-axis units per square").fill("10");
@@ -58,7 +59,7 @@ test("exam-style axis, grid, name and answer-only controls are undoable edits", 
   await expect.poll(async () => (await saved(page))?.axes.y.labelEvery).toBe(2);
   const doc = await saved(page);
   expect(doc.grid).toBe("2mm");
-  expect(doc.originLabel).toBe("O");
+  expect(doc.originLabel).toBeUndefined();
   expect(doc.axes.x.title).toBe("Time (s)");
   expect(doc.axes.y).toMatchObject({ unitsPerSquare: 10, labelEvery: 2 });
   expect(doc.objects[0]).toMatchObject({ name: "L1", answerOnly: true });

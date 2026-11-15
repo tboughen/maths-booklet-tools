@@ -807,11 +807,11 @@ export function GraphCanvas({
             {yLabels}
             {sharedOriginLabel(document) && (
               <AxisTickLabel
-                text={document.originLabel === "O" ? "𝑂" : "0"}
+                text={document.originLabel === "0" ? "0" : "𝑂"}
                 x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
                 baseline={xNumberBaseline}
                 textAnchor="end"
-                origin={document.originLabel !== "O"}
+                origin={document.originLabel === "0"}
               />
             )}
             {!document.axes.x.title && (

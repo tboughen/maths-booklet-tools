@@ -448,7 +448,7 @@ function gridMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
 
 function originMarkup(document: DiagramDocumentV1, x: number, baseline: number): string {
   if (!sharedOriginLabel(document)) return "";
-  if (document.originLabel !== "O")
+  if (document.originLabel === "0")
     return axisTickLabelMarkup("0", x, baseline, "end", true, gridDivisions(document) > 1);
   const label = mathsLetter("O", "italic");
   const tight = gridDivisions(document) > 1;
