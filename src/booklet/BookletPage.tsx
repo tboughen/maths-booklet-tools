@@ -177,7 +177,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
       } catch {
         throw Error("This file is not a booklet file (it is not JSON).");
       }
-      if ((parsed as { document?: { kind?: string } })?.document?.kind === "worksheet-a3") throw Error("This is a worksheet file. Open it on the Worksheets page.");
+      if ((parsed as { document?: { kind?: string } })?.document?.kind === "worksheet-a3") throw Error("This is a worksheet file. Open it in the Worksheet builder.");
       setPending({ b: validateBooklet(parsed), title: "Open this booklet? It replaces the current one. You can undo it." });
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
@@ -407,7 +407,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor bk-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Booklets" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs or Word files.">
+        <PageHeading title="Booklet builder" description="Make an A4 unit booklet from a scheme of work unit with your own AI key: a check-in, worked examples, practice and diagnostics for every lesson. Edit any question and download the pupil and answers PDFs or Word files.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">

@@ -353,7 +353,7 @@ test("invalid printed question drafts survive navigation and cancel without a sa
     page.getByRole("button", { name: "Undo", exact: true }),
   ).toBeDisabled();
   const nav = page.getByRole("navigation", {
-    name: "Booklet tools",
+    name: "Diagram builder",
     exact: true,
   });
   await nav.getByRole("link", { name: "Graph tool", exact: true }).click();
@@ -579,14 +579,14 @@ test("invalid drafts guard exports/history, survive navigation, and cancel witho
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Graph tool", exact: true })
     .click();
   await expect(
     page.getByRole("dialog", { name: "Edit grid cell" }),
   ).toBeHidden();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Expanding and factorising", exact: true })
     .click();
   await expect(page.getByLabel("Cell entry", { exact: true })).toHaveValue(

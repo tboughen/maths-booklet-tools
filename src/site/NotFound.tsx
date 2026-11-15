@@ -17,7 +17,7 @@ export function NotFound() {
           </a>
         ))}
       </nav>
-      <h2>Booklet tools</h2>
+      <h2>Diagram builder</h2>
       <ul className="site-not-found-tools">
         {bookletTools.map((tool) => (
           <li key={tool.id}>

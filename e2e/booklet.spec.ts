@@ -164,10 +164,10 @@ test("plans a unit and writes each lesson with the teacher's own Claude key, the
   expect((await saved(page)).document.title).toBe(a7Booklet.document.title);
 });
 
-test("refuses a worksheet file with a pointer to the Worksheets page", async ({ page }) => {
+test("refuses a worksheet file with a pointer to the Worksheet builder", async ({ page }) => {
   await boot(page);
   await page.getByRole("button", { name: "File" }).click();
   const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.getByRole("menuitem", { name: "Open booklet file" }).click()]);
   await chooser.setFiles({ name: "sheet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ tool: "resource", schemaVersion: 1, document: { kind: "worksheet-a3" } })) });
-  await expect(page.locator(".ws-message")).toContainText("Open it on the Worksheets page");
+  await expect(page.locator(".ws-message")).toContainText("Open it in the Worksheet builder");
 });

@@ -59,7 +59,7 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
     .click();
   await input(page, "Edit width", "bad");
   const nav = page.getByRole("navigation", {
-    name: "Booklet tools",
+    name: "Diagram builder",
     exact: true,
   });
   await nav.getByRole("link", { name: "Graph tool", exact: true }).click();

@@ -141,7 +141,7 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     graphKey,
   );
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Graph tool", exact: true })
     .click();
   await expect(
@@ -784,11 +784,11 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
   await clickPrintedFactor(1);
   await middle.fill("1/0");
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Graph tool", exact: true })
     .click();
   await page
-    .getByRole("navigation", { name: "Booklet tools", exact: true })
+    .getByRole("navigation", { name: "Diagram builder", exact: true })
     .getByRole("link", { name: "Ratio tables", exact: true })
     .click();
   await expect(middle).toHaveValue("1/0");

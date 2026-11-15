@@ -98,7 +98,7 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
   await page.getByRole("button", {name: "Line by equation"}).click();
   await page.getByRole("button", {name: "Add line", exact: true}).click();
   await expect(page.getByRole("button", {name: /Objects 1/})).toBeVisible();
-  await page.getByRole("navigation", {name: "Booklet tools", exact: true}).getByRole("link", {name: "Ratio tables"}).click();
+  await page.getByRole("navigation", {name: "Diagram builder", exact: true}).getByRole("link", {name: "Ratio tables"}).click();
   await expect(page.getByRole("heading", {name: "Ratio tables", exact: true})).toBeVisible();
   await page.getByRole("button", {name: "Add row", exact: true}).click();
   await expect(page.getByLabel("Row 3 x value", {exact: true})).toBeFocused();
@@ -107,7 +107,7 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
 
 test("published navigation, tool startup and a synthetic HPP class export remain available", async ({page}, info) => {
   await page.goto('/');
-  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Worksheets', 'Booklets', 'Booklet tools']);
+  await expect(page.getByRole('navigation', {name: 'Main sections'}).getByRole('link')).toHaveText(['Question bank', 'Paper builder', 'Assessment follow-up', 'Diagram builder', 'Worksheet builder', 'Booklet builder']);
   await expect(page.locator('.site-brand img')).toBeVisible();
   // The department scheme is published as an immutable bank object, never as a static file.
   // Fetched from the page, so the live run's Access route applies (page.request bypasses routes).

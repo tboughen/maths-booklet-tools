@@ -34,7 +34,7 @@ describe("route focus (S95)", () => {
     });
     const heading = await screen.findByRole("heading", {
       level: 1,
-      name: /booklet tools/i,
+      name: /diagram builder/i,
     });
     expect(document.activeElement).toBe(heading);
   });
