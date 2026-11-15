@@ -1,3 +1,4 @@
+import { allTools, clickAway, switchTool } from "./tool-switcher";
 import { showExamples, closeExamples } from "./example-gallery";
 import { toolIds } from "../src/site/routes";
 import { test, expect, editorBase, type Page } from "./release-fixtures";
@@ -215,7 +216,7 @@ for (const tool of tools) {
       await expect(menu).toHaveCount(0);
       await expect(trigger).not.toBeFocused();
       await openMenu(page);
-      await page.getByRole("heading", { level: 1 }).click();
+      await clickAway(page);
       await expect(menu).toHaveCount(0);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
@@ -323,7 +324,7 @@ for (const tool of tools) {
       });
     await page.getByRole("dialog").getByRole("button").last().click();
     expect(await download(page, "Save editable file")).toEqual(initial);
-    await page.getByRole("link", { name: "All tools", exact: true }).click();
+    await allTools(page);
     await page.goBack();
     expect(await download(page, "Save editable file")).toEqual(initial);
     await page.reload();
@@ -358,7 +359,7 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
   await expect(
     page.getByRole("menuitem", { name: "Download SVG", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("heading", { level: 1 }).click();
+  await clickAway(page);
   for (const name of [
     "Copy image",
     "Copy for Word",
@@ -370,11 +371,11 @@ test("Graph rejects stale exports and retains invalid equation/coordinate drafts
     await expect(
       page.getByRole("button", { name, exact: true }),
     ).toBeDisabled();
-  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
+  await switchTool(page, "Ratio tables");
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
-  await page.getByRole("link", { name: "Graph tool", exact: true }).click();
+  await switchTool(page, "Graph tool");
   await expect(gradient).toHaveValue("1/0");
   await gradient.press("Escape");
   expect(
@@ -887,7 +888,7 @@ test("busy link copying prevents duplicate requests and late completion cannot s
       () => (window as typeof window & { linkCopies: number }).linkCopies,
     ),
   ).toBe(1);
-  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
+  await switchTool(page, "Ratio tables");
   await expect(page.getByRole("menu")).toHaveCount(0);
   const focus = page.getByRole("button", {
     name: "Copy image",

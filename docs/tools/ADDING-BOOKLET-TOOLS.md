@@ -8,7 +8,7 @@ The website has two main sections: **Question bank** and **Booklet tools**. Grap
 
 ## Register the editor
 
-Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, icon from the MathsDock icon bank ([app house style](APP-HOUSE-STYLE.md)), React component and `preview: { src, alt }`. The overview, tool navigation and page host use this registry. Do not build another header or tool menu in the editor.
+Add one entry to `bookletTools` in `src/site/registry.ts`: a stable URL ID, name, short description, icon from the MathsDock icon bank ([app house style](APP-HOUSE-STYLE.md)), React component and `preview: { src, alt }`. The overview, the tool switcher on each tool's name and the page host use this registry. Do not build another header or tool menu in the editor.
 
 Generate a real sample output and import its SVG from `src/assets/tool-previews/`, then add the tool's strand, GCSE topics and search words to `src/site/toolCatalogue.ts` so it appears on the Diagram builder page. Follow [Diagram builder previews](TOOL-CARD-PREVIEWS.md) for generation, saved examples and acceptance checks.
 

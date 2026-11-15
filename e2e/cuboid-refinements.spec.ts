@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { showExamples } from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
@@ -58,18 +59,14 @@ test("invalid floating drafts survive navigation while inactive overlays stay hi
     .getByRole("button", { name: "Edit width label on cuboid-1", exact: true })
     .click();
   await input(page, "Edit width", "bad");
-  const nav = page.getByRole("navigation", {
-    name: "Diagram builder",
-    exact: true,
-  });
-  await nav.getByRole("link", { name: "Graph tool", exact: true }).click();
+  await switchTool(page, "Graph tool");
   await expect(
     page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("dialog", { name: "Edit width", exact: true }),
   ).not.toBeVisible();
-  await nav.getByRole("link", { name: "Cuboids", exact: true }).click();
+  await switchTool(page, "Cuboids");
   await expect(
     page.getByRole("textbox", { name: "Edit width", exact: true }),
   ).toHaveValue("bad");

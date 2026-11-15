@@ -1,7 +1,7 @@
 // Loop item L26 (issue #153): a keyboard-path smoke for every booklet tool. Tabbing through each
 // editor must reach every visible control, every control that takes focus must have an accessible
-// name, and focus must be visible on screen when it lands. tool-nav-keyboard.spec.ts and
-// editor-layout.spec.ts cover the tool row and the settings jump; this covers the whole page.
+// name, and focus must be visible on screen when it lands. tool-switcher.spec.ts and
+// editor-layout.spec.ts cover the tool switcher and the settings jump; this covers the whole page.
 //
 // The bare `e2e` project and the `release` project (release qualification) both run every spec.
 import { test, expect, type Page } from "@playwright/test";

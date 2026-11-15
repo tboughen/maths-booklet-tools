@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { clickResourceAction } from "./resource-actions";
 import { editorBase, test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
@@ -275,14 +276,8 @@ test("zero and answer lines survive direct editing, undo, navigation and reload"
     kind: "value",
     value: "0",
   });
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Plotting quadratics", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
+  await switchTool(page, "Plotting quadratics");
   expect((await stored(page)).document.columns[1].y.value).toBe("0");
   await page.reload();
   expect((await stored(page)).document.columns[1].y.value).toBe("0");
@@ -304,14 +299,8 @@ test("invalid input survives navigation, blocks export and cancels without chang
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Plotting quadratics", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
+  await switchTool(page, "Plotting quadratics");
   await expect(field).toHaveValue("1/0");
   await field.press("Escape");
   await expect(

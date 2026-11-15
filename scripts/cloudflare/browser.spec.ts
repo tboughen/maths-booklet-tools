@@ -98,7 +98,9 @@ test("graph and ratio tools work under the root base URL", async ({page}) => {
   await page.getByRole("button", {name: "Line by equation"}).click();
   await page.getByRole("button", {name: "Add line", exact: true}).click();
   await expect(page.getByRole("button", {name: /Objects 1/})).toBeVisible();
-  await page.getByRole("navigation", {name: "Diagram builder", exact: true}).getByRole("link", {name: "Ratio tables"}).click();
+  // The tool's name opens the switcher to every other tool.
+  await page.locator(".site-page:not([hidden]) .tool-switcher-button").click();
+  await page.getByRole("dialog", {name: "Switch diagram tool"}).getByRole("link", {name: "Ratio tables", exact: true}).click();
   await expect(page.getByRole("heading", {name: "Ratio tables", exact: true})).toBeVisible();
   await page.getByRole("button", {name: "Add row", exact: true}).click();
   await expect(page.getByLabel("Row 3 x value", {exact: true})).toBeFocused();

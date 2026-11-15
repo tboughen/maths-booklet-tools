@@ -1,3 +1,4 @@
+import { allTools, switchTool } from "./tool-switcher";
 import { chooseExample, showExamples } from "./example-gallery";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -200,12 +201,12 @@ test("invalid draft stays available, guards actions, and is inert while another 
   await expect(
     page.getByRole("button", { name: "File", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("link", { name: "Graph tool", exact: true }).click();
+  await switchTool(page, "Graph tool");
   await expect(page.locator(".tr-floating")).toBeHidden();
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
-  await page.getByRole("link", { name: "Triangles", exact: true }).click();
+  await switchTool(page, "Triangles");
   await expect(page.locator("[data-tr-label-text]")).toHaveValue("1/0");
   await page.getByRole("button", { name: "Cancel label", exact: true }).click();
   expect((await saved(page)).document.edges[0].label.state).toBe("blank");
@@ -700,7 +701,7 @@ test("All tools uses the actual renderer preview and navigation retains triangle
 }) => {
   await boot(page, example("joined-rules"));
   const before = canonical(await saved(page));
-  await page.getByRole("link", { name: "All tools", exact: true }).click();
+  await allTools(page);
   const card = page.getByRole("link").filter({
     has: page.getByRole("img", {
       name: "Right-angled triangle with 6 cm and 8 cm sides and an unknown hypotenuse labelled x.",

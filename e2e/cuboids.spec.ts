@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { showExamples, galleryCard, chooseExample } from "./example-gallery";
 import { clickResourceAction } from "./resource-actions";
 import { test, expect, type Page } from "./release-fixtures";
@@ -273,29 +274,17 @@ test("navigation retains valid and invalid input without inactive shortcuts", as
   page,
 }) => {
   await field(page, "Width", "6");
-  await page
-    .locator(".site-tool-navigation")
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
   await expect(
     page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
-  await page
-    .locator(".site-tool-navigation")
-    .getByRole("link", { name: "Cuboids", exact: true })
-    .click();
+  await switchTool(page, "Cuboids");
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("6");
   await field(page, "Width", "bad");
-  await page
-    .locator(".site-tool-navigation")
-    .getByRole("link", { name: "Ratio tables", exact: true })
-    .click();
-  await page
-    .locator(".site-tool-navigation")
-    .getByRole("link", { name: "Cuboids", exact: true })
-    .click();
+  await switchTool(page, "Ratio tables");
+  await switchTool(page, "Cuboids");
   await expect(
     page.getByRole("textbox", { name: "Width", exact: true }),
   ).toHaveValue("bad");

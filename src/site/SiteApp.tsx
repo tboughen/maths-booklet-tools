@@ -13,6 +13,7 @@ import { Overview } from "./Overview";
 import { NotFound } from "./NotFound";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
+import { ToolPageContext } from "./toolPage";
 import { upgradeLegacyLink } from "./routes";
 import {
   AssessmentPage,
@@ -29,6 +30,7 @@ import {
 } from "./registry";
 import "./house-style.css";
 import "./site.css";
+import "./tool-switcher.css";
 import "./resource-utilities.css";
 import "./usability.css";
 import "./refinement.css";
@@ -206,7 +208,9 @@ export default function SiteApp() {
           visited.includes(tool.id) && (
             <div key={tool.id} className="site-page" hidden={page !== tool.id}>
               <LazyPage onReady={pageReady}>
-                <tool.component active={page === tool.id} />
+                <ToolPageContext value={tool.id}>
+                  <tool.component active={page === tool.id} />
+                </ToolPageContext>
               </LazyPage>
             </div>
           ),

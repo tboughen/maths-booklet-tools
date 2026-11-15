@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -296,7 +297,7 @@ test("typed input is one click away with the cursor in it, and cancel restores a
   await expect(
     page.getByRole("button", { name: "Copy image", exact: true }),
   ).toBeEnabled();
-  await page.getByRole("link", { name: "Number lines", exact: true }).click();
+  await switchTool(page, "Number lines");
   const input = page.getByRole("textbox", {
     name: "Inequality or value",
     exact: true,

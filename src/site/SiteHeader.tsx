@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { bookletTools, pageHref, sectionName, siteSections, type PageId, type SectionId } from "./registry";
+import { pageHref, sectionName, siteSections, type PageId, type SectionId } from "./registry";
 
 export function SiteHeader({ page, section }: { page: PageId; section: SectionId }) {
   const [open, setOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
   const button = useRef<HTMLButtonElement>(null);
-  const tools = useRef<HTMLElement>(null);
-  const [more, setMore] = useState({ start: false, end: false });
   const booklet = page !== "question-bank" && page !== "home" && page !== "assessment-follow-up" && page !== "worksheets" && page !== "booklets" && page !== "not-found";
   useEffect(() => {
     if (!open) return;
@@ -21,44 +19,6 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
     window.addEventListener("keydown", key);
     return () => { window.removeEventListener("pointerdown", dismiss); window.removeEventListener("keydown", key); };
   }, [open]);
-  useEffect(() => {
-    const row = tools.current;
-    if (!row) return;
-    // Bring the current tool into view, then show edge fades wherever more tools are hidden.
-    const current = row.querySelector<HTMLElement>('[aria-current="page"]');
-    const centre = () => {
-      if (current && row.scrollWidth > row.clientWidth)
-        row.scrollLeft = Math.max(0, current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2);
-    };
-    centre();
-    const placed = row.scrollLeft;
-    const measure = () => {
-      const next = { start: row.scrollLeft > 1, end: row.scrollLeft + row.clientWidth < row.scrollWidth - 1 };
-      setMore(old => old.start === next.start && old.end === next.end ? old : next);
-    };
-    // Keyboard focus: scroll the focused link clear of the 48 px fades.
-    const reveal = (event: FocusEvent) => {
-      const link = event.target as HTMLElement, r = row.getBoundingClientRect(), l = link.getBoundingClientRect();
-      if (l.left < r.left + 56) row.scrollLeft -= r.left + 56 - l.left;
-      else if (l.right > r.right - 56) row.scrollLeft += l.right - (r.right - 56);
-      // Update the fades now rather than on the later scroll event, so they never cover the focused link.
-      measure();
-    };
-    measure();
-    // The interface font can arrive after the first paint and change every link's width, so place
-    // the row again once it has loaded, unless the user has already moved it.
-    let live = true;
-    const fonts: FontFaceSet | undefined = document.fonts;
-    void fonts?.ready.then(() => {
-      if (!live) return;
-      if (row.scrollLeft === placed) centre();
-      measure();
-    });
-    row.addEventListener("scroll", measure, { passive: true });
-    row.addEventListener("focusin", reveal);
-    window.addEventListener("resize", measure);
-    return () => { live = false; row.removeEventListener("scroll", measure); row.removeEventListener("focusin", reveal); window.removeEventListener("resize", measure); };
-  }, [page, booklet]);
   return <header ref={header} className="site-navigation" onClick={event => {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
   }}>
@@ -69,9 +29,5 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
         {siteSections.map(item => <a key={item.id} href={item.href} aria-current={section === item.id ? "page" : item.id === "booklet-tools" && booklet ? "true" : undefined}><item.icon size={16} aria-hidden="true" />{item.name}</a>)}
       </nav>
     </div>
-    {booklet && <nav ref={tools} className={`site-tool-navigation${more.start ? " has-more-start" : ""}${more.end ? " has-more-end" : ""}`} aria-label="Diagram builder">
-      <a href={pageHref("booklet-tools")} aria-current={page === "booklet-tools" ? "page" : undefined}>All tools</a>
-      {bookletTools.map(tool => <a key={tool.id} href={pageHref(tool.id)} aria-current={page === tool.id ? "page" : undefined}><tool.icon size={16} aria-hidden="true" />{tool.name}</a>)}
-    </nav>}
   </header>;
 }

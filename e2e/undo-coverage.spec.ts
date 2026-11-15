@@ -1,3 +1,4 @@
+import { clickAway } from "./tool-switcher";
 import { test, expect, type Page } from "./release-fixtures";
 import { toolIds } from "../src/site/routes";
 
@@ -39,7 +40,7 @@ for (const tool of toolIds) {
     await expect(undo).toBeEnabled();
     const edited = await settled(page);
     expect(edited).not.toBe(start);
-    await page.locator("h1").click();
+    await clickAway(page);
     await page.keyboard.press("ControlOrMeta+z");
     // One step: the history is empty again and the saved resource is exactly the starting one.
     await expect(undo).toBeDisabled();

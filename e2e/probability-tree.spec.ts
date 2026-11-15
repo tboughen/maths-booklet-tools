@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -77,8 +78,8 @@ test("work survives leaving the page and reloading", async ({ page }) => {
   await boot(page);
   await page.getByLabel("Stage 1 title").fill("Bag A");
   await page.getByLabel("Stage 1 title").press("Enter");
-  await page.getByRole("link", { name: "Venn diagrams" }).first().click();
-  await page.getByRole("link", { name: "Probability trees" }).first().click();
+  await switchTool(page, "Venn diagrams");
+  await switchTool(page, "Probability trees");
   await expect(page.getByLabel("Stage 1 title")).toHaveValue("Bag A");
   await page.reload();
   await expect(page.getByLabel("Stage 1 title")).toHaveValue("Bag A");

@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { clickResourceAction } from "./resource-actions";
@@ -123,9 +124,9 @@ test("legacy separate worked documents retain their storage and navigation conte
   await expect
     .poll(() => page.evaluate((k) => localStorage.getItem(k), copyKey))
     .toBe(worked);
-  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
+  await switchTool(page, "Ratio tables");
   await page.reload();
-  await page.getByRole("link", { name: "Graph tool", exact: true }).click();
+  await switchTool(page, "Graph tool");
   expect(await page.evaluate((k) => localStorage.getItem(k), copyKey)).toBe(
     worked,
   );

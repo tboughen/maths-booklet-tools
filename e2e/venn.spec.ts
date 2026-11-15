@@ -1,3 +1,4 @@
+import { allTools, switchTool } from "./tool-switcher";
 import { showExamples } from "./example-gallery";
 import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
@@ -100,9 +101,9 @@ test("navigation hides editor but retains draft and work", async ({ page }) => {
     .getByRole("button", { name: "Edit set A label", exact: true })
     .click();
   await page.getByLabel("Label text").fill("French");
-  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
+  await switchTool(page, "Ratio tables");
   await expect(page.locator(".vn-floating")).toBeHidden();
-  await page.getByRole("link", { name: "Venn diagrams", exact: true }).click();
+  await switchTool(page, "Venn diagrams");
   await expect(page.getByLabel("Label text")).toHaveValue("French");
   await page.getByLabel("Label text").press("Enter");
   expect((await saved(page)).document.labels[1].text).toBe("French");
@@ -215,7 +216,7 @@ for (const width of [320, 375, 768, 1440])
       path: resolve(report, `editor-${width}.png`),
       fullPage: true,
     });
-    await page.getByRole("link", { name: "All tools", exact: true }).click();
+    await allTools(page);
     const card = page.getByRole("link").filter({
       has: page.getByRole("img", {
         name: "Two overlapping sets with member lists, an intersection and a pupil answer line.",

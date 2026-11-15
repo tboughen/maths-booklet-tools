@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -101,8 +102,8 @@ test("work survives leaving the page and reloading", async ({ page }) => {
   const total = page.getByRole("textbox", { name: "Total", exact: true });
   await total.fill("120");
   await total.press("Enter");
-  await page.getByRole("link", { name: "Venn diagrams" }).first().click();
-  await page.getByRole("link", { name: "Frequency trees" }).first().click();
+  await switchTool(page, "Venn diagrams");
+  await switchTool(page, "Frequency trees");
   await expect(total).toHaveValue("120");
   await page.reload();
   await expect(total).toHaveValue("120");

@@ -1,3 +1,4 @@
+import { clickAway, switchTool } from "./tool-switcher";
 import { editorBase, test, expect } from "./release-fixtures";
 import type { Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
@@ -140,10 +141,7 @@ test("pupil blank stays blank; explicit fill confirms existing values and undo r
     (key) => localStorage.getItem(key),
     graphKey,
   );
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
   await expect(
     page.getByRole("heading", { name: "Graph tool", exact: true }),
   ).toBeVisible();
@@ -743,9 +741,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
     page.getByLabel("Row 1 scaling factor", { exact: true }),
   ).toBeDisabled();
   expect((await stored(page)).document.transitions[0].factor).toBe("4");
-  await page
-    .getByRole("heading", { name: "Ratio tables", exact: true })
-    .click();
+  await clickAway(page);
   await expect(
     page.locator(".ratio-step-highlight, .ratio-arrow-target.is-selected"),
   ).toHaveCount(0);
@@ -767,9 +763,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
     path: testInfo.outputPath("inline-factor-editing.png"),
     fullPage: true,
   });
-  await page
-    .getByRole("heading", { name: "Ratio tables", exact: true })
-    .click();
+  await clickAway(page);
   await expect(first).toHaveValue("6");
   await expect(third).toHaveValue("6");
   await expect(page.locator(".ratio-operation")).toHaveText(["÷6", "÷6", "÷6"]);
@@ -783,22 +777,14 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
   await expect(middle).toHaveValue("6");
   await clickPrintedFactor(1);
   await middle.fill("1/0");
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Ratio tables", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
+  await switchTool(page, "Ratio tables");
   await expect(middle).toHaveValue("1/0");
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
   await middle.press("Escape");
-  await page
-    .getByRole("heading", { name: "Ratio tables", exact: true })
-    .click();
+  await clickAway(page);
   await page.screenshot({
     path: testInfo.outputPath("inline-factor-desktop.png"),
     fullPage: true,
@@ -819,9 +805,7 @@ test("arrow factors edit directly, synchronize every copy and retain invalid dra
   await middle.press("Enter");
   await expect(first).toHaveValue("3/2");
   await expect(third).toHaveValue("3/2");
-  await page
-    .getByRole("heading", { name: "Ratio tables", exact: true })
-    .click();
+  await clickAway(page);
   await page.screenshot({
     path: testInfo.outputPath("inline-factor-mobile.png"),
     fullPage: true,
