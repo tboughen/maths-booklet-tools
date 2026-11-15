@@ -29,6 +29,19 @@ describe("Cloudflare release construction", () => {
     expect(q.questionPdf).toBe(q.printPdf);
     expect(q.questionPdf).toMatch(/^bank\/assets\/sha256\/[a-f0-9]{64}\.pdf$/);
   });
+  it("rewrites each part and stem cut to its immutable object", () => {
+    const root = fixture();
+    writeFileSync(join(root, "bank/assets/part.pdf"), "%PDF-part");
+    writeFileSync(join(root, "bank/assets/part.png"), "png-part");
+    const catalogue = {version: "test", questions: [{id: "one", marks: 4, questionPdf: "bank/assets/one.pdf", printPdf: "bank/assets/one.pdf", schemePdf: "bank/assets/one.pdf",
+      questionViews: [{preview: "bank/assets/view.png"}], schemeViews: [], cuts: [{id: "a", pdf: "bank/assets/part.pdf", views: [{preview: "bank/assets/part.png"}]}]}]};
+    writeFileSync(join(root, "bank/catalogue.json"), JSON.stringify(catalogue));
+    const release = prepareRelease(root, "commit");
+    const cut = JSON.parse(release.catalogueJson).questions[0].cuts[0];
+    expect(cut.pdf).toBe(`bank/assets/sha256/${digest("%PDF-part")}.pdf`);
+    expect(cut.views[0].preview).toBe(`bank/assets/sha256/${digest("png-part")}.png`);
+    expect(release.manifest.assets.map(a => a.key)).toEqual(expect.arrayContaining([cut.pdf, cut.views[0].preview]));
+  });
   it("changes object URLs when bytes change, without replacing the previous release", () => {
     const root = fixture();
     const first = prepareRelease(root, "commit");
