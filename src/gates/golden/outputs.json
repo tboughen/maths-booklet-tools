@@ -422,6 +422,34 @@
    "png600": "2457x2457",
    "pixels": "2aebbaf53c15cf53"
   },
+  "charts: chart-scatter-judges": {
+   "json": "14388e3ef03afe71",
+   "svg": "f6edbb52d9fefa75",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "9fc523e7ca226f37"
+  },
+  "charts: chart-scatter-judges (worked)": {
+   "json": "09e08a8b780fbbbc",
+   "svg": "e8f7639c701065b5",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "76e371edc1db99f5"
+  },
+  "charts: chart-scatter-plot": {
+   "json": "cd620a3b775e721c",
+   "svg": "b7ee827bac63a7b8",
+   "mm": "134.9x101.4",
+   "png600": "3187x2395",
+   "pixels": "c5b9e046fca68e2b"
+  },
+  "charts: chart-scatter-plot (worked)": {
+   "json": "9fe27b663b9830c8",
+   "svg": "f8f6d3baa56cc905",
+   "mm": "134.9x101.4",
+   "png600": "3187x2395",
+   "pixels": "e85f0c821daeeb73"
+  },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
    "svg": "fff25f4f64245caf",

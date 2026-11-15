@@ -213,3 +213,22 @@
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+.ch-fieldset {
+  border: 1px solid var(--line, #d7dee8);
+  border-radius: 6px;
+  margin: 0 0 10px;
+  padding: 6px 10px 10px;
+}
+.ch-fieldset legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+.ch-fields .ch-wide {
+  grid-column: 1 / -1;
+}
+.ch-points input:not([type="checkbox"]) {
+  width: 5.5em;
+}
+.ch-points td:has(input[type="checkbox"]) {
+  text-align: center;
+}

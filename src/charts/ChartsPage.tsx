@@ -58,6 +58,11 @@ import {
   pictogramOf,
   symbolChoices,
   symbolNames,
+  MAX_POINTS,
+  MAX_READINGS,
+  SCATTER_MM,
+  scatterOf,
+  type ScatterSettings,
   pieLabelChoices,
   pieLabelNames,
   pieOf,
@@ -155,6 +160,287 @@ function DraftField({
   );
 }
 
+/** Settings cards for a scatter graph: points, axes and grid, and the line of best fit with readings. */
+function ScatterCards({
+  sc,
+  blocked,
+  selected,
+  issues,
+  onChange,
+  linesControl,
+}: {
+  sc: ScatterSettings;
+  blocked: boolean;
+  selected: string | null;
+  issues: string[];
+  onChange: (update: (s: ScatterSettings) => void) => void;
+  linesControl: React.ReactNode;
+}) {
+  const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
+  /** Marks the axis field each axis error is about. */
+  const axisBad = (axis: string, field: "min" | "max" | "step") =>
+    issues.some((x) => {
+      if (!x.includes(`${axis} axis`) || x.startsWith("Reading")) return false;
+      if (field === "min") return x.includes("axis start") || x.includes("greater than its start");
+      if (field === "max") return x.includes("axis end");
+      return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
+    });
+  const axisFields = (key: "xAxis" | "yAxis", name: string) => (
+    <fieldset className="ch-fieldset">
+      <legend>{name} axis</legend>
+      <div className="ch-fields">
+        {(["min", "max", "step"] as const).map((f) => (
+          <label key={f}>
+            {{ min: "Start", max: "End", step: "Step" }[f]}
+            <DraftField
+              label={`${name} axis ${{ min: "start", max: "end", step: "step" }[f]}`}
+              value={sc[key][f]}
+              maxLength={12}
+              inputMode="decimal"
+              disabled={blocked}
+              invalid={axisBad(name.toLowerCase(), f)}
+              onCommit={(v) => onChange((s) => void (s[key][f] = v))}
+            />
+          </label>
+        ))}
+        <label>
+          Length (mm)
+          <select
+            aria-label={`${name} axis length`}
+            value={sc[key].mm}
+            disabled={blocked}
+            onChange={(ev) => onChange((s) => void (s[key].mm = Number(ev.target.value)))}
+          >
+            {[...new Set([40, 60, 80, 100, 120, 140, 160, sc[key].mm])]
+              .filter((x) => x >= SCATTER_MM.minimum && x <= SCATTER_MM.maximum)
+              .sort((a, b) => a - b)
+              .map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className="ch-wide">
+          Title
+          <DraftField label={`${name} axis title`} value={sc[key].title} maxLength={40} disabled={blocked} onCommit={(v) => onChange((s) => void (s[key].title = v))} />
+        </label>
+      </div>
+    </fieldset>
+  );
+  const fit = sc.bestFit;
+  return (
+    <>
+      <section className="panel-card ch-panel">
+        <h2>Points</h2>
+        <div className="ch-table-wrap">
+          <table className="ch-table ch-points">
+            <thead>
+              <tr>
+                <th scope="col">Point</th>
+                <th scope="col">x</th>
+                <th scope="col">y</th>
+                <th scope="col">Hide</th>
+                <th scope="col">Ring</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sc.points.map((p, i) => (
+                <tr key={i}>
+                  <th scope="row">{i + 1}</th>
+                  {(["x", "y"] as const).map((c) => (
+                    <td key={c}>
+                      <DraftField
+                        id={`ch-point-${c}-${i}`}
+                        className={selected === `ch-point-${c}-${i}` ? "ch-field-selected" : ""}
+                        label={`Point ${i + 1} ${c}`}
+                        value={p[c]}
+                        maxLength={12}
+                        inputMode="decimal"
+                        disabled={blocked}
+                        invalid={bad(`Point ${i + 1}:`)}
+                        onCommit={(v) => onChange((s) => void (s.points[i][c] = v))}
+                      />
+                    </td>
+                  ))}
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`Hide point ${i + 1} for pupils`}
+                      checked={p.show === "hidden"}
+                      disabled={blocked}
+                      onChange={(ev) => onChange((s) => void (s.points[i].show = ev.target.checked ? "hidden" : "show"))}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`Ring point ${i + 1} (outlier)`}
+                      checked={p.ring}
+                      disabled={blocked}
+                      onChange={(ev) => onChange((s) => void (s.points[i].ring = ev.target.checked))}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="ch-note">
+          Values stay as typed. Hide keeps a point as a saved answer for pupils to plot; Ring circles
+          an outlier. Use + and − beside the graph to add or remove the last point.
+        </p>
+        <div className="ch-row">
+          <button type="button" disabled={blocked || !sc.points.length} onClick={() => onChange((s) => s.points.forEach((p) => (p.show = "hidden")))}>
+            Hide all points (pupils plot)
+          </button>
+          <button
+            type="button"
+            disabled={blocked || !sc.points.some((p) => p.show === "hidden")}
+            onClick={() => onChange((s) => s.points.forEach((p) => (p.show = "show")))}
+          >
+            Show all points
+          </button>
+        </div>
+      </section>
+      <section className="panel-card ch-panel">
+        <h2>Axes and grid</h2>
+        {axisFields("xAxis", "Horizontal")}
+        {axisFields("yAxis", "Vertical")}
+        <div className="ch-fields">
+          <label>
+            Grid
+            <select aria-label="Grid" value={sc.grid} disabled={blocked} onChange={(ev) => onChange((s) => void (s.grid = ev.target.value as ScatterSettings["grid"]))}>
+              <option value="none">No grid</option>
+              <option value="major">Lines at each step</option>
+              <option value="fine">Graph paper</option>
+            </select>
+          </label>
+          <label>
+            Small squares per step
+            <select
+              aria-label="Small squares per step"
+              value={sc.minor}
+              disabled={blocked || sc.grid !== "fine"}
+              onChange={(ev) => onChange((s) => void (s.minor = Number(ev.target.value) as ScatterSettings["minor"]))}
+            >
+              {minorChoices.map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+            </select>
+          </label>
+          {linesControl}
+        </div>
+      </section>
+      <section className="panel-card ch-panel">
+        <h2>Line of best fit and readings</h2>
+        <label className="ch-check">
+          <input
+            type="checkbox"
+            checked={!!fit}
+            disabled={blocked}
+            onChange={(ev) =>
+              onChange((s) => {
+                if (ev.target.checked) s.bestFit = { from: { x: "", y: "" }, to: { x: "", y: "" }, show: "show" };
+                else delete s.bestFit;
+              })
+            }
+          />
+          Draw a line of best fit
+        </label>
+        {fit && (
+          <div className="ch-fields">
+            {(["from", "to"] as const).flatMap((end) =>
+              (["x", "y"] as const).map((c) => (
+                <label key={end + c}>
+                  {end === "from" ? "Through" : "and"} {c}
+                  <DraftField
+                    label={`Line of best fit ${end === "from" ? "first" : "second"} point ${c}`}
+                    value={fit[end][c]}
+                    maxLength={12}
+                    inputMode="decimal"
+                    disabled={blocked}
+                    invalid={bad("Line of best fit")}
+                    onCommit={(v) => onChange((s) => void (s.bestFit![end][c] = v))}
+                  />
+                </label>
+              )),
+            )}
+            <label className="ch-check">
+              <input
+                type="checkbox"
+                checked={fit.show === "hidden"}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.bestFit!.show = ev.target.checked ? "hidden" : "show"))}
+              />
+              Hide the line (pupils draw it)
+            </label>
+          </div>
+        )}
+        <p className="ch-note">
+          You choose two points the line passes through; it is drawn across the grid. Nothing is
+          fitted for you.
+        </p>
+        {sc.readings.map((r, i) => (
+          <div className="ch-fields" key={i}>
+            <label>
+              Reading {i + 1} from
+              <select
+                aria-label={`Reading ${i + 1} axis`}
+                value={r.axis}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.readings[i].axis = ev.target.value as "x" | "y"))}
+              >
+                <option value="x">Horizontal axis</option>
+                <option value="y">Vertical axis</option>
+              </select>
+            </label>
+            <label>
+              Value
+              <DraftField
+                label={`Reading ${i + 1} value`}
+                value={r.value}
+                maxLength={12}
+                inputMode="decimal"
+                disabled={blocked}
+                invalid={bad(`Reading ${i + 1}:`)}
+                onCommit={(v) => onChange((s) => void (s.readings[i].value = v))}
+              />
+            </label>
+            <label className="ch-check">
+              <input
+                type="checkbox"
+                checked={r.show === "hidden"}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.readings[i].show = ev.target.checked ? "hidden" : "show"))}
+              />
+              Hide (pupils read it)
+            </label>
+            <button type="button" disabled={blocked} onClick={() => onChange((s) => void s.readings.splice(i, 1))}>
+              Remove reading {i + 1}
+            </button>
+          </div>
+        ))}
+        <div className="ch-row">
+          <button
+            type="button"
+            disabled={blocked || !fit || sc.readings.length >= MAX_READINGS}
+            onClick={() => onChange((s) => void s.readings.push({ axis: "x", value: "", show: "show" }))}
+          >
+            Add a reading
+          </button>
+        </div>
+        <p className="ch-note">
+          A reading draws dashed guides from a value on one axis to the line and across to the other
+          axis. The value read off is never printed.
+        </p>
+      </section>
+    </>
+  );
+}
+
 export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
@@ -190,7 +476,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const line = d.kind === "vline",
     pie = d.kind === "pie",
     pictogram = d.kind === "pictogram",
-    mark = pie ? "sector" : pictogram ? "row" : line ? "line" : "bar";
+    scatter = d.kind === "scatter",
+    sc = scatterOf(d),
+    mark = pie ? "sector" : pictogram ? "row" : scatter ? "point" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -212,6 +500,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
+  }
+  /** One undoable edit of the scatter graph's settings. */
+  function patchScatter(update: (s: ScatterSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(scatterOf(n));
+      update(next);
+      n.scatter = next;
+    });
   }
   function undo() {
     if (blocked) return;
@@ -348,7 +644,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size and pictograms."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms and scatter graphs."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -453,7 +749,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               />
             </div>
             <EditorHint tool="charts">
-              Click a {pie ? "sector" : pictogram ? "row or category" : "bar, line or category label"} to edit its value. Enter
+              Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
@@ -471,18 +767,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }}
                   />
                   {g.targets.map((t) => {
-                    const cell = d.series[t.series].values[t.category];
-                    const id = `ch-value-${t.series}-${t.category}`;
+                    const point = scatter ? sc.points[t.category] : null;
+                    const cell = point ?? d.series[t.series].values[t.category];
+                    const id = point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
                     const hiddenHere =
                       view === "pupil" &&
                       cell.show === "hidden" &&
-                      cell.value.trim();
+                      (point !== null || (cell as { value: string }).value.trim() !== "");
                     return (
                       <button
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
-                        aria-label={`Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
+                        aria-label={
+                          point
+                            ? `Edit point ${t.category + 1}: (${point.x}, ${point.y})`
+                            : `Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`
+                        }
                         title={
                           hiddenHere
                             ? "Hidden answer (pupils draw this)"
@@ -516,6 +817,28 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     />
                   ))}
                 </div>
+                {scatter ? (
+                <StructureStepper
+                  vertical
+                  name="Points"
+                  caption=""
+                  add={{
+                    label: "Add a point at the end",
+                    title: "Add point",
+                    disabled: blocked || sc.points.length >= MAX_POINTS,
+                    onClick: () => {
+                      patchScatter((s) => void s.points.push({ x: "", y: "", show: "show", ring: false }));
+                      requestAnimationFrame(() => focusField(`ch-point-x-${sc.points.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last point${sc.points.length ? ` (point ${sc.points.length})` : ""}`,
+                    title: "Remove last point",
+                    disabled: blocked || sc.points.length === 0,
+                    onClick: () => patchScatter((s) => void s.points.pop()),
+                  }}
+                />
+                ) : (
                 <StructureStepper
                                     vertical
                   name="Categories"
@@ -538,6 +861,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onClick: () => commit(removeCategory(e)),
                   }}
                 />
+                )}
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (
@@ -592,6 +916,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             </section>
+            {!scatter && (
             <section className="panel-card ch-panel">
               <h2>Data</h2>
               <div className="ch-table-wrap">
@@ -757,6 +1082,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            )}
+            {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}
             {pie && (
               <section className="panel-card ch-panel">
                 <h2>Pie chart</h2>

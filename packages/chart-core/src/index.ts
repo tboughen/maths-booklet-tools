@@ -4,7 +4,9 @@ import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
 import { pieLayout, pieSvg } from "./pie";
 import { pictogramLayout, pictogramSvg } from "./pictogram";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+import { scatterLayout, scatterSvg } from "./scatter";
+export { scatterLayout } from "./scatter";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -20,7 +22,7 @@ export const RENDERER_VERSION = "charts-1" as const;
  * graphs need a continuous axis and belong in their own tools. Switching kind never
  * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
@@ -29,9 +31,10 @@ export const kindNames: Record<Kind, string> = {
   vline: "Vertical line chart",
   pie: "Pie chart",
   pictogram: "Pictogram",
+  scatter: "Scatter graph",
 };
 /** Kinds drawn on a categorical axis with a numerical scale. */
-export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram";
+export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter";
 
 export const fills = [
   "grey",
@@ -106,6 +109,8 @@ export const envelopeSchema = z
         pie: pieSchema.optional(),
         /** Pictogram symbol, size and key; absent means PICTOGRAM_DEFAULTS. Other kinds ignore it. */
         pictogram: pictogramSchema.optional(),
+        /** Scatter graph points, axes, line of best fit and readings; absent means SCATTER_DEFAULTS. */
+        scatter: scatterSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -170,6 +175,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("scatter"))
+      throw withFields(Error(`Use at most ${MAX_POINTS} scatter points and 3 readings, values of at most 12 characters, axis titles of at most 40 characters and axis lengths from 40 to 160 mm.`), parsed.error);
     if (path.includes("pictogram"))
       throw withFields(Error(`Choose a circle or square symbol from ${SYMBOL_MM.minimum} to ${SYMBOL_MM.maximum} mm, a key value of at most 12 characters and a unit of at most 24 characters, without markup.`), parsed.error);
     if (path.includes("pie"))
@@ -204,6 +211,12 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
     markAnswerKey(key);
     if (mark && key.value.trim()) markRevealed(key);
   }
+  const sc = n.document.kind === "scatter" ? n.document.scatter : undefined;
+  if (sc)
+    for (const item of [...sc.points, ...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) {
+      if (mark && item.show === "hidden") markRevealed(item);
+      item.show = "show";
+    }
   for (const s of n.document.series)
     for (const c of s.values) {
       if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
@@ -212,10 +225,17 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   return n;
 }
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document);
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document);
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram";
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter";
+/** A scatter graph with a point, line or reading left for pupils. */
+const scatterHidden = (d: ChartDocument) =>
+  d.kind === "scatter" &&
+  !!d.scatter &&
+  [...d.scatter.points.filter((p) => p.x.trim() && p.y.trim()), ...d.scatter.readings, ...(d.scatter.bestFit ? [d.scatter.bestFit] : [])].some(
+    (x) => x.show === "hidden",
+  );
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
@@ -259,6 +279,10 @@ export type Frame = {
 export function layout(e: Envelope): Frame {
   if (e.document.kind === "pie") {
     const g = pieLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (e.document.kind === "scatter") {
+    const g = scatterLayout(e);
     return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
   }
   if (e.document.kind === "pictogram") {
@@ -450,6 +474,7 @@ const fillRef = (f: Fill) =>
 export function renderSvg(e: Envelope): string {
   if (e.document.kind === "pie") return pieSvg(e);
   if (e.document.kind === "pictogram") return pictogramSvg(e);
+  if (e.document.kind === "scatter") return scatterSvg(e);
   const d = e.document,
     g = axesLayout(e),
     p = g.plot,
@@ -562,6 +587,12 @@ export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   const n2 = structuredClone(e);
   for (const s of n2.document.series) for (const c of s.values) c.show = show;
   // Show all also shows a hidden pictogram key; hiding every value keeps the key as it is.
-  if (show === "show" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
+  if (show === "show" && n2.document.kind === "pictogram" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
+  // Scatter graphs: hide every point (pupils plot them); show all also shows the line and readings.
+  const sc = n2.document.kind === "scatter" ? n2.document.scatter : undefined;
+  if (sc) {
+    for (const p of sc.points) p.show = show;
+    if (show === "show") for (const item of [...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) item.show = "show";
+  }
   return n2;
 }

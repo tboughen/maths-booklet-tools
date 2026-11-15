@@ -197,3 +197,38 @@ test("pictograms: rows edit from the chart, the key can be hidden and hidden row
   await page.getByRole("button", { name: "Pictogram" }).click();
   expect((await saved(page)).document.series[0].values[4]).toEqual({ value: "15", show: "hidden" });
 });
+
+test("scatter graphs: points edit from the graph, hidden answers stay saved and the line of best fit is the teacher's", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "scatter-judges")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  const crosses = (ink: string) => art.locator(`path[stroke='${ink}'][stroke-width='0.35'][fill='none']:not([d*='H'])`);
+  await expect(crosses("black")).toHaveCount(11);
+  await expect(art.locator("line")).toHaveCount(0);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(crosses("#b0125b")).toHaveCount(1);
+  await expect(art.locator("line[stroke='#b0125b']")).toHaveCount(1);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByRole("button", { name: "Edit point 1: (2, 1)" }).click();
+  const x = page.getByLabel("Point 1 x");
+  await expect(x).toBeFocused();
+  await x.fill("9");
+  await x.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "Point 1: (9, 1) is outside the axes." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(x).toHaveValue("2");
+  await page.getByRole("button", { name: "Add a point at the end" }).click();
+  await expect(page.getByLabel("Point 13 x")).toBeFocused();
+  await page.getByLabel("Point 13 x").fill("1");
+  await page.getByLabel("Point 13 x").press("Tab");
+  await page.getByLabel("Point 13 y").fill("5");
+  await page.getByLabel("Point 13 y").press("Enter");
+  await page.getByLabel("Ring point 13 (outlier)").check();
+  await expect(art.locator("circle")).toHaveCount(1);
+  await page.getByLabel("Hide the line (pupils draw it)").uncheck();
+  await expect(art.locator("line[stroke='black']")).toHaveCount(1);
+  await expect.poll(async () => (await saved(page)).document.scatter.points[12]).toEqual({ x: "1", y: "5", show: "show", ring: true });
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  await page.getByRole("button", { name: "Scatter graph" }).click();
+  expect((await saved(page)).document.scatter.points).toHaveLength(13);
+});
