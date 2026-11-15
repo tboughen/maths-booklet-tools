@@ -23,6 +23,9 @@ import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 import { boldLines, LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "area-1" as const;
+
 export { ANSWER_COLOUR };
 export const STATES = ["value", "symbol", "blank", "answer-line", "hidden"] as const;
 export type LabelState = (typeof STATES)[number];
@@ -121,7 +124,7 @@ export const documentSchema = z
   })
   .strict();
 export const envelopeSchema = z
-  .object({ kind: z.literal("area"), schemaVersion: z.literal(1), rendererVersion: z.literal("area-1"), document: documentSchema, ...aboutShape })
+  .object({ kind: z.literal("area"), schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), document: documentSchema, ...aboutShape })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type AreaDocument = Envelope["document"];
@@ -581,7 +584,7 @@ export function presetShape(p: Preset): { shape: Shape; hole: Hole | null } {
 }
 export function blank(p: Preset = "rectangle"): Envelope {
   const { shape, hole } = presetShape(p);
-  return { kind: "area", schemaVersion: 1, rendererVersion: "area-1", document: { shape, hole, shaded: hole ? "shape" : "none", labels: [], names: [], grid: false, notToScale: true } };
+  return { kind: "area", schemaVersion: 1, rendererVersion: RENDERER_VERSION, document: { shape, hole, shaded: hole ? "shape" : "none", labels: [], names: [], grid: false, notToScale: true } };
 }
 /** A starting diagram for each preset, with typical labels. */
 export function starter(p: Preset = "l-shape"): Envelope {

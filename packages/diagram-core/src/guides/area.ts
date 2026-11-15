@@ -4,7 +4,7 @@ export const areaConfig = {
   capabilities: {
     editor: "The returned editor link opens the diagram at /tools/area, where teachers change the shape, label sides, and save or print.",
     schemaVersions: [1],
-    rendererVersions: ["area-1"],
+    rendererVersions: [core.RENDERER_VERSION],
     presets: core.PRESETS,
     labelIds: {
       polygon: "e<k> side k (corner k to corner k+1; for a semicircle side, its arc), h<i> dashed height i, area inside",
