@@ -223,6 +223,17 @@ test.describe("question viewer annotations", () => {
     await page.keyboard.press("ArrowRight");
     await expect(page.locator(".qb-navigation strong")).toHaveText(before!);
   });
+
+  for (const [width, height] of [[1280, 800], [1600, 900], [1920, 1080]]) test(`Annotate stays at the right of the footer under the rail at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await page.keyboard.press("p");
+    const button = page.locator(".qb-footer .qb-annotate-toggle");
+    await expect(button).toBeInViewport({ ratio: 1 });
+    const [annotate, rail] = [(await button.boundingBox())!, (await page.locator(".qb-annotate-bar").boundingBox())!];
+    expect(Math.abs(annotate.x + annotate.width - (rail.x + rail.width))).toBeLessThan(40);
+    await expect(page.locator(".qb-footer .qb-image-actions")).toBeInViewport({ ratio: 1 });
+  });
 });
 
 test.describe("question viewer annotations on touch boards", () => {
