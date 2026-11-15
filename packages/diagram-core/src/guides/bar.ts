@@ -38,11 +38,25 @@ export const barConfig = {
       "No automatic solver. spec.example with worked:true selects a worked example; reveal_saved_answers reveals saved content only on request. Ordinary edits keep answers.",
     hiddenAnswers: "Pupil artwork is the default; editable files and links keep hidden saved answers.",
   },
-  createDescription:
-    "Create an editable bar model. Supply spec or an exact envelope, never both. spec:{example?:BM01..BM09|H07|H18|source-sharing,worked?:false} opens a saved example on its own; otherwise spec:{starter?:part-whole|comparison|equal-sections|inline-ratio,count?,ratio?:positive-integer-array,partitioned?,comparisonLengths?:[longer,shorter],bars?,annotations?,captions?,title?,presentation?}. Omit spec for the part-whole starter. " +
-    "Parts have labels:{inside,above?,below?} and fill:none|neutral|blue|green|amber; each label is {text,state:value|blank|question|line|hidden} and hidden keeps its text. annotations:[{id,scope:{kind:whole,barId}|{kind:range,from:{barId,partId,edge:start|end},to},label,decoration:none|brace|dimension,placement:above|below|inside|between}]. captions:[{id,label,alignment:left|centre|right,format?:maths|plain}], max 3; title is a label. presentation:{unitMm:4..16,barHeightMm:8..24 minimum,fontPt:10..14,titlePt:12..18,nameWidthMm?,output:grey|colour,lines?:bold}. " +
-    "Up to 6 bars, 24 sections a bar, 18 annotations, 32 KiB. Exact fraction or decimal geometry; algebra labels are never evaluated. Returns the canonical envelope and hash, preview, SVG, 600 ppi PNG, JSON, print facts, an editor link and warnings.",
-  reviseDescription:
-    "Revise the exact envelope with baseHash=contentHash; operations (max 30) apply atomically. set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to,mode:move|copy,overwrite?:false}; set_annotation{annotation}; remove_annotation{annotationId}; equal_sections{barId,count,discardContent?:false}; set_fill{barId,partIds,fill}; add_caption/update_caption{caption}; remove_caption{captionId}; set_title{label|null}; set_presentation{presentation,autoName?}; set_quantity_name{barId,label}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}; remove_bar{barId,discardSpans?:false}; remove_part{barId,partId,discardSpans?:false}; set_alignment{barId,offset}; reveal_saved_answers{} only on explicit request. " +
-    "Use stable returned IDs. Kept hidden destinations need explicit overwrite. No implicit maths, answer reveal or resizing from labels. Empty operations refresh files and links.",
+  // M8: structured, current-first text. Each line starts with what it covers, so a model can find the rule it needs.
+  createDescription: [
+    "Creates an editable bar model (schema 3, renderer bar-model-3).",
+    "RULES: one shared unit width for every bar; labels never set widths or calculate answers; annotations stay anchored to stable IDs. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Ambiguous maths text is refused, never silently changed.",
+    "INPUT: spec or an exact envelope, never both. Omit spec for the part-whole starter. A saved example: spec:{example:BM01..BM09|H07|H18|source-sharing,worked?:false} on its own. Otherwise spec:{starter?:part-whole|comparison|equal-sections|inline-ratio,count?,ratio?:positive-integer-array,partitioned?,comparisonLengths?:[longer,shorter],bars?,annotations?,captions?,title?,presentation?}.",
+    "SECTIONS: labels:{inside,above?,below?}, fill:none|neutral|blue|green|amber. A label is {text,state:value|blank|question|line|hidden}; hidden keeps its text.",
+    "ANNOTATIONS: [{id,scope:{kind:whole,barId}|{kind:range,from:{barId,partId,edge:start|end},to},label,decoration:none|brace|dimension,placement:above|below|inside|between}].",
+    "CAPTIONS: [{id,label,alignment:left|centre|right,format?:maths|plain}], max 3. maths (default) stacks simple a/b fractions; plain keeps dates and literal slashes. title is a label.",
+    "PRESENTATION: {unitMm:4..16,barHeightMm:8..24 minimum,fontPt:10..14,titlePt:12..18,nameWidthMm?,output:grey|colour,lines?:bold}.",
+    "LIMITS: 6 bars, 24 sections a bar, 18 annotations, 32 KiB. Exact fraction or decimal geometry; algebra labels are never evaluated.",
+    "RETURNS: the canonical envelope and contentHash, preview, SVG, 600 ppi PNG, JSON, print facts, an editor link and warnings.",
+  ].join("\n"),
+  reviseDescription: [
+    "Revises a bar model. Send the exact returned envelope with baseHash=contentHash; up to 30 operations apply together or not at all. Use the stable returned IDs.",
+    "RULES: no implicit maths, answer reveal or resizing from labels. move_or_copy_label onto a label that already has text or a non-blank state needs overwrite:true. Removing structure an annotation refers to needs discardSpans:true or removing the annotation first; anchors never reattach. Empty operations refresh files and links.",
+    "LABELS: set_section_label{barId,partId,slot:inside|above|below,label}; set_section_labels{barId,partIds,slot,label}; move_or_copy_label{from:{barId,partId,slot},to,mode:move|copy,overwrite?:false}; set_quantity_name{barId,label}; set_title{label|null}.",
+    "ANNOTATIONS AND CAPTIONS: set_annotation{annotation}; remove_annotation{annotationId}; add_caption/update_caption{caption}; remove_caption{captionId}.",
+    "STRUCTURE: equal_sections{barId,count,discardContent?:false}; set_relative_length{barId,partId,weight}; append_section{barId,part,afterId?}; append_bar{bar,afterId?}; reorder_bars{barIds}; remove_bar{barId,discardSpans?:false}; remove_part{barId,partId,discardSpans?:false}; set_alignment{barId,offset}.",
+    "LOOK: set_fill{barId,partIds,fill}; set_presentation{presentation,autoName?}.",
+    "ANSWERS: reveal_saved_answers{} only on the user's explicit request.",
+  ].join("\n"),
 };
