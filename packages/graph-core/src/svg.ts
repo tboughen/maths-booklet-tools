@@ -100,6 +100,12 @@ const GRID_STROKE_WIDTH = pointsToDiagramUnits(
   GRID_STROKE_POINTS,
   UNITS_PER_CM,
 );
+/**
+ * The plot clip reaches half a line's width past the grid, so a line or segment lying on the edge
+ * of the grid (a distance-time graph stopped at its top value) prints at full weight instead of
+ * half clipped (Tim, A7.11 marking, 15 Nov 2026). A line crossing the edge ends in its round cap.
+ */
+const PLOT_CLIP_BLEED = GRID_STROKE_WIDTH / 2;
 const AXIS_STROKE_WIDTH = pointsToDiagramUnits(
   AXIS_STROKE_POINTS,
   UNITS_PER_CM,
@@ -1084,7 +1090,7 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   <title id="diagram-title">Coordinate graph</title>
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
-  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
+  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft - PLOT_CLIP_BLEED)}" y="${n(layout.plotTop - PLOT_CLIP_BLEED)}" width="${n(layout.plotRight - layout.plotLeft + 2 * PLOT_CLIP_BLEED)}" height="${n(layout.plotBottom - layout.plotTop + 2 * PLOT_CLIP_BLEED)}"/></clipPath></defs>
   ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
   ${boldInk(axes.lines, document.lines)}
   ${boldInk(objects.lines, document.lines)}
