@@ -107,6 +107,8 @@ const tools = [
   "number-line",
   "venn",
 ];
+// Tools without an answers copy have no "Worked notes…" item (U116).
+const noAnswersCopy = new Set(["value-table-graph", "cuboids"]);
 async function openMenu(page: Page) {
   const trigger = page.getByRole("button", {
     name: "File",
@@ -183,11 +185,12 @@ for (const tool of tools) {
           items.map((i) => i.querySelector("strong")!.textContent),
         );
       // Optional answers-copy downloads (U28) sit among the images; the shared order is the rest.
-      expect(labels.filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? "")).slice(0, 6)).toEqual([
+      expect(labels.filter((l) => !/^Download (answers |pupil and answers)/.test(l ?? "")).slice(0, noAnswersCopy.has(tool) ? 6 : 7)).toEqual([
         "Download SVG",
         "Download PNG (600 ppi)",
         "Download PDF (actual size)",
         "Title and note…",
+        ...(noAnswersCopy.has(tool) ? [] : ["Worked notes…"]),
         "Save editable file",
         "Open editable file",
       ]);
@@ -1016,6 +1019,7 @@ for (const tool of toolIds) {
       ["Download PNG (600 ppi)", ""],
       ["Download PDF (actual size)", ""],
       ["Title and note…", "Saved in the file, never printed."],
+      ...(noAnswersCopy.has(tool) ? [] : [["Worked notes…", "Dark-pink guidance on the answers copy only."]]),
       ["Save editable file", "Includes hidden answers."],
       ["Open editable file", ""],
       ["Copy editable link", "Anyone with the link can open the saved resource, including hidden answers."],

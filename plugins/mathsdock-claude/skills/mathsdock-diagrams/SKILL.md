@@ -34,7 +34,7 @@ Current connector builds have three diagram tools that work for every family:
 | Venn diagram, set shading | `venn` |
 | Expanding or factorising grid | `algebra-grid` |
 | Bar model (part-whole, comparison, equal parts) | `bar-model` |
-| Bar, dual, composite or vertical line chart | `charts` |
+| Bar, dual, composite, vertical line or pie chart | `charts` |
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 | Constructions, loci, scale drawing, map, bearings | `construction` |
@@ -57,10 +57,10 @@ alternative only if the teacher wants one.
   finished" is not a request to fill answers; ask, or suggest a scaffold.
 - Blank, answer line, zero and hidden answer are four different states. Keep each exactly
   as requested.
-- Operations that calculate, fill, collect or reveal answers, make worked copies, upgrade
-  a document's version, or discard saved content (for example `calculate_answer`,
+- Operations that calculate, fill, collect or reveal answers, make worked copies, or
+  discard saved content (for example `calculate_answer`,
   `fill_products`, `fill_next_row`, `calculate_cells`, `calculate_and_store`,
-  `reveal_saved_answers`, `worked_copy`, `upgrade_document`, `discardIncompatible`) need the
+  `reveal_saved_answers`, `worked_copy`, `discardIncompatible`) need the
   teacher's explicit request for that action. A loss warning is not permission to discard.
 - `outputView: "answer"` (Venn, charts, probability trees, coordinate graphs with `answerOnly`
   objects) only when the teacher asks for
@@ -97,19 +97,15 @@ expected: fix that field and try once more rather than guessing a different payl
 
 ## Family notes
 
-- **Bar models.** Request `spec.schemaVersion: 3` for new models: horizontal a/b fractions
-  in Maths captions and handwriting space of 12 mm above and 3 mm below each answer line.
+- **Bar models.** Every bar model has horizontal a/b fractions in Maths captions and
+  handwriting space of 12 mm above and 3 mm below each answer line.
   Answer lines inside bars need actual uniform bars of at least 20 mm; the stored
   `barHeightMm` (8 to 24) is only a minimum. Plain text captions are only for dates and
   literal slashes; ambiguous or nested fractions fail rather than fall back. All bars
-  share one unit width; labels never change widths. Never shrink fonts, resize bars
-  horizontally or upgrade automatically to make text fit. A bare request without a
-  version stays v1 and an explicit v2 spec stays v2; saved v1 and v2 files keep their
-  version until the teacher asks for `upgrade_document`. For a v2 lesson layout, request
-  `spec: {schemaVersion: 2, starter: "part-whole"}` (or `comparison`, `equal-sections`,
-  `inline-ratio`). An explicit upgrade runs once,
-  first in the batch, checks the original hash and rolls the whole batch back on failure;
-  one Undo restores the original version. See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
+  share one unit width; labels never change widths. Never shrink fonts or resize bars
+  horizontally to make text fit. For a lesson layout, request
+  `spec: {starter: "part-whole"}` (or `comparison`, `equal-sections`, `inline-ratio`).
+  See [Bar model v3](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-V3.md) and
   [Bar-model MCP](https://github.com/tboughen/maths-booklet-tools/blob/main/docs/tools/BAR-MODEL-MCP.md).
 - **Ratio tables.** One scaling transition applies across every column. Keep that shared
   factor and its copies. A legacy default is not a limit: follow the capabilities for

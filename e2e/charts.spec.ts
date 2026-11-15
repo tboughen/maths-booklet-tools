@@ -81,7 +81,7 @@ test("adds a category beside the chart and work survives leaving the page", asyn
   await page.getByLabel("Category 5 label").fill("Train");
   await page.getByLabel("Category 5 label").press("Enter");
   await page.getByRole("link", { name: "Venn diagrams" }).first().click();
-  await page.getByRole("link", { name: "Bar and line charts" }).first().click();
+  await page.getByRole("link", { name: "Statistical charts" }).first().click();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
   await page.reload();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
@@ -133,4 +133,34 @@ test("downloads pupil and answers copies in one ZIP without changing the view (U
   // The editor still shows the pupil copy, and the saved chart is unchanged.
   await expect(bars(page)).toHaveCount(9);
   expect(JSON.stringify(await saved(page))).toBe(before);
+});
+
+test("pie charts: switching type keeps the data, sectors edit from the chart and hidden sectors stay answers", async ({ page }) => {
+  const pieExample = examples.find((x) => x.id === "pie-complete")!.make(false);
+  await boot(page, pieExample);
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await expect(art.locator("circle")).toHaveCount(1);
+  await expect(page.getByLabel("Angle for football")).toHaveText("144°");
+  await expect(art).not.toContainText("rugby");
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(art).toContainText("rugby");
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByRole("button", { name: "Edit sector: tennis" }).click();
+  const field = page.getByLabel("Value for tennis");
+  await expect(field).toBeFocused();
+  await field.fill("");
+  await field.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "tennis: enter a number" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByLabel("Sector labels").selectOption("name-angle");
+  await expect(art).toContainText("144°");
+  await page.getByLabel("Pie chart radius").selectOption("60");
+  await expect.poll(async () => (await saved(page)).document.pie).toEqual({ radiusMm: 60, labels: "name-angle" });
+  await expect(page.getByRole("heading", { name: "Axes and grid" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  await expect(bars(page)).toHaveCount(2);
+  await page.getByRole("button", { name: "Pie chart" }).click();
+  const doc = (await saved(page)).document;
+  expect(doc.series[0].values[2]).toEqual({ value: "12", show: "hidden" });
 });

@@ -1,4 +1,4 @@
-import fontMetrics from "./v2-font-metrics.json" with { type: "json" };
+import fontMetrics from "./font-metrics.json" with { type: "json" };
 
 const glyphs: Record<string, number[]> = fontMetrics.entries;
 export const escapeXml = (s: string) =>

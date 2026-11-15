@@ -5,9 +5,8 @@ import * as ratio from "../../packages/ratio-table-core/src/interchange";
 import { graphGallery, ratioGallery, ratioTeachingGallery } from "../examples/galleryCatalogue";
 import * as algebraGrid from "../../packages/algebra-grid-core/src/index";
 import { exampleNames as algebraGridExamples } from "../../packages/algebra-grid-core/src/interchange";
-import * as barModel from "../../packages/bar-model-core/src/index";
 import * as barModelVersioned from "../../packages/bar-model-core/src/versioned";
-import { lessonExample, lessonExampleNames } from "../../packages/bar-model-core/src/lesson-examples-v3";
+import { example, exampleNames, lessonExample, lessonExampleNames } from "../../packages/bar-model-core/src/examples";
 import * as cuboid from "../../packages/cuboid-core/src/index";
 import { examples as cuboidExamples } from "../../packages/cuboid-core/src/examples";
 import * as numberLine from "../../packages/number-line-core/src/index";
@@ -46,8 +45,7 @@ export const tools: Tool[] = [
   { name: "graph", envelopes: () => graphGallery.flatMap(x => [x.make(false), x.make(true)]).map(d => graph.createEnvelope(d as never)), validate: (raw: unknown) => graph.validateEnvelope(raw), parseFile: graph.parseGraphFile, link: { encode: graph.encodeEnvelope, decode: graph.decodeEnvelope }, teachingSlots: false },
   { name: "ratio table", envelopes: () => [...ratioGallery, ...ratioTeachingGallery].flatMap(x => [x.make(false), x.make(true)]), validate: ratio.validateRatioEnvelope, parseFile: ratio.parseRatioFile, link: { encode: ratio.encodeRatio, decode: ratio.decodeRatio } },
   { name: "algebra grid", envelopes: () => algebraGridExamples.flatMap(n => [algebraGrid.example(n), algebraGrid.example(n, true)]), validate: algebraGrid.validate, parseFile: algebraGrid.parseFile },
-  { name: "bar model v1", envelopes: () => barModel.exampleNames.flatMap(n => [barModel.example(n), barModel.example(n, true)]), validate: barModel.validate, parseFile: barModel.parseFile },
-  { name: "bar model v3", envelopes: () => lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), validate: (raw: unknown) => barModelVersioned.parseFile(JSON.stringify(raw)), parseFile: barModelVersioned.parseFile },
+  { name: "bar model v3", envelopes: () => [...lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), ...exampleNames.flatMap(n => [example(n), example(n, true)])], validate: (raw: unknown) => barModelVersioned.parseFile(JSON.stringify(raw)), parseFile: barModelVersioned.parseFile },
   { name: "charts", envelopes: () => chartExamples.flatMap(x => [x.make(false), x.make(true)]), validate: chart.validate, parseFile: chart.parseFile },
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, parseFile: cuboid.parseFile, link: { encode: cuboid.encode, decode: cuboid.decode } },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, parseFile: numberLine.parseFile, link: { encode: numberLine.encode, decode: numberLine.decode } },

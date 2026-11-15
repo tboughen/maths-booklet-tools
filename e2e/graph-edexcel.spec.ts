@@ -104,10 +104,12 @@ test("sketch axes show no grid or numbers, with the line's labels in the answer 
 
 test("a point prints its coordinates or a pupil blank, as an undoable edit", async ({ page }) => {
   const envelope = createGraph({ objects: [{ kind: "point", id: "p", position: { x: 2, y: -3 }, name: "A" }] });
-  envelope.document.selectedObjectId = "p";
   const raw = JSON.stringify(envelope);
   await page.addInitScript(({ key, raw }) => localStorage.setItem(key, raw), { key, raw });
   await page.goto("/tools/graph");
+  // The selection is editor state (U35) and is never saved, so select the point in the Objects list.
+  await page.locator(".objects-toggle").click();
+  await page.getByRole("button", { name: /^Select Point 1:/ }).click();
   const canvas = page.locator(".graph-canvas");
   const select = page.getByLabel("Coordinates printed after the point");
   await select.selectOption("show");

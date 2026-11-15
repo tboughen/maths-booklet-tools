@@ -47,7 +47,7 @@ Briefly identify which principles shape the proposed design, then use the task's
 
 ## Handover
 
-For the refined bar editor read [Bar model v2](../../../docs/tools/BAR-MODEL-V2.md).
+For the bar editor read [the bar-model saved format](../../../docs/tools/BAR-MODEL-V3.md).
 Keep the frozen v1 path and explicit undoable upgrade; independent section slots,
 fixed/dynamic annotation scope, exact total-preserving repartitioning and retained
 answer states are common-core rules. Qualify dense actual output under unchanged

@@ -33,15 +33,13 @@ describe("local diagram recovery", () => {
     };
 
     saveDiagram(document);
-    expect(loadDiagram()).toEqual(document);
+    // The selection is editor state (U35): it is not saved, so the restored graph has nothing selected.
+    expect(loadDiagram()).toEqual({ ...document, selectedObjectId: null });
   });
 
   it("falls back safely when saved data is malformed", () => {
     localStorage.setItem(STORAGE_KEY, "not-json");
-    expect(loadDiagram()).toEqual(cloneDefaultDocument());
-
-    const invalid = { ...cloneDefaultDocument(), selectedObjectId: "missing" };
-    expect(isDiagramDocument(invalid)).toBe(false);
+    expect(loadDiagram()).toEqual({ ...cloneDefaultDocument(), selectedObjectId: null });
 
     const invalidStyle = {
       ...cloneDefaultDocument(),

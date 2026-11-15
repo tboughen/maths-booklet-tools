@@ -2,8 +2,6 @@ import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import * as c from "../packages/bar-model-core/src/versioned";
 import * as v from "../packages/bar-model-core/src/v3";
-import * as v2 from "../packages/bar-model-core/src/v2";
-import * as old from "../packages/bar-model-core/src/index";
 import { verifyPrintBytes } from "../packages/graph-core/src/png-bytes";
 
 async function saved(page: Page) {
@@ -86,85 +84,6 @@ test("inside handwriting spaces raise actual bars without changing shared widths
   expect(v.layout(v.validate(await saved(page))).barHeightMm).toBe(20);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   expect(c.canonical(await saved(page))).toBe(c.canonical(before));
-});
-for (const version of [1, 2] as const)
-  test(`explicit v${version} to v3 upgrade previews and one Undo restores exact saved source`, async ({
-    page,
-  }) => {
-    const e = version === 1 ? old.fresh() : v2.fresh();
-    await page.addInitScript(
-      (e) =>
-        localStorage.setItem(
-          "maths-booklet-tools:bar-model:v2",
-          JSON.stringify({ storageVersion: 1, envelope: e }),
-        ),
-      e,
-    );
-    await page.goto("/tools/bar-model");
-    await page
-      .getByRole("button", {
-        name: "Use horizontal fractions and larger answer spaces",
-        exact: true,
-      })
-      .click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page
-      .getByRole("dialog")
-      .getByRole("button", {
-        name: version === 1 ? "Open bar model" : "Use this model",
-        exact: true,
-      })
-      .click();
-    expect((await saved(page)).schemaVersion).toBe(3);
-    await page.getByRole("button", { name: "Undo", exact: true }).click();
-    expect(c.canonical(await saved(page))).toBe(c.canonical(e));
-    await page.getByRole("button", { name: "Redo", exact: true }).click();
-    expect((await saved(page)).schemaVersion).toBe(3);
-  });
-test("upgrade preserves a literal date only after an explicit Plain text choice", async ({
-  page,
-}) => {
-  const e = v2.fresh();
-  e.document.captions = [
-    { id: "date", label: v2.label("9/10/2026"), alignment: "right" },
-  ];
-  await page.addInitScript(
-    (e) =>
-      localStorage.setItem(
-        "maths-booklet-tools:bar-model:v2",
-        JSON.stringify({ storageVersion: 1, envelope: e }),
-      ),
-    e,
-  );
-  await page.goto("/tools/bar-model");
-  await page
-    .getByRole("button", {
-      name: "Use horizontal fractions and larger answer spaces",
-      exact: true,
-    })
-    .click();
-  const dialog = page.getByRole("dialog"),
-    confirm = dialog.getByRole("button", {
-      name: "Use this model",
-      exact: true,
-    });
-  await expect(confirm).toBeDisabled();
-  await expect(dialog.getByRole("alert")).toContainText(/fraction/i);
-  await dialog
-    .getByLabel(
-      "Keep existing calculation lines as Plain text (for dates or literal slashes)",
-      { exact: true },
-    )
-    .check();
-  await expect(confirm).toBeEnabled();
-  await confirm.click();
-  const n = v.validate(await saved(page));
-  expect(n.document.captions[0]).toEqual({
-    ...e.document.captions[0],
-    format: "plain",
-  });
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  expect(c.canonical(await saved(page))).toBe(c.canonical(e));
 });
 test("v3 SVG PNG and both real clipboard routes retain native writing geometry and exact editable source", async ({
   page,

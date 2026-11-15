@@ -3,7 +3,7 @@ import { GraphDraftField } from "./GraphDraftField";
 import type { GraphDrafts } from "./useGraphDrafts";
 import { AXIS_LIMITS, getBounds, isUnitsPerSquare } from "../domain/diagram";
 import { parseNumericInput } from "../domain/equations";
-import type { AxisConfig, DiagramDocumentV1, GridSize } from "../domain/types";
+import type { AxisConfig, GraphEditorDocument, GridSize } from "../domain/types";
 import type { UnitsPerSquare } from "../domain/types";
 import { formatAxisValue, parseTimeOfDay, xNumbersCrowded } from "../../packages/graph-core/src/axes";
 import { MAX_AXIS_ORIGIN, MAX_AXIS_TITLE_LENGTH } from "../../packages/graph-core/src/diagram";
@@ -16,10 +16,10 @@ const grids: Array<{ value: GridSize; label: string }> = [
 ];
 
 function editAxis(
-  document: DiagramDocumentV1,
+  document: GraphEditorDocument,
   axis: "x" | "y",
   change: (config: AxisConfig) => AxisConfig,
-): DiagramDocumentV1 {
+): GraphEditorDocument {
   return {
     ...document,
     axes: { ...document.axes, [axis]: change({ ...document.axes[axis] }) },
@@ -33,9 +33,9 @@ function without<K extends keyof AxisConfig>(config: AxisConfig, key: K): AxisCo
 }
 
 interface AxisSettingsProps {
-  document: DiagramDocumentV1;
+  document: GraphEditorDocument;
   drafts: GraphDrafts;
-  onDocument: (document: DiagramDocumentV1) => void;
+  onDocument: (document: GraphEditorDocument) => void;
   disabled?: boolean;
   xScale: UnitsPerSquare;
   yScale: UnitsPerSquare;

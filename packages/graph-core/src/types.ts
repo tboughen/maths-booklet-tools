@@ -144,8 +144,11 @@ export interface DiagramDocumentV1 {
   /** Bold lines (U111): the axes and everything plotted are 1.5 times as heavy; the grid keeps its weight. Omitted is normal. */
   lines?: "bold";
   objects: GraphObject[];
-  selectedObjectId: string | null;
 }
+
+/** The graph editor's working copy: the saved drawing plus which object is selected. The selection
+ * is editor state (U35), so it never reaches a saved file, link, envelope or hash. */
+export type GraphEditorDocument = DiagramDocumentV1 & { selectedObjectId: string | null };
 
 export type DrawingTool = "select" | "point" | "segment";
 
