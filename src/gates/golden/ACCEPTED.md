@@ -327,3 +327,135 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - venn: venn-languages (worked): json 55559d57a9c16e4e -> b9088bbb766cd463
 - venn: venn-shading: json 5fa1e9ce8a83057a -> e746bd34238ec502
 - venn: venn-shading (worked): json 5fa1e9ce8a83057a -> e746bd34238ec502
+
+## 2026-11-14: Bar models are v3 only (Tim 14 Nov): past-paper examples now use the v3 handwriting layout
+
+- bar model: bar-BM01: json 7b280091b4615306 -> 2bf961cd20c72457
+- bar model: bar-BM01: svg f8e747b98445d36d -> 93842b57ddad1688
+- bar model: bar-BM01: mm 118x55.05 -> 119.4x38.68
+- bar model: bar-BM01: png600 2787x1300 -> 2820x914
+- bar model: bar-BM01: pixels 5defa72e983117c4 -> 1b2cf433f86cc3ea
+- bar model: bar-BM01 (worked): json 55d2ddb7619a5385 -> d2435ecfe6c3f232
+- bar model: bar-BM01 (worked): svg cc9f1b35241fa70e -> 2faa07a62c9fce6c
+- bar model: bar-BM01 (worked): mm 118x55.05 -> 119.4x43.76
+- bar model: bar-BM01 (worked): png600 2787x1300 -> 2820x1034
+- bar model: bar-BM01 (worked): pixels 43e55d451c102b3c -> 86d9e693c54397c1
+- bar model: bar-BM02: json d07a386391a51e2f -> a2583c9d44802f65
+- bar model: bar-BM02: svg 7e4443d066d6c8ff -> 16c8710f3a36363c
+- bar model: bar-BM02: mm 118x55.05 -> 119.4x38.68
+- bar model: bar-BM02: png600 2787x1300 -> 2820x914
+- bar model: bar-BM02: pixels d7cf5f39242aeb17 -> 1639a3bffa5302f1
+- bar model: bar-BM02 (worked): json 55d2ddb7619a5385 -> d2435ecfe6c3f232
+- bar model: bar-BM02 (worked): svg cc9f1b35241fa70e -> 2faa07a62c9fce6c
+- bar model: bar-BM02 (worked): mm 118x55.05 -> 119.4x43.76
+- bar model: bar-BM02 (worked): png600 2787x1300 -> 2820x1034
+- bar model: bar-BM02 (worked): pixels 43e55d451c102b3c -> 86d9e693c54397c1
+- bar model: bar-BM03: json a99e00ef1679beec -> d20c637b7b8e1687
+- bar model: bar-BM03: svg 974ad2975254ff36 -> 10a85c3b38973104
+- bar model: bar-BM03: mm 88x73.05 -> 89.4x58.98
+- bar model: bar-BM03: png600 2079x1726 -> 2112x1393
+- bar model: bar-BM03: pixels c035a16f646fda84 -> 24266b162d5abae9
+- bar model: bar-BM03 (worked): json a8696f8ef8540460 -> 810216393bf42eb7
+- bar model: bar-BM03 (worked): svg 8175d7d4540065dc -> fb40d0de242bd3fd
+- bar model: bar-BM03 (worked): mm 88x73.05 -> 89.4x69.14
+- bar model: bar-BM03 (worked): png600 2079x1726 -> 2112x1633
+- bar model: bar-BM03 (worked): pixels 76ec8ecc8a66dc56 -> c7b37d65b2338508
+- bar model: bar-BM04: json cccfa3fa5d792aae -> c275d6e01180516e
+- bar model: bar-BM04: svg 286c405bfa41fa87 -> 3257c6916af476ee
+- bar model: bar-BM04: mm 128x67.4 -> 129.4x38.68
+- bar model: bar-BM04: png600 3024x1592 -> 3057x914
+- bar model: bar-BM04: pixels 0c43787795ec7f3f -> 76a2138f2e9f03d0
+- bar model: bar-BM04 (worked): json d6d5624de2ecf260 -> f6f015bc5eefca36
+- bar model: bar-BM04 (worked): svg b9ae2c53a80b16a3 -> ecec0157316c6324
+- bar model: bar-BM04 (worked): mm 128x67.4 -> 129.4x43.76
+- bar model: bar-BM04 (worked): png600 3024x1592 -> 3057x1034
+- bar model: bar-BM04 (worked): pixels e1d084e7d2aeef0f -> 440086d403f49d08
+- bar model: bar-BM05: json ae9f6f75bf8810c0 -> 41a14539ca795b97
+- bar model: bar-BM05: svg 8955e4a69a12f5f2 -> 29a3398ca8083691
+- bar model: bar-BM05: mm 118x42.7 -> 119.4x38.68
+- bar model: bar-BM05: png600 2787x1009 -> 2820x914
+- bar model: bar-BM05: pixels 2e25e745dd44ecee -> 847fd49aa7560e4c
+- bar model: bar-BM05 (worked): json d5ebc74a9feff78f -> f86742263c4384f6
+- bar model: bar-BM05 (worked): svg b164e8c6d0d26a17 -> 7c38b3c3e5baa556
+- bar model: bar-BM05 (worked): mm 118x42.7 -> 119.4x43.76
+- bar model: bar-BM05 (worked): png600 2787x1009 -> 2820x1034
+- bar model: bar-BM05 (worked): pixels 2c989606492e6e67 -> 736c64242c1b3fff
+- bar model: bar-BM06: json c62c6a3ce613c015 -> 7db7a032a591b78b
+- bar model: bar-BM06: svg b8afc2a194e90e7c -> 342d6cc61f945555
+- bar model: bar-BM06: mm 88x48.35 -> 89.4x43.78
+- bar model: bar-BM06: png600 2079x1142 -> 2112x1034
+- bar model: bar-BM06: pixels 21708265de3840a0 -> 639e129560f927ec
+- bar model: bar-BM06 (worked): json c62c6a3ce613c015 -> 7db7a032a591b78b
+- bar model: bar-BM06 (worked): svg b8afc2a194e90e7c -> 342d6cc61f945555
+- bar model: bar-BM06 (worked): mm 88x48.35 -> 89.4x43.78
+- bar model: bar-BM06 (worked): png600 2079x1142 -> 2112x1034
+- bar model: bar-BM06 (worked): pixels 21708265de3840a0 -> 639e129560f927ec
+- bar model: bar-BM07: json c3af1a7b2e67f7a6 -> 57b4155b76e25484
+- bar model: bar-BM07: svg e47a5eff08776396 -> be63071acf68d59e
+- bar model: bar-BM07: mm 118x55.05 -> 119.4x38.68
+- bar model: bar-BM07: png600 2787x1300 -> 2820x914
+- bar model: bar-BM07: pixels cd02d027eebe4037 -> 917cdfbeee8b5da3
+- bar model: bar-BM07 (worked): json ca28a41d3025f563 -> e8b3f153d3c1c9de
+- bar model: bar-BM07 (worked): svg 1a98fcb8e366e4c7 -> b0d05e42247d56cf
+- bar model: bar-BM07 (worked): mm 118x55.05 -> 119.4x47.34
+- bar model: bar-BM07 (worked): png600 2787x1300 -> 2820x1118
+- bar model: bar-BM07 (worked): pixels 22c40121c59da882 -> 400693f29bed0eeb
+- bar model: bar-BM08: json 0b0e1c9e3fb1a643 -> ef5ed3f749c7a2a6
+- bar model: bar-BM08: svg f6868cec3480f6c9 -> 4dc8e79f2d74c4ba
+- bar model: bar-BM08: mm 134x37.59 -> 135.4x41.08
+- bar model: bar-BM08: png600 3165x888 -> 3198x970
+- bar model: bar-BM08: pixels b72e61b8a6ec3507 -> fe201032ce61617d
+- bar model: bar-BM08 (worked): json b528ecb58b9c8779 -> 8f404e6d2ab09e70
+- bar model: bar-BM08 (worked): svg 35e082ffff542a21 -> d2a2290b48bd7b9c
+- bar model: bar-BM08 (worked): mm 134x37.59 -> 135.4x41.08
+- bar model: bar-BM08 (worked): png600 3165x888 -> 3198x970
+- bar model: bar-BM08 (worked): pixels 123bd35facd8847a -> 04e7d0be2436fb16
+- bar model: bar-BM09: json 5e603f02ff7dc8a0 -> 04fecfa88c6d866a
+- bar model: bar-BM09: svg eac95fa1c0b4cc11 -> dff32078b92164c6
+- bar model: bar-BM09: mm 262x121.4 -> 263.4x107.22
+- bar model: bar-BM09: png600 6189x2868 -> 6222x2533
+- bar model: bar-BM09: pixels 16939b3f6ed1d138 -> 64dc79e0bf28a19d
+- bar model: bar-BM09 (worked): json 5e603f02ff7dc8a0 -> 04fecfa88c6d866a
+- bar model: bar-BM09 (worked): svg eac95fa1c0b4cc11 -> dff32078b92164c6
+- bar model: bar-BM09 (worked): mm 262x121.4 -> 263.4x107.22
+- bar model: bar-BM09 (worked): png600 6189x2868 -> 6222x2533
+- bar model: bar-BM09 (worked): pixels 16939b3f6ed1d138 -> 64dc79e0bf28a19d
+- bar model: bar-H07: json 0fd995f0d5727f61 -> a735a484a1f1802d
+- bar model: bar-H07: svg 1af00f9f99bdd617 -> 8cfc78b75460086b
+- bar model: bar-H07: mm 158x67.4 -> 159.4x38.68
+- bar model: bar-H07: png600 3732x1592 -> 3765x914
+- bar model: bar-H07: pixels 221f2210824a6f67 -> b26f4e7af83347ba
+- bar model: bar-H07 (worked): json 50654b1297fed892 -> 25ea9cb5d03f0992
+- bar model: bar-H07 (worked): svg baccb628968dcd3e -> bdb915e77d9ad777
+- bar model: bar-H07 (worked): mm 158x67.4 -> 159.4x43.76
+- bar model: bar-H07 (worked): png600 3732x1592 -> 3765x1034
+- bar model: bar-H07 (worked): pixels 4b8956838ac24ba7 -> 24aa960b77768b5d
+- bar model: bar-H18: json c410069ca8f4b84d -> 9ce516e5030f0501
+- bar model: bar-H18: svg e47a5eff08776396 -> be63071acf68d59e
+- bar model: bar-H18: mm 118x55.05 -> 119.4x38.68
+- bar model: bar-H18: png600 2787x1300 -> 2820x914
+- bar model: bar-H18: pixels cd02d027eebe4037 -> 917cdfbeee8b5da3
+- bar model: bar-H18 (worked): json 54ee35a600babe1e -> c294fe2953ed40ef
+- bar model: bar-H18 (worked): svg 1a98fcb8e366e4c7 -> b0d05e42247d56cf
+- bar model: bar-H18 (worked): mm 118x55.05 -> 119.4x47.34
+- bar model: bar-H18 (worked): png600 2787x1300 -> 2820x1118
+- bar model: bar-H18 (worked): pixels 22c40121c59da882 -> 400693f29bed0eeb
+- bar model: bar-source-sharing: json e1fc3abf9793e38c -> 469b1ef2b9087576
+- bar model: bar-source-sharing: svg 05b2d5b3327027bc -> 3790ed69a7e5e4c3
+- bar model: bar-source-sharing: mm 138x69.56 -> 139.4x38.84
+- bar model: bar-source-sharing: png600 3260x1643 -> 3293x917
+- bar model: bar-source-sharing: pixels 041b79680fad294d -> 466edad762c35d8f
+- bar model: bar-source-sharing (worked): json a3b08589a03d3dac -> 521b9f377ba58d8d
+- bar model: bar-source-sharing (worked): svg 4901f26fe985411d -> 88f5213e7f9ebad9
+- bar model: bar-source-sharing (worked): mm 138x69.56 -> 139.4x43.92
+- bar model: bar-source-sharing (worked): png600 3260x1643 -> 3293x1037
+- bar model: bar-source-sharing (worked): pixels 2ab65c5c0693f6c1 -> b765ced7d4ba0427
+
+## 2026-11-14: U35: saved graph envelopes no longer carry the editor's selectedObjectId; artwork unchanged
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: json 169b037986e5a308 -> 75f5e8de89a74165
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): json ffd5a19c341f630a -> 50c48539422503db
+- graph: graph-1MA1_NOV_2017_3F_Q13: json 4a79f1e8fd0bde58 -> 05534685d2e9a26e
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): json edd91e3824371975 -> d106633b195329f2
+- graph: graph-1MA1_NOV_2021_1F_Q18: json 320cb0f7ac481726 -> 6b1d6f131727bc66
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): json 50094a4dd9cdab15 -> f3131ffaec134c16

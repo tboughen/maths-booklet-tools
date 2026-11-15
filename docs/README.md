@@ -23,7 +23,7 @@ Per-tool records:
 - Ratio tables: [editor](tools/RATIO-TABLE-TOOL.md), [MCP](tools/RATIO-TABLE-MCP.md).
 - Plotting quadratics: [VALUE-GRAPH-TOOL.md](tools/VALUE-GRAPH-TOOL.md).
 - Expanding and factorising: [editor](tools/EXPANDING-FACTORISING.md), [MCP](tools/ALGEBRA-GRID-MCP.md).
-- Bar modelling: [brief](tools/BAR-MODEL-BRIEF.md), [MCP](tools/BAR-MODEL-MCP.md), [v3](tools/BAR-MODEL-V3.md), frozen [v2](tools/BAR-MODEL-V2.md), [emitted schemas](tools/BAR-MODEL-EMITTED-SCHEMAS.json).
+- Bar modelling: [brief](tools/BAR-MODEL-BRIEF.md), [MCP](tools/BAR-MODEL-MCP.md), [saved format](tools/BAR-MODEL-V3.md).
 - [Bar and line charts](tools/CHARTS-TOOL.md), [Cuboids](tools/CUBOID-TOOL.md), [Number lines](tools/NUMBER-LINE-TOOL.md), [Frequency trees](tools/FREQUENCY-TREE-TOOL.md), [Constructions, loci and bearings](tools/CONSTRUCTION-TOOL.md), [Plans and elevations](tools/ELEVATIONS-TOOL.md), [Probability trees](tools/PROBABILITY-TREE-TOOL.md), [Triangles](tools/TRIANGLE-TOOL.md), [Venn](tools/VENN-TOOL.md), [Assessment follow-up](tools/ASSESSMENT-FOLLOW-UP.md).
 
 ## release/ — website and MCP publication

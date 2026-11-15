@@ -8,15 +8,12 @@ import { aboutOf } from "../../packages/envelope-core/src/about";
 import { pathLink } from "../site/routes";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as c from "../../packages/bar-model-core/src/versioned";
-import * as v from "../../packages/bar-model-core/src/v2";
-import { barLessonGalleryV2 } from "../examples/barLessonGalleryV2";
-import { lessonExample as legacyLessonExample } from "../../packages/bar-model-core/src/lesson-examples";
 import * as v3 from "../../packages/bar-model-core/src/v3";
 import * as api from "../../packages/bar-model-core/src/versioned-interchange";
 import {
   lessonExample,
   lessonExampleNames,
-} from "../../packages/bar-model-core/src/lesson-examples-v3";
+} from "../../packages/bar-model-core/src/examples";
 import { EditorToolbar } from "../site/EditorToolbar";
 import {
   EditorDownloadMenu,
@@ -31,7 +28,6 @@ import { useResourceFit } from "../site/useResourceFit";
 import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, printPng, downloadImage, downloadEditable } from "./export";
 import { saveStorage, type Startup } from "./storage";
-import LegacyPage from "./BarModelPage";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { barLessonGallery, lessonTitles } from "../examples/barLessonGallery";
@@ -42,15 +38,15 @@ import { handleUndoKeys, useDocumentHistory, type History as DocumentHistory, re
 import { downloadName } from "../export/filenames";
 export type History = DocumentHistory<c.Envelope>;
 type LabelTarget =
-  | { kind: "section"; barId: string; partIds: string[]; slot: v.Slot }
+  | { kind: "section"; barId: string; partIds: string[]; slot: v3.Slot }
   | { kind: "name"; barId: string }
   | { kind: "title" };
 type Draft =
   | { kind: "label"; target: LabelTarget; label: c.Label }
-  | { kind: "annotation"; annotation: v.Annotation }
+  | { kind: "annotation"; annotation: v3.Annotation }
   | {
       kind: "caption";
-      caption: v.Envelope["document"]["captions"][number] & {
+      caption: v3.Envelope["document"]["captions"][number] & {
         format?: "maths" | "plain";
       };
       isNew: boolean;
@@ -74,8 +70,8 @@ type Draft =
     }
   | {
       kind: "move";
-      from: { barId: string; partId: string; slot: v.Slot };
-      to: { barId: string; partId: string; slot: v.Slot };
+      from: { barId: string; partId: string; slot: v3.Slot };
+      to: { barId: string; partId: string; slot: v3.Slot };
       mode: "copy" | "move";
       overwrite: boolean;
     };
@@ -150,33 +146,29 @@ export default function LessonBarModelPage({
     }),
     { history, setHistory } = documentHistory,
     e = history.present;
-  const profile = e.schemaVersion === 2 ? v : v3;
-  const lesson = e.schemaVersion === 2 ? legacyLessonExample : lessonExample;
-  const d = e.schemaVersion !== 1 ? e.document : null,
+  const d = e.document,
     g = useMemo(() => c.layout(e), [e]);
-  const lessonGeometry = "annotations" in g ? g : null;
+  const lessonGeometry = g;
   const artwork = useMemo(() => c.renderSvg(e), [e]);
   const [draft, setDraft] = useState<Draft | null>(null),
     [draftError, setDraftError] = useState(""),
     [message, setMessage] = useState(startup.message),
     // Shared save vocabulary: green only when nothing is waiting on a recovery choice.
     [saveState, setSaveState] = useState(
-      startup.recovery === undefined && !startup.alternate
+      startup.recovery === undefined
         ? "Saved on this device"
         : "Not saved on this device yet",
     );
   const [pending, setPending] = useState<{
       envelope: c.Envelope;
       title: string;
-      writingUpgrade?: boolean;
     } | null>(null),
-    [alternate, setAlternate] = useState(startup.alternate),
     [recovery, setRecovery] = useState(startup.recovery),
     [conflict, setConflict] = useState(false);
   const [selectedBar, setSelectedBar] = useState(e.document.bars[0].id),
     [selectedParts, setSelectedParts] = useState<string[]>([]),
-    [slot, setSlot] = useState<v.Slot>("inside"),
-    [fill, setFill] = useState<(typeof v.fills)[number]>("neutral");
+    [slot, setSlot] = useState<v3.Slot>("inside"),
+    [fill, setFill] = useState<(typeof v3.fills)[number]>("neutral");
   const [comparisonLengths, setComparisonLengths] = useState(["5", "3"]),
     [count, setCount] = useState("5"),
     [ratio, setRatio] = useState("3:5"),
@@ -185,21 +177,19 @@ export default function LessonBarModelPage({
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(0);
   const expected = useRef(startup.expected),
-    legacyHash = useRef(startup.legacySourceHash),
     dirty = useRef(false),
     file = useRef<HTMLInputElement>(null),
     editor = useRef<HTMLDivElement>(null);
   const blocked =
       !!draft ||
       !!pending ||
-      !!alternate ||
       recovery !== undefined ||
       conflict ||
       busy ||
       !active,
     guard = useRef(blocked);
   guard.current = blocked;
-  const currentBar = d?.bars.find((b) => b.id === selectedBar) ?? d?.bars[0],
+  const currentBar = d.bars.find((b) => b.id === selectedBar) ?? d.bars[0],
     chosen =
       currentBar?.parts.filter((p) => selectedParts.includes(p.id)) ?? [],
     selection = chosen.length ? chosen : (currentBar?.parts ?? []);
@@ -212,53 +202,6 @@ export default function LessonBarModelPage({
     ),
     px = (fit.scale * 96) / 25.4,
     issue = useMemo(() => c.exportIssue(e), [e]);
-  const pendingIssue = pending?.writingUpgrade
-    ? c.exportIssue(pending.envelope)
-    : "";
-  const upgradeOptions =
-    pending?.writingUpgrade && pending.envelope.schemaVersion === 3 ? (
-      <>
-        <p>
-          Answer lines reserve 12 mm above and 3 mm below. Actual bars:{" "}
-          {v3.effectiveBarHeight(pending.envelope)} mm. One Undo restores the
-          original file.
-        </p>
-        {pending.envelope.document.captions.length > 0 && (
-          <label>
-            <input
-              type="checkbox"
-              checked={pending.envelope.document.captions.every(
-                (c) => c.format === "plain",
-              )}
-              onChange={(ev) => {
-                const format = ev.target.checked
-                  ? ("plain" as const)
-                  : ("maths" as const);
-                setPending((old) =>
-                  old?.envelope.schemaVersion === 3
-                    ? {
-                        ...old,
-                        envelope: {
-                          ...old.envelope,
-                          document: {
-                            ...old.envelope.document,
-                            captions: old.envelope.document.captions.map(
-                              (c) => ({ ...c, format }),
-                            ),
-                          },
-                        },
-                      }
-                    : old,
-                );
-              }}
-            />
-            Keep existing calculation lines as Plain text (for dates or literal
-            slashes)
-          </label>
-        )}
-        {pendingIssue && <p role="alert">{pendingIssue}</p>}
-      </>
-    ) : null;
   function commit(n: c.Envelope, label?: string) {
     const valid = c.validate(n);
     dirty.current = true;
@@ -288,7 +231,7 @@ export default function LessonBarModelPage({
     setDraftError("");
     setDraft(n);
   }
-  function editSection(barId: string, partId: string, position: v.Slot = slot) {
+  function editSection(barId: string, partId: string, position: v3.Slot = slot) {
     if (!d) return;
     const p = d.bars
       .find((b) => b.id === barId)!
@@ -387,7 +330,7 @@ export default function LessonBarModelPage({
             throw Error(
               "Enter every print measurement, or Cancel. Empty measurements have not been saved.",
             );
-          const presentation: Partial<v.Envelope["document"]["presentation"]> =
+          const presentation: Partial<v3.Envelope["document"]["presentation"]> =
             Object.fromEntries(
               Object.entries(draft.values).map(([key, value]) => [
                 key,
@@ -424,7 +367,7 @@ export default function LessonBarModelPage({
     }
   }
   useEffect(() => {
-    if (!dirty.current || recovery !== undefined || alternate || conflict)
+    if (!dirty.current || recovery !== undefined || conflict)
       return;
     try {
       expected.current = saveStorage(
@@ -432,7 +375,6 @@ export default function LessonBarModelPage({
         storageKey,
         expected.current,
         e,
-        legacyHash.current,
       );
       dirty.current = false;
       setSaveState("Saved on this device");
@@ -440,7 +382,7 @@ export default function LessonBarModelPage({
       setSaveState(error(err));
       if (error(err).startsWith("Another tab")) setConflict(true);
     }
-  }, [e, storageKey, recovery, alternate, conflict]);
+  }, [e, storageKey, recovery, conflict]);
   useEffect(() => {
     const changed = (event: StorageEvent) => {
       if (event.key === storageKey && event.newValue !== expected.current) {
@@ -454,7 +396,7 @@ export default function LessonBarModelPage({
     return () => window.removeEventListener("storage", changed);
   }, [storageKey]);
   useEffect(() => {
-    if (!active || e.schemaVersion === 1) return;
+    if (!active) return;
     const keys = (event: KeyboardEvent) => {
       if (
         (event.target as HTMLElement).closest(
@@ -531,7 +473,7 @@ export default function LessonBarModelPage({
           value={JSON.stringify(value)}
           onChange={(ev) => onChange(JSON.parse(ev.target.value) as c.Anchor)}
         >
-          {d?.bars.flatMap((bar, i) =>
+          {d.bars.flatMap((bar, i) =>
             bar.parts.flatMap((p, j) =>
               (["start", "end"] as const).map((edge) => (
                 <option
@@ -563,96 +505,8 @@ export default function LessonBarModelPage({
             ? { ...old, caption: { ...old.caption, label } }
             : old,
     );
-  const legacyRecoveryNotice = startup.legacyRecovery ? (
-    <section className="bm-settings" aria-label="Older saved data">
-      <p>
-        The older saved data is protected. Download it for recovery; the current
-        model can still be edited.
-      </p>
-      <button
-        disabled={!active}
-        onClick={() =>
-          downloadBlob(
-            new Blob([startup.legacyRecovery!], { type: "application/json" }),
-            downloadName("bar-model", "json", { content: "older", recovery: true }),
-          )
-        }
-      >
-        Download older saved data
-      </button>
-    </section>
-  ) : null;
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(c.renderSvg(c.forView(e, "answer"))), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
-  if (
-    e.schemaVersion === 1 &&
-    !alternate &&
-    recovery === undefined &&
-    !conflict
-  )
-    return (
-      <>
-        {legacyRecoveryNotice}
-        <LegacyPage
-          active={
-            active &&
-            !pending &&
-            !conflict &&
-            recovery === undefined &&
-            !alternate
-          }
-          managed={{
-            present: e,
-            onCommit: commit,
-            onUndo: undo,
-            onRedo: redo,
-            canUndo: !!history.past.length,
-            canRedo: !!history.future.length,
-            undoLabel: undoStepName(history),
-            redoLabel: redoStepName(history),
-            resetStep: history.resetStep,
-          }}
-          onNewModel={() =>
-            setPending({
-              envelope: houseModel(profile.fresh()),
-              title: "Start a new model?",
-            })
-          }
-          onUpgrade={() => commit(v.upgrade(e), "upgrade this model")}
-          onUpgradeWriting={() =>
-            setPending({
-              envelope: v3.upgrade(e),
-              writingUpgrade: true,
-              title:
-                "Use horizontal fractions and larger answer spaces? Fixed endpoints and saved answers are retained.",
-            })
-          }
-          onOpenModern={(envelope) =>
-            setPending({ envelope, title: "Open improved editable model?" })
-          }
-        />
-        {pending && active && (
-          <RatioDialog
-            title={pending.title}
-            onCancel={() => setPending(null)}
-            onConfirm={() => {
-              commit(pending.envelope, stepName(pending.title));
-              setPending(null);
-            }}
-            confirmLabel="Open bar model"
-            disabled={!!pendingIssue}
-          >
-            {upgradeOptions}
-            <div
-              className="bm-import-preview"
-              dangerouslySetInnerHTML={{
-                __html: c.renderSvg(pending.envelope),
-              }}
-            />
-          </RatioDialog>
-        )}
-      </>
-    );
   return (
     <div className="app-shell booklet-editor bm-editor bm-v2">
       <main
@@ -673,7 +527,6 @@ export default function LessonBarModelPage({
             }
           />
         </PageHeading>
-        {legacyRecoveryNotice}
         <section className="workspace">
           <Panel className="editor-card">
             <EditorToolbar
@@ -685,7 +538,7 @@ export default function LessonBarModelPage({
               canRedo={!blocked && !!history.future.length}
               onUndo={undo}
               onRedo={redo}
-              onReset={() => replace(houseModel(profile.fresh()), "Start a new model?")}
+              onReset={() => replace(houseModel(v3.fresh()), "Start a new model?")}
               resetLabel="New model"
               resetDisabled={blocked}
               exportDisabled={blocked || !!issue}
@@ -790,8 +643,7 @@ export default function LessonBarModelPage({
                     className="bm-art"
                     dangerouslySetInnerHTML={{ __html: artwork }}
                   />
-                  {e.schemaVersion !== 1 &&
-                    lessonGeometry?.rows.map((r, i) => (
+                  {lessonGeometry.rows.map((r, i) => (
                       <div key={r.bar.id}>
                         <button
                           className="bm-hit"
@@ -812,7 +664,7 @@ export default function LessonBarModelPage({
                           }
                         />
                         {r.parts.flatMap((p, j) =>
-                          v.slots
+                          v3.slots
                             .filter((s) => s === "inside" || p.part.labels[s])
                             .map((s) => (
                               <button
@@ -831,9 +683,7 @@ export default function LessonBarModelPage({
                                   width: p.width * px,
                                   height:
                                     (s === "inside"
-                                      ? e.schemaVersion === 3
-                                        ? v3.effectiveBarHeight(e)
-                                        : e.document.presentation.barHeightMm
+                                      ? v3.effectiveBarHeight(e)
                                       : Math.max(
                                           g.font * 1.2,
                                           s === "above"
@@ -849,8 +699,7 @@ export default function LessonBarModelPage({
                         )}
                       </div>
                     ))}
-                  {e.schemaVersion !== 1 &&
-                    lessonGeometry?.annotations.map((a, i) => (
+                  {lessonGeometry.annotations.map((a, i) => (
                       <button
                         key={a.annotation.id}
                         className="bm-hit"
@@ -940,56 +789,16 @@ export default function LessonBarModelPage({
             {c.warnings(e).map((w) => (
               <p key={w}>{w}</p>
             ))}
-            {e.schemaVersion === 2 && (
-              <div className="bm-settings">
-                <p>This saved model keeps its original notation and spacing.</p>
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    setPending({
-                      envelope: v3.upgrade(e),
-                      writingUpgrade: true,
-                      title:
-                        "Use horizontal fractions and larger answer spaces? Fixed endpoints and saved answers are retained.",
-                    })
-                  }
-                >
-                  Use horizontal fractions and larger answer spaces
-                </button>
-              </div>
-            )}
-            {e.schemaVersion === 1 && (
-              <div className="bm-settings">
-                <p>
-                  Legacy layout and source are preserved. Undo has restored the
-                  original version.
-                </p>
-                <button
-                  disabled={blocked}
-                  onClick={() =>
-                    setPending({
-                      envelope: v.upgrade(e),
-                      title:
-                        "Use improved layout? Fixed endpoints and saved answers are retained.",
-                    })
-                  }
-                >
-                  Use improved layout
-                </button>
-              </div>
-            )}
           </Panel>
           <div className="inspector-stack">
             <ExampleGallery
-              examples={
-                e.schemaVersion === 2 ? barLessonGalleryV2 : barLessonGallery
-              }
+              examples={barLessonGallery}
               active={active}
               disabled={blocked}
               onUse={(resource, title) => replace(resource, title)}
               onWorked={(resource) => replace(resource, "", true)}
             />
-            {(alternate || recovery !== undefined || conflict) && (
+            {(recovery !== undefined || conflict) && (
               <Panel>
                 <div
                   className="bm-settings"
@@ -1000,7 +809,7 @@ export default function LessonBarModelPage({
                   <p>
                     {recovery !== undefined
                       ? "The original bytes are protected. Download them before choosing a new model."
-                      : "Saved versions differ. Review both before choosing which to edit."}
+                      : "Another tab changed the saved model. Download both versions before choosing."}
                   </p>
                   <button
                     onClick={() =>
@@ -1017,42 +826,6 @@ export default function LessonBarModelPage({
                   <button onClick={() => downloadEditable(e)}>
                     Download current editable model
                   </button>
-                  {alternate && (
-                    <>
-                      <div
-                        className="bm-choice-preview"
-                        dangerouslySetInnerHTML={{
-                          __html: c.renderSvg(alternate),
-                        }}
-                      />
-                      <button onClick={() => downloadEditable(alternate)}>
-                        Download other saved model
-                      </button>
-                      <button
-                        onClick={() => {
-                          const n = alternate;
-                          legacyHash.current = startup.observedLegacyHash;
-                          setAlternate(undefined);
-                          dirty.current = true;
-                          commit(n);
-                        }}
-                      >
-                        Use other saved model
-                      </button>
-                    </>
-                  )}
-                  {recovery === undefined && !conflict && (
-                    <button
-                      onClick={() => {
-                        legacyHash.current = startup.observedLegacyHash;
-                        setAlternate(undefined);
-                        dirty.current = true;
-                        setHistory((h) => ({ ...h }));
-                      }}
-                    >
-                      Keep current model
-                    </button>
-                  )}
                   {(recovery !== undefined || conflict) && (
                     <button
                       onClick={() => {
@@ -1070,7 +843,6 @@ export default function LessonBarModelPage({
                         expected.current = localStorage.getItem(storageKey);
                         setRecovery(undefined);
                         setConflict(false);
-                        setAlternate(undefined);
                         dirty.current = true;
                         setHistory((h) => ({ ...h }));
                       }}
@@ -1084,7 +856,6 @@ export default function LessonBarModelPage({
             {pending && active && (
               <RatioDialog
                 title={pending.title}
-                disabled={!!pendingIssue}
                 onCancel={() => setPending(null)}
                 confirmLabel={
                   pending.title.startsWith("Open")
@@ -1098,7 +869,6 @@ export default function LessonBarModelPage({
                   setPending(null);
                 }}
               >
-                {upgradeOptions}
                 <div
                   className="bm-choice-preview"
                   dangerouslySetInnerHTML={{
@@ -1153,7 +923,7 @@ export default function LessonBarModelPage({
                           value={draft.annotation.scope.kind}
                           onChange={(ev) => {
                             if (!currentBar) return;
-                            const scope: v.Annotation["scope"] =
+                            const scope: v3.Annotation["scope"] =
                               ev.target.value === "whole"
                                 ? { kind: "whole", barId: currentBar.id }
                                 : {
@@ -1202,7 +972,7 @@ export default function LessonBarModelPage({
                               })
                             }
                           >
-                            {d?.bars.map((b, i) => (
+                            {d.bars.map((b, i) => (
                               <option key={b.id} value={b.id}>
                                 Bar {i + 1}
                               </option>
@@ -1252,7 +1022,7 @@ export default function LessonBarModelPage({
                               annotation: {
                                 ...draft.annotation,
                                 decoration: ev.target
-                                  .value as v.Annotation["decoration"],
+                                  .value as v3.Annotation["decoration"],
                               },
                             })
                           }
@@ -1273,7 +1043,7 @@ export default function LessonBarModelPage({
                               annotation: {
                                 ...draft.annotation,
                                 placement: ev.target
-                                  .value as v.Annotation["placement"],
+                                  .value as v3.Annotation["placement"],
                               },
                             })
                           }
@@ -1292,7 +1062,7 @@ export default function LessonBarModelPage({
                   )}
                   {draft.kind === "caption" && (
                     <>
-                      {e.schemaVersion === 3 && (
+                      {
                         <label>
                           Line format
                           <select
@@ -1316,7 +1086,7 @@ export default function LessonBarModelPage({
                             </option>
                           </select>
                         </label>
-                      )}
+                      }
                       <label>
                         Alignment
                         <select
@@ -1369,7 +1139,7 @@ export default function LessonBarModelPage({
                           try {
                             return api
                               .affectedContent(
-                                e as v.Envelope,
+                                e,
                                 draft.barId,
                                 Number(draft.count),
                               )
@@ -1427,10 +1197,7 @@ export default function LessonBarModelPage({
                           {
                             {
                               unitMm: "Shared unit width (mm)",
-                              barHeightMm:
-                                e.schemaVersion === 3
-                                  ? "Minimum bar height (mm)"
-                                  : "Bar height (mm)",
+                              barHeightMm: "Minimum bar height (mm)",
                               fontPt: "Label size (pt)",
                               titlePt: "Title size (pt)",
                             }[key]
@@ -1504,7 +1271,7 @@ export default function LessonBarModelPage({
                     <>
                       <p>
                         Source saved text:{" "}
-                        {d?.bars
+                        {d.bars
                           .find((b) => b.id === draft.from.barId)
                           ?.parts.find((p) => p.id === draft.from.partId)
                           ?.labels[draft.from.slot]?.text || "(empty)"}
@@ -1544,7 +1311,7 @@ export default function LessonBarModelPage({
                             })
                           }
                         >
-                          {d?.bars.flatMap((b, i) =>
+                          {d.bars.flatMap((b, i) =>
                             b.parts.map((p, j) => (
                               <option
                                 key={p.id}
@@ -1569,20 +1336,20 @@ export default function LessonBarModelPage({
                               ...draft,
                               to: {
                                 ...draft.to,
-                                slot: ev.target.value as v.Slot,
+                                slot: ev.target.value as v3.Slot,
                               },
                               overwrite: false,
                             })
                           }
                         >
-                          {v.slots.map((s) => (
+                          {v3.slots.map((s) => (
                             <option key={s}>{s}</option>
                           ))}
                         </select>
                       </label>
                       <p>
                         Destination saved text:{" "}
-                        {d?.bars
+                        {d.bars
                           .find((b) => b.id === draft.to.barId)
                           ?.parts.find((p) => p.id === draft.to.partId)?.labels[
                           draft.to.slot
@@ -1678,7 +1445,7 @@ export default function LessonBarModelPage({
                   Show equal units in comparison
                 </label>
                 <div className="bm-actions">
-                  {v.starters.map((starter) => (
+                  {v3.starters.map((starter) => (
                     <button
                       key={starter}
                       disabled={blocked}
@@ -1686,7 +1453,7 @@ export default function LessonBarModelPage({
                         try {
                           replace(
                             houseModel(
-                              profile.fresh(
+                              v3.fresh(
                                 starter,
                                 Number(count),
                                 ratio.split(":").map(Number),
@@ -1766,9 +1533,9 @@ export default function LessonBarModelPage({
                       aria-label="Label position"
                       value={slot}
                       disabled={blocked}
-                      onChange={(ev) => setSlot(ev.target.value as v.Slot)}
+                      onChange={(ev) => setSlot(ev.target.value as v3.Slot)}
                     >
-                      {v.slots.map((s) => (
+                      {v3.slots.map((s) => (
                         <option key={s}>{s}</option>
                       ))}
                     </select>
@@ -1874,7 +1641,7 @@ export default function LessonBarModelPage({
                       disabled={blocked}
                       onChange={(ev) => setFill(ev.target.value as typeof fill)}
                     >
-                      {v.fills.map((s) => (
+                      {v3.fills.map((s) => (
                         <option key={s}>{s}</option>
                       ))}
                     </select>
@@ -2075,9 +1842,7 @@ export default function LessonBarModelPage({
                           id: freshId("caption"),
                           label: c.label(),
                           alignment: "centre",
-                          ...(e.schemaVersion === 3
-                            ? { format: "maths" as const }
-                            : {}),
+                          format: "maths" as const,
                         },
                         isNew: true,
                       })
@@ -2086,9 +1851,9 @@ export default function LessonBarModelPage({
                     Add calculation line
                   </button>
                   <p>
-                    {e.schemaVersion === 3
-                      ? "Type / in Maths lines for a horizontal fraction, for example 4/5 × 45 = 36. Choose Plain text explicitly for dates or literal slashes."
-                      : "This saved v2 model retains literal calculation lines. Upgrade above for horizontal fractions and handwriting space."}{" "}
+                    Type / in Maths lines for a horizontal fraction, for example
+                    4/5 × 45 = 36. Choose Plain text explicitly for dates or
+                    literal slashes.{" "}
                     No answers are calculated.
                   </p>
                   <label>
@@ -2112,7 +1877,7 @@ export default function LessonBarModelPage({
                       <option value="colour">Colour</option>
                     </select>
                   </label>
-                  {e.schemaVersion === 3 && (
+                  {(
                     <p>
                       Minimum bar height {d.presentation.barHeightMm} mm; actual
                       bars {v3.effectiveBarHeight(e)} mm. Answer lines have 12
@@ -2171,14 +1936,14 @@ export default function LessonBarModelPage({
                     <button
                       disabled={blocked}
                       onClick={() =>
-                        replace(lesson(name), `Open ${name} pupil model?`)
+                        replace(lessonExample(name), `Open ${name} pupil model?`)
                       }
                     >
                       Pupil model {name}
                     </button>
                     <button
                       disabled={blocked}
-                      onClick={() => replace(lesson(name, true), "", true)}
+                      onClick={() => replace(lessonExample(name, true), "", true)}
                     >
                       Worked {name}
                     </button>

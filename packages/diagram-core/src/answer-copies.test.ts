@@ -52,19 +52,13 @@ describe("bar model answers copy", () => {
     if (bar.hasHiddenAnswers(e)) expect(answer).toContain(ANSWER);
     else expect(answer).toBe(pupil);
   });
-  it("v1, v2 and v3 files all colour a saved hidden part label", () => {
-    for (const schemaVersion of [1, 2, 3]) {
-      const base = (schemaVersion === 1 ? createBar({ spec: { example: "BM08" } }) : createBar({ spec: { schemaVersion } })) as {
-        schemaVersion: number;
-        document: { bars: { parts: { labels?: { inside: unknown } }[] }[] };
-      };
-      if (schemaVersion > 1) base.document.bars[0].parts[0].labels!.inside = { text: "18", state: "hidden" };
-      expect(base.schemaVersion).toBe(schemaVersion);
-      const answer = drawDiagram("bar-model", base, "answer").svg;
-      expect(answer).toContain(ANSWER);
-      expect(answer).toMatch(/>18</);
-      expect(drawDiagram("bar-model", base, "pupil").svg).not.toMatch(/>18</);
-    }
+  it("a fresh model colours a saved hidden part label", () => {
+    const base = createBar({}) as { document: { bars: { parts: { labels: { inside: unknown } }[] }[] } };
+    base.document.bars[0].parts[0].labels.inside = { text: "18", state: "hidden" };
+    const answer = drawDiagram("bar-model", base, "answer").svg;
+    expect(answer).toContain(ANSWER);
+    expect(answer).toMatch(/>18</);
+    expect(drawDiagram("bar-model", base, "pupil").svg).not.toMatch(/>18</);
   });
   it("never edits the saved document", () => {
     const e = createBar({ spec: { example: "BM08" } });

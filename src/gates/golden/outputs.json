@@ -157,172 +157,172 @@
    "pixels": "798c35c5a11d4fde"
   },
   "bar model: bar-BM01": {
-   "json": "7b280091b4615306",
-   "svg": "f8e747b98445d36d",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "5defa72e983117c4"
+   "json": "2bf961cd20c72457",
+   "svg": "93842b57ddad1688",
+   "mm": "119.4x38.68",
+   "png600": "2820x914",
+   "pixels": "1b2cf433f86cc3ea"
   },
   "bar model: bar-BM01 (worked)": {
-   "json": "55d2ddb7619a5385",
-   "svg": "cc9f1b35241fa70e",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "43e55d451c102b3c"
+   "json": "d2435ecfe6c3f232",
+   "svg": "2faa07a62c9fce6c",
+   "mm": "119.4x43.76",
+   "png600": "2820x1034",
+   "pixels": "86d9e693c54397c1"
   },
   "bar model: bar-BM02": {
-   "json": "d07a386391a51e2f",
-   "svg": "7e4443d066d6c8ff",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "d7cf5f39242aeb17"
+   "json": "a2583c9d44802f65",
+   "svg": "16c8710f3a36363c",
+   "mm": "119.4x38.68",
+   "png600": "2820x914",
+   "pixels": "1639a3bffa5302f1"
   },
   "bar model: bar-BM02 (worked)": {
-   "json": "55d2ddb7619a5385",
-   "svg": "cc9f1b35241fa70e",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "43e55d451c102b3c"
+   "json": "d2435ecfe6c3f232",
+   "svg": "2faa07a62c9fce6c",
+   "mm": "119.4x43.76",
+   "png600": "2820x1034",
+   "pixels": "86d9e693c54397c1"
   },
   "bar model: bar-BM03": {
-   "json": "a99e00ef1679beec",
-   "svg": "974ad2975254ff36",
-   "mm": "88x73.05",
-   "png600": "2079x1726",
-   "pixels": "c035a16f646fda84"
+   "json": "d20c637b7b8e1687",
+   "svg": "10a85c3b38973104",
+   "mm": "89.4x58.98",
+   "png600": "2112x1393",
+   "pixels": "24266b162d5abae9"
   },
   "bar model: bar-BM03 (worked)": {
-   "json": "a8696f8ef8540460",
-   "svg": "8175d7d4540065dc",
-   "mm": "88x73.05",
-   "png600": "2079x1726",
-   "pixels": "76ec8ecc8a66dc56"
+   "json": "810216393bf42eb7",
+   "svg": "fb40d0de242bd3fd",
+   "mm": "89.4x69.14",
+   "png600": "2112x1633",
+   "pixels": "c7b37d65b2338508"
   },
   "bar model: bar-BM04": {
-   "json": "cccfa3fa5d792aae",
-   "svg": "286c405bfa41fa87",
-   "mm": "128x67.4",
-   "png600": "3024x1592",
-   "pixels": "0c43787795ec7f3f"
+   "json": "c275d6e01180516e",
+   "svg": "3257c6916af476ee",
+   "mm": "129.4x38.68",
+   "png600": "3057x914",
+   "pixels": "76a2138f2e9f03d0"
   },
   "bar model: bar-BM04 (worked)": {
-   "json": "d6d5624de2ecf260",
-   "svg": "b9ae2c53a80b16a3",
-   "mm": "128x67.4",
-   "png600": "3024x1592",
-   "pixels": "e1d084e7d2aeef0f"
+   "json": "f6f015bc5eefca36",
+   "svg": "ecec0157316c6324",
+   "mm": "129.4x43.76",
+   "png600": "3057x1034",
+   "pixels": "440086d403f49d08"
   },
   "bar model: bar-BM05": {
-   "json": "ae9f6f75bf8810c0",
-   "svg": "8955e4a69a12f5f2",
-   "mm": "118x42.7",
-   "png600": "2787x1009",
-   "pixels": "2e25e745dd44ecee"
+   "json": "41a14539ca795b97",
+   "svg": "29a3398ca8083691",
+   "mm": "119.4x38.68",
+   "png600": "2820x914",
+   "pixels": "847fd49aa7560e4c"
   },
   "bar model: bar-BM05 (worked)": {
-   "json": "d5ebc74a9feff78f",
-   "svg": "b164e8c6d0d26a17",
-   "mm": "118x42.7",
-   "png600": "2787x1009",
-   "pixels": "2c989606492e6e67"
+   "json": "f86742263c4384f6",
+   "svg": "7c38b3c3e5baa556",
+   "mm": "119.4x43.76",
+   "png600": "2820x1034",
+   "pixels": "736c64242c1b3fff"
   },
   "bar model: bar-BM06": {
-   "json": "c62c6a3ce613c015",
-   "svg": "b8afc2a194e90e7c",
-   "mm": "88x48.35",
-   "png600": "2079x1142",
-   "pixels": "21708265de3840a0"
+   "json": "7db7a032a591b78b",
+   "svg": "342d6cc61f945555",
+   "mm": "89.4x43.78",
+   "png600": "2112x1034",
+   "pixels": "639e129560f927ec"
   },
   "bar model: bar-BM06 (worked)": {
-   "json": "c62c6a3ce613c015",
-   "svg": "b8afc2a194e90e7c",
-   "mm": "88x48.35",
-   "png600": "2079x1142",
-   "pixels": "21708265de3840a0"
+   "json": "7db7a032a591b78b",
+   "svg": "342d6cc61f945555",
+   "mm": "89.4x43.78",
+   "png600": "2112x1034",
+   "pixels": "639e129560f927ec"
   },
   "bar model: bar-BM07": {
-   "json": "c3af1a7b2e67f7a6",
-   "svg": "e47a5eff08776396",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "cd02d027eebe4037"
+   "json": "57b4155b76e25484",
+   "svg": "be63071acf68d59e",
+   "mm": "119.4x38.68",
+   "png600": "2820x914",
+   "pixels": "917cdfbeee8b5da3"
   },
   "bar model: bar-BM07 (worked)": {
-   "json": "ca28a41d3025f563",
-   "svg": "1a98fcb8e366e4c7",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "22c40121c59da882"
+   "json": "e8b3f153d3c1c9de",
+   "svg": "b0d05e42247d56cf",
+   "mm": "119.4x47.34",
+   "png600": "2820x1118",
+   "pixels": "400693f29bed0eeb"
   },
   "bar model: bar-BM08": {
-   "json": "0b0e1c9e3fb1a643",
-   "svg": "f6868cec3480f6c9",
-   "mm": "134x37.59",
-   "png600": "3165x888",
-   "pixels": "b72e61b8a6ec3507"
+   "json": "ef5ed3f749c7a2a6",
+   "svg": "4dc8e79f2d74c4ba",
+   "mm": "135.4x41.08",
+   "png600": "3198x970",
+   "pixels": "fe201032ce61617d"
   },
   "bar model: bar-BM08 (worked)": {
-   "json": "b528ecb58b9c8779",
-   "svg": "35e082ffff542a21",
-   "mm": "134x37.59",
-   "png600": "3165x888",
-   "pixels": "123bd35facd8847a"
+   "json": "8f404e6d2ab09e70",
+   "svg": "d2a2290b48bd7b9c",
+   "mm": "135.4x41.08",
+   "png600": "3198x970",
+   "pixels": "04e7d0be2436fb16"
   },
   "bar model: bar-BM09": {
-   "json": "5e603f02ff7dc8a0",
-   "svg": "eac95fa1c0b4cc11",
-   "mm": "262x121.4",
-   "png600": "6189x2868",
-   "pixels": "16939b3f6ed1d138"
+   "json": "04fecfa88c6d866a",
+   "svg": "dff32078b92164c6",
+   "mm": "263.4x107.22",
+   "png600": "6222x2533",
+   "pixels": "64dc79e0bf28a19d"
   },
   "bar model: bar-BM09 (worked)": {
-   "json": "5e603f02ff7dc8a0",
-   "svg": "eac95fa1c0b4cc11",
-   "mm": "262x121.4",
-   "png600": "6189x2868",
-   "pixels": "16939b3f6ed1d138"
+   "json": "04fecfa88c6d866a",
+   "svg": "dff32078b92164c6",
+   "mm": "263.4x107.22",
+   "png600": "6222x2533",
+   "pixels": "64dc79e0bf28a19d"
   },
   "bar model: bar-H07": {
-   "json": "0fd995f0d5727f61",
-   "svg": "1af00f9f99bdd617",
-   "mm": "158x67.4",
-   "png600": "3732x1592",
-   "pixels": "221f2210824a6f67"
+   "json": "a735a484a1f1802d",
+   "svg": "8cfc78b75460086b",
+   "mm": "159.4x38.68",
+   "png600": "3765x914",
+   "pixels": "b26f4e7af83347ba"
   },
   "bar model: bar-H07 (worked)": {
-   "json": "50654b1297fed892",
-   "svg": "baccb628968dcd3e",
-   "mm": "158x67.4",
-   "png600": "3732x1592",
-   "pixels": "4b8956838ac24ba7"
+   "json": "25ea9cb5d03f0992",
+   "svg": "bdb915e77d9ad777",
+   "mm": "159.4x43.76",
+   "png600": "3765x1034",
+   "pixels": "24aa960b77768b5d"
   },
   "bar model: bar-H18": {
-   "json": "c410069ca8f4b84d",
-   "svg": "e47a5eff08776396",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "cd02d027eebe4037"
+   "json": "9ce516e5030f0501",
+   "svg": "be63071acf68d59e",
+   "mm": "119.4x38.68",
+   "png600": "2820x914",
+   "pixels": "917cdfbeee8b5da3"
   },
   "bar model: bar-H18 (worked)": {
-   "json": "54ee35a600babe1e",
-   "svg": "1a98fcb8e366e4c7",
-   "mm": "118x55.05",
-   "png600": "2787x1300",
-   "pixels": "22c40121c59da882"
+   "json": "c294fe2953ed40ef",
+   "svg": "b0d05e42247d56cf",
+   "mm": "119.4x47.34",
+   "png600": "2820x1118",
+   "pixels": "400693f29bed0eeb"
   },
   "bar model: bar-source-sharing": {
-   "json": "e1fc3abf9793e38c",
-   "svg": "05b2d5b3327027bc",
-   "mm": "138x69.56",
-   "png600": "3260x1643",
-   "pixels": "041b79680fad294d"
+   "json": "469b1ef2b9087576",
+   "svg": "3790ed69a7e5e4c3",
+   "mm": "139.4x38.84",
+   "png600": "3293x917",
+   "pixels": "466edad762c35d8f"
   },
   "bar model: bar-source-sharing (worked)": {
-   "json": "a3b08589a03d3dac",
-   "svg": "4901f26fe985411d",
-   "mm": "138x69.56",
-   "png600": "3260x1643",
-   "pixels": "2ab65c5c0693f6c1"
+   "json": "521b9f377ba58d8d",
+   "svg": "88f5213e7f9ebad9",
+   "mm": "139.4x43.92",
+   "png600": "3293x1037",
+   "pixels": "b765ced7d4ba0427"
   },
   "charts: chart-bar-draw": {
    "json": "2cc403a9527ddd22",
@@ -745,42 +745,42 @@
    "pixels": "b5d6434cb3e86c22"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
-   "json": "169b037986e5a308",
+   "json": "75f5e8de89a74165",
    "svg": "57e383be780c3676",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
    "pixels": "8f04b786f07e2f75"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2 (worked)": {
-   "json": "ffd5a19c341f630a",
+   "json": "50c48539422503db",
    "svg": "b18cf14f655d949d",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
    "pixels": "dc83af7d19c429cd"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13": {
-   "json": "4a79f1e8fd0bde58",
+   "json": "05534685d2e9a26e",
    "svg": "b302fb81856bd9c3",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
    "pixels": "b1e3fd71cbaea7be"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13 (worked)": {
-   "json": "edd91e3824371975",
+   "json": "d106633b195329f2",
    "svg": "0b621984c8518128",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
    "pixels": "ed8ac3c567240f31"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18": {
-   "json": "320cb0f7ac481726",
+   "json": "6b1d6f131727bc66",
    "svg": "48df159e1eaa672b",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
    "pixels": "5a2e2773015f1b66"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18 (worked)": {
-   "json": "50094a4dd9cdab15",
+   "json": "f3131ffaec134c16",
    "svg": "d7c6def019a98198",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
