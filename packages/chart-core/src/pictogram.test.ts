@@ -52,6 +52,8 @@ describe("pictograms", () => {
     expect(renderSvg(answer)).toContain(`fill="${PINK}">8<`);
     expect(layout(answer).width).toBe(layout(e).width);
     expect(layout(forView(e, "answer")).width).toBe(layout(e).width);
+    // The size survives a clone of the answer view.
+    expect(layout(structuredClone(answer)).width).toBe(layout(e).width);
     expect(setAllShown(e, "show").document.pictogram?.key.show).toBe("show");
     expect(setAllShown(e, "hidden").document.pictogram?.key.show).toBe("hidden");
     expect(e.document.pictogram?.key.show).toBe("hidden");
@@ -59,6 +61,8 @@ describe("pictograms", () => {
 
   it("names specific errors and notes hard-to-read parts", () => {
     expect(pictogramLayout(pictogram([["8", "show"]], "square", "")).issues[0]).toMatch(/Enter what one symbol represents/);
+    expect(pictogramLayout(pictogram([["8", "show"]], "square", "", "hidden")).issues[0]).toMatch(/hidden key still needs its value/);
+    expect(hasHidden(pictogram([["8", "show"]], "square", "", "hidden"))).toBe(true);
     expect(pictogramLayout(pictogram([["8", "show"]], "square", "0")).issues[0]).toMatch(/positive number/);
     expect(pictogramLayout(pictogram([["x", "show"]])).issues).toEqual(["c1: enter a number, or leave it blank."]);
     expect(pictogramLayout(pictogram([["-8", "show"]])).issues).toEqual(["c1: values cannot be negative."]);

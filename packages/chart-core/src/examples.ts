@@ -161,16 +161,14 @@ export const examples: {
     note: "Cycles sold, with 20 sold on Tuesday to Thursday. The key (one circle for 4 cycles) and the Friday (8) and Saturday (15) rows are saved as hidden answers.",
     sourceId: "1MA1_NOV_2017_3F_Q6",
     worked: true,
-    make: (worked) => {
-      const e = chart(
+    make: (worked) =>
+      chart(
         "pictogram",
         ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         [{ name: "cycles", fill: "white", values: ["4", "10", "6", "8", "15"], hidden: [3, 4] }],
         { min: "0", max: "16", step: "2", minor: 1 },
         { yTitle: "", xTitle: "", grid: "major", key: false, heightMm: 60, barMm: 7, pictogram: { symbol: "circle", symbolMm: 10, key: { value: "4", show: worked ? "show" : "hidden" }, unit: "cycles" } },
         worked,
-      );
-      return e;
-    },
+      ),
   },
 ];

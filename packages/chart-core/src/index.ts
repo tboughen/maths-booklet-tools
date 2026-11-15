@@ -4,7 +4,7 @@ import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
 import { pieLayout, pieSvg } from "./pie";
 import { pictogramLayout, pictogramSvg } from "./pictogram";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markRevealed, markWasHidden, n, pictogramSchema, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
 export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
@@ -194,11 +194,12 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A hidden pictogram key stays saved as hidden (so it keeps its answer-line width); the answer
+  // view prints its value, in pink when marked.
   const key = n.document.pictogram?.key;
-  if (key) {
-    if (key.show === "hidden") markWasHidden(key);
-    if (mark && key.show === "hidden" && key.value.trim()) markRevealed(key);
-    key.show = "show";
+  if (key && pictogramKeyHidden(n.document)) {
+    markAnswerKey(key);
+    if (mark && key.value.trim()) markRevealed(key);
   }
   for (const s of n.document.series)
     for (const c of s.values) {
@@ -208,8 +209,7 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   return n;
 }
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) ||
-  (e.document.kind === "pictogram" && e.document.pictogram?.key.show === "hidden" && !!e.document.pictogram.key.value.trim());
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document);
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
 export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram";
@@ -309,9 +309,7 @@ export function axesLayout(e: Envelope) {
   if (lo !== 0)
     issues.push("These charts start their axis at 0. Change the axis start to 0.");
   if (singleSet(d.kind) && d.series.length > 1)
-    notes.push(
-      `A ${kindNames[d.kind].toLowerCase()} draws only the first data set. The other data sets are kept for dual and composite bar charts.`,
-    );
+    notes.push(singleSetNote(kindNames[d.kind]));
   const H = d.heightMm,
     major = H / count,
     minor = major / d.axis.minor;

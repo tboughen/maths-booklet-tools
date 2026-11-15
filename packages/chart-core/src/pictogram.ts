@@ -11,8 +11,9 @@ import {
   readNumber,
   revealed,
   text,
+  answerKey,
+  singleSetNote,
   textWidth,
-  wasHidden,
   type PictogramSymbol,
 } from "./shared";
 import type { Envelope, HitBox, Target } from "./index";
@@ -48,9 +49,10 @@ export function pictogramLayout(e: Envelope) {
     issues: string[] = [],
     notes: string[] = [];
   if (d.series.length > 1)
-    notes.push("A pictogram draws only the first data set. The other data sets are kept for dual and composite bar charts.");
+    notes.push(singleSetNote("Pictogram"));
   const key = readNumber(p.key.value);
-  if (!p.key.value.trim()) issues.push("Enter what one symbol represents in the key. Tick Hide to leave it for pupils.");
+  if (!p.key.value.trim())
+    issues.push("Enter what one symbol represents in the key. A hidden key still needs its value, saved as the answer.");
   else if (key === null || key <= 0) issues.push("The key value must be a positive number.");
   const rows: SymbolRow[] = [];
   const header = !!(d.xTitle.trim() || d.yTitle.trim());
@@ -91,7 +93,7 @@ export function pictogramLayout(e: Envelope) {
   const keyValue = p.key.value.trim(),
     keyRest = p.unit.trim() ? ` ${p.unit.trim()}` : "";
   // A hidden key value keeps an answer line's width on both copies; a shown one is its own width.
-  const lineKey = p.key.show === "hidden" || wasHidden(p.key),
+  const lineKey = p.key.show === "hidden",
     valueW = lineKey ? Math.max(textWidth(keyValue), KEY_LINE) : textWidth(keyValue),
     repW = textWidth("represents ") + valueW + textWidth(keyRest);
   const keyW = PAD * 2 + size + 3 + repW,
@@ -134,7 +136,7 @@ export function pictogramLayout(e: Envelope) {
     size,
     symbol: p.symbol,
     rows,
-    key: { x: kx, y: ky, width: keyW, height: keyH, value: keyValue, rest: keyRest, valueW, shown: p.key.show === "show", revealed: revealed(p.key) },
+    key: { x: kx, y: ky, width: keyW, height: keyH, value: keyValue, rest: keyRest, valueW, shown: p.key.show === "show" || answerKey(p.key), revealed: revealed(p.key) },
     targets,
     labels,
     issues,

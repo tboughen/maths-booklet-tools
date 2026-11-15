@@ -892,7 +892,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       value={pictogramOf(d).key.value}
                       maxLength={12}
                       inputMode="decimal"
-                      invalid={g.issues.some((x) => x.includes("key"))}
+                      invalid={g.issues.some((x) => x.startsWith("Enter what one symbol") || x.startsWith("The key value must"))}
                       disabled={blocked}
                       onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, value: v } }))}
                     />

@@ -56,11 +56,17 @@ export const pictogramOf = (d: { pictogram?: PictogramSettings }): PictogramSett
 const REVEALED = new WeakSet<object>();
 export const markRevealed = (c: object) => void REVEALED.add(c);
 export const revealed = (c: object) => REVEALED.has(c);
-/** Pictogram keys an answer view shows only because they were saved hidden, marked or not, so
- * both copies keep the key's answer-line width. */
-const WAS_HIDDEN = new WeakSet<object>();
-export const markWasHidden = (c: object) => void WAS_HIDDEN.add(c);
-export const wasHidden = (c: object) => WAS_HIDDEN.has(c);
+/** Hidden pictogram keys an answer view shows. The key stays saved as hidden, so both copies
+ * keep its answer-line width; this only lets the renderer print the value. */
+const ANSWER_KEY = new WeakSet<object>();
+export const markAnswerKey = (c: object) => void ANSWER_KEY.add(c);
+export const answerKey = (c: object) => ANSWER_KEY.has(c);
+/** A pictogram whose key value is hidden for pupils to complete. */
+export const pictogramKeyHidden = (d: { kind: string; pictogram?: PictogramSettings }) =>
+  d.kind === "pictogram" && d.pictogram?.key.show === "hidden";
+/** The note every single-set kind gives when other data sets exist. */
+export const singleSetNote = (name: string) =>
+  `A ${name.toLowerCase()} draws only the first data set. The other data sets are kept for dual and composite bar charts.`;
 /** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
 export const CHART_ANSWER_COLOUR = "#b0125b";
 
