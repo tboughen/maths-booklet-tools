@@ -35,7 +35,9 @@ if (m.construction.exportIssue(c)) throw Error(m.construction.exportIssue(c));
 writeFileSync("docs/tool-card-preview-examples/constructions.json", m.construction.canonical(c) + "\n");
 writeFileSync("src/assets/tool-previews/constructions.svg", outline(m.construction.renderSvg(m.construction.parseFile(m.construction.canonical(c)))));
 // The draw-the-views example: an isometric solid with its plan, front and side left for pupils.
+// A narrower row puts the views on two rows, so the card preview is nearly square.
 const v = m.elevationExamples.find((x) => x.id === "draw-views").make(false);
+v.document.maxWidthCm = 16;
 if (m.elevations.exportIssue(v)) throw Error(m.elevations.exportIssue(v));
 writeFileSync("docs/tool-card-preview-examples/plans-and-elevations.json", m.elevations.canonical(v) + "\n");
 writeFileSync("src/assets/tool-previews/plans-and-elevations.svg", outline(m.elevations.renderSvg(m.elevations.parseFile(m.elevations.canonical(v)))));
