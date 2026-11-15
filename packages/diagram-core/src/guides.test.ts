@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { DIAGRAM_KINDS, FAMILIES } from "./registry";
-import { familyCapabilities, withFieldDocs } from "./guides";
+import { DIAGRAM_KINDS, FAMILIES, drawDiagram } from "./registry";
+import { GUIDES, familyCapabilities, withFieldDocs } from "./guides";
 import { SPEC_FIELD_DOCS } from "./field-docs";
 
 /** Replaces every {"$ref":"#/$defs/name"} with the shape it names, so the schema reads inline. */
@@ -44,5 +44,23 @@ describe("diagram_capabilities schemas (M1, M14)", () => {
           expect(text, `${kind}.${key} uses ${name}`).toContain(`"#/$defs/${name}"`);
         }
       }
+  });
+});
+
+describe("ratio-table gradient guidance (Tim, 15 Nov 2026)", () => {
+  const guide = GUIDES["ratio-table"].create;
+  it("always heads a gradient table y ↑ with a negative movement, never y ↓", () => {
+    expect(guide).toContain("Never use y ↓ for a gradient");
+    expect(guide).not.toMatch(/y ↓ for a negative gradient/);
+  });
+  it("its compact example builds and prints the negative movement", () => {
+    const match = guide.match(/Compact form[^{]*(\{columns:.*?\})\./);
+    expect(match, "the guide has a compact-form example").not.toBeNull();
+    const spec = JSON.parse(match![1].replace(/(\w+):\[/g, '"$1":['));
+    expect(spec.columns).toEqual(["x →", "y ↑"]);
+    const envelope = FAMILIES["ratio-table"].create({ spec });
+    const answer = drawDiagram("ratio-table", envelope, "answer").svg;
+    expect(answer).toContain("−4");
+    expect(answer).toContain("−2");
   });
 });

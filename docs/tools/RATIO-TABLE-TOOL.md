@@ -50,7 +50,9 @@ the same answer states as the plain table item:
 - **Hidden operation** (`hidden: true` on a transition) draws the curved arrows in both copies;
   the pupil copy has an answer line where the operation label goes and the answers copy prints
   the label on it. The label slot is never shorter than a cell's answer line.
-- **Down arrow** headings (`direction: "down"`, typed as `y ↓`) for negative gradients.
+- **Down arrow** headings (`direction: "down"`, typed as `y ↓`) are available, but never for
+  a gradient: a gradient table is always `y ↑`, and a line going down has a negative movement
+  (5 down to 1 is `-4`, so `2 | -4`, `÷ 2`, `1 | -2`). Tim, 15 November 2026.
 
 Both copies have exactly the same size, so a worksheet or booklet reserves one layout for
 both. The editor shows hidden answers in the answer colour; Download answers SVG and PNG
@@ -61,7 +63,7 @@ The **compact form** builds the same envelope from a much shorter request (about
 the full spec), for booklets with many tables:
 
 ```json
-{"columns": ["x →", "y ↓"], "table": [["2", "6"], ["1", "[3]"]], "steps": ["[÷ 2]"]}
+{"columns": ["x →", "y ↑"], "table": [["2", "-4"], ["1", "[-2]"]], "steps": ["[÷ 2]"]}
 ```
 
 A heading ending in →, ↑ or ↓ gets that arrow and a single letter prints italic. A cell is

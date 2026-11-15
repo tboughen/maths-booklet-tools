@@ -27,7 +27,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     showArrows: "Whether the curved arrows between rows print.",
     showOperations: "Whether the operations beside the arrows print.",
     lines,
-    columns: "Compact form: the column headings, such as [\"x →\", \"y ↓\"].",
+    columns: "Compact form: the column headings, such as [\"x →\", \"y ↑\"]; a gradient table always uses y ↑, with a negative movement for a line going down.",
     table: "Compact form: one array of cell strings per row (\"3\", \"\" empty, \"_\" answer line, \"[3]\" hidden answer).",
     steps: "Compact form: the step between rows, \"× 2\" or \"÷ 2\", in brackets to hide it.",
   },
