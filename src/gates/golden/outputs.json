@@ -1206,6 +1206,62 @@
    "png600": "1306x780",
    "pixels": "b1acdfc11b64232f"
   },
+  "sample space diagrams: ss-circle-outcomes": {
+   "json": "6300c8fa508f4393",
+   "svg": "b1b08fa92d6f6709",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "c58e1ec4e9f2eaa4"
+  },
+  "sample space diagrams: ss-circle-outcomes (worked)": {
+   "json": "36be0b72f9765c8b",
+   "svg": "90a49129f3b2cd4d",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "4422e4c398f79eda"
+  },
+  "sample space diagrams: ss-coin-dice": {
+   "json": "ccc3bb952cb724e1",
+   "svg": "31a2f3acdaea615c",
+   "mm": "126x34",
+   "png600": "2976x803",
+   "pixels": "94e9ed308b853a68"
+  },
+  "sample space diagrams: ss-coin-dice (worked)": {
+   "json": "58f190dc6ab1a2b3",
+   "svg": "8df09bae633435bf",
+   "mm": "126x34",
+   "png600": "2976x803",
+   "pixels": "2d22af601b81a4ca"
+  },
+  "sample space diagrams: ss-dice-sum": {
+   "json": "36c1d0066c5691bf",
+   "svg": "78c90f3ea9e552de",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "06a39c3d965c99b7"
+  },
+  "sample space diagrams: ss-dice-sum (worked)": {
+   "json": "c4819506e1ce0a16",
+   "svg": "0b17b7ddae3c6b36",
+   "mm": "105x70",
+   "png600": "2480x1654",
+   "pixels": "cc4a244ee3d32570"
+  },
+  "sample space diagrams: ss-spinner-product": {
+   "json": "cfd023d32b473bb6",
+   "svg": "cb69d5ebe8bdf2dd",
+   "mm": "105x52",
+   "png600": "2480x1228",
+   "pixels": "51bbb7e6db8cd850"
+  },
+  "sample space diagrams: ss-spinner-product (worked)": {
+   "json": "ed3b70f2b7419373",
+   "svg": "6ef889644de0836d",
+   "mm": "105x52",
+   "png600": "2480x1228",
+   "pixels": "39401777225cc16a"
+  },
   "triangles: triangle-base-height": {
    "json": "1e5b05de2d412810",
    "svg": "07ab0d5d9a0a7110",

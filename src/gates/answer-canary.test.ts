@@ -24,6 +24,8 @@ import * as elevations from "../../packages/elevation-core/src/index";
 import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
 import * as twoWayTable from "../../packages/two-way-table-core/src/index";
 import { examples as twoWayTableExamples } from "../../packages/two-way-table-core/src/examples";
+import * as ss from "../../packages/sample-space-core/src/index";
+import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 import * as venn from "../../packages/venn-core/src/index";
 import { examples as vennExamples, teachingExamples as vennTeaching } from "../../packages/venn-core/src/examples";
 
@@ -73,6 +75,7 @@ const tools: Tool[] = [
   { name: "frequency trees", envelopes: () => frequencyTreeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: frequencyTree.validate, pupilSvg: frequencyTree.renderSvg },
   { name: "constructions", envelopes: () => constructionExamples.flatMap(x => [x.make(false), x.make(true)]), validate: construction.validate, pupilSvg: construction.renderSvg },
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, pupilSvg: elevations.renderSvg },
+  { name: "sample space diagrams", envelopes: () => ssExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ss.validate, pupilSvg: ss.renderSvg },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, pupilSvg: twoWayTable.renderSvg },
   { name: "number line", envelopes: () => numberLineExamples.flatMap((_, i) => [numberLineExample(i), numberLineExample(i, true)]), validate: numberLine.validate, pupilSvg: numberLine.renderSvg },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, pupilSvg: triangle.renderSvg },

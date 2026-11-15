@@ -327,3 +327,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - venn: venn-languages (worked): json 55559d57a9c16e4e -> b9088bbb766cd463
 - venn: venn-shading: json 5fa1e9ce8a83057a -> e746bd34238ec502
 - venn: venn-shading (worked): json 5fa1e9ce8a83057a -> e746bd34238ec502
+
+## 2026-11-15: New sample space diagram family (P-3): adds goldens for its gallery examples; no existing output changed
+
+- sample space diagrams: ss-dice-sum: added
+- sample space diagrams: ss-dice-sum (worked): added
+- sample space diagrams: ss-spinner-product: added
+- sample space diagrams: ss-spinner-product (worked): added
+- sample space diagrams: ss-coin-dice: added
+- sample space diagrams: ss-coin-dice (worked): added
+- sample space diagrams: ss-circle-outcomes: added
+- sample space diagrams: ss-circle-outcomes (worked): added

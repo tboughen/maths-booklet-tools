@@ -161,6 +161,9 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       if (isNode(p.label) && p.label.show === "hidden" && str(p.label.text)) out.push(slot(`${path}.label`, "hidden", str(p.label.text)));
     });
   },
+  "sample-space"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

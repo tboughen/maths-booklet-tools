@@ -15,3 +15,4 @@ import "../cuboid/cuboid.css";
 import "../charts/charts.css";
 import "../probability-tree/probability-tree.css";
 import "../two-way-table/two-way-table.css";
+import "../sample-space/sample-space.css";

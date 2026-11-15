@@ -21,6 +21,7 @@ const searchTerms: Record<string, string> = {
   construction: "constructions loci locus perpendicular bisector angle bisector compasses ruler scale drawing map bearings north GM8",
   elevations: "plans elevations plan front side isometric cubes 3D solids views GM8",
   "two-way-table": "two-way two way table totals frequency probability statistics fractions",
+  "sample-space": "sample space diagram two dice spinner coin outcomes sum product difference probability listing",
   "expanding-factorising":
     "algebra brackets multiplication factorise factorize",
 };

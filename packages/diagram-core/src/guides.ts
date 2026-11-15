@@ -17,6 +17,7 @@ import { chartConfig } from "./guides/chart";
 import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { twoWayTableConfig } from "./guides/two-way-table";
+import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
 import { elevationsConfig } from "./guides/elevations";
@@ -206,6 +207,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "probability-tree": fromConfig(treeConfig),
   "frequency-tree": fromConfig(frequencyTreeConfig),
   "two-way-table": fromConfig(twoWayTableConfig),
+  "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
     create: "Triangle keeps explicit labels, topology and saved answers; calculate only when the user asks, and never measure drawn proportions. " + triangleConfig.createDescription,
@@ -264,6 +266,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
+  "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],

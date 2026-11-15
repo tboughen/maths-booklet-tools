@@ -1,0 +1,220 @@
+{
+ "kind": "sample-space",
+ "schemaVersion": 1,
+ "rendererVersion": "sample-space-1",
+ "document": {
+  "corner": "+",
+  "rowTitle": "Dice A",
+  "columnTitle": "Dice B",
+  "columns": [
+   {
+    "id": "c1",
+    "heading": "1"
+   },
+   {
+    "id": "c2",
+    "heading": "2"
+   },
+   {
+    "id": "c3",
+    "heading": "3"
+   },
+   {
+    "id": "c4",
+    "heading": "4"
+   },
+   {
+    "id": "c5",
+    "heading": "5"
+   },
+   {
+    "id": "c6",
+    "heading": "6"
+   }
+  ],
+  "rows": [
+   {
+    "id": "r1",
+    "heading": "1",
+    "cells": [
+     {
+      "text": "2",
+      "show": "show"
+     },
+     {
+      "text": "3",
+      "show": "show"
+     },
+     {
+      "text": "4",
+      "show": "show"
+     },
+     {
+      "text": "5",
+      "show": "show"
+     },
+     {
+      "text": "6",
+      "show": "show"
+     },
+     {
+      "text": "7",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r2",
+    "heading": "2",
+    "cells": [
+     {
+      "text": "3",
+      "show": "show"
+     },
+     {
+      "text": "4",
+      "show": "show"
+     },
+     {
+      "text": "5",
+      "show": "show"
+     },
+     {
+      "text": "6",
+      "show": "show"
+     },
+     {
+      "text": "7",
+      "show": "show"
+     },
+     {
+      "text": "8",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r3",
+    "heading": "3",
+    "cells": [
+     {
+      "text": "4",
+      "show": "show"
+     },
+     {
+      "text": "5",
+      "show": "show"
+     },
+     {
+      "text": "6",
+      "show": "show"
+     },
+     {
+      "text": "7",
+      "show": "show"
+     },
+     {
+      "text": "8",
+      "show": "show"
+     },
+     {
+      "text": "9",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r4",
+    "heading": "4",
+    "cells": [
+     {
+      "text": "5",
+      "show": "show"
+     },
+     {
+      "text": "6",
+      "show": "show"
+     },
+     {
+      "text": "7",
+      "show": "show"
+     },
+     {
+      "text": "8",
+      "show": "show"
+     },
+     {
+      "text": "9",
+      "show": "show"
+     },
+     {
+      "text": "10",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r5",
+    "heading": "5",
+    "cells": [
+     {
+      "text": "6",
+      "show": "show"
+     },
+     {
+      "text": "7",
+      "show": "show"
+     },
+     {
+      "text": "8",
+      "show": "show"
+     },
+     {
+      "text": "9",
+      "show": "show"
+     },
+     {
+      "text": "10",
+      "show": "show"
+     },
+     {
+      "text": "11",
+      "show": "show"
+     }
+    ]
+   },
+   {
+    "id": "r6",
+    "heading": "6",
+    "cells": [
+     {
+      "text": "7",
+      "show": "show"
+     },
+     {
+      "text": "8",
+      "show": "show"
+     },
+     {
+      "text": "9",
+      "show": "show"
+     },
+     {
+      "text": "10",
+      "show": "show"
+     },
+     {
+      "text": "11",
+      "show": "show"
+     },
+     {
+      "text": "12",
+      "show": "show"
+     }
+    ]
+   }
+  ],
+  "cellMm": 14,
+  "intentionalError": false
+ }
+}

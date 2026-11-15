@@ -1,0 +1,100 @@
+{
+ "kind": "sample-space",
+ "schemaVersion": 1,
+ "rendererVersion": "sample-space-1",
+ "document": {
+  "corner": "",
+  "rowTitle": "Coin",
+  "columnTitle": "Dice",
+  "columns": [
+   {
+    "id": "c1",
+    "heading": "1"
+   },
+   {
+    "id": "c2",
+    "heading": "2"
+   },
+   {
+    "id": "c3",
+    "heading": "3"
+   },
+   {
+    "id": "c4",
+    "heading": "4"
+   },
+   {
+    "id": "c5",
+    "heading": "5"
+   },
+   {
+    "id": "c6",
+    "heading": "6"
+   }
+  ],
+  "rows": [
+   {
+    "id": "r1",
+    "heading": "H",
+    "cells": [
+     {
+      "text": "(H, 1)",
+      "show": "hidden"
+     },
+     {
+      "text": "(H, 2)",
+      "show": "hidden"
+     },
+     {
+      "text": "(H, 3)",
+      "show": "hidden"
+     },
+     {
+      "text": "(H, 4)",
+      "show": "hidden"
+     },
+     {
+      "text": "(H, 5)",
+      "show": "hidden"
+     },
+     {
+      "text": "(H, 6)",
+      "show": "hidden"
+     }
+    ]
+   },
+   {
+    "id": "r2",
+    "heading": "T",
+    "cells": [
+     {
+      "text": "(T, 1)",
+      "show": "hidden"
+     },
+     {
+      "text": "(T, 2)",
+      "show": "hidden"
+     },
+     {
+      "text": "(T, 3)",
+      "show": "hidden"
+     },
+     {
+      "text": "(T, 4)",
+      "show": "hidden"
+     },
+     {
+      "text": "(T, 5)",
+      "show": "hidden"
+     },
+     {
+      "text": "(T, 6)",
+      "show": "hidden"
+     }
+    ]
+   }
+  ],
+  "cellMm": 17,
+  "intentionalError": false
+ }
+}

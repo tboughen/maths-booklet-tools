@@ -57,6 +57,8 @@ import { examples as elevationExamples } from "../../packages/elevation-core/src
 import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
 import { examples as twoWayTables } from "../../packages/two-way-table-core/src/examples";
 import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
+import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
+import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -319,5 +321,13 @@ export const twoWayTableGallery = twoWayTables.map((example) => ({
   description: example.note,
   make: example.make,
   render: twoWayTableSvg,
+  worked: true,
+}));
+export const sampleSpaceGallery = sampleSpaces.map((example) => ({
+  id: `ss-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: sampleSpaceSvg,
   worked: true,
 }));

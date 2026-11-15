@@ -1,0 +1,59 @@
+.ss-grid-wrap {
+  overflow-x: auto;
+  padding: 12px;
+}
+.ss-grid {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.ss-grid th,
+.ss-grid td {
+  border: 1px solid var(--line, #c9d3dd);
+  padding: 4px;
+  vertical-align: middle;
+  text-align: center;
+}
+.ss-grid th {
+  background: var(--blue-soft);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ss-grid input {
+  width: 56px;
+  min-height: 32px;
+  font: inherit;
+}
+.ss-grid td input {
+  width: 68px;
+  text-align: center;
+}
+.ss-grid input[aria-invalid="true"] {
+  outline: 2px solid #b3261e;
+  background: #fdecea;
+}
+.ss-grid .ss-hidden input {
+  border-style: dashed;
+  border-color: #b5487a;
+  background: #b5487a10;
+}
+.ss-grid .ss-current {
+  outline: 2px solid var(--blue);
+}
+.ss-total-heading {
+  font-weight: 700;
+  padding: 0 8px;
+}
+.ss-remove {
+  margin-left: 4px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 6px;
+  line-height: 1;
+}
+.ss-grid .ss-ring input {
+  border-radius: 999px;
+  border-width: 2px;
+}
+.ss-titles {
+  padding: 0 12px;
+}
