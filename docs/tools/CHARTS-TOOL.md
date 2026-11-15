@@ -1,8 +1,8 @@
-# Bar and line charts
+# Statistical charts
 
-`/tools/charts` makes the bar-family statistical charts in GCSE Foundation papers: bar
-charts, dual (comparative) bar charts, composite (stacked) bar charts and vertical line
-charts. Browser editing and export need no service; the optional MCP connector adds
+`/tools/charts` (called "Bar and line charts" until 15 Nov 2026) makes the statistical charts
+in GCSE Foundation papers: bar charts, dual (comparative) bar charts, composite (stacked) bar
+charts, vertical line charts and pie charts. Browser editing and export need no service; the optional MCP connector adds
 `diagram_capabilities` (kind `charts`), `create_diagram` (kind `charts`) and `revise_diagram` (kind `charts`) (see below).
 
 ## Why one tool
@@ -36,6 +36,33 @@ tool later rather than a mode here.
   Vertical line charts draw 0.6 mm black lines with a grid line through every category.
 - **Limits:** 1–12 categories, 1–4 data sets, at most 40 axis steps.
 
+## Pie charts
+
+A pie chart is a kind of the same document: it draws the categories and the first data set,
+so a teacher can switch between a bar chart and a pie chart of the same table without losing
+anything. The axis, grid and bar settings are kept but not used.
+
+- **Drawing:** sectors run clockwise in category order from a radius drawn upwards from the
+  centre, as Edexcel prints them. Each angle is exactly 360 × value ÷ total. The circle and the
+  starting radius always print, at true size, so pupils can draw with a protractor. There is no
+  centre dot, as in the papers.
+- **Pupil states:** every category needs a number (0 is a value and draws no sector). A blank
+  value is an error, because the other angles depend on the total. A hidden value leaves its
+  sector for pupils to draw: its label is not printed, and an edge prints only when a sector on
+  either side of it is drawn. The answers copy draws the missing edges and labels in the house
+  answer colour; the starting radius stays black.
+- **Settings (`pie`):** radius 25–70 mm (default 40) and sector labels: category names, names
+  and angles, names and percentages, or none. Angles and percentages print to 1 decimal place.
+  `pie` is saved only once a teacher changes a pie setting; without it the defaults apply.
+- **Labels** sit inside their sector when they fit, otherwise just outside the circle beside the
+  middle of the sector, with no leader line. Every label is placed (drawn or not), so the pupil
+  and answers copies are the same size.
+- **Editor:** the Data table adds an Angle column for the teacher (not printed). Clicking a sector
+  focuses its value. The Pie chart card replaces Axes and grid.
+- **Examples:** June 2018 2F Q12 (draw a pie chart, every sector hidden) and a "complete the pie
+  chart" teaching example.
+- **Notes:** angles that are not whole numbers are flagged, because pupils draw to the nearest degree.
+
 ## Line weight (U111)
 
 Lines are normal or bold (the Lines control beside Chart height). Bold multiplies the bars, line-chart lines, axes, ticks and key strokes by 1.5. The grey grid keeps its weight, so the grid never competes with the data. Bold is saved as `lines: "bold"`; normal is never saved. A new chart starts with the house style's lines. The connector takes `lines` in `presentation` (create spec and `set_presentation`).
@@ -43,7 +70,7 @@ Lines are normal or bold (the Lines control beside Chart height). Bold multiplie
 ## Not yet included
 
 Horizontal bars, a printed data table beside the chart, pictograms, time series graphs,
-frequency polygons and histograms. Each would be a separate, reviewed extension or tool.
+frequency polygons, scatter graphs, comparative pie charts of different sizes and histograms. Each would be a separate, reviewed extension or tool.
 
 ## MCP connector
 
@@ -57,7 +84,8 @@ frequency polygons and histograms. Each would be a separate, reviewed extension 
 - `revise_diagram` (kind `charts`) takes the returned envelope, its `contentHash` as `baseHash` and up to 30
   atomic operations using 0-based indices: `set_kind`, `set_value`, `set_category`,
   `add_category`, `remove_category`, `add_series`, `remove_series`, `set_series`, `set_axis`,
-  `set_presentation`, `set_all_visibility`. Nothing is calculated or filled.
+  `set_presentation`, `set_all_visibility`. Nothing is calculated or filled. `presentation.pie`
+  (`radiusMm`, `labels`) merges with the current pie settings.
 - `outputView` is `pupil` by default; `answer` draws hidden values in the artwork only, in the house
   answer colour (pink, `#b0125b`), as worksheet answers copies do. The
   returned JSON, hash and editor link always keep the saved pupil document, which can contain

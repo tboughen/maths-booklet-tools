@@ -207,3 +207,9 @@
 .ch-check input {
   accent-color: #2465ad;
 }
+.ch-table td.ch-angle {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

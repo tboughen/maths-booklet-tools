@@ -327,3 +327,10 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - venn: venn-languages (worked): json 55559d57a9c16e4e -> b9088bbb766cd463
 - venn: venn-shading: json 5fa1e9ce8a83057a -> e746bd34238ec502
 - venn: venn-shading (worked): json 5fa1e9ce8a83057a -> e746bd34238ec502
+
+## 2026-11-14: Pie charts added to Statistical charts: four new pie example outputs, no existing output changed
+
+- charts: chart-pie-snacks: added
+- charts: chart-pie-snacks (worked): added
+- charts: chart-pie-complete: added
+- charts: chart-pie-complete (worked): added
