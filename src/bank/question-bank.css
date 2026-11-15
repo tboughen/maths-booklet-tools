@@ -397,12 +397,14 @@ html:has(.site-page:not([hidden]) .qb-app), body:has(.site-page:not([hidden]) .q
 .qb-ink-laser { filter: drop-shadow(0 0 3px #ff2a2a); }
 .qb-annotate-toggle { position: relative; }
 .qb-ink-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #c81e1e; }
-/* A rail down the left edge of the viewer, beside the page rather than over it: the top of a whiteboard is often out
-   of reach, and portrait pages leave room at the side. Quiet neutral colours, so the only strong colours are the ink. */
+/* A rail down the right edge of the viewer, beside the page rather than over it: the top of a whiteboard is often out
+   of reach, and portrait pages leave room at the side. It sits above the Annotate button and under Display, so a
+   teacher at the board finds everything on one side (Tim, 15 Nov 2026). Quiet neutral colours, so the only strong
+   colours are the ink. */
 .qb-stage-frame:has(> .qb-annotate-bar) { flex-direction: row; --qb-rail-width: 95px; }
-/* The overview map moves right of the rail so the rail never covers it. */
-.qb-stage-frame:has(> .qb-annotate-bar) :is(.qb-overview, .qb-overview-toggle) { left: calc(var(--qb-rail-width) + 12px); }
-.qb-annotate-bar { order: -1; flex: 0 0 auto; z-index: 7; display: flex; flex-direction: column; gap: 6px; padding: 6px; overflow-y: auto; border-right: 1px solid #dce4ec; background: #f7f9fc; }
+/* In Display, the Annotate and zoom buttons move left of the rail so the rail never covers them. */
+.qb-stage-frame:has(> .qb-annotate-bar) .qb-display-dock { right: calc(var(--qb-rail-width) + 16px); }
+.qb-annotate-bar { order: 1; flex: 0 0 auto; z-index: 7; display: flex; flex-direction: column; gap: 6px; padding: 6px; overflow-y: auto; border-left: 1px solid #dce4ec; background: #f7f9fc; }
 .qb-annotate-group { display: grid; grid-template-columns: repeat(2, 40px); gap: 2px; }
 .qb-annotate-group + .qb-annotate-group { padding-top: 6px; border-top: 1px solid #dce4ec; }
 .qb-annotate-tool, .qb-annotate-colour, .qb-annotate-size { display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #253e59; cursor: pointer; }
