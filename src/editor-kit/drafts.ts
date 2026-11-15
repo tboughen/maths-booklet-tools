@@ -26,8 +26,6 @@ export interface DraftOpenOptions<T> {
   fresh: () => T;
   /** Shown when a stored draft cannot be opened. */
   recoveryMessage: string;
-  /** Shown when device storage cannot be read. */
-  unavailableMessage?: string;
 }
 
 /** Open the stored draft. A draft that fails to parse is kept as recovery data, never discarded. */
@@ -36,7 +34,7 @@ export function openDraft<T>(o: DraftOpenOptions<T>): DraftStart<T> {
   try {
     raw = localStorage.getItem(o.key);
   } catch {
-    return { document: o.fresh(), recovery: null, message: o.unavailableMessage ?? STORAGE_UNAVAILABLE };
+    return { document: o.fresh(), recovery: null, message: STORAGE_UNAVAILABLE };
   }
   if (!raw) return { document: o.fresh(), recovery: null, message: "" };
   try {
@@ -63,9 +61,8 @@ export interface DraftAutosaveOptions {
 }
 
 /**
- * Autosave the present document, guarded against other tabs. Returns the save status text and the two ways to
- * resolve recovery data: `keepStored` (the stored draft is unchanged since it was protected, so this tab may
- * write again) and `forget` (start afresh: the next save writes without comparing).
+ * Autosave the present document, guarded against other tabs. Returns the save status text and `keepStored`,
+ * which resolves recovery data once the stored draft is unchanged since it was protected.
  */
 export function useDraftAutosave({ key, text, paused, onConflict }: DraftAutosaveOptions) {
   const [saveState, setSaveState] = useState(SAVED);
@@ -104,18 +101,12 @@ export function useDraftAutosave({ key, text, paused, onConflict }: DraftAutosav
   const keepStored = useCallback(
     (recovery: string) => {
       const raw = localStorage.getItem(key);
-      if (raw !== recovery) return false;
+      // Another tab deleting the draft leaves "" as the recovery text and nothing stored.
+      if ((raw ?? "") !== recovery) return false;
       expected.current = raw;
       return true;
     },
     [key],
   );
-  /** Start afresh after protecting recovery data: the next save writes without comparing. */
-  const forget = useCallback(() => {
-    expected.current = null;
-  }, []);
-  /** The stored draft text, for pages that compare it themselves (null when there is none). */
-  const stored = useCallback(() => localStorage.getItem(key), [key]);
-
-  return { saveState, keepStored, forget, stored };
+  return { saveState, keepStored };
 }

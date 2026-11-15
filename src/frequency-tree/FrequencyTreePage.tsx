@@ -7,7 +7,7 @@ import { housePreference, setLines } from "../site/houseStyle";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { frequencyTreeGallery } from "../examples/galleryCatalogue";
@@ -217,9 +217,10 @@ export default function FrequencyTreePage({ active = true }: { active?: boolean 
   }
 
   // Autosave with protection for another tab's newer draft.
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
   const { saveState, keepStored } = useDraftAutosave({
     key: STORAGE,
-    text: canonical(history.present),
+    text: savedText,
     paused: recovery !== null,
     onConflict: (raw, reason) => {
       setRecovery(raw);

@@ -79,6 +79,18 @@ describe("useDraftAutosave", () => {
     expect(localStorage.getItem(KEY)).toBe('{"n":2}');
   });
 
+  it("lets the teacher keep saving after another tab deleted the draft", () => {
+    const onConflict = vi.fn();
+    const { result, rerender } = hook('{"n":1}', false, onConflict);
+    localStorage.removeItem(KEY);
+    act(() => void window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue: null })));
+    expect(onConflict).toHaveBeenCalledWith("", "changed");
+    rerender({ text: '{"n":1}', paused: true });
+    expect(result.current.keepStored("")).toBe(true);
+    rerender({ text: '{"n":2}', paused: false });
+    expect(localStorage.getItem(KEY)).toBe('{"n":2}');
+  });
+
   it("reports a save it cannot make", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw Error("full");
