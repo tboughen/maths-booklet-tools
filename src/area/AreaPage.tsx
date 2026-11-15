@@ -727,6 +727,8 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           p.corners.push({ x: round((a.x + b.x) / 2), y: round((a.y + b.y) / 2) });
                           // Both halves of the split side are straight; a semicircle on it would change size.
                           p.arcs[p.arcs.length - 1] = "none";
+                          // A height to the split side would now meet only its first half.
+                          p.heights = p.heights.filter((h) => h.side !== p.arcs.length);
                           p.arcs.push("none");
                         }, "add corner")
                       }
@@ -799,6 +801,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           .filter((x) => x.clear && x.side !== top + 1 && x.side % n !== top && s.arcs[x.side - 1] === "none")
                           .sort((a, b) => a.y - b.y);
                         if (!sides.length) setMessage("This shape has no side across from its top corner for a height to meet.");
+                        else if (s.heights.some((h) => h.corner === top + 1 && h.side === sides[0].side)) setMessage("That height is already drawn. Change its corner or side below.");
                         else setPolygon((p) => void p.heights.push({ corner: top + 1, side: sides[0].side }), "add height");
                       }}
                     >

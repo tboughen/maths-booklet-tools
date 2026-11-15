@@ -399,9 +399,6 @@ function segmentsCross(a: P, b: P, c: P, d: P) {
   return ((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) && ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9));
 }
 
-/** Every label slot of the figure, in order, with a teacher-facing name. */
-export const slotsOf = (d: AreaDocument) => geometry(d).slots.map(({ id, name }) => ({ id, name }));
-export const pointIdsOf = (d: AreaDocument) => Object.keys(geometry(d).points);
 
 /* ---------- Validation ---------- */
 
