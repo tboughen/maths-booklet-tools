@@ -9,6 +9,7 @@ import { number, AXIS_FONT_PT, PT_MM, validate } from "./model";
 import type { Equation, ValueEnvelope } from "./schema";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
 import { axisNumberText, axisNumbersTouch, axisTickValues } from "../../graph-core/src/axis-scale";
+import { AXIS_STROKE_POINTS, FINE_GRID_STROKE_POINTS } from "../../graph-core/src/graphStyle";
 
 const FONT = AXIS_FONT_PT * PT_MM;
 const ANSWER_LINE_COLUMN_FRACTION = 0.6;
@@ -268,11 +269,11 @@ export function renderSvg(raw: ValueEnvelope): string {
       paths[tier(startY + i * g.minorPitchMm)] += `M${p.left} ${y}h${p.width}`;
     }
     elements.push(
-      `<g data-layer="grid">${paths.map((path, i) => `<path data-grid-tier="${["fine", "intermediate", "heavy"][i]}" d="${path}" fill="none" stroke="#b3b3b3" stroke-width="${[0.51, 1.02, 1.417][i] * PT_MM}"/>`).join("")}</g>`,
+      `<g data-layer="grid">${paths.map((path, i) => `<path data-grid-tier="${["fine", "intermediate", "heavy"][i]}" d="${path}" fill="none" stroke="#b3b3b3" stroke-width="${[FINE_GRID_STROKE_POINTS.fine, FINE_GRID_STROKE_POINTS.centimetre, FINE_GRID_STROKE_POINTS.twoCentimetre][i] * PT_MM}"/>`).join("")}</g>`,
     );
     const extra = g.positiveEndArrows ? 5 : 0;
     elements.push(
-      `<g data-layer="axes" stroke="black" stroke-width="0.3"><path d="M${p.left} ${oy}H${p.left + p.width + extra}M${ox} ${p.top + p.height}V${p.top - extra}" fill="none"/>`,
+      `<g data-layer="axes" stroke="black" stroke-width="${AXIS_STROKE_POINTS * PT_MM}"><path d="M${p.left} ${oy}H${p.left + p.width + extra}M${ox} ${p.top + p.height}V${p.top - extra}" fill="none"/>`,
     );
     if (g.positiveEndArrows)
       elements.push(

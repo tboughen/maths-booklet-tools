@@ -699,10 +699,11 @@ export function GraphCanvas({
             })}
           </g>
           {!isSketch(document) && (
-          <g className="grid-lines">
+          <g className={gridDivisions(document) > 1 ? "grid-lines grid-lines--tiered" : "grid-lines"}>
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
               <line
                 key={`x-${index}`}
+                className={(index - document.axes.x.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft + index * layout.square}
                 y1={layout.plotTop}
                 x2={layout.plotLeft + index * layout.square}
@@ -712,6 +713,7 @@ export function GraphCanvas({
             {Array.from({ length: verticalSquares + 1 }, (_, index) => (
               <line
                 key={`y-${index}`}
+                className={(verticalSquares - index - document.axes.y.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft}
                 y1={layout.plotTop + index * layout.square}
                 x2={layout.plotRight}
@@ -805,11 +807,11 @@ export function GraphCanvas({
             {yLabels}
             {sharedOriginLabel(document) && (
               <AxisTickLabel
-                text={document.originLabel === "O" ? "𝑂" : "0"}
+                text={document.originLabel === "0" ? "0" : "𝑂"}
                 x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
                 baseline={xNumberBaseline}
                 textAnchor="end"
-                origin={document.originLabel !== "O"}
+                origin={document.originLabel === "0"}
               />
             )}
             {!document.axes.x.title && (

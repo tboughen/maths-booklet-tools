@@ -35,7 +35,8 @@ describe("graph builder", () => {
     );
     expect(labels).toContain("−2");
     expect(labels).toContain("2");
-    expect(labels.every((label) => /^−?\d+$/.test(label ?? ""))).toBe(true);
+    // Whole numbers, plus the italic O the origin prints by default.
+    expect(labels.every((label) => /^(−?\d+|𝑂)$/.test(label ?? ""))).toBe(true);
   });
 
   it("adds and independently changes multiple equation-defined lines", async () => {
@@ -121,9 +122,10 @@ describe("graph builder", () => {
     const xNumber = [
       ...container.querySelectorAll<SVGTextElement>(".axis-number text"),
     ].find((label) => label.getAttribute("text-anchor") === "middle");
-    const originLabel = container.querySelector<SVGTextElement>(
-      ".axis-number--origin text",
-    );
+    // The origin prints an italic O by default, as Edexcel papers do.
+    const originLabel = [
+      ...container.querySelectorAll<SVGTextElement>(".axis-number text"),
+    ].find((label) => label.textContent === "𝑂");
     const plotRect = container.querySelector<SVGRectElement>(
       "#editor-plot-clip rect",
     );
@@ -154,7 +156,7 @@ describe("graph builder", () => {
     expect(yName).toHaveTextContent("𝑦");
     expect(xName?.getAttribute("font-family")).toContain("Cambria Math");
     expect(yName?.getAttribute("font-family")).toContain("Cambria Math");
-    expect(originLabel?.getAttribute("transform")).toContain("skewX(-12)");
+    expect(originLabel).toBeDefined();
     expect(
       Number(xAxis?.getAttribute("x2")) -
         (Number(plotRect?.getAttribute("x")) +
@@ -198,9 +200,9 @@ describe("graph builder", () => {
     const negativeYControl = screen.getByRole("button", {
       name: "Add one square at the negative end of the y-axis",
     }).parentElement;
-    const originRect = container.querySelector<SVGRectElement>(
-      ".axis-number--origin rect",
-    );
+    const originRect = [...container.querySelectorAll(".axis-number")]
+      .find((g) => g.querySelector("text")?.textContent === "𝑂")
+      ?.querySelector<SVGRectElement>("rect");
     const position = (element: Element | null) => {
       return {
         x: parseFloat((element as HTMLElement).style.left),

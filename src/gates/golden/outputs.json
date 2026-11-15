@@ -1096,45 +1096,45 @@
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
    "json": "75f5e8de89a74165",
-   "svg": "57e383be780c3676",
+   "svg": "db54a06e0ac7dcf8",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "8f04b786f07e2f75"
+   "pixels": "2b18446b7ec3ebef"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2 (worked)": {
    "json": "50c48539422503db",
-   "svg": "b18cf14f655d949d",
+   "svg": "472d2466e790793c",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "dc83af7d19c429cd"
+   "pixels": "86dc7884d2f4fe9c"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13": {
    "json": "05534685d2e9a26e",
-   "svg": "b302fb81856bd9c3",
+   "svg": "145cb8c3c0b2d30a",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
-   "pixels": "b1e3fd71cbaea7be"
+   "pixels": "9fb33ec5ac4fe5fb"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13 (worked)": {
    "json": "d106633b195329f2",
-   "svg": "0b621984c8518128",
+   "svg": "871ac49825d066a6",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
-   "pixels": "ed8ac3c567240f31"
+   "pixels": "1afa69c158c6d99d"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18": {
    "json": "6b1d6f131727bc66",
-   "svg": "48df159e1eaa672b",
+   "svg": "46fbf64b172c8dd9",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "5a2e2773015f1b66"
+   "pixels": "3b83e69e52882db4"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18 (worked)": {
    "json": "f3131ffaec134c16",
-   "svg": "d7c6def019a98198",
+   "svg": "6471b80a1d3e244f",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "68ad6c047e5303ba"
+   "pixels": "648a83f51c414026"
   },
   "number line: number-line-0": {
    "json": "b99c456fc3a9b92d",
@@ -1320,87 +1320,87 @@
   },
   "plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5": {
    "json": "563a238dc445b726",
-   "svg": "513612a887963c61",
+   "svg": "91887f76e7e55555",
    "mm": "141x194",
    "png600": "3331x4583",
-   "pixels": "5d361414d6270d49"
+   "pixels": "6d05475760d671f1"
   },
   "plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked)": {
    "json": "95c51d9fa5fb5a22",
-   "svg": "9f64c19b4b6b4ed6",
+   "svg": "40bbefca8a685f34",
    "mm": "141x194",
    "png600": "3331x4583",
-   "pixels": "02a0239df428b47f"
+   "pixels": "bbc81336503f25ad"
   },
   "plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13": {
    "json": "68592b0f8f28345b",
-   "svg": "b48362984ef02bdb",
+   "svg": "0bca156862e9d770",
    "mm": "141x254",
    "png600": "3331x6000",
-   "pixels": "ef8d6afe91b6f317"
+   "pixels": "64f6881dae2c03aa"
   },
   "plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked)": {
    "json": "3e4a8c679fe6243a",
-   "svg": "d3d154a3f12ee20b",
+   "svg": "00a5a28da98605c8",
    "mm": "141x254",
    "png600": "3331x6000",
-   "pixels": "2908e00a981c8195"
+   "pixels": "e0a5e6f55fef3439"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7": {
    "json": "f76714814b0a7dd3",
-   "svg": "9c18032360178a13",
+   "svg": "875f26c54b7d579b",
    "mm": "121x154",
    "png600": "2858x3638",
-   "pixels": "1ba8996705ef9ba7"
+   "pixels": "ffdcf2785d4a8d7e"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked)": {
    "json": "7b28bbfc0feb54c1",
-   "svg": "41b426341c083e2b",
+   "svg": "9d1d78f4c8d9d14a",
    "mm": "121x154",
    "png600": "2858x3638",
-   "pixels": "eb87a77a2d9db346"
+   "pixels": "2bbb31102eea1b6a"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3": {
    "json": "6454f280ac0493f1",
-   "svg": "4aabbaa2c771ddbd",
+   "svg": "538e9b8d3374e087",
    "mm": "161x154",
    "png600": "3803x3638",
-   "pixels": "68aa81c36f06a9f4"
+   "pixels": "ba1f802676728e5e"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked)": {
    "json": "969cca9cf66909d3",
-   "svg": "26f0c0537442b62a",
+   "svg": "112ebb5febb48cb3",
    "mm": "161x154",
    "png600": "3803x3638",
-   "pixels": "fc75288b96314112"
+   "pixels": "146290897cb3d5db"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4": {
    "json": "7188d4f3643f3e74",
-   "svg": "5a99cd13ebb46526",
+   "svg": "83e65bf042eb02aa",
    "mm": "161x194",
    "png600": "3803x4583",
-   "pixels": "dc2e101a84af5008"
+   "pixels": "524185922ac40e4d"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked)": {
    "json": "0a0f466ac84045a2",
-   "svg": "7ef868d8f57d3b35",
+   "svg": "834eacff16764842",
    "mm": "161x194",
    "png600": "3803x4583",
-   "pixels": "b337318eec3ffb34"
+   "pixels": "263df6b79cfb3f3a"
   },
   "plotting quadratics: quadratic-fractions": {
    "json": "0d638e4ba4c98cb6",
-   "svg": "cf36101557f9172e",
+   "svg": "9dc00e4a104bf8e5",
    "mm": "141x136",
    "png600": "3331x3213",
-   "pixels": "552d38ee876f26eb"
+   "pixels": "fc1728774a47f6f9"
   },
   "plotting quadratics: quadratic-fractions (worked)": {
    "json": "6ff6ceefa00ba614",
-   "svg": "27d8dde9e4449e9c",
+   "svg": "ca50c7501a6b5fad",
    "mm": "141x136",
    "png600": "3331x3213",
-   "pixels": "318a7273a4a13565"
+   "pixels": "84d999b102f7811d"
   },
   "probability trees: tree-darts": {
    "json": "cbf56c04bcacb580",

@@ -1,7 +1,16 @@
 /** Physical styling shared by the editor preview and exported artwork. */
 export const POINTS_PER_CENTIMETRE = 72 / 2.54;
+/** Plotted lines, points and shapes (this was once also the grid's weight, hence the name). */
 export const GRID_STROKE_POINTS = 1.5;
-export const AXIS_STROKE_POINTS = 2;
+/**
+ * Exam parity: line weights measured in Edexcel GCSE papers (Jun 2019 2H Q2, Nov 2017 3F Q13,
+ * Nov 2021 1F Q18, mock sets 1 and 4). Axes 1.5 pt (0.53 mm); a 1 cm grid on its own 1 pt
+ * (0.35 mm); graph paper with a fine grid 0.51 pt fine lines (0.18 mm), 1.02 pt 1 cm lines
+ * (0.36 mm) and 1.417 pt every 2 cm (0.5 mm). The value graph draws the same weights.
+ */
+export const AXIS_STROKE_POINTS = 1.5;
+export const CENTIMETRE_GRID_STROKE_POINTS = 1;
+export const FINE_GRID_STROKE_POINTS = { fine: 0.51, centimetre: 1.02, twoCentimetre: 1.417 } as const;
 export const AXIS_LABEL_FONT_POINTS = 12;
 export const EQUATION_FONT_POINTS = 10;
 

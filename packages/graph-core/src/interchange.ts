@@ -175,7 +175,7 @@ const linesSchema = z
   .describe("normal (default) or bold: bold makes the axes and everything plotted 1.5 times as heavy; the grid keeps its weight.");
 const originLabelSchema = z
   .enum(["0", "O"])
-  .describe("O prints an italic O at the origin, as Edexcel papers do. Default 0.");
+  .describe("The origin mark: an italic O, as Edexcel papers print it (default), or 0.");
 const axesSchema = z
   .object({ x: axisSchema, y: axisSchema })
   .strict()
@@ -557,7 +557,7 @@ export function createGraph(value: unknown): GraphEnvelope {
   const document = cloneDefaultDocument();
   if (input.axes) document.axes = input.axes;
   if (input.grid) document.grid = input.grid;
-  if (input.originLabel) document.originLabel = input.originLabel;
+  if (input.originLabel === "0") document.originLabel = "0";
   if (input.lines === "bold") document.lines = "bold";
   document.styleProfile = "portable-v1";
   document.objects = input.objects.map((object, index) =>
@@ -705,7 +705,8 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
       styleProfile: envelope.styleProfile,
       // New settings join the hash only when present, so older graphs keep their hashes.
       ...(document.grid ? { grid: document.grid } : {}),
-      ...(document.originLabel ? { originLabel: document.originLabel } : {}),
+      // O is the default (Edexcel), so only a 0 origin mark is part of the hash.
+      ...(document.originLabel === "0" ? { originLabel: "0" } : {}),
       ...(document.lines ? { lines: document.lines } : {}),
     }),
     ...aboutOf(envelope),
@@ -739,8 +740,8 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
         else document.grid = op.grid;
       }
       if (op.originLabel !== undefined) {
-        if (op.originLabel === "0") delete document.originLabel;
-        else document.originLabel = op.originLabel;
+        if (op.originLabel === "O") delete document.originLabel;
+        else document.originLabel = "0";
       }
       continue;
     }
@@ -853,7 +854,7 @@ export function describeGraph(envelope: GraphEnvelope): string {
       : d.grid && d.grid !== "1cm"
         ? ` ${d.grid} fine grid.`
         : "",
-    d.originLabel === "O" ? " Origin labelled O." : "",
+    d.originLabel === "0" ? " Origin labelled 0." : "",
   ].join("");
   return `Coordinate graph: ${range("x", b.xMin, b.xMax)}, ${range("y", b.yMin, b.yMax)}; scales ${d.axes.x.unitsPerSquare} and ${d.axes.y.unitsPerSquare} units per 1 cm square.${extras} ${objects || "Empty grid."}`;
 }
