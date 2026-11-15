@@ -29,3 +29,23 @@ describe("line breaks that read badly are prevented (Tim, A7 marking, 15 Nov 202
     expect(last(wrap(text, 3.88, w, "regular", true))).toBe("is\u00a06");
   });
 });
+
+describe("keepTogether edge cases (review, 15 Nov 2026)", () => {
+  it("keeps the inline-fraction note when the fraction ends the text", async () => {
+    const { inlineFraction } = await import("./text");
+    expect(inlineFraction(keepTogether("Simplify 6 / 8"), true)).toBe("6 / 8");
+  });
+  it("never puts a no-break space at the start of a line after a double space", () => {
+    expect(kept("It is  6")).toBe("It is·6");
+    expect(kept(" It is 6 ")).toBe(" It is·6 ");
+  });
+  it("caps a glued run by its printed width as well as its length", () => {
+    const glued = keepTogether("Work out 123456 + 234567 = 358023");
+    const widest = Math.max(...glued.split(" ").map((w) => wrap(w, 11 * (25.4 / 72), 1000, "bold")[0].reduce((t, r) => t + r.text.length, 0)));
+    expect(glued).not.toContain("123456 + 234567 = 358023");
+    expect(widest).toBeLessThan(24);
+  });
+  it("keeps a squared bracket with its equation", () => {
+    expect(kept("so (2x + 3)² = 25")).toBe("so (2*x*·+·3)²·=·25");
+  });
+});

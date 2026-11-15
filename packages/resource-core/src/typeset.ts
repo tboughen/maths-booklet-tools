@@ -14,6 +14,7 @@
  * Inter holds no other superscript digits.
  */
 import { FRACTION } from "./text";
+import { advance } from "./metrics";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
@@ -130,14 +131,21 @@ export const NBSP = "\u00a0";
 /** What a token prints, without its markup: "*x*" is x, "{1/2}" is 1/2. */
 const visible = (t: string) => t.replace(/\*/g, "").replace(/[{}]/g, "");
 /** A number as printed: −3, 2.5, 40%, {1/2}, 2{1/2}, *x*-free. Trailing punctuation allowed. */
-const NUMBER = /^[(]?[−-]?(\d+([.,]\d+)?%?|\d*\{[^{}/]+\/[^{}/]+\})[)]?[.,;:?!]*$/;
+const NUMBER = /^[(]?[−-]?(\d+([.,]\d+)?%?|\d*\{[^{}/]+\/[^{}/]+\})[)]?[²³]?[.,;:?!]*$/;
 const UNIT = /^(mm|cm|m|km|g|kg|mg|ml|cl|l|litres?|s|mins?|hours?|days?|weeks?|years?|°C?|%|p|pence|£)[.,;:?!)]*$/;
 /** A maths operator token, spaced on both sides in typed text. */
 const OPERATOR_SPACED = new RegExp(`^[${OPERATOR}]$`);
 /** A short maths operand: a number, a maths letter or a short term such as 2*x* or *x*². */
 const operand = (t: string) => visible(t).length <= 8 && (NUMBER.test(t) || /^[(]?[−-]?\d*(\*[a-z]{1,3}\*)+[²³]?[)]?[.,;:?!]*$/.test(t) || /^[(]?\d*[a-z][²³]?[)]?[.,;:?!]*$/.test(visible(t)) && t.includes("*"));
-/** A glued run never grows past this many printed characters, so it always fits a card line. */
+/** A glued run never grows past this many printed characters, nor past GLUE_MAX_MM at body size. */
 const GLUE_MAX = 24;
+/**
+ * The narrowest flowing text on a sheet is about 51 mm (steps inside a part in a half-width
+ * booklet card), so a glued run stays under 44 mm, measured in bold (the widest style) at 11 pt.
+ */
+const GLUE_MAX_MM = 44;
+const BODY_MM = 11 * (25.4 / 72);
+const runMm = (t: string) => [...visible(t)].reduce((w, c) => w + advance(c, "bold"), 0) * BODY_MM;
 
 /**
  * Line breaks that read badly are prevented with no-break spaces (Tim, A7 marking, 15 Nov 2026):
@@ -150,6 +158,9 @@ const GLUE_MAX = 24;
  */
 export function keepTogether(source: string): string {
   if (source.includes("\n")) return source.split("\n").map(keepTogether).join("\n");
+  // Leading and trailing spaces stay; repeated spaces inside print as one anyway.
+  const [, lead, core, trail] = source.match(/^( *)(.*?)( *)$/s)!;
+  if (lead || trail || / {2}/.test(core)) return lead + keepTogether(core.replace(/ {2,}/g, " ")) + trail;
   const words = source.split(" ");
   if (words.length < 2) return source;
   const glue = new Array<boolean>(words.length - 1).fill(false);
@@ -174,15 +185,15 @@ export function keepTogether(source: string): string {
   if (words[words.length - 1] && (NUMBER.test(words[words.length - 1]) || last.length <= 3)) glue[words.length - 2] = true;
   // A run may not grow past the limit: break it at its first space again where it would.
   let out = words[0];
-  let run = visible(words[0]).length;
+  let run = words[0];
   for (let i = 1; i < words.length; i++) {
-    const w = visible(words[i]).length;
-    if (glue[i - 1] && run + 1 + w <= GLUE_MAX) {
+    const joined = `${run} ${words[i]}`;
+    if (glue[i - 1] && visible(joined).length <= GLUE_MAX && runMm(joined) <= GLUE_MAX_MM) {
       out += NBSP + words[i];
-      run += 1 + w;
+      run = joined;
     } else {
       out += " " + words[i];
-      run = w;
+      run = words[i];
     }
   }
   return out;

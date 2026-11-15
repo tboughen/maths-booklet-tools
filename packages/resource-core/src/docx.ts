@@ -876,7 +876,7 @@ export async function writeWorksheetDocx(saved: Resource, options: DocxOptions):
     ctx,
     options,
     title: `${doc.title}${view === "answers" ? " (answers)" : ""}`,
-    subject: [doc.code, doc.objective].filter(Boolean).join(" "),
+    subject: [doc.code, doc.objective].filter(Boolean).join(" ").replace(/\u00a0/g, " "),
     keywords: ["MathsDock worksheet", doc.code, doc.group, view === "answers" ? "answers" : "pupil"].filter(Boolean).join("; "),
     description: `Made by MathsDock from the worksheet source. Edit the source and remake this file to keep the pupil and answer copies in step.`,
     pages: 2,

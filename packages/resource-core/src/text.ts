@@ -28,6 +28,8 @@ const SLASHED = /(?<![\w./{])\d+ ?\/ ?\d+(?![\w/}]|\.\d)/;
  * off (it would print with its braces). Returns the first one found, or null.
  */
 export function inlineFraction(source: string, maths: boolean): string | null {
+  // Printed text may hold no-break spaces (keepTogether): read them as ordinary spaces.
+  source = source.replace(/\u00a0/g, " ");
   const rest = maths ? source.replace(FRACTION, " ") : source;
   const m = rest.match(SLASHED) ?? rest.match(VULGAR) ?? (maths ? null : source.match(FRACTION));
   return m ? m[0] : null;
