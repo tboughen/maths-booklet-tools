@@ -3781,19 +3781,6 @@
               ]
             }
           },
-          "selectedObjectId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^[a-zA-Z0-9_-]+$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "styleProfile": {
             "type": "string",
             "enum": [
@@ -3827,8 +3814,7 @@
         "required": [
           "version",
           "axes",
-          "objects",
-          "selectedObjectId"
+          "objects"
         ],
         "additionalProperties": false
       },

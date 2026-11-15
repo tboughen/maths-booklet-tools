@@ -75,7 +75,7 @@ test("the booklet tool row shows when it scrolls and keeps the current tool in v
     });
     expect(clear).toBe("");
   }
-  // The 16-link tool row (All tools + 15 tools) needs about 2,410 px; a 2,800 px screen shows it all.
+  // The 17-link tool row (All tools + 16 tools) needs about 2,560 px; a 2,800 px screen shows it all.
   await page.setViewportSize({ width: 2800, height: 900 });
   await expect(row).not.toHaveClass(/has-more/);
 });
