@@ -20,6 +20,7 @@ import {
   QuestionBank,
   WorksheetPage,
   BookletPage,
+  DiagramBuilderPage,
   sectionName,
   readPage,
   readSection,
@@ -191,7 +192,11 @@ export default function SiteApp() {
       )}
       {(page === "home" || page === "booklet-tools") && (
         <div className="site-page">
-          <Overview home={page === "home"} />
+          {page === "home" ? <Overview /> : (
+            <LazyPage onReady={pageReady}>
+              <DiagramBuilderPage active />
+            </LazyPage>
+          )}
           <SiteFooter />
         </div>
       )}

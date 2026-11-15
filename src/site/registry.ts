@@ -50,6 +50,8 @@ export const QuestionBank = lazyPage(() => import("../bank/QuestionBank"));
 export const AssessmentPage = lazyPage(() => import("../assessment/AssessmentPage"));
 export const WorksheetPage = lazyPage(() => import("../worksheet/WorksheetPage"));
 export const BookletPage = lazyPage(() => import("../booklet/BookletPage"));
+/** The Diagram builder page loads on first visit, so Home stays light. */
+export const DiagramBuilderPage = lazyPage(() => import("./DiagramBuilder").then((m) => ({ default: m.DiagramBuilder })));
 export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from "./routes";
 // Each tool needs a path; this fails to compile if the two lists drift apart.
 type RegistryTool = typeof bookletTools[number]["id"];
@@ -88,5 +90,6 @@ export function preloadPage(id: PageId) {
   if (id === "assessment-follow-up") return AssessmentPage.preload();
   if (id === "worksheets") return WorksheetPage.preload();
   if (id === "booklets") return BookletPage.preload();
+  if (id === "booklet-tools") return DiagramBuilderPage.preload();
   return bookletTools.find((tool) => tool.id === id)?.component.preload();
 }

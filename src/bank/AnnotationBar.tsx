@@ -41,8 +41,9 @@ function moveAlongRail(event: KeyboardEvent<HTMLDivElement>) {
 const press = (action: () => void) => (event: MouseEvent<HTMLButtonElement>) => { action(); if (event.detail > 0) event.currentTarget.blur(); };
 
 /**
- * The screen-only annotation tools, on a rail down the left edge of the viewer: the top of a whiteboard is often out of
- * reach, and portrait question pages leave room at the side. The tools are toggle buttons with one pressed at a time.
+ * The screen-only annotation tools, on a rail down the right edge of the viewer, above the Annotate button and under
+ * Display: the top of a whiteboard is often out of reach, portrait question pages leave room at the side, and a teacher
+ * at the board finds everything on one side. The tools are toggle buttons with one pressed at a time.
  * Nothing here reaches exports, links or saved files.
  */
 export function AnnotationBar({ preferences: p, onChange, canUndo, canRedo, hasInk, anyInk, onUndo, onRedo, onClear, onClearAll, onClose }: Props) {
