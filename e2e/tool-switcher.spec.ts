@@ -1,6 +1,7 @@
 // The tool switcher (docs/tools/APP-HOUSE-STYLE.md): a diagram tool's name opens search,
 // favourite tools and every tool by strand. It must work with the keyboard alone.
 import { test, expect, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 const shown = (page: Page) => page.locator(".site-page:not([hidden])");
 const button = (page: Page) => shown(page).locator(".tool-switcher-button");
@@ -112,4 +113,25 @@ test("a search of spaces alone changes nothing, and the open switcher passes und
   await expect(panel(page).locator("a.is-first")).toHaveCount(0);
   const [bar, pop] = await page.evaluate(() => [".site-navigation", ".tool-switcher-panel"].map((s) => Number(getComputedStyle(document.querySelector(s)!).zIndex)));
   expect(pop).toBeLessThan(bar);
+});
+
+test("the switcher has no serious accessibility violations closed, open, searching or on a phone", async ({ page }) => {
+  const found: string[] = [];
+  const scan = async (state: string) => {
+    const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    found.push(...violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${state}: ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`));
+  };
+  await page.goto("/tools/venn");
+  await shown(page).getByRole("button", { name: "Add Venn diagrams to favourite tools" }).click();
+  await scan("closed");
+  await button(page).click();
+  await scan("open");
+  await page.keyboard.type("pythag");
+  await expect(panel(page).locator("a.is-first")).toHaveCount(1);
+  await scan("searching");
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 320, height: 720 });
+  await button(page).click();
+  await scan("open at 320 px");
+  expect(found).toEqual([]);
 });

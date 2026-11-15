@@ -962,16 +962,12 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
 }) => {
   await seed(page);
   await page.goto("/tools/ratio-table");
-  const title = page.getByRole("heading", {
-    name: "Ratio tables",
-    exact: true,
-  });
   const highlighted = page.locator(
     ".ratio-edit-layer .is-selected, .ratio-step-highlight",
   );
   await page.getByLabel("Row 1 x value", { exact: true }).click();
   await expect(highlighted).toHaveCount(1);
-  await title.click();
+  await clickAway(page);
   await expect(highlighted).toHaveCount(0);
   await page.getByLabel("Edit column 1 heading", { exact: true }).click();
   await expect(highlighted).toHaveCount(1);
@@ -984,7 +980,7 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
     .first()
     .click();
   await expect(page.locator(".ratio-step-highlight")).toHaveCount(2);
-  await title.click();
+  await clickAway(page);
   await expect(highlighted).toHaveCount(0);
   await page
     .getByRole("button", { name: /Edit scaling arrow/ })
@@ -993,7 +989,7 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
   const factor = page.getByLabel("Row 1 scaling factor", { exact: true });
   await factor.fill("0");
   await factor.press("Enter");
-  await title.click();
+  await clickAway(page);
   await expect(highlighted).toHaveCount(0);
   await expect(factor).toHaveAttribute("aria-invalid", "true");
   await expect(
@@ -1009,7 +1005,7 @@ test("clicking away clears cell, heading, scaling and arrow-creation highlights 
     .getByRole("button", { name: "Choose row 1 for arrow", exact: true })
     .click();
   await expect(page.locator(".ratio-row-target.is-selected")).toHaveCount(1);
-  await title.click();
+  await clickAway(page);
   await expect(highlighted).toHaveCount(0);
   await expect(page.locator(".ratio-row-target")).toHaveCount(0);
 });

@@ -54,7 +54,7 @@ test("plans and elevations: edits the solid, adds a panel and undoes", async ({ 
   expect((await saved(page, eKey)).document.heights[1][1]).toBe(2);
   await page.getByRole("button", { name: "Add a row at the back" }).click();
   expect((await saved(page, eKey)).document.heights).toHaveLength(3);
-  await page.getByRole("button", { name: "Add plan" }).click();
+  await page.getByRole("button", { name: "Add plan", exact: true }).click();
   const panels = (await saved(page, eKey)).document.panels;
   expect(panels.at(-1)).toMatchObject({ view: "plan", state: "answer" });
   // The pupil copy leaves answer views as empty grids; the teacher copy draws them.

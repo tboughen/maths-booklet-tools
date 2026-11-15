@@ -1,7 +1,8 @@
 /* The tool switcher: a diagram tool's name opens the way to every other tool
    (docs/tools/APP-HOUSE-STYLE.md). */
 .tool-switcher { position: relative; display: flex; align-items: center; gap: 4px; min-width: 0; }
-.tool-switcher .tool-switcher-crumb { color: var(--md-ink-3); font-size: var(--md-text-sm); font-weight: 500; text-decoration: none; white-space: nowrap; }
+/* The crumb and the match line sit on the page colour, where the lightest ink is too faint. */
+.tool-switcher .tool-switcher-crumb { color: var(--md-ink-2); font-size: var(--md-text-sm); font-weight: 500; text-decoration: none; white-space: nowrap; }
 .tool-switcher .tool-switcher-crumb:hover { color: var(--md-blue); text-decoration: underline; }
 .tool-switcher-sep { flex: none; color: var(--md-ink-3); }
 .tool-switcher h1 { min-width: 0; }
@@ -34,10 +35,11 @@
 .tool-switcher-groups h2 { margin: 0 0 3px; padding: 0 8px; color: var(--md-ink-2); font: 600 var(--md-text-xs)/1.4 var(--md-font); letter-spacing: 0; }
 .tool-switcher-groups a { display: flex; align-items: center; gap: 8px; min-height: var(--md-control); padding: 4px 8px; border-radius: var(--md-radius); color: var(--md-ink); font-weight: 500; }
 .tool-switcher-groups a > span { flex: 1; min-width: 0; }
-.tool-switcher-groups a small { display: block; color: var(--md-ink-3); font-size: var(--md-text-xs); font-weight: 400; }
+.tool-switcher-groups a small { display: block; color: var(--md-ink-2); font-size: var(--md-text-xs); font-weight: 400; }
 .tool-switcher-groups a:hover, .tool-switcher-groups a.is-first { background: var(--md-page); }
 .tool-switcher-groups a kbd { flex: none; padding: 2px 5px; border: 1px solid var(--md-line); border-radius: var(--md-radius-key); background: var(--md-paper); color: var(--md-ink-2); font: 500 var(--md-text-2xs)/1 var(--md-font); }
-.tool-switcher-groups a[aria-current] { background: var(--md-blue-soft); color: var(--md-blue); font-weight: 600; }
+.tool-switcher-groups a[aria-current] { background: var(--md-blue-soft); color: var(--md-navy); font-weight: 600; }
+.tool-switcher-groups a[aria-current] > svg:last-child { color: var(--md-blue); }
 .page-heading .tool-switcher-empty { margin: 4px 8px; color: var(--md-ink-2); font-size: var(--md-text-sm); }
 .tool-switcher-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding-top: 10px; border-top: 1px solid var(--md-line); color: var(--md-ink-3); font-size: var(--md-text-xs); }
 .tool-switcher-foot a { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 6px; border-radius: var(--md-radius); color: var(--md-ink); font-size: var(--md-text-sm); font-weight: 500; }
