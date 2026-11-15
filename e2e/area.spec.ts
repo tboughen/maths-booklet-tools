@@ -85,7 +85,12 @@ test("adding a corner splits the last side and drops its label; removing one dro
   expect(ids).toContain("e4");
   await expect(page.getByRole("status")).toContainText("2 labels have no place on the new shape");
   await page.getByRole("button", { name: "Undo" }).click();
+  // A selected side lets go when the sides renumber, so the card never edits a side the teacher did not pick.
+  await page.getByRole("button", { name: "Select the label on side 6 (e6)" }).click();
+  const card = page.getByRole("region", { name: "Selected label" });
+  await expect(card.getByRole("heading")).toHaveText("Label: side 6");
   await page.getByRole("button", { name: "Add a corner" }).click();
+  await expect(card.getByRole("heading")).toHaveText("Selected label");
   ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
   expect(ids).not.toContain("e6");
   expect(ids).toContain("e5");

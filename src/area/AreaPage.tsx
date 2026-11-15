@@ -164,7 +164,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     [view, setView] = useState<View>("pupil"),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
-    [selected, setSelected] = useState<string | null>(null),
+    [picked, setPicked] = useState<{ id: string; key: string } | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
@@ -177,13 +177,11 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const viewSvg = useMemo(() => (view === "answer" ? answerSvg : renderSvg(e, "pupil")), [e, view, answerSvg]);
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
-  // Height labels renumber when a height goes (by any edit, undo or redo), so a selected height lets go.
-  const heightsKey = s.type === "polygon" ? JSON.stringify(s.heights) : "";
-  const [seenHeights, setSeenHeights] = useState(heightsKey);
-  if (seenHeights !== heightsKey) {
-    setSeenHeights(heightsKey);
-    if (selected && /^h\d+$/.test(selected)) setSelected(null);
-  }
+  // Side ids move when corners are added or removed and height ids when heights change (by any edit, undo or
+  // redo), so a selection lets go then rather than pointing at a different side or height.
+  const keyOf = (id: string) => (s.type !== "polygon" ? s.type : /^h\d+$/.test(id) ? JSON.stringify(s.heights) : /^e\d+$/.test(id) ? String(s.corners.length) : "");
+  const selected = picked && picked.key === keyOf(picked.id) ? picked.id : null;
+  const setSelected = (id: string | null) => setPicked(id ? { id, key: keyOf(id) } : null);
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
