@@ -267,8 +267,8 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   }),
   charts: family<chart.Envelope>({
     kind: "charts",
-    label: "bar or line chart",
-    summary: "Bar, dual, composite and vertical line charts on exam axes, with bars left for pupils.",
+    label: "bar, line or pie chart",
+    summary: "Bar, dual, composite and vertical line charts on exam axes, and pie charts at true size, with bars or sectors left for pupils.",
     route: "/tools/charts",
     answerView: true,
     envelopeSchema: chart.envelopeSchema,

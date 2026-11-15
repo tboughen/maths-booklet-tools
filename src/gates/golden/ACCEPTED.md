@@ -451,6 +451,13 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - bar model: bar-source-sharing (worked): png600 3260x1643 -> 3293x1037
 - bar model: bar-source-sharing (worked): pixels 2ab65c5c0693f6c1 -> b765ced7d4ba0427
 
+## 2026-11-14: Pie charts added to Statistical charts: four new pie example outputs, no existing output changed
+
+- charts: chart-pie-snacks: added
+- charts: chart-pie-snacks (worked): added
+- charts: chart-pie-complete: added
+- charts: chart-pie-complete (worked): added
+
 ## 2026-11-14: U35: saved graph envelopes no longer carry the editor's selectedObjectId; artwork unchanged
 
 - graph: graph-1MA1_JUN_2019_2H_Q2: json 169b037986e5a308 -> 75f5e8de89a74165

@@ -908,7 +908,8 @@
               "bar",
               "dual",
               "composite",
-              "vline"
+              "vline",
+              "pie"
             ]
           },
           "categories": {
@@ -1060,6 +1061,30 @@
               "normal",
               "bold"
             ]
+          },
+          "pie": {
+            "type": "object",
+            "properties": {
+              "radiusMm": {
+                "type": "integer",
+                "minimum": 25,
+                "maximum": 70
+              },
+              "labels": {
+                "type": "string",
+                "enum": [
+                  "name",
+                  "name-angle",
+                  "name-percent",
+                  "none"
+                ]
+              }
+            },
+            "required": [
+              "radiusMm",
+              "labels"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
