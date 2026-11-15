@@ -20,13 +20,53 @@ import type { Envelope, Target } from "./index";
  * every step. The line of best fit is the teacher's (two points it passes through), drawn across
  * the grid; nothing is fitted automatically. Outliers can be ringed, and reading guides are
  * dashed lines from a value on one axis to the line and across to the other. Hidden points,
- * lines and guides are left for pupils and print in pink on answers copies. Millimetres.
+ * lines and guides are left for pupils and print in pink on answers copies. An optional table
+ * above the graph gives the values to plot, and an axis that does not start at 0 can be broken
+ * with a zig-zag next to the corner. Millimetres.
  */
 type Axis = ScatterSettings["xAxis"];
 type Scale = { lo: number; hi: number; step: number; count: number };
 const CROSS = 1.2;
 const RING = 2.4;
 const ARROW = 4;
+/** The gap a broken axis leaves between the corner and the grid, holding the zig-zag. */
+const BREAK = 6;
+const TABLE_PAD = 1.5;
+const TABLE_GAP = 3;
+/** Widest a table may be before its columns continue in a second block underneath. */
+const TABLE_MAX = 180 - 2 * MARGIN;
+
+export type TableBlock = { x: number; y: number; headerWidth: number; rows: { header: string[]; y: number; height: number }[]; columns: { x: string; y: string; left: number; width: number }[] };
+
+/** The points the table lists, as typed. A blank point is left out. */
+function tableLayout(sc: ScatterSettings, notes: string[]): { blocks: TableBlock[]; width: number; height: number } {
+  const empty = { blocks: [], width: 0, height: 0 };
+  if (sc.table === "none") return empty;
+  const listed = sc.points.filter((p) => p.x.trim() && p.y.trim() && (sc.table === "all" || p.show === "hidden" || revealed(p)));
+  if (!listed.length) {
+    notes.push(sc.table === "plot" ? "The table lists only hidden points, and no point is hidden, so no table prints." : "The table has no points to list.");
+    return empty;
+  }
+  const headers = [wrap(sc.xAxis.title, 40), wrap(sc.yAxis.title, 40)].map((h, i) => (h.length ? h : [i ? "y" : "x"]));
+  const headerWidth = Math.max(...headers.flat().map((l) => textWidth(l))) + 2 * TABLE_PAD;
+  const cell = Math.max(10, ...listed.flatMap((p) => [textWidth(p.x.trim()), textWidth(p.y.trim())])) + 2 * TABLE_PAD;
+  const perBlock = Math.max(1, Math.floor((TABLE_MAX - headerWidth) / cell));
+  const heights = headers.map((h) => h.length * FONT * 1.15 + 2 * TABLE_PAD);
+  const blockH = heights[0] + heights[1];
+  const blocks: TableBlock[] = [];
+  for (let start = 0, b = 0; start < listed.length; start += perBlock, b++) {
+    const y = MARGIN + b * (blockH + TABLE_GAP);
+    blocks.push({
+      x: MARGIN,
+      y,
+      headerWidth,
+      rows: headers.map((header, i) => ({ header, y: y + (i ? heights[0] : 0), height: heights[i] })),
+      columns: listed.slice(start, start + perBlock).map((p, i) => ({ x: p.x.trim(), y: p.y.trim(), left: MARGIN + headerWidth + i * cell, width: cell })),
+    });
+  }
+  const width = headerWidth + Math.min(listed.length, perBlock) * cell;
+  return { blocks, width, height: blocks.length * blockH + (blocks.length - 1) * TABLE_GAP };
+}
 
 function wrap(t: string, width: number): string[] {
   const lines: string[] = [];
@@ -98,15 +138,24 @@ export function scatterLayout(e: Envelope) {
   const fine = sc.grid === "fine";
   const xs = scale(sc.xAxis, "horizontal", sc.xAxis.mm, sc.minor, fine, issues),
     ys = scale(sc.yAxis, "vertical", sc.yAxis.mm, sc.minor, fine, issues);
+  for (const [a, s, name] of [[sc.xAxis, xs, "horizontal"], [sc.yAxis, ys, "vertical"]] as const)
+    if (a.broken && s.ok && s.lo === 0) notes.push(`The ${name} axis starts at 0, so its zig-zag is not needed.`);
+  const table = tableLayout(sc, notes);
+  /** Space a broken axis leaves between the corner and the grid. */
+  const bx = sc.xAxis.broken ? BREAK : 0,
+    by = sc.yAxis.broken ? BREAK : 0;
   const xTicks = Array.from({ length: xs.count + 1 }, (_, i) => xs.lo + i * xs.step),
     yTicks = Array.from({ length: ys.count + 1 }, (_, i) => ys.lo + i * ys.step);
   const yTitle = wrap(sc.yAxis.title, 22),
     yTitleWidth = Math.max(0, ...yTitle.map((l) => textWidth(l)));
-  const tickWidth = Math.max(...yTicks.map((t) => textWidth(formatNumber(t))));
+  const tickWidth = Math.max(...yTicks.map((t) => textWidth(formatNumber(t))), by ? textWidth("0") : 0);
   const W = sc.xAxis.mm,
     H = sc.yAxis.mm;
-  const x0 = MARGIN + (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5,
-    y0 = MARGIN + ARROW + 1;
+  // The corner where the axes meet; the grid starts beside it, or past a broken axis's zig-zag.
+  const ax = MARGIN + (yTitle.length ? yTitleWidth + 3 : 0) + tickWidth + 2.5,
+    x0 = ax + bx,
+    y0 = MARGIN + (table.height ? table.height + 5 : 0) + ARROW + 1,
+    ay = y0 + H + by;
   const X = (v: number) => x0 + ((v - xs.lo) / (xs.hi - xs.lo)) * W,
     Y = (v: number) => y0 + H - ((v - ys.lo) / (ys.hi - ys.lo)) * H;
   const inX = (v: number) => v >= xs.lo - 1e-9 && v <= xs.hi + 1e-9,
@@ -194,15 +243,16 @@ export function scatterLayout(e: Envelope) {
   // The horizontal title wraps to the plot width and is centred under the plot.
   const xTitle = wrap(sc.xAxis.title, W),
     xTitleWidth = Math.max(0, ...xTitle.map((l) => textWidth(l)));
-  const xLabelY = y0 + H + 1.5 + FONT * 0.8,
+  const xLabelY = ay + 1.5 + FONT * 0.8,
     xTitleY = xLabelY + (xTitle.length ? FONT * 1.7 : 0);
   const titleRight = x0 + W / 2 + xTitleWidth / 2;
-  const width = Math.ceil((Math.max(x0 + W + ARROW + 1, titleRight) + MARGIN) * 10) / 10,
+  const width = Math.ceil((Math.max(x0 + W + ARROW + 1, titleRight, MARGIN + table.width) + MARGIN) * 10) / 10,
     height = Math.ceil((xTitleY + Math.max(0, xTitle.length - 1) * FONT * 1.15 + FONT * 0.3 + MARGIN) * 10) / 10;
   if (x0 + W / 2 - xTitleWidth / 2 < MARGIN) issues.push("The horizontal axis title is wider than the graph. Use a shorter title or a longer axis.");
   if (width > 180) issues.push("The scatter graph is wider than 18 cm. Use a shorter horizontal axis or a shorter title.");
+  if (height > 260) issues.push("The scatter graph and its table are taller than 26 cm. Use a shorter vertical axis or fewer points in the table.");
   const targets: Target[] = points.map((p) => ({ series: 0, category: p.index, x: p.x - 2.5, y: p.y - 2.5, width: 5, height: 5 }));
-  return { width, height, plot: { x: x0, y: y0, width: W, height: H }, xs, ys, xTicks, yTicks, X, Y, yTitle, xTitle, xLabelY, xTitleY, points, line, readings, targets, issues, notes, settings: sc };
+  return { width, height, plot: { x: x0, y: y0, width: W, height: H }, corner: { x: ax, y: ay }, table, xs, ys, xTicks, yTicks, X, Y, yTitle, xTitle, xLabelY, xTitleY, points, line, readings, targets, issues, notes, settings: sc };
 }
 
 export function scatterSvg(e: Envelope): string {
@@ -223,38 +273,58 @@ export function scatterSvg(e: Envelope): string {
   }
   if (sc.grid !== "none") {
     const lines: string[] = [];
-    for (let i = 1; i <= g.xs.count; i++) lines.push(`M${n(p.x + i * stepX)},${n(p.y)}V${n(bottom)}`);
-    for (let i = 1; i <= g.ys.count; i++) lines.push(`M${n(p.x)},${n(bottom - i * stepY)}H${n(right)}`);
+    // Past a broken axis the grid's own edge is drawn, since the axis no longer runs along it.
+    for (let i = sc.xAxis.broken ? 0 : 1; i <= g.xs.count; i++) lines.push(`M${n(p.x + i * stepX)},${n(p.y)}V${n(bottom)}`);
+    for (let i = sc.yAxis.broken ? 0 : 1; i <= g.ys.count; i++) lines.push(`M${n(p.x)},${n(bottom - i * stepY)}H${n(right)}`);
     out.push(`<path d="${lines.join("")}" stroke="#a6a6a6" stroke-width="0.25" fill="none"/>`);
   }
   // The grid stays at its usual weight; bold lines apply to everything drawn after it.
   const gridEnd = out.length;
-  // Axes with arrowheads, as in the papers.
-  out.push(`<path d="M${n(p.x)},${n(bottom)}H${n(right + ARROW)}M${n(p.x)},${n(bottom)}V${n(p.y - ARROW)}" stroke="black" stroke-width="0.35" fill="none"/>`);
+  // Axes with arrowheads, as in the papers. A broken axis has a zig-zag next to the corner,
+  // which is labelled 0.
+  const c = g.corner;
+  const xZig = sc.xAxis.broken ? "h1.5l1,-2l1.5,4l1,-2" : "",
+    yZig = sc.yAxis.broken ? "v-1.5l-2,-1l4,-1.5l-2,-1" : "";
+  out.push(`<path d="M${n(c.x)},${n(c.y)}${xZig}H${n(right + ARROW)}M${n(c.x)},${n(c.y)}${yZig}V${n(p.y - ARROW)}" stroke="black" stroke-width="0.35" fill="none" stroke-linejoin="round"/>`);
   out.push(
-    `<path d="M${n(right + ARROW + 1)},${n(bottom)}l-2.6,-1l0,2zM${n(p.x)},${n(p.y - ARROW - 1)}l-1,2.6l2,0z" fill="black" stroke="none"/>`,
+    `<path d="M${n(right + ARROW + 1)},${n(c.y)}l-2.6,-1l0,2zM${n(c.x)},${n(p.y - ARROW - 1)}l-1,2.6l2,0z" fill="black" stroke="none"/>`,
   );
-  out.push(`<path d="${g.xTicks.map((_, i) => `M${n(p.x + i * stepX)},${n(bottom)}v1.5`).join("")}${g.yTicks.map((_, i) => `M${n(p.x)},${n(bottom - i * stepY)}h-1.5`).join("")}" stroke="black" stroke-width="0.3" fill="none"/>`);
+  out.push(`<path d="${g.xTicks.map((_, i) => `M${n(p.x + i * stepX)},${n(c.y)}v1.5`).join("")}${g.yTicks.map((_, i) => `M${n(c.x)},${n(bottom - i * stepY)}h-1.5`).join("")}" stroke="black" stroke-width="0.3" fill="none"/>`);
   g.xTicks.forEach((t, i) => out.push(text(formatNumber(t), p.x + i * stepX, g.xLabelY)));
-  g.yTicks.forEach((t, i) => out.push(text(formatNumber(t), p.x - 2.2, bottom - i * stepY + FONT * 0.33, "end")));
+  g.yTicks.forEach((t, i) => out.push(text(formatNumber(t), c.x - 2.2, bottom - i * stepY + FONT * 0.33, "end")));
+  if (sc.xAxis.broken) out.push(text("0", c.x, g.xLabelY));
+  if (sc.yAxis.broken) out.push(text("0", c.x - 2.2, c.y + FONT * 0.33, "end"));
+  // The table of values, ruled like the papers' tables.
+  for (const b of g.table.blocks) {
+    const bRight = b.x + b.headerWidth + b.columns.length * (b.columns[0]?.width ?? 0),
+      bBottom = b.rows[1].y + b.rows[1].height;
+    const rules = [`M${n(b.x)},${n(b.rows[1].y)}H${n(bRight)}`, ...[b.x + b.headerWidth, ...b.columns.slice(1).map((col) => col.left)].map((x) => `M${n(x)},${n(b.y)}V${n(bBottom)}`)];
+    out.push(`<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(bRight - b.x)}" height="${n(bBottom - b.y)}" fill="none" stroke="black" stroke-width="0.3"/>`);
+    out.push(`<path d="${rules.join("")}" stroke="black" stroke-width="0.3" fill="none"/>`);
+    b.rows.forEach((r, ri) => {
+      const top = r.y + r.height / 2 - ((r.header.length - 1) * FONT * 1.15) / 2 + FONT * 0.33;
+      r.header.forEach((l, li) => out.push(text(l, b.x + TABLE_PAD, top + li * FONT * 1.15, "start")));
+      for (const col of b.columns) out.push(text(ri ? col.y : col.x, col.left + col.width / 2, r.y + r.height / 2 + FONT * 0.33));
+    });
+  }
   const midY = p.y + p.height / 2 - ((g.yTitle.length - 1) * FONT * 1.15) / 2;
   g.yTitle.forEach((line, i) => out.push(text(line, MARGIN, midY + i * FONT * 1.15 + FONT * 0.33, "start")));
   g.xTitle.forEach((line, i) => out.push(text(line, p.x + p.width / 2, g.xTitleY + i * FONT * 1.15)));
   const ink = (pink: boolean) => (pink ? CHART_ANSWER_COLOUR : "black");
   for (const r of g.readings) {
     if (!r.drawn) continue;
-    const path = r.axis === "x" ? `M${n(r.x)},${n(bottom)}V${n(r.y)}H${n(p.x)}` : `M${n(p.x)},${n(r.y)}H${n(r.x)}V${n(bottom)}`;
+    const path = r.axis === "x" ? `M${n(r.x)},${n(c.y)}V${n(r.y)}H${n(c.x)}` : `M${n(c.x)},${n(r.y)}H${n(r.x)}V${n(c.y)}`;
     out.push(`<path d="${path}" stroke="${ink(r.revealed)}" stroke-width="0.3" stroke-dasharray="1.2 0.8" fill="none"/>`);
   }
   if (g.line?.drawn)
     out.push(`<line x1="${n(g.line.x1)}" y1="${n(g.line.y1)}" x2="${n(g.line.x2)}" y2="${n(g.line.y2)}" stroke="${ink(g.line.revealed)}" stroke-width="0.35"/>`);
   for (const pt of g.points) {
     if (!pt.drawn) continue;
-    const c = ink(pt.revealed);
+    const colour = ink(pt.revealed);
     out.push(
-      `<path d="M${n(pt.x - CROSS)},${n(pt.y - CROSS)}l${n(2 * CROSS)},${n(2 * CROSS)}M${n(pt.x - CROSS)},${n(pt.y + CROSS)}l${n(2 * CROSS)},${n(-2 * CROSS)}" stroke="${c}" stroke-width="0.35" fill="none"/>`,
+      `<path d="M${n(pt.x - CROSS)},${n(pt.y - CROSS)}l${n(2 * CROSS)},${n(2 * CROSS)}M${n(pt.x - CROSS)},${n(pt.y + CROSS)}l${n(2 * CROSS)},${n(-2 * CROSS)}" stroke="${colour}" stroke-width="0.35" fill="none"/>`,
     );
-    if (pt.ring) out.push(`<circle cx="${n(pt.x)}" cy="${n(pt.y)}" r="${RING}" stroke="${c}" stroke-width="0.3" fill="none"/>`);
+    if (pt.ring) out.push(`<circle cx="${n(pt.x)}" cy="${n(pt.y)}" r="${RING}" stroke="${colour}" stroke-width="0.3" fill="none"/>`);
   }
   const titles = [sc.yAxis.title, sc.xAxis.title].filter((t) => t.trim()).join(" against ");
   const label = `Scatter graph${titles ? ` of ${titles}` : ""}`;

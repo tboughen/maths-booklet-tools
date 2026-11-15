@@ -61,6 +61,8 @@ import {
   MAX_POINTS,
   MAX_READINGS,
   SCATTER_MM,
+  scatterTableChoices,
+  scatterTableNames,
   scatterOf,
   type ScatterSettings,
   pieLabelChoices,
@@ -225,6 +227,16 @@ function ScatterCards({
           Title
           <DraftField label={`${name} axis title`} value={sc[key].title} maxLength={40} disabled={blocked} onCommit={(v) => onChange((s) => void (s[key].title = v))} />
         </label>
+        <label className="ch-check">
+          <input
+            type="checkbox"
+            aria-label={`Break the ${name.toLowerCase()} axis`}
+            checked={sc[key].broken}
+            disabled={blocked}
+            onChange={(ev) => onChange((s) => void (s[key].broken = ev.target.checked))}
+          />
+          Zig-zag break (axis does not start at 0)
+        </label>
       </div>
     </fieldset>
   );
@@ -290,6 +302,18 @@ function ScatterCards({
           Values stay as typed. Hide keeps a point as a saved answer for pupils to plot; Ring circles
           an outlier. Use + and − beside the graph to add or remove the last point.
         </p>
+        <div className="ch-fields">
+          <label>
+            Table of values
+            <select aria-label="Table of values" value={sc.table} disabled={blocked} onChange={(ev) => onChange((s) => void (s.table = ev.target.value as ScatterSettings["table"]))}>
+              {scatterTableChoices.map((x) => (
+                <option key={x} value={x}>
+                  {scatterTableNames[x]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <div className="ch-row">
           <button type="button" disabled={blocked || !sc.points.length} onClick={() => onChange((s) => s.points.forEach((p) => (p.show = "hidden")))}>
             Hide all points (pupils plot)
