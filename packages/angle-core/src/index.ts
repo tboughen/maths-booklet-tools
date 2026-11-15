@@ -861,6 +861,8 @@ export function layout(e: Envelope): Layout {
         const box = { x: c.x - w / 2, y: c.y - h / 2, w, h };
         const padded = grow(box, 0.5);
         if (lines.some((s) => hitsSegment(padded, s.a, s.b))) continue;
+        // Z, F and C shapes are 1.8 mm wide: labels keep clear of the grey too.
+        if (g.highlights.some(([p, q]) => hitsSegment(grow(box, 1.2), p, q))) continue;
         if (placedBoxes.some((p) => overlaps(p, box))) continue;
         chosen = { box, centre: c };
         break search;
@@ -1200,10 +1202,14 @@ export function dragTo(e: Envelope, id: string, p: P, fine = false): Envelope | 
     f = d.figure;
   const step = fine ? 1 : 5;
   const snap = (v: number) => Math.round(v / step) * step;
-  const between = (list: number[], i: number, v: number, range: [number, number], wrap: number) => {
+  /** v (or the same direction a period round) kept between the neighbouring rays, so labels stay with their angles. */
+  const between = (list: number[], i: number, v: number, range: [number, number], wrap: number, period: number) => {
     const lo = Math.max(range[0], i > 0 ? list[i - 1] + 5 : wrap ? list[list.length - 1] - wrap + 5 : range[0]);
     const hi = Math.min(range[1], i < list.length - 1 ? list[i + 1] - 5 : wrap ? list[0] + wrap - 5 : range[1]);
-    return lo > hi ? null : Math.min(hi, Math.max(lo, v));
+    if (lo > hi) return null;
+    const away = (x: number) => (x < lo ? lo - x : x > hi ? x - hi : 0);
+    const best = [v - period, v, v + period].reduce((a, b) => (away(b) < away(a) ? b : a));
+    return Math.min(hi, Math.max(lo, best));
   };
   if ((f.type === "straight-line" || f.type === "point") && /^r\d+$/.test(id)) {
     const list = [...f.rays].sort((a, b) => a - b),
@@ -1211,9 +1217,8 @@ export function dragTo(e: Envelope, id: string, p: P, fine = false): Envelope | 
     if (!(i < list.length)) return null;
     let v = snap(heading(p));
     if (f.type === "straight-line" && p.y < 0) v = p.x > 0 ? 5 : 175;
-    // Round a point, a ray near 0° stays on the side of 0° it started on.
-    if (f.type === "point" && Math.abs(v - list[i]) > 180) v += v > list[i] ? -360 : 360;
-    const out = between(list, i, v, f.type === "straight-line" ? [5, 175] : [0, 359], f.type === "point" ? 360 : 0);
+    // Rays are saved in order from 0°, so a ray round a point stops at 0° rather than wrapping past it (as the typed boxes do).
+    const out = between(list, i, v, f.type === "straight-line" ? [5, 175] : [0, 359], f.type === "point" ? 360 : 0, f.type === "point" ? 360 : 0);
     if (out === null) return null;
     list[i] = out;
     f.rays = list;
@@ -1222,15 +1227,16 @@ export function dragTo(e: Envelope, id: string, p: P, fine = false): Envelope | 
       at = heading(rawGeometry(d).points[id]?.at ?? { x: 1, y: 0 });
     const i = list.findIndex((l) => Math.abs(l - at) < 1e-6);
     if (i < 0) return null;
-    let v = snap(heading(p) % 180);
-    if (Math.abs(v - list[i]) > 90) v += v > list[i] ? -180 : 180;
-    const out = between(list, i, v, [0, 179], 180);
+    const out = between(list, i, snap(heading(p) % 180), [0, 179], 180, 180);
     if (out === null) return null;
     list[i] = out;
     f.lines = list;
   } else if (f.type === "parallel" && (id === "tb" || id === "ub")) {
     const pivot = id === "tb" ? { x: 0, y: 0 } : rawGeometry(d).points.y1.at;
-    const v = Math.min(160, Math.max(20, snap(heading(sub(p, pivot)) % 180)));
+    const a = snap(heading(sub(p, pivot)) % 180),
+      now = id === "tb" ? f.crossDeg : (f.second?.crossDeg ?? 90);
+    // Past the limits a transversal stops at the one it is nearer, rather than jumping across.
+    const v = a >= 20 && a <= 160 ? a : now < 90 ? 20 : 160;
     if (id === "tb") f.crossDeg = v;
     else if (f.second) f.second = { ...f.second, crossDeg: v };
   } else if (f.type === "parallel" && id === "y1" && f.second) {

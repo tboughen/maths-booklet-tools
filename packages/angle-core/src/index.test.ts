@@ -323,3 +323,34 @@ describe("dragging", () => {
     expect(c.dragHandles(moved.document).map((h) => h.id)).toEqual(["v1", "v2", "v3", "v4", "v5", "v6"]);
   });
 });
+
+describe("dragging review fixes", () => {
+  it("drags a crossing line smoothly more than 90 degrees from where it began", () => {
+    const e = c.blank({ type: "crossing", lines: [20, 75] });
+    const r = c.dragHandles(c.validate(e).document).find((h) => h.name === "line 2")!.id;
+    const at = (deg: number) => ({ x: Math.cos((deg * Math.PI) / 180) * 30, y: Math.sin((deg * Math.PI) / 180) * 30 });
+    expect((c.dragTo(e, r, at(170))!.document.figure as { lines: number[] }).lines).toEqual([20, 170]);
+  });
+
+  it("stops a transversal at the limit it is nearer instead of jumping across", () => {
+    const e = c.blank({ type: "parallel", count: 2, gapMm: 24, crossDeg: 25, arrows: 1 });
+    expect((c.dragTo(e, "tb", { x: 30, y: -3 })!.document.figure as c.ParallelFigure).crossDeg).toBe(20);
+  });
+
+  it("keeps labels clear of a Z, F or C shape", () => {
+    const e = c.blank({ type: "parallel", count: 2, gapMm: 12, crossDeg: 30, arrows: 1 });
+    e.document.angles = [c.angle("p2-ur", c.label("30")), c.angle("p1-ur", c.label("x", "symbol"))];
+    e.document.letters = [{ a: "p1-ur", b: "p2-ur" }];
+    const g = c.layout(c.validate(e));
+    for (const l of g.labels) for (const [a, b] of g.geometry.highlights) {
+      // Distance from the label box centre line to the stroke is at least half its width.
+      const box = l.box;
+      const steps = 40;
+      for (let i = 0; i <= steps; i++) {
+        const p = { x: a.x + ((b.x - a.x) * i) / steps, y: a.y + ((b.y - a.y) * i) / steps };
+        const inside = p.x > box.x - 0.9 && p.x < box.x + box.w + 0.9 && p.y > box.y - 0.9 && p.y < box.y + box.h + 0.9;
+        expect(inside).toBe(false);
+      }
+    }
+  });
+});

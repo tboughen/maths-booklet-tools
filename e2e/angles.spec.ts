@@ -90,12 +90,11 @@ test("adds a Z shape to parallel lines, turns it into a C, and undoes", async ({
   await expect(art(page).locator('path[stroke="#bdbdbd"]')).toHaveCount(1);
   await page.getByRole("combobox", { name: "Shape 1 second angle" }).selectOption("p2-ur");
   await expect(page.getByText("C: co-interior")).toBeVisible();
-  // A pair that makes no letter is refused with a reason, and the shape stays as it was.
+  // An angle that makes no letter with the other one moves the other to the nearest angle that does.
   await page.getByRole("combobox", { name: "Shape 1 second angle" }).selectOption("p1-ul");
-  await expect(page.getByRole("status")).toContainText("not an alternate, corresponding or co-interior pair");
-  expect((await saved(page)).document.letters).toEqual([{ a: "p1-lr", b: "p2-ur" }]);
-  await page.getByRole("button", { name: "Undo" }).click();
-  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByText("F: corresponding")).toBeVisible();
+  expect((await saved(page)).document.letters).toEqual([{ a: "p2-ul", b: "p1-ul" }]);
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Undo" }).click();
   expect((await saved(page)).document.letters).toBeUndefined();
 });
 

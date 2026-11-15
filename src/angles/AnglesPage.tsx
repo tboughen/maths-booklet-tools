@@ -471,10 +471,23 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
   ];
   function addLetter() {
     const have = new Set((d.letters ?? []).map((l) => [l.a, l.b].sort().join(" ")));
-    const pair = LETTER_PAIRS.find(([a, b]) => !have.has([a, b].sort().join(" ")));
+    const offered = f.type === "parallel" && f.second ? [...LETTER_PAIRS, ...LETTER_PAIRS.map(([a, b]) => [a.replace("p", "q"), b.replace("p", "q")] as [string, string])] : LETTER_PAIRS;
+    const pair = offered.find(([a, b]) => !have.has([a, b].sort().join(" ")));
     if (pair) patch((n) => void (n.letters = [...(n.letters ?? []), { a: pair[0], b: pair[1] }]), "add shape");
   }
   const letterSlots = slots.filter((s) => /^[pq]\d-/.test(s.id));
+  /**
+   * Changing one angle of a shape keeps a shape: when the new angle makes no letter with the other one,
+   * the other moves to the nearest angle that does, keeping the same letter where it can.
+   */
+  function withPartner(changed: string, other: string, letter: string | undefined): string {
+    if (letterOf(changed, other)) return other;
+    const line = Number(changed.slice(1, changed.indexOf("-"))),
+      near = (id: string) => Math.abs(Number(id.slice(1, id.indexOf("-"))) - line);
+    const options = letterSlots.map((s) => s.id).filter((id) => letterOf(changed, id));
+    options.sort((x, y) => Number(letterOf(changed, y)!.letter === letter) - Number(letterOf(changed, x)!.letter === letter) || near(x) - near(y));
+    return options[0] ?? other;
+  }
   function setPolygons(sides: number[], ticks: number, label: string) {
     if (f.type !== "polygons") return false;
     return setFigure({ type: "polygons", sides, ticks }, label);
@@ -508,11 +521,15 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
         v = { x: at.x - pivot.x, y: at.y - pivot.y };
       p = { x: pivot.x + v.x * Math.cos(r) - v.y * Math.sin(r), y: pivot.y + v.x * Math.sin(r) + v.y * Math.cos(r) };
     } else {
-      const step = fine ? 0.5 : 1;
-      p = { x: at.x + (key === "ArrowRight" ? step : key === "ArrowLeft" ? -step : 0), y: at.y + (key === "ArrowUp" ? step : key === "ArrowDown" ? -step : 0) };
+      // Arrow keys move the point across and up the screen, whatever the figure's turn.
+      const step = fine ? 0.5 : 1,
+        sx = key === "ArrowRight" ? step : key === "ArrowLeft" ? -step : 0,
+        sy = key === "ArrowUp" ? step : key === "ArrowDown" ? -step : 0,
+        r = (-d.turnDeg * Math.PI) / 180;
+      p = { x: at.x + sx * Math.cos(r) - sy * Math.sin(r), y: at.y + sx * Math.sin(r) + sy * Math.cos(r) };
     }
     const next = dragTo(history.present, id, p, true);
-    if (next) commit(next, id.startsWith("v") ? "move corner" : "move ray");
+    if (next) commit(next, id.startsWith("v") ? "move corner" : f.type === "parallel" ? "move transversal" : f.type === "crossing" ? "move line" : "move ray");
     else setMessage("That handle cannot move further that way: rays stay between their neighbours and polygons stay convex.");
   }
 
@@ -933,10 +950,12 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                     {(d.letters ?? []).map((l, i) => {
                       const shape = letterOf(l.a, l.b);
                       const set = (next: { a: string; b: string }) => patch((n) => void (n.letters = (n.letters ?? []).map((x, k) => (k === i ? next : x))), "change shape");
+                      const choose = (side: "a" | "b", id: string) =>
+                        set(side === "a" ? { a: id, b: withPartner(id, l.b, shape?.letter) } : { a: withPartner(id, l.a, shape?.letter), b: id });
                       return (
                         <div key={i} className="pt-row ang-letter">
                           {(["a", "b"] as const).map((side) => (
-                            <select key={side} aria-label={`Shape ${i + 1} ${side === "a" ? "first" : "second"} angle`} value={l[side]} disabled={blocked} onChange={(ev) => set({ ...l, [side]: ev.target.value })}>
+                            <select key={side} aria-label={`Shape ${i + 1} ${side === "a" ? "first" : "second"} angle`} value={l[side]} disabled={blocked} onChange={(ev) => choose(side, ev.target.value)}>
                               {letterSlots.map((s) => (
                                 <option key={s.id} value={s.id}>
                                   {s.name} ({s.id})
