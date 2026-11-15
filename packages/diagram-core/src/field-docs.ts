@@ -147,20 +147,20 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     objects: "Segments, arcs, angles, north lines, bearings, polygons, text and shaded regions.",
     constructions: "Ruler-and-compasses helpers that draw their arcs; answer:true (default) shows them only on the answers copy.",
   },
+  angles: {
+    example,
+    worked,
+    figure: "The figure: straight-line, point, crossing, parallel or polygon, with its rays, lines or sides (see angleIds).",
+    angles: "The marked angles by slot id: a given size, a letter, a blank arc, an answer line or a hidden answer, with mark and shade.",
+    names: "Letters beside points, by point id (see pointIds).",
+    settings: "Turn, printed size, the \"Diagram NOT accurately drawn\" caption, text size and line weight.",
+  },
   elevations: {
     example,
     worked,
     heights: "Cube counts per square: heights[row][column], row 0 the front, column 0 the left, 0 to 6 each.",
     panels: "Up to 6 views (isometric, plan, front or side), each drawn, blank or an answer.",
     settings: "Cube edge (unitCm 0.5, 1 or 2), viewing arrows, isometric dot paper and maximum width.",
-  },
-  angles: {
-    example,
-    worked,
-    figure: "The figure: its kind (point, straight line, parallel lines, polygon and others) and its settings; see createGuide.",
-    angles: "Up to 40 angle labels by place, each with a state: value, symbol, blank, answer-line or hidden.",
-    names: "Up to 30 letters at named points.",
-    settings: "Printing: notToScale, fontPt and lines.",
   },
   area: {
     example,
