@@ -3,6 +3,9 @@ import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import * as N from "./numeric";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "algebra-grid-1" as const;
+
 export const MAX_TERMS = 6;
 export const FONT = (12 * 25.4) / 72;
 const LIMIT = 999_999_999_999n;
@@ -156,7 +159,7 @@ export const schema = z
   .object({
     kind: z.literal("algebra-grid"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("algebra-grid-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     styleProfile: z.literal("departmental-v1"),
     document: documentSchema,
     ...aboutShape,
@@ -206,7 +209,7 @@ export function create(rows = 3, columns = 3): Envelope {
   return validate({
     kind: "algebra-grid",
     schemaVersion: 1,
-    rendererVersion: "algebra-grid-1",
+    rendererVersion: RENDERER_VERSION,
     styleProfile: "departmental-v1",
     document: {
       mode: "expand",

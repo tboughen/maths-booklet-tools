@@ -8,7 +8,7 @@ export const chartConfig = {
   revision: chi.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["charts-1"],
+    rendererVersions: [chart.RENDERER_VERSION],
     kinds: chart.kinds,
     kindNames: chart.kindNames,
     fills: chart.fills,

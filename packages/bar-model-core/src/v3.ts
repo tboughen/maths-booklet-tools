@@ -6,6 +6,9 @@ import fontMetrics from "./font-metrics.json" with { type: "json" };
 import { mathematicalLine, WRITING } from "./math-text";
 import { guidance } from "../../graph-core/src/print-guidance";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "bar-model-3" as const;
+
 // Frozen v1/v2 renderers remain separate; this profile reserves actual handwriting space.
 export const idSchema = z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,31}$/);
 export const slots = ["inside", "above", "below"] as const;
@@ -75,7 +78,7 @@ export const schema = z
   .object({
     kind: z.literal("bar-model"),
     schemaVersion: z.literal(3),
-    rendererVersion: z.literal("bar-model-3"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     styleProfile: z.literal("lesson-v3"),
     document: z
       .object({
@@ -342,7 +345,7 @@ export function fresh(
   return validate({
     kind: "bar-model",
     schemaVersion: 3,
-    rendererVersion: "bar-model-3",
+    rendererVersion: RENDERER_VERSION,
     styleProfile: "lesson-v3",
     document: {
       bars,

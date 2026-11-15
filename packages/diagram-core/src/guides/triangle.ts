@@ -1,4 +1,5 @@
 import * as ti from "../../../triangle-core/src/interchange";
+import * as model from "../../../triangle-core/src/model";
 import { methods } from "../../../triangle-core/src/maths";
 export const triangleConfig = {
   kind: "triangle" as const,
@@ -7,7 +8,7 @@ export const triangleConfig = {
   createInput: ti.createSchema,
   revision: ti.revisionSchema,
   capabilities: {
-    schemaVersions: [2], rendererVersions: ["triangle-2"], styleProfile: "exam-v1",
+    schemaVersions: [2], rendererVersions: [model.RENDERER_VERSION], styleProfile: "exam-v1",
     layouts: ["single", "separate", "joined", "split"], shapes: ["right", "scalene", "isosceles", "equilateral"],
     widthCm: { minimum: 6, maximum: 18, singleDefault: 12, pairedDefault: 16 }, fontPt: { default: 11, minimum: 11, maximum: 14 }, lines: ["normal", "bold"],
     maximumComponentTriangles: 2, maximumTriangleRecords: 3, maximumVertices: 6, maximumEdges: 7, maximumAngles: 9, maximumHeights: 2, maximumCaptions: 2,

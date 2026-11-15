@@ -5,6 +5,9 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { withFields } from "../../envelope-core/src/errors";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "probability-tree-1" as const;
+
 /**
  * Probability tree diagrams, drawn left to right.
  *
@@ -80,7 +83,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("probability-tree"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("probability-tree-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -572,7 +575,7 @@ export function create(): Envelope {
   return {
     tool: "probability-tree",
     schemaVersion: 1,
-    rendererVersion: "probability-tree-1",
+    rendererVersion: RENDERER_VERSION,
     document: {
       branches,
       stageTitles: ["First counter", "Second counter"],

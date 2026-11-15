@@ -21,6 +21,9 @@ import {
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { aboutShape } from "../../envelope-core/src/about";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "two-way-table-1" as const;
+
 export const MAX_CATEGORIES = 5;
 export const MAX_HEADING = 24;
 export const ANSWER_COLOUR = "#b0125b";
@@ -54,7 +57,7 @@ export const envelopeSchema = z
   .object({
     kind: z.literal("two-way-table"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("two-way-table-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -134,7 +137,7 @@ export function create(columns = ["", ""], rows = ["", ""], totals = true): Enve
   };
   d.rows.forEach((r) => (r.cells = Array.from({ length: width(d) }, () => cell())));
   if (totals) d.totalRow = Array.from({ length: width(d) }, () => cell());
-  return validate({ kind: "two-way-table", schemaVersion: 1, rendererVersion: "two-way-table-1", document: d });
+  return validate({ kind: "two-way-table", schemaVersion: 1, rendererVersion: RENDERER_VERSION, document: d });
 }
 const clone = (e: Envelope) => structuredClone(e);
 function freshId(d: TableDocument, prefix: "r" | "c") {

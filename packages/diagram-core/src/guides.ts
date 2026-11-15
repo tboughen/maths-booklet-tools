@@ -9,6 +9,8 @@ import { SPEC_FIELD_DOCS } from "./field-docs";
 import * as graph from "../../graph-core/src/interchange";
 import * as ratio from "../../ratio-table-core/src/interchange";
 import * as ci from "../../cuboid-core/src/interchange";
+import * as cuboid from "../../cuboid-core/src/index";
+import * as valueSchema from "../../value-graph-core/src/schema";
 import * as line from "../../number-line-core/src/index";
 import * as venn from "../../venn-core/src/index";
 import * as vi from "../../venn-core/src/interchange";
@@ -94,7 +96,7 @@ const ratioGuide: FamilyGuide = {
 
 const valueGuide: FamilyGuide = {
   capabilities: {
-    rendererVersion: "value-graph-1",
+    rendererVersion: valueSchema.RENDERER_VERSION,
     columns: { minimum: 2, maximum: 13 },
     maximumPoints: 40,
     maximumRevisionOperations: 40,
@@ -113,8 +115,8 @@ const valueGuide: FamilyGuide = {
 const cuboidGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["cuboids-2"],
-    defaultRendererVersion: "cuboids-2",
+    rendererVersions: [cuboid.RENDERER_VERSION],
+    defaultRendererVersion: cuboid.RENDERER_VERSION,
     shapes: { minimum: 1, maximum: 3 },
     widthCm: { minimum: 4, maximum: 18 },
     views: ["plain", "cubes", "layers"],
@@ -136,7 +138,7 @@ const cuboidGuide: FamilyGuide = {
 const lineGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["number-line-1"],
+    rendererVersions: [line.RENDERER_VERSION],
     styleProfile: "examination-v1",
     widthCm: { minimum: 8, maximum: 18 },
     tickIntervals: { minimum: 2, maximum: 32 },
@@ -158,8 +160,8 @@ const lineGuide: FamilyGuide = {
 const vennGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["venn-2"],
-    defaultRendererVersion: "venn-2",
+    rendererVersions: [venn.RENDERER_VERSION],
+    defaultRendererVersion: venn.RENDERER_VERSION,
     setCounts: [1, 2, 3],
     arrangements: venn.arrangements,
     shapes: ["circles", "ovals"],

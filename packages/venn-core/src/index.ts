@@ -5,6 +5,9 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { withFields } from "../../envelope-core/src/errors";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "venn-2" as const;
+
 export const visibility = ["show", "hidden", "line"] as const;
 export const kinds = [
   "empty",
@@ -36,7 +39,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("venn"),
     schemaVersion: z.literal(2),
-    rendererVersion: z.literal("venn-2"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: z
       .object({
         sets: z.union([z.literal(1), z.literal(2), z.literal(3)]),
@@ -68,7 +71,7 @@ export function create(sets: 1 | 2 | 3 = 2): Envelope {
   return {
     tool: "venn",
     schemaVersion: 2,
-    rendererVersion: "venn-2",
+    rendererVersion: RENDERER_VERSION,
     document: {
       sets,
       shape: "circles",

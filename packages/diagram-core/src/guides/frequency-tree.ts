@@ -8,7 +8,7 @@ export const frequencyTreeConfig = {
   revision: fi.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["frequency-tree-1"],
+    rendererVersions: [ftree.RENDERER_VERSION],
     maximumLevels: ftree.MAX_DEPTH,
     branchesPerSplit: { minimum: 2, maximum: ftree.MAX_CHILDREN },
     maximumGroups: ftree.MAX_NODES,
