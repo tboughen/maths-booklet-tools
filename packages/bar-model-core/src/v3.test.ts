@@ -1,30 +1,12 @@
 import { it, expect } from "vitest";
 import { Resvg } from "@resvg/resvg-js";
-import { createHash } from "node:crypto";
 import * as v from "./v3";
-import * as v2 from "./v2";
-import * as old from "./index";
 import * as c from "./versioned";
 import * as api from "./versioned-interchange";
 import { mathematicalLine, parseMath, WRITING } from "./math-text";
-import { lessonExample, lessonExampleNames } from "./lesson-examples-v3";
-import { lessonExample as frozenExample } from "./lesson-examples";
-import v2Controls from "./fixtures/v2-controls.json";
-import { denseFixture } from "./stress-fixture-v3";
+import { example, lessonExample, lessonExampleNames } from "./examples";
+import { denseFixture } from "./stress-fixture";
 
-it("preserves every frozen v2 example source, hash and raw artwork", async () => {
-  const sha = (s: string) => createHash("sha256").update(s).digest("hex");
-  for (const r of v2Controls) {
-    const e = frozenExample(
-      r.name as Parameters<typeof frozenExample>[0],
-      r.worked,
-    );
-    e.document.presentation.output = r.output as "grey" | "colour";
-    expect(sha(c.canonical(e))).toBe(r.sourceSha256);
-    expect(sha(c.renderSvg(e))).toBe(r.rawSvgSha256);
-    expect(await c.hash(e)).toBe(r.sourceSha256);
-  }
-});
 it.each([
   "4/5 × 45 = 36",
   "n/5 of 45 = 36",
@@ -236,62 +218,31 @@ it("leaves question, blank, hidden and zero distinct and independent of saved hi
   expect(v.renderSvg(e)).toContain(">?</text>");
   expect(v.layout(e).writingBoxes).toHaveLength(0);
 });
-it("preserves defaults, explicit versions, original hashes and atomic upgrade rollback", async () => {
-  expect(api.create({}).schemaVersion).toBe(1);
-  expect(api.create({ spec: { schemaVersion: 2 } }).schemaVersion).toBe(2);
-  expect(api.create({ spec: { schemaVersion: 3 } }).schemaVersion).toBe(3);
-  for (const source of [old.fresh(), frozenExample("R4")]) {
-    const before = c.canonical(source),
-      hash = await c.hash(source);
-    const n = await api.revise({
+it("creates schema 3 only, opens named examples and refuses older versions and upgrades", async () => {
+  expect(api.create({}).schemaVersion).toBe(3);
+  expect(api.create({ spec: { schemaVersion: 3 } })).toEqual(api.create({}));
+  expect(api.create({ spec: { example: "BM05", worked: true } })).toEqual(example("BM05", true));
+  expect(() => api.create({ spec: { example: "BM05", starter: "comparison" } })).toThrow(/on its own/);
+  expect(() => api.create({ spec: { worked: true } })).toThrow(/explicit example/);
+  expect(() => api.create({ spec: { schemaVersion: 2 } })).toThrow();
+  const source = lessonExample("R4");
+  expect(() => api.create({ envelope: { ...source, schemaVersion: 2, rendererVersion: "bar-model-2" } })).toThrow();
+  expect(() => api.apply(source, [{ op: "upgrade_document" } as never])).toThrow();
+  const before = c.canonical(source),
+    hash = await c.hash(source);
+  await expect(
+    api.revise({
       envelope: source,
       baseHash: hash,
-      operations: [{ op: "upgrade_document", targetSchemaVersion: 3 }],
-    });
-    expect(n.schemaVersion).toBe(3);
-    expect(c.canonical(source)).toBe(before);
-    if (source.schemaVersion === 2 && n.schemaVersion === 3) {
-      expect(n.document.bars).toEqual(source.document.bars);
-      expect(n.document.annotations).toEqual(source.document.annotations);
-      expect(n.document.captions.map((c) => c.label)).toEqual(
-        source.document.captions.map((c) => c.label),
-      );
-    }
-    await expect(
-      api.revise({
-        envelope: source,
-        baseHash: hash,
-        operations: [
-          { op: "upgrade_document", targetSchemaVersion: 3 },
-          {
-            op: "set_relative_length",
-            barId: "missing",
-            partId: "p",
-            weight: "2",
-          },
-        ],
-      }),
-    ).rejects.toThrow();
-    await expect(
-      api.revise({
-        envelope: source,
-        baseHash: "0".repeat(64),
-        operations: [{ op: "upgrade_document", targetSchemaVersion: 3 }],
-      }),
-    ).rejects.toThrow(/stale_hash/);
-    expect(c.canonical(source)).toBe(before);
-  }
-  const v1 = old.fresh();
-  expect(api.apply(v1, [{ op: "upgrade_document" }]).schemaVersion).toBe(2);
-  const fixed = v3Fixed(v1);
-  expect(
-    fixed.document.annotations.every((a) => a.scope.kind === "range"),
-  ).toBe(true);
-  expect(() => api.apply(v2.fresh(), [{ op: "upgrade_document" }])).toThrow();
+      operations: [
+        { op: "set_fill", barId: source.document.bars[0].id, partIds: [source.document.bars[0].parts[0].id], fill: "blue" },
+        { op: "set_relative_length", barId: "missing", partId: "p", weight: "2" },
+      ],
+    }),
+  ).rejects.toThrow();
+  await expect(api.revise({ envelope: source, baseHash: "0".repeat(64), operations: [] })).rejects.toThrow(/stale_hash/);
+  expect(c.canonical(source)).toBe(before);
 });
-function v3Fixed(e: old.Envelope) {
-  return v.upgrade(e);
-}
 it("retains maximum structure within unchanged resource bounds and rejects excess rather than shrinking handwriting", () => {
   const e = denseFixture(),
     g = v.layout(e);

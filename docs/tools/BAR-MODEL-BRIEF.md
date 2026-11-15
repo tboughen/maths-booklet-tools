@@ -1,18 +1,11 @@
 # Bar modelling: implementation brief
 
-The approved handwriting follow-up adds [schema 3](BAR-MODEL-V3.md): horizontal
-working fractions and 12 mm above / 3 mm below each answer underline. Fresh
-browser sessions now use v3. Frozen v1/v2 files remain unchanged; their upgrades
-are explicit and undoable. The v2 description below records that prior profile.
-
-The approved 25 October refinement adds the [version-2 lesson layout](BAR-MODEL-V2.md):
-independent section labels, compact annotations, adjacent between-bar differences,
-four starters, exact total-preserving repartitioning, literal captions and colour.
-Fresh browser work uses v2; original files/examples and bare MCP creation retain v1.
-Current main through Mock Set4 (`8f32e2d656bc5b71d90b144bf56b12277be2d9e2`)
-is reconciled into the candidate. This implementation authorisation does not grant
-merge, website/service deployment or plugin publication. The original v1 brief
-below remains the compatibility reference; the v2 guide defines the refinement.
+Every bar model now uses the single [saved format](BAR-MODEL-V3.md) (schema 3):
+independent section labels, anchored annotations, four starters, exact repartitioning,
+horizontal working fractions and 12 mm above / 3 mm below each answer underline.
+Versions 1 and 2 were removed on 14 November 2026 and the examples below were converted.
+The sections below record the original teaching brief; where they describe the version-1
+model (spans, `shade`, 8–16 mm bars), the saved format document governs.
 
 This brief implements Tim's attached request of 24 October 2026. Source baseline:
 main `bc9ac3704586baa7366bd4104dc76c375f521ef1`, tree
@@ -148,8 +141,7 @@ light-grey shading. Physical facts remain outside the definition/hash. SVG, veri
 Hidden-answer warnings accompany editable interchange; pupil artwork is default.
 
 The existing service adds `diagram_capabilities` (kind `bar-model`)/`create_diagram` (kind `bar-model`)/`revise_diagram` (kind `bar-model`).
-See [the complete contract](BAR-MODEL-MCP.md) and
-[emitted schemas](BAR-MODEL-EMITTED-SCHEMAS.json). Shared direct-SVG,placement and
+See [the complete contract](BAR-MODEL-MCP.md). Shared direct-SVG,placement and
 bundle support accepts bar-model. Old families retain signatures/defaults/files.
 The private Mathsdock plugin is the sole package-update target, with identity/App
 binding/audience and stronger acceptance instructions preserved through a guarded

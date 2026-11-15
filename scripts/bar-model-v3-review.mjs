@@ -7,7 +7,7 @@ import {execFileSync} from "node:child_process";
 const output=resolve(process.argv[2]??"../reports/bar-model-fractions-writing-space-implementation-2026-10-25/native-review");
 await mkdir(output,{recursive:true});
 async function module(path){const r=await build({entryPoints:[path],bundle:true,write:false,platform:"node",format:"esm",target:"node24"});return import(`data:text/javascript;base64,${Buffer.from(r.outputFiles[0].text).toString("base64")}`);}
-const [v,examples,png,stress]=await Promise.all([module("packages/bar-model-core/src/v3.ts"),module("packages/bar-model-core/src/lesson-examples-v3.ts"),module("packages/graph-core/src/png-bytes.ts"),module("packages/bar-model-core/src/stress-fixture-v3.ts")]);
+const [v,examples,png,stress]=await Promise.all([module("packages/bar-model-core/src/v3.ts"),module("packages/bar-model-core/src/examples.ts"),module("packages/graph-core/src/png-bytes.ts"),module("packages/bar-model-core/src/stress-fixture.ts")]);
 const sha=b=>createHash("sha256").update(b).digest("hex");
 const fonts={loadSystemFonts:false,fontFiles:["STIXTwoText-Regular.otf","STIXTwoText-Italic.otf","STIXTwoMath-Regular.otf"].map(f=>resolve("assets/graph-fonts",f)),defaultFontFamily:"STIX Two Text"};
 const records=[];
