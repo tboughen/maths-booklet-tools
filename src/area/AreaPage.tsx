@@ -27,6 +27,7 @@ import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, MIN_TEXT_PT, startingTextPt, type Line
 import {
   ARCS,
   canonical,
+  dropHeights,
   extent,
   hasHidden,
   heightFoot,
@@ -720,16 +721,18 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                       type="button"
                       disabled={blocked || s.corners.length >= MAX_CORNERS}
                       onClick={() =>
-                        setPolygon((p) => {
+                        setShape((doc) => {
+                          const p = doc.shape as Polygon,
+                            n = p.corners.length;
                           // Split the last side in two, so nothing else moves.
-                          const a = p.corners[p.corners.length - 1],
+                          const a = p.corners[n - 1],
                             b = p.corners[0];
                           p.corners.push({ x: round((a.x + b.x) / 2), y: round((a.y + b.y) / 2) });
                           // Both halves of the split side are straight; a semicircle on it would change size.
-                          p.arcs[p.arcs.length - 1] = "none";
-                          // A height to the split side would now meet only its first half.
-                          p.heights = p.heights.filter((h) => h.side !== p.arcs.length);
+                          p.arcs[n - 1] = "none";
                           p.arcs.push("none");
+                          // The split side's label and any height to it no longer fit half of it.
+                          dropHeights(doc, (h) => h.side === n, [`e${n}`]);
                         }, "add corner")
                       }
                     >
@@ -739,14 +742,16 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                       type="button"
                       disabled={blocked || s.corners.length <= 3}
                       onClick={() =>
-                        setPolygon((p) => {
-                          const n = p.corners.length;
+                        setShape((doc) => {
+                          const p = doc.shape as Polygon,
+                            n = p.corners.length;
+                          // Heights from the last corner or to the two sides that become one go, with their labels.
+                          dropHeights(doc, (h) => h.corner === n || h.side >= n - 1, [`e${n - 1}`]);
                           p.corners.pop();
                           p.arcs.pop();
                           // The new closing side is straight, and the corners at its ends have new angles.
                           p.arcs[p.arcs.length - 1] = "none";
                           p.rightAngles = p.rightAngles.filter((k) => k < n - 1 && k !== 1);
-                          p.heights = p.heights.filter((h) => h.corner < n && h.side < n - 1);
                         }, "remove corner")
                       }
                     >
@@ -776,7 +781,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           ))}
                         </select>
                       </label>
-                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setPolygon((p) => void p.heights.splice(i, 1), "remove height")}>
+                      <button type="button" aria-label={`Remove height ${i + 1}`} disabled={blocked} onClick={() => setShape((doc) => dropHeights(doc, (_, j) => j === i), "remove height")}>
                         Remove
                       </button>
                     </div>
@@ -800,9 +805,11 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           })
                           .filter((x) => x.clear && x.side !== top + 1 && x.side % n !== top && s.arcs[x.side - 1] === "none")
                           .sort((a, b) => a.y - b.y);
+                        // The lowest side not already holding a height from that corner.
+                        const free = sides.find((x) => !s.heights.some((h) => h.corner === top + 1 && h.side === x.side));
                         if (!sides.length) setMessage("This shape has no side across from its top corner for a height to meet.");
-                        else if (s.heights.some((h) => h.corner === top + 1 && h.side === sides[0].side)) setMessage("That height is already drawn. Change its corner or side below.");
-                        else setPolygon((p) => void p.heights.push({ corner: top + 1, side: sides[0].side }), "add height");
+                        else if (!free) setMessage("Every height from the top corner is already drawn. Change a corner or side below.");
+                        else setPolygon((p) => void p.heights.push({ corner: top + 1, side: free.side }), "add height");
                       }}
                     >
                       Add a dashed height

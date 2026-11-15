@@ -185,3 +185,26 @@ describe("review round 2", () => {
     await expect(io.revise({ envelope: e, baseHash: await core.hash(e), operations: [{ op: "set_label", label: { id: "e1", answer: "12 cm" } }] })).rejects.toThrow("cannot hold a saved answer");
   });
 });
+
+describe("review round 4", () => {
+  it("keeps an existing label's state when its text changes through the connector, as the editor does", async () => {
+    const e = io.create({ spec: { preset: "rectangle", labels: [{ id: "e1", text: "x" }, { id: "e2", text: "12 cm" }, { id: "e3", text: "3x", answer: "9 cm" }] } });
+    const baseHash = await core.hash(e);
+    const r = await io.revise({ envelope: e, baseHash, operations: [{ op: "set_label", label: { id: "e1", text: "2x + 3" } }, { op: "set_label", label: { id: "e2", text: "y" } }, { op: "set_label", label: { id: "e3", answer: "" } }] });
+    expect(r.document.labels.map((l) => [l.id, l.state])).toEqual([["e1", "symbol"], ["e2", "value"], ["e3", "symbol"]]);
+    await expect(io.revise({ envelope: e, baseHash, operations: [{ op: "set_label", label: { id: "e2", text: "12 cm", answer: "12 cm" } }] })).rejects.toThrow("cannot hold a saved answer");
+    const cleared = await io.revise({ envelope: e, baseHash, operations: [{ op: "set_label", label: { id: "e3", text: "" } }] });
+    expect(cleared.document.labels[2].state).toBe("hidden");
+  });
+  it("refuses a height drawn twice, and renumbers height labels when one goes", () => {
+    const e = core.starter("triangle");
+    const p = e.document.shape as core.Polygon;
+    expect(() => core.validate({ ...e, document: { ...e.document, shape: { ...p, heights: [p.heights[0], p.heights[0]] } } })).toThrow("drawn twice");
+    const d = structuredClone(e.document);
+    (d.shape as core.Polygon).heights = [{ corner: 3, side: 1 }, { corner: 1, side: 2 }];
+    d.labels = [core.label("h1", "5 cm"), core.label("h2", "4 cm"), core.label("e1", "8 cm")];
+    core.dropHeights(d, (_, i) => i === 0, ["e1"]);
+    expect((d.shape as core.Polygon).heights).toEqual([{ corner: 1, side: 2 }]);
+    expect(d.labels.map((l) => [l.id, l.text])).toEqual([["h1", "4 cm"]]);
+  });
+});
