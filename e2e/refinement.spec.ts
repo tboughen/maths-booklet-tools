@@ -140,6 +140,10 @@ for (const [tool, key, paper, stage] of tools) {
       },
     );
     expect(differentChannels).toBe(0);
+    // The first-use tip (U22) takes a line under the preview bar until it is hidden; measure the
+    // fitted preview a returning teacher sees.
+    const tip = page.getByRole("button", { name: "Hide this tip", exact: true });
+    if (await tip.count()) await tip.first().click();
     const box = await page.locator(paper).first().boundingBox();
     if (["graph", "value-table-graph"].includes(tool))
       expect(box!.height).toBeGreaterThan(originalBox!.height * 1.1);
