@@ -88,6 +88,10 @@ export function prepareRelease(publicRoot: string, sourceCommit: string, fingerp
   for (const question of catalogue.questions) {
     for (const field of ["questionPdf", "printPdf", "schemePdf"] as const) question[field] = pathMap.get(question[field])!;
     for (const view of [...question.questionViews, ...question.schemeViews]) view.preview = pathMap.get(view.preview)!;
+    for (const cut of question.cuts ?? []) {
+      cut.pdf = pathMap.get(cut.pdf)!;
+      for (const view of cut.views) view.preview = pathMap.get(view.preview)!;
+    }
     if (question.workedSolution) {
       question.workedSolution.pdf = pathMap.get(question.workedSolution.pdf)!;
       for (const view of question.workedSolution.views) view.preview = pathMap.get(view.preview)!;
