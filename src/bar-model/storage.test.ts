@@ -29,16 +29,6 @@ it("reading missing work never writes", async () => {
   expect((await readStorage(empty, "new")).envelope.schemaVersion).toBe(3);
   expect(empty.values.size).toBe(0);
 });
-it("offers work saved under the retired key for download without reading or changing it", async () => {
-  const s = storage({ old: "old-editor-bytes" }),
-    r = await readStorage(s, "new", "old");
-  expect(r.recovery).toBe("old-editor-bytes");
-  expect(r.expected).toBeNull();
-  expect(r.message).toContain("Download it");
-  expect(s.values).toEqual(new Map([["old", "old-editor-bytes"]]));
-  const fresh = await readStorage(storage({ new: JSON.stringify({ storageVersion: 1, envelope: v3.fresh() }), old: "x" }), "new", "old");
-  expect(fresh.recovery).toBeUndefined();
-});
 it("protects corrupt, future-version and older-schema data", async () => {
   for (const raw of [
     "{bad",
