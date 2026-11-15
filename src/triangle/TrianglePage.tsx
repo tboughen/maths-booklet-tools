@@ -13,6 +13,7 @@ import { PreviewControls } from "../site/PreviewControls";
 import { EditorHint } from "../site/EditorHint";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -103,7 +104,7 @@ import {
 } from "./interaction";
 import { ContextCalculation } from "./ContextCalculation";
 import "./triangle.css";
-import { handleUndoKeys, objectKeyCommand, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, pushHistory, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:triangle:v1"),
@@ -214,7 +215,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
   const [recovery, setRecovery] = useState(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [recoveryConfirm, setRecoveryConfirm] = useState(false),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [message, setMessage] = useState(startup.message),
     [selected, setSelected] = useState<string | null>(null),
     [draft, setDraft] = useState<Draft | null>(null),
@@ -246,8 +246,7 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
     [fieldError, setFieldError] = useState(""),
     [triangleId, setTriangleId] = useState(startup.e.document.triangles[0].id),
     [vertexId, setVertexId] = useState(startup.e.document.vertices[0].id);
-  const expected = useRef(startup.raw),
-    file = useRef<HTMLInputElement>(null),
+  const file = useRef<HTMLInputElement>(null),
     scroll = useRef<HTMLDivElement>(null),
     resource = useRef<HTMLDivElement>(null),
     drag = useRef<Drag | null>(null),
@@ -611,39 +610,23 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
       window.removeEventListener("resize", measure);
     };
   }, []);
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(startup.key),
-        text = canonical(history.present);
-      if (raw !== expected.current && raw !== text) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "A different draft exists in another tab. Its saved data is protected.",
-        );
-        return;
-      }
-      if (raw !== text) localStorage.setItem(startup.key, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery, startup.key]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === startup.key && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "Saved triangle data changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, [startup.key]);
+  // Autosave with protection for another tab's draft, guarded from the draft this tab opened.
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: startup.key,
+    text: savedText,
+    paused: recovery !== null,
+    opened: startup.raw,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(
+        reason === "newer"
+          ? "A different draft exists in another tab. Its saved data is protected."
+          : "Saved triangle data changed in another tab. Download its data before replacing it.",
+      );
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -2457,9 +2440,8 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
             onCancel={() => setRecoveryConfirm(false)}
             onConfirm={() => {
               try {
-                const raw = localStorage.getItem(startup.key) ?? "";
-                if (!protectedCopy || raw !== recovery) {
-                  setRecovery(raw);
+                if (!protectedCopy || recovery === null || !keepStored(recovery)) {
+                  setRecovery(localStorage.getItem(startup.key) ?? "");
                   setProtectedCopy(false);
                   setMessage(
                     "Saved data changed again. Download its latest data before starting afresh.",
@@ -2467,7 +2449,6 @@ export default function TrianglePage({ active = true }: { active?: boolean }) {
                   setRecoveryConfirm(false);
                   return;
                 }
-                expected.current = localStorage.getItem(startup.key);
                 setRecovery(null);
                 setRecoveryConfirm(false);
                 setHistory((h) => pushHistory(h, fresh(), { label: "start afresh" }));
