@@ -628,7 +628,7 @@ export default function LessonBarModelPage({
             <EditorHint tool="bar-model">
               Click a bar name, section label or note on the model to edit it.
             </EditorHint>
-            <div ref={fit.ref} className="bm-scroll">
+            <div ref={fit.ref} className="bm-scroll editor-stage">
               <div
                 className="bm-stage"
                 style={{ width: g.width * px, minHeight: g.height * px }}

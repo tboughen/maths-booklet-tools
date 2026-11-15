@@ -1,25 +1,30 @@
-/* The editor frame: a diagram tool fills the window under the app bar, the diagram's stage takes
-   every pixel the bars leave, and the settings scroll on their own. The page itself does not
-   scroll (docs/tools/APP-HOUSE-STYLE.md). Narrow or short windows keep the stacked, scrolling page. */
-@media (min-width: 768px) and (min-height: 600px) {
+/* The editor frame: on a window with room for it, a diagram tool fills the window under the app
+   bar, the diagram's stage takes every pixel the bars leave, and the settings scroll on their
+   own. The page itself does not scroll (docs/tools/APP-HOUSE-STYLE.md). Narrower or shorter
+   windows, and print, keep the stacked page that scrolls. */
+@media screen and (min-width: 768px) and (min-height: 800px) {
   .site-app:has(> .site-page--tool:not([hidden])) { display: flex; flex-direction: column; height: 100dvh; min-height: 0; }
   .site-page--tool:not([hidden]) { flex: 1; min-height: 0; }
   .site-app .site-page--tool .booklet-editor { height: 100%; min-height: 0; }
   .site-app .site-page--tool .booklet-editor .main-content { display: flex; flex-direction: column; height: 100%; padding-bottom: 12px; }
-  .site-app .site-page--tool .booklet-editor .page-heading { flex: none; }
+  .site-app .site-page--tool .booklet-editor .main-content > .page-heading { flex: none; }
   .site-app .site-page--tool .booklet-editor .workspace { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
-  /* If the bars and a tool's own rows leave the stage less than its smallest height (which grows
-     with the window, up to 420 px), the card scrolls instead of squeezing the diagram. */
-  .site-app .site-page--tool .booklet-editor .editor-card { min-height: 0; overflow-y: auto; }
+  /* The foot of the card is kept for the status line, so a message never resizes the diagram.
+     If a tool's own rows leave the stage less than its smallest height, the card scrolls. */
+  .site-app .site-page--tool .booklet-editor .editor-card { min-height: 0; overflow-y: auto; padding-bottom: var(--md-status-line); }
   .site-app .site-page--tool .booklet-editor .inspector-stack { align-content: start; min-height: 0; max-height: none; overflow-y: auto; scrollbar-gutter: stable; }
-  .site-app .site-page--tool .booklet-editor .editor-card > :is(.graph-stage, .ratio-stage, .bm-scroll, .tr-scroll, .ag-scroll, .vn-scroll, .nl-scroll, .cb-scroll, .vg-scroll, .ch-scroll, .pt-scroll) { flex: 1 1 0; height: auto; min-height: clamp(240px, calc(100dvh - 340px), 420px); max-height: none; }
-  /* "Image copied" and the like must never resize the diagram, so in the frame they float at the
-     foot of the window, as the Graph tool's notices already do. Errors and warnings stay in place. */
-  .site-app .site-page--tool .booklet-editor :is(.resource-feedback:not(.nl-pending-note), .editor-feedback, .ag-message[role="status"], .tr-feedback):not(:empty) { position: fixed; z-index: 50; right: 20px; bottom: 20px; width: min(360px, calc(100% - 40px)); margin: 0; padding: 12px 16px; border: 1px solid var(--md-line-strong); border-radius: var(--md-radius-card); background: var(--md-paper); box-shadow: var(--md-shadow-pop); color: var(--md-ink); font: 500 var(--md-text-sm)/1.5 var(--md-font); }
-  .site-app .site-page--tool .booklet-editor :is(.pt-status, .vn-status, .ch-status):not(:has(> :not(.resource-feedback))) { display: contents; }
+  /* !important because one tool still sets a largest height on the element itself. */
+  .site-app .site-page--tool .booklet-editor .editor-card > .editor-stage { flex: 1 1 0; height: auto; min-height: 280px; max-height: none !important; }
+  /* The status line ("Image copied", a failed copy, a protected draft) sits in the card's foot,
+     at the bottom left of the window, whichever part of the page a tool draws it in. A long
+     message grows upwards. Warnings about the diagram itself stay where the tool puts them. */
+  .site-app .site-page--tool .booklet-editor :is(.resource-feedback:not(.nl-pending-note), .editor-feedback, .ag-message[role="status"], .tr-feedback:not(.tr-error)) { position: fixed; z-index: 5; left: 21px; bottom: 13px; box-sizing: border-box; max-width: calc(100vw - 400px); min-height: var(--md-status-line); margin: 0; padding: 8px 14px; border: 0; border-radius: 0 0 0 var(--md-radius-card); background: var(--md-paper); color: var(--md-ink); font: 500 var(--md-text-sm)/20px var(--md-font); }
+  .site-app .site-page--tool .booklet-editor :is(.resource-feedback, .editor-feedback, .ag-message, .tr-feedback):empty { display: none; }
+  /* A status wrapper that holds only that line takes no room of its own. */
+  .site-app .site-page--tool .booklet-editor :is(.pt-status, .vn-status, .ch-status):not(:has(> :not(.resource-feedback))) { padding: 0; }
 }
 /* On a wide window the tool's name and its one-line description share a row. */
-@media (min-width: 1500px) {
-  .site-page--tool .page-heading > div:first-child { display: flex; align-items: center; gap: 4px 16px; min-width: 0; }
-  .site-app .site-page--tool .booklet-editor .page-heading p { margin: 0; }
+@media screen and (min-width: 1500px) {
+  .site-page--tool .booklet-editor .main-content > .page-heading > div:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; min-width: 0; }
+  .site-page--tool .booklet-editor .main-content > .page-heading p { margin: 0; }
 }

@@ -867,7 +867,7 @@ export default function NumberLinePage({
               Click a circle to change its type; drag to move it.
             </EditorHint>
             <div
-              className="nl-scroll"
+              className="nl-scroll editor-stage"
               ref={fitted.ref}
               onClick={(e) => {
                 if (e.target === e.currentTarget && !blocked)

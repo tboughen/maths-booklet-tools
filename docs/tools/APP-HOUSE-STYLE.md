@@ -83,23 +83,27 @@ the teacher's favourite tools, and every tool grouped by strand. There is no row
 
 ## The editor frame
 
-On a window at least 768 px wide and 600 px high a diagram tool fills the window under the app bar
-and the page itself does not scroll (`src/site/editor-frame.css`):
+On a screen window at least 768 px wide and 800 px high a diagram tool fills the window under the
+app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 
 - The card with the diagram and the settings column share the height the heading leaves.
-- Inside the card, the bars keep their own height and the diagram's stage takes all the rest. No
-  tool sets a stage height from the window height any more.
+- Inside the card, the bars keep their own height and the diagram's stage takes all the rest.
 - The settings column scrolls on its own.
-- If a tool's bars and its own rows under the diagram leave the stage less than its smallest
-  height (240 px on a 600 px window, rising to 420 px), the card scrolls instead of squeezing the
-  diagram.
+- The foot of the card (`--md-status-line`, 36 px) is kept for the status line: "Image copied", a
+  failed copy, a protected draft. It always sits there, so a message never resizes or moves the
+  diagram. A long message grows upwards. Warnings about the diagram itself stay where the tool
+  draws them.
+- If a tool's own rows under the diagram leave the stage less than 280 px, the card scrolls
+  instead of squeezing the diagram.
 - From 1,500 px wide the tool's name and its one-line description share a row.
 
-Narrower or shorter windows keep the stacked page that scrolls.
+Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights
+each tool had before.
 
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
-`.editor-card`, `.inspector-stack`) and one of the stage classes listed in `editor-frame.css`;
-the newer tools all use `.pt-scroll`. A new stage class must be added to that list.
+`.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
+`editor-stage` as a direct child of the card, and showing its message in a `.resource-feedback`
+paragraph. A tool that fits its diagram in script must measure the stage element, not the window.
 
 The frame changes screen furniture only. Preview zoom still never changes print size.
 

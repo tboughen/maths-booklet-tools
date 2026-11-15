@@ -595,7 +595,7 @@ export function GraphCanvas({
   }
 
   return (
-    <div ref={stage} className="graph-stage" data-tool={tool}>
+    <div ref={stage} className="graph-stage editor-stage" data-tool={tool}>
       <div
         className={`graph-board${compact ? " is-compact" : ""}`}
         style={{

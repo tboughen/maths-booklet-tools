@@ -328,7 +328,7 @@ export default function ElevationsPage({ active = true }: { active?: boolean }) 
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
             <EditorHint tool="elevations">Change the solid and the views in the settings; the drawing updates as you go.</EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"

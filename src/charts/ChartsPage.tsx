@@ -776,7 +776,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
-            <div className="ch-scroll" ref={fitted.ref}>
+            <div className="ch-scroll editor-stage" ref={fitted.ref}>
               <div className="ch-stage">
                 <div
                   className="ch-resource"

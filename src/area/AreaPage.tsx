@@ -449,7 +449,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
             <EditorHint tool="area">Click a side, line or the middle of the shape to label it. Change the shape in the settings.</EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"

@@ -606,7 +606,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
               <AnswerCopyToggle checked={view === "answer"} disabled={blocked} onChange={(checked) => setView(checked ? "answer" : "pupil")} />
             </div>
             <EditorHint tool="angles">Click an angle on the diagram to mark and label it. Drag the round handles to move rays, transversals and corners.</EditorHint>
-            <div className="pt-scroll" ref={fitted.ref}>
+            <div className="pt-scroll editor-stage" ref={fitted.ref}>
               <div className="pt-stage">
                 <div
                   className="pt-resource"
