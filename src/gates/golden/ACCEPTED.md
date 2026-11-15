@@ -353,3 +353,8 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 ## 2026-11-15: Factor trees and sample space: answers-only circles
 
 - sample space diagrams: ss-circle-outcomes: json 6300c8fa508f4393 -> 3039054869113f6b
+
+## 2026-11-15: Factor trees: pupil copy sized from printed numbers only
+
+- factor trees: ft-two-ways-84: svg c601bef7d887ab91 -> df291ccdee269b3c
+- factor trees: ft-two-ways-84: pixels 722a3009c5de1ff8 -> 952e895b2024773c

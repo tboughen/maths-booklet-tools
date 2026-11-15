@@ -135,4 +135,13 @@ describe("factor trees (N-5)", () => {
     for (let i = 2; i <= f.MAX_NODES + 2; i++) big.document.trees[0].nodes.push({ id: `n${i}`, parent: "n1", value: f.value("") });
     expect(() => f.validate(big)).toThrow(/at most 31 numbers/);
   });
+  it("sizes the pupil copy from printed numbers only", () => {
+    const blank = f.split(f.create("72"), "t1", "n1");
+    const hidden = f.setNode(blank, "t1", "n2", { text: "36", show: "hidden" });
+    expect(f.renderSvg(hidden)).toBe(f.renderSvg(blank));
+    const big = f.setNode(f.split(f.create("6"), "t1", "n1"), "t1", "n2", { text: "12345", show: "hidden" });
+    expect(f.layout(big).r).toBe(f.layout(f.split(f.create("6"), "t1", "n1")).r);
+    expect(() => f.completeTree(blank, "", true)).toThrow();
+    expect(f.setNode(blank, "t1", "n2", { circled: "hidden" }).document.trees[0].nodes[1].circled).toBe(true);
+  });
 });

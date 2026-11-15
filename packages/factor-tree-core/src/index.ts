@@ -169,6 +169,8 @@ export function validate(input: unknown): Envelope {
       n.value.text = text;
       if (!text && n.value.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
       if (n.circled !== true && n.circled !== "hidden") delete n.circled;
+      // An empty circle is a scaffold that both copies print.
+      if (n.circled === "hidden" && !text) n.circled = true;
     });
     for (const n of t.nodes) {
       const k = childrenOf(t, n.id).length;
@@ -308,11 +310,11 @@ export function setProduct(e: Envelope, treeId: string, product: { text?: string
  */
 export function completeTree(e: Envelope, treeId?: string, hidden = false): { envelope: Envelope; filled: number } {
   const n = clone(e);
-  if (treeId) treeOf(n.document, treeId);
+  if (treeId !== undefined) treeOf(n.document, treeId);
   let filled = 0;
   const visibility = hidden ? "hidden" : "show";
   for (const t of n.document.trees) {
-    if (treeId && t.id !== treeId) continue;
+    if (treeId !== undefined && t.id !== treeId) continue;
     let progress = true;
     while (progress) {
       progress = false;
@@ -440,7 +442,10 @@ export type PlacedNode = { treeId: string; id: string; x: number; y: number; nod
 export function layout(e: Envelope) {
   const d = e.document,
     issues: string[] = [];
-  const widest = Math.max(textWidth("00"), ...d.trees.flatMap((t) => t.nodes.map((n) => textWidth(n.value.text))));
+  // Only printed numbers set sizes, so the pupil copy gives no hint of a hidden number. A factor is never
+  // longer than the number it splits, so a blank still has room for its answer.
+  const shown = (v: Value) => (v.show === "show" ? v.text : "");
+  const widest = Math.max(textWidth("00"), ...d.trees.flatMap((t) => t.nodes.map((n) => textWidth(shown(n.value)))));
   // Every number gets the same slot, wide enough for the widest number and a 10 mm pupil blank.
   const r = Math.max(BLANK_MM / 2 + 0.8, widest / 2 + 1.6);
   const slot = 2 * r + GAP;
@@ -477,8 +482,8 @@ export function layout(e: Envelope) {
           dy = b.y - a.y,
           len = Math.hypot(dx, dy);
         // Branches stop just short of each number's circle (or where its circle would be).
-        const from = Math.min((circleRadius(a.node.value.text) + 0.5) / len, 0.45),
-          to = Math.min((circleRadius(b.node.value.text) + 0.5) / len, 0.45);
+        const from = Math.min((circleRadius(shown(a.node.value)) + 0.5) / len, 0.45),
+          to = Math.min((circleRadius(shown(b.node.value)) + 0.5) / len, 0.45);
         branches.push({ x1: a.x + dx * from, y1: a.y + dy * from, x2: b.x - dx * to, y2: b.y - dy * to });
       }
     if (t.product) answers.push({ treeId: t.id, prefix, product: t.product, x: left + (column - answerWidth) / 2, y: answerY, width: answerWidth });

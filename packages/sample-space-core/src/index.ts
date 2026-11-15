@@ -370,7 +370,7 @@ export function layout(e: Envelope) {
   if (d.rowTitle && textWidth(d.rowTitle) > height - y[1]) issues.push(`The name "${d.rowTitle}" is longer than the side of the table. Shorten it or add outcomes.`);
   d.rows.forEach((r, i) =>
     r.cells.forEach((c, j) => {
-      if (c.text && inkWidth(c.text) + (c.ring ? 3.6 : 0) > widths[j] - 2 * PAD + 0.01) issues.push(`Row ${i + 1}, column ${j + 1} is crowded. Widen the columns.`);
+      if (c.text && inkWidth(c.text) + (c.ring === true ? 3.6 : 0) > widths[j] - 2 * PAD + 0.01) issues.push(`Row ${i + 1}, column ${j + 1} is crowded. Widen the columns.`);
     }),
   );
   return { width, height, x, y, rowHeight, left, top, issues };
