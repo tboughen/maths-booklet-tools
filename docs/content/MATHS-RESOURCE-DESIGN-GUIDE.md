@@ -218,8 +218,17 @@ Use Tim’s established ratio-table conventions where relevant:
 mathematical italic x and y, distinct from the multiplication sign ×;
 headings x → and y ↑; clear entries and a genuinely blank answer space.
 Do not reintroduce decorative downward arrows. \[1\]
-A *y* ↓ heading is not decorative: use it only for a negative gradient, where the line goes
-down as it goes right (agreed by Tim, 11 Nov 2026).
+A gradient table is always headed *y* ↑, never *y* ↓, because up is positive. A line that
+goes down as it goes right has a **negative** *y* movement: from 5 down to 1 is −4. So the
+table reads 2 | −4, then ÷ 2 gives 1 | −2, and the divide gives the negative gradient
+directly (Tim, 15 Nov 2026; this replaces the *y* ↓ heading agreed on 11 Nov). Show this in
+the first negative-gradient question: the negative *y* movement, the positive *x* movement,
+and the gradient they give.
+
+| *x* → | *y* ↑            |
+|-------|------------------|
+| 2     | −4               |
+| 1     | \_\_\_\_\_\_\_\_ |
 
 | *x* → | *y* ↑            |
 |-------|------------------|

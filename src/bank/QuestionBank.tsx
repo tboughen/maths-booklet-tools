@@ -6,7 +6,7 @@ import { ZoomControls, ZoomOverview } from "./ZoomControls";
 import { useStageZoom } from "./useStageZoom";
 import { stepZoom } from "./zoom";
 import { AnnotationBar } from "./AnnotationBar";
-import { annotationReducer, readAnnotationPreferences, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
+import { annotationReducer, readAnnotationPreferences, saveAnnotationPreferences, withTool, type AnnotationPreferences, hasInk, HIGHLIGHTER_COLOURS, layerOf, PEN_COLOURS, SIZES, toolCursor, type AnnotationTool, type Stroke } from "./annotations";
 import type { AnnotationSettings } from "./AnnotationLayer";
 import { OverlayControls } from "./OverlayControls";
 import { overlayPreference, overlays, type Overlay } from "./overlays";
@@ -55,7 +55,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const [ink,dispatchInk]=useReducer(annotationReducer,{});
   const [annotating,setAnnotating]=useState(false);
   const [annotatePrefs,setAnnotatePrefs]=useState<AnnotationPreferences>(readAnnotationPreferences);
-  useEffect(()=>{try{localStorage.setItem("qb-annotate",JSON.stringify(annotatePrefs));}catch{/* Optional device preference. */}},[annotatePrefs]);
+  useEffect(()=>saveAnnotationPreferences(annotatePrefs),[annotatePrefs]);
   // Read by the key handler, so quick key presses never see a stale tool.
   const annotateNow=useRef({annotating,tool:annotatePrefs.tool});annotateNow.current={annotating,tool:annotatePrefs.tool};
   const undoKeys=useRef<string[]>([]);const redoKeys=useRef<string[]>([]);
@@ -93,7 +93,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   useEffect(()=>{if(!stage.current)return;const el=stage.current;const resize=()=>setStageSize({width:el.clientWidth,height:el.clientHeight});const observer=new ResizeObserver(resize);observer.observe(el);resize();return()=>observer.disconnect();},[catalogue,display,listOpen,route.bankView]);
 
 
-  const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection}),[route.tier,route.calculator,route.collection]);
+  const filters=useMemo(()=>({tier:route.tier,calculator:route.calculator,collection:route.collection,crossover:route.crossover}),[route.tier,route.calculator,route.collection,route.crossover]);
   const coverage=useMemo(()=>catalogue?catalogueCoverage(catalogue,filters):undefined,[catalogue,filters]);
   const overall=useMemo(()=>catalogue?catalogueCoverage(catalogue,emptyRoute):undefined,[catalogue]);
   const entries=useMemo(()=>coverage?draftEntries(coverage,draft):[],[coverage,draft]);
@@ -146,10 +146,10 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
   const clearInk=()=>{for(const key of visibleKeys)if(layerOf(ink,key).strokes.length)commitInk(key,[]);};
   const clearAllInk=()=>{for(const [key,layer] of Object.entries(ink))if(layer.strokes.length)undoKeys.current.push(key);redoKeys.current=[];dispatchInk({type:"clearAll"});};
   const viewHasInk=visibleKeys.some(key=>layerOf(ink,key).strokes.length>0);
-  const sizes=SIZES.find(size=>size.value===annotatePrefs.size)!;
-  const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?sizes.highlighter:sizes.pen,scale):undefined;
-  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize:sizes.pen,highlighterSize:sizes.highlighter,straight:annotatePrefs.straight}),[annotatePrefs,sizes]);
-  const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>({...p,tool}));setAnnotating(true);},[]);
+  const penSize=SIZES.find(size=>size.value===annotatePrefs.penSize)!.pen,highlighterSize=SIZES.find(size=>size.value===annotatePrefs.highlighterSize)!.highlighter;
+  const stageCursor=annotating?toolCursor(annotatePrefs.tool,annotatePrefs.tool==="highlighter"?annotatePrefs.highlighterColour:annotatePrefs.penColour,annotatePrefs.tool==="highlighter"?highlighterSize:penSize,scale):undefined;
+  const inkSettings=useMemo<AnnotationSettings>(()=>({tool:annotatePrefs.tool,penColour:annotatePrefs.penColour,highlighterColour:annotatePrefs.highlighterColour,penSize,highlighterSize,straight:annotatePrefs.straight}),[annotatePrefs,penSize,highlighterSize]);
+  const chooseTool=useCallback((tool:AnnotationTool)=>{annotateNow.current={annotating:true,tool};setAnnotatePrefs(p=>withTool(p,tool));setAnnotating(true);},[]);
   // Answers open at fit; going back to the question restores the zoom and position the teacher left.
   const switchRole=useCallback((next:ViewRole)=>{
     if(!question)return;
@@ -175,7 +175,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           const tool=({h:"highlighter",e:"eraser",l:"laser",v:"hand"} as Record<string,AnnotationTool>)[k];
           if(tool){e.preventDefault();chooseTool(tool);return;}
           const n=Number.parseInt(e.key,10);
-          if(n>=1&&n<=5){const colours=annotateNow.current.tool==="highlighter"?HIGHLIGHTER_COLOURS:PEN_COLOURS;const c=colours[n-1];if(c){e.preventDefault();setAnnotatePrefs(p=>p.tool==="highlighter"?{...p,highlighterColour:c.value}:{...p,penColour:c.value,tool:"pen"});return;}}
+          if(n>=1&&n<=PEN_COLOURS.length){const colours=annotateNow.current.tool==="highlighter"?HIGHLIGHTER_COLOURS:PEN_COLOURS;const c=colours[n-1];if(c){e.preventDefault();setAnnotatePrefs(p=>p.tool==="highlighter"?{...p,highlighterColour:c.value}:{...withTool(p,"pen"),penColour:c.value});return;}}
         }
       }
       if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.startsWith("Arrow")){
@@ -225,15 +225,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
 
   return <div ref={app} className={`qb-app${topicsMode?" qb-topics-mode":""}${display?" qb-display":""}`}>
     <main className="qb-main" id={active ? "main-content" : undefined} tabIndex={-1}>
-      {!topicsMode&&<><div className="qb-page-search">
-      <form onSubmit={submitSearch} className="qb-search-form">
-        <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
-        <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
-        <button className="qb-button qb-primary" type="submit">Find</button>
-      </form>
-      <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
-      </div>
-      <div className="qb-toolbar">
+      {!topicsMode&&<><div className="qb-toolbar">
         <div className="qb-topic">
           {route.code&&<span className="qb-code">{route.code}</span>}
           <div><h1 tabIndex={-1}>{topic?.title||(route.code?"Find a topic":catalogue?.publication?.heading||"Reviewed practice questions")}</h1><span className="qb-scope">{topic?`${formatCount(topic.bankCount)} matched in full bank · ${formatCount(topic.availableCount??topic.pilotCount)} ${catalogue?.publication?"available":"in this pilot"}`:catalogue?.publication?.description||(catalogue?`${formatCount(catalogue.questions.length)} reviewed questions`:"")}</span></div>
@@ -241,14 +233,22 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
         <div className="qb-toolbar-actions">
           <label className="qb-performance-toggle"><input type="checkbox" checked={showPerformance} onChange={e=>setShowPerformance(e.target.checked)}/> Show average marks achieved</label>
           <button className="qb-button" aria-expanded={listOpen} onClick={()=>setListOpen(!listOpen)}><List size={18}/>{countText}</button>
-          <details className="qb-filters"><summary><SlidersHorizontal size={16}/> Filters{route.tier!=="all"||route.calculator!=="all"||route.collection!=="all"?" · active":""}</summary><div><label>Tier <select value={route.tier} onChange={e=>go({...route,tier:e.target.value as BankRoute["tier"],question:"",view:0})}><option value="all">Both tiers</option><option value="F">Foundation</option><option value="H">Higher</option></select></label><label>Calculator <select value={route.calculator} onChange={e=>go({...route,calculator:e.target.value as BankRoute["calculator"],question:"",view:0})}><option value="all">Either</option><option value="yes">Calculator</option><option value="no">Non-calculator</option></select></label><label>Collection <select value={route.collection} onChange={e=>go({...route,collection:e.target.value as BankRoute["collection"],question:"",view:0})}><option value="all">All sources</option><option value="past">Past papers</option><option value="mock">Mock papers</option></select></label><button className="qb-text-button" onClick={()=>go({...route,tier:"all",calculator:"all",collection:"all",question:"",view:0})}>Clear filters</button></div></details>
+          <details className="qb-filters"><summary><SlidersHorizontal size={16}/> Filters{route.tier!=="all"||route.calculator!=="all"||route.collection!=="all"||route.crossover!=="all"?" · active":""}</summary><div><label>Tier <select value={route.tier} onChange={e=>go({...route,tier:e.target.value as BankRoute["tier"],question:"",view:0})}><option value="all">Both tiers</option><option value="F">Foundation</option><option value="H">Higher</option></select></label><label>Calculator <select value={route.calculator} onChange={e=>go({...route,calculator:e.target.value as BankRoute["calculator"],question:"",view:0})}><option value="all">Either</option><option value="yes">Calculator</option><option value="no">Non-calculator</option></select></label><label>Collection <select value={route.collection} onChange={e=>go({...route,collection:e.target.value as BankRoute["collection"],question:"",view:0})}><option value="all">All sources</option><option value="past">Past papers</option><option value="mock">Mock papers</option></select></label><label>Crossover <select value={route.crossover} onChange={e=>go({...route,crossover:e.target.value as BankRoute["crossover"],question:"",view:0})}><option value="all">All questions</option><option value="only">On both tiers only</option></select></label><button className="qb-text-button" onClick={()=>go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all",question:"",view:0})}>Clear filters</button></div></details>
           <button className="qb-button" disabled={hasDraftIntent(draft)?!entries.length:!results.length} onClick={startExport}><FileDown size={18}/>{hasDraftIntent(draft)?`Review paper (${formatCount(entries.length)})`:"Export matching questions"}</button>
           <button className="qb-button qb-primary" disabled={!question} onClick={()=>{setDisplay(true);(document.activeElement as HTMLElement)?.blur();}}><Maximize2 size={18}/> Display</button>
         </div>
       </div>
-      </>}
+<div className="qb-page-search">
+      <form onSubmit={submitSearch} className="qb-search-form">
+        <label className="qb-search"><Search size={18}/><input ref={searchInput} aria-label="Sparx code or topic" value={search} list="qb-topics" onChange={e=>setSearch(e.target.value)} placeholder="Sparx code or topic" autoComplete="off"/></label>
+        <datalist id="qb-topics">{suggestions.map(t=><option key={t.code} value={t.code}>{t.title} · {t.availableCount??t.pilotCount} available</option>)}</datalist>
+        <button className="qb-button qb-primary" type="submit">Find</button>
+      </form>
+      <span className="qb-pilot">{catalogue?.publication?.label||"Question bank"}</span>
+      </div>
+            </>}
       {notice&&<div className="qb-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={()=>setNotice("")}><X size={16}/></button></div>}
-      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<h1 tabIndex={-1}>Paper builder</h1>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
+      <div hidden={!topicsMode} className="qb-topics-host">{topicsMode&&<div className="page-heading"><div><h1 tabIndex={-1}>Paper builder</h1><p>Tick Sparx codes, review your questions and download a paper with its mark scheme.</p></div></div>}{catalogue&&coverage&&overall?<TopicPaperBuilder catalogue={catalogue} coverage={coverage} overall={overall} filters={filters} draft={draft} entries={entries} onCode={(code,checked)=>dispatchDraft({type:"code",code,checked})} onFilters={next=>go({...route,...next,question:"",view:0})} onBrowse={code=>go({...route,bankView:"questions",code,question:"",view:0})}/>:loadError?<p role="alert">{loadError} <button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></p>:<p role="status">Loading topics…</p>}</div>{!topicsMode&&<div className={`qb-workspace${listOpen?" qb-with-list":""}`}>
         {listOpen&&<aside className="qb-results" aria-label="Matching questions"><div className="qb-results-heading"><strong>{countText}</strong><button className="qb-text-button" onClick={()=>dispatchDraft({type:"add",questions:results})}>Add all matching questions</button><button className="qb-text-button" onClick={()=>dispatchDraft({type:"clear"})}>Clear paper</button></div>{results.map((q,i)=><div key={q.id} className={`qb-result${listed?.id===q.id?" active":""}`}><input type="checkbox" aria-label={`Select ${q.source}`} checked={isSelected(q.id)} onChange={e=>selectQuestion(q.id,e.target.checked)}/><button onClick={()=>go({...route,question:q.id,view:0})}><b>{i+1}. {q.source}</b><span>{q.description}</span>{showPerformance&&<PerformanceBadge question={q} catalogue={catalogue} tier={route.tier}/>}<small>{q.marks} mark{q.marks===1?"":"s"} · {q.tier==="H"?"Higher":"Foundation"}</small></button></div>)}</aside>}
         <section className="qb-question-card" aria-label="Question viewer">
           <div className="qb-source">
@@ -275,7 +275,7 @@ export default function QuestionBank({ active = true }: { active?: boolean }) {
           {question?.scaleSensitive&&<p className="qb-scale-note">Scale drawing: print the PDF at Actual size / 100%.</p>}
           {displayNotes.length>0&&<div className="qb-display-notes" role="note" aria-label="Source notes">{displayNotes.map((note,i)=><p className="qb-erratum" key={i}>{note}</p>)}</div>}
           <div className="qb-stage-frame"><div ref={stage} style={{backgroundColor:overlay === "off" ? undefined : overlays.find(option=>option.value===overlay)?.colour,cursor:stageCursor}} className={`qb-stage${role==="scheme"?" qb-scheme-stage":""}${question&&pannable?" qb-pannable":""}`}>
-            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map(v=><PdfView key={`${question.id}|${question.revision}|${role}|${question.workedSolution?.revision||""}|${resource?.pdf}|${v.page}`} path={resource!.pdf} label={resource!.label} view={v} scale={scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,inkKey(v)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(inkKey(v),strokes)}}/>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all"});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":"Search another topic"}</button></div>}
+            {loadError?<div className="qb-empty" role="alert"><h2>Could not load the question bank</h2><p>{loadError} Check your connection and try again.</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:!catalogue?<p role="status">Loading questions…</p>:listed&&!question?(detailError?<div className="qb-empty" role="alert"><h2>Could not load this question</h2><p>{detailError}</p><button className="qb-button" onClick={()=>setReload(v=>v+1)}>Try again</button></div>:<p role="status">Loading question…</p>):question?<div className="qb-view-group" style={{minWidth:visibleViews.reduce((n,v)=>n+v.width*scale,0)+(two?16:0),minHeight:Math.max(...visibleViews.map(v=>v.height*scale))}}>{visibleViews.map(v=><PdfView key={`${question.id}|${question.revision}|${role}|${question.workedSolution?.revision||""}|${resource?.pdf}|${v.page}`} path={resource!.pdf} label={resource!.label} view={v} scale={scale} retryKey={reload} overlay={overlay} annotation={{strokes:layerOf(ink,inkKey(v)).strokes,active:annotating,settings:inkSettings,onCommit:strokes=>commitInk(inkKey(v),strokes)}}/>)}</div>:<div className="qb-empty"><BookOpen size={32}/><h2>{reason==="unknown"?"That Sparx code was not found":reason==="filtered"?"No questions match these filters":reason==="no-bank-match"?"No matching question in the bank":"This topic is not yet available"}</h2><p>{reason==="no-bank-match"?`${route.code} is a valid current topic. The agreed bank contains no mapped question for it.`:reason==="not-in-pilot"?`${formatCount(topic?.bankCount||0)} questions are mapped in the full bank. None is available for this topic yet; ${formatCount(catalogue.questions.length)} reviewed questions are available overall.`:reason==="filtered"?"Clear the filters to see the available questions for this topic.":"Search by current Sparx code or topic title."}</p><button className="qb-button" onClick={()=>{if(reason==="filtered")go({...route,tier:"all",calculator:"all",collection:"all",crossover:"all"});else{searchInput.current?.focus();searchInput.current?.select();}}}>{reason==="filtered"?"Clear filters":"Search another topic"}</button></div>}
           </div>
           {question&&<ZoomOverview stage={stage} active={pannable&&zoom>1.001} redrawKey={`${question.id}|${role}|${viewIndex}|${scale}|${overlay}`}/>}
           {question&&annotating&&<AnnotationBar preferences={annotatePrefs} onChange={setAnnotatePrefs} canUndo={visibleKeys.some(key=>layerOf(ink,key).past.length>0)} canRedo={visibleKeys.some(key=>layerOf(ink,key).future.length>0)} hasInk={viewHasInk} anyInk={hasInk(ink)} onUndo={undoInk} onRedo={redoInk} onClear={clearInk} onClearAll={clearAllInk} onClose={()=>setAnnotating(false)}/>}

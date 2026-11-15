@@ -1,5 +1,5 @@
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
-import { boldLines } from "../../envelope-core/src/house-style";
+import { BOLD_LINE_FACTOR, boldLines } from "../../envelope-core/src/house-style";
 import {
   axisOrigin,
   coordinateToSvg,
@@ -27,6 +27,8 @@ import {
   AXIS_Y_NAME,
   EQUATION_FONT_POINTS,
   GRID_STROKE_POINTS,
+  CENTIMETRE_GRID_STROKE_POINTS,
+  FINE_GRID_STROKE_POINTS,
   STRAIGHT_DASH_GAP_CENTIMETRES,
   STRAIGHT_DASH_LENGTH_CENTIMETRES,
   svgFontFamily,
@@ -98,6 +100,15 @@ const GRID_STROKE_WIDTH = pointsToDiagramUnits(
   GRID_STROKE_POINTS,
   UNITS_PER_CM,
 );
+/**
+ * The plot clip reaches half a line's width past the grid, so a line or segment lying on the edge
+ * of the grid (a distance-time graph stopped at its top value) prints at full weight instead of
+ * half clipped (Tim, A7.11 marking, 15 Nov 2026). A line crossing the edge ends in its round cap.
+ * Bold lines are heavier, so their clip reaches further. Polygon fills keep the exact plot clip.
+ */
+export function plotClipBleed(lines: DiagramDocumentV1["lines"]): number {
+  return (GRID_STROKE_WIDTH * (lines === "bold" ? BOLD_LINE_FACTOR : 1)) / 2;
+}
 const AXIS_STROKE_WIDTH = pointsToDiagramUnits(
   AXIS_STROKE_POINTS,
   UNITS_PER_CM,
@@ -118,11 +129,7 @@ const NAME_SUBSCRIPT_FONT_SIZE = pointsToDiagramUnits(
   NAME_SUBSCRIPT_FONT_POINTS,
   UNITS_PER_CM,
 );
-const MINOR_GRID_STROKE_POINTS = 0.6;
-const MINOR_GRID_STROKE_WIDTH = pointsToDiagramUnits(
-  MINOR_GRID_STROKE_POINTS,
-  UNITS_PER_CM,
-);
+const gridWidth = (points: number) => pointsToDiagramUnits(points, UNITS_PER_CM);
 const TITLE_LINE_HEIGHT = AXIS_LABEL_FONT_SIZE * 1.2;
 const Y_TITLE_MAX_WIDTH = 3.2 * UNITS_PER_CM;
 const TITLE_GAP = 0.25 * UNITS_PER_CM;
@@ -416,46 +423,41 @@ function autoLabelPosition(
 
 function gridMarkup(document: DiagramDocumentV1, layout: SvgLayout): string {
   if (isSketch(document)) return "";
-  const horizontalSquares =
-    document.axes.x.negativeSquares + document.axes.x.positiveSquares;
-  const verticalSquares =
-    document.axes.y.negativeSquares + document.axes.y.positiveSquares;
-  const lines: string[] = [];
-  for (let index = 0; index <= horizontalSquares; index += 1) {
-    const x = layout.plotLeft + index * layout.square;
-    lines.push(
+  const { x: ax, y: ay } = document.axes;
+  const divisions = gridDivisions(document);
+  // Exam parity: a 1 cm grid on its own is one weight; graph paper with a fine grid has three,
+  // with the heavier 1 cm lines every 2 cm from the axes, as on Edexcel papers.
+  const weights = divisions === 1
+    ? [gridWidth(CENTIMETRE_GRID_STROKE_POINTS)]
+    : [FINE_GRID_STROKE_POINTS.fine, FINE_GRID_STROKE_POINTS.centimetre, FINE_GRID_STROKE_POINTS.twoCentimetre].map(gridWidth);
+  const tiers: string[][] = weights.map(() => []);
+  const step = layout.square / divisions;
+  const tier = (index: number, fromOrigin: number) =>
+    divisions === 1 ? 0 : index % divisions !== 0 ? 0 : (fromOrigin / divisions) % 2 === 0 ? 2 : 1;
+  for (let index = 0; index <= (ax.negativeSquares + ax.positiveSquares) * divisions; index += 1) {
+    const x = layout.plotLeft + index * step;
+    tiers[tier(index, Math.abs(index - ax.negativeSquares * divisions))].push(
       `<line x1="${n(x)}" y1="${n(layout.plotTop)}" x2="${n(x)}" y2="${n(layout.plotBottom)}"/>`,
     );
   }
-  for (let index = 0; index <= verticalSquares; index += 1) {
-    const y = layout.plotTop + index * layout.square;
-    lines.push(
+  const vertical = (ay.negativeSquares + ay.positiveSquares) * divisions;
+  for (let index = 0; index <= vertical; index += 1) {
+    const y = layout.plotTop + index * step;
+    tiers[tier(index, Math.abs(vertical - index - ay.negativeSquares * divisions))].push(
       `<line x1="${n(layout.plotLeft)}" y1="${n(y)}" x2="${n(layout.plotRight)}" y2="${n(y)}"/>`,
     );
   }
-  const major = `<g class="grid-lines" stroke="#a9abaa" stroke-width="${n(GRID_STROKE_WIDTH)}" fill="none">${lines.join("")}</g>`;
-  const divisions = gridDivisions(document);
-  if (divisions === 1) return major;
-  // A fine grid: thin lines between the 1 cm lines, drawn first so the 1 cm lines sit on top.
-  const minor: string[] = [];
-  const step = layout.square / divisions;
-  for (let index = 0; index < horizontalSquares * divisions; index += 1) {
-    if (index % divisions === 0) continue;
-    const x = layout.plotLeft + index * step;
-    minor.push(`<line x1="${n(x)}" y1="${n(layout.plotTop)}" x2="${n(x)}" y2="${n(layout.plotBottom)}"/>`);
-  }
-  for (let index = 0; index < verticalSquares * divisions; index += 1) {
-    if (index % divisions === 0) continue;
-    const y = layout.plotTop + index * step;
-    minor.push(`<line x1="${n(layout.plotLeft)}" y1="${n(y)}" x2="${n(layout.plotRight)}" y2="${n(y)}"/>`);
-  }
-  return `<g class="grid-lines grid-lines-fine" stroke="#a9abaa" stroke-width="${n(MINOR_GRID_STROKE_WIDTH)}" fill="none">${minor.join("")}</g>
-  ${major}`;
+  // Lighter lines first, so heavier ones sit on top.
+  const names = divisions === 1 ? ["grid-lines"] : ["grid-lines grid-lines-fine", "grid-lines", "grid-lines grid-lines-heavy"];
+  return tiers
+    .map((lines, i) => (lines.length ? `<g class="${names[i]}" stroke="#a9abaa" stroke-width="${n(weights[i])}" fill="none">${lines.join("")}</g>` : ""))
+    .filter(Boolean)
+    .join("\n  ");
 }
 
 function originMarkup(document: DiagramDocumentV1, x: number, baseline: number): string {
   if (!sharedOriginLabel(document)) return "";
-  if (document.originLabel !== "O")
+  if (document.originLabel === "0")
     return axisTickLabelMarkup("0", x, baseline, "end", true, gridDivisions(document) > 1);
   const label = mathsLetter("O", "italic");
   const tight = gridDivisions(document) > 1;
@@ -992,7 +994,7 @@ function objectsMarkup(document: DiagramDocumentV1, layout: SvgLayout, view: Gra
         : ""
     }${answerMarkup(document, answerPoints, answerLabels, answerPointLabels)}${namesMarkup(document, layout)}`;
   const shaded = fills.length ? `
-    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-clip)">${fills.join("")}</g>` : "";
+    <g class="graph-polygon-fills" stroke="none" clip-path="url(#plot-fill-clip)">${fills.join("")}</g>` : "";
   return { fills: shaded, lines, marks };
 }
 
@@ -1086,12 +1088,13 @@ export function renderDiagramSvg(document: DiagramDocumentV1, view: GraphView = 
   const { layout } = metrics;
   const axes = axesMarkup(document, layout);
   const objects = objectsMarkup(document, layout, view);
+  const bleed = plotClipBleed(document.lines);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${n(metrics.widthCm)}cm" height="${n(metrics.heightCm)}cm" viewBox="0 0 ${n(metrics.width)} ${n(metrics.height)}" role="img" aria-labelledby="diagram-title diagram-desc">
   <title id="diagram-title">Coordinate graph</title>
   <desc id="diagram-desc">${gridDescription(document)} containing ${document.objects.length} plotted object${document.objects.length === 1 ? "" : "s"}.</desc>
   <rect width="100%" height="100%" fill="#ffffff"/>
-  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
+  <defs><clipPath id="plot-clip"><rect x="${n(layout.plotLeft - bleed)}" y="${n(layout.plotTop - bleed)}" width="${n(layout.plotRight - layout.plotLeft + 2 * bleed)}" height="${n(layout.plotBottom - layout.plotTop + 2 * bleed)}"/></clipPath><clipPath id="plot-fill-clip"><rect x="${n(layout.plotLeft)}" y="${n(layout.plotTop)}" width="${n(layout.plotRight - layout.plotLeft)}" height="${n(layout.plotBottom - layout.plotTop)}"/></clipPath></defs>
   ${regionsMarkup(document, layout)}${objects.fills}${gridMarkup(document, layout)}
   ${boldInk(axes.lines, document.lines)}
   ${boldInk(objects.lines, document.lines)}

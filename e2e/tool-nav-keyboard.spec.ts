@@ -6,7 +6,7 @@ for (const width of [820, 390])
   test(`each booklet tool link is fully visible when it takes keyboard focus at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/tools/graph");
-    const nav = page.getByRole("navigation", { name: "Booklet tools", exact: true });
+    const nav = page.getByRole("navigation", { name: "Diagram builder", exact: true });
     const links = nav.getByRole("link");
     await expect(links.first()).toBeVisible();
     const count = await links.count();

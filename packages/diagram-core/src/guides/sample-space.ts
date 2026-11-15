@@ -8,7 +8,7 @@ export const ssConfig = {
   revision: si.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["sample-space-1"],
+    rendererVersions: [ss.RENDERER_VERSION],
     maximumOutcomesEachWay: ss.MAX_OUTCOMES,
     outcomeCharacters: ss.MAX_HEADING,
     eventNameCharacters: ss.MAX_TITLE,

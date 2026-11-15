@@ -8,7 +8,7 @@ export const treeConfig = {
   revision: ti.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["probability-tree-1"],
+    rendererVersions: [tree.RENDERER_VERSION],
     maximumStages: tree.MAX_DEPTH,
     branchesPerPoint: { minimum: 1, firstStageMinimum: 2, maximum: tree.MAX_CHILDREN },
     maximumBranches: tree.MAX_BRANCHES,

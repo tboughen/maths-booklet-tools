@@ -32,6 +32,10 @@ import type { TrafficLimits } from "./limits";
 import { memoryDocumentStore, type DocumentStore } from "./document-store";
 import { toolFailure } from "./tool-error";
 
+/** The A3 worksheet and A4 booklet layout versions this service writes (M19). */
+export const WORKSHEET_RENDERER_VERSION = "worksheet-a3-1" as const;
+export const BOOKLET_RENDERER_VERSION = "booklet-a4-1" as const;
+
 /** Worksheets and booklets: print-ready PDF, Word file (same layout) or the editable source. */
 export type WorksheetFormat = "pdf" | "docx" | "json";
 /** A worksheet or a booklet: both travel through the same signed download links. */
@@ -195,7 +199,7 @@ const output = z
   .object({
     resource: resourceSchema,
     contentHash: z.string(),
-    rendererVersion: z.literal("worksheet-a3-1"),
+    rendererVersion: z.literal(WORKSHEET_RENDERER_VERSION),
     printReady: z.boolean(),
     issues: z.array(
       z.object({ side: z.number(), column: z.number(), question: z.number().optional(), message: z.string() }).strict(),
@@ -209,6 +213,7 @@ const output = z
       .strict(),
     physicalSizeMm: z.object({ width: z.literal(420), height: z.literal(297) }).strict(),
     sides: z.literal(2),
+    next: z.array(z.string()),
   })
   .strict();
 
@@ -219,7 +224,7 @@ const bookletOutput = z
     // The validated booklet, same shape as the input; not repeated as a schema to keep tools/list small.
     booklet: z.record(z.string(), z.unknown()).describe("The validated booklet, in the create_booklet input shape. Edit it and call create_booklet again to change the booklet."),
     contentHash: z.string(),
-    rendererVersion: z.literal("booklet-a4-1"),
+    rendererVersion: z.literal(BOOKLET_RENDERER_VERSION),
     printReady: z.boolean(),
     pages: z.number().int(),
     issues: z.array(
@@ -245,6 +250,7 @@ const bookletOutput = z
         .strict(),
     ),
     physicalSizeMm: z.object({ width: z.literal(210), height: z.literal(297) }).strict(),
+    next: z.array(z.string()),
   })
   .strict();
 
@@ -263,7 +269,7 @@ const BOOKLET_DESCRIPTION =
   "A booklet is used with the teaching (a worksheet follows it), so each lesson holds the modelling as well as the practice. Recommended lesson shape: a one-sentence key idea naming the new words; check in first (4-5 retrieval questions on this lesson's prerequisites); worked example with columns:2 as pairs, left the worked example with numbered steps and saved answers, right 'Our turn' with the same step labels and the work left blank; Your turn (near-identical questions with the same pre-drawn diagram or empty table, help fading); diagnostic multiple choice with choice mode letters (A-D, each wrong option one named misconception, instruction 'Answer on your mini whiteboard.'); practice that fades with at least three unaided questions per case; spot the mistake with one explain-or-correct card per misconception; a short 'From earlier' check-in strip on earlier work; a challenge; and last 'Exam-style questions' in Edexcel wording with marks as text, e.g. '(Total for Question 2 is 3 marks)'. Name and use the school's method the same way wherever the skill returns, add one new step at a time, and give room for every table or working asked for. " +
   "Cards use the same items as create_worksheet (text, info, claim, bullets, table, choice, steps, checklist, answerLine, space, diagram, part); worked and notes cards are not numbered, other cards are numbered within their section. Half-width cards (columns:2) are 90.5 mm wide, so a diagram there must fit about 84 mm. Fractions print stacked, as on worksheets: write every fraction as {3/4} (a mixed number as 2{1/2}) in question text, options, steps, bullets and parts, never 1/2, ½ or ⅓; in answer lines, table cells and circle-one options 1/3 and 2 1/2 stack too. Card titles, section titles and key ideas cannot stack. A character the font lacks comes back as an issue naming the lesson and question. " +
   "Saved answers print only in the answers files; never invent answers the teacher did not give. " +
-  "For a ratio or x → / y ↑ movement table (scaling, gradients, rates) use a ratio-table diagram rather than a plain table, so the curved scaling arrows show the method, in its compact form: {type:'diagram',diagram:{tool:'ratio-table',spec:{columns:['x →','y ↑'],table:[['2','4'],['1','[2]']],steps:['÷ 2']}}}. Cells: '4' printed, '' blank, '_' answer line, '[2]' hidden answer (answers PDF only); headings end in → ↑ or ↓ (y ↓ for negative gradients); steps '× 3' or '÷ 2', '[÷ 2]' hidden for pupils. " +
+  "For a ratio or x → / y ↑ movement table (scaling, gradients, rates) use a ratio-table diagram rather than a plain table, so the curved scaling arrows show the method, in its compact form: {type:'diagram',diagram:{tool:'ratio-table',spec:{columns:['x →','y ↑'],table:[['2','4'],['1','[2]']],steps:['÷ 2']}}}. Cells: '4' printed, '' blank, '_' answer line, '[2]' hidden answer (answers PDF only); headings end in → ↑ or ↓; a gradient table is always 'y ↑', never 'y ↓': a line going down has a negative y movement, so 5 down to 1 is '-4' and the table reads [['2','-4'],['1','[-2]']] with step '÷ 2', giving gradient -2; steps '× 3' or '÷ 2', '[÷ 2]' hidden for pupils. " +
   "A whole unit (up to 12 lessons) goes in one call; requests may be up to 512 KiB, so send diagrams as specs rather than full envelopes. Returns previews of the cover and first lesson pages, whole-booklet pupil and answers PDF, pupil and answers Word file (.docx, A4, laid out page for page like the PDFs, fonts embedded) and editable JSON links (kept for 7 days), a pupil and answers PDF and Word link for every lesson, contentHash and layout issues. When issues are returned no files are made: report them and revise. To change a booklet, edit the returned booklet and call create_booklet again.";
 
 const LAYOUT = [
@@ -279,7 +285,7 @@ const LAYOUT = [
 const DESCRIPTION =
   "PRODUCE a two-sided A3 landscape worksheet in the MathsDock house style from a FINALISED question set. " +
   "Supply resource:{tool:'resource',schemaVersion:1,document:{kind:'worksheet-a3',title,code,objective,group?,nameLine?,notation:'maths' (always on a new worksheet, so {3/4} prints as a stacked fraction),spareSpace:'share' (always on a new worksheet; leave a returned or saved sheet's value as it is),sides:[2 sides, each {instruction?,layout?,score?,columns:[1-3 columns to match layout, each {heading,cards:[{title,stage?,items,working?}]}]}]}}. " +
-  "Cards are numbered automatically across both sides; a reminder card (only info items) is not numbered, because only questions take numbers, so count only question cards when a stem says 'Question N' (issues flag a reference to the card itself or past the last question, and a wrong 'Total for Question N'). Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline}, space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Text markup is only **bold** and *italic*, plus {3/4} for a stacked fraction: write every fraction this way, never 1/2 or ½. " +
+  "Cards are numbered automatically across both sides; a reminder card (only info items) is not numbered, because only questions take numbers, so count only question cards when a stem says 'Question N' (issues flag a reference to the card itself or past the last question, and a wrong 'Total for Question N'). Items: text, info (pale key-fact card), claim (a pupil's statement), bullets, table (cells with state supplied|blank|hidden), choice (circle|tick|letters options), steps (worked method lines), checklist (pupil tick boxes), answerLine {prefix,suffix,answer,inline} (inline:true for a single number or short answer: alone it prints a short 30 mm line after its prefix, and several in a row share it; inline:false is a full-width line for a sentence), space {kind:working|drawing,heightMm}, paper {style:squared|dotted|graph,widthMm,heightMm,axes?:{originMm:{x,y}}} (blank grid, optional unnumbered axes), diagram {diagram:{tool:<diagram kind>, envelope}} using the exact envelope a create_diagram call returned, or {tool, spec} with that family's create_diagram spec, and part {text,items} for lettered parts. Any item but a part may have beside:true: it prints to the right of the item before it, in one row (two items a row; not the first item, not after a part, not with inline answer lines), e.g. a small graph with its ratio table beside it; a diagram keeps its printed width and text takes the rest. Text markup is only **bold** and *italic*, plus {3/4} for a stacked fraction: write every fraction this way, never 1/2 or ½. " +
   "Saved answers (answerLine.answer, hidden cells, hidden diagram values) print only in the answers files (PDF and Word); never invent answers the teacher did not give. " +
   "Returns side previews, pupil and answers vector PDFs, pupil and answers Word files (.docx, A3, fonts embedded, same layout as the PDFs; editing the pupil .docx does not change the answers .docx or the JSON), editable JSON, contentHash, layout issues and notes. Give the teacher the returned PDF and Word links as links; do not try to download them yourself. A note names a column more than a third blank: the sheet is print-ready, but offer the teacher an extra question there and add it only if they agree. A note naming a question means a fraction there will not print stacked: rewrite it as {3/4} and create again. When issues are returned the sheet is not print-ready: report them and revise the document; do not claim it fits. To change a worksheet, edit the returned resource and call create_worksheet again.";
 
@@ -475,7 +481,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       structuredContent: {
         booklet,
         contentHash: hash,
-        rendererVersion: "booklet-a4-1" as const,
+        rendererVersion: BOOKLET_RENDERER_VERSION,
         printReady,
         pages: pupil.pages.length,
         issues: pupil.issues,
@@ -483,6 +489,12 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         downloads: links,
         lessons,
         physicalSizeMm: { width: 210 as const, height: 297 as const },
+        next: printReady
+          ? [
+              "Give the teacher the download links exactly as returned.",
+              "To change the booklet, edit the returned booklet and call create_booklet again; keep unchanged questions, blanks and answers as they are.",
+            ]
+          : ["Fix each issue (split or move a card, or trim wording; text and handwriting space are never shrunk), then call create_booklet again with the edited booklet."],
       },
       content,
     };
@@ -566,7 +578,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
       structuredContent: {
         resource,
         contentHash: hash,
-        rendererVersion: "worksheet-a3-1" as const,
+        rendererVersion: WORKSHEET_RENDERER_VERSION,
         printReady,
         issues: pupil.issues,
         notes,
@@ -574,6 +586,15 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         downloads: links,
         physicalSizeMm: { width: 420 as const, height: 297 as const },
         sides: 2 as const,
+        next: !printReady
+          ? ["Fix each issue (split or move a card, or trim wording; text and handwriting space are never shrunk), then call create_worksheet again with the edited resource."]
+          : fractions.length
+            ? ["Unless the teacher asked to keep the wording exactly, rewrite each fraction a note names as {3/4} with notation 'maths' and call create_worksheet again before giving the teacher the files."]
+            : [
+                "Give the teacher the download links exactly as returned.",
+                ...(space.length ? ["Tell the teacher which columns have spare room; add a question only if they agree."] : []),
+                "To change the worksheet, edit the returned resource and call create_worksheet again; keep unchanged questions, blanks and answers as they are.",
+              ],
       },
       content,
     };
@@ -588,13 +609,13 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         inputSchema: z.object({}).strict(),
         // M13: the reply is also structuredContent; the named fields are the ones a client relies on.
         outputSchema: z
-          .object({ rendererVersion: z.literal("worksheet-a3-1"), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal("booklet-a4-1") }).passthrough() })
+          .object({ rendererVersion: z.literal(WORKSHEET_RENDERER_VERSION), kinds: z.array(z.string()), limits: z.record(z.string(), z.number()), items: z.array(z.string()), booklet: z.object({ tool: z.literal("create_booklet"), rendererVersion: z.literal(BOOKLET_RENDERER_VERSION) }).passthrough() })
           .passthrough(),
         annotations,
       },
       async () => {
         const value = {
-          rendererVersion: "worksheet-a3-1",
+          rendererVersion: WORKSHEET_RENDERER_VERSION,
           kinds: ["worksheet-a3", "booklet-a4"],
           layout: LAYOUT,
           columnWidthsMm: Object.fromEntries(
@@ -609,7 +630,7 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
           fileNames: "[code]_[objective]_A3.pdf and [code]_[objective]_Answers_A3.pdf, with the same names ending .docx for Word",
           booklet: {
             tool: "create_booklet",
-            rendererVersion: "booklet-a4-1",
+            rendererVersion: BOOKLET_RENDERER_VERSION,
             layout: BOOKLET_LAYOUT,
             limits: { lessons: 12, sectionsPerLesson: 12, cardsPerSection: 16, keyIdeaChars: 500, keywords: 16 },
             sectionKinds: ["check-in", "worked", "practice", "diagnostic", "mistake", "challenge", "discover", "notes"],

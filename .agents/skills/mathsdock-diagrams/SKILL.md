@@ -32,7 +32,7 @@ Current connector builds have three diagram tools that work for every family:
 | Venn diagram, set shading | `venn` |
 | Expanding or factorising grid | `algebra-grid` |
 | Bar model (part-whole, comparison, equal parts) | `bar-model` |
-| Bar, dual, composite or vertical line chart | `charts` |
+| Bar, dual, composite, vertical line or pie chart, pictogram or scatter graph | `charts` |
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 | Constructions, loci, scale drawing, map, bearings | `construction` |
@@ -111,8 +111,10 @@ expected: fix that field and try once more rather than guessing a different payl
   version. A factor change uses a nested transition, for example
   `{"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}`.
   A `hidden` cell (`{kind:"hidden",value}`) and a transition with `hidden: true` print only in
-  the answers copy (`outputView: "answer"`); headings point right, up or down (`y ↓` for
-  negative gradients).
+  the answers copy (`outputView: "answer"`); headings point right, up or down, but a
+  gradient table is always `y ↑`, never `y ↓`: a line going down has a negative `y`
+  movement, so 5 down to 1 is `-4`, the table reads `2 | -4`, then `÷ 2` gives `1 | -2`
+  (the gradient).
 - **Value graphs.** Keep blank, answer-line and zero cells distinct, hidden labels and any
   deliberate plotting errors. Calculating cells and worked plots are explicit actions.
 - **Cuboids.** Dimension edits respect cube locking; enabling it needs an explicit

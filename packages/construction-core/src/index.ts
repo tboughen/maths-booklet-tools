@@ -3,6 +3,9 @@ import { z } from "zod";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { defineEnvelope } from "../../envelope-core/src/index";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "construction-1" as const;
+
 /**
  * Constructions, loci, scale drawings and bearings (Hanley GM8), drawn at true size on plain or
  * centimetre-squared paper so pupils can construct on the printed sheet with a ruler, compasses
@@ -157,7 +160,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("construction"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("construction-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -393,7 +396,7 @@ export function blank(width = 12, height = 8): Envelope {
   return {
     tool: "construction",
     schemaVersion: 1,
-    rendererVersion: "construction-1",
+    rendererVersion: RENDERER_VERSION,
     document: { width, height, grid: "none", border: false, caption: label(), points: [], objects: [] },
   };
 }

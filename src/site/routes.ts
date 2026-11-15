@@ -22,6 +22,8 @@ export const toolIds = [
   "construction",
   "elevations",
   "two-way-table",
+  "angles",
+  "area",
   "factor-tree",
   "sample-space",
 ] as const;

@@ -55,6 +55,9 @@ body { background: #f2f5f8; }
 .site-panel, .booklet-editor .panel-card { background: white; border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
 .site-overview { max-width: 1120px; padding: 36px 20px; margin: 0 auto; }
 .site-overview .page-heading { margin-bottom: 24px; }
+/* The Diagram builder lines up with the other main pages: heading at the top left. */
+.site-overview-tools { max-width: none; padding: 16px 20px 36px; }
+.site-overview-tools .page-heading { margin-bottom: 14px; }
 .site-footer { margin-top: 24px; border-top: 1px solid var(--line); background: var(--paper); }
 .site-footer-inner { max-width: 1120px; margin: 0 auto; padding: 24px 20px 32px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 32px; }
 .site-footer h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #213c59; }
@@ -160,6 +163,7 @@ body { background: #f2f5f8; }
   .site-tool-navigation { padding-inline: 8px; }
   .site-tool-navigation a { padding-inline: 9px; }
   .site-overview { padding: 24px 12px; }
+  .site-overview-tools { padding-top: 12px; }
   .site-footer-inner { grid-template-columns: 1fr; gap: 16px; padding: 20px 12px 24px; }
   .overview-cards { grid-template-columns: 1fr; gap: 12px; }
   .overview-card { padding: 22px; }
@@ -198,8 +202,8 @@ body { background: #f2f5f8; }
   .overview-tool-card { grid-template-columns: minmax(0,1fr); }
   .overview-tool-preview { max-width: 240px; }
 }
-/* Keep all four destinations together when the full header needs a second row. */
-@media (min-width: 621px) and (max-width: 1200px) {
+/* Keep all six destinations together when the full header needs a second row; one row needs about 1,320 px. */
+@media (min-width: 621px) and (max-width: 1340px) {
   .site-navigation-row { gap: 16px; flex-wrap: wrap; }
   .site-sections { flex-wrap: wrap; }
 }

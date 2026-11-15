@@ -5,9 +5,12 @@
  */
 import { z } from "zod";
 import { DIAGRAM_KINDS, FAMILIES, type DiagramKind } from "./registry";
+import { SPEC_FIELD_DOCS } from "./field-docs";
 import * as graph from "../../graph-core/src/interchange";
 import * as ratio from "../../ratio-table-core/src/interchange";
 import * as ci from "../../cuboid-core/src/interchange";
+import * as cuboid from "../../cuboid-core/src/index";
+import * as valueSchema from "../../value-graph-core/src/schema";
 import * as line from "../../number-line-core/src/index";
 import * as venn from "../../venn-core/src/index";
 import * as vi from "../../venn-core/src/interchange";
@@ -22,6 +25,8 @@ import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
 import { elevationsConfig } from "./guides/elevations";
+import { anglesConfig } from "./guides/angles";
+import { areaConfig } from "./guides/area";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -88,14 +93,14 @@ const ratioGuide: FamilyGuide = {
     revisionOperations: ratio.ratioOperationSchema.options.map((o) => o.shape.op.value),
   },
   create:
-    "Lesson-style ratio table with 1-6 rows and 1-3 columns; omit spec for a blank two-column table with two empty rows. Every table is schemaVersion 2 / ratio-2; spec.schemaVersion may be omitted. Each row has one explicit cell per column: {kind:number,value:string}, {kind:empty}, {kind:answer-line} or {kind:hidden,value,line?} (a saved answer: blank, or an answer line with line:true, in the pupil copy; printed in the answer colour only in the answers copy, outputView answer). A transition with hidden:true prints its operation only in the answers copy; pupils get an answer line beside the arrow. Row IDs default to row-1, row-2. A transition between adjacent rows applies one operation to every column. mode annotated shows the curved arrows and factors; simple hides them. Default headings x → and y ↑; direction is right, up, down or none (y ↓ for a negative gradient). Compact form for booklets and worksheets with many tables, instead of headings/rows/transitions: {columns:[\"x →\",\"y ↓\"], table:[[\"2\",\"6\"],[\"1\",\"[3]\"]], steps:[\"[÷ 2]\"]}. A cell is \"3\", \"-1/2\", \"2 1/2\" (a mixed number), \"\" (empty), \"_\" (answer line), \"[3]\" (hidden answer) or \"[3]_\" (hidden answer on an answer line); a step is \"\" (none), \"× 2\" or \"÷ 2\", in brackets to hide it; any step turns the arrows on. Numbers (cells, hidden answers and factors) are integers, decimals (up to 6 places), fractions such as 5/2, or mixed numbers such as \"2 1/2\" or \"2½\" (saved as \"2 1/2\"; the fraction part is less than 1). Fractions always print stacked; a mixed number prints the whole number beside a stacked fraction. Write the number in the form pupils should see: 5/2 stays improper and 2 1/2 stays mixed. Keep unanswered cells even when the answer is calculable.",
+    "Lesson-style ratio table with 1-6 rows and 1-3 columns; omit spec for a blank two-column table with two empty rows. Every table is schemaVersion 2 / ratio-2; spec.schemaVersion may be omitted. Each row has one explicit cell per column: {kind:number,value:string}, {kind:empty}, {kind:answer-line} or {kind:hidden,value,line?} (a saved answer: blank, or an answer line with line:true, in the pupil copy; printed in the answer colour only in the answers copy, outputView answer). A transition with hidden:true prints its operation only in the answers copy; pupils get an answer line beside the arrow. Row IDs default to row-1, row-2. A transition between adjacent rows applies one operation to every column. mode annotated shows the curved arrows and factors; simple hides them. Default headings x → and y ↑; direction is right, up, down or none. For a gradient always head the y column y ↑: a line going down has a negative y movement (5 down to 1 is -4), so the table reads 2 | -4, then ÷ 2, giving 1 | -2, the gradient. Never use y ↓ for a gradient. Compact form for booklets and worksheets with many tables, instead of headings/rows/transitions: {columns:[\"x →\",\"y ↑\"], table:[[\"2\",\"-4\"],[\"1\",\"[-2]\"]], steps:[\"[÷ 2]\"]}. A cell is \"3\", \"-1/2\", \"2 1/2\" (a mixed number), \"\" (empty), \"_\" (answer line), \"[3]\" (hidden answer) or \"[3]_\" (hidden answer on an answer line); a step is \"\" (none), \"× 2\" or \"÷ 2\", in brackets to hide it; any step turns the arrows on. Numbers (cells, hidden answers and factors) are integers, decimals (up to 6 places), fractions such as 5/2, or mixed numbers such as \"2 1/2\" or \"2½\" (saved as \"2 1/2\"; the fraction part is less than 1). Fractions always print stacked; a mixed number prints the whole number beside a stacked fraction. Write the number in the form pupils should see: 5/2 stays improper and 2 1/2 stays mixed. Keep unanswered cells even when the answer is calculable.",
   revise:
     'Each operation is {op,...}: add_column {heading:{text,italic,direction}}; remove_column {column}; set_cell {rowId,column,cell}; add_row {after,row:{id,cells}}; remove_row {rowId}; set_transition {transition:{from,to,operation,factor}}; remove_transition {from}; set_headings {headings}; set_size {size}; set_lines {lines:normal|bold} (normal is not saved); set_annotation_visibility {mode?,showArrows?,showOperations?}; fill_next_row {from,overwrite?}. Example: {"op":"set_transition","transition":{"from":"start","to":"target","operation":"multiply","factor":"4"}}. Column indexes are zero-based; after is a row ID or null. fill_next_row solves only when the user explicitly asks, and overwriting needs overwrite:true.',
 };
 
 const valueGuide: FamilyGuide = {
   capabilities: {
-    rendererVersion: "value-graph-1",
+    rendererVersion: valueSchema.RENDERER_VERSION,
     columns: { minimum: 2, maximum: 13 },
     maximumPoints: 40,
     maximumRevisionOperations: 40,
@@ -114,8 +119,8 @@ const valueGuide: FamilyGuide = {
 const cuboidGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["cuboids-2"],
-    defaultRendererVersion: "cuboids-2",
+    rendererVersions: [cuboid.RENDERER_VERSION],
+    defaultRendererVersion: cuboid.RENDERER_VERSION,
     shapes: { minimum: 1, maximum: 3 },
     widthCm: { minimum: 4, maximum: 18 },
     views: ["plain", "cubes", "layers"],
@@ -137,7 +142,7 @@ const cuboidGuide: FamilyGuide = {
 const lineGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["number-line-1"],
+    rendererVersions: [line.RENDERER_VERSION],
     styleProfile: "examination-v1",
     widthCm: { minimum: 8, maximum: 18 },
     tickIntervals: { minimum: 2, maximum: 32 },
@@ -159,8 +164,8 @@ const lineGuide: FamilyGuide = {
 const vennGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["venn-2"],
-    defaultRendererVersion: "venn-2",
+    rendererVersions: [venn.RENDERER_VERSION],
+    defaultRendererVersion: venn.RENDERER_VERSION,
     setCounts: [1, 2, 3],
     arrangements: venn.arrangements,
     shapes: ["circles", "ovals"],
@@ -197,12 +202,8 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "algebra-grid": fromConfig(algebraConfig),
   "bar-model": {
     capabilities: { ...barConfig.capabilities, maximumRequestBytes: 32768 },
-    create:
-      "Bar models keep one shared unit width and stable anchored annotations; labels never set widths or calculate answers. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
-      barConfig.createDescription,
-    revise:
-      "Deleting structure an annotation refers to needs explicit annotation removal or discard intent. " +
-      barConfig.reviseDescription,
+    create: barConfig.createDescription,
+    revise: barConfig.reviseDescription,
   },
   charts: fromConfig(chartConfig),
   "probability-tree": fromConfig(treeConfig),
@@ -216,13 +217,97 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   },
   construction: fromConfig(constructionConfig),
   elevations: fromConfig(elevationsConfig),
+  angles: fromConfig(anglesConfig),
+  area: fromConfig(areaConfig),
 };
 
-const jsonSchema = (schema: z.ZodType) => {
-  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
+const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
+  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any", reused }) as Record<string, unknown>;
   delete s.$schema;
   return s;
 };
+/** M10: the family's top-level spec fields get their short description, unless the core gave one. */
+export function withFieldDocs(spec: unknown, docs: Readonly<Record<string, string>>) {
+  const properties = (spec as { properties?: Record<string, Record<string, unknown>> } | null)?.properties;
+  if (properties) for (const [key, field] of Object.entries(properties)) if (!field.description && docs[key]) field.description = docs[key];
+  return spec;
+}
+/**
+ * M1/M14: a family's spec or operations schema, written once. Shapes the schema reuses (a label,
+ * an annotation, a point) can go in its own $defs and be referred to with $ref; that form is used
+ * only when it is smaller, because hoisting a tiny shape costs more than repeating it.
+ */
+const leanSchema = (schema: z.ZodType | undefined) => {
+  if (!schema) return null;
+  const inline = jsonSchema(schema),
+    shared = readableDefs(jsonSchema(schema, "ref"));
+  return JSON.stringify(shared).length < JSON.stringify(inline).length ? shared : inline;
+};
+/**
+ * Puts small or single-use shapes back inline (a $ref to an id string reads worse than the
+ * string) and names the rest after what they hold, e.g. "text-state" for a label.
+ */
+function readableDefs(root: Record<string, unknown>): Record<string, unknown> {
+  const defs = { ...((root.$defs as Record<string, unknown>) ?? {}) };
+  type Visit = (name: string, siblings: Record<string, unknown>) => unknown;
+  // A reference may carry its own keys beside $ref (a description, say); they are kept.
+  const walk = (v: unknown, visit: Visit): unknown => {
+    if (Array.isArray(v)) return v.map((x) => walk(x, visit));
+    if (!v || typeof v !== "object") return v;
+    const { $ref, ...rest } = v as Record<string, unknown>;
+    const siblings = Object.fromEntries(Object.entries(rest).map(([k, x]) => [k, walk(x, visit)]));
+    const name = typeof $ref === "string" ? ($ref.split("/").pop() as string) : null;
+    if (name !== null && Object.hasOwn(defs, name)) return visit(name, siblings);
+    return $ref === undefined ? siblings : { $ref, ...siblings };
+  };
+  const keep: Visit = (n, siblings) => ({ $ref: `#/$defs/${n}`, ...siblings });
+  const body = Object.fromEntries(Object.entries(root).filter(([k]) => k !== "$defs"));
+  // Inline until stable: a def used once, or short enough that a reference saves nothing.
+  for (let changed = true; changed; ) {
+    changed = false;
+    const uses = new Map<string, number>();
+    walk({ body, defs }, (n, siblings) => (uses.set(n, (uses.get(n) ?? 0) + 1), keep(n, siblings)));
+    for (const [name, def] of Object.entries(defs)) {
+      if ((uses.get(name) ?? 0) > 1 && JSON.stringify(def).length > 60) continue;
+      if (JSON.stringify(def).includes(`/${name}"`)) continue; // recursive: must stay a reference
+      const swap = (v: unknown): unknown =>
+        walk(v, (n, siblings) => (n === name ? { ...(swap(def) as object), ...siblings } : keep(n, siblings)));
+      for (const [k, d] of Object.entries(defs)) if (k !== name) defs[k] = swap(d);
+      Object.assign(body, swap(body));
+      delete defs[name];
+      changed = true;
+      break;
+    }
+  }
+  // A shape that is not an object is named after the first property that uses it ("hidden").
+  const usedAs = new Map<string, string>();
+  const findUses = (v: unknown, key: string) => {
+    if (Array.isArray(v)) return v.forEach((x) => findUses(x, key));
+    if (!v || typeof v !== "object") return;
+    const ref = (v as { $ref?: unknown }).$ref;
+    if (typeof ref === "string") {
+      const n = ref.split("/").pop() as string;
+      if (!usedAs.has(n) && /^[A-Za-z][A-Za-z0-9]*$/.test(key)) usedAs.set(n, key);
+    }
+    for (const [k, x] of Object.entries(v)) findUses(x, k === "items" || k === "anyOf" || k === "oneOf" || k === "properties" ? key : k);
+  };
+  findUses({ body, defs }, "");
+  const names = new Map<string, string>(),
+    taken = new Set<string>();
+  for (const [name, def] of Object.entries(defs)) {
+    const d = def as { properties?: Record<string, unknown> };
+    const keys = d.properties ? Object.keys(d.properties).filter((k) => /^[A-Za-z][A-Za-z0-9]*$/.test(k)).slice(0, 3) : [];
+    let base = keys.length ? keys.join("-") : (usedAs.get(name) ?? "shape");
+    if (taken.has(base)) for (let i = 2; ; i++) if (!taken.has(`${base}${i}`)) { base = `${base}${i}`; break; }
+    taken.add(base);
+    names.set(name, base);
+  }
+  const rename = (v: unknown): unknown => walk(v, (n, siblings) => ({ $ref: `#/$defs/${names.get(n)}`, ...siblings }));
+  const out = rename(body) as Record<string, unknown>;
+  if (names.size) out.$defs = Object.fromEntries([...names].map(([old, next]) => [next, rename(defs[old])]));
+  return out;
+}
+const field = (schema: z.ZodType, name: string) => (schema as unknown as { shape?: Record<string, z.ZodType> }).shape?.[name];
 const cache = new Map<DiagramKind, Record<string, unknown>>();
 /** Everything diagram_capabilities returns for one family, built once per process. */
 export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
@@ -230,8 +315,6 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
   if (!v) {
     const f = FAMILIES[kind],
       g = GUIDES[kind];
-    const create = jsonSchema(f.createSchema) as { properties?: Record<string, unknown> };
-    const revise = jsonSchema(f.revisionSchema) as { properties?: Record<string, unknown> };
     v = {
       kind,
       label: f.label,
@@ -243,8 +326,8 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: create.properties?.spec ?? null,
-      operationsSchema: revise.properties?.operations ?? null,
+      specSchema: withFieldDocs(leanSchema(field(f.createSchema, "spec")), SPEC_FIELD_DOCS[kind]),
+      operationsSchema: leanSchema(field(f.revisionSchema, "operations")),
     };
     cache.set(kind, v);
   }
@@ -265,7 +348,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
@@ -274,7 +357,9 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
   elevations: ["plans and elevations", "isometric drawings of cube solids"],
+  angles: ["angles on a line and round a point", "vertically opposite angles", "angles in parallel lines", "polygon interior and exterior angles"],
+  area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "pictograms", "pie charts", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

@@ -44,6 +44,10 @@ import * as construction from "../../construction-core/src/index";
 import * as constructionIo from "../../construction-core/src/interchange";
 import * as elevations from "../../elevation-core/src/index";
 import * as elevationsIo from "../../elevation-core/src/interchange";
+import * as angles from "../../angle-core/src/index";
+import * as anglesIo from "../../angle-core/src/interchange";
+import * as area from "../../area-core/src/index";
+import * as areaIo from "../../area-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -63,6 +67,8 @@ export const DIAGRAM_KINDS = [
   "triangle",
   "construction",
   "elevations",
+  "angles",
+  "area",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -273,8 +279,8 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
   }),
   charts: family<chart.Envelope>({
     kind: "charts",
-    label: "bar or line chart",
-    summary: "Bar, dual, composite and vertical line charts on exam axes, with bars left for pupils.",
+    label: "statistical chart",
+    summary: "Bar, dual, composite and vertical line charts on exam axes, pie charts at true size, pictograms and scatter graphs, with bars, sectors, rows or points left for pupils.",
     route: "/tools/charts",
     answerView: true,
     envelopeSchema: chart.envelopeSchema,
@@ -441,6 +447,44 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => elevationsIo.revise(input),
     hash: elevations.hash,
     svg: (e, view) => elevations.renderSvg(e, view),
+  }),
+  angles: family<angles.Envelope>({
+    kind: "angles",
+    label: "angle diagram",
+    summary: "Angle facts: straight lines, round a point, crossing lines, parallel lines with a transversal, polygons (interior and exterior); sizes given, letters, blanks or hidden answers.",
+    route: "/tools/angles",
+    answerView: true,
+    envelopeSchema: angles.envelopeSchema,
+    createSchema: anglesIo.createSchema,
+    revisionSchema: anglesIo.revisionSchema,
+    validate: (raw) => {
+      const e = angles.validate(raw);
+      check(angles.exportIssue(e));
+      return e;
+    },
+    create: (input) => anglesIo.create(input),
+    revise: (input) => anglesIo.revise(input),
+    hash: angles.hash,
+    svg: (e, view) => angles.renderSvg(e, view),
+  }),
+  area: family<area.Envelope>({
+    kind: "area",
+    label: "area and perimeter diagram",
+    summary: "Area and perimeter: compound rectilinear shapes, triangles, trapeziums, semicircles added or cut out, shapes with holes, circles, semicircles, quarter circles and sectors; lengths given, letters, blanks or hidden answers.",
+    route: "/tools/area",
+    answerView: true,
+    envelopeSchema: area.envelopeSchema,
+    createSchema: areaIo.createSchema,
+    revisionSchema: areaIo.revisionSchema,
+    validate: (raw) => {
+      const e = area.validate(raw);
+      check(area.exportIssue(e));
+      return e;
+    },
+    create: (input) => areaIo.create(input),
+    revise: (input) => areaIo.revise(input),
+    hash: area.hash,
+    svg: (e, view) => area.renderSvg(e, view),
   }),
 };
 

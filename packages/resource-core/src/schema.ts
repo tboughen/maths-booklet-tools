@@ -60,9 +60,16 @@ export const diagramSchema = diagramInput.superRefine((d, ctx) => {
   }
 });
 
+/**
+ * beside: true prints an item to the right of the item before it, in one row of the card (a small
+ * graph with its ratio table beside it). Only two items share a row. A diagram or grid paper keeps
+ * its printed width; text and other flowing items take the rest of the row (Tim, 15 Nov 2026).
+ */
+const beside = z.literal(true).optional();
 const answerLine = z
   .object({
     type: z.literal("answerLine"),
+    beside,
     /** Printed before the line, e.g. "x =" or "Class A:". */
     prefix: text(40).default(""),
     /** Printed after the line, e.g. "cm". */
@@ -75,13 +82,14 @@ const answerLine = z
   .strict();
 
 const leafItems = [
-  z.object({ type: z.literal("text"), text: text(600) }).strict(),
-  z.object({ type: z.literal("info"), text: text(400) }).strict(),
-  z.object({ type: z.literal("claim"), text: text(300) }).strict(),
-  z.object({ type: z.literal("bullets"), items: z.array(text(200)).min(1).max(8) }).strict(),
+  z.object({ type: z.literal("text"), beside, text: text(600) }).strict(),
+  z.object({ type: z.literal("info"), beside, text: text(400) }).strict(),
+  z.object({ type: z.literal("claim"), beside, text: text(300) }).strict(),
+  z.object({ type: z.literal("bullets"), beside, items: z.array(text(200)).min(1).max(8) }).strict(),
   z
     .object({
       type: z.literal("table"),
+      beside,
       columns: z.array(text(40)).min(2).max(6),
       rows: z.array(z.array(cellSchema).min(2).max(6)).min(1).max(12),
     })
@@ -89,6 +97,7 @@ const leafItems = [
   z
     .object({
       type: z.literal("choice"),
+      beside,
       /**
        * circle: options on one row, pupil circles one. tick: one box per option, stacked.
        * letters: lettered options A, B, C… for mini-whiteboard hinge questions.
@@ -103,15 +112,17 @@ const leafItems = [
   z
     .object({
       type: z.literal("space"),
+      beside,
       /** working: blank room for calculations. drawing: open area for a sketch or chart. */
       kind: z.enum(["working", "drawing"]),
       heightMm: z.number().min(8).max(200),
     })
     .strict(),
-  z.object({ type: z.literal("diagram"), diagram: diagramSchema }).strict(),
+  z.object({ type: z.literal("diagram"), beside, diagram: diagramSchema }).strict(),
   z
     .object({
       type: z.literal("steps"),
+      beside,
       /** A worked method, one step a line: "Step 1: Mark two perfect points." An empty label prints "Step n". */
       steps: z
         .array(z.object({ label: text(24).default(""), text: text(300) }).strict())
@@ -122,6 +133,7 @@ const leafItems = [
   z
     .object({
       type: z.literal("paper"),
+      beside,
       /**
        * Blank grid for pupils to draw on. squared: 5 mm squares. dotted: 5 mm dot grid.
        * graph: exam graph paper, 2 mm squares with a bold line every 10 mm.
@@ -146,6 +158,7 @@ const leafItems = [
   z
     .object({
       type: z.literal("checklist"),
+      beside,
       /** Self-check boxes the pupil ticks as they work ("Mark two perfect points"). Nothing is saved as an answer. */
       items: z.array(text(120)).min(1).max(6),
     })
@@ -153,6 +166,37 @@ const leafItems = [
 ] as const;
 
 export const leafSchema = z.discriminatedUnion("type", leafItems);
+
+type Listed = { type: string; beside?: true; inline?: boolean };
+/** Why the item at `i` cannot have beside where it is, or null. */
+export function besideIssueAt(list: readonly Listed[], i: number): string | null {
+  const it = list[i];
+  if (!it?.beside) return null;
+  const prev = list[i - 1];
+  const inline = (x: Listed) => x.type === "answerLine" && !!x.inline;
+  if (!prev) return "The first item has beside, but there is no item before it to sit beside.";
+  if (prev.type === "part") return "An item cannot sit beside a lettered part. Put both items inside the part instead.";
+  if (prev.beside) return "Only two items share a row: this item and the one before it both have beside.";
+  if (inline(it) || inline(prev)) return "Inline answer lines share a row already; they cannot also use beside.";
+  return null;
+}
+/** The first item in a list of card or part items that breaks the beside rule, or null. */
+export function besideProblem(list: readonly Listed[]): { index: number; message: string } | null {
+  for (let i = 0; i < list.length; i++) {
+    const message = besideIssueAt(list, i);
+    if (message) return { index: i, message };
+  }
+  return null;
+}
+const itemList = <T extends z.ZodType<Listed>>(item: T, max: number, min = 0) =>
+  z
+    .array(item)
+    .min(min)
+    .max(max)
+    .superRefine((list, ctx) => {
+      const problem = besideProblem(list);
+      if (problem) ctx.addIssue({ code: "custom", path: [problem.index, "beside"], message: problem.message });
+    });
 /**
  * A worked solution kept with the question: never printed (pupil or answers copy). It lets a
  * reviewer or teacher check the saved answers. Several lines are allowed.
@@ -168,7 +212,7 @@ export const partSchema = z
   .object({
     type: z.literal("part"),
     text: text(400),
-    items: z.array(leafSchema).max(8).default([]),
+    items: itemList(leafSchema, 8).default([]),
     working: workingSchema.optional(),
   })
   .strict();
@@ -177,7 +221,7 @@ export const itemSchema = z.discriminatedUnion("type", [...leafItems, partSchema
 export const cardSchema = z
   .object({
     title: text(60),
-    items: z.array(itemSchema).min(1).max(16),
+    items: itemList(itemSchema, 16, 1),
     /** Starts a new labelled stage band (the next letter) above this card: stages on wider layouts. */
     stage: text(40).optional(),
     working: workingSchema.optional(),

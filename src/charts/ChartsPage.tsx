@@ -9,6 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -36,6 +37,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import {
   addCategory,
   addSeries,
+  axisKind,
   canonical,
   create,
   drawnSeries,
@@ -51,6 +53,23 @@ import {
   MAX_SERIES,
   minorChoices,
   parseFile,
+  PIE_RADIUS,
+  SYMBOL_MM,
+  pictogramOf,
+  symbolChoices,
+  symbolNames,
+  MAX_POINTS,
+  MAX_READINGS,
+  SCATTER_MM,
+  scatterTableChoices,
+  scatterTableNames,
+  scatterOf,
+  type ScatterSettings,
+  pieLabelChoices,
+  pieLabelNames,
+  pieOf,
+  pieLayout,
+  round1,
   removeCategory,
   removeSeries,
   renderSvg,
@@ -63,7 +82,7 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
@@ -75,29 +94,8 @@ function fresh() {
   return e;
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return {
-          e: fresh(),
-          recovery: raw,
-          message:
-            "Saved chart data needs recovery. Download the original before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      e: fresh(),
-      recovery: null,
-      message:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { e: fresh(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: fresh, recoveryMessage: "Saved chart data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Text field that keeps its draft while typing and commits on Enter or leaving
@@ -164,6 +162,309 @@ function DraftField({
   );
 }
 
+/** Settings cards for a scatter graph: points, axes and grid, and the line of best fit with readings. */
+function ScatterCards({
+  sc,
+  blocked,
+  selected,
+  issues,
+  onChange,
+  linesControl,
+}: {
+  sc: ScatterSettings;
+  blocked: boolean;
+  selected: string | null;
+  issues: string[];
+  onChange: (update: (s: ScatterSettings) => void) => void;
+  linesControl: React.ReactNode;
+}) {
+  const bad = (prefix: string) => issues.some((x) => x.startsWith(prefix));
+  /** Marks the axis field each axis error is about. */
+  const axisBad = (axis: string, field: "min" | "max" | "step") =>
+    issues.some((x) => {
+      if (!x.includes(`${axis} axis`) || x.startsWith("Reading")) return false;
+      if (field === "min") return x.includes("axis start") || x.includes("greater than its start");
+      if (field === "max") return x.includes("axis end");
+      return x.includes("axis step") || x.includes("steps on the") || x.includes("Small grid squares");
+    });
+  const axisFields = (key: "xAxis" | "yAxis", name: string) => (
+    <fieldset className="ch-fieldset">
+      <legend>{name} axis</legend>
+      <div className="ch-fields">
+        {(["min", "max", "step"] as const).map((f) => (
+          <label key={f}>
+            {{ min: "Start", max: "End", step: "Step" }[f]}
+            <DraftField
+              label={`${name} axis ${{ min: "start", max: "end", step: "step" }[f]}`}
+              value={sc[key][f]}
+              maxLength={12}
+              inputMode="decimal"
+              disabled={blocked}
+              invalid={axisBad(name.toLowerCase(), f)}
+              onCommit={(v) => onChange((s) => void (s[key][f] = v))}
+            />
+          </label>
+        ))}
+        <label>
+          Length (mm)
+          <select
+            aria-label={`${name} axis length`}
+            value={sc[key].mm}
+            disabled={blocked}
+            onChange={(ev) => onChange((s) => void (s[key].mm = Number(ev.target.value)))}
+          >
+            {[...new Set([40, 60, 80, 100, 120, 140, 160, sc[key].mm])]
+              .filter((x) => x >= SCATTER_MM.minimum && x <= SCATTER_MM.maximum)
+              .sort((a, b) => a - b)
+              .map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className="ch-wide">
+          Title
+          <DraftField label={`${name} axis title`} value={sc[key].title} maxLength={40} disabled={blocked} onCommit={(v) => onChange((s) => void (s[key].title = v))} />
+        </label>
+        <label className="ch-check">
+          <input
+            type="checkbox"
+            aria-label={`Break the ${name.toLowerCase()} axis`}
+            checked={sc[key].broken}
+            disabled={blocked}
+            onChange={(ev) => onChange((s) => void (s[key].broken = ev.target.checked))}
+          />
+          Zig-zag break (axis does not start at 0)
+        </label>
+      </div>
+    </fieldset>
+  );
+  const fit = sc.bestFit;
+  return (
+    <>
+      <section className="panel-card ch-panel">
+        <h2>Points</h2>
+        <div className="ch-table-wrap">
+          <table className="ch-table ch-points">
+            <thead>
+              <tr>
+                <th scope="col">Point</th>
+                <th scope="col">x</th>
+                <th scope="col">y</th>
+                <th scope="col">Hide</th>
+                <th scope="col">Ring</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sc.points.map((p, i) => (
+                <tr key={i}>
+                  <th scope="row">{i + 1}</th>
+                  {(["x", "y"] as const).map((c) => (
+                    <td key={c}>
+                      <DraftField
+                        id={`ch-point-${c}-${i}`}
+                        className={selected === `ch-point-${c}-${i}` ? "ch-field-selected" : ""}
+                        label={`Point ${i + 1} ${c}`}
+                        value={p[c]}
+                        maxLength={12}
+                        inputMode="decimal"
+                        disabled={blocked}
+                        invalid={bad(`Point ${i + 1}:`)}
+                        onCommit={(v) => onChange((s) => void (s.points[i][c] = v))}
+                      />
+                    </td>
+                  ))}
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`Hide point ${i + 1} for pupils`}
+                      checked={p.show === "hidden"}
+                      disabled={blocked}
+                      onChange={(ev) => onChange((s) => void (s.points[i].show = ev.target.checked ? "hidden" : "show"))}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`Ring point ${i + 1} (outlier)`}
+                      checked={p.ring}
+                      disabled={blocked}
+                      onChange={(ev) => onChange((s) => void (s.points[i].ring = ev.target.checked))}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="ch-note">
+          Values stay as typed. Hide keeps a point as a saved answer for pupils to plot; Ring circles
+          an outlier. Use + and − beside the graph to add or remove the last point.
+        </p>
+        <div className="ch-fields">
+          <label>
+            Table of values
+            <select aria-label="Table of values" value={sc.table} disabled={blocked} onChange={(ev) => onChange((s) => void (s.table = ev.target.value as ScatterSettings["table"]))}>
+              {scatterTableChoices.map((x) => (
+                <option key={x} value={x}>
+                  {scatterTableNames[x]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="ch-row">
+          <button type="button" disabled={blocked || !sc.points.length} onClick={() => onChange((s) => s.points.forEach((p) => (p.show = "hidden")))}>
+            Hide all points (pupils plot)
+          </button>
+          <button
+            type="button"
+            disabled={blocked || !sc.points.some((p) => p.show === "hidden")}
+            onClick={() => onChange((s) => s.points.forEach((p) => (p.show = "show")))}
+          >
+            Show all points
+          </button>
+        </div>
+      </section>
+      <section className="panel-card ch-panel">
+        <h2>Axes and grid</h2>
+        {axisFields("xAxis", "Horizontal")}
+        {axisFields("yAxis", "Vertical")}
+        <div className="ch-fields">
+          <label>
+            Grid
+            <select aria-label="Grid" value={sc.grid} disabled={blocked} onChange={(ev) => onChange((s) => void (s.grid = ev.target.value as ScatterSettings["grid"]))}>
+              <option value="none">No grid</option>
+              <option value="major">Lines at each step</option>
+              <option value="fine">Graph paper</option>
+            </select>
+          </label>
+          <label>
+            Small squares per step
+            <select
+              aria-label="Small squares per step"
+              value={sc.minor}
+              disabled={blocked || sc.grid !== "fine"}
+              onChange={(ev) => onChange((s) => void (s.minor = Number(ev.target.value) as ScatterSettings["minor"]))}
+            >
+              {minorChoices.map((x) => (
+                <option key={x} value={x}>
+                  {x}
+                </option>
+              ))}
+            </select>
+          </label>
+          {linesControl}
+        </div>
+      </section>
+      <section className="panel-card ch-panel">
+        <h2>Line of best fit and readings</h2>
+        <label className="ch-check">
+          <input
+            type="checkbox"
+            checked={!!fit}
+            disabled={blocked}
+            onChange={(ev) =>
+              onChange((s) => {
+                if (ev.target.checked) s.bestFit = { from: { x: "", y: "" }, to: { x: "", y: "" }, show: "show" };
+                else delete s.bestFit;
+              })
+            }
+          />
+          Draw a line of best fit
+        </label>
+        {fit && (
+          <div className="ch-fields">
+            {(["from", "to"] as const).flatMap((end) =>
+              (["x", "y"] as const).map((c) => (
+                <label key={end + c}>
+                  {end === "from" ? "Through" : "and"} {c}
+                  <DraftField
+                    label={`Line of best fit ${end === "from" ? "first" : "second"} point ${c}`}
+                    value={fit[end][c]}
+                    maxLength={12}
+                    inputMode="decimal"
+                    disabled={blocked}
+                    invalid={bad("Line of best fit")}
+                    onCommit={(v) => onChange((s) => void (s.bestFit![end][c] = v))}
+                  />
+                </label>
+              )),
+            )}
+            <label className="ch-check">
+              <input
+                type="checkbox"
+                checked={fit.show === "hidden"}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.bestFit!.show = ev.target.checked ? "hidden" : "show"))}
+              />
+              Hide the line (pupils draw it)
+            </label>
+          </div>
+        )}
+        <p className="ch-note">
+          You choose two points the line passes through; it is drawn across the grid. Nothing is
+          fitted for you.
+        </p>
+        {sc.readings.map((r, i) => (
+          <div className="ch-fields" key={i}>
+            <label>
+              Reading {i + 1} from
+              <select
+                aria-label={`Reading ${i + 1} axis`}
+                value={r.axis}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.readings[i].axis = ev.target.value as "x" | "y"))}
+              >
+                <option value="x">Horizontal axis</option>
+                <option value="y">Vertical axis</option>
+              </select>
+            </label>
+            <label>
+              Value
+              <DraftField
+                label={`Reading ${i + 1} value`}
+                value={r.value}
+                maxLength={12}
+                inputMode="decimal"
+                disabled={blocked}
+                invalid={bad(`Reading ${i + 1}:`)}
+                onCommit={(v) => onChange((s) => void (s.readings[i].value = v))}
+              />
+            </label>
+            <label className="ch-check">
+              <input
+                type="checkbox"
+                checked={r.show === "hidden"}
+                disabled={blocked}
+                onChange={(ev) => onChange((s) => void (s.readings[i].show = ev.target.checked ? "hidden" : "show"))}
+              />
+              Hide (pupils read it)
+            </label>
+            <button type="button" disabled={blocked} onClick={() => onChange((s) => void s.readings.splice(i, 1))}>
+              Remove reading {i + 1}
+            </button>
+          </div>
+        ))}
+        <div className="ch-row">
+          <button
+            type="button"
+            disabled={blocked || !fit || sc.readings.length >= MAX_READINGS}
+            onClick={() => onChange((s) => void s.readings.push({ axis: "x", value: "", show: "show" }))}
+          >
+            Add a reading
+          </button>
+        </div>
+        <p className="ch-note">
+          A reading draws dashed guides from a value on one axis to the line and across to the other
+          axis. The value read off is never printed.
+        </p>
+      </section>
+    </>
+  );
+}
+
 export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [startup] = useState(initial),
     documentHistory = useDocumentHistory<Envelope>(startup.e, { equals: (a, b) => canonical(a) === canonical(b) }),
@@ -171,7 +472,6 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
@@ -182,11 +482,10 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       title: string;
       explanation: string;
     } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
-    displayed = forView(e, view),
+    displayed = forView(e, view, true),
     g = layout(displayed),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit(
@@ -195,10 +494,20 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     zoom,
     (w) => (w < 500 ? 72 : 120),
   );
-  const answerSvg = renderSvg(forView(e, "answer"));
+  const answerSvg = renderSvg(forView(e, "answer", true));
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const series = drawnSeries(e);
-  const line = d.kind === "vline";
+  const line = d.kind === "vline",
+    pie = d.kind === "pie",
+    pictogram = d.kind === "pictogram",
+    scatter = d.kind === "scatter",
+    sc = scatterOf(d),
+    mark = pie ? "sector" : pictogram ? "row" : scatter ? "point" : line ? "line" : "bar";
+  /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
+  const pieAngles = pie ? pieLayout(e) : null,
+    angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
+  /** A hidden sector's angle is a saved answer: the Angle column shows it only on the teacher copy. */
+  const s0Hidden = (ci: number) => d.series[0].values[ci]?.show === "hidden";
 
   function commit(next: Envelope, label?: string) {
     if (recovery !== null) return;
@@ -215,6 +524,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
+  }
+  /** One undoable edit of the scatter graph's settings. */
+  function patchScatter(update: (s: ScatterSettings) => void) {
+    patch((n) => {
+      const next = structuredClone(scatterOf(n));
+      update(next);
+      n.scatter = next;
+    });
   }
   function undo() {
     if (blocked) return;
@@ -239,43 +556,17 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== text
-      ) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "A newer draft exists in another tab. Its saved data is protected.",
-        );
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "Saved chart data changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved chart data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -349,6 +640,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   };
   const px = (mm: number, of: number) => `${(mm / of) * 100}%`;
 
+  const linesControl = (
+    <label>
+      Lines
+      <select
+        aria-label="Lines"
+        value={d.lines ?? "normal"}
+        disabled={blocked}
+        onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
+      >
+        {LINE_WEIGHTS.map((v) => (
+          <option key={v} value={v}>
+            {LINE_WEIGHT_NAMES[v]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
   return (
@@ -359,8 +667,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
         tabIndex={-1}
       >
         <PageHeading
-          title="Bar and line charts"
-          description="Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes."
+          title="Statistical charts"
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms and scatter graphs."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -465,7 +773,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               />
             </div>
             <EditorHint tool="charts">
-              Click a bar, line or category label to edit its value. Enter
+              Click a {pie ? "sector" : pictogram ? "row or category" : scatter ? "point" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
@@ -483,18 +791,23 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(displayed), e, view === "answer") }}
                   />
                   {g.targets.map((t) => {
-                    const cell = d.series[t.series].values[t.category];
-                    const id = `ch-value-${t.series}-${t.category}`;
+                    const point = scatter ? sc.points[t.category] : null;
+                    const cell = point ?? d.series[t.series].values[t.category];
+                    const id = point ? `ch-point-x-${t.category}` : `ch-value-${t.series}-${t.category}`;
                     const hiddenHere =
                       view === "pupil" &&
                       cell.show === "hidden" &&
-                      cell.value.trim();
+                      (point !== null || (cell as { value: string }).value.trim() !== "");
                     return (
                       <button
                         key={id}
                         type="button"
                         className={`ch-hit ${selected === id ? "ch-selected" : ""} ${hiddenHere ? "ch-hidden-answer" : ""}`}
-                        aria-label={`Edit ${line ? "line" : "bar"}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`}
+                        aria-label={
+                          point
+                            ? `Edit point ${t.category + 1}: (${point.x}, ${point.y})`
+                            : `Edit ${mark}: ${d.categories[t.category] || `category ${t.category + 1}`}${series.length > 1 ? `, ${d.series[t.series].name}` : ""}`
+                        }
                         title={
                           hiddenHere
                             ? "Hidden answer (pupils draw this)"
@@ -511,23 +824,45 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                       />
                     );
                   })}
-                  {d.categories.map((c, i) => (
+                  {g.labels.map(({ category: i, ...box }) => (
                     <button
                       key={`cat-${i}`}
                       type="button"
                       className={`ch-hit ${selected === `ch-cat-${i}` ? "ch-selected" : ""}`}
-                      aria-label={`Edit category label ${c || i + 1}`}
+                      aria-label={`Edit category label ${d.categories[i] || i + 1}`}
                       disabled={blocked}
                       style={{
-                        left: px(g.centres[i] - g.slot / 2, g.width),
-                        top: px(g.labelY - 4, g.height),
-                        width: px(g.slot, g.width),
-                        height: px(5.5, g.height),
+                        left: px(box.x, g.width),
+                        top: px(box.y, g.height),
+                        width: px(box.width, g.width),
+                        height: px(box.height, g.height),
                       }}
                       onClick={() => focusField(`ch-cat-${i}`)}
                     />
                   ))}
                 </div>
+                {scatter ? (
+                <StructureStepper
+                  vertical
+                  name="Points"
+                  caption=""
+                  add={{
+                    label: "Add a point at the end",
+                    title: "Add point",
+                    disabled: blocked || sc.points.length >= MAX_POINTS,
+                    onClick: () => {
+                      patchScatter((s) => void s.points.push({ x: "", y: "", show: "show", ring: false }));
+                      requestAnimationFrame(() => focusField(`ch-point-x-${sc.points.length}`));
+                    },
+                  }}
+                  remove={{
+                    label: `Remove the last point${sc.points.length ? ` (point ${sc.points.length})` : ""}`,
+                    title: "Remove last point",
+                    disabled: blocked || sc.points.length === 0,
+                    onClick: () => patchScatter((s) => void s.points.pop()),
+                  }}
+                />
+                ) : (
                 <StructureStepper
                                     vertical
                   name="Categories"
@@ -550,6 +885,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onClick: () => commit(removeCategory(e)),
                   }}
                 />
+                )}
               </div>
             </div>
             {(message || issue || g.notes.length > 0) && (
@@ -604,6 +940,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 ))}
               </div>
             </section>
+            {!scatter && (
             <section className="panel-card ch-panel">
               <h2>Data</h2>
               <div className="ch-table-wrap">
@@ -622,7 +959,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                               patch((n) => void (n.series[si].name = v))
                             }
                           />
-                          {!line && (
+                          {!line && !pie && !pictogram && (
                             <select
                               aria-label={`Fill for ${s.name || `data set ${si + 1}`}`}
                               value={s.fill}
@@ -644,6 +981,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                           )}
                         </th>
                       ))}
+                      {pie && <th scope="col">Angle</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -712,15 +1050,26 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                             </td>
                           );
                         })}
+                        {pie && (
+                          <td className="ch-angle" aria-label={`Angle for ${c || `category ${ci + 1}`}`}>
+                            {angles[ci] === undefined
+                              ? "—"
+                              : s0Hidden(ci) && view === "pupil"
+                                ? "Hidden"
+                                : `${round1(angles[ci])}°`}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <p className="ch-note">
-                Leave a value blank for no {line ? "line" : "bar"}; 0 is a
-                value. Hide keeps the value as a saved answer for pupils to
-                draw.
+                {pie
+                  ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw; its angle shows here only on the teacher copy."
+                  : pictogram
+                    ? "Leave a value blank for an empty row; 0 is a value. Each row draws value ÷ key symbols. Hide keeps a row as a saved answer for pupils to draw."
+                    : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
               </p>
               <div className="ch-row">
                 {!singleSet(d.kind) && (
@@ -757,6 +1106,139 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </button>
               </div>
             </section>
+            )}
+            {scatter && <ScatterCards sc={sc} blocked={blocked} selected={selected} issues={g.issues} onChange={patchScatter} linesControl={linesControl} />}
+            {pie && (
+              <section className="panel-card ch-panel">
+                <h2>Pie chart</h2>
+                <div className="ch-fields">
+                  <label>
+                    Radius (mm)
+                    <select
+                      aria-label="Pie chart radius"
+                      value={pieOf(d).radiusMm}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pie = { ...pieOf(n), radiusMm: Number(ev.target.value) }))}
+                    >
+                      {[...new Set([25, 30, 35, 40, 45, 50, 60, 70, pieOf(d).radiusMm])]
+                        .filter((x) => x >= PIE_RADIUS.minimum && x <= PIE_RADIUS.maximum)
+                        .sort((a, b) => a - b)
+                        .map((x) => (
+                          <option key={x} value={x}>
+                            {x}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Sector labels
+                    <select
+                      aria-label="Sector labels"
+                      value={pieOf(d).labels}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pie = { ...pieOf(n), labels: ev.target.value as (typeof pieLabelChoices)[number] }))}
+                    >
+                      {pieLabelChoices.map((x) => (
+                        <option key={x} value={x}>
+                          {pieLabelNames[x]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {linesControl}
+                </div>
+                <p className="ch-note">
+                  The circle and the starting radius print at true size for protractor work. Sectors
+                  run clockwise from the radius in table order. Labels that do not fit inside a sector
+                  sit just outside the circle.
+                </p>
+              </section>
+            )}
+            {pictogram && (
+              <section className="panel-card ch-panel">
+                <h2>Pictogram</h2>
+                <div className="ch-fields">
+                  <label>
+                    Symbol
+                    <select
+                      aria-label="Symbol"
+                      value={pictogramOf(d).symbol}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbol: ev.target.value as (typeof symbolChoices)[number] }))}
+                    >
+                      {symbolChoices.map((x) => (
+                        <option key={x} value={x}>
+                          {symbolNames[x]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Symbol size (mm)
+                    <select
+                      aria-label="Symbol size"
+                      value={pictogramOf(d).symbolMm}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbolMm: Number(ev.target.value) }))}
+                    >
+                      {Array.from({ length: SYMBOL_MM.maximum - SYMBOL_MM.minimum + 1 }, (_, i) => SYMBOL_MM.minimum + i).map((x) => (
+                        <option key={x} value={x}>
+                          {x}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    One symbol represents
+                    <DraftField
+                      label="Key value"
+                      value={pictogramOf(d).key.value}
+                      maxLength={12}
+                      inputMode="decimal"
+                      invalid={g.issues.some((x) => x.startsWith("Enter what one symbol") || x.startsWith("The key value must"))}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, value: v } }))}
+                    />
+                  </label>
+                  <label>
+                    Unit (after the key value)
+                    <DraftField
+                      label="Key unit"
+                      value={pictogramOf(d).unit}
+                      maxLength={24}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), unit: v }))}
+                    />
+                  </label>
+                  <label className="ch-check">
+                    <input
+                      type="checkbox"
+                      disabled={blocked}
+                      checked={pictogramOf(d).key.show === "hidden"}
+                      onChange={(ev) =>
+                        patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, show: ev.target.checked ? "hidden" : "show" } }))
+                      }
+                    />
+                    Hide the key value (pupils complete the key)
+                  </label>
+                  <label>
+                    Category column heading
+                    <DraftField label="Category column heading" value={d.xTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.xTitle = v))} />
+                  </label>
+                  <label>
+                    Symbol column heading
+                    <DraftField label="Symbol column heading" value={d.yTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.yTitle = v))} />
+                  </label>
+                  {linesControl}
+                </div>
+                <p className="ch-note">
+                  Part symbols are exact: part of a square is drawn open on its right, and part of a
+                  circle is a sector (a half is the left half). Leave both headings empty for a table
+                  without a heading row.
+                </p>
+              </section>
+            )}
+            {axisKind(d.kind) && (
             <section className="panel-card ch-panel">
               <h2>Axes and grid</h2>
               <div className="ch-fields">
@@ -860,21 +1342,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                     onCommit={(v) => patch((n) => void (n.xTitle = v))}
                   />
                 </label>
-                <label>
-                  Lines
-                  <select
-                    aria-label="Lines"
-                    value={d.lines ?? "normal"}
-                    disabled={blocked}
-                    onChange={(ev) => patch((n) => setLines(n, ev.target.value as LineWeight))}
-                  >
-                    {LINE_WEIGHTS.map((v) => (
-                      <option key={v} value={v}>
-                        {LINE_WEIGHT_NAMES[v]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {linesControl}
                 <label>
                   Chart height (mm)
                   <select
@@ -955,14 +1423,15 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                 </label>
               </div>
             </section>
+            )}
             <section className="panel-card ch-panel">
               <details>
                 <summary>Editing and printing help</summary>
                 <p className="ch-note">
-                  Click a bar, line or category label to edit its value in the
+                  Click a bar, line, sector or category label to edit its value in the
                   Data table. Enter applies; Escape restores. Switching chart
-                  type keeps every data set. Nothing is calculated or filled in
-                  for you.
+                  type keeps every data set. Pie charts draw sector angles from
+                  the values; nothing else is calculated or filled in for you.
                 </p>
                 <p className="ch-note">
                   Copy for Word carries the physical size shown above the chart;
@@ -995,16 +1464,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage(
                       "Saved data changed again. Download this latest copy first.",
                     );
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {

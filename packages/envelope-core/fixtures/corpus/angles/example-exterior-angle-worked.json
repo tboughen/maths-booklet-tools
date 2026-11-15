@@ -1,0 +1,39 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "polygon",
+   "sides": 5,
+   "corners": null,
+   "exterior": [
+    2
+   ],
+   "diagonals": false,
+   "ticks": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ]
+  },
+  "angles": [
+   {
+    "id": "e2",
+    "label": {
+     "state": "symbol",
+     "text": "e",
+     "answer": "72"
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 50,
+  "notToScale": true
+ }
+}

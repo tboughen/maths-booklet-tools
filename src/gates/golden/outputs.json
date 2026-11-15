@@ -156,6 +156,314 @@
    "png600": "931x1181",
    "pixels": "798c35c5a11d4fde"
   },
+  "angle diagrams: angles-algebra-line": {
+   "json": "591a54c3fc52c161",
+   "svg": "d53627a4ebf83720",
+   "mm": "74x41.9",
+   "png600": "1748x990",
+   "pixels": "c111ac7ecf43ce1e"
+  },
+  "angle diagrams: angles-algebra-line (worked)": {
+   "json": "591a54c3fc52c161",
+   "svg": "d53627a4ebf83720",
+   "mm": "74x41.9",
+   "png600": "1748x990",
+   "pixels": "c111ac7ecf43ce1e"
+  },
+  "angle diagrams: angles-co-interior": {
+   "json": "147f998aaf17bc36",
+   "svg": "a129569f13d60261",
+   "mm": "84x63.3",
+   "png600": "1984x1495",
+   "pixels": "927c4845b787db52"
+  },
+  "angle diagrams: angles-co-interior (worked)": {
+   "json": "cc456c94f5a2697a",
+   "svg": "8a8be15fdac77656",
+   "mm": "84x63.3",
+   "png600": "1984x1495",
+   "pixels": "435fd74d7d71fdf3"
+  },
+  "angle diagrams: angles-exterior-angle": {
+   "json": "c7adc7eb8afb83d3",
+   "svg": "4dc2a45946612889",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "c92d2c468e11c45c"
+  },
+  "angle diagrams: angles-exterior-angle (worked)": {
+   "json": "df92ece360775d13",
+   "svg": "8d4ec3e1c0678f01",
+   "mm": "57.5x54.2",
+   "png600": "1358x1280",
+   "pixels": "2c9f5e2499e82046"
+  },
+  "angle diagrams: angles-parallel": {
+   "json": "79102fba45a9e137",
+   "svg": "a615968dd1fea637",
+   "mm": "84x57.4",
+   "png600": "1984x1356",
+   "pixels": "5e1429c93ad21c3a"
+  },
+  "angle diagrams: angles-parallel (worked)": {
+   "json": "a5dbb583b4b1d941",
+   "svg": "27ecdc2322ceb83b",
+   "mm": "84x57.4",
+   "png600": "1984x1356",
+   "pixels": "3493147bd571721a"
+  },
+  "angle diagrams: angles-point": {
+   "json": "f84d3f6389289bb3",
+   "svg": "ca0ccde576163e3a",
+   "mm": "61.8x66.9",
+   "png600": "1460x1580",
+   "pixels": "1964f0b739f9f90c"
+  },
+  "angle diagrams: angles-point (worked)": {
+   "json": "f882eaeb73b5da89",
+   "svg": "95ed34e9c7b75496",
+   "mm": "61.8x66.9",
+   "png600": "1460x1580",
+   "pixels": "5678f89654830a49"
+  },
+  "angle diagrams: angles-polygon-sum": {
+   "json": "3d9c564941147229",
+   "svg": "f0e34882cbbbbbc5",
+   "mm": "66x59",
+   "png600": "1559x1394",
+   "pixels": "666d0ec80b2d1696"
+  },
+  "angle diagrams: angles-polygon-sum (worked)": {
+   "json": "1e83faeec89468b8",
+   "svg": "b39f70c07211ace7",
+   "mm": "66x59",
+   "png600": "1559x1394",
+   "pixels": "18dcf90e6014e9af"
+  },
+  "angle diagrams: angles-polygons-meeting": {
+   "json": "f4b9dda62f25a485",
+   "svg": "a47a62a2f39d04bf",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "d7e0896bf0ad474c"
+  },
+  "angle diagrams: angles-polygons-meeting (worked)": {
+   "json": "11e0dff482499b1a",
+   "svg": "0c17ace7e628aa6e",
+   "mm": "66.7x52.8",
+   "png600": "1576x1247",
+   "pixels": "7e338e513dc41271"
+  },
+  "angle diagrams: angles-regular-polygon": {
+   "json": "348b20d722fe77f7",
+   "svg": "ec904f32f1a88197",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "ade4c1a7a9424a9f"
+  },
+  "angle diagrams: angles-regular-polygon (worked)": {
+   "json": "ab6d47bf6551dcea",
+   "svg": "4fa429ca8be884c8",
+   "mm": "54x52.3",
+   "png600": "1276x1235",
+   "pixels": "f7f25fa2e3c5c686"
+  },
+  "angle diagrams: angles-straight-line": {
+   "json": "2b51bdfd80a8db24",
+   "svg": "8b8c3c7186970334",
+   "mm": "82.2x46.4",
+   "png600": "1942x1096",
+   "pixels": "6986c1dbb8f6edc4"
+  },
+  "angle diagrams: angles-straight-line (worked)": {
+   "json": "8511379e26dc1597",
+   "svg": "d189c241cad74d65",
+   "mm": "82.2x46.4",
+   "png600": "1942x1096",
+   "pixels": "27322f284843fa58"
+  },
+  "angle diagrams: angles-two-transversals": {
+   "json": "f166b56a0bb2f03a",
+   "svg": "72362d7a040939da",
+   "mm": "143.5x94.5",
+   "png600": "3390x2232",
+   "pixels": "a2d2c9599216a422"
+  },
+  "angle diagrams: angles-two-transversals (worked)": {
+   "json": "63d3f36377c2207b",
+   "svg": "72362d7a040939da",
+   "mm": "143.5x94.5",
+   "png600": "3390x2232",
+   "pixels": "a2d2c9599216a422"
+  },
+  "angle diagrams: angles-vertically-opposite": {
+   "json": "8b06a8f31c990d71",
+   "svg": "0903ceebe401907a",
+   "mm": "69.8x76.6",
+   "png600": "1649x1809",
+   "pixels": "cb0de7db313d76e8"
+  },
+  "angle diagrams: angles-vertically-opposite (worked)": {
+   "json": "50bb536cece37732",
+   "svg": "471f1cb14cf219e5",
+   "mm": "69.8x76.6",
+   "png600": "1649x1809",
+   "pixels": "700f281cb8248521"
+  },
+  "angle diagrams: angles-z-shape": {
+   "json": "7882ba2c37b7387d",
+   "svg": "1f5da4328a94cfb3",
+   "mm": "84x63",
+   "png600": "1984x1488",
+   "pixels": "144fcafc9d00caaa"
+  },
+  "angle diagrams: angles-z-shape (worked)": {
+   "json": "3bd620d3d6f4a674",
+   "svg": "746f2b1e1b00fa15",
+   "mm": "84x63",
+   "png600": "1984x1488",
+   "pixels": "3a9d6b82a8cd53d7"
+  },
+  "area and perimeter: area-circle": {
+   "json": "269a09be64b4943e",
+   "svg": "427a19962534035b",
+   "mm": "64x69",
+   "png600": "1512x1630",
+   "pixels": "54df19a7cf653f4b"
+  },
+  "area and perimeter: area-circle (worked)": {
+   "json": "3ce1c8c05a2ba6d2",
+   "svg": "6913f4f22560894b",
+   "mm": "66.1x69",
+   "png600": "1561x1630",
+   "pixels": "8856c9c09bbf871d"
+  },
+  "area and perimeter: area-frame": {
+   "json": "d0023182a62e8f21",
+   "svg": "852c2680c881769f",
+   "mm": "85x60.3",
+   "png600": "2008x1424",
+   "pixels": "161b446677288452"
+  },
+  "area and perimeter: area-frame (worked)": {
+   "json": "2271bfa0260ceea2",
+   "svg": "852c2680c881769f",
+   "mm": "85x60.3",
+   "png600": "2008x1424",
+   "pixels": "161b446677288452"
+  },
+  "area and perimeter: area-grid": {
+   "json": "bc201df2181700fd",
+   "svg": "2324857f59c3ce66",
+   "mm": "64x54",
+   "png600": "1512x1276",
+   "pixels": "930a3b4816d91803"
+  },
+  "area and perimeter: area-grid (worked)": {
+   "json": "5632e93c36e18179",
+   "svg": "2324857f59c3ce66",
+   "mm": "64x54",
+   "png600": "1512x1276",
+   "pixels": "930a3b4816d91803"
+  },
+  "area and perimeter: area-l-shape": {
+   "json": "02c9d642b624d996",
+   "svg": "962690a628b2cc52",
+   "mm": "84.1x69.5",
+   "png600": "1987x1642",
+   "pixels": "a2edec3ea214d171"
+  },
+  "area and perimeter: area-l-shape (worked)": {
+   "json": "9b5328e73eed3369",
+   "svg": "962690a628b2cc52",
+   "mm": "84.1x69.5",
+   "png600": "1987x1642",
+   "pixels": "a2edec3ea214d171"
+  },
+  "area and perimeter: area-perimeter": {
+   "json": "83cd7cc8fe69d78b",
+   "svg": "3bfb2c89e0e38602",
+   "mm": "79.1x59.3",
+   "png600": "1869x1401",
+   "pixels": "9f0f6cb8f99699e9"
+  },
+  "area and perimeter: area-perimeter (worked)": {
+   "json": "2923af7efd73eb16",
+   "svg": "3bfb2c89e0e38602",
+   "mm": "79.1x59.3",
+   "png600": "1869x1401",
+   "pixels": "9f0f6cb8f99699e9"
+  },
+  "area and perimeter: area-rectangle-semicircle": {
+   "json": "09aa2314a01b0ada",
+   "svg": "66991c5a10e6c626",
+   "mm": "80.1x48.3",
+   "png600": "1892x1141",
+   "pixels": "dfb3bc8c466be2cf"
+  },
+  "area and perimeter: area-rectangle-semicircle (worked)": {
+   "json": "a631c219b25e2bd9",
+   "svg": "66991c5a10e6c626",
+   "mm": "80.1x48.3",
+   "png600": "1892x1141",
+   "pixels": "dfb3bc8c466be2cf"
+  },
+  "area and perimeter: area-sector": {
+   "json": "16ad880ae97261a7",
+   "svg": "81137c7e6dd7ce5e",
+   "mm": "55x52.2",
+   "png600": "1299x1233",
+   "pixels": "70f6d1a7df95fa3d"
+  },
+  "area and perimeter: area-sector (worked)": {
+   "json": "5f25d37ef83de85b",
+   "svg": "2f6bbc567824c186",
+   "mm": "55x52.8",
+   "png600": "1299x1247",
+   "pixels": "526823b96a3a555c"
+  },
+  "area and perimeter: area-semicircle": {
+   "json": "e746859e45324600",
+   "svg": "01ba9b147addfc2a",
+   "mm": "68x46.3",
+   "png600": "1606x1094",
+   "pixels": "9277d06de91f758b"
+  },
+  "area and perimeter: area-semicircle (worked)": {
+   "json": "d6bfe6d91715c6bc",
+   "svg": "38203022feb638c7",
+   "mm": "68x51.5",
+   "png600": "1606x1217",
+   "pixels": "2908943c5815a52e"
+  },
+  "area and perimeter: area-trapezium": {
+   "json": "ccaf9819240a36d1",
+   "svg": "140aab540572c98a",
+   "mm": "74x53.5",
+   "png600": "1748x1264",
+   "pixels": "f8a374cfb58fe682"
+  },
+  "area and perimeter: area-trapezium (worked)": {
+   "json": "97e84d4a8c7360f9",
+   "svg": "140aab540572c98a",
+   "mm": "74x53.5",
+   "png600": "1748x1264",
+   "pixels": "f8a374cfb58fe682"
+  },
+  "area and perimeter: area-triangle": {
+   "json": "31cec323f7546208",
+   "svg": "68c342ffc2ec13c1",
+   "mm": "68x54.3",
+   "png600": "1606x1283",
+   "pixels": "ea59c023237e172f"
+  },
+  "area and perimeter: area-triangle (worked)": {
+   "json": "70c0405d43809f02",
+   "svg": "68c342ffc2ec13c1",
+   "mm": "68x54.3",
+   "png600": "1606x1283",
+   "pixels": "ea59c023237e172f"
+  },
   "bar model: bar-BM01": {
    "json": "2bf961cd20c72457",
    "svg": "93842b57ddad1688",
@@ -365,6 +673,90 @@
    "mm": "168.3x81.8",
    "png600": "3976x1932",
    "pixels": "1e5ceb2f84c8b7f0"
+  },
+  "charts: chart-pictogram-cycles": {
+   "json": "a8a29ecd3444845f",
+   "svg": "9036d438ede8f400",
+   "mm": "155.6x74",
+   "png600": "3676x1748",
+   "pixels": "df9c281cba11c0e5"
+  },
+  "charts: chart-pictogram-cycles (worked)": {
+   "json": "2b50c42fbbc94135",
+   "svg": "31f97ce3abdcc782",
+   "mm": "143.5x74",
+   "png600": "3390x1748",
+   "pixels": "26eca457840ff864"
+  },
+  "charts: chart-pictogram-pictures": {
+   "json": "643e48944e9c0cdb",
+   "svg": "a98a8b00bfe225f0",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "633e6a1ee5958d3e"
+  },
+  "charts: chart-pictogram-pictures (worked)": {
+   "json": "4294c1f1ffd65b91",
+   "svg": "1e2f3add5421580a",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "cc641a11718967a5"
+  },
+  "charts: chart-pie-complete": {
+   "json": "afefc206d2a7a4bd",
+   "svg": "acb544cb6296ec23",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "f8b2bb20e666652b"
+  },
+  "charts: chart-pie-complete (worked)": {
+   "json": "a63689532f3a07e4",
+   "svg": "08ae222e6b6a6e43",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "dba2484f0442e977"
+  },
+  "charts: chart-pie-snacks": {
+   "json": "58c09d677cd2e2eb",
+   "svg": "6066ae14ee914ecb",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "0936a37f832fad08"
+  },
+  "charts: chart-pie-snacks (worked)": {
+   "json": "c83355ce6d7f4844",
+   "svg": "ce17677214654cf0",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "2aebbaf53c15cf53"
+  },
+  "charts: chart-scatter-judges": {
+   "json": "0f15450b2e48c34f",
+   "svg": "cf7e1a6dfe560d90",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "9fc523e7ca226f37"
+  },
+  "charts: chart-scatter-judges (worked)": {
+   "json": "90a977249513ccf2",
+   "svg": "da548f3d91128bd7",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "76e371edc1db99f5"
+  },
+  "charts: chart-scatter-plot": {
+   "json": "be9354b1adda9767",
+   "svg": "051713d9a0a42216",
+   "mm": "165.4x137.3",
+   "png600": "3907x3243",
+   "pixels": "385320d90c5cb0f7"
+  },
+  "charts: chart-scatter-plot (worked)": {
+   "json": "ef2b82f371a9122b",
+   "svg": "c54aa779f2a81798",
+   "mm": "165.4x137.3",
+   "png600": "3907x3243",
+   "pixels": "12683f5f6b01c105"
   },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
@@ -802,45 +1194,45 @@
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
    "json": "75f5e8de89a74165",
-   "svg": "57e383be780c3676",
+   "svg": "12a0af07a17e5f4b",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "8f04b786f07e2f75"
+   "pixels": "2b18446b7ec3ebef"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2 (worked)": {
    "json": "50c48539422503db",
-   "svg": "b18cf14f655d949d",
+   "svg": "c42d256a343643d5",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
-   "pixels": "dc83af7d19c429cd"
+   "pixels": "86dc7884d2f4fe9c"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13": {
    "json": "05534685d2e9a26e",
-   "svg": "b302fb81856bd9c3",
+   "svg": "8e52bc398906fc46",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
-   "pixels": "b1e3fd71cbaea7be"
+   "pixels": "9fb33ec5ac4fe5fb"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13 (worked)": {
    "json": "d106633b195329f2",
-   "svg": "0b621984c8518128",
+   "svg": "98467927ce31fcd8",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
-   "pixels": "ed8ac3c567240f31"
+   "pixels": "1afa69c158c6d99d"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18": {
    "json": "6b1d6f131727bc66",
-   "svg": "48df159e1eaa672b",
+   "svg": "24831fc4b21e9286",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "5a2e2773015f1b66"
+   "pixels": "3b83e69e52882db4"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18 (worked)": {
    "json": "f3131ffaec134c16",
-   "svg": "d7c6def019a98198",
+   "svg": "1e4d146e65ced02b",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
-   "pixels": "68ad6c047e5303ba"
+   "pixels": "648a83f51c414026"
   },
   "number line: number-line-0": {
    "json": "b99c456fc3a9b92d",
@@ -1026,87 +1418,87 @@
   },
   "plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5": {
    "json": "563a238dc445b726",
-   "svg": "513612a887963c61",
+   "svg": "91887f76e7e55555",
    "mm": "141x194",
    "png600": "3331x4583",
-   "pixels": "5d361414d6270d49"
+   "pixels": "6d05475760d671f1"
   },
   "plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked)": {
    "json": "95c51d9fa5fb5a22",
-   "svg": "9f64c19b4b6b4ed6",
+   "svg": "40bbefca8a685f34",
    "mm": "141x194",
    "png600": "3331x4583",
-   "pixels": "02a0239df428b47f"
+   "pixels": "bbc81336503f25ad"
   },
   "plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13": {
    "json": "68592b0f8f28345b",
-   "svg": "b48362984ef02bdb",
+   "svg": "0bca156862e9d770",
    "mm": "141x254",
    "png600": "3331x6000",
-   "pixels": "ef8d6afe91b6f317"
+   "pixels": "64f6881dae2c03aa"
   },
   "plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked)": {
    "json": "3e4a8c679fe6243a",
-   "svg": "d3d154a3f12ee20b",
+   "svg": "00a5a28da98605c8",
    "mm": "141x254",
    "png600": "3331x6000",
-   "pixels": "2908e00a981c8195"
+   "pixels": "e0a5e6f55fef3439"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7": {
    "json": "f76714814b0a7dd3",
-   "svg": "9c18032360178a13",
+   "svg": "875f26c54b7d579b",
    "mm": "121x154",
    "png600": "2858x3638",
-   "pixels": "1ba8996705ef9ba7"
+   "pixels": "ffdcf2785d4a8d7e"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked)": {
    "json": "7b28bbfc0feb54c1",
-   "svg": "41b426341c083e2b",
+   "svg": "9d1d78f4c8d9d14a",
    "mm": "121x154",
    "png600": "2858x3638",
-   "pixels": "eb87a77a2d9db346"
+   "pixels": "2bbb31102eea1b6a"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3": {
    "json": "6454f280ac0493f1",
-   "svg": "4aabbaa2c771ddbd",
+   "svg": "538e9b8d3374e087",
    "mm": "161x154",
    "png600": "3803x3638",
-   "pixels": "68aa81c36f06a9f4"
+   "pixels": "ba1f802676728e5e"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked)": {
    "json": "969cca9cf66909d3",
-   "svg": "26f0c0537442b62a",
+   "svg": "112ebb5febb48cb3",
    "mm": "161x154",
    "png600": "3803x3638",
-   "pixels": "fc75288b96314112"
+   "pixels": "146290897cb3d5db"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4": {
    "json": "7188d4f3643f3e74",
-   "svg": "5a99cd13ebb46526",
+   "svg": "83e65bf042eb02aa",
    "mm": "161x194",
    "png600": "3803x4583",
-   "pixels": "dc2e101a84af5008"
+   "pixels": "524185922ac40e4d"
   },
   "plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked)": {
    "json": "0a0f466ac84045a2",
-   "svg": "7ef868d8f57d3b35",
+   "svg": "834eacff16764842",
    "mm": "161x194",
    "png600": "3803x4583",
-   "pixels": "b337318eec3ffb34"
+   "pixels": "263df6b79cfb3f3a"
   },
   "plotting quadratics: quadratic-fractions": {
    "json": "0d638e4ba4c98cb6",
-   "svg": "cf36101557f9172e",
+   "svg": "9dc00e4a104bf8e5",
    "mm": "141x136",
    "png600": "3331x3213",
-   "pixels": "552d38ee876f26eb"
+   "pixels": "fc1728774a47f6f9"
   },
   "plotting quadratics: quadratic-fractions (worked)": {
    "json": "6ff6ceefa00ba614",
-   "svg": "27d8dde9e4449e9c",
+   "svg": "ca50c7501a6b5fad",
    "mm": "141x136",
    "png600": "3331x3213",
-   "pixels": "318a7273a4a13565"
+   "pixels": "84d999b102f7811d"
   },
   "probability trees: tree-darts": {
    "json": "cbf56c04bcacb580",

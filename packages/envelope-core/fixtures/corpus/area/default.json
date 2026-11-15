@@ -1,0 +1,77 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "polygon",
+   "corners": [
+    {
+     "x": 0,
+     "y": 0
+    },
+    {
+     "x": 60,
+     "y": 0
+    },
+    {
+     "x": 60,
+     "y": 25
+    },
+    {
+     "x": 25,
+     "y": 25
+    },
+    {
+     "x": 25,
+     "y": 50
+    },
+    {
+     "x": 0,
+     "y": 50
+    }
+   ],
+   "arcs": [
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none"
+   ],
+   "heights": [],
+   "rightAngles": []
+  },
+  "hole": null,
+  "shaded": "none",
+  "labels": [
+   {
+    "id": "e1",
+    "state": "value",
+    "text": "12 cm",
+    "answer": ""
+   },
+   {
+    "id": "e2",
+    "state": "value",
+    "text": "5 cm",
+    "answer": ""
+   },
+   {
+    "id": "e3",
+    "state": "value",
+    "text": "7 cm",
+    "answer": ""
+   },
+   {
+    "id": "e6",
+    "state": "value",
+    "text": "10 cm",
+    "answer": ""
+   }
+  ],
+  "names": [],
+  "grid": false,
+  "notToScale": true
+ }
+}

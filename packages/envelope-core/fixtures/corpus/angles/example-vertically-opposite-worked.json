@@ -1,0 +1,60 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "crossing",
+   "lines": [
+    20,
+    75
+   ]
+  },
+  "angles": [
+   {
+    "id": "s1",
+    "label": {
+     "state": "value",
+     "text": "55",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s2",
+    "label": {
+     "state": "symbol",
+     "text": "a",
+     "answer": "125"
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s3",
+    "label": {
+     "state": "symbol",
+     "text": "b",
+     "answer": "55"
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s4",
+    "label": {
+     "state": "symbol",
+     "text": "c",
+     "answer": "125"
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 70,
+  "notToScale": true
+ }
+}

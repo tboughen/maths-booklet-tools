@@ -1,0 +1,98 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "polygon",
+   "sides": 5,
+   "corners": [
+    {
+     "x": -26,
+     "y": -20
+    },
+    {
+     "x": 24,
+     "y": -22
+    },
+    {
+     "x": 32,
+     "y": 8
+    },
+    {
+     "x": 2,
+     "y": 28
+    },
+    {
+     "x": -30,
+     "y": 10
+    }
+   ],
+   "exterior": [],
+   "diagonals": true,
+   "ticks": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "angles": [
+   {
+    "id": "i1",
+    "label": {
+     "state": "value",
+     "text": "102",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "i2",
+    "label": {
+     "state": "value",
+     "text": "100",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "i3",
+    "label": {
+     "state": "value",
+     "text": "115",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "i4",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "i5",
+    "label": {
+     "state": "value",
+     "text": "113",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 70,
+  "notToScale": true
+ }
+}

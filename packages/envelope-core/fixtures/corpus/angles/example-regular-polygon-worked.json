@@ -1,0 +1,38 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "polygon",
+   "sides": 6,
+   "corners": null,
+   "exterior": [],
+   "diagonals": false,
+   "ticks": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ]
+  },
+  "angles": [
+   {
+    "id": "i2",
+    "label": {
+     "state": "symbol",
+     "text": "x",
+     "answer": "120"
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 50,
+  "notToScale": true
+ }
+}

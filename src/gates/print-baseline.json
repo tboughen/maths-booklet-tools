@@ -4,16 +4,18 @@
   "charts": 11,
   "constructions": 11,
   "cuboids": 11,
-  "factor trees": 11,
   "frequency trees": 11,
   "graph": 10,
   "number line": 11,
   "plans and elevations": 11,
   "plotting quadratics": 9.6,
   "probability trees": 11,
-  "ratio table": 10,
-  "sample space diagrams": 11,
+  "ratio table": 9.6,
   "triangles": 8.5,
   "two-way tables": 11,
-  "venn": 11
+  "angle diagrams": 10,
+  "area and perimeter": 10,
+  "venn": 11,
+  "factor trees": 11,
+  "sample space diagrams": 11
 }

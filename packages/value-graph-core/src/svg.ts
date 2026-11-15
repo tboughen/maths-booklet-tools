@@ -8,6 +8,8 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { number, AXIS_FONT_PT, PT_MM, validate } from "./model";
 import type { Equation, ValueEnvelope } from "./schema";
 import { guidance, renderedTextSizesPt } from "../../graph-core/src/print-guidance";
+import { axisNumberText, axisNumbersTouch, axisTickValues } from "../../graph-core/src/axis-scale";
+import { AXIS_STROKE_POINTS, FINE_GRID_STROKE_POINTS } from "../../graph-core/src/graphStyle";
 
 const FONT = AXIS_FONT_PT * PT_MM;
 const ANSWER_LINE_COLUMN_FRACTION = 0.6;
@@ -109,15 +111,11 @@ export function metrics(e: ValueEnvelope) {
     withGraph,
   };
 }
+/** Value-graph axis values and numbers keep 8 decimal places. */
+const VALUE_PLACES = 8;
+/** The numbered values of one axis: multiples of every, except 0 (the origin has its own label). */
 export function labels(min: number, max: number, every: number): number[] {
-  const out: number[] = [];
-  for (
-    let i = Math.ceil((min - 1e-9) / every);
-    i <= Math.floor((max + 1e-9) / every);
-    i++
-  )
-    if (i !== 0) out.push(Number((i * every).toFixed(8)));
-  return out;
+  return axisTickValues(min, max, every, 0, VALUE_PLACES).filter((v) => v !== 0);
 }
 export function renderSvg(raw: ValueEnvelope): string {
   const e = validate(raw),
@@ -271,11 +269,11 @@ export function renderSvg(raw: ValueEnvelope): string {
       paths[tier(startY + i * g.minorPitchMm)] += `M${p.left} ${y}h${p.width}`;
     }
     elements.push(
-      `<g data-layer="grid">${paths.map((path, i) => `<path data-grid-tier="${["fine", "intermediate", "heavy"][i]}" d="${path}" fill="none" stroke="#b3b3b3" stroke-width="${[0.51, 1.02, 1.417][i] * PT_MM}"/>`).join("")}</g>`,
+      `<g data-layer="grid">${paths.map((path, i) => `<path data-grid-tier="${["fine", "intermediate", "heavy"][i]}" d="${path}" fill="none" stroke="#b3b3b3" stroke-width="${[FINE_GRID_STROKE_POINTS.fine, FINE_GRID_STROKE_POINTS.centimetre, FINE_GRID_STROKE_POINTS.twoCentimetre][i] * PT_MM}"/>`).join("")}</g>`,
     );
     const extra = g.positiveEndArrows ? 5 : 0;
     elements.push(
-      `<g data-layer="axes" stroke="black" stroke-width="0.3"><path d="M${p.left} ${oy}H${p.left + p.width + extra}M${ox} ${p.top + p.height}V${p.top - extra}" fill="none"/>`,
+      `<g data-layer="axes" stroke="black" stroke-width="${AXIS_STROKE_POINTS * PT_MM}"><path d="M${p.left} ${oy}H${p.left + p.width + extra}M${ox} ${p.top + p.height}V${p.top - extra}" fill="none"/>`,
     );
     if (g.positiveEndArrows)
       elements.push(
@@ -288,25 +286,15 @@ export function renderSvg(raw: ValueEnvelope): string {
     );
     const xl = labels(number(b.xMin), number(b.xMax), number(g.xLabelEvery)),
       yl = labels(number(b.yMin), number(b.yMax), number(g.yLabelEvery));
-    const verifyLabelSpacing = (values: number[], scale: number) => {
-      for (let i = 1; i < values.length; i++) {
-        const a = displayNumber(String(values[i - 1])),
-          c = displayNumber(String(values[i]));
-        if (
-          ((values[i] - values[i - 1]) * 10) / scale <
-          (width(a) + width(c)) / 2 + 1
-        )
-          throw Error("Axis labels overlap. Use a larger label interval.");
-      }
-    };
-    verifyLabelSpacing(xl, sx);
+    if (axisNumbersTouch(xl.map((x) => ({ at: x, width: width(axisNumberText(x, VALUE_PLACES)) })), 1, (from, to) => ((to - from) * 10) / sx))
+      throw Error("Axis labels overlap. Use a larger label interval.");
     elements.push(`<g data-layer="axis-values" data-font-points="12">`);
     xl.forEach((x) =>
       elements.push(
         numericText(
           px(x),
           oy + 4,
-          displayNumber(String(x)),
+          axisNumberText(x, VALUE_PLACES),
           "middle",
           g.axisStyle === "exam",
         ),
@@ -317,7 +305,7 @@ export function renderSvg(raw: ValueEnvelope): string {
         numericText(
           ox - 1.6,
           py(y) + f * 0.3,
-          displayNumber(String(y)),
+          axisNumberText(y, VALUE_PLACES),
           "end",
           g.axisStyle === "exam",
         ),

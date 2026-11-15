@@ -100,7 +100,7 @@ describe("Edexcel-style graphs", () => {
   });
 
   it("keeps every new setting through files, links, hashes and revisions", async () => {
-    const e = createGraph({ ...travel, originLabel: "O", objects: [...travel.objects, { kind: "point", id: "p", position: { x: 765, y: 25 }, name: "P" }] });
+    const e = createGraph({ ...travel, originLabel: "0", objects: [...travel.objects, { kind: "point", id: "p", position: { x: 765, y: 25 }, name: "P" }] });
     expect(parseGraphFile(JSON.stringify(e))).toEqual(e);
     const link = editorLink(e, "https://mathsdock.co.uk/");
     expect(decodeEnvelope(new URL(link).hash.slice("#graph=".length))).toEqual(JSON.parse(canonicalEnvelope(e)));
@@ -112,7 +112,7 @@ describe("Edexcel-style graphs", () => {
       operations: [
         { op: "set_name", id: "out", name: "L" },
         { op: "set_name", id: "p", position: { x: 780, y: 20 } },
-        { op: "set_grid", grid: "1cm", originLabel: "0" },
+        { op: "set_grid", grid: "1cm", originLabel: "O" },
       ],
     });
     const r = documentFromEnvelope(revised);
@@ -134,7 +134,7 @@ describe("Edexcel-style graphs", () => {
     expect(svg).toContain("A one centimetre square grid");
     expect(svg).not.toContain("object-name");
     expect(svg).not.toContain("axis-title");
-    expect(texts(svg)).toContain("0");
+    expect(texts(svg)).toContain("𝑂"); // the default origin mark, as Edexcel papers print it
   });
 });
 
@@ -328,5 +328,19 @@ describe("point coordinates", () => {
     const without = { objects: spec.objects.map((o) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== "coordinates"))) };
     const d = documentFromEnvelope(createGraph(without));
     expect(renderDiagramSvg(d)).not.toContain("point-coordinates");
+  });
+});
+
+describe("lines on the edge of the grid (Tim, A7.11 marking)", () => {
+  const clip = (svg: string, id: string) => svg.match(new RegExp(`<clipPath id="${id}"><rect x="([\\d.]+)"`))![1];
+  it("clips plotted lines half a stroke outside the grid, more for bold lines, and fills exactly", () => {
+    const base = { objects: [{ kind: "line", equation: { kind: "slope", slope: 0, intercept: 4 } }] };
+    const normal = renderDiagramSvg(doc(base)),
+      bold = renderDiagramSvg(doc({ ...base, lines: "bold" }));
+    const edge = Number(clip(normal, "plot-fill-clip"));
+    const half = edge - Number(clip(normal, "plot-clip"));
+    expect(half).toBeGreaterThan(0);
+    expect(edge - Number(clip(bold, "plot-clip"))).toBeCloseTo(half * 1.5, 1);
+    expect(Number(clip(bold, "plot-fill-clip"))).toBe(edge);
   });
 });

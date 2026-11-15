@@ -1,0 +1,40 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "circle",
+   "part": "full",
+   "radiusMm": 30,
+   "angleDeg": 90,
+   "line": "radius",
+   "centre": true
+  },
+  "hole": null,
+  "shaded": "none",
+  "labels": [
+   {
+    "id": "r",
+    "state": "value",
+    "text": "6 cm",
+    "answer": ""
+   },
+   {
+    "id": "arc",
+    "state": "hidden",
+    "text": "",
+    "answer": "12π cm"
+   },
+   {
+    "id": "area",
+    "state": "hidden",
+    "text": "",
+    "answer": "36π cm²"
+   }
+  ],
+  "names": [],
+  "grid": false,
+  "notToScale": true
+ }
+}

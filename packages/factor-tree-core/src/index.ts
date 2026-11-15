@@ -15,6 +15,9 @@ import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { aboutShape } from "../../envelope-core/src/about";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
+/** The renderer version every new factor-tree envelope carries. */
+export const RENDERER_VERSION = "factor-tree-1" as const;
+
 export const MAX_TREES = 3;
 export const MAX_DEPTH = 8;
 export const MAX_NODES = 31;
@@ -65,7 +68,7 @@ export const envelopeSchema = z
   .object({
     kind: z.literal("factor-tree"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("factor-tree-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -204,7 +207,7 @@ export function create(root = ""): Envelope {
   return validate({
     kind: "factor-tree",
     schemaVersion: 1,
-    rendererVersion: "factor-tree-1",
+    rendererVersion: RENDERER_VERSION,
     document: { trees: [newTree("t1", root, value())], blankStyle: "dots", levelMm: 13, intentionalError: false },
   });
 }

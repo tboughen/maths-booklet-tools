@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderResource, stageLetters, validate, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { layoutSample } from "../../packages/resource-core/src/layout-sample";
-import { answerSpaces, moveCard, setLayout } from "./edit";
+import { addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside } from "./edit";
 
 const ok = (r: Resource | string): Resource => {
   if (typeof r === "string") throw Error(r);
@@ -132,5 +132,20 @@ describe("worksheet editor moves", () => {
     const back = moveCard(layoutSample, 1, 0, 0, "previous");
     expect(back?.document.sides[0].columns[2].cards.at(-1)?.title).toBe("Draw y = 3x − 2");
     expect(moveCard(layoutSample, 1, 1, 0, "next")).toBeNull();
+  });
+});
+
+describe("beside rows in the editor (A7.04)", () => {
+  const text = (t: string) => ({ type: "text" as const, text: t });
+  const line = { type: "answerLine" as const, prefix: "m =", suffix: "", answer: "", inline: false };
+  it("never splits a row when adding grid paper or removing an item", () => {
+    const card = { title: "Q", items: [text("Graph"), { ...line, beside: true as const }] } as never as Parameters<typeof addPaper>[0];
+    addPaper(card, 120);
+    expect(card.items.map((i) => i.type)).toEqual(["text", "answerLine", "paper"]);
+    removeItem(card.items, 0);
+    expect(card.items[0]).not.toHaveProperty("beside");
+  });
+  it("keeps the saved item minimal when beside is turned off", () => {
+    expect(withBeside(withBeside(text("a"), true), false)).toEqual(text("a"));
   });
 });

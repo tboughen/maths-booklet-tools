@@ -28,6 +28,8 @@ const SLASHED = /(?<![\w./{])\d+ ?\/ ?\d+(?![\w/}]|\.\d)/;
  * off (it would print with its braces). Returns the first one found, or null.
  */
 export function inlineFraction(source: string, maths: boolean): string | null {
+  // Printed text may hold no-break spaces (keepTogether): read them as ordinary spaces.
+  source = source.replace(/\u00a0/g, " ");
   const rest = maths ? source.replace(FRACTION, " ") : source;
   const m = rest.match(SLASHED) ?? rest.match(VULGAR) ?? (maths ? null : source.match(FRACTION));
   return m ? m[0] : null;
@@ -196,6 +198,14 @@ function fractionLineSvg(line: Line, x: number, y: number, size: number, fill: s
 
 /** Gap between answer lines that share a row (mm). */
 export const ANSWER_SLOT_GAP = 6;
+/**
+ * A lone inline answer line (inline: true, with no inline neighbours) is short: its prefix, a line
+ * of about 30 mm (longer only if its saved answer needs it) and its suffix, left-aligned. A single
+ * number never gets a full-width line (Tim, A7.05 marking; worksheet standard 0.3, rule P3).
+ * Lines that are not inline keep the full width, for sentences.
+ */
+export const SHORT_ANSWER_LINE = 30;
+export const loneSlot = (pre: number, post: number, answerW: number, w: number) => Math.min(w, pre + post + Math.max(SHORT_ANSWER_LINE, answerW ? answerW + 2 : 0));
 /** Shortest answer line a pupil can write on (mm). */
 export const ANSWER_LINE_MIN = 18;
 /**

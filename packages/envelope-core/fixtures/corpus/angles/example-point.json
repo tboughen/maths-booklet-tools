@@ -1,0 +1,62 @@
+{
+ "kind": "angles",
+ "schemaVersion": 1,
+ "rendererVersion": "angles-1",
+ "document": {
+  "figure": {
+   "type": "point",
+   "rays": [
+    10,
+    105,
+    200,
+    285
+   ]
+  },
+  "angles": [
+   {
+    "id": "s1",
+    "label": {
+     "state": "value",
+     "text": "95",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s2",
+    "label": {
+     "state": "value",
+     "text": "95",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s3",
+    "label": {
+     "state": "value",
+     "text": "85",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   },
+   {
+    "id": "s4",
+    "label": {
+     "state": "symbol",
+     "text": "y",
+     "answer": ""
+    },
+    "mark": "arc",
+    "shade": false
+   }
+  ],
+  "names": [],
+  "turnDeg": 0,
+  "sizeMm": 60,
+  "notToScale": true
+ }
+}

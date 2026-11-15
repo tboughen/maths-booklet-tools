@@ -24,6 +24,8 @@ const SPECS: Record<(typeof DIAGRAM_KINDS)[number], Record<string, unknown> | un
   elevations: { heights: [[2, 1], [1, 0]], panels: [{ view: "isometric" }, { view: "front", state: "answer" }] },
   "frequency-tree": { total: "60", groups: [{ name: "boys", count: "32", children: [{ name: "school lunch", count: "24" }, { name: "packed lunch", count: "8", countHidden: true }] }, { name: "girls", count: "28", countHidden: true }] },
   "two-way-table": { columns: ["Walk", "Bus"], rows: [{ heading: "Year 7", cells: ["12", { text: "8", hidden: true }, "20"] }, { heading: "Year 8", cells: ["", "9", "15"] }] },
+  angles: { figure: { type: "parallel" }, angles: [{ id: "p1-ur", text: "58" }, { id: "p2-ul", text: "x", answer: "122" }] },
+  area: { preset: "l-shape", labels: [{ id: "e1", text: "12 cm" }, { id: "e6", text: "10 cm" }, { id: "area", answer: "85 cm²" }] },
   "sample-space": { rows: ["H", "T"], columns: ["1", "2", "3"], cells: [["H1", { text: "H2", hidden: true }, ""]] },
   "factor-tree": { root: "36", complete: true },
   triangle: { widthCm: 8 },
@@ -83,7 +85,7 @@ describe("worksheet diagrams from every family", () => {
   it("refuses a diagram with both or neither of spec and envelope, and names a bad spec field", () => {
     expect(() => validate(withDiagram({ tool: "venn" }))).toThrow(/envelope or its spec/);
     expect(() => validate(withDiagram({ tool: "venn", spec: {}, envelope: {} }))).toThrow(/envelope or its spec/);
-    expect(() => validate(withDiagram({ tool: "charts", spec: { categories: "A" } }))).toThrow(/bar or line chart: spec\.categories/);
+    expect(() => validate(withDiagram({ tool: "charts", spec: { categories: "A" } }))).toThrow(/statistical chart: spec\.categories/);
     expect(() => validate(withDiagram({ tool: "spirograph", spec: {} }))).toThrow();
   });
 });

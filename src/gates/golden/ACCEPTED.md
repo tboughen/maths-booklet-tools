@@ -451,6 +451,13 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - bar model: bar-source-sharing (worked): png600 3260x1643 -> 3293x1037
 - bar model: bar-source-sharing (worked): pixels 2ab65c5c0693f6c1 -> b765ced7d4ba0427
 
+## 2026-11-14: Pie charts added to Statistical charts: four new pie example outputs, no existing output changed
+
+- charts: chart-pie-snacks: added
+- charts: chart-pie-snacks (worked): added
+- charts: chart-pie-complete: added
+- charts: chart-pie-complete (worked): added
+
 ## 2026-11-14: U35: saved graph envelopes no longer carry the editor's selectedObjectId; artwork unchanged
 
 - graph: graph-1MA1_JUN_2019_2H_Q2: json 169b037986e5a308 -> 75f5e8de89a74165
@@ -459,6 +466,162 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2017_3F_Q13 (worked): json edd91e3824371975 -> d106633b195329f2
 - graph: graph-1MA1_NOV_2021_1F_Q18: json 320cb0f7ac481726 -> 6b1d6f131727bc66
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): json 50094a4dd9cdab15 -> f3131ffaec134c16
+
+## 2026-11-15: Pictograms added to Statistical charts: four new pictogram example outputs, no existing output changed
+
+- charts: chart-pictogram-pictures: added
+- charts: chart-pictogram-pictures (worked): added
+- charts: chart-pictogram-cycles: added
+- charts: chart-pictogram-cycles (worked): added
+
+## 2026-11-15: Scatter graphs added to Statistical charts: four new scatter example outputs, no existing output changed
+
+- charts: chart-scatter-judges: added
+- charts: chart-scatter-judges (worked): added
+- charts: chart-scatter-plot: added
+- charts: chart-scatter-plot (worked): added
+
+## 2026-11-15: New angle diagrams tool: its nine gallery examples, pupil and worked (new outputs only)
+
+- angle diagrams: angles-straight-line: added
+- angle diagrams: angles-straight-line (worked): added
+- angle diagrams: angles-point: added
+- angle diagrams: angles-point (worked): added
+- angle diagrams: angles-vertically-opposite: added
+- angle diagrams: angles-vertically-opposite (worked): added
+- angle diagrams: angles-algebra-line: added
+- angle diagrams: angles-algebra-line (worked): added
+- angle diagrams: angles-parallel: added
+- angle diagrams: angles-parallel (worked): added
+- angle diagrams: angles-co-interior: added
+- angle diagrams: angles-co-interior (worked): added
+- angle diagrams: angles-regular-polygon: added
+- angle diagrams: angles-regular-polygon (worked): added
+- angle diagrams: angles-exterior-angle: added
+- angle diagrams: angles-exterior-angle (worked): added
+- angle diagrams: angles-polygon-sum: added
+- angle diagrams: angles-polygon-sum (worked): added
+
+## 2026-11-15: New area and perimeter tool: its ten gallery examples, pupil and worked (new outputs only)
+
+- area and perimeter: area-l-shape: added
+- area and perimeter: area-l-shape (worked): added
+- area and perimeter: area-perimeter: added
+- area and perimeter: area-perimeter (worked): added
+- area and perimeter: area-trapezium: added
+- area and perimeter: area-trapezium (worked): added
+- area and perimeter: area-triangle: added
+- area and perimeter: area-triangle (worked): added
+- area and perimeter: area-rectangle-semicircle: added
+- area and perimeter: area-rectangle-semicircle (worked): added
+- area and perimeter: area-frame: added
+- area and perimeter: area-frame (worked): added
+- area and perimeter: area-circle: added
+- area and perimeter: area-circle (worked): added
+- area and perimeter: area-semicircle: added
+- area and perimeter: area-semicircle (worked): added
+- area and perimeter: area-sector: added
+- area and perimeter: area-sector (worked): added
+- area and perimeter: area-grid: added
+- area and perimeter: area-grid (worked): added
+
+## 2026-11-15: Scatter graphs: table of values and broken axes (scatter-plot example now prints its table and a broken test-mark axis; scatter-judges only gains stroke-linejoin on the axes and new saved fields, pixels unchanged)
+
+- charts: chart-scatter-judges: json 14388e3ef03afe71 -> 0f15450b2e48c34f
+- charts: chart-scatter-judges: svg f6edbb52d9fefa75 -> cf7e1a6dfe560d90
+- charts: chart-scatter-judges (worked): json 09e08a8b780fbbbc -> 90a977249513ccf2
+- charts: chart-scatter-judges (worked): svg e8f7639c701065b5 -> da548f3d91128bd7
+- charts: chart-scatter-plot: json cd620a3b775e721c -> be9354b1adda9767
+- charts: chart-scatter-plot: svg b7ee827bac63a7b8 -> 051713d9a0a42216
+- charts: chart-scatter-plot: mm 134.9x101.4 -> 165.4x137.3
+- charts: chart-scatter-plot: png600 3187x2395 -> 3907x3243
+- charts: chart-scatter-plot: pixels c5b9e046fca68e2b -> 385320d90c5cb0f7
+- charts: chart-scatter-plot (worked): json 9fe27b663b9830c8 -> ef2b82f371a9122b
+- charts: chart-scatter-plot (worked): svg f8f6d3baa56cc905 -> c54aa779f2a81798
+- charts: chart-scatter-plot (worked): mm 134.9x101.4 -> 165.4x137.3
+- charts: chart-scatter-plot (worked): png600 3187x2395 -> 3907x3243
+- charts: chart-scatter-plot (worked): pixels e85f0c821daeeb73 -> 12683f5f6b01c105
+
+## 2026-11-15: Exam parity: Edexcel axis and grid line weights in the Graph tool and the value graph
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg 57e383be780c3676 -> bb6a24aebb1bd375
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels 8f04b786f07e2f75 -> b00f5703b13463c2
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg b18cf14f655d949d -> aae596df8fd18b82
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels dc83af7d19c429cd -> 2d102c4272954f09
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg b302fb81856bd9c3 -> 92c8b17e6313594f
+- graph: graph-1MA1_NOV_2017_3F_Q13: pixels b1e3fd71cbaea7be -> 6b7b0a1fb0d5953e
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 0b621984c8518128 -> a7ed04b26376c025
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels ed8ac3c567240f31 -> 04b028771a7be3ae
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 48df159e1eaa672b -> 35614de6117042cb
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels 5a2e2773015f1b66 -> ac8d35ca01ff53c9
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg d7c6def019a98198 -> 0e8cdcd13edcf781
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 68ad6c047e5303ba -> 4ad9169e8a370b33
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5: svg 513612a887963c61 -> 91887f76e7e55555
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5: pixels 5d361414d6270d49 -> 6d05475760d671f1
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked): svg 9f64c19b4b6b4ed6 -> 40bbefca8a685f34
+- plotting quadratics: quadratic-1MA1_JUN_2018_2H_Q5 (worked): pixels 02a0239df428b47f -> bbc81336503f25ad
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13: svg b48362984ef02bdb -> 0bca156862e9d770
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13: pixels ef8d6afe91b6f317 -> 64f6881dae2c03aa
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked): svg d3d154a3f12ee20b -> 00a5a28da98605c8
+- plotting quadratics: quadratic-1MA1_MOCK_SET_08_1H_Q13 (worked): pixels 2908e00a981c8195 -> e0a5e6f55fef3439
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7: svg 9c18032360178a13 -> 875f26c54b7d579b
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7: pixels 1ba8996705ef9ba7 -> ffdcf2785d4a8d7e
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked): svg 41b426341c083e2b -> 9d1d78f4c8d9d14a
+- plotting quadratics: quadratic-1MA1_NOV_2017_1H_Q7 (worked): pixels eb87a77a2d9db346 -> 2bbb31102eea1b6a
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3: svg 4aabbaa2c771ddbd -> 538e9b8d3374e087
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3: pixels 68aa81c36f06a9f4 -> ba1f802676728e5e
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked): svg 26f0c0537442b62a -> 112ebb5febb48cb3
+- plotting quadratics: quadratic-1MA1_NOV_2018_3H_Q3 (worked): pixels fc75288b96314112 -> 146290897cb3d5db
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4: svg 5a99cd13ebb46526 -> 83e65bf042eb02aa
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4: pixels dc2e101a84af5008 -> 524185922ac40e4d
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked): svg 7ef868d8f57d3b35 -> 834eacff16764842
+- plotting quadratics: quadratic-1MA1_NOV_2021_2H_Q4 (worked): pixels b337318eec3ffb34 -> 263df6b79cfb3f3a
+- plotting quadratics: quadratic-fractions: svg cf36101557f9172e -> 9dc00e4a104bf8e5
+- plotting quadratics: quadratic-fractions: pixels 552d38ee876f26eb -> fc1728774a47f6f9
+- plotting quadratics: quadratic-fractions (worked): svg 27d8dde9e4449e9c -> ca50c7501a6b5fad
+- plotting quadratics: quadratic-fractions (worked): pixels 318a7273a4a13565 -> 84d999b102f7811d
+
+## 2026-11-15: Exam parity: graphs print an italic O at the origin by default, as Edexcel papers do
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg bb6a24aebb1bd375 -> db54a06e0ac7dcf8
+- graph: graph-1MA1_JUN_2019_2H_Q2: pixels b00f5703b13463c2 -> 2b18446b7ec3ebef
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg aae596df8fd18b82 -> 472d2466e790793c
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): pixels 2d102c4272954f09 -> 86dc7884d2f4fe9c
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 92c8b17e6313594f -> 145cb8c3c0b2d30a
+- graph: graph-1MA1_NOV_2017_3F_Q13: pixels 6b7b0a1fb0d5953e -> 9fb33ec5ac4fe5fb
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg a7ed04b26376c025 -> 871ac49825d066a6
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): pixels 04b028771a7be3ae -> 1afa69c158c6d99d
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 35614de6117042cb -> 46fbf64b172c8dd9
+- graph: graph-1MA1_NOV_2021_1F_Q18: pixels ac8d35ca01ff53c9 -> 3b83e69e52882db4
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 0e8cdcd13edcf781 -> 6471b80a1d3e244f
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): pixels 4ad9169e8a370b33 -> 648a83f51c414026
+
+## 2026-11-15: Angle diagrams extras: three new gallery examples (Z shape, two transversals, polygons meeting), pupil and worked (new outputs only)
+
+- angle diagrams: angles-z-shape: added
+- angle diagrams: angles-z-shape (worked): added
+- angle diagrams: angles-two-transversals: added
+- angle diagrams: angles-two-transversals (worked): added
+- angle diagrams: angles-polygons-meeting: added
+- angle diagrams: angles-polygons-meeting (worked): added
+
+## 2026-11-15: Graph plot clip reaches half a line width past the grid, so a line on the grid edge prints at full weight (Tim, A7.11 marking, 15 Nov 2026)
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg db54a06e0ac7dcf8 -> 7f3517753657ba57
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg 472d2466e790793c -> 62cd6d84903ab4df
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 145cb8c3c0b2d30a -> 35766a6554e6e54a
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 871ac49825d066a6 -> 60a5ac6edc9d5f36
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg 46fbf64b172c8dd9 -> bad8a5f1b14c9c64
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 6471b80a1d3e244f -> 2dc3563bf945df71
+
+## 2026-11-15: Bold lines get a wider plot clip; polygon fills keep the exact plot clip (review of A7.11 edge-line fix)
+
+- graph: graph-1MA1_JUN_2019_2H_Q2: svg 7f3517753657ba57 -> 12a0af07a17e5f4b
+- graph: graph-1MA1_JUN_2019_2H_Q2 (worked): svg 62cd6d84903ab4df -> c42d256a343643d5
+- graph: graph-1MA1_NOV_2017_3F_Q13: svg 35766a6554e6e54a -> 8e52bc398906fc46
+- graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 60a5ac6edc9d5f36 -> 98467927ce31fcd8
+- graph: graph-1MA1_NOV_2021_1F_Q18: svg bad8a5f1b14c9c64 -> 24831fc4b21e9286
+- graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 2dc3563bf945df71 -> 1e4d146e65ced02b
 
 ## 2026-11-15: New sample space diagram family (P-3): adds goldens for its gallery examples; no existing output changed
 

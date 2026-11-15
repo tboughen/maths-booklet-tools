@@ -15,6 +15,9 @@ import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { aboutShape } from "../../envelope-core/src/about";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 
+/** The renderer version every new sample-space envelope carries. */
+export const RENDERER_VERSION = "sample-space-1" as const;
+
 export const MAX_OUTCOMES = 10;
 export const MAX_HEADING = 12;
 export const MAX_TITLE = 24;
@@ -67,7 +70,7 @@ export const envelopeSchema = z
   .object({
     kind: z.literal("sample-space"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("sample-space-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -146,7 +149,7 @@ export function create(rows: string[] = DICE, columns: string[] = DICE, corner =
   return validate({
     kind: "sample-space",
     schemaVersion: 1,
-    rendererVersion: "sample-space-1",
+    rendererVersion: RENDERER_VERSION,
     document: {
       corner,
       rowTitle: titles.row ?? "",

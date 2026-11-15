@@ -5,13 +5,15 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { Compass, Cuboid, GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, Dices, FileSpreadsheet, Grid2x2, Grid3X3, Sheet, ListChecks, Shapes, Split, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
+import { Compass, DraftingCompass, Cuboid, GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, Dices, FileSpreadsheet, Grid2x2, Grid3X3, Sheet, ListChecks, Shapes, Split, Table2, Box, MoveHorizontal, Ruler, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
 import probabilityTreePreview from "../assets/tool-previews/probability-trees.svg";
 import frequencyTreePreview from "../assets/tool-previews/frequency-trees.svg";
 import twoWayTablePreview from "../assets/tool-previews/two-way-tables.svg";
+import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
+import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import factorTreePreview from "../assets/tool-previews/factor-trees.svg";
 import sampleSpacePreview from "../assets/tool-previews/sample-space-diagrams.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
@@ -31,12 +33,14 @@ export const bookletTools = [
   { id: "value-table-graph", name: "Plotting quadratics", description: "Make exam-style tables, graph paper and quadratic plotting examples.", icon: ChartSpline, component: lazyPage(() => import("../value-graph/ValueGraphPage")), preview: { src: valueGraphPreview, alt: "Example table of values with plotted points and a quadratic curve." } },
   { id: "cuboids", name: "Cuboids", description: "Draw and label cuboids, show their cubes, and reveal each layer.", icon: Box, component: lazyPage(() => import("../cuboid/CuboidPage")), preview: { src: cuboidPreview, alt: "Cuboid divided into equal cubes, with two dimensions labelled and one answer space." } },
   { id: "number-line", name: "Number lines", description: "Make exam-style number lines, intervals and inequality scaffolds.", icon: MoveHorizontal, component: lazyPage(() => import("../number-line/NumberLinePage")), preview: { src: numberLinePreview, alt: "Number line with a filled endpoint at minus three, open endpoint at one and a blank response line." } },
-  { id: "charts", name: "Bar and line charts", description: "Make bar charts, dual and composite bar charts and vertical line charts on exam-style axes.", icon: ChartColumn, component: lazyPage(() => import("../charts/ChartsPage")), preview: { src: chartsPreview, alt: "Dual bar chart of transport to school for boys and girls, with a key and one bar left for pupils to draw." } },
+  { id: "charts", name: "Statistical charts", description: "Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size, pictograms and scatter graphs.", icon: ChartColumn, component: lazyPage(() => import("../charts/ChartsPage")), preview: { src: chartsPreview, alt: "Dual bar chart of transport to school for boys and girls, with a key and one bar left for pupils to draw." } },
   { id: "probability-tree", name: "Probability trees", description: "Draw exam-style probability tree diagrams, including unequal trees and given-that questions.", icon: GitFork, component: lazyPage(() => import("../probability-tree/ProbabilityTreePage")), preview: { src: probabilityTreePreview, alt: "Two-stage probability tree for two bags of red and green balls, with three probabilities left for pupils." } },
   { id: "frequency-tree", name: "Frequency trees", description: "Draw exam-style frequency trees with a total, groups and counts left for pupils.", icon: Network, component: lazyPage(() => import("../frequency-tree/FrequencyTreePage")), preview: { src: frequencyTreePreview, alt: "Frequency tree of 80 people split into men and women and whether they like coffee, with the women's counts left for pupils." } },
   { id: "construction", name: "Constructions and loci", description: "Draw true-size constructions, loci, scale drawings and bearings, with compass arcs saved as answers.", icon: Compass, component: lazyPage(() => import("../construction/ConstructionPage")), preview: { src: constructionPreview, alt: "Line AB with two pairs of compass arcs and its perpendicular bisector." } },
   { id: "elevations", name: "Plans and elevations", description: "Draw solids made of cubes on isometric paper with their plan, front and side elevations.", icon: Cuboid, component: lazyPage(() => import("../elevations/ElevationsPage")), preview: { src: elevationsPreview, alt: "Isometric drawing of a solid made of cubes, with empty grids for its plan, front elevation and side elevation." } },
   { id: "two-way-table", name: "Two-way tables", description: "Make exam-style two-way tables with totals, and cells left blank or hidden for pupils.", icon: Sheet, component: lazyPage(() => import("../two-way-table/TwoWayTablePage")), preview: { src: twoWayTablePreview, alt: "Two-way table of how Year 7 and Year 8 travel to school, with five cells left for pupils." } },
+  { id: "angles", name: "Angle diagrams", description: "Draw angles on straight lines, round a point, on parallel lines and in polygons, with sizes given or left for pupils.", icon: DraftingCompass, component: lazyPage(() => import("../angles/AnglesPage")), preview: { src: anglesPreview, alt: "Two parallel lines with arrow marks cut by a transversal: one angle is 58° and two angles marked x and y are left for pupils." } },
+  { id: "area", name: "Area and perimeter", description: "Draw compound shapes, triangles, trapeziums, circles, semicircles and sectors, with lengths given or left for pupils.", icon: Ruler, component: lazyPage(() => import("../area/AreaPage")), preview: { src: areaPreview, alt: "An L-shaped compound shape with sides of 12 cm, 5 cm, 5 cm and 10 cm and two sides left for pupils." } },
   { id: "factor-tree", name: "Factor trees", description: "Draw factor trees down to circled primes, with an index-form answer line and numbers left blank or hidden.", icon: Split, component: lazyPage(() => import("../factor-tree/FactorTreePage")), preview: { src: factorTreePreview, alt: "Factor tree for 360 with the first split given and the rest left for pupils, above an answer line." } },
   { id: "sample-space", name: "Sample space diagrams", description: "Make sample space diagrams for two dice, spinners and coins, with outcomes left blank, hidden or circled.", icon: Dices, component: lazyPage(() => import("../sample-space/SampleSpacePage")), preview: { src: sampleSpacePreview, alt: "Sample space diagram for the totals of two dice, with four totals given and the rest left for pupils." } },
 ] as const;
@@ -56,9 +60,9 @@ export const siteSections = [
   { id: "question-bank", name: "Question bank", href: pageHref("question-bank"), icon: BookOpen, description: "Find reviewed exam questions by topic, display them in class and export question papers with mark schemes.", action: "Open Question bank" },
   { id: "paper-builder", name: "Paper builder", href: `${pageHref("question-bank")}?bankView=topics`, icon: ListChecks, description: "Tick Sparx codes, review your questions and download a paper with its mark scheme.", action: "Build a paper" },
   { id: "assessment-follow-up", name: "Assessment follow-up", href: pageHref("assessment-follow-up"), icon: FileSpreadsheet, description: "Turn question-level assessment results into personalised practice for each pupil.", action: "Create class practice" },
-  { id: "worksheets", name: "Worksheets", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
-  { id: "booklets", name: "Booklets", href: pageHref("booklets"), icon: BookOpenCheck, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
-  { id: "booklet-tools", name: "Booklet tools", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Explore booklet tools" },
+  { id: "booklet-tools", name: "Diagram builder", href: pageHref("booklet-tools"), icon: Shapes, description: "Create graphs, ratio tables and diagrams for your teaching resources.", action: "Make a diagram" },
+  { id: "worksheets", name: "Worksheet builder", href: pageHref("worksheets"), icon: FileText, description: "Make a two-sided A3 worksheet from a scheme of work objective with AI, edit it, and download the pupil and answers PDFs.", action: "Make a worksheet" },
+  { id: "booklets", name: "Booklet builder", href: pageHref("booklets"), icon: BookOpenCheck, description: "Make an A4 unit booklet from a scheme of work unit with AI: a check-in, worked examples, practice and diagnostics for every lesson.", action: "Make a booklet" },
 ] as const;
 export type SectionId = PageId | "paper-builder";
 export function readSection(where: { pathname: string; search: string } = location): SectionId {
@@ -70,11 +74,11 @@ export function sectionName(section: SectionId): string {
 }
 export function pageName(id: PageId): string {
   if (id === "home") return "Home";
-  if (id === "booklet-tools") return "Booklet tools";
+  if (id === "booklet-tools") return "Diagram builder";
   if (id === "question-bank") return "Question bank";
   if (id === "assessment-follow-up") return "Assessment follow-up";
-  if (id === "worksheets") return "Worksheets";
-  if (id === "booklets") return "Booklets";
+  if (id === "worksheets") return "Worksheet builder";
+  if (id === "booklets") return "Booklet builder";
   if (id === "not-found") return "Page not found";
   return bookletTools.find(tool => tool.id === id)!.name;
 }

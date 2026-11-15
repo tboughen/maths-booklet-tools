@@ -8,47 +8,44 @@ import { copyStorageKey } from "../site/copyDocument";
 import { downloadBlob } from "../export/clipboard";
 import { LAYOUTS, SIZE, columnBoxes, isReminder, fileName, renderResource, stageLetters, validate, type Item, type Layout, type Resource } from "../../packages/resource-core/src/index";
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
-import { Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
+import { BesideToggle, Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
-import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, type Move } from "./edit";
+import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
 import { usePrintSize } from "../site/usePrintSize";
-import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, openDraft, STORAGE_UNAVAILABLE, useDraftAutosave } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
 const MAX_FILE = 400_000;
 
 function initial(): { r: Resource; message: string; recovery: string | null } {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (!raw) return { r: treeDiagrams, message: "", recovery: null };
-    try {
-      return { r: validate(JSON.parse(raw)), message: "", recovery: null };
-    } catch {
-      return {
-        r: treeDiagrams,
-        message: "Saved worksheet data needs recovery. Download it before starting again.",
-        recovery: raw,
-      };
-    }
-  } catch {
-    return {
-      r: treeDiagrams,
-      message: "Device storage is unavailable. Save the editable file to keep your work.",
-      recovery: null,
-    };
-  }
+  const start = openDraft({
+    key: STORAGE,
+    parse: (raw) => validate(JSON.parse(raw)),
+    fresh: () => treeDiagrams,
+    recoveryMessage: "Saved worksheet data needs recovery. Download it before starting again.",
+  });
+  // Kept: this page's own wording for unavailable storage.
+  const message = start.message === STORAGE_UNAVAILABLE ? "Device storage is unavailable. Save the editable file to keep your work." : start.message;
+  return { r: start.document, message, recovery: start.recovery };
 }
 
 export default function WorksheetPage({ active = true }: { active?: boolean }) {
-  const [startup] = useState(initial);
+  const [startup] = useState(() => {
+    let opened: string | null = null;
+    try {
+      opened = localStorage.getItem(STORAGE);
+    } catch {
+      /* Saving reports the failure. */
+    }
+    return { ...initial(), opened };
+  });
   const documentHistory = useDocumentHistory<Resource>(startup.r, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
   const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
-  const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
   const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
@@ -83,15 +80,22 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
 
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(history.present));
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
+  // Autosave with protection for another tab's worksheet, guarded from the draft this tab opened.
+  const savedText = useMemo(() => JSON.stringify(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    opened: startup.opened,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setMessage(
+        reason === "newer"
+          ? "A newer worksheet was saved in another tab. Its saved data is protected."
+          : "The saved worksheet changed in another tab. Download it before replacing it.",
+      );
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -169,7 +173,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   return (
     <div className="app-shell booklet-editor ws-editor">
       <main className="main-content" id={active ? "main-content" : undefined} tabIndex={-1}>
-        <PageHeading title="Worksheets" description="Make an A3 worksheet from a learning objective with your own AI key, or open a worksheet file. Change its wording and answer spaces, and download the A3 PDFs.">
+        <PageHeading title="Worksheet builder" description="Make an A3 worksheet from a learning objective with your own AI key, or open a worksheet file. Change its wording and answer spaces, and download the A3 PDFs.">
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
         <section className="workspace">
@@ -289,13 +293,24 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
             )}
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved worksheet data">
-                <p>The saved worksheet on this device could not be read. Download it before starting again.</p>
+                <p>The saved worksheet on this device is protected. Download it before starting again.</p>
                 <button className="tool-button" onClick={() => void run(() => downloadBlob(new Blob([recovery], { type: "application/json" }), "worksheet-recovered.json"), "Saved data downloaded.")}>
                   Download saved data
                 </button>
                 <button
                   className="tool-button"
                   onClick={() => {
+                    let unchanged = true;
+                    try {
+                      unchanged = keepStored(recovery);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
+                    }
+                    if (!unchanged) {
+                      setRecovery(localStorage.getItem(STORAGE) ?? "");
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
                     setRecovery(null);
                     setMessage("");
                   }}
@@ -423,7 +438,10 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                 <div key={i} className="ws-part">
                                   <Field label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)}`} value={item.text} max={400} multiline disabled={blocked} onCommit={(text) => setItem([i], { ...item, text })} />
                                   {item.items.map((leaf, j) => (
-                                    <div key={j}>{leafEditor(leaf, (next) => setItem([i, j], next), "")}</div>
+                                    <div key={j}>
+                                      {leafEditor(leaf, (next) => setItem([i, j], next), "")}
+                                      <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
+                                    </div>
                                   ))}
                                   <WorkingField
                                     label={`Part ${String.fromCharCode(97 + card.items.slice(0, i).filter((x) => x.type === "part").length)} hidden working`}
@@ -441,8 +459,9 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                               ) : (
                                 <div key={i}>
                                   {leafEditor(item, (next) => setItem([i], next), "")}
+                                  <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                                   {item.type === "paper" && (
-                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => void cd.items.splice(i, 1))}>
+                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => removeItem(cd.items, i))}>
                                       <Trash2 size={15} aria-hidden="true" /> Remove grid paper
                                     </button>
                                   )}

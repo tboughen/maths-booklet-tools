@@ -8,7 +8,7 @@ export const ftConfig = {
   revision: fi.revisionSchema,
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["factor-tree-1"],
+    rendererVersions: [ft.RENDERER_VERSION],
     maximumTrees: ft.MAX_TREES,
     maximumLevels: ft.MAX_DEPTH,
     maximumNumbersPerTree: ft.MAX_NODES,

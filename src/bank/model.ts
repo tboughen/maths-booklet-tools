@@ -5,6 +5,8 @@ import { paperDetailPath, type DetailKey } from "../../bankCatalogueSplit";
 export type Tier = "all" | "F" | "H";
 export type CalculatorFilter = "all" | "yes" | "no";
 export type CollectionFilter = "all" | "past" | "mock";
+/** "only" keeps questions that appear on both a Foundation and a Higher paper (a reviewed `equivalentId` pair). */
+export type CrossoverFilter = "all" | "only";
 export type ViewRole = "question" | "scheme" | "worked-solution";
 export type RoomLayout = "auto" | "single" | "two";
 
@@ -112,6 +114,7 @@ export interface BankRoute {
   tier: Tier;
   calculator: CalculatorFilter;
   collection: CollectionFilter;
+  crossover: CrossoverFilter;
   question: string;
   /** The question view, counted from 0 here; the address counts from 1 (`view=1` is the first view). */
   view: number;
@@ -119,7 +122,7 @@ export interface BankRoute {
   viewError?: string;
 }
 
-export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", question: "", view: 0};
+export const emptyRoute: BankRoute = {bankView: "questions", code: "", tier: "all", calculator: "all", collection: "all", crossover: "all", question: "", view: 0};
 export const normalizeCode = (code: string) => code.replace(/\s/g, "").toUpperCase();
 
 export function readRoute(search: string, catalogue?: BankCatalogue<BankListQuestion>): BankRoute {
@@ -131,6 +134,7 @@ export function readRoute(search: string, catalogue?: BankCatalogue<BankListQues
     tier: p.get("tier") === "F" || p.get("tier") === "H" ? p.get("tier") as Tier : "all",
     calculator: p.get("calc") === "yes" || p.get("calc") === "no" ? p.get("calc") as CalculatorFilter : "all",
     collection: p.get("collection") === "past" || p.get("collection") === "mock" ? p.get("collection") as CollectionFilter : "all",
+    crossover: p.get("crossover") === "only" ? "only" : "all",
     question: p.get("question") || "",
     ...readView(p.get("view"), viewCount(catalogue, p.get("question") || "")),
   };
@@ -168,6 +172,7 @@ export function routeQuery(route: BankRoute): string {
   if (route.tier !== "all") p.set("tier", route.tier);
   if (route.calculator !== "all") p.set("calc", route.calculator);
   if (route.collection !== "all") p.set("collection", route.collection);
+  if (route.crossover === "only") p.set("crossover", "only");
   if (route.question) p.set("question", route.question);
   if (route.view > 0) p.set("view", String(route.view + 1));
   const query = p.toString();
@@ -186,8 +191,9 @@ export function filterQuestions<Q extends BankListQuestion>(catalogue: BankCatal
 
 export const questionIdentity = (q: BankListQuestion): string => q.equivalentId ? [q.id, q.equivalentId].sort().join("|") : q.id;
 
-export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection">): boolean {
-  return (filters.tier === "all" || q.tier === filters.tier) &&
+export function questionEligible(q: BankListQuestion, filters: Pick<BankRoute, "tier" | "calculator" | "collection" | "crossover">): boolean {
+  return (filters.crossover === "all" || Boolean(q.equivalentId)) &&
+    (filters.tier === "all" || q.tier === filters.tier) &&
     (filters.calculator === "all" || q.calculator === (filters.calculator === "yes")) &&
     (filters.collection === "all" || (/^mock/i.test(q.collection) ? "mock" : "past") === filters.collection);
 }

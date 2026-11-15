@@ -14,6 +14,7 @@ import {
   pointLabelPlacement,
 } from "../export/svg";
 import { polygonVisible } from "../../packages/graph-core/src/polygon";
+import { plotClipBleed } from "../../packages/graph-core/src/svg";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   regionBoundaries,
@@ -626,6 +627,15 @@ export function GraphCanvas({
                 height={layout.plotBottom - layout.plotTop}
               />
             </clipPath>
+            {/* Lines on the grid's edge show at full weight, as they print. */}
+            <clipPath id="editor-line-clip">
+              <rect
+                x={layout.plotLeft - plotClipBleed(document.lines)}
+                y={layout.plotTop - plotClipBleed(document.lines)}
+                width={layout.plotRight - layout.plotLeft + 2 * plotClipBleed(document.lines)}
+                height={layout.plotBottom - layout.plotTop + 2 * plotClipBleed(document.lines)}
+              />
+            </clipPath>
             <marker
               id="editor-axis-arrow"
               viewBox="0 0 10 10"
@@ -699,10 +709,11 @@ export function GraphCanvas({
             })}
           </g>
           {!isSketch(document) && (
-          <g className="grid-lines">
+          <g className={gridDivisions(document) > 1 ? "grid-lines grid-lines--tiered" : "grid-lines"}>
             {Array.from({ length: horizontalSquares + 1 }, (_, index) => (
               <line
                 key={`x-${index}`}
+                className={(index - document.axes.x.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft + index * layout.square}
                 y1={layout.plotTop}
                 x2={layout.plotLeft + index * layout.square}
@@ -712,6 +723,7 @@ export function GraphCanvas({
             {Array.from({ length: verticalSquares + 1 }, (_, index) => (
               <line
                 key={`y-${index}`}
+                className={(verticalSquares - index - document.axes.y.negativeSquares) % 2 === 0 ? "grid-line--heavy" : undefined}
                 x1={layout.plotLeft}
                 y1={layout.plotTop + index * layout.square}
                 x2={layout.plotRight}
@@ -736,7 +748,7 @@ export function GraphCanvas({
               markerEnd="url(#editor-axis-arrow)"
             />
           </g>
-          <g clipPath="url(#editor-plot-clip)">
+          <g clipPath="url(#editor-line-clip)">
             {visibleDocument.objects.flatMap((object) =>
               object.kind === "region" && object.boundaries
                 ? regionBoundaries(regionHalfPlanes(object), layout.bounds).map((b, i) => {
@@ -805,11 +817,11 @@ export function GraphCanvas({
             {yLabels}
             {sharedOriginLabel(document) && (
               <AxisTickLabel
-                text={document.originLabel === "O" ? "𝑂" : "0"}
+                text={document.originLabel === "0" ? "0" : "𝑂"}
                 x={origin.x - AXIS_LABEL_FONT_SIZE * 0.38}
                 baseline={xNumberBaseline}
                 textAnchor="end"
-                origin={document.originLabel !== "O"}
+                origin={document.originLabel === "0"}
               />
             )}
             {!document.axes.x.title && (
@@ -947,7 +959,7 @@ export function GraphCanvas({
               const answer = object.answerOnly || mode === "blank";
               return [
                 <g key={object.id} className={`gradient-triangle${object.answerOnly ? " gradient-triangle--answer" : ""}`} data-object-id={object.id}>
-                  <path clipPath="url(#editor-plot-clip)" d={`M ${a.x} ${a.y} H ${b.x} V ${e.y}`} strokeDasharray={STRAIGHT_DASH_ARRAY} />
+                  <path clipPath="url(#editor-line-clip)" d={`M ${a.x} ${a.y} H ${b.x} V ${e.y}`} strokeDasharray={STRAIGHT_DASH_ARRAY} />
                   {mode && inside && (
                     <g className={`point-label${answer ? " point-label--answer" : ""}`} fontFamily={fontFamily} fontSize={AXIS_LABEL_FONT_SIZE}>
                       {["text-halo", undefined].map((halo) => (

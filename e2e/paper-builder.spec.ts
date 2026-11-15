@@ -34,6 +34,21 @@ test("all 27 filter combinations have correct table counts and preserve selected
   await mkdir(report,{recursive:true});await writeFile(resolve(report,"browser-filter-checks.json"),JSON.stringify(proof,null,2));
 });
 
+test("Crossover only shows just the questions shared by a Foundation and a Higher paper, in the table and the link",async({page})=>{
+  await page.goto("/question-bank?bankView=topics");
+  const builder=page.getByRole("region",{name:"Build a paper by topic",exact:true});
+  await builder.getByRole("combobox",{name:"Show",exact:true}).selectOption("all");
+  await builder.getByRole("combobox",{name:"Crossover",exact:true}).selectOption("only");
+  await expect(page).toHaveURL(/crossover=only/);
+  const rows=await builder.locator("tbody tr").evaluateAll(rows=>rows.map(row=>({code:row.querySelector("td:nth-child(2) button")!.textContent!,available:Number(row.querySelector("td:nth-child(4)")!.textContent)})));
+  for(const row of rows){
+    const count=new Set(raw.questions.filter(q=>q.equivalentId&&q.codes.includes(row.code)).map(q=>[q.id,q.equivalentId!].sort().join("|"))).size;
+    expect(row.available,row.code).toBe(count);
+  }
+  await page.goto("/question-bank?code=U538&crossover=only");
+  await expect(page.locator("details.qb-filters summary")).toContainText("active");
+});
+
 test("shared code/manual selection survives navigation, excludes once, restores and never falls back on empty filters",async({page})=>{
   await page.goto("/question-bank?bankView=topics");
   // This journey deliberately uses the original single past-paper match. New
@@ -50,7 +65,7 @@ test("shared code/manual selection survives navigation, excludes once, restores 
   await expect(summary).toContainText("0 selected codes · 1 distinct question · 4 marks");
   await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await expect(search).toHaveValue("U793");
-  await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Booklet tools",exact:true}).click();
+  await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Diagram builder",exact:true}).click();
   await page.getByRole("navigation",{name:"Main sections"}).getByRole("link",{name:"Paper builder",exact:true}).click();
   await expect(summary).toContainText("1 distinct question");
   await page.getByRole("region",{name:"Build a paper by topic",exact:true}).getByRole("combobox",{name:"Paper type",exact:true}).selectOption("mock");

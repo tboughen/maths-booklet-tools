@@ -108,7 +108,7 @@ export const ratioSpecSchema = z
     lines: z.enum(LINE_WEIGHTS).optional(),
     /**
      * Compact form, for booklets and worksheets with many tables. Use instead of headings, rows
-     * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↓");
+     * and transitions. columns: heading strings ending in → ↑ ↓ for an arrow ("x →", "y ↑"; a gradient is always y ↑, with -4 for a line going down);
      * a single letter prints italic. table: one string array per row; a cell is "3", "-1/2", "2 1/2" (mixed number),
      * "" (empty), "_" (answer line), "[3]" (hidden answer) or "[3]_" (hidden answer on an
      * answer line). steps: one string per gap between rows, "" for none, "× 2" or "÷ 2"

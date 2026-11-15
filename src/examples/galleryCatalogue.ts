@@ -57,6 +57,10 @@ import { examples as elevationExamples } from "../../packages/elevation-core/src
 import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
 import { examples as twoWayTables } from "../../packages/two-way-table-core/src/examples";
 import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
+import { examples as angleExamples } from "../../packages/angle-core/src/examples";
+import { renderSvg as angleSvg } from "../../packages/angle-core/src";
+import { examples as areaExamples } from "../../packages/area-core/src/examples";
+import { renderSvg as areaSvg } from "../../packages/area-core/src";
 import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
 import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
@@ -324,6 +328,22 @@ export const twoWayTableGallery = twoWayTables.map((example) => ({
   make: example.make,
   render: twoWayTableSvg,
   worked: true,
+}));
+export const anglesGallery = angleExamples.map((example) => ({
+  id: `angles-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof angleSvg>[0]) => angleSvg(e),
+  worked: example.worked,
+}));
+export const areaGallery = areaExamples.map((example) => ({
+  id: `area-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
+  worked: example.worked,
 }));
 export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   id: `ss-${example.id}`,

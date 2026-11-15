@@ -1,4 +1,4 @@
-import { completeTree, forView, validate, value, type Envelope, type Tree, type TreeNode } from "./index";
+import { RENDERER_VERSION, completeTree, forView, validate, value, type Envelope, type Tree, type TreeNode } from "./index";
 
 /** A nested tree: [number, left, right]. "?12" is a hidden answer, "(5)" is circled. */
 type Nested = string | [string, Nested, Nested];
@@ -21,7 +21,7 @@ function tree(treeId: string, shape: Nested, product: string | null): Tree {
   return { id: treeId, nodes, product: answer };
 }
 function doc(trees: Tree[], intentionalError = false): Envelope {
-  return validate({ kind: "factor-tree", schemaVersion: 1, rendererVersion: "factor-tree-1", document: { trees, blankStyle: "dots", levelMm: 13, intentionalError } });
+  return validate({ kind: "factor-tree", schemaVersion: 1, rendererVersion: RENDERER_VERSION, document: { trees, blankStyle: "dots", levelMm: 13, intentionalError } });
 }
 const finish = (e: Envelope, worked: boolean) => (worked ? forView(e, "answer") : e);
 
