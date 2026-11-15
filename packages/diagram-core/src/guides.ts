@@ -197,12 +197,8 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "algebra-grid": fromConfig(algebraConfig),
   "bar-model": {
     capabilities: { ...barConfig.capabilities, maximumRequestBytes: 32768 },
-    create:
-      "Bar models keep one shared unit width and stable anchored annotations; labels never set widths or calculate answers. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
-      barConfig.createDescription,
-    revise:
-      "Deleting structure an annotation refers to needs explicit annotation removal or discard intent. " +
-      barConfig.reviseDescription,
+    create: barConfig.createDescription,
+    revise: barConfig.reviseDescription,
   },
   charts: fromConfig(chartConfig),
   "probability-tree": fromConfig(treeConfig),
@@ -337,7 +333,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
@@ -346,5 +342,5 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   elevations: ["plans and elevations", "isometric drawings of cube solids"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "pictograms", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));

@@ -9,6 +9,7 @@ import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -53,6 +54,10 @@ import {
   minorChoices,
   parseFile,
   PIE_RADIUS,
+  SYMBOL_MM,
+  pictogramOf,
+  symbolChoices,
+  symbolNames,
   pieLabelChoices,
   pieLabelNames,
   pieOf,
@@ -70,7 +75,7 @@ import {
 import { chartEditorLink, parseChartLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
 import "./charts.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:charts:v1");
 type Doc = Envelope["document"];
@@ -82,29 +87,8 @@ function fresh() {
   return e;
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return {
-          e: fresh(),
-          recovery: raw,
-          message:
-            "Saved chart data needs recovery. Download the original before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      e: fresh(),
-      recovery: null,
-      message:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { e: fresh(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: fresh, recoveryMessage: "Saved chart data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Text field that keeps its draft while typing and commits on Enter or leaving
@@ -178,7 +162,6 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
@@ -189,8 +172,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       title: string;
       explanation: string;
     } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view, true),
@@ -207,7 +189,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const series = drawnSeries(e);
   const line = d.kind === "vline",
     pie = d.kind === "pie",
-    mark = pie ? "sector" : line ? "line" : "bar";
+    pictogram = d.kind === "pictogram",
+    mark = pie ? "sector" : pictogram ? "row" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -253,43 +236,17 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== text
-      ) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "A newer draft exists in another tab. Its saved data is protected.",
-        );
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage(
-          "Saved chart data changed in another tab. Download its data before replacing it.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved chart data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -391,7 +348,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, and pie charts at true size."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size and pictograms."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -496,7 +453,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               />
             </div>
             <EditorHint tool="charts">
-              Click a {pie ? "sector" : "bar, line or category label"} to edit its value. Enter
+              Click a {pie ? "sector" : pictogram ? "row or category" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
@@ -653,7 +610,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                               patch((n) => void (n.series[si].name = v))
                             }
                           />
-                          {!line && !pie && (
+                          {!line && !pie && !pictogram && (
                             <select
                               aria-label={`Fill for ${s.name || `data set ${si + 1}`}`}
                               value={s.fill}
@@ -761,7 +718,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               <p className="ch-note">
                 {pie
                   ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw; its angle shows here only on the teacher copy."
-                  : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
+                  : pictogram
+                    ? "Leave a value blank for an empty row; 0 is a value. Each row draws value ÷ key symbols. Hide keeps a row as a saved answer for pupils to draw."
+                    : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
               </p>
               <div className="ch-row">
                 {!singleSet(d.kind) && (
@@ -841,6 +800,90 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   The circle and the starting radius print at true size for protractor work. Sectors
                   run clockwise from the radius in table order. Labels that do not fit inside a sector
                   sit just outside the circle.
+                </p>
+              </section>
+            )}
+            {pictogram && (
+              <section className="panel-card ch-panel">
+                <h2>Pictogram</h2>
+                <div className="ch-fields">
+                  <label>
+                    Symbol
+                    <select
+                      aria-label="Symbol"
+                      value={pictogramOf(d).symbol}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbol: ev.target.value as (typeof symbolChoices)[number] }))}
+                    >
+                      {symbolChoices.map((x) => (
+                        <option key={x} value={x}>
+                          {symbolNames[x]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Symbol size (mm)
+                    <select
+                      aria-label="Symbol size"
+                      value={pictogramOf(d).symbolMm}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbolMm: Number(ev.target.value) }))}
+                    >
+                      {Array.from({ length: SYMBOL_MM.maximum - SYMBOL_MM.minimum + 1 }, (_, i) => SYMBOL_MM.minimum + i).map((x) => (
+                        <option key={x} value={x}>
+                          {x}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    One symbol represents
+                    <DraftField
+                      label="Key value"
+                      value={pictogramOf(d).key.value}
+                      maxLength={12}
+                      inputMode="decimal"
+                      invalid={g.issues.some((x) => x.startsWith("Enter what one symbol") || x.startsWith("The key value must"))}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, value: v } }))}
+                    />
+                  </label>
+                  <label>
+                    Unit (after the key value)
+                    <DraftField
+                      label="Key unit"
+                      value={pictogramOf(d).unit}
+                      maxLength={24}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), unit: v }))}
+                    />
+                  </label>
+                  <label className="ch-check">
+                    <input
+                      type="checkbox"
+                      disabled={blocked}
+                      checked={pictogramOf(d).key.show === "hidden"}
+                      onChange={(ev) =>
+                        patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, show: ev.target.checked ? "hidden" : "show" } }))
+                      }
+                    />
+                    Hide the key value (pupils complete the key)
+                  </label>
+                  <label>
+                    Category column heading
+                    <DraftField label="Category column heading" value={d.xTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.xTitle = v))} />
+                  </label>
+                  <label>
+                    Symbol column heading
+                    <DraftField label="Symbol column heading" value={d.yTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.yTitle = v))} />
+                  </label>
+                  {linesControl}
+                </div>
+                <p className="ch-note">
+                  Part symbols are exact: part of a square is drawn open on its right, and part of a
+                  circle is a sector (a half is the left half). Leave both headings empty for a table
+                  without a heading row.
                 </p>
               </section>
             )}
@@ -1070,16 +1113,14 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage(
                       "Saved data changed again. Download this latest copy first.",
                     );
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {

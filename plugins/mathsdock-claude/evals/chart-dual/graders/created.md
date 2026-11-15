@@ -1,6 +1,7 @@
 ---
-type: 'regex'
-target: 'trace'
-pattern: '"name"\s*:\s*"mcp__plugin_mathsdock_mathsdock__create_(?:diagram|chart)"'
+type: 'tool_used'
+tool: 'mcp__plugin_mathsdock_mathsdock__create_diagram'
+input_match: '"kind"\s*:\s*"charts"'
+min: 1
 ---
-The diagram was made with the MathsDock tool.
+A charts diagram was made with the MathsDock create_diagram tool.

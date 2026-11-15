@@ -164,3 +164,36 @@ test("pie charts: switching type keeps the data, sectors edit from the chart and
   const doc = (await saved(page)).document;
   expect(doc.series[0].values[2]).toEqual({ value: "12", show: "hidden" });
 });
+
+test("pictograms: rows edit from the chart, the key can be hidden and hidden rows stay answers", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "pictogram-cycles")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await expect(art).toContainText("represents");
+  await expect(art.locator("line[stroke-dasharray]")).toHaveCount(1);
+  const symbols = () => art.locator("circle[stroke='black'], path[stroke='black'][fill='white']");
+  // Tuesday 1, Wednesday 2½ (3 shapes), Thursday 1½ (2 shapes), plus the key's symbol.
+  await expect(symbols()).toHaveCount(7);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(art.locator("line[stroke-dasharray]")).toHaveCount(0);
+  await expect(art.locator("[stroke='#b0125b']")).toHaveCount(6);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByRole("button", { name: "Edit row: Tuesday" }).click();
+  const field = page.getByLabel("Value for Tuesday");
+  await expect(field).toBeFocused();
+  await field.fill("8");
+  await field.press("Enter");
+  await expect(symbols()).toHaveCount(8);
+  await page.getByLabel("Symbol", { exact: true }).selectOption("square");
+  await expect(art.locator("rect[stroke='black'][fill='white']")).not.toHaveCount(0);
+  await page.getByLabel("Hide the key value (pupils complete the key)").uncheck();
+  await expect(art.locator("text").filter({ hasText: /^4$/ })).toHaveCount(1);
+  await expect.poll(async () => (await saved(page)).document.pictogram).toEqual({ symbol: "square", symbolMm: 10, key: { value: "4", show: "show" }, unit: "cycles" });
+  await page.getByLabel("Key value", { exact: true }).fill("0");
+  await page.getByLabel("Key value", { exact: true }).press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "The key value must be a positive number." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  await page.getByRole("button", { name: "Pictogram" }).click();
+  expect((await saved(page)).document.series[0].values[4]).toEqual({ value: "15", show: "hidden" });
+});
