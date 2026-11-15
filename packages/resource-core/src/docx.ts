@@ -4,7 +4,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { ANSWER_SLOT_GAP, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { ANSWER_SLOT_GAP, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -338,7 +338,6 @@ type Block = string;
 const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
 
 function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx): { grid: number[]; cells: string[] } {
-  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const grid: number[] = [];
   const cells: string[] = [];
   const size = S.body;
@@ -347,6 +346,11 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   const shownText = (s: string) => (maths ? stackAnswerText(s) : s);
   // Plain sheets keep their saved measurements exactly.
   const widthOf = (s: string) => (maths ? lineWidth(parseRuns(shownText(s), "regular", true), size) : plainWidth(s, size));
+  // A lone inline line is short and left-aligned, as on the SVG page.
+  const lone = lines.length === 1 && lines[0].inline ? lines[0] : null;
+  const slot = lone
+    ? loneSlot(lone.prefix ? widthOf(lone.prefix) + 1.8 : 0, lone.suffix ? widthOf(lone.suffix) + 1.8 : 0, lone.answer ? widthOf(lone.answer) : 0, w)
+    : (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   lines.forEach((l, i) => {
     if (i) {
       grid.push(ANSWER_SLOT_GAP);
