@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { strFromU8, unzipSync } from "fflate";
 import { writeWorksheetDocx } from "./docx";
 import { renderResource, validate, type Resource } from "./index";
-import { BESIDE_GAP } from "./render";
+import { BESIDE_GAP, countSpaces } from "./render";
 
 // Two items side by side in one card, such as a small graph with its ratio table to the right
 // (Tim, A7.04 marking, 15 Nov 2026).
@@ -66,5 +66,18 @@ describe("beside: two items in one row", () => {
     const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
     // Two pictures in one table row: a gridCol of 4 mm (227 twentieths of a point) sits between them.
     expect(xml).toMatch(/<w:gridCol w:w="227"\/>/);
+  });
+  it("pins the Word row to the page's height and shares spare height once", async () => {
+    const font = (seed: number) => Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + seed) % 256);
+    const { bytes } = await writeWorksheetDocx(sheet([graph, { ...ratio, beside: true }]), {
+      view: "pupil",
+      fonts: { regular: font(1), semiBold: font(2), italic: font(3) },
+      picture: (svg) => ({ svg, png: new Uint8Array([137, 80, 78, 71]) }),
+    });
+    const xml = strFromU8(unzipSync(bytes)["word/document.xml"]);
+    expect(xml).toMatch(/<w:gridCol w:w="227"\/><w:gridCol[^>]*\/><\/w:tblGrid><w:tr><w:trPr><w:cantSplit\/><w:trHeight w:val="\d+" w:hRule="atLeast"\/>/);
+    const space = { type: "space", heightMm: 20 };
+    expect(countSpaces([space, { ...space, beside: true }] as never)).toBe(1);
+    expect(countSpaces([graph, { ...space, beside: true }, space] as never)).toBe(2);
   });
 });

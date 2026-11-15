@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Item } from "../../packages/resource-core/src/index";
-import { ANSWER_MAX, besideProblem } from "../../packages/resource-core/src/schema";
+import { ANSWER_MAX, besideIssueAt } from "../../packages/resource-core/src/schema";
 import { FAMILIES } from "../../packages/diagram-core/src/registry";
 
 /** Editing controls shared by the worksheet and booklet editors. */
@@ -259,10 +259,9 @@ export function BesideToggle({ list, index, set, disabled }: { list: readonly It
   if (item.type === "part") return null;
   const on = !!item.beside;
   if (!on) {
-    const problem = besideProblem(list.map((x, i) => (i === index ? { ...x, beside: true as const } : x)));
-    if (problem?.index === index) return null;
-    // Turning this on would make the next item a third in its row.
-    if ((list[index + 1] as Leaf | undefined)?.beside) return null;
+    // Offered only where turning it on is allowed, and never makes the next item a third in its row.
+    const next = list.map((x, i) => (i === index ? { ...x, beside: true as const } : x));
+    if (besideIssueAt(next, index) || besideIssueAt(next, index + 1)) return null;
   }
   return (
     <label className="ws-check">

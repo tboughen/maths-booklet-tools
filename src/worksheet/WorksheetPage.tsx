@@ -10,7 +10,7 @@ import { LAYOUTS, SIZE, columnBoxes, isReminder, fileName, renderResource, stage
 import { treeDiagrams } from "../../packages/resource-core/src/fixtures";
 import { BesideToggle, Field, LeafEditor, NumberField, WorkingField, type Leaf } from "./fields";
 import { downloadEditable, downloadPdf, editableName } from "./export";
-import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, setLayout, withBeside, type Move } from "./edit";
+import { LAYOUT_NAMES, addPaper, answerSpaces, moveCard, removeItem, setLayout, withBeside, type Move } from "./edit";
 import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
@@ -461,7 +461,7 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
                                   {leafEditor(item, (next) => setItem([i], next), "")}
                                   <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                                   {item.type === "paper" && (
-                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => void cd.items.splice(i, 1))}>
+                                    <button className="tool-button ws-small" disabled={blocked || card.items.length < 2} onClick={() => setCard((cd) => removeItem(cd.items, i))}>
                                       <Trash2 size={15} aria-hidden="true" /> Remove grid paper
                                     </button>
                                   )}

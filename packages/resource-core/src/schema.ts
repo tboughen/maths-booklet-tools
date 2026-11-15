@@ -65,7 +65,7 @@ export const diagramSchema = diagramInput.superRefine((d, ctx) => {
  * graph with its ratio table beside it). Only two items share a row. A diagram or grid paper keeps
  * its printed width; text and other flowing items take the rest of the row (Tim, 15 Nov 2026).
  */
-const beside = z.literal(true).optional().describe("Print this item to the right of the item before it, in one row (two items a row). A diagram keeps its width; text takes the rest.");
+const beside = z.literal(true).optional();
 const answerLine = z
   .object({
     type: z.literal("answerLine"),
@@ -167,23 +167,31 @@ const leafItems = [
 
 export const leafSchema = z.discriminatedUnion("type", leafItems);
 
-/** The reason a list of card or part items breaks the beside rule, or null. */
-export function besideProblem(list: readonly { type: string; beside?: true; inline?: boolean }[]): { index: number; message: string } | null {
+type Listed = { type: string; beside?: true; inline?: boolean };
+/** Why the item at `i` cannot have beside where it is, or null. */
+export function besideIssueAt(list: readonly Listed[], i: number): string | null {
+  const it = list[i];
+  if (!it?.beside) return null;
+  const prev = list[i - 1];
+  const inline = (x: Listed) => x.type === "answerLine" && !!x.inline;
+  if (!prev) return "The first item has beside, but there is no item before it to sit beside.";
+  if (prev.type === "part") return "An item cannot sit beside a lettered part. Put both items inside the part instead.";
+  if (prev.beside) return "Only two items share a row: this item and the one before it both have beside.";
+  if (inline(it) || inline(prev)) return "Inline answer lines share a row already; they cannot also use beside.";
+  return null;
+}
+/** The first item in a list of card or part items that breaks the beside rule, or null. */
+export function besideProblem(list: readonly Listed[]): { index: number; message: string } | null {
   for (let i = 0; i < list.length; i++) {
-    const it = list[i];
-    if (!it.beside) continue;
-    const prev = list[i - 1];
-    const inline = (x: { type: string; inline?: boolean }) => x.type === "answerLine" && !!x.inline;
-    if (!prev) return { index: i, message: "The first item has beside, but there is no item before it to sit beside." };
-    if (prev.type === "part") return { index: i, message: "An item cannot sit beside a lettered part. Put both items inside the part instead." };
-    if (prev.beside) return { index: i, message: "Only two items share a row: this item and the one before it both have beside." };
-    if (inline(it) || inline(prev)) return { index: i, message: "Inline answer lines share a row already; they cannot also use beside." };
+    const message = besideIssueAt(list, i);
+    if (message) return { index: i, message };
   }
   return null;
 }
-const itemList = <T extends z.ZodType<{ type: string; beside?: true; inline?: boolean }>>(item: T, max: number) =>
+const itemList = <T extends z.ZodType<Listed>>(item: T, max: number, min = 0) =>
   z
     .array(item)
+    .min(min)
     .max(max)
     .superRefine((list, ctx) => {
       const problem = besideProblem(list);
@@ -213,7 +221,7 @@ export const itemSchema = z.discriminatedUnion("type", [...leafItems, partSchema
 export const cardSchema = z
   .object({
     title: text(60),
-    items: itemList(itemSchema, 16).refine((list) => list.length >= 1, "A card needs at least one item."),
+    items: itemList(itemSchema, 16, 1),
     /** Starts a new labelled stage band (the next letter) above this card: stages on wider layouts. */
     stage: text(40).optional(),
     working: workingSchema.optional(),

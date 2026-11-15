@@ -1,7 +1,7 @@
 import { typesetForPrint } from "./typeset";
 import { zipSync, strToU8 } from "fflate";
 import { drawDiagram } from "../../diagram-core/src/registry";
-import { answerNeed, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
+import { answerNeed, besideExtra, besideHeight, besideLayout, BESIDE_GAP, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
 import { ANSWER_SLOT_GAP, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
@@ -631,12 +631,15 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
     } else if ((list[i + 1] as Leaf | undefined)?.beside) {
       // Two items in one row, laid out as on the SVG page: a borderless table of two cells.
       const right = list[++i] as Leaf;
+      // Each item is written without spare height; the row is pinned to the page's height, plus
+      // the spare height once if either item is a space.
       const lay = besideLayout(it, right, w, ctx);
+      const h = besideHeight(it, right, ctx, w) + besideExtra(it, right, extra);
       blocks.push(
         table(
           [lay.left, BESIDE_GAP, lay.right],
-          [row([cell(leaf(it, lay.left, 0, ctx, extra), { width: lay.left }), cell(gap(END_MM), { width: BESIDE_GAP }), cell(leaf(right, lay.right, 0, ctx, extra), { width: lay.right })])],
-          indent,
+          [row([cell(leaf(it, lay.left, 0, ctx, 0), { width: lay.left }), cell(gap(END_MM), { width: BESIDE_GAP }), cell(leaf(right, lay.right, 0, ctx, 0), { width: lay.right })], { mm: h }, true)],
+          indent + lay.offset,
         ),
       );
     } else blocks.push(leaf(it, w, indent, ctx, extra));

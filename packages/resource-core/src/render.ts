@@ -421,9 +421,9 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
       const right = list[++i] as Leaf;
       const lay = besideLayout(it, right, w, ctx);
       if (lay.problem) issue(ctx, lay.problem);
-      const a = leaf(it, lay.left, ctx, extra);
-      const b = leaf(right, lay.rightDraw, ctx, extra);
-      frags.push({ h: Math.max(a.h, b.h), svg: at(a, 0, 0) + at(b, lay.left + BESIDE_GAP, 0) });
+      const a = leaf(it, lay.left, ctx, 0);
+      const b = leaf(right, lay.right, ctx, 0);
+      frags.push({ h: Math.max(a.h, b.h) + besideExtra(it, right, extra), svg: at(a, lay.offset, 0) + at(b, lay.offset + lay.left + BESIDE_GAP, 0) });
     } else frags.push(leaf(it, w, ctx, extra));
   }
   let y = 0;
@@ -456,27 +456,45 @@ export function fixedWidth(item: Leaf, ctx: AnyCtx): number | null {
 /**
  * Two items in one row: a diagram or grid paper keeps its printed width and a flowing item takes
  * the rest of the row; two flowing items share it equally. A diagram on the right is centred in
- * the room left of it. As a single diagram may, the row may use the card's padding. Shared by the
- * SVG and Word writers.
+ * the room left of it. As a single diagram may, a row too wide for the card may use the card's
+ * padding: it is then centred, spilling evenly both sides (`offset`), and anything wider still is
+ * reported. Shared by the SVG and Word writers, so both lay the row out the same.
  */
-export function besideLayout(a: Leaf, b: Leaf, w: number, ctx: AnyCtx): { left: number; right: number; rightDraw: number; problem?: string } {
+export function besideLayout(a: Leaf, b: Leaf, w: number, ctx: AnyCtx): { left: number; right: number; offset: number; problem?: string } {
   const fa = fixedWidth(a, ctx),
     fb = fixedWidth(b, ctx);
   const left = fa ?? (fb !== null ? Math.max(BESIDE_MIN, w - BESIDE_GAP - fb) : (w - BESIDE_GAP) / 2);
-  const right = w - left - BESIDE_GAP;
-  const need = (fa ?? BESIDE_MIN) + BESIDE_GAP + (fb ?? BESIDE_MIN);
+  const right = Math.max(fb ?? BESIDE_MIN, w - left - BESIDE_GAP);
+  const total = left + BESIDE_GAP + right;
+  const pad = 2 * (S.cardPad - 0.6);
   const problem =
-    fa === null && fb === null
-      ? undefined
-      : need > w + 2 * (S.cardPad - 0.6) + 0.01
-        ? `Two items side by side need ${n(need - w - 2 * (S.cardPad - 0.6))} mm more width than the card has (${n(w + 2 * (S.cardPad - 0.6))} mm, using its padding as a single diagram may). Diagrams are never shrunk to fit: remove beside to stack them, use a smaller diagram, or use a wider column layout.`
-        : undefined;
-  // An item too wide for its share is drawn at its own width; the issue above reports it once.
-  return { left, right, rightDraw: Math.max(right, fb ?? 0), problem };
+    total > w + pad + 0.01
+      ? `Two items side by side need ${n(total - w - pad)} mm more width than the card has (${n(w + pad)} mm, using its padding as a single diagram may). Diagrams are never shrunk to fit: remove beside to stack them, use a smaller diagram, or use a wider column layout.`
+      : undefined;
+  return { left, right, offset: total > w ? -(total - w) / 2 : 0, problem };
 }
 
+/** The height of a row of two items without spare height, as the page draws it; Word pins its row to this. */
+export function besideHeight(a: Leaf, b: Leaf, ctx: AnyCtx, w: number): number {
+  const lay = besideLayout(a, b, w, ctx);
+  const quiet: AnyCtx = { ...ctx, issues: [], diagrams: 0, inline: undefined };
+  return Math.max(leaf(a, lay.left, quiet, 0).h, leaf(b, lay.right, quiet, 0).h);
+}
+
+/** A row of two items: both are measured without spare height, and the row takes the spare height once if either holds a space. */
+export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "space" || b.type === "space" ? extra : 0);
+
+/**
+ * How many shares of spare height a list of items takes: one per working or drawing space, but
+ * one for a row of two items (beside) that holds any space, since the row grows once.
+ */
 export const countSpaces = (list: Item[]): number =>
-  list.reduce((c, it) => c + (it.type === "space" ? 1 : it.type === "part" ? countSpaces(it.items) : 0), 0);
+  list.reduce((c, it, i) => {
+    if (it.type === "part") return c + countSpaces(it.items);
+    // The second space of a pair shares the first one's share.
+    const pairedSpace = it.beside && list[i - 1]?.type === "space";
+    return c + (it.type === "space" && !pairedSpace ? 1 : 0);
+  }, 0);
 
 /** Families whose printed width is set by spec.widthCm. */
 const WIDTH_CM = new Set(["number-line", "venn", "triangle"]);
