@@ -234,10 +234,7 @@
 .bm-v2 :is(.bm-settings, .bm-draft) h2 {
   margin: 0;
   font:
-    600 17px/1.3 "IBM Plex Sans",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
+    600 17px/1.3 var(--md-font);
   color: #213c59;
 }
 .bm-v2
@@ -296,9 +293,6 @@
 .bm-v2 .bm-settings h3 {
   margin: 4px 0 0;
   font:
-    600 15px/1.3 "IBM Plex Sans",
-    "Segoe UI",
-    system-ui,
-    sans-serif;
+    600 15px/1.3 var(--md-font);
   color: #213c59;
 }

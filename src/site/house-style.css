@@ -1,0 +1,52 @@
+/* The MathsDock app house style: the named values every page draws from, the interface font
+   and the icon bank's colouring. docs/tools/APP-HOUSE-STYLE.md explains each one.
+   Diagrams, worksheets and exports have their own fonts and colours and do not use these. */
+@font-face { font-family: "MathsDock UI"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("../assets/fonts/Inter-Variable-Latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "MathsDock UI"; font-style: italic; font-weight: 100 900; font-display: swap; src: url("../assets/fonts/Inter-Variable-Latin-Italic.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+:root {
+  /* Inter ships with the site; symbols outside its Latin set fall back to the system font. */
+  --md-font: "MathsDock UI", Inter, "Segoe UI", system-ui, sans-serif;
+  /* Words */
+  --md-ink: #14263d;
+  --md-ink-2: #41526b;
+  --md-ink-3: #62748c;
+  /* Surfaces: the page, the soft blue behind the work, and the work itself */
+  --md-page: #f2f5f8;
+  --md-stage: #edf4ff;
+  --md-paper: #fff;
+  --md-line: #d9e2ee;
+  --md-line-strong: #b5c3d5;
+  /* Brand: the navy of the dock and the blue of the wave */
+  --md-navy: #173c65;
+  --md-blue: #0f62fe;
+  --md-blue-soft: #e6efff;
+  /* Colours that mean something */
+  --md-green: #1b7a4d;
+  --md-amber: #9a5b00;
+  --md-red: #b3261e;
+  --md-pink: #b0125b;
+  /* The navy app bar */
+  --md-bar: #173c65;
+  --md-bar-ink: #fff;
+  --md-bar-ink-2: #c9d8ea;
+  --md-bar-accent: #8dbcff;
+  --md-bar-height: 44px;
+  /* Text sizes, control height and corners */
+  --md-text-xs: 12px;
+  --md-text-sm: 13px;
+  --md-text-md: 14px;
+  --md-text-lg: 18px;
+  --md-text-xl: 20px;
+  --md-control: 32px;
+  --md-radius: 6px;
+  --md-radius-card: 8px;
+  /* The one accent part of a MathsDock icon */
+  --md-icon-accent: var(--md-blue);
+}
+.md-icon { flex: none; }
+.md-icon-part { stroke: var(--md-icon-accent, currentColor); }
+.md-icon-wash { fill: var(--md-icon-accent, currentColor); fill-opacity: .3; }
+.md-icon-no-line { stroke: none; }
+/* A selected or current item is one colour all over, icon included. */
+.site-app :is([aria-current], [aria-pressed="true"], [aria-selected="true"]) { --md-icon-accent: currentColor; }
+@media (forced-colors: active) { :root { --md-icon-accent: currentColor; } }

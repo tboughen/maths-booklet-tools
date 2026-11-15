@@ -341,7 +341,7 @@
   background: white;
   color: var(--ink);
   overflow: auto;
-  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--md-font);
 }
 .tr-floating-title {
   font-size: 14px;

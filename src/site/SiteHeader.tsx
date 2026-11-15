@@ -50,10 +50,10 @@ export function SiteHeader({ page, section }: { page: PageId; section: SectionId
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
   }}>
     <div className="site-navigation-row">
-      <a className="site-brand" href={pageHref("home")} aria-label="Maths Dock home"><img className="site-brand-logo" src={`${import.meta.env.BASE_URL}brand/mathsdock-logo.svg?v=2189ff58a13f`} width="1501" height="326" alt="Maths Dock" /></a>
+      <a className="site-brand" href={pageHref("home")} aria-label="Maths Dock home"><img className="site-brand-logo" src={`${import.meta.env.BASE_URL}brand/mathsdock-logo-inverse.svg?v=2189ff58a13f`} width="1501" height="326" alt="Maths Dock" /></a>
       <button ref={button} type="button" className="site-menu-toggle" aria-expanded={open} aria-controls="site-sections" onClick={() => setOpen(!open)}>{open ? <X size={18} /> : <Menu size={18} />}<span>{page === "home" ? "Sections" : booklet ? "Diagram builder" : sectionName(section)}</span><ChevronDown size={14} /></button>
       <nav id="site-sections" aria-label="Main sections" className={`site-sections${open ? " is-open" : ""}`}>
-        {siteSections.map(item => <a key={item.id} href={item.href} aria-current={section === item.id ? "page" : item.id === "booklet-tools" && booklet ? "true" : undefined}><item.icon size={17} aria-hidden="true" />{item.name}</a>)}
+        {siteSections.map(item => <a key={item.id} href={item.href} aria-current={section === item.id ? "page" : item.id === "booklet-tools" && booklet ? "true" : undefined}><item.icon size={16} aria-hidden="true" />{item.name}</a>)}
       </nav>
     </div>
     {booklet && <nav ref={tools} className={`site-tool-navigation${more.start ? " has-more-start" : ""}${more.end ? " has-more-end" : ""}`} aria-label="Diagram builder">
