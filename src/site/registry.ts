@@ -5,7 +5,7 @@ import algebraPreview from "../assets/tool-previews/expanding-factorising.svg";
 import trianglePreview from "../assets/tool-previews/triangles.svg";
 import vennPreview from "../assets/tool-previews/venn.svg";
 import numberLinePreview from "../assets/tool-previews/number-lines.svg";
-import { Compass, DraftingCompass, Cuboid, GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, Sheet, ListChecks, Shapes, Table2, Box, MoveHorizontal, Triangle } from "lucide-react";
+import { Compass, DraftingCompass, Cuboid, GitFork, Network, BookOpen, BookOpenCheck, FileText, ChartColumn, ChartSpline, Columns3, FileSpreadsheet, Grid2x2, Grid3X3, Sheet, ListChecks, Shapes, Table2, Box, MoveHorizontal, Ruler, Triangle } from "lucide-react";
 import cuboidPreview from "../assets/tool-previews/cuboids.svg";
 import graphPreview from "../assets/tool-previews/graph-tool.svg";
 import ratioPreview from "../assets/tool-previews/ratio-tables.svg";
@@ -13,6 +13,7 @@ import probabilityTreePreview from "../assets/tool-previews/probability-trees.sv
 import frequencyTreePreview from "../assets/tool-previews/frequency-trees.svg";
 import twoWayTablePreview from "../assets/tool-previews/two-way-tables.svg";
 import anglesPreview from "../assets/tool-previews/angle-diagrams.svg";
+import areaPreview from "../assets/tool-previews/area-and-perimeter.svg";
 import valueGraphPreview from "../assets/tool-previews/table-of-values-and-graphs.svg";
 import chartsPreview from "../assets/tool-previews/charts.svg";
 import constructionPreview from "../assets/tool-previews/constructions.svg";
@@ -37,6 +38,7 @@ export const bookletTools = [
   { id: "elevations", name: "Plans and elevations", description: "Draw solids made of cubes on isometric paper with their plan, front and side elevations.", icon: Cuboid, component: lazyPage(() => import("../elevations/ElevationsPage")), preview: { src: elevationsPreview, alt: "Isometric drawing of a solid made of cubes, with empty grids for its plan, front elevation and side elevation." } },
   { id: "two-way-table", name: "Two-way tables", description: "Make exam-style two-way tables with totals, and cells left blank or hidden for pupils.", icon: Sheet, component: lazyPage(() => import("../two-way-table/TwoWayTablePage")), preview: { src: twoWayTablePreview, alt: "Two-way table of how Year 7 and Year 8 travel to school, with five cells left for pupils." } },
   { id: "angles", name: "Angle diagrams", description: "Draw angles on straight lines, round a point, on parallel lines and in polygons, with sizes given or left for pupils.", icon: DraftingCompass, component: lazyPage(() => import("../angles/AnglesPage")), preview: { src: anglesPreview, alt: "Two parallel lines with arrow marks cut by a transversal: one angle is 58° and two angles marked x and y are left for pupils." } },
+  { id: "area", name: "Area and perimeter", description: "Draw compound shapes, triangles, trapeziums, circles, semicircles and sectors, with lengths given or left for pupils.", icon: Ruler, component: lazyPage(() => import("../area/AreaPage")), preview: { src: areaPreview, alt: "An L-shaped compound shape with sides of 12 cm, 5 cm, 5 cm and 10 cm and two sides left for pupils." } },
 ] as const;
 
 /** Site pages outside the booklet tools, loaded the same way. */

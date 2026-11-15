@@ -24,6 +24,7 @@ import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
 import { elevationsConfig } from "./guides/elevations";
 import { anglesConfig } from "./guides/angles";
+import { areaConfig } from "./guides/area";
 
 export interface FamilyGuide {
   /** Limits, versions and option lists. */
@@ -213,6 +214,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   construction: fromConfig(constructionConfig),
   elevations: fromConfig(elevationsConfig),
   angles: fromConfig(anglesConfig),
+  area: fromConfig(areaConfig),
 };
 
 const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
@@ -350,6 +352,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
   elevations: ["plans and elevations", "isometric drawings of cube solids"],
   angles: ["angles on a line and round a point", "vertically opposite angles", "angles in parallel lines", "polygon interior and exterior angles"],
+  area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
 export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];

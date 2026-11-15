@@ -64,6 +64,7 @@ const suites: Suite[] = [
   { name: "gm8", server: "dev", testMatch: "gm8.spec.ts" },
   { name: "two-way-table", server: "dev", testMatch: "two-way-table.spec.ts" },
   { name: "angles", server: "dev", testMatch: "angles.spec.ts" },
+  { name: "area", server: "dev", testMatch: "area.spec.ts" },
   { name: "worksheet", server: "dev", testMatch: "worksheet.spec.ts", timeout: 60000 },
   { name: "booklet", server: "dev", testMatch: "booklet.spec.ts", timeout: 90000 },
   { name: "venn", server: "dev", external: env.MATHSDOCK_VENN_URL, testMatch: ["venn.spec.ts", "venn-layouts.spec.ts"] },

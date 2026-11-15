@@ -420,6 +420,427 @@
     ],
     "additionalProperties": false
   },
+  "area": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "area"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "area-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "shape": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "polygon"
+                  },
+                  "corners": {
+                    "minItems": 3,
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                          "minimum": -150,
+                          "maximum": 150
+                        },
+                        "y": {
+                          "type": "number",
+                          "minimum": -150,
+                          "maximum": 150
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "arcs": {
+                    "minItems": 3,
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "out",
+                        "in"
+                      ]
+                    }
+                  },
+                  "heights": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "corner": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 12
+                        },
+                        "side": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "corner",
+                        "side"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "rightAngles": {
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 12
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "corners",
+                  "arcs",
+                  "heights",
+                  "rightAngles"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "circle"
+                  },
+                  "part": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "semicircle",
+                      "quarter",
+                      "sector"
+                    ]
+                  },
+                  "radiusMm": {
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 80
+                  },
+                  "angleDeg": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 355
+                  },
+                  "line": {
+                    "type": "string",
+                    "enum": [
+                      "radius",
+                      "diameter",
+                      "none"
+                    ]
+                  },
+                  "centre": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "type",
+                  "part",
+                  "radiusMm",
+                  "angleDeg",
+                  "line",
+                  "centre"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "hole": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "rectangle"
+                      },
+                      "x": {
+                        "type": "number",
+                        "minimum": -150,
+                        "maximum": 150
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": -150,
+                        "maximum": 150
+                      },
+                      "w": {
+                        "type": "number",
+                        "minimum": 4,
+                        "maximum": 250
+                      },
+                      "h": {
+                        "type": "number",
+                        "minimum": 4,
+                        "maximum": 250
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "x",
+                      "y",
+                      "w",
+                      "h"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "circle"
+                      },
+                      "x": {
+                        "type": "number",
+                        "minimum": -150,
+                        "maximum": 150
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": -150,
+                        "maximum": 150
+                      },
+                      "r": {
+                        "type": "number",
+                        "minimum": 2,
+                        "maximum": 100
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "x",
+                      "y",
+                      "r"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shaded": {
+            "type": "string",
+            "enum": [
+              "none",
+              "shape",
+              "hole"
+            ]
+          },
+          "labels": {
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "value",
+                    "symbol",
+                    "blank",
+                    "answer-line",
+                    "hidden"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 24
+                },
+                "answer": {
+                  "type": "string",
+                  "maxLength": 24
+                }
+              },
+              "required": [
+                "id",
+                "state",
+                "text",
+                "answer"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "names": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]{0,7}$"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 3
+                }
+              },
+              "required": [
+                "id",
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "grid": {
+            "type": "boolean"
+          },
+          "notToScale": {
+            "type": "boolean"
+          },
+          "fontPt": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 14
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "shape",
+          "hole",
+          "shaded",
+          "labels",
+          "names",
+          "grid",
+          "notToScale"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "algebra-grid": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

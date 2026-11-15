@@ -1,0 +1,40 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "circle",
+   "part": "sector",
+   "radiusMm": 38,
+   "angleDeg": 110,
+   "line": "none",
+   "centre": false
+  },
+  "hole": null,
+  "shaded": "none",
+  "labels": [
+   {
+    "id": "r",
+    "state": "value",
+    "text": "9 cm",
+    "answer": ""
+   },
+   {
+    "id": "angle",
+    "state": "value",
+    "text": "110",
+    "answer": ""
+   },
+   {
+    "id": "arc",
+    "state": "hidden",
+    "text": "",
+    "answer": "17.3 cm"
+   }
+  ],
+  "names": [],
+  "grid": false,
+  "notToScale": true
+ }
+}

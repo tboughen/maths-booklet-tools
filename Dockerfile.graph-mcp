@@ -18,6 +18,7 @@ COPY packages/construction-core packages/construction-core
 COPY packages/elevation-core packages/elevation-core
 COPY packages/two-way-table-core packages/two-way-table-core
 COPY packages/angle-core packages/angle-core
+COPY packages/area-core packages/area-core
 COPY packages/triangle-core packages/triangle-core
 COPY packages/resource-core packages/resource-core
 COPY packages/diagram-core packages/diagram-core

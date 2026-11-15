@@ -1,0 +1,34 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "circle",
+   "part": "semicircle",
+   "radiusMm": 32,
+   "angleDeg": 90,
+   "line": "none",
+   "centre": false
+  },
+  "hole": null,
+  "shaded": "none",
+  "labels": [
+   {
+    "id": "d",
+    "state": "value",
+    "text": "12 cm",
+    "answer": ""
+   },
+   {
+    "id": "arc",
+    "state": "hidden",
+    "text": "",
+    "answer": "18.8 cm"
+   }
+  ],
+  "names": [],
+  "grid": false,
+  "notToScale": true
+ }
+}

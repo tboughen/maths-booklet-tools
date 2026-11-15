@@ -1,0 +1,59 @@
+{
+ "kind": "area",
+ "schemaVersion": 1,
+ "rendererVersion": "area-1",
+ "document": {
+  "shape": {
+   "type": "polygon",
+   "corners": [
+    {
+     "x": 0,
+     "y": 0
+    },
+    {
+     "x": 40,
+     "y": 0
+    },
+    {
+     "x": 40,
+     "y": 20
+    },
+    {
+     "x": 20,
+     "y": 20
+    },
+    {
+     "x": 20,
+     "y": 30
+    },
+    {
+     "x": 0,
+     "y": 30
+    }
+   ],
+   "arcs": [
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none"
+   ],
+   "heights": [],
+   "rightAngles": []
+  },
+  "hole": null,
+  "shaded": "none",
+  "labels": [
+   {
+    "id": "area",
+    "state": "hidden",
+    "text": "",
+    "answer": "10 cm²"
+   }
+  ],
+  "names": [],
+  "grid": true,
+  "notToScale": false
+ }
+}

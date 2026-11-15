@@ -162,4 +162,14 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     panels: "Up to 6 views (isometric, plan, front or side), each drawn, blank or an answer.",
     settings: "Cube edge (unitCm 0.5, 1 or 2), viewing arrows, isometric dot paper and maximum width.",
   },
+  area: {
+    example,
+    worked,
+    preset: "A starting shape by name, such as rectangle, l-shape, trapezium or sector; labels come from labels.",
+    shape: "A polygon (corners in mm, or outline moves) with per-side semicircles and dashed heights, or a circle part.",
+    hole: "null, or a rectangle or circle inside the shape in the same mm.",
+    labels: "Up to 40 labels by place (e1, h1, r, d, angle, arc, area ...), each with a state: value, symbol, blank, answer-line or hidden.",
+    names: "Up to 20 letters beside corners or circle points.",
+    settings: "shaded (none, shape or hole), grid (1 cm squares), notToScale, fontPt and lines.",
+  },
 };

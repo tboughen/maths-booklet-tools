@@ -42,6 +42,8 @@ import * as elevations from "../../elevation-core/src/index";
 import * as elevationsIo from "../../elevation-core/src/interchange";
 import * as angles from "../../angle-core/src/index";
 import * as anglesIo from "../../angle-core/src/interchange";
+import * as area from "../../area-core/src/index";
+import * as areaIo from "../../area-core/src/interchange";
 
 export const DIAGRAM_KINDS = [
   "graph",
@@ -60,6 +62,7 @@ export const DIAGRAM_KINDS = [
   "construction",
   "elevations",
   "angles",
+  "area",
 ] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 export const diagramKindSchema = z.enum(DIAGRAM_KINDS);
@@ -419,6 +422,25 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => anglesIo.revise(input),
     hash: angles.hash,
     svg: (e, view) => angles.renderSvg(e, view),
+  }),
+  area: family<area.Envelope>({
+    kind: "area",
+    label: "area and perimeter diagram",
+    summary: "Area and perimeter: compound rectilinear shapes, triangles, trapeziums, semicircles added or cut out, shapes with holes, circles, semicircles, quarter circles and sectors; lengths given, letters, blanks or hidden answers.",
+    route: "/tools/area",
+    answerView: true,
+    envelopeSchema: area.envelopeSchema,
+    createSchema: areaIo.createSchema,
+    revisionSchema: areaIo.revisionSchema,
+    validate: (raw) => {
+      const e = area.validate(raw);
+      check(area.exportIssue(e));
+      return e;
+    },
+    create: (input) => areaIo.create(input),
+    revise: (input) => areaIo.revise(input),
+    hash: area.hash,
+    svg: (e, view) => area.renderSvg(e, view),
   }),
 };
 

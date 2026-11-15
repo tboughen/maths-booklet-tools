@@ -1,0 +1,49 @@
+.area-hit {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 1px dashed transparent;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.area-hit.area-unmarked {
+  border-color: #9fb3c8;
+}
+.area-hit:hover {
+  border-color: var(--blue);
+}
+.area-hit:focus-visible {
+  outline: 2px solid var(--blue);
+}
+.area-hit.area-current {
+  border: 2px solid var(--blue);
+  background: #1d4ed814;
+}
+.area-row {
+  align-items: end;
+}
+.area-row input {
+  width: 6em;
+}
+.area-corner-table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.area-corner-table th,
+.area-corner-table td {
+  padding: 2px 4px;
+  text-align: center;
+}
+.area-corner-table input {
+  width: 4.5em;
+}
+.area-sub {
+  font-size: 14px;
+  margin: 10px 0 4px;
+}
+.area-corner-table select {
+  max-width: 11em;
+}

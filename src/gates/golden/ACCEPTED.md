@@ -501,3 +501,26 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - angle diagrams: angles-exterior-angle (worked): added
 - angle diagrams: angles-polygon-sum: added
 - angle diagrams: angles-polygon-sum (worked): added
+
+## 2026-11-15: New area and perimeter tool: its ten gallery examples, pupil and worked (new outputs only)
+
+- area and perimeter: area-l-shape: added
+- area and perimeter: area-l-shape (worked): added
+- area and perimeter: area-perimeter: added
+- area and perimeter: area-perimeter (worked): added
+- area and perimeter: area-trapezium: added
+- area and perimeter: area-trapezium (worked): added
+- area and perimeter: area-triangle: added
+- area and perimeter: area-triangle (worked): added
+- area and perimeter: area-rectangle-semicircle: added
+- area and perimeter: area-rectangle-semicircle (worked): added
+- area and perimeter: area-frame: added
+- area and perimeter: area-frame (worked): added
+- area and perimeter: area-circle: added
+- area and perimeter: area-circle (worked): added
+- area and perimeter: area-semicircle: added
+- area and perimeter: area-semicircle (worked): added
+- area and perimeter: area-sector: added
+- area and perimeter: area-sector (worked): added
+- area and perimeter: area-grid: added
+- area and perimeter: area-grid (worked): added
