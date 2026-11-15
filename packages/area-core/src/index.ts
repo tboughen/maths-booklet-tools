@@ -367,7 +367,7 @@ function interiorPoint(outline: P[], hole: P[] | null): P {
     maxY = Math.max(...ys);
   let best: P = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 },
     bestScore = -Infinity;
-  const steps = 24;
+  const steps = 16;
   for (let i = 1; i < steps; i++)
     for (let j = 1; j < steps; j++) {
       const p = { x: minX + ((maxX - minX) * i) / steps, y: minY + ((maxY - minY) * j) / steps };
@@ -431,7 +431,7 @@ export function validate(input: unknown): Envelope {
     if (shoelace(c) <= 0) throw Error("Give the corners in order anticlockwise round the shape.");
     for (const h of s.heights) {
       if (h.corner > n || h.side > n) throw Error(`This shape has ${n} corners and sides.`);
-      if (h.side === h.corner || h.side % n === h.corner - 1) throw Error(`A height from corner ${h.corner} goes to a side that does not touch it.`);
+      if (h.side === h.corner || h.side % n === h.corner - 1) throw Error(`A height from corner ${h.corner} goes to a side that touches it; choose a side across the shape.`);
       if (s.arcs[h.side - 1] !== "none") throw Error(`Side ${h.side} is a semicircle, so a height cannot meet it.`);
     }
     if (s.rightAngles.some((k) => k > n)) throw Error(`Right-angle marks go at corners 1 to ${n}.`);
@@ -439,6 +439,16 @@ export function validate(input: unknown): Envelope {
   }
   if (s.type === "circle" && s.part !== "full" && s.line !== "none") throw Error("Only a whole circle draws a radius or diameter line; set line to none.");
   const g = geometry(d);
+  // Semicircle sides must not cross other sides either: check the outline as drawn.
+  if (s.type === "polygon" && s.arcs.some((a) => a !== "none")) {
+    const o = g.outline,
+      m = o.length;
+    for (let i = 0; i < m; i++)
+      for (let j = i + 2; j < m; j++) {
+        if (i === 0 && j === m - 1) continue;
+        if (segmentsCross(o[i], o[(i + 1) % m], o[j], o[(j + 1) % m])) throw Error("A semicircle side crosses another side. Make the shape larger or the semicircle's side shorter.");
+      }
+  }
   if (d.hole) {
     const ring = g.holeOutline!;
     if (ring.some((p) => !inside(g.outline, p))) throw Error("Keep the hole inside the shape.");
@@ -587,6 +597,8 @@ const advance = (c: string, italic: boolean) => EXTRA_ADVANCE[c] ?? glyphAdvance
 /** A run of printed text: a fraction prints stacked, numerator over denominator. */
 type Run = { text: string; italic: boolean } | { top: string; bottom: string };
 const UNIT_LETTERS = new Set(["m", "g", "l"]);
+/** Short words that print upright: units and function names. Other words of up to three letters are algebra. */
+const UPRIGHT = new Set(["mm", "cm", "km", "kg", "mg", "ml", "cl", "in", "ft", "yd", "sin", "cos", "tan", "of", "and", "to", "is", "the"]);
 /** Maths text: single letters italic (not units after a number), a true minus sign, ^2 as ², a/b stacked. */
 export function runs(t: string): Run[] {
   const typed = t
@@ -608,7 +620,7 @@ export function runs(t: string): Run[] {
     else if (/^[A-Za-z]+$/.test(m[0])) {
       const before = typed.slice(0, m.index).trimEnd();
       const unitAfterNumber = UNIT_LETTERS.has(m[0]) && /[\d²]$/.test(before);
-      push(m[0], m[0].length === 1 && !unitAfterNumber);
+      push(m[0], m[0].length <= 3 && !UPRIGHT.has(m[0]) && !unitAfterNumber);
     } else push(m[0], false);
   }
   return out;
@@ -656,7 +668,7 @@ export function printed(l: Label, view: View): { text: string; answer: boolean }
   const fmt = (t: string) => (l.id === "angle" ? degrees(t) : t);
   if (view === "answer" && l.state !== "value" && l.answer) return { text: fmt(l.answer), answer: true };
   if (l.state === "value") return { text: fmt(l.text), answer: false };
-  if (l.state === "symbol") return { text: l.text, answer: false };
+  if (l.state === "symbol") return { text: fmt(l.text), answer: false };
   if (l.state === "answer-line") return { text: LINE_TEXT, answer: false };
   return { text: "", answer: false };
 }
@@ -699,9 +711,7 @@ export function lengthNotes(d: AreaDocument): string[] {
       }
   } else {
     const r = known(by.get("r")),
-      dm = known(by.get("d")),
       r2 = known(by.get("r2"));
-    if (r !== null && dm !== null && !close(dm, 2 * r)) notes.push(`The diameter (${dm}) is not twice the radius (${r}).`);
     if (r !== null && r2 !== null && !close(r, r2)) notes.push(`The two radii are ${r} and ${r2}, but they should be equal.`);
     const a = known(by.get("angle"));
     if (s.part === "quarter" && a !== null && a !== 90) notes.push(`A quarter circle's angle is 90°, not ${a}°.`);
@@ -1029,8 +1039,8 @@ export function decodeLinkHash(hashText: string): Envelope {
 /* ---------- Editor helpers ---------- */
 
 /** Where the editor puts each label place's select button: on the label if it has one, else at the place (artwork mm). */
-export function hitAnchors(e: Envelope): { id: string; name: string; at: P }[] {
-  const g = layout(e),
+export function hitAnchors(e: Envelope, g: Layout = layout(e)): { id: string; name: string; at: P }[] {
+  const
     placed = new Map(g.labels.map((l) => [l.id, l]));
   return g.geometry.slots.map((s) => {
     const l = placed.get(s.id);

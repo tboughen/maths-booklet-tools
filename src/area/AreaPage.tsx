@@ -36,14 +36,12 @@ import {
   parseFile,
   PART_NAMES,
   PARTS,
-  pointIdsOf,
   PRESET_NAMES,
   PRESETS,
   presetShape,
   printed,
   prune,
   renderSvg,
-  slotsOf,
   starter,
   stretch,
   validate,
@@ -169,12 +167,13 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const e = history.present,
     d = e.document,
     s = d.shape,
-    g = layout(e),
+    g = useMemo(() => layout(e), [e]),
     blocked = busy || recovery !== null || pending !== null;
   const fitted = useResourceFit((g.width * 96) / 25.4, (g.height * 96) / 25.4, zoom, (w) => (w < 500 ? 72 : 120));
-  const answerSvg = renderSvg(e, "answer");
+  const answerSvg = useMemo(() => renderSvg(e, "answer"), [e]);
+  const viewSvg = useMemo(() => (view === "answer" ? answerSvg : renderSvg(e, "pupil")), [e, view, answerSvg]);
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
-  const slots = slotsOf(d);
+  const slots = g.geometry.slots;
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
@@ -356,7 +355,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
 
   const titleNote = useTitleNote({ active, about: aboutOf(e), disabled: blocked, onSave: (about) => commit(withAbout(e, about), TITLE_NOTE_STEP) });
   const worked = useWorkedNotes({ active, notes: workedOf(e), size: answerSize(answerSvg), disabled: blocked, onSave: (notes) => commit(withWorkedNotes(e, notes), WORKED_STEP) });
-  const anchors = hitAnchors(e);
+  const anchors = hitAnchors(e, g);
   const slotName = (id: string) => slots.find((x) => x.id === id)?.name ?? id;
   const mmField = (labelText: string, value: number, apply: (v: number) => boolean, min: number, max: number) => (
     <DraftField
@@ -452,7 +451,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                     if (ev.target === ev.currentTarget) setSelected(null);
                   }}
                 >
-                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(renderSvg(e, view), e, view === "answer") }} />
+                  <div className="pt-art" dangerouslySetInnerHTML={{ __html: previewArt(viewSvg, e, view === "answer") }} />
                   {anchors.map((a) => (
                     <button
                       key={a.id}
@@ -752,7 +751,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                           p.corners.pop();
                           p.arcs.pop();
                           p.rightAngles = p.rightAngles.filter((k) => k < n);
-                          p.heights = p.heights.filter((h) => h.corner < n && h.side <= n - 1);
+                          p.heights = p.heights.filter((h) => h.corner < n && h.side < n - 1);
                         }, "remove corner")
                       }
                     >
@@ -793,10 +792,14 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                       disabled={blocked || s.heights.length >= 4 || s.corners.length < 3}
                       onClick={() =>
                         setPolygon((p) => {
-                          // From the highest corner to side 1 (usually the base), as exam diagrams draw it.
-                          const top = p.corners.reduce((best, c, k) => (c.y > p.corners[best].y ? k : best), 0);
-                          const side = top === 0 || top === 1 ? p.corners.length : 1;
-                          p.heights.push({ corner: top + 1, side });
+                          // From the highest corner to the lowest straight side across from it, as exam diagrams draw it.
+                          const n = p.corners.length,
+                            top = p.corners.reduce((best, c, k) => (c.y > p.corners[best].y ? k : best), 0);
+                          const sides = p.corners
+                            .map((c, k) => ({ side: k + 1, y: (c.y + p.corners[(k + 1) % n].y) / 2 }))
+                            .filter((x) => x.side !== top + 1 && x.side % n !== top && p.arcs[x.side - 1] === "none")
+                            .sort((a, b) => a.y - b.y);
+                          if (sides.length) p.heights.push({ corner: top + 1, side: sides[0].side });
                         }, "add height")
                       }
                     >
@@ -839,7 +842,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 <summary>Point names (A, B, C …)</summary>
                 <p className="pt-note">Letters print upright beside their corners, for questions such as “ABCD is a trapezium”.</p>
                 <div className="pt-fields">
-                  {pointIdsOf(d).map((id) => (
+                  {Object.keys(g.geometry.points).map((id) => (
                     <label key={id}>
                       {pointName(id)}
                       <DraftField
@@ -895,7 +898,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
                 <summary>Editing and printing help</summary>
                 <p className="pt-note">
                   The drawing never has to match the lengths: exam diagrams are not accurately drawn. When the sides of a rectilinear shape cannot
-                  fit together, or a diameter is not twice the radius, a teacher note says so. Leave it if the error is deliberate.
+                  fit together, or the two radii of a sector differ, a teacher note says so. Leave it if the error is deliberate.
                 </p>
                 <p className="pt-note">
                   Copy for Word carries the physical size shown above the diagram; preview zoom never changes it. Download PNG (600 ppi) or PDF if

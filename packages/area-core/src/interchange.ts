@@ -107,8 +107,9 @@ export function toShape(input: ShapeInput, base?: core.Shape): core.Shape {
     // Centre the drawing range on the shape, so long outlines stay within ±150 mm.
     const xs = corners.map((c) => c.x),
       ys = corners.map((c) => c.y);
-    const dx = Math.round((Math.min(...xs) + Math.max(...xs)) / 2),
-      dy = Math.round((Math.min(...ys) + Math.max(...ys)) / 2);
+    // Shift by whole centimetres, so corners stay on the 1 cm grid.
+    const dx = Math.round((Math.min(...xs) + Math.max(...xs)) / 2 / core.GRID_MM) * core.GRID_MM,
+      dy = Math.round((Math.min(...ys) + Math.max(...ys)) / 2 / core.GRID_MM) * core.GRID_MM;
     corners = corners.map((c) => ({ x: c.x - dx, y: c.y - dy }));
   }
   if (!corners) throw Error("A polygon needs corners or an outline.");
@@ -128,11 +129,20 @@ function defaultState(text: string, answer: string): core.LabelState {
   return /\d/.test(text) && !answer.trim() ? "value" : "symbol";
 }
 function toLabel(input: LabelInput, base?: core.Label): core.Label {
-  const out = base ? structuredClone(base) : core.label(input.id);
+  if (!base) {
+    const text = input.text ?? "",
+      answer = input.answer ?? "";
+    return { id: input.id, text, answer, state: input.state ?? defaultState(text, answer) };
+  }
+  // An existing label keeps its state unless asked, as in the editor: only a state that can no longer hold
+  // the text or answer changes (an answer line stays an answer line, a hidden label stays hidden).
+  const out = structuredClone(base);
   if (input.text !== undefined) out.text = input.text;
   if (input.answer !== undefined) out.answer = input.answer;
   if (input.state) out.state = input.state;
-  else if (input.text !== undefined || input.answer !== undefined) out.state = defaultState(out.text, out.answer);
+  else if ((out.state === "value" || out.state === "symbol") && !out.text.trim()) out.state = out.answer.trim() ? "hidden" : "blank";
+  else if (out.state === "value" && out.answer.trim()) out.state = "symbol";
+  else if (out.state === "blank" && (out.text.trim() || out.answer.trim())) out.state = defaultState(out.text, out.answer);
   return out;
 }
 function applySettings(d: core.AreaDocument, s: z.infer<typeof settings>) {

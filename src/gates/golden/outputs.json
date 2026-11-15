@@ -284,31 +284,31 @@
   },
   "area and perimeter: area-circle": {
    "json": "269a09be64b4943e",
-   "svg": "427a19962534035b",
+   "svg": "73fadcb3fcd931a5",
    "mm": "64x69",
    "png600": "1512x1630",
-   "pixels": "54df19a7cf653f4b"
+   "pixels": "af5b11ff6e1b8e32"
   },
   "area and perimeter: area-circle (worked)": {
    "json": "3ce1c8c05a2ba6d2",
-   "svg": "6913f4f22560894b",
+   "svg": "b16e9c55e17f99f5",
    "mm": "66.1x69",
    "png600": "1561x1630",
-   "pixels": "8856c9c09bbf871d"
+   "pixels": "66efde0a01c9da04"
   },
   "area and perimeter: area-frame": {
    "json": "d0023182a62e8f21",
-   "svg": "852c2680c881769f",
+   "svg": "451b3c157b1a97a2",
    "mm": "85x60.3",
    "png600": "2008x1424",
-   "pixels": "161b446677288452"
+   "pixels": "e7e1f7868275b67b"
   },
   "area and perimeter: area-frame (worked)": {
    "json": "2271bfa0260ceea2",
-   "svg": "852c2680c881769f",
+   "svg": "451b3c157b1a97a2",
    "mm": "85x60.3",
    "png600": "2008x1424",
-   "pixels": "161b446677288452"
+   "pixels": "e7e1f7868275b67b"
   },
   "area and perimeter: area-grid": {
    "json": "bc201df2181700fd",
@@ -326,101 +326,101 @@
   },
   "area and perimeter: area-l-shape": {
    "json": "02c9d642b624d996",
-   "svg": "962690a628b2cc52",
+   "svg": "15edae06ec2afdf5",
    "mm": "84.1x69.5",
    "png600": "1987x1642",
-   "pixels": "a2edec3ea214d171"
+   "pixels": "bf076bd1bc8b8748"
   },
   "area and perimeter: area-l-shape (worked)": {
    "json": "9b5328e73eed3369",
-   "svg": "962690a628b2cc52",
+   "svg": "15edae06ec2afdf5",
    "mm": "84.1x69.5",
    "png600": "1987x1642",
-   "pixels": "a2edec3ea214d171"
+   "pixels": "bf076bd1bc8b8748"
   },
   "area and perimeter: area-perimeter": {
    "json": "83cd7cc8fe69d78b",
-   "svg": "3bfb2c89e0e38602",
+   "svg": "8f24dec7552908de",
    "mm": "79.1x59.3",
    "png600": "1869x1401",
-   "pixels": "9f0f6cb8f99699e9"
+   "pixels": "f74dc01595e81ab1"
   },
   "area and perimeter: area-perimeter (worked)": {
    "json": "2923af7efd73eb16",
-   "svg": "3bfb2c89e0e38602",
+   "svg": "8f24dec7552908de",
    "mm": "79.1x59.3",
    "png600": "1869x1401",
-   "pixels": "9f0f6cb8f99699e9"
+   "pixels": "f74dc01595e81ab1"
   },
   "area and perimeter: area-rectangle-semicircle": {
    "json": "09aa2314a01b0ada",
-   "svg": "66991c5a10e6c626",
+   "svg": "0adefe5b19770f2a",
    "mm": "80.1x48.3",
    "png600": "1892x1141",
-   "pixels": "dfb3bc8c466be2cf"
+   "pixels": "b6ddc1193fae08a7"
   },
   "area and perimeter: area-rectangle-semicircle (worked)": {
    "json": "a631c219b25e2bd9",
-   "svg": "66991c5a10e6c626",
+   "svg": "0adefe5b19770f2a",
    "mm": "80.1x48.3",
    "png600": "1892x1141",
-   "pixels": "dfb3bc8c466be2cf"
+   "pixels": "b6ddc1193fae08a7"
   },
   "area and perimeter: area-sector": {
    "json": "16ad880ae97261a7",
-   "svg": "81137c7e6dd7ce5e",
+   "svg": "07ecc3f48c189bff",
    "mm": "55x52.2",
    "png600": "1299x1233",
-   "pixels": "70f6d1a7df95fa3d"
+   "pixels": "39f7b21093b83a92"
   },
   "area and perimeter: area-sector (worked)": {
    "json": "5f25d37ef83de85b",
-   "svg": "2f6bbc567824c186",
+   "svg": "6a8586dd4807e507",
    "mm": "55x52.8",
    "png600": "1299x1247",
-   "pixels": "526823b96a3a555c"
+   "pixels": "bfc28e8cf6dc556b"
   },
   "area and perimeter: area-semicircle": {
    "json": "e746859e45324600",
-   "svg": "01ba9b147addfc2a",
+   "svg": "f047efef0481d080",
    "mm": "68x46.3",
    "png600": "1606x1094",
-   "pixels": "9277d06de91f758b"
+   "pixels": "367e847979574853"
   },
   "area and perimeter: area-semicircle (worked)": {
    "json": "d6bfe6d91715c6bc",
-   "svg": "38203022feb638c7",
+   "svg": "637961e1e907d1dd",
    "mm": "68x51.5",
    "png600": "1606x1217",
-   "pixels": "2908943c5815a52e"
+   "pixels": "9404c97bb23e2994"
   },
   "area and perimeter: area-trapezium": {
    "json": "ccaf9819240a36d1",
-   "svg": "140aab540572c98a",
+   "svg": "2d68e624a229f0b2",
    "mm": "74x53.5",
    "png600": "1748x1264",
-   "pixels": "f8a374cfb58fe682"
+   "pixels": "af943908fe7f6339"
   },
   "area and perimeter: area-trapezium (worked)": {
    "json": "97e84d4a8c7360f9",
-   "svg": "140aab540572c98a",
+   "svg": "2d68e624a229f0b2",
    "mm": "74x53.5",
    "png600": "1748x1264",
-   "pixels": "f8a374cfb58fe682"
+   "pixels": "af943908fe7f6339"
   },
   "area and perimeter: area-triangle": {
    "json": "31cec323f7546208",
-   "svg": "68c342ffc2ec13c1",
+   "svg": "1e0c4d6deb10dd87",
    "mm": "68x54.3",
    "png600": "1606x1283",
-   "pixels": "ea59c023237e172f"
+   "pixels": "f04229f3f81701ca"
   },
   "area and perimeter: area-triangle (worked)": {
    "json": "70c0405d43809f02",
-   "svg": "68c342ffc2ec13c1",
+   "svg": "1e0c4d6deb10dd87",
    "mm": "68x54.3",
    "png600": "1606x1283",
-   "pixels": "ea59c023237e172f"
+   "pixels": "f04229f3f81701ca"
   },
   "bar model: bar-BM01": {
    "json": "2bf961cd20c72457",

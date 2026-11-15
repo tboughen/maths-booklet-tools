@@ -141,4 +141,28 @@ describe("area and perimeter connector adapter", () => {
     expect(shaded.document.shaded).toBe("shape");
     expect(shaded.document.fontPt).toBeUndefined();
   });
+
+  it("keeps an existing label's state when only its answer or text changes", async () => {
+    const e = io.create({ spec: { preset: "l-shape", labels: [{ id: "e3", state: "answer-line" }] } });
+    const r = await io.revise({ envelope: e, baseHash: await core.hash(e), operations: [{ op: "set_label", label: { id: "e3", answer: "7 cm" } }] });
+    expect(r.document.labels[0]).toEqual({ id: "e3", state: "answer-line", text: "", answer: "7 cm" });
+  });
+
+  it("keeps outline shapes on the centimetre grid", () => {
+    const e = io.create({ spec: { shape: { type: "polygon", outline: [{ dir: "right", length: 25 }, { dir: "up", length: 20 }, { dir: "left", length: 25 }, { dir: "down", length: 20 }] }, settings: { grid: true } } });
+    expect(core.layout(e).notes).toEqual([]);
+  });
 });
+
+describe("review fixes", () => {
+  it("refuses a semicircle side that crosses another side", () => {
+    const e = core.starter("rectangle-cut");
+    expect(() => core.validate({ ...e, document: core.stretch(e.document, 1, 0.25) })).toThrow("crosses another side");
+  });
+  it("prints a letter at the centre angle with a degree sign, and short algebra italic", () => {
+    expect(core.printed(core.label("angle", "x", "symbol"), "pupil").text).toBe("x°");
+    expect(core.runs("ab cm")).toEqual([{ text: "ab", italic: true }, { text: " cm", italic: false }]);
+    expect(core.runs("Area")).toEqual([{ text: "Area", italic: false }]);
+  });
+});
+

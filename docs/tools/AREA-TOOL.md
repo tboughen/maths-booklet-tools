@@ -36,9 +36,9 @@ letter, italic), `blank` (nothing printed: a missing side), `answer-line` and `h
 the answers copy, in the house answer colour, in place of the label; a `value` never holds one. Answers are text, so
 "25π cm²" stays exact. Both copies share one layout sized for the wider text. Nothing is ever calculated or filled in.
 
-Label text is typeset: single letters italic (but not `m`, `g` or `l` after a number), units and words upright, a
+Label text is typeset: letters of up to three (algebra such as x or ab) italic, but not units (cm, m after a number) or sin, cos and tan; longer words upright; a
 true minus sign, `^2` as ², `pi` as π, and `a/b` as a stacked fraction (so the label is taller). The centre angle of
-a sector prints with a degree sign.
+a sector prints with a degree sign (110°, x°).
 
 ## Drawing
 
@@ -48,8 +48,8 @@ inside the shape. A label with no clear space is an export issue. Labels print a
 pt), the caption at 10 pt.
 
 Teacher notes (never printed) name lengths that cannot all be right: on a rectilinear shape, the sides going one way
-not adding up to the sides going back (or a missing side that would have to be zero or negative); a diameter that is
-not twice the radius; two unequal radii; a quarter circle's angle that is not 90°; and, with the grid on, corners off
+not adding up to the sides going back (or a missing side that would have to be zero or negative); a sector's or
+quarter circle's two unequal radii; a quarter circle's angle that is not 90°; and, with the grid on, corners off
 the half-centimetres. Only plain numbers (with or without a unit) are checked.
 
 ## Editing
