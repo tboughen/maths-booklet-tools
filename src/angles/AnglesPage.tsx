@@ -243,9 +243,15 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     n.document.figure = next;
     if (remap) Object.assign(n.document, remapRays(d, n.document));
     const kept = prune(n);
-    const lost = d.angles.length - kept.document.angles.length;
+    const lostAngles = d.angles.length - kept.document.angles.length,
+      lostNames = d.names.length - kept.document.names.length;
     const ok = commit(kept, label);
-    if (ok && lost > 0) setMessage(`${lost === 1 ? "One labelled angle is" : `${lost} labelled angles are`} not in the new figure and ${lost === 1 ? "was" : "were"} removed. Undo brings ${lost === 1 ? "it" : "them"} back.`);
+    const parts = [...(lostAngles ? [lostAngles === 1 ? "One labelled angle" : `${lostAngles} labelled angles`] : []), ...(lostNames ? [lostNames === 1 ? "one point name" : `${lostNames} point names`] : [])];
+    if (ok && parts.length) {
+      const one = lostAngles + lostNames === 1;
+      const list = parts.join(" and ");
+      setMessage(`${list[0].toUpperCase()}${list.slice(1)} ${one ? "is" : "are"} not in the new figure and ${one ? "was" : "were"} removed. Undo brings ${one ? "it" : "them"} back.`);
+    }
     return ok;
   }
   const undo = () => !blocked && documentHistory.undo();

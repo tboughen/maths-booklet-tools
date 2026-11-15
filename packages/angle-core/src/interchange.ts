@@ -94,16 +94,17 @@ export function toFigure(input: FigureInput, base?: core.Figure): core.Figure {
       : (input.ticks ?? (b && b.ticks.length === sides ? b.ticks : Array(sides).fill(corners ? 0 : 1)));
   return { type: "polygon", sides, corners, exterior: input.exterior ?? (b?.exterior.filter((k) => k <= sides) ?? []), diagonals: input.diagonals ?? b?.diagonals ?? false, ticks };
 }
-function defaultState(text: string): core.LabelState {
+function defaultState(text: string, answer: string): core.LabelState {
   if (!text.trim()) return "blank";
-  return /\d/.test(text) ? "value" : "symbol";
+  // A given size never holds an answer, so text with a saved answer is a letter or expression to find (as in the editor).
+  return /\d/.test(text) && !answer.trim() ? "value" : "symbol";
 }
 function toAngle(input: AngleInput, base?: core.Angle): core.Angle {
   const out = base ? structuredClone(base) : core.angle(input.id);
   if (input.text !== undefined) out.label.text = input.text;
   if (input.answer !== undefined) out.label.answer = input.answer;
   if (input.state) out.label.state = input.state;
-  else if (input.text !== undefined) out.label.state = defaultState(input.text);
+  else if (input.text !== undefined) out.label.state = defaultState(input.text, out.label.answer);
   if (input.mark) out.mark = input.mark;
   if (input.shade !== undefined) out.shade = input.shade;
   return out;
@@ -163,7 +164,10 @@ export async function revise(input: unknown): Promise<core.Envelope> {
       const f = next.document.figure;
       if (f.type === "crossing") f.lines.sort((a, b) => a - b);
       if (f.type === "straight-line" || f.type === "point") f.rays.sort((a, b) => a - b);
-      Object.assign(next.document, core.remapRays(e.document, next.document));
+      // Adding or removing a ray moves the slots, so labels follow their rays; moving a ray keeps every slot and point by position, as in the editor.
+      const count = (x: core.Figure) => (x.type === "crossing" ? x.lines.length : x.type === "straight-line" || x.type === "point" ? x.rays.length : -1);
+      const old = e.document.figure;
+      if (old.type === f.type && count(old) >= 0 && count(old) !== count(f)) Object.assign(next.document, core.remapRays(e.document, next.document));
       const kept = core.prune(next);
       const lostAngles = e.document.angles.length - kept.document.angles.length,
         lostNames = e.document.names.length - kept.document.names.length;

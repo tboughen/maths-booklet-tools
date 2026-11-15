@@ -184,4 +184,21 @@ describe("angle diagram review fixes", () => {
     const far: c.Figure = { type: "polygon", sides: 3, corners: [{ x: 0, y: 0 }, { x: 500, y: 0 }, { x: 0, y: 20 }], exterior: [], diagonals: false, ticks: [0, 0, 0] };
     expect(() => c.validate(c.blank(far))).toThrow(/200 mm/);
   });
+
+  it("keeps labels by position when the connector moves a ray, and follows rays when one is added", async () => {
+    const e = c.validate(io.create({ spec: { figure: { type: "straight-line", rays: [60] }, angles: [{ id: "s1", text: "62" }, { id: "s2", text: "x" }], names: [{ point: "r1", text: "B" }] } }));
+    const moved = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_figure", figure: { type: "straight-line", rays: [70] } }] });
+    expect(moved.document.angles.map((a) => [a.id, a.label.text])).toEqual([["s1", "62"], ["s2", "x"]]);
+    expect(moved.document.names).toEqual([{ id: "r1", text: "B" }]);
+    const cross = c.validate(io.create({ spec: { figure: { type: "crossing", lines: [15, 70] }, angles: [{ id: "s1", text: "55" }, { id: "s2", text: "y" }] } }));
+    const turned = await io.revise({ envelope: cross, baseHash: await c.hash(cross), operations: [{ op: "set_figure", figure: { type: "crossing", lines: [20, 70] } }] });
+    expect(turned.document.angles.map((a) => a.id)).toEqual(["s1", "s2"]);
+    const added = await io.revise({ envelope: e, baseHash: await c.hash(e), operations: [{ op: "set_figure", figure: { type: "straight-line", rays: [30, 60] } }] });
+    expect(added.document.angles.map((a) => [a.id, a.label.text])).toEqual([["s1", "62"], ["s3", "x"]]);
+  });
+
+  it("treats connector text with a saved answer as an expression to find", () => {
+    const e = io.create({ spec: { figure: { type: "straight-line", rays: [60] }, angles: [{ id: "s2", text: "2x + 10", answer: "x = 54" }, { id: "s1", text: "62" }] } });
+    expect(e.document.angles.map((a) => a.label.state)).toEqual(["symbol", "value"]);
+  });
 });
