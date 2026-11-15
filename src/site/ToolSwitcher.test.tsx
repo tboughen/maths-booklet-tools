@@ -1,12 +1,12 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PageHeading } from "./PageHeading";
 import { bookletTools } from "./registry";
 import { resetFavouriteToolsForTests } from "./favouriteTools";
 import { loadToolSwitcher, resetToolSwitcherForTests, toolPage, ToolPageContext } from "./toolPage";
 
 // On the site the switcher arrives with a tool's page, before its heading draws.
-beforeAll(loadToolSwitcher);
+beforeEach(loadToolSwitcher);
 afterEach(() => {
   localStorage.clear();
   resetFavouriteToolsForTests();
@@ -21,19 +21,14 @@ const heading = (tool: (typeof bookletTools)[number]["id"] | null, title: string
 const open = () => fireEvent.click(within(screen.getByRole("heading", { level: 1 })).getByRole("button"));
 
 describe("ToolSwitcher", () => {
-  it("arrives with a tool's page, and a heading drawn before it shows the plain name first", async () => {
+  it("arrives with a tool's page, and a heading drawn before it redraws when it lands", async () => {
     resetToolSwitcherForTests();
     heading("graph", "Graph tool");
     const name = () => within(screen.getByRole("heading", { level: 1, name: "Graph tool" }));
     expect(name().queryByRole("button")).toBeNull();
-    // The heading asks for the switcher itself and redraws when it lands.
-    await waitFor(() => expect(name().getByRole("button")).toBeTruthy());
-    cleanup();
-    resetToolSwitcherForTests();
     // Loading a tool's page as the registry does brings the switcher with it.
     await toolPage(async () => ({ default: () => null })).preload();
-    heading("factor-tree", "Factor trees");
-    expect(within(screen.getByRole("heading", { level: 1 })).getByRole("button")).toBeTruthy();
+    await waitFor(() => expect(name().getByRole("button")).toBeTruthy());
   });
 
   it("leaves pages that are not diagram tools with a plain heading", () => {
@@ -108,5 +103,19 @@ describe("ToolSwitcher", () => {
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "  " } });
     expect(screen.getByRole("status").textContent).toBe("");
     expect(screen.getByText("Star a tool and it will wait for you here.")).toBeTruthy();
+  });
+
+  // Last: it loads fresh copies of the modules.
+  it("lets a tool's page open with a plain heading when the switcher cannot be fetched", async () => {
+    resetToolSwitcherForTests();
+    vi.resetModules();
+    vi.doMock("./ToolSwitcher", () => {
+      throw new Error("offline");
+    });
+    const offline = await import("./toolPage");
+    const page = { default: () => null };
+    await expect(offline.toolPage(async () => page).preload()).resolves.toBe(page);
+    vi.doUnmock("./ToolSwitcher");
+    vi.resetModules();
   });
 });

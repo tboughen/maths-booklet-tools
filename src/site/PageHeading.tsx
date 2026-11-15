@@ -15,8 +15,8 @@ export function PageHeading({
   // On a diagram tool's page the heading is also the way to every other tool.
   const toolId = useContext(ToolPageContext);
   const tool = bookletTools.find((item) => item.id === toolId);
-  // It loads with the tool's page, so it is here by the time a tool draws its heading.
-  const ToolSwitcher = useToolSwitcher(!!tool);
+  // It loads with the tool's page. If that failed, the heading stays the plain name.
+  const ToolSwitcher = useToolSwitcher();
   return (
     <div className="page-heading">
       <div>

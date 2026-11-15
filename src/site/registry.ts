@@ -58,7 +58,7 @@ export { pageHref, readPage, type LinkPageId, type PageId, type ToolId } from ".
 type RegistryTool = typeof bookletTools[number]["id"];
 const _toolsHavePaths: [RegistryTool] extends [ToolId] ? ([ToolId] extends [RegistryTool] ? true : never) : never = true;
 void _toolsHavePaths;
-// Each tool's page is made by toolPage(), so its heading has the tool switcher; this fails to compile otherwise.
+// Each tool's page comes from toolPage(), which loads the tool switcher with it; a plain lazyPage() fails to compile here.
 const _toolsHaveSwitcher: readonly { component: { withToolSwitcher: true } }[] = bookletTools;
 void _toolsHaveSwitcher;
 /** Home and the main navigation describe the same teacher destinations. */
