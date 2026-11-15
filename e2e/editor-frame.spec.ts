@@ -28,7 +28,8 @@ for (const tool of toolIds)
 
 test.describe("the status line", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
-  for (const tool of ["cuboids", "venn", "ratio-table", "factor-tree", "bar-model", "triangle"] as const)
+  // The Graph tool has its own toast.
+  for (const tool of toolIds.filter((id) => id !== "graph"))
     test(`${tool}: "Image copied" sits in the foot of the card and leaves the diagram's stage the same size`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.goto(`/tools/${tool}`);
@@ -42,6 +43,21 @@ test.describe("the status line", () => {
       expect(box.y + box.height).toBeLessThanOrEqual(before.cardBottom + 1);
       expect((await frame(page)).stage).toBe(before.stage);
     });
+
+  test("a recovery panel under the card is never covered by the status line", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.addInitScript(() => localStorage.setItem("maths-booklet-tools:venn:v1", "{broken"));
+    await page.goto("/tools/venn");
+    const line = page.locator(".site-page:not([hidden])").getByRole("status").filter({ hasText: /needs recovery/ });
+    await expect(line).toBeVisible();
+    const box = (await line.boundingBox())!;
+    const at = await frame(page);
+    expect(box.y).toBeGreaterThanOrEqual(at.stageBottom - 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(at.cardBottom + 1);
+    const panel = (await page.locator(".vn-recovery").boundingBox())!;
+    expect(panel.y).toBeGreaterThanOrEqual(at.cardBottom);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(1000);
+  });
 });
 
 for (const [width, height, why] of [[600, 900, "narrow"], [1280, 720, "short"]] as const)

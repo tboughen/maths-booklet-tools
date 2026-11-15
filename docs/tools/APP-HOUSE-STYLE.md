@@ -103,7 +103,7 @@ each tool had before.
 A new tool gets the frame by using the shared shell (`.booklet-editor`, `.workspace`,
 `.editor-card`, `.inspector-stack`), giving the element that scrolls the diagram the class
 `editor-stage` as a direct child of the card, and showing its message in a `.resource-feedback`
-paragraph. A tool that fits its diagram in script must measure the stage element, not the window.
+paragraph inside the card. A tool that fits its diagram in script must measure the stage element, not the window.
 
 The frame changes screen furniture only. Preview zoom still never changes print size.
 
