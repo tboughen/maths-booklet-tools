@@ -35,7 +35,8 @@ describe("graph builder", () => {
     );
     expect(labels).toContain("−2");
     expect(labels).toContain("2");
-    expect(labels.every((label) => /^−?\d+$/.test(label ?? ""))).toBe(true);
+    // Whole numbers, plus the italic O the origin prints by default.
+    expect(labels.every((label) => /^(−?\d+|𝑂)$/.test(label ?? ""))).toBe(true);
   });
 
   it("adds and independently changes multiple equation-defined lines", async () => {
@@ -199,9 +200,9 @@ describe("graph builder", () => {
     const negativeYControl = screen.getByRole("button", {
       name: "Add one square at the negative end of the y-axis",
     }).parentElement;
-    const originRect = container.querySelector<SVGRectElement>(
-      ".axis-number--origin rect",
-    );
+    const originRect = [...container.querySelectorAll(".axis-number")]
+      .find((g) => g.querySelector("text")?.textContent === "𝑂")
+      ?.querySelector<SVGRectElement>("rect");
     const position = (element: Element | null) => {
       return {
         x: parseFloat((element as HTMLElement).style.left),
