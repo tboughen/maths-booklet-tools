@@ -26,7 +26,6 @@ function populatedDocument(): DiagramDocumentV1 {
         equationVisible: false,
       },
     ],
-    selectedObjectId: "straight-1",
   };
 }
 

@@ -6,7 +6,8 @@ import { resolve } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 
 mkdirSync('tmp/usability', { recursive:true });
-await build({ entryPoints:['src/examples/galleryCatalogue.ts'], bundle:true, platform:'node', format:'cjs', outfile:'tmp/usability/catalogue.cjs' });
+// The bar-model editor's own gallery (lesson R1–R5 plus the past-paper cards) lives in barLessonGallery.
+await build({ stdin:{ contents:"export * from './src/examples/galleryCatalogue'; export { barLessonGallery } from './src/examples/barLessonGallery';", resolveDir:process.cwd(), loader:'ts' }, bundle:true, platform:'node', format:'cjs', outfile:'tmp/usability/catalogue.cjs' });
 const catalogue = createRequire(import.meta.url)(resolve('tmp/usability/catalogue.cjs'));
 const directory = resolve('src/assets/example-previews');
 mkdirSync(directory, { recursive:true });
@@ -14,10 +15,12 @@ const report = process.env.USABILITY_OUTPUT ? resolve(process.env.USABILITY_OUTP
 mkdirSync(report, { recursive:true });
 const font = { fontFiles:['STIXTwoText-Regular.otf','STIXTwoText-Italic.otf','STIXTwoMath-Regular.otf'].map(name => resolve('assets/graph-fonts', name)), loadSystemFonts:false };
 const hash = text => createHash('sha256').update(text).digest('hex');
-const records = [];
+const records = [], seen = new Set();
 for (const [group, examples] of Object.entries(catalogue)) {
   if (!Array.isArray(examples)) continue;
   for (const example of examples) {
+    if (seen.has(example.id)) continue;
+    seen.add(example.id);
     for (const worked of [false,true]) {
       if (worked && example.worked === false) continue;
       const resource = example.make(worked), json = JSON.stringify(resource);

@@ -213,6 +213,7 @@ const output = z
       .strict(),
     physicalSizeMm: z.object({ width: z.literal(420), height: z.literal(297) }).strict(),
     sides: z.literal(2),
+    next: z.array(z.string()),
   })
   .strict();
 
@@ -249,6 +250,7 @@ const bookletOutput = z
         .strict(),
     ),
     physicalSizeMm: z.object({ width: z.literal(210), height: z.literal(297) }).strict(),
+    next: z.array(z.string()),
   })
   .strict();
 
@@ -487,6 +489,12 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         downloads: links,
         lessons,
         physicalSizeMm: { width: 210 as const, height: 297 as const },
+        next: printReady
+          ? [
+              "Give the teacher the download links exactly as returned.",
+              "To change the booklet, edit the returned booklet and call create_booklet again; keep unchanged questions, blanks and answers as they are.",
+            ]
+          : ["Fix each issue (split or move a card, or trim wording; text and handwriting space are never shrunk), then call create_booklet again with the edited booklet."],
       },
       content,
     };
@@ -578,6 +586,15 @@ export function worksheetTools(raster: RasterQueue, downloads: WorksheetDownload
         downloads: links,
         physicalSizeMm: { width: 420 as const, height: 297 as const },
         sides: 2 as const,
+        next: !printReady
+          ? ["Fix each issue (split or move a card, or trim wording; text and handwriting space are never shrunk), then call create_worksheet again with the edited resource."]
+          : fractions.length
+            ? ["Unless the teacher asked to keep the wording exactly, rewrite each fraction a note names as {3/4} with notation 'maths' and call create_worksheet again before giving the teacher the files."]
+            : [
+                "Give the teacher the download links exactly as returned.",
+                ...(space.length ? ["Tell the teacher which columns have spare room; add a question only if they agree."] : []),
+                "To change the worksheet, edit the returned resource and call create_worksheet again; keep unchanged questions, blanks and answers as they are.",
+              ],
       },
       content,
     };

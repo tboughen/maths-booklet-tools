@@ -63,6 +63,8 @@ describe("worksheet tools", () => {
     const reply = r.structuredContent as unknown as Reply;
     expect(reply.printReady).toBe(true);
     expect(reply.issues).toEqual([]);
+    // M83: next steps say to hand over the links and how to change the sheet.
+    expect((r.structuredContent as { next: string[] }).next.join(" ")).toMatch(/download links exactly as returned.*create_worksheet again/);
     expect(reply.contentHash).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(reply.files.pupilPdf).toBe("SP7.01_List outcomes of combined events using a tree diagram_A3.pdf");
     const images = (r.content as { type: string; mimeType?: string }[]).filter((c) => c.type === "image");
@@ -121,6 +123,8 @@ describe("worksheet tools", () => {
     expect(reply.printReady).toBe(true);
     expect(reply.notes.find((n) => n.question === 1)?.message).toContain("{1/2}");
     expect((r.content as { type: string; text?: string }[])[0].text).toContain("Fraction notes:");
+    // M83: a fraction note comes before handing over the files.
+    expect((r.structuredContent as { next: string[] }).next).toEqual([expect.stringMatching(/^Unless the teacher asked.*before giving the teacher the files\.$/)]);
     sheet.document.notation = "maths";
     sheet.document.sides[0].columns[0].cards[0].items[0] = { type: "text", text: "P(red) = {1/2}" };
     const fixed = await client.callTool({ name: "create_worksheet", arguments: { resource: sheet } });

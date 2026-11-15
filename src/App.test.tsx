@@ -5,6 +5,15 @@ import App from "./App";
 import { cloneDefaultDocument } from "./domain/diagram";
 import { saveDiagram } from "./domain/persistence";
 
+
+/** Selection is editor state (U35): it is never saved, so a test selects through the Objects list. */
+async function selectObject(user: ReturnType<typeof userEvent.setup>, title: string) {
+  const name = new RegExp(`^Select ${title}:`);
+  if (!screen.queryByRole("button", { name }))
+    await user.click(screen.getByRole("button", { name: /Objects/ }));
+  await user.click(screen.getByRole("button", { name }));
+}
+
 describe("graph builder", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -224,7 +233,7 @@ describe("graph builder", () => {
     expect(negativeY.y).toBeGreaterThan(negativeX.y + 48);
   });
 
-  it("gives point x and y coordinate inputs equal-width columns", () => {
+  it("gives point x and y coordinate inputs equal-width columns", async () => {
     const pointDocument = cloneDefaultDocument();
     const point = {
       id: "point-1",
@@ -232,9 +241,9 @@ describe("graph builder", () => {
       position: { x: -4, y: 2 },
     };
     pointDocument.objects = [point];
-    pointDocument.selectedObjectId = point.id;
     saveDiagram(pointDocument);
     const { container } = render(<App />);
+    await selectObject(userEvent.setup(), "Point 1");
 
     const xInput = screen.getByRole("textbox", { name: "Point x" });
     const yInput = screen.getByRole("textbox", { name: "Point y" });
@@ -266,9 +275,9 @@ describe("graph builder", () => {
         equationVisible: false,
       },
     ];
-    lineDocument.selectedObjectId = "straight-1";
     saveDiagram(lineDocument);
     const { container } = render(<App />);
+    await selectObject(user, "Line 1");
 
     const styleControls = within(
       screen.getByRole("group", { name: "Line style" }),
@@ -291,7 +300,6 @@ describe("graph builder", () => {
     changedDocument.objects = [
       { id: "point-1", kind: "point", position: { x: 2, y: 3 } },
     ];
-    changedDocument.selectedObjectId = "point-1";
     saveDiagram(changedDocument);
     const confirm = vi.spyOn(window, "confirm");
     render(<App />);
@@ -327,6 +335,7 @@ describe("graph builder", () => {
 
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByText("1 object")).toBeInTheDocument();
+    await selectObject(user, "Point 1");
     expect(screen.getByRole("textbox", { name: "Point x" })).toHaveValue("2");
   });
 
@@ -406,10 +415,10 @@ describe("graph builder", () => {
   it("retains invalid coordinates and allows keyboard Cancel without blur-committing a valid draft", async () => {
     const e = cloneDefaultDocument();
     e.objects = [{ id: "p", kind: "point", position: { x: 2, y: 3 } }];
-    e.selectedObjectId = "p";
     saveDiagram(e);
     const user = userEvent.setup();
     render(<App />);
+    await selectObject(user, "Point 1");
     const input = screen.getByRole("textbox", { name: "Point x" });
     await user.clear(input);
     await user.type(input, "1/0");

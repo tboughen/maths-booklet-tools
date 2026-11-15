@@ -129,12 +129,5 @@ export function isDiagramDocument(value: unknown): value is DiagramDocumentV1 {
     yTotal > AXIS_LIMITS.y.maxTotal
   )
     return false;
-  if (!candidate.objects.every(isGraphObject)) return false;
-  return (
-    candidate.selectedObjectId === null ||
-    (typeof candidate.selectedObjectId === "string" &&
-      candidate.objects.some(
-        (object) => object.id === candidate.selectedObjectId,
-      ))
-  );
+  return candidate.objects.every(isGraphObject);
 }

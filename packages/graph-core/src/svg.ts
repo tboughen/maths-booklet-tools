@@ -73,14 +73,10 @@ export const REGION_SHADE = "#d4d4d4";
 const REGION_ANSWER_OPACITY = 0.22;
 
 /** The objects one copy draws: the pupil copy leaves out answer-only objects. */
-export function documentForView(document: DiagramDocumentV1, view: GraphView = "pupil"): DiagramDocumentV1 {
+export function documentForView<T extends DiagramDocumentV1>(document: T, view: GraphView = "pupil"): T {
   if (view === "answer" || !document.objects.some((o) => o.answerOnly)) return document;
   const objects = document.objects.filter((o) => !o.answerOnly);
-  return {
-    ...document,
-    objects,
-    selectedObjectId: objects.some((o) => o.id === document.selectedObjectId) ? document.selectedObjectId : null,
-  };
+  return { ...document, objects };
 }
 
 export function graphPrintFacts(document: DiagramDocumentV1, view: GraphView = "pupil") {

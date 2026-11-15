@@ -908,7 +908,8 @@
               "bar",
               "dual",
               "composite",
-              "vline"
+              "vline",
+              "pie"
             ]
           },
           "categories": {
@@ -1060,6 +1061,30 @@
               "normal",
               "bold"
             ]
+          },
+          "pie": {
+            "type": "object",
+            "properties": {
+              "radiusMm": {
+                "type": "integer",
+                "minimum": 25,
+                "maximum": 70
+              },
+              "labels": {
+                "type": "string",
+                "enum": [
+                  "name",
+                  "name-angle",
+                  "name-percent",
+                  "none"
+                ]
+              }
+            },
+            "required": [
+              "radiusMm",
+              "labels"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -3360,19 +3385,6 @@
               ]
             }
           },
-          "selectedObjectId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^[a-zA-Z0-9_-]+$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "styleProfile": {
             "type": "string",
             "enum": [
@@ -3406,8 +3418,7 @@
         "required": [
           "version",
           "axes",
-          "objects",
-          "selectedObjectId"
+          "objects"
         ],
         "additionalProperties": false
       },

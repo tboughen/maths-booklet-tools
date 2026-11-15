@@ -1,8 +1,11 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
-import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
+import { pieLayout, pieSvg } from "./pie";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, esc, formatNumber, markRevealed, n, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+export * from "./shared";
+export { pieLayout, round1 } from "./pie";
 
 /** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
 export const RENDERER_VERSION = "charts-1" as const;
@@ -10,18 +13,23 @@ export const RENDERER_VERSION = "charts-1" as const;
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
  * line charts share one categorical axis, one numerical axis, one grid and one
- * key, so they are kinds of one document. Time series graphs and frequency
- * polygons need a continuous axis and belong in their own tools. Switching kind never discards data.
- * Lengths are millimetres.
+ * key. Pie charts draw the same categories and first data set as sectors, so they
+ * are kinds of one document too. Time series graphs, frequency polygons and scatter
+ * graphs need a continuous axis and belong in their own tools. Switching kind never
+ * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
   dual: "Dual bar chart",
   composite: "Composite bar chart",
   vline: "Vertical line chart",
+  pie: "Pie chart",
 };
+/** Kinds drawn on a categorical axis with a numerical scale. */
+export const axisKind = (kind: Kind) => kind !== "pie";
+
 export const fills = [
   "grey",
   "hatch",
@@ -91,6 +99,8 @@ export const envelopeSchema = z
           .enum(LINE_WEIGHTS)
           .transform((v) => (v === "bold" ? v : undefined))
           .optional(),
+        /** Pie chart radius and labels; absent means PIE_DEFAULTS. Bar-family charts ignore it. */
+        pie: pieSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -155,6 +165,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("pie"))
+      throw withFields(Error(`Choose a pie chart radius from ${PIE_RADIUS.minimum} to ${PIE_RADIUS.maximum} mm and a supported label choice.`), parsed.error);
     if (path.includes("xTitle") || path.includes("yTitle"))
       throw withFields(Error("Use axis titles of at most 40 characters, without markup."), parsed.error);
     throw withFields(Error("This is not a supported chart file (version 1 is supported)."), parsed.error);
@@ -180,39 +192,22 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   const n = structuredClone(e);
   for (const s of n.document.series)
     for (const c of s.values) {
-      if (mark && c.show === "hidden" && c.value.trim()) REVEALED.add(c);
+      if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
       c.show = "show";
     }
   return n;
 }
-/** Cells an answer view draws only because they were saved hidden. */
-const REVEALED = new WeakSet<Cell>();
-/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
-export const CHART_ANSWER_COLOUR = "#b0125b";
 export const hasHidden = (e: Envelope) =>
   drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline";
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie";
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
 }
 
-const NUMBER = /^-?\d{1,9}(\.\d{1,4})?$/;
-export function readNumber(text: string): number | null {
-  const t = text.trim().replace("−", "-");
-  return NUMBER.test(t) ? Number(t) : null;
-}
-export function formatNumber(n: number) {
-  const text = String(Math.round(n * 1e6) / 1e6);
-  return text.startsWith("-") ? "−" + text.slice(1) : text;
-}
 
-export const FONT = (11 * 25.4) / 72;
-const MARGIN = 2;
-export const textWidth = (text: string, font = FONT) =>
-  [...text].reduce((n, c) => n + glyphAdvance(c), 0) * font;
 function wrap(text: string, width: number): string[] {
   const lines: string[] = [];
   for (const word of text.trim().split(/\s+/).filter(Boolean)) {
@@ -233,10 +228,38 @@ export type Target = {
   height: number;
 };
 export type Bar = Target & { fill: Fill; drawn: boolean; revealed?: boolean };
-export type Layout = ReturnType<typeof layout>;
+export type AxesLayout = ReturnType<typeof axesLayout>;
+/** A box the editor makes clickable: a value (bar, line or sector) or a category label. */
+export type HitBox = { category: number; x: number; y: number; width: number; height: number };
+/** What every kind shares: physical size, issues (which block export), notes and click targets. */
+export type Frame = {
+  width: number;
+  height: number;
+  issues: string[];
+  notes: string[];
+  targets: Target[];
+  labels: HitBox[];
+};
 
-/** All positions and teacher-facing issues; issues block export. */
-export function layout(e: Envelope) {
+/** The size, issues, notes and click targets of any kind of chart. */
+export function layout(e: Envelope): Frame {
+  if (e.document.kind === "pie") {
+    const g = pieLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  const g = axesLayout(e);
+  return {
+    width: g.width,
+    height: g.height,
+    issues: g.issues,
+    notes: g.notes,
+    targets: g.targets,
+    labels: g.centres.map((c, category) => ({ category, x: c - g.slot / 2, y: g.labelY - 4, width: g.slot, height: 5.5 })),
+  };
+}
+
+/** Bar-family positions and teacher-facing issues; issues block export. */
+export function axesLayout(e: Envelope) {
   const d = e.document,
     issues: string[] = [],
     notes: string[] = [];
@@ -337,7 +360,7 @@ export function layout(e: Envelope) {
         // A vertical line chart draws a single thick line; width 0 marks it.
         const top = y(clamp(Math.max(0, v ?? 0)));
         if (v !== null)
-          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: revealed(cell) });
         targets.push({ series: si, category: ci, x: centre - 2.5, y: Math.min(top, y0 + H - 4), width: 5, height: Math.max(y0 + H - top, 4) });
         return;
       }
@@ -349,7 +372,7 @@ export function layout(e: Envelope) {
       const by = y(clamp(top)),
         bh = y(clamp(base)) - by;
       if (v !== null)
-        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: revealed(cell) });
       targets.push({
         series: si,
         category: ci,
@@ -406,16 +429,12 @@ export function layout(e: Envelope) {
 }
 export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
 
-const n = (v: number) => String(Math.round(v * 1000) / 1000);
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const text = (t: string, x: number, y: number, anchor = "middle") =>
-  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(t)}</text>`;
 const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
 export function renderSvg(e: Envelope): string {
+  if (e.document.kind === "pie") return pieSvg(e);
   const d = e.document,
-    g = layout(e),
+    g = axesLayout(e),
     p = g.plot,
     out: string[] = [];
   const defs =
