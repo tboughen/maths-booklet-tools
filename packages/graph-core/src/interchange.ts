@@ -368,7 +368,6 @@ const documentSchema = z
     version: z.literal(1),
     axes: axesSchema,
     objects: z.array(objectSchema),
-    selectedObjectId: identifier.nullable(),
     styleProfile: z.enum(["legacy", "portable-v1"]).optional(),
     grid: gridSchema.optional(),
     originLabel: originLabelSchema.optional(),
@@ -399,11 +398,6 @@ const documentSchema = z
       if (o.kind === "straight" && o.gradientTriangle && Math.abs(o.gradientTriangle.run) < 1e-12)
         c.addIssue({ code: "custom", message: `${o.id}: a gradient triangle needs a run that is not zero.` });
     }
-    if (d.selectedObjectId !== null && !ids.has(d.selectedObjectId))
-      c.addIssue({
-        code: "custom",
-        message: "The selected object is missing.",
-      });
   });
 export const envelopeSchema = z
   .object({
@@ -434,20 +428,26 @@ export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   }
   return result.data;
 }
-export function createEnvelope(
-  document: DiagramDocumentV1,
-  clearSelection = true,
-): GraphEnvelope {
+/** The saved envelope for a drawing. An editor's selection (U35) is never saved. */
+export function createEnvelope(document: DiagramDocumentV1): GraphEnvelope {
   const { styleProfile, ...raw } = document;
+  delete (raw as { selectedObjectId?: unknown }).selectedObjectId;
   return {
     schemaVersion: 1,
     rendererVersion: RENDERER_VERSION,
     styleProfile: styleProfile ?? "legacy",
-    document: {
-      ...structuredClone(raw),
-      selectedObjectId: clearSelection ? null : raw.selectedObjectId,
-    },
+    document: structuredClone(raw),
   };
+}
+/** The note the connector gives when a saved graph moves to the portable print font. */
+export const PORTABLE_NOTE = "The graph now uses the portable print font; mathematical values are unchanged.";
+/**
+ * A graph in the portable print profile, as the connector draws every graph: a legacy envelope is
+ * converted (values, title and note unchanged) and `converted` says so.
+ */
+export function portableEnvelope(raw: GraphEnvelope): { envelope: GraphEnvelope; converted: boolean } {
+  if (raw.styleProfile === "portable-v1") return { envelope: raw, converted: false };
+  return { envelope: { ...createEnvelope({ ...documentFromEnvelope(raw), styleProfile: "portable-v1" }), ...aboutOf(raw) }, converted: true };
 }
 export function documentFromEnvelope(
   envelope: GraphEnvelope,
@@ -701,7 +701,6 @@ export function canonicalEnvelope(envelope: GraphEnvelope): string {
       version: 1,
       axes: document.axes,
       objects: document.objects,
-      selectedObjectId: null,
       styleProfile: envelope.styleProfile,
       // New settings join the hash only when present, so older graphs keep their hashes.
       ...(document.grid ? { grid: document.grid } : {}),
@@ -797,7 +796,6 @@ export async function reviseGraph(value: unknown): Promise<GraphEnvelope> {
     if (op.position === null) delete object.equationLabelPosition;
     else if (op.position) object.equationLabelPosition = op.position;
   }
-  document.selectedObjectId = null;
   return validateEnvelope({ ...createEnvelope(document), ...aboutOf(envelope) }, true);
 }
 export function graphWarnings(envelope: GraphEnvelope): string[] {

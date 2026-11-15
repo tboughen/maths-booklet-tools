@@ -366,6 +366,62 @@
    "png600": "3976x1932",
    "pixels": "1e5ceb2f84c8b7f0"
   },
+  "charts: chart-pictogram-cycles": {
+   "json": "a8a29ecd3444845f",
+   "svg": "9036d438ede8f400",
+   "mm": "155.6x74",
+   "png600": "3676x1748",
+   "pixels": "df9c281cba11c0e5"
+  },
+  "charts: chart-pictogram-cycles (worked)": {
+   "json": "2b50c42fbbc94135",
+   "svg": "31f97ce3abdcc782",
+   "mm": "143.5x74",
+   "png600": "3390x1748",
+   "pixels": "26eca457840ff864"
+  },
+  "charts: chart-pictogram-pictures": {
+   "json": "643e48944e9c0cdb",
+   "svg": "a98a8b00bfe225f0",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "633e6a1ee5958d3e"
+  },
+  "charts: chart-pictogram-pictures (worked)": {
+   "json": "4294c1f1ffd65b91",
+   "svg": "1e2f3add5421580a",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "cc641a11718967a5"
+  },
+  "charts: chart-pie-complete": {
+   "json": "afefc206d2a7a4bd",
+   "svg": "acb544cb6296ec23",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "f8b2bb20e666652b"
+  },
+  "charts: chart-pie-complete (worked)": {
+   "json": "a63689532f3a07e4",
+   "svg": "08ae222e6b6a6e43",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "dba2484f0442e977"
+  },
+  "charts: chart-pie-snacks": {
+   "json": "58c09d677cd2e2eb",
+   "svg": "6066ae14ee914ecb",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "0936a37f832fad08"
+  },
+  "charts: chart-pie-snacks (worked)": {
+   "json": "c83355ce6d7f4844",
+   "svg": "ce17677214654cf0",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "2aebbaf53c15cf53"
+  },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
    "svg": "fff25f4f64245caf",
@@ -745,42 +801,42 @@
    "pixels": "b5d6434cb3e86c22"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2": {
-   "json": "169b037986e5a308",
+   "json": "75f5e8de89a74165",
    "svg": "57e383be780c3676",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
    "pixels": "8f04b786f07e2f75"
   },
   "graph: graph-1MA1_JUN_2019_2H_Q2 (worked)": {
-   "json": "ffd5a19c341f630a",
+   "json": "50c48539422503db",
    "svg": "b18cf14f655d949d",
    "mm": "152.5x151.2",
    "png600": "3602x3572",
    "pixels": "dc83af7d19c429cd"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13": {
-   "json": "4a79f1e8fd0bde58",
+   "json": "05534685d2e9a26e",
    "svg": "b302fb81856bd9c3",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
    "pixels": "b1e3fd71cbaea7be"
   },
   "graph: graph-1MA1_NOV_2017_3F_Q13 (worked)": {
-   "json": "edd91e3824371975",
+   "json": "d106633b195329f2",
    "svg": "0b621984c8518128",
    "mm": "132.5x110.5",
    "png600": "3130x2610",
    "pixels": "ed8ac3c567240f31"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18": {
-   "json": "320cb0f7ac481726",
+   "json": "6b1d6f131727bc66",
    "svg": "48df159e1eaa672b",
    "mm": "132.5x161.2",
    "png600": "3130x3808",
    "pixels": "5a2e2773015f1b66"
   },
   "graph: graph-1MA1_NOV_2021_1F_Q18 (worked)": {
-   "json": "50094a4dd9cdab15",
+   "json": "f3131ffaec134c16",
    "svg": "d7c6def019a98198",
    "mm": "132.5x161.2",
    "png600": "3130x3808",

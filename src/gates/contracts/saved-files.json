@@ -908,7 +908,9 @@
               "bar",
               "dual",
               "composite",
-              "vline"
+              "vline",
+              "pie",
+              "pictogram"
             ]
           },
           "categories": {
@@ -1060,6 +1062,79 @@
               "normal",
               "bold"
             ]
+          },
+          "pie": {
+            "type": "object",
+            "properties": {
+              "radiusMm": {
+                "type": "integer",
+                "minimum": 25,
+                "maximum": 70
+              },
+              "labels": {
+                "type": "string",
+                "enum": [
+                  "name",
+                  "name-angle",
+                  "name-percent",
+                  "none"
+                ]
+              }
+            },
+            "required": [
+              "radiusMm",
+              "labels"
+            ],
+            "additionalProperties": false
+          },
+          "pictogram": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "enum": [
+                  "circle",
+                  "square"
+                ]
+              },
+              "symbolMm": {
+                "type": "integer",
+                "minimum": 6,
+                "maximum": 14
+              },
+              "key": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "maxLength": 12
+                  },
+                  "show": {
+                    "type": "string",
+                    "enum": [
+                      "show",
+                      "hidden"
+                    ]
+                  }
+                },
+                "required": [
+                  "value",
+                  "show"
+                ],
+                "additionalProperties": false
+              },
+              "unit": {
+                "type": "string",
+                "maxLength": 24
+              }
+            },
+            "required": [
+              "symbol",
+              "symbolMm",
+              "key",
+              "unit"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -3360,19 +3435,6 @@
               ]
             }
           },
-          "selectedObjectId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^[a-zA-Z0-9_-]+$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "styleProfile": {
             "type": "string",
             "enum": [
@@ -3406,8 +3468,7 @@
         "required": [
           "version",
           "axes",
-          "objects",
-          "selectedObjectId"
+          "objects"
         ],
         "additionalProperties": false
       },

@@ -32,7 +32,7 @@ Current connector builds have three diagram tools that work for every family:
 | Venn diagram, set shading | `venn` |
 | Expanding or factorising grid | `algebra-grid` |
 | Bar model (part-whole, comparison, equal parts) | `bar-model` |
-| Bar, dual, composite or vertical line chart | `charts` |
+| Bar, dual, composite, vertical line or pie chart, or pictogram | `charts` |
 | Probability tree | `probability-tree` |
 | Triangle with lengths, angles, Pythagoras or trigonometry | `triangle` |
 | Constructions, loci, scale drawing, map, bearings | `construction` |

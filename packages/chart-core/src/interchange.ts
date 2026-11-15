@@ -33,8 +33,18 @@ const presentation = z
     heightMm: z.number().int().min(40).max(140).optional(),
     barMm: z.number().int().min(5).max(20).optional(),
     lines: core.envelopeSchema.shape.document.shape.lines,
+    pie: core.pieSchema.partial().optional(),
+    pictogram: core.pictogramSchema.partial().optional(),
   })
   .strict();
+type Presentation = z.infer<typeof presentation>;
+/** Pie and pictogram settings merge with the current ones; everything else replaces. */
+function present(d: core.ChartDocument, p: Presentation) {
+  const { pie, pictogram, ...rest } = p;
+  Object.assign(d, rest);
+  if (pie) d.pie = { ...core.pieOf(d), ...pie };
+  if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
+}
 export const createSchema = z
   .object({
     envelope: core.envelopeSchema.optional(),
@@ -122,7 +132,7 @@ export function create(input: unknown): core.Envelope {
     }));
   }
   if (s.axis) d.axis = { ...d.axis, ...s.axis };
-  if (s.presentation) Object.assign(d, s.presentation);
+  if (s.presentation) present(d, s.presentation);
   e = core.validate(e);
   return e;
 }
@@ -179,7 +189,7 @@ export async function revise(input: unknown): Promise<core.Envelope> {
         d.axis = { ...d.axis, ...op.axis };
         break;
       case "set_presentation":
-        Object.assign(d, op.presentation);
+        present(d, op.presentation);
         break;
       case "set_all_visibility":
         e = core.setAllShown(e, op.hidden ? "hidden" : "show");
@@ -201,8 +211,10 @@ export function editorLink(e: core.Envelope, base: string) {
 }
 
 export function printFacts(e: core.Envelope, view: "pupil" | "answer" = "pupil") {
-  const shown = core.forView(e, view),
-    g = core.layout(shown);
+  const shown = core.forView(e, view);
+  if (!core.axisKind(shown.document.kind))
+    return guidance({ textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4), gridPitchMm: [] });
+  const g = core.axesLayout(shown);
   return guidance({
     textSizesPt: renderedTextSizesPt(core.renderSvg(shown), 72 / 25.4),
     gridPitchMm: shown.document.grid === "none" ? [] : [g.major, ...(shown.document.grid === "fine" ? [g.minor] : [])],

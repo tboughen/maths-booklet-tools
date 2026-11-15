@@ -1695,6 +1695,12 @@
             "height"
           ],
           "additionalProperties": false
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -1707,7 +1713,8 @@
         "files",
         "downloads",
         "lessons",
-        "physicalSizeMm"
+        "physicalSizeMm",
+        "next"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false
@@ -1773,6 +1780,10 @@
             "pupil",
             "answer"
           ]
+        },
+        "dryRun": {
+          "description": "true checks and describes the result (envelope, contentHash, summary, notes, size) without making files or links.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -1922,6 +1933,12 @@
             "height"
           ],
           "additionalProperties": false
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -1929,14 +1946,11 @@
         "envelope",
         "contentHash",
         "rendererVersion",
-        "printDpi",
-        "printVerified",
         "summary",
         "altText",
         "warnings",
-        "downloads",
-        "editorUrl",
-        "physicalSizeCm"
+        "physicalSizeCm",
+        "next"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": {}
@@ -4328,6 +4342,12 @@
         "sides": {
           "type": "number",
           "const": 2
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -4340,7 +4360,8 @@
         "files",
         "downloads",
         "physicalSizeMm",
-        "sides"
+        "sides",
+        "next"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false
@@ -5045,6 +5066,10 @@
             "pupil",
             "answer"
           ]
+        },
+        "dryRun": {
+          "description": "true checks and describes the result (envelope, contentHash, summary, notes, size) without making files or links.",
+          "type": "boolean"
         }
       },
       "required": [
@@ -5197,6 +5222,12 @@
             "height"
           ],
           "additionalProperties": false
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -5204,14 +5235,11 @@
         "envelope",
         "contentHash",
         "rendererVersion",
-        "printDpi",
-        "printVerified",
         "summary",
         "altText",
         "warnings",
-        "downloads",
-        "editorUrl",
-        "physicalSizeCm"
+        "physicalSizeCm",
+        "next"
       ],
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": {}

@@ -35,7 +35,6 @@ if(process.argv.includes("--write-examples")){
  const doc="docs/bar-model-examples/lesson-v3";await mkdir(doc,{recursive:true});
  for(const name of examples.lessonExampleNames){
   for(const worked of[false,true])await writeFile(`${doc}/${name}-${worked?"worked":"pupil"}.json`,v.canonical(examples.lessonExample(name,worked))+"\n");
-  await writeFile(`src/assets/example-previews/bar-lesson-v3-${name}.svg`,await readFile(join(output,`${name}-pupil-grey.svg`)));
  }
  // The All tools card is R1 worked, with a true minus sign (U+2212) in the second working line (U107).
  const card=examples.lessonExample("R1",true);

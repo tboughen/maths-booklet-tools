@@ -81,7 +81,7 @@ describe("worksheet diagrams from every family", () => {
   it("refuses a diagram with both or neither of spec and envelope, and names a bad spec field", () => {
     expect(() => validate(withDiagram({ tool: "venn" }))).toThrow(/envelope or its spec/);
     expect(() => validate(withDiagram({ tool: "venn", spec: {}, envelope: {} }))).toThrow(/envelope or its spec/);
-    expect(() => validate(withDiagram({ tool: "charts", spec: { categories: "A" } }))).toThrow(/bar or line chart: spec\.categories/);
+    expect(() => validate(withDiagram({ tool: "charts", spec: { categories: "A" } }))).toThrow(/statistical chart: spec\.categories/);
     expect(() => validate(withDiagram({ tool: "spirograph", spec: {} }))).toThrow();
   });
 });

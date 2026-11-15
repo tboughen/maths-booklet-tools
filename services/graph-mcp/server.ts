@@ -8,7 +8,6 @@ import { MathsDockMcpServer, serverVersion } from "./tool-metadata";
 import servicePackage from "./package.json" with { type: "json" };
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
-  createEnvelope,
   documentFromEnvelope,
   describeGraph,
   editorLink,
@@ -18,7 +17,7 @@ import {
   MAX_REQUEST_BYTES,
   RENDERER_VERSION,
 } from "../../packages/graph-core/src/interchange";
-import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
+import { PORTABLE_NOTE, portableEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
   getExportMetrics,
   graphPrintFacts,
@@ -37,6 +36,7 @@ import type { DocumentStore } from "./document-store";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools, type NewSource } from "./resource-tools";
 import { diagramTools, type ResultBuilder } from "./diagram-tools";
+import { prepareDiagram } from "./diagram-source";
 import { FAMILIES, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
@@ -48,7 +48,7 @@ import { tidySvgRoot } from "../../packages/envelope-core/src/svg-root";
 
 /** What every client reads first; family detail lives in diagram_capabilities. */
 export const SERVER_INSTRUCTIONS =
-  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, bar and line charts, probability trees, frequency trees, triangles, two-way tables and true-size constructions (loci, scale drawings, bearings) and plans and elevations of cube solids. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. Every bar model has horizontal working fractions and 12 mm above/3 mm below handwriting space. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
+  "Create and revise MathsDock teaching diagrams and A3 worksheets. Diagram families: coordinate graphs, ratio tables, tables of values with quadratic graphs, cuboids, number lines, Venn diagrams, expanding/factorising grids, bar models, statistical charts (bar, line, pie and pictograms), probability trees, frequency trees, triangles, two-way tables and true-size constructions (loci, scale drawings, bearings) and plans and elevations of cube solids. Call diagram_capabilities {kind} before the first create_diagram or revise_diagram of a family, and follow its createGuide, reviseGuide and schemas. Revise with the exact returned envelope and its contentHash as baseHash. Preserve pupil blanks, answer lines, hidden answers and zero as distinct states. Do not fill pupil answers, calculate, reveal answers or show worked solutions unless the user explicitly asks. Keep unchanged settings and objects on revisions. For a finalised two-sided A3 worksheet (the PRODUCE step) call create_worksheet with the whole document and report any layout issues it returns. Show the returned preview and real download or editor links; do not claim a file was saved until that succeeds. Explain warnings and unsupported requests. Do not silently redraw. Graphs: leave equationVisible false unless the user asks to show the equation. Bar models keep one shared unit width; labels never set widths. Every bar model has horizontal working fractions and 12 mm above/3 mm below handwriting space. Do not use computer use to draw diagrams. If SVG download is blocked, get_diagram_svg returns the same SVG in checked chunks; follow its byte-count and checksum instructions.";
 export interface ServiceOptions {
   buildId?: string;
   publicUrl: string;
@@ -180,16 +180,10 @@ export function graphService(options: ServiceOptions) {
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
     "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, "two-way-table": resource, triangle: resource, construction: resource, elevations: resource,
-  } satisfies Record<DiagramKind, ResultBuilder>);
+  } satisfies Record<DiagramKind, ResultBuilder>, (s, signal) => prepareDiagram(s, raster, signal));
   async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
-    const converted = raw.styleProfile !== "portable-v1";
-    const envelope = converted
-      ? createEnvelope({
-          ...documentFromEnvelope(raw),
-          styleProfile: "portable-v1",
-        })
-      : raw;
+    const { envelope, converted } = portableEnvelope(raw);
     const document = documentFromEnvelope(envelope),
       metrics = copyMetrics(FAMILIES.graph.svg(envelope, view), getExportMetrics(document));
     // Generate and independently verify the print artifact before advertising it.
@@ -212,9 +206,7 @@ export function graphService(options: ServiceOptions) {
       hash = await graphHash(envelope);
     const warnings = graphWarnings(envelope);
     if (converted)
-      warnings.unshift(
-        "The graph now uses the portable print font; mathematical values are unchanged.",
-      );
+      warnings.unshift(PORTABLE_NOTE);
     const links: Partial<
       Record<DownloadFormat, { url: string; expiresAt: string }>
     > = {};

@@ -81,7 +81,7 @@ test("adds a category beside the chart and work survives leaving the page", asyn
   await page.getByLabel("Category 5 label").fill("Train");
   await page.getByLabel("Category 5 label").press("Enter");
   await page.getByRole("link", { name: "Venn diagrams" }).first().click();
-  await page.getByRole("link", { name: "Bar and line charts" }).first().click();
+  await page.getByRole("link", { name: "Statistical charts" }).first().click();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
   await page.reload();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
@@ -133,4 +133,67 @@ test("downloads pupil and answers copies in one ZIP without changing the view (U
   // The editor still shows the pupil copy, and the saved chart is unchanged.
   await expect(bars(page)).toHaveCount(9);
   expect(JSON.stringify(await saved(page))).toBe(before);
+});
+
+test("pie charts: switching type keeps the data, sectors edit from the chart and hidden sectors stay answers", async ({ page }) => {
+  const pieExample = examples.find((x) => x.id === "pie-complete")!.make(false);
+  await boot(page, pieExample);
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await expect(art.locator("circle")).toHaveCount(1);
+  await expect(page.getByLabel("Angle for football")).toHaveText("144°");
+  await expect(art).not.toContainText("rugby");
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(art).toContainText("rugby");
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByRole("button", { name: "Edit sector: tennis" }).click();
+  const field = page.getByLabel("Value for tennis");
+  await expect(field).toBeFocused();
+  await field.fill("");
+  await field.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "tennis: enter a number" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByLabel("Sector labels").selectOption("name-angle");
+  await expect(art).toContainText("144°");
+  await page.getByLabel("Pie chart radius").selectOption("60");
+  await expect.poll(async () => (await saved(page)).document.pie).toEqual({ radiusMm: 60, labels: "name-angle" });
+  await expect(page.getByRole("heading", { name: "Axes and grid" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  await expect(bars(page)).toHaveCount(2);
+  await page.getByRole("button", { name: "Pie chart" }).click();
+  const doc = (await saved(page)).document;
+  expect(doc.series[0].values[2]).toEqual({ value: "12", show: "hidden" });
+});
+
+test("pictograms: rows edit from the chart, the key can be hidden and hidden rows stay answers", async ({ page }) => {
+  await boot(page, examples.find((x) => x.id === "pictogram-cycles")!.make(false));
+  const art = page.getByTestId("chart-resource").locator("svg").first();
+  await expect(art).toContainText("represents");
+  await expect(art.locator("line[stroke-dasharray]")).toHaveCount(1);
+  const symbols = () => art.locator("circle[stroke='black'], path[stroke='black'][fill='white']");
+  // Tuesday 1, Wednesday 2½ (3 shapes), Thursday 1½ (2 shapes), plus the key's symbol.
+  await expect(symbols()).toHaveCount(7);
+  await page.getByLabel("Teacher copy: show hidden answers").check();
+  await expect(art.locator("line[stroke-dasharray]")).toHaveCount(0);
+  await expect(art.locator("[stroke='#b0125b']")).toHaveCount(6);
+  await page.getByLabel("Teacher copy: show hidden answers").uncheck();
+  await page.getByRole("button", { name: "Edit row: Tuesday" }).click();
+  const field = page.getByLabel("Value for Tuesday");
+  await expect(field).toBeFocused();
+  await field.fill("8");
+  await field.press("Enter");
+  await expect(symbols()).toHaveCount(8);
+  await page.getByLabel("Symbol", { exact: true }).selectOption("square");
+  await expect(art.locator("rect[stroke='black'][fill='white']")).not.toHaveCount(0);
+  await page.getByLabel("Hide the key value (pupils complete the key)").uncheck();
+  await expect(art.locator("text").filter({ hasText: /^4$/ })).toHaveCount(1);
+  await expect.poll(async () => (await saved(page)).document.pictogram).toEqual({ symbol: "square", symbolMm: 10, key: { value: "4", show: "show" }, unit: "cycles" });
+  await page.getByLabel("Key value", { exact: true }).fill("0");
+  await page.getByLabel("Key value", { exact: true }).press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "The key value must be a positive number." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy image" })).toBeDisabled();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Bar chart", exact: true }).click();
+  await page.getByRole("button", { name: "Pictogram" }).click();
+  expect((await saved(page)).document.series[0].values[4]).toEqual({ value: "15", show: "hidden" });
 });
