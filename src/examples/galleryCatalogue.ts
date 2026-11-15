@@ -57,6 +57,8 @@ import { examples as elevationExamples } from "../../packages/elevation-core/src
 import { renderSvg as elevationSvg } from "../../packages/elevation-core/src";
 import { examples as twoWayTables } from "../../packages/two-way-table-core/src/examples";
 import { renderSvg as twoWayTableSvg } from "../../packages/two-way-table-core/src";
+import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
+import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
 import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
 import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
@@ -329,5 +331,13 @@ export const sampleSpaceGallery = sampleSpaces.map((example) => ({
   description: example.note,
   make: example.make,
   render: sampleSpaceSvg,
+  worked: true,
+}));
+export const factorTreeGallery = factorTrees.map((example) => ({
+  id: `ft-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: factorTreeSvg,
   worked: true,
 }));

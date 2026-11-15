@@ -20,6 +20,7 @@ export const galleries: Record<string, Entry[]> = {
   constructions: gallery.constructionGallery as Entry[],
   "plans and elevations": gallery.elevationsGallery as Entry[],
   "two-way tables": gallery.twoWayTableGallery as Entry[],
+  "factor trees": gallery.factorTreeGallery as Entry[],
   "sample space diagrams": gallery.sampleSpaceGallery as Entry[],
 };
 

@@ -338,3 +338,14 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - sample space diagrams: ss-coin-dice (worked): added
 - sample space diagrams: ss-circle-outcomes: added
 - sample space diagrams: ss-circle-outcomes (worked): added
+
+## 2026-11-15: New factor tree family (N-5): adds goldens for its gallery examples; no existing output changed
+
+- factor trees: ft-complete-360: added
+- factor trees: ft-complete-360 (worked): added
+- factor trees: ft-two-ways-84: added
+- factor trees: ft-two-ways-84 (worked): added
+- factor trees: ft-product-of-primes: added
+- factor trees: ft-product-of-primes (worked): added
+- factor trees: ft-spot-the-mistake: added
+- factor trees: ft-spot-the-mistake (worked): added

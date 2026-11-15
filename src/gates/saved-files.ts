@@ -31,6 +31,8 @@ import * as elevations from "../../packages/elevation-core/src/index";
 import { examples as elevationExamples } from "../../packages/elevation-core/src/examples";
 import * as twoWayTable from "../../packages/two-way-table-core/src/index";
 import { examples as twoWayTableExamples } from "../../packages/two-way-table-core/src/examples";
+import * as ft from "../../packages/factor-tree-core/src/index";
+import { examples as ftExamples } from "../../packages/factor-tree-core/src/examples";
 import * as ss from "../../packages/sample-space-core/src/index";
 import { examples as ssExamples } from "../../packages/sample-space-core/src/examples";
 
@@ -58,6 +60,7 @@ export const tools: Tool[] = [
   { name: "constructions", envelopes: () => constructionExamples.flatMap(x => [x.make(false), x.make(true)]), validate: construction.validate, parseFile: construction.parseFile, link: { encode: construction.linkHash, decode: construction.decodeLinkHash } },
   { name: "plans and elevations", envelopes: () => elevationExamples.flatMap(x => [x.make(false), x.make(true)]), validate: elevations.validate, parseFile: elevations.parseFile, link: { encode: elevations.linkHash, decode: elevations.decodeLinkHash } },
   { name: "sample space diagrams", envelopes: () => ssExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ss.validate, parseFile: ss.parseFile, link: { encode: ss.linkHash, decode: ss.decodeLinkHash } },
+  { name: "factor trees", envelopes: () => ftExamples.flatMap(x => [x.make(false), x.make(true)]), validate: ft.validate, parseFile: ft.parseFile, link: { encode: ft.linkHash, decode: ft.decodeLinkHash } },
   { name: "two-way tables", envelopes: () => twoWayTableExamples.flatMap(x => [x.make(false), x.make(true)]), validate: twoWayTable.validate, parseFile: twoWayTable.parseFile, link: { encode: twoWayTable.linkHash, decode: twoWayTable.decodeLinkHash } },
   { name: "triangles", envelopes: () => triangleExamples.map(x => x.build()), validate: triangle.validate, parseFile: triangle.parseFile },
   { name: "venn", envelopes: () => [...vennExamples, ...vennTeaching].flatMap(x => [x.make(false), x.make(true)]), validate: venn.validate, parseFile: venn.parseFile },

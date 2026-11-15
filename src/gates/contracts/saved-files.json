@@ -8797,6 +8797,245 @@
     ],
     "additionalProperties": false
   },
+  "factor-tree": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "factor-tree"
+      },
+      "schemaVersion": {
+        "type": "number",
+        "const": 1
+      },
+      "rendererVersion": {
+        "type": "string",
+        "const": "factor-tree-1"
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "trees": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                },
+                "nodes": {
+                  "minItems": 1,
+                  "maxItems": 31,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                      },
+                      "parent": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9-]{0,23}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "value": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "maxLength": 11
+                          },
+                          "show": {
+                            "type": "string",
+                            "enum": [
+                              "show",
+                              "hidden"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "show"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "circled": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "parent",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "product": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "show": {
+                          "type": "string",
+                          "enum": [
+                            "show",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "show"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "nodes",
+                "product"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "blankStyle": {
+            "type": "string",
+            "enum": [
+              "dots",
+              "box"
+            ]
+          },
+          "levelMm": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 24
+          },
+          "intentionalError": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "bold"
+            ]
+          }
+        },
+        "required": [
+          "trees",
+          "blankStyle",
+          "levelMm",
+          "intentionalError"
+        ],
+        "additionalProperties": false
+      },
+      "title": {
+        "description": "The teacher's name for this diagram. Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "note": {
+        "description": "A free note about this diagram (source, class, intent). Saved in the editable file; never printed.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 600
+      },
+      "worked": {
+        "description": "Worked-solution notes printed in dark pink on the answers copy only. Positions are mm from the artwork's top-left corner; a note may sit in a margin up to 70 mm beyond any edge.",
+        "minItems": 1,
+        "maxItems": 12,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "description": "Dark-pink guidance for the worked copy, such as \"Multiply both by 3\". Wraps to widthMm."
+            },
+            "x": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Left edge of the note, in mm from the artwork's left edge (negative: in the margin to its left)."
+            },
+            "y": {
+              "type": "number",
+              "minimum": -70,
+              "maximum": 500,
+              "description": "Top of the note, in mm from the artwork's top edge (negative: in the margin above it)."
+            },
+            "widthMm": {
+              "description": "Wrapping width in mm (default 60).",
+              "type": "number",
+              "minimum": 10,
+              "maximum": 200
+            },
+            "leader": {
+              "description": "Only when the note cannot sit right beside its maths: one straight line from the note to this point.",
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the left edge."
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 500,
+                  "description": "Leader end, mm from the top edge."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "schemaVersion",
+      "rendererVersion",
+      "document"
+    ],
+    "additionalProperties": false
+  },
   "sample-space": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

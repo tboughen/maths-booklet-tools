@@ -63,6 +63,7 @@ const suites: Suite[] = [
   { name: "frequency-tree", server: "dev", testMatch: "frequency-tree.spec.ts" },
   { name: "gm8", server: "dev", testMatch: "gm8.spec.ts" },
   { name: "two-way-table", server: "dev", testMatch: "two-way-table.spec.ts" },
+  { name: "factor-tree", server: "dev", testMatch: "factor-tree.spec.ts" },
   { name: "sample-space", server: "dev", testMatch: "sample-space.spec.ts" },
   { name: "worksheet", server: "dev", testMatch: "worksheet.spec.ts", timeout: 60000 },
   { name: "booklet", server: "dev", testMatch: "booklet.spec.ts", timeout: 90000 },

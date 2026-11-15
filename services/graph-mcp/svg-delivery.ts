@@ -14,6 +14,7 @@ import { hash as frequencyTreeHash } from "../../packages/frequency-tree-core/sr
 import { hash as constructionHash } from "../../packages/construction-core/src/index";
 import { hash as elevationsHash } from "../../packages/elevation-core/src/index";
 import { hash as twoWayTableHash } from "../../packages/two-way-table-core/src/index";
+import { hash as ftHash } from "../../packages/factor-tree-core/src/index";
 import { hash as ssHash } from "../../packages/sample-space-core/src/index";
 import { hash as triangleHash } from "../../packages/triangle-core/src/interchange";
 import { hash as algebraHash } from "../../packages/algebra-grid-core/src/interchange";
@@ -88,6 +89,7 @@ async function sourceHash(source: DiagramSource) {
     case "construction": return constructionHash(source.envelope);
     case "elevations": return elevationsHash(source.envelope);
     case "two-way-table": return twoWayTableHash(source.envelope);
+    case "factor-tree": return ftHash(source.envelope);
     case "sample-space": return ssHash(source.envelope);
   }
 }
@@ -119,7 +121,7 @@ export function registerSvgDelivery(server: McpServer, connection: AbortSignal, 
       const info = await prepareDiagram(source, raster, signal);
       const data: SvgDelivery = { kind: source.kind, filename: "diagram.svg", mimeType: "image/svg+xml", encoding: "utf-8",
         rendererVersion: source.envelope.rendererVersion, sourceContentHash: await sourceHash(source),
-        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "sample-space" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
+        physicalSizeCm: info.physicalSizeCm, ...(source.kind === "venn" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "sample-space" || source.kind === "factor-tree" ? { outputView: source.outputView ?? "pupil" } : source.kind === "charts" ? { outputView: source.outputView ?? "pupil" } : {}), ...chunk };
       // Mirror the exact JSON for clients that do not expose structuredContent.
       const { result, responseBytes } = svgDeliveryResult(data);
       limits.output(responseBytes);

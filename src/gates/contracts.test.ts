@@ -22,6 +22,7 @@ import { envelopeSchema as triangle } from "../../packages/triangle-core/src/mod
 import { envelopeSchema as valueGraph } from "../../packages/value-graph-core/src/schema";
 import { envelopeSchema as venn } from "../../packages/venn-core/src/index";
 import { envelopeSchema as twoWayTable } from "../../packages/two-way-table-core/src/index";
+import { envelopeSchema as ft } from "../../packages/factor-tree-core/src/index";
 import { envelopeSchema as ss } from "../../packages/sample-space-core/src/index";
 import { envelopeSchema as charts } from "../../packages/chart-core/src/index";
 import { envelopeSchema as probabilityTree } from "../../packages/probability-tree-core/src/index";
@@ -44,7 +45,7 @@ function compare(name: string, actual: unknown) {
 const savedFiles: Record<string, z.ZodType> = {
   "algebra-grid": algebraGrid, "bar-model-v1": barModelV1, "bar-model-v2": barModelV2, "bar-model-v3": barModelV3,
   "bar-model-versioned": barModelVersioned, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
-  triangle, "two-way-table": twoWayTable, "sample-space": ss, "value-graph": valueGraph, venn,
+  triangle, "two-way-table": twoWayTable, "factor-tree": ft, "sample-space": ss, "value-graph": valueGraph, venn,
 };
 
 describe("contracts", () => {

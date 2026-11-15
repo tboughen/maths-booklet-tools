@@ -674,6 +674,62 @@
    "png600": "2362x1443",
    "pixels": "c86796bc8c78bd8d"
   },
+  "factor trees: ft-complete-360": {
+   "json": "711e0eb9205d94f3",
+   "svg": "68119ffcc34c2153",
+   "mm": "95.6x63.6",
+   "png600": "2258x1502",
+   "pixels": "3d845e9931762aa7"
+  },
+  "factor trees: ft-complete-360 (worked)": {
+   "json": "796ce26ede258222",
+   "svg": "901030cd7233b0a9",
+   "mm": "95.6x63.6",
+   "png600": "2258x1502",
+   "pixels": "2cd3700327eaa88f"
+  },
+  "factor trees: ft-product-of-primes": {
+   "json": "ba5a16888eebe492",
+   "svg": "0a8998810c7ce05e",
+   "mm": "52.38x37.6",
+   "png600": "1237x888",
+   "pixels": "0eab796fcc0ceaf3"
+  },
+  "factor trees: ft-product-of-primes (worked)": {
+   "json": "ff3ea05fd7fc1665",
+   "svg": "6d0992432e88c349",
+   "mm": "95.6x76.6",
+   "png600": "2258x1809",
+   "pixels": "dc567d676291264e"
+  },
+  "factor trees: ft-spot-the-mistake": {
+   "json": "c2f7579031d6ec2a",
+   "svg": "458f467ecce2990b",
+   "mm": "64.4x50.6",
+   "png600": "1521x1195",
+   "pixels": "115ac45e76e810c5"
+  },
+  "factor trees: ft-spot-the-mistake (worked)": {
+   "json": "c2f7579031d6ec2a",
+   "svg": "458f467ecce2990b",
+   "mm": "64.4x50.6",
+   "png600": "1521x1195",
+   "pixels": "115ac45e76e810c5"
+  },
+  "factor trees: ft-two-ways-84": {
+   "json": "ecc99a536ad66d47",
+   "svg": "c601bef7d887ab91",
+   "mm": "138.8x63.6",
+   "png600": "3279x1502",
+   "pixels": "722a3009c5de1ff8"
+  },
+  "factor trees: ft-two-ways-84 (worked)": {
+   "json": "a174334e77ee06cc",
+   "svg": "b30a778a6b986ae8",
+   "mm": "138.8x63.6",
+   "png600": "3279x1502",
+   "pixels": "f6c104d28617cae1"
+  },
   "frequency trees: ftree-coffee": {
    "json": "7c9891da5255f961",
    "svg": "69a9849f64162414",

@@ -1,0 +1,150 @@
+{
+ "kind": "factor-tree",
+ "schemaVersion": 1,
+ "rendererVersion": "factor-tree-1",
+ "document": {
+  "trees": [
+   {
+    "id": "t1",
+    "nodes": [
+     {
+      "id": "n1",
+      "parent": null,
+      "value": {
+       "text": "84",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n2",
+      "parent": "n1",
+      "value": {
+       "text": "2",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n3",
+      "parent": "n1",
+      "value": {
+       "text": "42",
+       "show": "hidden"
+      }
+     },
+     {
+      "id": "n4",
+      "parent": "n3",
+      "value": {
+       "text": "2",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n5",
+      "parent": "n3",
+      "value": {
+       "text": "21",
+       "show": "hidden"
+      }
+     },
+     {
+      "id": "n6",
+      "parent": "n5",
+      "value": {
+       "text": "3",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n7",
+      "parent": "n5",
+      "value": {
+       "text": "7",
+       "show": "hidden"
+      },
+      "circled": true
+     }
+    ],
+    "product": {
+     "text": "2^2 × 3 × 7",
+     "show": "hidden"
+    }
+   },
+   {
+    "id": "t2",
+    "nodes": [
+     {
+      "id": "n1",
+      "parent": null,
+      "value": {
+       "text": "84",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n2",
+      "parent": "n1",
+      "value": {
+       "text": "4",
+       "show": "hidden"
+      }
+     },
+     {
+      "id": "n3",
+      "parent": "n2",
+      "value": {
+       "text": "2",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n4",
+      "parent": "n2",
+      "value": {
+       "text": "2",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n5",
+      "parent": "n1",
+      "value": {
+       "text": "21",
+       "show": "hidden"
+      }
+     },
+     {
+      "id": "n6",
+      "parent": "n5",
+      "value": {
+       "text": "3",
+       "show": "hidden"
+      },
+      "circled": true
+     },
+     {
+      "id": "n7",
+      "parent": "n5",
+      "value": {
+       "text": "7",
+       "show": "hidden"
+      },
+      "circled": true
+     }
+    ],
+    "product": {
+     "text": "2^2 × 3 × 7",
+     "show": "hidden"
+    }
+   }
+  ],
+  "blankStyle": "dots",
+  "levelMm": 13,
+  "intentionalError": false
+ }
+}

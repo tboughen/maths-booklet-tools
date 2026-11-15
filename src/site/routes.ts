@@ -22,6 +22,7 @@ export const toolIds = [
   "construction",
   "elevations",
   "two-way-table",
+  "factor-tree",
   "sample-space",
 ] as const;
 export type ToolId = (typeof toolIds)[number];

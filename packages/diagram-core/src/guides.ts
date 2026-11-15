@@ -17,6 +17,7 @@ import { chartConfig } from "./guides/chart";
 import { treeConfig } from "./guides/probability-tree";
 import { frequencyTreeConfig } from "./guides/frequency-tree";
 import { twoWayTableConfig } from "./guides/two-way-table";
+import { ftConfig } from "./guides/factor-tree";
 import { ssConfig } from "./guides/sample-space";
 import { triangleConfig } from "./guides/triangle";
 import { constructionConfig } from "./guides/construction";
@@ -207,6 +208,7 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "probability-tree": fromConfig(treeConfig),
   "frequency-tree": fromConfig(frequencyTreeConfig),
   "two-way-table": fromConfig(twoWayTableConfig),
+  "factor-tree": fromConfig(ftConfig),
   "sample-space": fromConfig(ssConfig),
   triangle: {
     ...fromConfig(triangleConfig),
@@ -267,6 +269,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "sample-space": ["sample space diagrams", "two dice", "listing outcomes", "probability from a sample space"],
+  "factor-tree": ["factor trees", "prime factor decomposition", "writing a number as a product of primes", "index form"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
   triangle: ["Pythagoras' theorem", "right-angled trigonometry (SOHCAHTOA)", "sine and cosine rules", "area of a triangle (½ab sin C)", "angles in triangles"],
   construction: ["ruler and compass constructions", "perpendicular and angle bisectors", "loci", "constructing triangles", "circles, polygons and angles", "scale drawings and maps", "bearings"],
