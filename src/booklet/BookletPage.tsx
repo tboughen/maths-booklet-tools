@@ -25,7 +25,8 @@ import {
   type Lesson,
 } from "../../packages/resource-core/src/index";
 import { a7Booklet } from "../../packages/resource-core/src/booklet-fixtures";
-import { Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
+import { BesideToggle, Field, LeafEditor, WorkingField, type Leaf } from "../worksheet/fields";
+import { withBeside } from "../worksheet/edit";
 import { pagesPdf } from "../worksheet/export";
 import { DOCX_TYPE, wordKit } from "../export/word";
 import { BookletAiPanel } from "./ai/BookletAiPanel";
@@ -354,6 +355,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                           {item.items.map((leaf, j) => (
                             <div key={j}>
                               <LeafEditor item={leaf} set={(next) => setItem([i, j], next)} label="" disabled={blocked} />
+                              <BesideToggle list={item.items} index={j} disabled={blocked} set={(on) => setItem([i, j], withBeside(leaf, on))} />
                             </div>
                           ))}
                           <WorkingField
@@ -372,6 +374,7 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
                       ) : (
                         <div key={i}>
                           <LeafEditor item={item} set={(next) => setItem([i], next)} label="" disabled={blocked} />
+                          <BesideToggle list={card.items} index={i} disabled={blocked} set={(on) => setItem([i], withBeside(item, on))} />
                         </div>
                       ),
                     )}
