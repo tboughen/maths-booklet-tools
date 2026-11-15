@@ -79,5 +79,6 @@ describe("beside: two items in one row", () => {
     const space = { type: "space", heightMm: 20 };
     expect(countSpaces([space, { ...space, beside: true }] as never)).toBe(1);
     expect(countSpaces([graph, { ...space, beside: true }, space] as never)).toBe(2);
+    expect(countSpaces([space, { ...space, beside: true }, { ...space, beside: true }] as never)).toBe(2);
   });
 });

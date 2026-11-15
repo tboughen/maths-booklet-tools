@@ -631,7 +631,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
     } else if ((list[i + 1] as Leaf | undefined)?.beside) {
       // Two items in one row, laid out as on the SVG page: a borderless table of two cells.
       const right = list[++i] as Leaf;
-      // Each item is written without spare height; the row is pinned to the page's height, plus
+      // Each item is written without spare height; the row is at least the page's height, plus
       // the spare height once if either item is a space.
       const lay = besideLayout(it, right, w, ctx);
       const h = besideHeight(it, right, ctx, w) + besideExtra(it, right, extra);

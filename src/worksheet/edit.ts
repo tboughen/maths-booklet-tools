@@ -106,8 +106,9 @@ export function addPaper(card: Card, columnWidth: number): void {
   const widthMm = Math.max(20, Math.floor((columnWidth - CARD_PAD * 2) / 10) * 10);
   let at = card.items.length;
   while (at > 0 && card.items[at - 1].type === "answerLine") at--;
-  // Never split a row of two items: an answer line beside the item before keeps its partner.
-  if (at > 0 && (card.items[at] as Leaf | undefined)?.beside) at--;
+  // Never split a row of two items: an answer line beside the item before keeps its partner,
+  // and the paper goes after the row.
+  if (at > 0 && (card.items[at] as Leaf | undefined)?.beside) at++;
   card.items.splice(at, 0, {
     type: "paper",
     style: "squared",

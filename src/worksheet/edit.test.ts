@@ -141,9 +141,9 @@ describe("beside rows in the editor (A7.04)", () => {
   it("never splits a row when adding grid paper or removing an item", () => {
     const card = { title: "Q", items: [text("Graph"), { ...line, beside: true as const }] } as never as Parameters<typeof addPaper>[0];
     addPaper(card, 120);
-    expect(card.items.map((i) => i.type)).toEqual(["paper", "text", "answerLine"]);
-    removeItem(card.items, 1);
-    expect(card.items[1]).not.toHaveProperty("beside");
+    expect(card.items.map((i) => i.type)).toEqual(["text", "answerLine", "paper"]);
+    removeItem(card.items, 0);
+    expect(card.items[0]).not.toHaveProperty("beside");
   });
   it("keeps the saved item minimal when beside is turned off", () => {
     expect(withBeside(withBeside(text("a"), true), false)).toEqual(text("a"));

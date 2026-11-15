@@ -488,13 +488,19 @@ export const besideExtra = (a: Leaf, b: Leaf, extra: number) => (a.type === "spa
  * How many shares of spare height a list of items takes: one per working or drawing space, but
  * one for a row of two items (beside) that holds any space, since the row grows once.
  */
-export const countSpaces = (list: Item[]): number =>
-  list.reduce((c, it, i) => {
-    if (it.type === "part") return c + countSpaces(it.items);
-    // The second space of a pair shares the first one's share.
-    const pairedSpace = it.beside && list[i - 1]?.type === "space";
-    return c + (it.type === "space" && !pairedSpace ? 1 : 0);
-  }, 0);
+export function countSpaces(list: Item[]): number {
+  let c = 0;
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (it.type === "part") c += countSpaces(it.items);
+    else if ((list[i + 1] as Leaf | undefined)?.beside) {
+      // A row of two items, paired as items() pairs them, takes one share if either is a space.
+      const b = list[++i] as Leaf;
+      if (it.type === "space" || b.type === "space") c++;
+    } else if (it.type === "space") c++;
+  }
+  return c;
+}
 
 /** Families whose printed width is set by spec.widthCm. */
 const WIDTH_CM = new Set(["number-line", "venn", "triangle"]);
