@@ -1,11 +1,9 @@
 import { ArrowRight } from "lucide-react";
 import { PageHeading } from "./PageHeading";
 import { siteSections } from "./registry";
-import { DiagramBuilder } from "./DiagramBuilder";
 
-/** Home lists the six main pages; the Diagram builder lists every diagram tool. */
-export function Overview({ home = false }: { home?: boolean }) {
-  if (!home) return <DiagramBuilder />;
+/** Home lists the six main pages. */
+export function Overview() {
   return (
     <main className="site-overview" id="main-content" aria-label="Home" tabIndex={-1}>
       <PageHeading
