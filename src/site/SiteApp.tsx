@@ -27,6 +27,7 @@ import {
   type PageId,
   type SectionId,
 } from "./registry";
+import "./house-style.css";
 import "./site.css";
 import "./resource-utilities.css";
 import "./usability.css";

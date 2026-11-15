@@ -1,6 +1,6 @@
 # Diagram builder previews
 
-Every new MathsDock diagram tool needs a representative output image on the **Diagram builder** page (`/tools`), and a small Lucide icon for the tool bar. The image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
+Every new MathsDock diagram tool needs a representative output image on the **Diagram builder** page (`/tools`), and a small icon for the tool bar, drawn in the MathsDock icon bank ([app house style](APP-HOUSE-STYLE.md)). The image lets a teacher see the classroom resource before opening the editor. Include the image in the tool's first release.
 
 ## Choose an honest example
 

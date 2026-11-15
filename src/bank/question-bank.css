@@ -1,4 +1,4 @@
-.qb-app { min-height: 100vh; color: #18283c; background: #f2f5f8; font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-size: 16px; }
+.qb-app { min-height: 100vh; color: #18283c; background: #f2f5f8; font-family: var(--md-font); font-size: 16px; }
 .qb-app button, .qb-app input, .qb-app select { font: inherit; }
 .qb-app a { color: inherit; text-decoration: none; }
 .qb-app button:focus-visible, .qb-app a:focus-visible, .qb-app input:focus-visible { outline: 3px solid #0f62fe; outline-offset: 3px; }
@@ -15,7 +15,7 @@
 .qb-scope { font-size: 14px; color: #536579; }
 .qb-topic { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
 .qb-topic > div { display: flex; align-items: center; gap: 16px; }
-.qb-topic h1 { font: 600 24px/1.3 "IBM Plex Sans", "Segoe UI", sans-serif; letter-spacing: -.02em; }
+.qb-topic h1 { font: 600 24px/1.3 var(--md-font); letter-spacing: -.02em; }
 .qb-code { padding: 8px 12px; border: 1px solid #aac3de; background: #e7f0fc; color: #1d518c; font-size: 15px; font-weight: 650; border-radius: 4px; }
 .qb-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; background: white; border: 1px solid #bac6d3; border-radius: 4px; color: #253e59; font-size: 14px !important; font-weight: 600 !important; }
 .qb-button:hover:not(:disabled) { border-color: #0f62fe; background: #edf4ff; }
