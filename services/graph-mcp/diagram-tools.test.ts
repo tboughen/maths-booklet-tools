@@ -116,6 +116,10 @@ describe("generic connector tools", () => {
     expect(data).toMatchObject({ printDpi: 600, printVerified: true });
     expect(data.summary).toMatch(new RegExp(`^Created an? ${FAMILIES[kind].label}, [\\d.]+ × [\\d.]+ cm at 100%\\.`));
     expect(data.altText.length).toBeGreaterThan(3);
+    // M83: the next steps name revise_diagram with this kind, and offer an answers copy only as a request.
+    const next = (r.structuredContent as { next: string[] }).next;
+    expect(next.join(" ")).toContain(`revise_diagram with kind "${kind}"`);
+    expect(next.some((n) => n.includes('outputView "answer"'))).toBe(FAMILIES[kind].answerView);
     const content = r.content as Array<{ type: string; text?: string; uri?: string; mimeType?: string }>;
     expect(content[0]).toEqual({ type: "text", text: data.summary });
     expect(content[1].type).toBe("image");
@@ -154,6 +158,8 @@ describe("generic connector tools", () => {
     const answer = (await client.callTool({ name: "create_diagram", arguments: { kind: "graph", envelope: pupil.envelope, outputView: "answer" } })).structuredContent as Out;
     expect(answer.envelope).toEqual(pupil.envelope);
     expect(answer.outputView).toBe("answer");
+    // M83: revising the answers copy repeats outputView.
+    expect((answer as unknown as { next: string[] }).next.join(" ")).toContain('outputView "answer" again');
     const svg = async (o: Out) => (await fetch(o.downloads.svg.url)).text();
     expect(await svg(pupil)).not.toContain("#b0125b");
     expect(await svg(answer)).toContain("#b0125b");
