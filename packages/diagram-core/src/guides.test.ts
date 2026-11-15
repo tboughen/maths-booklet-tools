@@ -4,27 +4,31 @@ import { DIAGRAM_KINDS, FAMILIES, drawDiagram } from "./registry";
 import { GUIDES, familyCapabilities, withFieldDocs } from "./guides";
 import { SPEC_FIELD_DOCS } from "./field-docs";
 
-/** Replaces every {"$ref":"#/$defs/name"} with the shape it names, so the schema reads inline. */
-function resolve(schema: unknown): unknown {
-  const root = schema as { $defs?: Record<string, unknown> } | null;
-  const defs = root?.$defs ?? {};
-  const walk = (v: unknown): unknown => {
-    if (Array.isArray(v)) return v.map(walk);
+/**
+ * Replaces every {"$ref":"#/$defs/name"} with the shape it names, so the schema reads inline. A shape
+ * that holds itself (a factor tree's nested numbers) is expanded once, and its inner reference reads
+ * {"$ref":"recursive"}, whatever the shape is called.
+ */
+function resolve(schema: unknown, defs = (schema as { $defs?: Record<string, unknown> } | null)?.$defs ?? {}): unknown {
+  const walk = (v: unknown, open: string[]): unknown => {
+    if (Array.isArray(v)) return v.map((x) => walk(x, open));
     if (!v || typeof v !== "object") return v;
     const ref = (v as { $ref?: unknown }).$ref;
     if (typeof ref === "string") {
       const name = ref.replace(/^#\/\$defs\//, "");
       expect(defs, `${ref} is defined`).toHaveProperty([name]);
       const siblings = Object.fromEntries(Object.entries(v).filter(([k]) => k !== "$ref"));
-      return { ...(walk(defs[name]) as object), ...(walk(siblings) as object) };
+      if (open.includes(name)) return { $ref: "recursive", ...(walk(siblings, open) as object) };
+      return { ...(walk(defs[name], [...open, name]) as object), ...(walk(siblings, open) as object) };
     }
-    return Object.fromEntries(Object.entries(v).filter(([k]) => k !== "$defs").map(([k, x]) => [k, walk(x)]));
+    return Object.fromEntries(Object.entries(v).filter(([k]) => k !== "$defs").map(([k, x]) => [k, walk(x, open)]));
   };
-  return walk(schema);
+  return walk(schema, []);
 }
 const inline = (schema: z.ZodType, field: string) => {
-  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as { properties?: Record<string, unknown> };
-  return s.properties?.[field] ?? null;
+  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as { properties?: Record<string, unknown>; $defs?: Record<string, unknown> };
+  const shape = s.properties?.[field] ?? null;
+  return shape && s.$defs ? resolve(shape, s.$defs) : shape;
 };
 
 describe("diagram_capabilities schemas (M1, M14)", () => {

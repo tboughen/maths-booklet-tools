@@ -22,6 +22,8 @@ const CUES: Record<DiagramKind, RegExp> = {
   "two-way-table": /two-way|two way/,
   angles: /angles? on a (straight )?line|round a point|around a point|angles? at a point|vertically opposite|parallel lines|transversal|alternate|corresponding|co-interior|allied|interior angle|exterior angle|polygon|angle fact/,
   area: /\barea\b|perimeter|compound shape|rectilinear|circumference|circle|semicircle|sector|arc length|trapezium|parallelogram|shaded region/,
+  "factor-tree": /factor tree|prime factor|product of (its )?primes|prime decomposition/,
+  "sample-space": /sample space|two dice|both dice|listing outcomes|list(ing)? (all )?(the |the possible )?outcomes|spinners?\b/,
   elevations: /plans? and elevation|elevation|plan view|isometric|\bplan\b/,
   construction: /construct|bisect|perpendicular|locus|loci|bearing|scale drawing|map scale|compass/,
   triangle: /triangle|pythagoras|trigonometr|\bsine\b|cosine|tangent|soh ?cah|angle|hypotenuse/,

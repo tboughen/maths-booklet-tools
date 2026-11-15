@@ -1,0 +1,115 @@
+{
+ "kind": "factor-tree",
+ "schemaVersion": 1,
+ "rendererVersion": "factor-tree-1",
+ "document": {
+  "trees": [
+   {
+    "id": "t1",
+    "nodes": [
+     {
+      "id": "n1",
+      "parent": null,
+      "value": {
+       "text": "600",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n2",
+      "parent": "n1",
+      "value": {
+       "text": "6",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n3",
+      "parent": "n1",
+      "value": {
+       "text": "100",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n4",
+      "parent": "n2",
+      "value": {
+       "text": "2",
+       "show": "show"
+      },
+      "circled": true
+     },
+     {
+      "id": "n5",
+      "parent": "n2",
+      "value": {
+       "text": "3",
+       "show": "show"
+      },
+      "circled": true
+     },
+     {
+      "id": "n6",
+      "parent": "n3",
+      "value": {
+       "text": "2",
+       "show": "show"
+      },
+      "circled": true
+     },
+     {
+      "id": "n7",
+      "parent": "n3",
+      "value": {
+       "text": "50",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n8",
+      "parent": "n7",
+      "value": {
+       "text": "2",
+       "show": "show"
+      },
+      "circled": true
+     },
+     {
+      "id": "n9",
+      "parent": "n7",
+      "value": {
+       "text": "25",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n10",
+      "parent": "n9",
+      "value": {
+       "text": "5",
+       "show": "show"
+      },
+      "circled": true
+     },
+     {
+      "id": "n11",
+      "parent": "n9",
+      "value": {
+       "text": "5",
+       "show": "show"
+      },
+      "circled": true
+     }
+    ],
+    "product": {
+     "text": "2^3 × 3 × 5^2",
+     "show": "show"
+    }
+   }
+  ],
+  "blankStyle": "dots",
+  "levelMm": 13,
+  "intentionalError": false
+ }
+}

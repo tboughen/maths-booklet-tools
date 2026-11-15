@@ -31,6 +31,10 @@ import * as angles from "../../packages/angle-core/src/index";
 import { printFacts as anglesPrintFacts } from "../../packages/angle-core/src/interchange";
 import * as area from "../../packages/area-core/src/index";
 import { printFacts as areaPrintFacts } from "../../packages/area-core/src/interchange";
+import * as ft from "../../packages/factor-tree-core/src/index";
+import { printFacts as ftPrintFacts } from "../../packages/factor-tree-core/src/interchange";
+import * as ss from "../../packages/sample-space-core/src/index";
+import { printFacts as ssPrintFacts } from "../../packages/sample-space-core/src/interchange";
 import * as triangle from "../../packages/triangle-core/src/index";
 import * as ti from "../../packages/triangle-core/src/interchange";
 import type { Crop, RasterQueue } from "./raster";
@@ -67,6 +71,8 @@ export type DiagramSource =
   | { kind: "two-way-table"; envelope: twt.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "angles"; envelope: angles.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "area"; envelope: area.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "factor-tree"; envelope: ft.Envelope; outputView?: "pupil" | "answer" }
+  | { kind: "sample-space"; envelope: ss.Envelope; outputView?: "pupil" | "answer" }
   | { kind: "triangle"; envelope: triangle.Envelope };
 export function diagramSource(raw: unknown): DiagramSource {
   try {
@@ -120,6 +126,14 @@ function familyPrintInfo(source: DiagramSource, crop?: Crop) {
   if (source.kind === "angles") {
     const view = source.outputView ?? "pupil", g = angles.layout(source.envelope);
     return { physicalSizeCm: { width: +(g.width / 10).toFixed(2), height: +(g.height / 10).toFixed(2) }, printGuidance: anglesPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "sample-space") {
+    const view = source.outputView ?? "pupil", g = ss.layout(ss.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: ssPrintFacts(source.envelope, view) };
+  }
+  if (source.kind === "factor-tree") {
+    const view = source.outputView ?? "pupil", g = ft.layout(ft.forView(source.envelope, view));
+    return { physicalSizeCm: { width: g.width / 10, height: g.height / 10 }, printGuidance: ftPrintFacts(source.envelope, view) };
   }
   if (source.kind === "two-way-table") {
     const view = source.outputView ?? "pupil", g = twt.layout(twt.forView(source.envelope, view));

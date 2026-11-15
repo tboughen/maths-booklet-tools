@@ -191,6 +191,12 @@ const visitors: Record<DiagramKind, (doc: Node, out: AnswerSlot[]) => void> = {
       else out.push(slot(path, "blank"));
     });
   },
+  "sample-space"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
+  "factor-tree"(doc, out) {
+    walk(doc, "document", (n, path) => shown(n, path, out));
+  },
   "two-way-table"(doc, out) {
     walk(doc, "document", (n, path) => shown(n, path, out));
   },

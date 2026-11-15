@@ -34,6 +34,10 @@ import * as ftree from "../../frequency-tree-core/src/index";
 import * as ftreeIo from "../../frequency-tree-core/src/interchange";
 import * as twt from "../../two-way-table-core/src/index";
 import * as twtIo from "../../two-way-table-core/src/interchange";
+import * as ft from "../../factor-tree-core/src/index";
+import * as ftIo from "../../factor-tree-core/src/interchange";
+import * as ss from "../../sample-space-core/src/index";
+import * as ssIo from "../../sample-space-core/src/interchange";
 import * as triangle from "../../triangle-core/src/index";
 import * as triangleIo from "../../triangle-core/src/interchange";
 import * as construction from "../../construction-core/src/index";
@@ -58,6 +62,8 @@ export const DIAGRAM_KINDS = [
   "probability-tree",
   "frequency-tree",
   "two-way-table",
+  "factor-tree",
+  "sample-space",
   "triangle",
   "construction",
   "elevations",
@@ -346,6 +352,44 @@ export const FAMILIES: Record<DiagramKind, DiagramFamily> = {
     revise: (input) => twtIo.revise(input),
     hash: twt.hash,
     svg: (e, view) => twt.renderSvg(twt.forView(e, view, true)),
+  }),
+  "sample-space": family<ss.Envelope>({
+    kind: "sample-space",
+    label: "sample space diagram",
+    summary: "Sample space diagram: the outcomes of two events (dice, spinners, coins) across and down, up to 10 each, with one cell per pair; cells blank, hidden for pupils or circled, filled with sums, products, differences or pairs only on request.",
+    route: "/tools/sample-space",
+    answerView: true,
+    envelopeSchema: ss.envelopeSchema,
+    createSchema: ssIo.createSchema,
+    revisionSchema: ssIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = ss.validate(raw);
+      check(ss.exportIssue(ss.forView(e, view)));
+      return e;
+    },
+    create: (input) => ssIo.create(input),
+    revise: (input) => ssIo.revise(input),
+    hash: ss.hash,
+    svg: (e, view) => ss.renderSvg(ss.forView(e, view, true)),
+  }),
+  "factor-tree": family<ft.Envelope>({
+    kind: "factor-tree",
+    label: "factor tree",
+    summary: "Factor trees: up to three trees of a number split into pairs of factors down to circled primes, with an index-form answer line; numbers blank or hidden for pupils; completed only on request.",
+    route: "/tools/factor-tree",
+    answerView: true,
+    envelopeSchema: ft.envelopeSchema,
+    createSchema: ftIo.createSchema,
+    revisionSchema: ftIo.revisionSchema,
+    validate: (raw, view) => {
+      const e = ft.validate(raw);
+      check(ft.exportIssue(ft.forView(e, view)));
+      return e;
+    },
+    create: (input) => ftIo.create(input),
+    revise: (input) => ftIo.revise(input),
+    hash: ft.hash,
+    svg: (e, view) => ft.renderSvg(ft.forView(e, view, true)),
   }),
   triangle: family<triangle.Envelope>({
     kind: "triangle",

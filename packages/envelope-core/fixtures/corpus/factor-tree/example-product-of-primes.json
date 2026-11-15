@@ -1,0 +1,45 @@
+{
+ "kind": "factor-tree",
+ "schemaVersion": 1,
+ "rendererVersion": "factor-tree-1",
+ "document": {
+  "trees": [
+   {
+    "id": "t1",
+    "nodes": [
+     {
+      "id": "n1",
+      "parent": null,
+      "value": {
+       "text": "600",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n2",
+      "parent": "n1",
+      "value": {
+       "text": "",
+       "show": "show"
+      }
+     },
+     {
+      "id": "n3",
+      "parent": "n1",
+      "value": {
+       "text": "",
+       "show": "show"
+      }
+     }
+    ],
+    "product": {
+     "text": "",
+     "show": "show"
+    }
+   }
+  ],
+  "blankStyle": "dots",
+  "levelMm": 13,
+  "intentionalError": false
+ }
+}

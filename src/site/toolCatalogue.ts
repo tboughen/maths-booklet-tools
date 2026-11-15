@@ -32,6 +32,7 @@ export const catalogue: Record<ToolId, Entry> = {
   triangle: { strand: "geometry", topics: ["Pythagoras", "SOHCAHTOA", "Sine rule", "Cosine rule", "Area ½ab sin C"], keywords: "pythagoras trigonometry sine cosine area angles hypotenuse" },
   angles: { strand: "geometry", topics: ["Angles on a straight line", "Angles round a point", "Vertically opposite angles", "Parallel lines", "Interior and exterior angles"], keywords: "angles straight line point vertically opposite parallel transversal alternate corresponding co-interior polygon interior exterior geometry G3", added: "2026-11-15" },
   area: { strand: "geometry", topics: ["Area of rectangles", "Triangles and trapeziums", "Compound shapes", "Circles", "Sectors and arcs", "Perimeter"], keywords: "area perimeter compound shape rectilinear rectangle triangle parallelogram trapezium circle circumference semicircle quarter sector arc radius diameter pi shaded frame counting squares G16 G17 G18", added: "2026-11-15" },
+  "factor-tree": { strand: "number", topics: ["Prime factors", "Product of primes", "Index form", "HCF and LCM"], keywords: "factor tree prime factors product of primes index form HCF LCM decomposition number", added: "2026-11-15" },
   cuboids: { strand: "geometry", topics: ["Volume", "Surface area", "Counting cubes", "Layers"], keywords: "volume surface area cubes layers" },
   construction: { strand: "geometry", topics: ["Perpendicular bisector", "Angle bisector", "Loci", "Scale drawings", "Bearings"], keywords: "constructions loci locus perpendicular bisector angle bisector compasses ruler scale drawing map bearings north GM8", added: "2026-11-14" },
   elevations: { strand: "geometry", topics: ["Plans", "Front elevation", "Side elevation", "Isometric drawing", "3D solids"], keywords: "plans elevations plan front side isometric cubes 3D solids views GM8", added: "2026-11-14" },
@@ -40,6 +41,7 @@ export const catalogue: Record<ToolId, Entry> = {
   "probability-tree": { strand: "statistics", topics: ["Tree diagrams", "Independent events", "With and without replacement", "Conditional probability"], keywords: "probability tree diagram branches replacement independent dependent conditional given that" },
   "frequency-tree": { strand: "statistics", topics: ["Frequency trees", "Counts to probability"], keywords: "frequency tree probability counts groups statistics" },
   "two-way-table": { strand: "statistics", topics: ["Two-way tables", "Totals", "Probability from tables"], keywords: "two-way two way table totals frequency probability statistics fractions" },
+  "sample-space": { strand: "statistics", topics: ["Sample space diagrams", "Listing outcomes", "Two dice", "Probability of combined events"], keywords: "sample space diagram two dice spinner coin outcomes sum product difference probability listing", added: "2026-11-15" },
 };
 
 export type ToolText = { id: ToolId; name: string; description: string };

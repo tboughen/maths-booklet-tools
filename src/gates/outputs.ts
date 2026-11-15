@@ -22,6 +22,8 @@ export const galleries: Record<string, Entry[]> = {
   "two-way tables": gallery.twoWayTableGallery as Entry[],
   "angle diagrams": gallery.anglesGallery as Entry[],
   "area and perimeter": gallery.areaGallery as Entry[],
+  "factor trees": gallery.factorTreeGallery as Entry[],
+  "sample space diagrams": gallery.sampleSpaceGallery as Entry[],
 };
 
 export function renders(entries: Entry[]) {

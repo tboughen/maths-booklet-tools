@@ -61,6 +61,10 @@ import { examples as angleExamples } from "../../packages/angle-core/src/example
 import { renderSvg as angleSvg } from "../../packages/angle-core/src";
 import { examples as areaExamples } from "../../packages/area-core/src/examples";
 import { renderSvg as areaSvg } from "../../packages/area-core/src";
+import { examples as factorTrees } from "../../packages/factor-tree-core/src/examples";
+import { renderSvg as factorTreeSvg } from "../../packages/factor-tree-core/src";
+import { examples as sampleSpaces } from "../../packages/sample-space-core/src/examples";
+import { renderSvg as sampleSpaceSvg } from "../../packages/sample-space-core/src";
 
 export interface GalleryExample<T> {
   id: string;
@@ -340,4 +344,20 @@ export const areaGallery = areaExamples.map((example) => ({
   make: example.make,
   render: (e: Parameters<typeof areaSvg>[0]) => areaSvg(e),
   worked: example.worked,
+}));
+export const sampleSpaceGallery = sampleSpaces.map((example) => ({
+  id: `ss-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: sampleSpaceSvg,
+  worked: true,
+}));
+export const factorTreeGallery = factorTrees.map((example) => ({
+  id: `ft-${example.id}`,
+  title: example.title,
+  description: example.note,
+  make: example.make,
+  render: factorTreeSvg,
+  worked: true,
 }));

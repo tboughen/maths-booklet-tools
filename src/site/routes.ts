@@ -24,6 +24,8 @@ export const toolIds = [
   "two-way-table",
   "angles",
   "area",
+  "factor-tree",
+  "sample-space",
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 /** Pages a link can point to. */

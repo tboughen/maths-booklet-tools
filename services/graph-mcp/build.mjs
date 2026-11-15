@@ -49,6 +49,8 @@ for (const directory of [
   "packages/two-way-table-core",
   "packages/angle-core",
   "packages/area-core",
+  "packages/factor-tree-core",
+  "packages/sample-space-core",
   "packages/triangle-core",
   "packages/resource-core",
   "packages/diagram-core",

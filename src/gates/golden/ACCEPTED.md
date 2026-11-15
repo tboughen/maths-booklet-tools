@@ -622,3 +622,34 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2017_3F_Q13 (worked): svg 60a5ac6edc9d5f36 -> 98467927ce31fcd8
 - graph: graph-1MA1_NOV_2021_1F_Q18: svg bad8a5f1b14c9c64 -> 24831fc4b21e9286
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): svg 2dc3563bf945df71 -> 1e4d146e65ced02b
+
+## 2026-11-15: New sample space diagram family (P-3): adds goldens for its gallery examples; no existing output changed
+
+- sample space diagrams: ss-dice-sum: added
+- sample space diagrams: ss-dice-sum (worked): added
+- sample space diagrams: ss-spinner-product: added
+- sample space diagrams: ss-spinner-product (worked): added
+- sample space diagrams: ss-coin-dice: added
+- sample space diagrams: ss-coin-dice (worked): added
+- sample space diagrams: ss-circle-outcomes: added
+- sample space diagrams: ss-circle-outcomes (worked): added
+
+## 2026-11-15: New factor tree family (N-5): adds goldens for its gallery examples; no existing output changed
+
+- factor trees: ft-complete-360: added
+- factor trees: ft-complete-360 (worked): added
+- factor trees: ft-two-ways-84: added
+- factor trees: ft-two-ways-84 (worked): added
+- factor trees: ft-product-of-primes: added
+- factor trees: ft-product-of-primes (worked): added
+- factor trees: ft-spot-the-mistake: added
+- factor trees: ft-spot-the-mistake (worked): added
+
+## 2026-11-15: Factor trees and sample space: answers-only circles
+
+- sample space diagrams: ss-circle-outcomes: json 6300c8fa508f4393 -> 3039054869113f6b
+
+## 2026-11-15: Factor trees: pupil copy sized from printed numbers only
+
+- factor trees: ft-two-ways-84: svg c601bef7d887ab91 -> df291ccdee269b3c
+- factor trees: ft-two-ways-84: pixels 722a3009c5de1ff8 -> 952e895b2024773c
