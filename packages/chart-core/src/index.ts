@@ -3,7 +3,9 @@ import { z } from "zod";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
 import { pieLayout, pieSvg } from "./pie";
-import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, esc, formatNumber, markRevealed, n, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+import { pictogramLayout, pictogramSvg } from "./pictogram";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, readNumber, revealed, text, textWidth } from "./shared";
+export { pictogramLayout } from "./pictogram";
 export * from "./shared";
 export { pieLayout, round1 } from "./pie";
 
@@ -15,7 +17,7 @@ export { pieLayout, round1 } from "./pie";
  * graphs need a continuous axis and belong in their own tools. Switching kind never
  * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline", "pie"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
@@ -23,9 +25,10 @@ export const kindNames: Record<Kind, string> = {
   composite: "Composite bar chart",
   vline: "Vertical line chart",
   pie: "Pie chart",
+  pictogram: "Pictogram",
 };
 /** Kinds drawn on a categorical axis with a numerical scale. */
-export const axisKind = (kind: Kind) => kind !== "pie";
+export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram";
 
 export const fills = [
   "grey",
@@ -98,6 +101,8 @@ export const envelopeSchema = z
           .optional(),
         /** Pie chart radius and labels; absent means PIE_DEFAULTS. Bar-family charts ignore it. */
         pie: pieSchema.optional(),
+        /** Pictogram symbol, size and key; absent means PICTOGRAM_DEFAULTS. Other kinds ignore it. */
+        pictogram: pictogramSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -162,6 +167,8 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("pictogram"))
+      throw withFields(Error(`Choose a circle or square symbol from ${SYMBOL_MM.minimum} to ${SYMBOL_MM.maximum} mm, a key value of at most 12 characters and a unit of at most 24 characters, without markup.`), parsed.error);
     if (path.includes("pie"))
       throw withFields(Error(`Choose a pie chart radius from ${PIE_RADIUS.minimum} to ${PIE_RADIUS.maximum} mm and a supported label choice.`), parsed.error);
     if (path.includes("xTitle") || path.includes("yTitle"))
@@ -187,6 +194,13 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A hidden pictogram key stays saved as hidden (so it keeps its answer-line width); the answer
+  // view prints its value, in pink when marked.
+  const key = n.document.pictogram?.key;
+  if (key && pictogramKeyHidden(n.document)) {
+    markAnswerKey(key);
+    if (mark && key.value.trim()) markRevealed(key);
+  }
   for (const s of n.document.series)
     for (const c of s.values) {
       if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
@@ -195,10 +209,10 @@ export function forView(e: Envelope, view: "pupil" | "answer", mark = false): En
   return n;
 }
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document);
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie";
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram";
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
@@ -243,6 +257,10 @@ export function layout(e: Envelope): Frame {
   if (e.document.kind === "pie") {
     const g = pieLayout(e);
     return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (e.document.kind === "pictogram") {
+    const g = pictogramLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: g.labels };
   }
   const g = axesLayout(e);
   return {
@@ -291,9 +309,7 @@ export function axesLayout(e: Envelope) {
   if (lo !== 0)
     issues.push("These charts start their axis at 0. Change the axis start to 0.");
   if (singleSet(d.kind) && d.series.length > 1)
-    notes.push(
-      `A ${kindNames[d.kind].toLowerCase()} draws only the first data set. The other data sets are kept for dual and composite bar charts.`,
-    );
+    notes.push(singleSetNote(kindNames[d.kind]));
   const H = d.heightMm,
     major = H / count,
     minor = major / d.axis.minor;
@@ -430,6 +446,7 @@ const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
 export function renderSvg(e: Envelope): string {
   if (e.document.kind === "pie") return pieSvg(e);
+  if (e.document.kind === "pictogram") return pictogramSvg(e);
   const d = e.document,
     g = axesLayout(e),
     p = g.plot,
@@ -541,5 +558,7 @@ export function removeSeries(e: Envelope, index = e.document.series.length - 1):
 export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   const n2 = structuredClone(e);
   for (const s of n2.document.series) for (const c of s.values) c.show = show;
+  // Show all also shows a hidden pictogram key; hiding every value keeps the key as it is.
+  if (show === "show" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
   return n2;
 }

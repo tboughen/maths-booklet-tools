@@ -53,6 +53,10 @@ import {
   minorChoices,
   parseFile,
   PIE_RADIUS,
+  SYMBOL_MM,
+  pictogramOf,
+  symbolChoices,
+  symbolNames,
   pieLabelChoices,
   pieLabelNames,
   pieOf,
@@ -207,7 +211,8 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
   const series = drawnSeries(e);
   const line = d.kind === "vline",
     pie = d.kind === "pie",
-    mark = pie ? "sector" : line ? "line" : "bar";
+    pictogram = d.kind === "pictogram",
+    mark = pie ? "sector" : pictogram ? "row" : line ? "line" : "bar";
   /** Teacher-facing sector angles for the Data table (exact; the chart draws them). */
   const pieAngles = pie ? pieLayout(e) : null,
     angles = pieAngles?.valuesValid ? pieAngles.sectors.map((x) => x.end - x.start) : [];
@@ -391,7 +396,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
       >
         <PageHeading
           title="Statistical charts"
-          description="Make bar, dual, composite and vertical line charts on exam-style axes, and pie charts at true size."
+          description="Make bar, dual, composite and vertical line charts on exam-style axes, pie charts at true size and pictograms."
         >
           <ResourceSaveStatus text={saveState} />
         </PageHeading>
@@ -496,7 +501,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               />
             </div>
             <EditorHint tool="charts">
-              Click a {pie ? "sector" : "bar, line or category label"} to edit its value. Enter
+              Click a {pie ? "sector" : pictogram ? "row or category" : "bar, line or category label"} to edit its value. Enter
               applies; Escape restores.
             </EditorHint>
             <div className="ch-scroll" ref={fitted.ref}>
@@ -653,7 +658,7 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                               patch((n) => void (n.series[si].name = v))
                             }
                           />
-                          {!line && !pie && (
+                          {!line && !pie && !pictogram && (
                             <select
                               aria-label={`Fill for ${s.name || `data set ${si + 1}`}`}
                               value={s.fill}
@@ -761,7 +766,9 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
               <p className="ch-note">
                 {pie
                   ? "Every category needs a value; 0 is a value. Angles are 360 × value ÷ total, rounded here to 1 decimal place. Hide keeps a sector as a saved answer for pupils to draw; its angle shows here only on the teacher copy."
-                  : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
+                  : pictogram
+                    ? "Leave a value blank for an empty row; 0 is a value. Each row draws value ÷ key symbols. Hide keeps a row as a saved answer for pupils to draw."
+                    : `Leave a value blank for no ${mark}; 0 is a value. Hide keeps the value as a saved answer for pupils to draw.`}
               </p>
               <div className="ch-row">
                 {!singleSet(d.kind) && (
@@ -841,6 +848,90 @@ export default function ChartsPage({ active = true }: { active?: boolean }) {
                   The circle and the starting radius print at true size for protractor work. Sectors
                   run clockwise from the radius in table order. Labels that do not fit inside a sector
                   sit just outside the circle.
+                </p>
+              </section>
+            )}
+            {pictogram && (
+              <section className="panel-card ch-panel">
+                <h2>Pictogram</h2>
+                <div className="ch-fields">
+                  <label>
+                    Symbol
+                    <select
+                      aria-label="Symbol"
+                      value={pictogramOf(d).symbol}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbol: ev.target.value as (typeof symbolChoices)[number] }))}
+                    >
+                      {symbolChoices.map((x) => (
+                        <option key={x} value={x}>
+                          {symbolNames[x]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Symbol size (mm)
+                    <select
+                      aria-label="Symbol size"
+                      value={pictogramOf(d).symbolMm}
+                      disabled={blocked}
+                      onChange={(ev) => patch((n) => void (n.pictogram = { ...pictogramOf(n), symbolMm: Number(ev.target.value) }))}
+                    >
+                      {Array.from({ length: SYMBOL_MM.maximum - SYMBOL_MM.minimum + 1 }, (_, i) => SYMBOL_MM.minimum + i).map((x) => (
+                        <option key={x} value={x}>
+                          {x}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    One symbol represents
+                    <DraftField
+                      label="Key value"
+                      value={pictogramOf(d).key.value}
+                      maxLength={12}
+                      inputMode="decimal"
+                      invalid={g.issues.some((x) => x.startsWith("Enter what one symbol") || x.startsWith("The key value must"))}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, value: v } }))}
+                    />
+                  </label>
+                  <label>
+                    Unit (after the key value)
+                    <DraftField
+                      label="Key unit"
+                      value={pictogramOf(d).unit}
+                      maxLength={24}
+                      disabled={blocked}
+                      onCommit={(v) => patch((n) => void (n.pictogram = { ...pictogramOf(n), unit: v }))}
+                    />
+                  </label>
+                  <label className="ch-check">
+                    <input
+                      type="checkbox"
+                      disabled={blocked}
+                      checked={pictogramOf(d).key.show === "hidden"}
+                      onChange={(ev) =>
+                        patch((n) => void (n.pictogram = { ...pictogramOf(n), key: { ...pictogramOf(n).key, show: ev.target.checked ? "hidden" : "show" } }))
+                      }
+                    />
+                    Hide the key value (pupils complete the key)
+                  </label>
+                  <label>
+                    Category column heading
+                    <DraftField label="Category column heading" value={d.xTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.xTitle = v))} />
+                  </label>
+                  <label>
+                    Symbol column heading
+                    <DraftField label="Symbol column heading" value={d.yTitle} maxLength={40} disabled={blocked} onCommit={(v) => patch((n) => void (n.yTitle = v))} />
+                  </label>
+                  {linesControl}
+                </div>
+                <p className="ch-note">
+                  Part symbols are exact: part of a square is drawn open on its right, and part of a
+                  circle is a sector (a half is the left half). Leave both headings empty for a table
+                  without a heading row.
                 </p>
               </section>
             )}

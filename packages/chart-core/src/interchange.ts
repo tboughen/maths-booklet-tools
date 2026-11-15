@@ -34,14 +34,16 @@ const presentation = z
     barMm: z.number().int().min(5).max(20).optional(),
     lines: core.envelopeSchema.shape.document.shape.lines,
     pie: core.pieSchema.partial().optional(),
+    pictogram: core.pictogramSchema.partial().optional(),
   })
   .strict();
 type Presentation = z.infer<typeof presentation>;
-/** Pie settings merge with the current ones; everything else replaces. */
+/** Pie and pictogram settings merge with the current ones; everything else replaces. */
 function present(d: core.ChartDocument, p: Presentation) {
-  const { pie, ...rest } = p;
+  const { pie, pictogram, ...rest } = p;
   Object.assign(d, rest);
   if (pie) d.pie = { ...core.pieOf(d), ...pie };
+  if (pictogram) d.pictogram = { ...core.pictogramOf(d), ...pictogram };
 }
 export const createSchema = z
   .object({
