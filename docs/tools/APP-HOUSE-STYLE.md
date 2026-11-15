@@ -64,6 +64,9 @@ A diagram tool's page heading is "Diagram builder ›" and then the tool's name.
 that opens the tool switcher (`src/site/ToolSwitcher.tsx`): a search by tool or teaching topic,
 the teacher's favourite tools, and every tool grouped by strand. There is no row of tool links.
 
+- The strands are the four of the school's scheme of learning: Number and proportion, Algebra,
+  Geometry and measure, Statistics and probability (`src/site/toolCatalogue.ts`). Graph tools are
+  Algebra. The Diagram builder page uses the same four.
 - `PageHeading` adds the switcher by itself on every registered tool's page. A tool does nothing.
 - Up and down arrows move through the tools, Enter opens one, and Escape closes the switcher and
   returns focus to the name. While searching, Enter opens the first tool found.

@@ -7,8 +7,8 @@ import { catalogue, searchTool, strands } from "./toolCatalogue";
 
 type Tool = (typeof bookletTools)[number];
 
-/** Strands share three columns; the two short ones stack in the first. */
-const COLUMNS = [["number", "graphs"], ["geometry"], ["statistics"]] as const;
+/** The four strands share three columns; the two short ones stack in the first. */
+const COLUMNS = [["number", "algebra"], ["geometry"], ["statistics"]] as const;
 
 /**
  * A diagram tool's heading. The name is a button that opens a switcher: search, favourite tools

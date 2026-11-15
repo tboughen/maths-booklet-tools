@@ -29,7 +29,7 @@ test("arrow keys move through the tools, and Escape closes the switcher and retu
   await page.keyboard.press("ArrowDown");
   await expect(page.locator(":focus")).toHaveText("Bar modelling");
   await page.keyboard.press("ArrowDown");
-  await expect(page.locator(":focus")).toHaveText("Expanding and factorising");
+  await expect(page.locator(":focus")).toHaveText("Ratio tables");
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("ArrowUp");
   await expect(panel(page).getByRole("searchbox")).toBeFocused();
@@ -86,7 +86,7 @@ test("keys pressed in the open switcher never reach the diagram behind it", asyn
   await button(page).click();
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
-  await expect(page.locator(":focus")).toHaveText("Expanding and factorising");
+  await expect(page.locator(":focus")).toHaveText("Ratio tables");
   await page.keyboard.press("Delete");
   await page.keyboard.press("Backspace");
   // A click on a strand heading keeps the keys inside the switcher.

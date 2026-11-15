@@ -4,10 +4,11 @@
  */
 import type { ToolId } from "./routes";
 
+/** The four strands of the school's scheme of learning. Graphs are algebra. */
 export const strands = [
-  { id: "number", name: "Number and algebra" },
-  { id: "graphs", name: "Graphs" },
-  { id: "geometry", name: "Geometry and measures" },
+  { id: "number", name: "Number and proportion" },
+  { id: "algebra", name: "Algebra" },
+  { id: "geometry", name: "Geometry and measure" },
   { id: "statistics", name: "Statistics and probability" },
 ] as const;
 export type StrandId = (typeof strands)[number]["id"];
@@ -24,11 +25,11 @@ type Entry = {
 
 export const catalogue: Record<ToolId, Entry> = {
   "bar-model": { strand: "number", topics: ["Sharing in a ratio", "Fractions of amounts", "Percentages", "Part-whole", "Comparison", "Forming equations"], keywords: "ratio sharing fractions amount comparison part whole" },
-  "expanding-factorising": { strand: "number", topics: ["Expanding single brackets", "Expanding double brackets", "Factorising", "Factorising quadratics", "Grid method"], keywords: "algebra brackets multiplication factorise factorize" },
+  "expanding-factorising": { strand: "algebra", topics: ["Expanding single brackets", "Expanding double brackets", "Factorising", "Factorising quadratics", "Grid method"], keywords: "algebra brackets multiplication factorise factorize" },
   "ratio-table": { strand: "number", topics: ["Ratio", "Direct proportion", "Unitary method", "Recipes", "Scaling", "Best buys"], keywords: "proportion scaling unitary fractions" },
   "number-line": { strand: "number", topics: ["Inequalities", "Integer solutions", "Negative numbers", "Ordering numbers", "Error intervals"], keywords: "inequality inequalities interval ray" },
-  graph: { strand: "graphs", topics: ["Plotting coordinates", "Straight-line graphs", "Gradient", "y = mx + c", "Simultaneous equations"], keywords: "coordinate straight line points axes grid" },
-  "value-table-graph": { strand: "graphs", topics: ["Tables of values", "Quadratic graphs", "Roots and turning points", "Graph paper"], keywords: "table values quadratic parabola plotting" },
+  graph: { strand: "algebra", topics: ["Plotting coordinates", "Straight-line graphs", "Gradient", "y = mx + c", "Simultaneous equations"], keywords: "coordinate straight line points axes grid" },
+  "value-table-graph": { strand: "algebra", topics: ["Tables of values", "Quadratic graphs", "Roots and turning points", "Graph paper"], keywords: "table values quadratic parabola plotting" },
   triangle: { strand: "geometry", topics: ["Pythagoras", "SOHCAHTOA", "Sine rule", "Cosine rule", "Area ½ab sin C"], keywords: "pythagoras trigonometry sine cosine area angles hypotenuse" },
   angles: { strand: "geometry", topics: ["Angles on a straight line", "Angles round a point", "Vertically opposite angles", "Parallel lines", "Interior and exterior angles"], keywords: "angles straight line point vertically opposite parallel transversal alternate corresponding co-interior polygon interior exterior geometry G3", added: "2026-11-15" },
   area: { strand: "geometry", topics: ["Area of rectangles", "Triangles and trapeziums", "Compound shapes", "Circles", "Sectors and arcs", "Perimeter"], keywords: "area perimeter compound shape rectilinear rectangle triangle parallelogram trapezium circle circumference semicircle quarter sector arc radius diameter pi shaded frame counting squares G16 G17 G18", added: "2026-11-15" },
