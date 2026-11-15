@@ -91,6 +91,9 @@ test("adding a corner splits the last side and drops its label; removing one dro
   await expect(card.getByRole("heading")).toHaveText("Label: side 6");
   await page.getByRole("button", { name: "Add a corner" }).click();
   await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(card.getByRole("heading")).toHaveText("Selected label");
+  await page.getByRole("button", { name: "Redo" }).click();
   ids = (await saved(page)).document.labels.map((l: Saved) => l.id);
   expect(ids).not.toContain("e6");
   expect(ids).toContain("e5");

@@ -164,7 +164,7 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
     [view, setView] = useState<View>("pupil"),
     [menu, setMenu] = useState(false),
     [busy, setBusy] = useState(false),
-    [picked, setPicked] = useState<{ id: string; key: string } | null>(null),
+    [selected, setSelected] = useState<string | null>(null),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const e = history.present,
@@ -177,11 +177,14 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const viewSvg = useMemo(() => (view === "answer" ? answerSvg : renderSvg(e, "pupil")), [e, view, answerSvg]);
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
-  // Side ids move when corners are added or removed and height ids when heights change (by any edit, undo or
-  // redo), so a selection lets go then rather than pointing at a different side or height.
-  const keyOf = (id: string) => (s.type !== "polygon" ? s.type : /^h\d+$/.test(id) ? JSON.stringify(s.heights) : /^e\d+$/.test(id) ? String(s.corners.length) : "");
-  const selected = picked && picked.key === keyOf(picked.id) ? picked.id : null;
-  const setSelected = (id: string | null) => setPicked(id ? { id, key: keyOf(id) } : null);
+  // Side and height ids renumber when corners or heights change (by any edit, undo or redo), so the selection is
+  // cleared then, for good, rather than pointing at a side or height the teacher did not pick.
+  const structure = useMemo(() => (s.type === "polygon" ? `${s.corners.length}|${JSON.stringify(s.heights)}` : s.type), [s]);
+  const [seenStructure, setSeenStructure] = useState(structure);
+  if (seenStructure !== structure) {
+    setSeenStructure(structure);
+    setSelected(null);
+  }
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
   const chosen = current ? d.labels.find((l) => l.id === current) : undefined;
   const pxPerMm = (96 / 25.4) * fitted.scale;
