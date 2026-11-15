@@ -143,10 +143,16 @@ for (const [tool, key, paper, stage] of tools) {
     // The first-use tip (U22) takes a line under the preview bar until it is hidden; measure the
     // fitted preview a returning teacher sees.
     const tip = page.getByRole("button", { name: "Hide this tip", exact: true });
-    if (await tip.count()) await tip.first().click();
-    const box = await page.locator(paper).first().boundingBox();
+    if (await tip.count()) {
+      await tip.first().click();
+      await expect(tip).toHaveCount(0);
+    }
+    // The preview re-fits after a resize observer and a state update, so poll the height.
     if (["graph", "value-table-graph"].includes(tool))
-      expect(box!.height).toBeGreaterThan(originalBox!.height * 1.1);
+      await expect
+        .poll(async () => (await page.locator(paper).first().boundingBox())!.height)
+        .toBeGreaterThan(originalBox!.height * 1.1);
+    const box = await page.locator(paper).first().boundingBox();
     await mkdir(resolve(report, "exports"), { recursive: true });
     await writeFile(resolve(report, `exports/${tool}.json`), source);
     await writeFile(resolve(report, `exports/${tool}.svg`), finalSvg);
