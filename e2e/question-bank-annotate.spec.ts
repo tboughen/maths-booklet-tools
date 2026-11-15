@@ -114,6 +114,59 @@ test.describe("question viewer annotations", () => {
     expect(await strokes(page)).toBe(2);
     expect((await png()).equals(clean)).toBe(true);
   });
+
+  test("draw and hold snaps a rough shape or line, and leaves other strokes as drawn", async ({ page }) => {
+    await open(page);
+    await page.keyboard.press("p");
+    const box = (await page.locator(".qb-stage canvas").first().boundingBox())!;
+    const trace = async (points: [number, number][], holdMs: number) => {
+      await page.mouse.move(box.x + points[0][0], box.y + points[0][1]);
+      await page.mouse.down();
+      for (const [x, y] of points.slice(1)) await page.mouse.move(box.x + x, box.y + y);
+      await page.waitForTimeout(holdMs);
+      await page.mouse.up();
+    };
+    const last = () => page.locator(".qb-stage .qb-annotations .qb-ink-pen path").last();
+    const wobble = (i: number) => (i % 3) - 1;
+    // A rough rectangle, nearly closed, held at the end: four straight sides, exactly level.
+    const rect: [number, number][] = [];
+    for (let x = 100; x <= 300; x += 10) rect.push([x, 150 + wobble(x)]);
+    for (let y = 150; y <= 250; y += 10) rect.push([300 + wobble(y), y]);
+    for (let x = 300; x >= 100; x -= 10) rect.push([x, 252 + wobble(x)]);
+    for (let y = 250; y >= 160; y -= 10) rect.push([100 + wobble(y), y]);
+    await trace(rect, 700);
+    await expect.poll(() => strokes(page)).toBe(1);
+    const d = await last().getAttribute("d") ?? "";
+    expect(d).toMatch(/^M[^QA]*$/);
+    expect(d.match(/L/g)).toHaveLength(4);
+    expect(await last().getAttribute("fill")).toBe("none");
+    const n = d.match(/-?\d+(\.\d+)?/g)!.map(Number), corner = (i: number) => [n[2 * i], n[2 * i + 1]];
+    const [a, b, c] = [corner(0), corner(1), corner(2)];
+    // Level and upright sides meeting at right angles.
+    expect([a[0] === b[0] || a[1] === b[1], b[0] === c[0] || b[1] === c[1]]).toEqual([true, true]);
+    // A rough circle snaps to a circle.
+    const circle: [number, number][] = [];
+    for (let t = 0; t < 2 * Math.PI * 0.95; t += 0.15) circle.push([500 + 60 * Math.cos(t) + wobble(Math.round(t * 10)), 200 + 60 * Math.sin(t)]);
+    await trace(circle, 700);
+    await expect.poll(() => strokes(page)).toBe(2);
+    expect((await last().getAttribute("d") ?? "").match(/L/g)!.length).toBeGreaterThan(60);
+    // A nearly level line held still becomes exactly level.
+    await trace([[100, 350], [160, 352], [220, 351], [300, 356]], 700);
+    await expect.poll(() => strokes(page)).toBe(3);
+    const line = (await last().getAttribute("d") ?? "").match(/-?\d+(\.\d+)?/g)!.map(Number);
+    expect(line).toHaveLength(4);
+    expect(line[1]).toBe(line[3]);
+    // A held scribble isn't a shape or a line, so it stays freehand ink.
+    const scribble: [number, number][] = [];
+    for (let i = 0; i < 40; i++) scribble.push([400 + i * 6, 380 + (i % 4 < 2 ? 0 : 30)]);
+    await trace(scribble, 700);
+    await expect.poll(() => strokes(page)).toBe(4);
+    expect(await last().getAttribute("fill")).not.toBe("none");
+    // The same rough rectangle lifted straight away stays freehand ink.
+    await trace(rect.map(([x, y]) => [x + 400, y + 200]), 0);
+    await expect.poll(() => strokes(page)).toBe(5);
+    expect(await last().getAttribute("fill")).not.toBe("none");
+  });
 });
 
 test.describe("question viewer annotations on touch boards", () => {
