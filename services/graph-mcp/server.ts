@@ -8,7 +8,6 @@ import { MathsDockMcpServer, serverVersion } from "./tool-metadata";
 import servicePackage from "./package.json" with { type: "json" };
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
-  createEnvelope,
   documentFromEnvelope,
   describeGraph,
   editorLink,
@@ -18,7 +17,7 @@ import {
   MAX_REQUEST_BYTES,
   RENDERER_VERSION,
 } from "../../packages/graph-core/src/interchange";
-import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
+import { PORTABLE_NOTE, portableEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
 import {
   getExportMetrics,
   graphPrintFacts,
@@ -37,6 +36,7 @@ import type { DocumentStore } from "./document-store";
 import { ResourceDownloads } from "./resource-downloads";
 import { resourceTools, type NewSource } from "./resource-tools";
 import { diagramTools, type ResultBuilder } from "./diagram-tools";
+import { prepareDiagram } from "./diagram-source";
 import { FAMILIES, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import type { ValueEnvelope } from "../../packages/value-graph-core/src/schema";
@@ -180,16 +180,10 @@ export function graphService(options: ServiceOptions) {
     "value-graph": (s, signal) => values.result(s.envelope as ValueEnvelope, signal),
     cuboids: resource, "number-line": resource, venn: resource, "algebra-grid": resource,
     "bar-model": resource, charts: resource, "probability-tree": resource, "frequency-tree": resource, "two-way-table": resource, triangle: resource, construction: resource, elevations: resource,
-  } satisfies Record<DiagramKind, ResultBuilder>);
+  } satisfies Record<DiagramKind, ResultBuilder>, (s, signal) => prepareDiagram(s, raster, signal));
   async function result(raw: GraphEnvelope, signal?: AbortSignal, view: "pupil" | "answer" = "pupil") {
     // Imported human graphs acquire the explicit portable profile on the server.
-    const converted = raw.styleProfile !== "portable-v1";
-    const envelope = converted
-      ? createEnvelope({
-          ...documentFromEnvelope(raw),
-          styleProfile: "portable-v1",
-        })
-      : raw;
+    const { envelope, converted } = portableEnvelope(raw);
     const document = documentFromEnvelope(envelope),
       metrics = copyMetrics(FAMILIES.graph.svg(envelope, view), getExportMetrics(document));
     // Generate and independently verify the print artifact before advertising it.
@@ -212,9 +206,7 @@ export function graphService(options: ServiceOptions) {
       hash = await graphHash(envelope);
     const warnings = graphWarnings(envelope);
     if (converted)
-      warnings.unshift(
-        "The graph now uses the portable print font; mathematical values are unchanged.",
-      );
+      warnings.unshift(PORTABLE_NOTE);
     const links: Partial<
       Record<DownloadFormat, { url: string; expiresAt: string }>
     > = {};

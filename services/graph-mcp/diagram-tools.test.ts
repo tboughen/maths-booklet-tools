@@ -134,6 +134,42 @@ describe("generic connector tools", () => {
     expect(again.isError).not.toBe(true);
     expect((again.structuredContent as { contentHash: string }).contentHash).toBe(data.contentHash);
   }, 30000);
+  it.each([...DIAGRAM_KINDS])("dry-runs a %s: no files, the same hash and size as create_diagram (M32/M33)", async (kind) => {
+    const client = await start();
+    const args = { kind, ...(DEFAULT_SPEC[kind] ? { spec: DEFAULT_SPEC[kind] } : {}) };
+    const d = await client.callTool({ name: "create_diagram", arguments: { ...args, dryRun: true } });
+    expect(d.isError, JSON.stringify(d.content).slice(0, 400)).not.toBe(true);
+    const data = d.structuredContent as { contentHash: string; envelope: unknown; summary: string; physicalSizeCm: { width: number }; next: string[]; dryRun: boolean };
+    expect(data).not.toHaveProperty("downloads");
+    expect(data.dryRun).toBe(true);
+    expect((d.content as { type: string }[]).map((c) => c.type)).toEqual(["text"]);
+    expect(data.summary).toMatch(new RegExp(`^Created an? ${FAMILIES[kind].label}, [\\d.]+ × [\\d.]+ cm at 100%\\..* Dry run: no files were made\\.$`));
+    const c = (await client.callTool({ name: "create_diagram", arguments: args })).structuredContent as { contentHash: string; physicalSizeCm: unknown; envelope: unknown };
+    expect(c.contentHash).toBe(data.contentHash);
+    expect(c.physicalSizeCm).toEqual(data.physicalSizeCm);
+    // A revision dry run checks the operations against the exact envelope and changes nothing.
+    const r = await client.callTool({ name: "revise_diagram", arguments: { kind, envelope: c.envelope, baseHash: c.contentHash, operations: [], dryRun: true } });
+    expect((r.structuredContent as { contentHash: string; dryRun: boolean })).toMatchObject({ contentHash: c.contentHash, dryRun: true });
+  }, 30000);
+  it("a dry run converts a legacy graph exactly as create_diagram does", async () => {
+    const client = await start();
+    const legacy = { ...FAMILIES.graph.create({ spec: { objects: [] } }) as Record<string, unknown>, styleProfile: "legacy", title: "Kept" };
+    const dry = (await client.callTool({ name: "create_diagram", arguments: { kind: "graph", envelope: legacy, dryRun: true } })).structuredContent as Record<string, unknown>;
+    const real = (await client.callTool({ name: "create_diagram", arguments: { kind: "graph", envelope: legacy } })).structuredContent as Record<string, unknown>;
+    expect(dry.contentHash).toBe(real.contentHash);
+    expect(dry.envelope).toEqual(real.envelope);
+    expect(dry.physicalSizeCm).toEqual(real.physicalSizeCm);
+    expect(dry.warnings).toEqual(real.warnings);
+    expect((real.envelope as { title?: string }).title).toBe("Kept");
+  });
+  it("a dry run refuses a bad spec with the field named, exactly as create_diagram does", async () => {
+    const client = await start();
+    const args = { kind: "charts", spec: { categories: "Mon" } };
+    const d = await client.callTool({ name: "create_diagram", arguments: { ...args, dryRun: true } });
+    const c = await client.callTool({ name: "create_diagram", arguments: args });
+    expect(d.isError).toBe(true);
+    expect(d.content).toEqual(c.content);
+  });
   it("names the field that is wrong and points at the family's schema", async () => {
     const client = await start();
     const r = await client.callTool({ name: "create_diagram", arguments: { kind: "charts", spec: { categories: "Mon" } } });

@@ -449,6 +449,16 @@ export function createEnvelope(
     },
   };
 }
+/** The note the connector gives when a saved graph moves to the portable print font. */
+export const PORTABLE_NOTE = "The graph now uses the portable print font; mathematical values are unchanged.";
+/**
+ * A graph in the portable print profile, as the connector draws every graph: a legacy envelope is
+ * converted (values, title and note unchanged) and `converted` says so.
+ */
+export function portableEnvelope(raw: GraphEnvelope): { envelope: GraphEnvelope; converted: boolean } {
+  if (raw.styleProfile === "portable-v1") return { envelope: raw, converted: false };
+  return { envelope: { ...createEnvelope({ ...documentFromEnvelope(raw), styleProfile: "portable-v1" }), ...aboutOf(raw) }, converted: true };
+}
 export function documentFromEnvelope(
   envelope: GraphEnvelope,
 ): DiagramDocumentV1 {
