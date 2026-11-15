@@ -3,7 +3,7 @@ import { drawDiagram, svgSizeMm } from "../../diagram-core/src/registry";
 import { answerLeaks } from "../../diagram-core/src/answer-leaks";
 import { diagramEnvelope, LAYOUTS, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource, type Side } from "./schema";
 import { SIZE, styles, type HouseStyle, type StyleId } from "./style";
-import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
+import { ANSWER_LINE_MIN, ANSWER_SLOT_GAP, loneSlot, answerHasFraction, esc, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_ANSWER_RAISE, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, hasFraction, stackAnswerText, inlineFraction, lineWidth, n, parseRuns, plainWidth, textSvg, wrap, type Line } from "./text";
 import { measuredWidths, type FontStyle } from "./metrics";
 
 export type View = "pupil" | "answers";
@@ -211,7 +211,8 @@ export function answerNeed(l: Extract<Leaf, { type: "answerLine" }>, maths: bool
   return pre + post + Math.max(ANSWER_LINE_MIN, l.answer ? widthOf(l.answer) + 2 : 0);
 }
 
-function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx): Frag {
+/** `lone`: a single inline line with no inline neighbours, printed short (rule P3). */
+function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: AnyCtx, lone = false): Frag {
   const size = S.body;
   // Maths notation: fractions in the prefix, suffix and saved answer print stacked, and a row that
   // holds one is taller in both copies. Plain (older) sheets print exactly as before.
@@ -222,7 +223,10 @@ function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ct
   const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, maths)));
   const h = S.answerRow + (tall ? FRAC_ANSWER_EXTRA : 0);
   const base = h - 2.6;
-  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
+  const one = lone ? lines[0] : null;
+  const slot = one
+    ? loneSlot(one.prefix ? widthOf(one.prefix) + 1.8 : 0, one.suffix ? widthOf(one.suffix) + 1.8 : 0, one.answer ? widthOf(one.answer) : 0, w)
+    : (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   const out: string[] = [];
   lines.forEach((l, i) => {
     const x0 = i * (slot + ANSWER_SLOT_GAP);
@@ -388,7 +392,7 @@ function items(list: Item[], w: number, ctx: AnyCtx, extra: number): Frag {
     if (it.type === "answerLine" && it.inline) {
       const group = [it];
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
-      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx));
+      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) frags.push(answerRow(rowLines, w, ctx, group.length === 1));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const only = it.items.length === 1 && it.items[0].type === "answerLine" && !it.items[0].inline ? it.items[0] : null;
@@ -775,7 +779,7 @@ export function questionReferenceIssues(resource: Resource): Issue[] {
   })));
   for (const { cd, n: own, side, column } of cards) {
     for (const text of readableText(cd)) {
-      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+      for (const m of text.matchAll(/\b(Total\sfor\s)?Questions?\s(\d+)\b/gi)) {
         const ref = Number(m[2]);
         const where = { side, column, question: own };
         const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";

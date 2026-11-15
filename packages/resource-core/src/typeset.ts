@@ -14,6 +14,7 @@
  * Inter holds no other superscript digits.
  */
 import { FRACTION } from "./text";
+import { advance } from "./metrics";
 
 const OPERATOR = "=+−×÷<>≤≥≠±";
 const OPERATOR_TOKEN = new RegExp(`^[${OPERATOR}]$`);
@@ -125,15 +126,105 @@ function typesetPlain(source: string, italic: boolean): string {
   return out + italicLetters(s.slice(at));
 }
 
+/** A no-break space: Word and the page layout both keep the words either side of it on one line. */
+export const NBSP = "\u00a0";
+/** What a token prints, without its markup: "*x*" is x, "{1/2}" is 1/2. */
+const visible = (t: string) => t.replace(/\*/g, "").replace(/[{}]/g, "");
+/** A number as printed: −3, 2.5, 40%, {1/2}, 2{1/2}, *x*-free. Trailing punctuation allowed. */
+const NUMBER = /^[(]?[−-]?(\d+([.,]\d+)?%?|\d*\{[^{}/]+\/[^{}/]+\})[)]?[²³]?[.,;:?!]*$/;
+const UNIT = /^(mm|cm|m|km|g|kg|mg|ml|cl|l|litres?|s|mins?|hours?|days?|weeks?|years?|°C?|%|p|pence|£)[.,;:?!)]*$/;
+/** A maths operator token, spaced on both sides in typed text. */
+const OPERATOR_SPACED = new RegExp(`^[${OPERATOR}]$`);
+/** A short maths operand: a number, a maths letter or a short term such as 2*x* or *x*². */
+const operand = (t: string) => visible(t).length <= 8 && (NUMBER.test(t) || /^[(]?[−-]?\d*(\*[a-z]{1,3}\*)+[²³]?[)]?[.,;:?!]*$/.test(t) || /^[(]?\d*[a-z][²³]?[)]?[.,;:?!]*$/.test(visible(t)) && t.includes("*"));
+/** A glued run never grows past this many printed characters, nor past GLUE_MAX_MM at body size. */
+const GLUE_MAX = 24;
+/**
+ * The narrowest flowing text on a sheet is about 51 mm (steps inside a part in a half-width
+ * booklet card), so a glued run stays under 44 mm, measured in bold (the widest style) at 11 pt.
+ */
+const GLUE_MAX_MM = 44;
+const BODY_MM = 11 * (25.4 / 72);
+const runMm = (t: string) => [...visible(t)].reduce((w, c) => w + advance(c, "bold"), 0) * BODY_MM;
+
+/**
+ * Line breaks that read badly are prevented with no-break spaces (Tim, A7 marking, 15 Nov 2026):
+ * - the last word of a paragraph never sits alone on a new line when it is a number or a short
+ *   word ("… gradient of the line is" / "−2." is not allowed);
+ * - a range stays together: "−1 to 1", "3 to 5";
+ * - a number keeps its unit: "5 cm", "40 %";
+ * - a short equation or expression stays on one line: "y = 2*x* + 1", "*x* = 3".
+ * Each glued run is at most 24 printed characters, so it still fits the narrowest card.
+ */
+export function keepTogether(source: string): string {
+  if (source.includes("\n")) return source.split("\n").map(keepTogether).join("\n");
+  // Leading and trailing spaces stay; repeated spaces inside print as one anyway.
+  const [, lead, core, trail] = source.match(/^( *)(.*?)( *)$/s)!;
+  if (lead || trail || / {2}/.test(core)) return lead + keepTogether(core.replace(/ {2,}/g, " ")) + trail;
+  const words = source.split(" ");
+  if (words.length < 2) return source;
+  const glue = new Array<boolean>(words.length - 1).fill(false);
+  // Ranges and units.
+  for (let i = 0; i < words.length - 1; i++) {
+    const [a, b, c] = [words[i], words[i + 1], words[i + 2]];
+    if (NUMBER.test(a) && b === "to" && c !== undefined && NUMBER.test(c)) glue[i] = glue[i + 1] = true;
+    if (/^[−-]?\d+([.,]\d+)?$/.test(a) && b !== undefined && UNIT.test(b)) glue[i] = true;
+  }
+  // Short equations and expressions: operand (operator operand)+.
+  for (let i = 0; i < words.length; i++) {
+    if (!operand(words[i])) continue;
+    let j = i;
+    while (j + 2 < words.length && OPERATOR_SPACED.test(visible(words[j + 1])) && operand(words[j + 2])) j += 2;
+    if (j === i) continue;
+    const length = words.slice(i, j + 1).reduce((t, w) => t + visible(w).length + 1, -1);
+    if (length <= GLUE_MAX) for (let k = i; k < j; k++) glue[k] = true;
+    i = j;
+  }
+  // The last word: a number or a short word never starts a line on its own.
+  const last = visible(words[words.length - 1]).replace(/[.,;:?!)"”’]+$/, "");
+  const lastGlue = !!words[words.length - 1] && (NUMBER.test(words[words.length - 1]) || last.length <= 3);
+  if (lastGlue) glue[words.length - 2] = true;
+  // A glued run too long to fit the narrowest card is not glued at all (a half-glued equation
+  // could leave its last number alone); only the last-word rule is kept, when that pair fits.
+  const fits = (a: number, b: number) => {
+    const joined = words.slice(a, b + 1).join(" ");
+    return visible(joined).length <= GLUE_MAX && runMm(joined) <= GLUE_MAX_MM;
+  };
+  for (let i = 0; i < glue.length; ) {
+    if (!glue[i]) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < glue.length && glue[j]) j++;
+    // Words i to j are one run.
+    if (!fits(i, j)) {
+      for (let k = i; k < j; k++) glue[k] = false;
+      if (lastGlue && j === words.length - 1 && fits(j - 1, j)) glue[j - 1] = true;
+    }
+    i = j;
+  }
+  let out = words[0];
+  for (let i = 1; i < words.length; i++) out += (glue[i - 1] ? NBSP : " ") + words[i];
+  return out;
+}
+
 /** Printed keys whose text takes italic maths letters, and those that print in bold (symbols only). */
 const BODY = new Set(["text", "prefix", "suffix", "answer", "items", "options", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next", "columns"]);
+/** Printed keys that wrap as paragraphs; answer lines, options, cells and headings stay as typed. */
+const FLOWING = new Set(["text", "items", "objective", "instruction", "keyIdea", "coverNote", "meaning", "remember", "learn", "next"]);
 const HEADINGS = new Set(["title", "heading", "label", "word"]);
 
-function typesetValue(v: unknown, key: string): unknown {
-  if (typeof v === "string") return BODY.has(key) ? typesetText(v) : HEADINGS.has(key) ? typesetText(v, false) : v;
-  if (Array.isArray(v)) return v.map((x) => typesetValue(x, key));
+function typesetValue(v: unknown, key: string, maths = true): unknown {
+  if (typeof v === "string") {
+    if (!maths) return FLOWING.has(key) ? keepTogether(v) : v;
+    return BODY.has(key) ? (FLOWING.has(key) ? keepTogether(typesetText(v)) : typesetText(v)) : HEADINGS.has(key) ? typesetText(v, false) : v;
+  }
+  if (Array.isArray(v)) return v.map((x) => typesetValue(x, key, maths));
   if (v && typeof v === "object") {
-    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "diagram" || k === "working" || k === "teacherNotes" ? x : typesetValue(x, k)]));
+    // A table cell ({text, state}) prints on one line, as typed.
+    const cell = "state" in v;
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "diagram" || k === "working" || k === "teacherNotes" ? x : typesetValue(x, cell && k === "text" ? "answer" : k, maths)]));
   }
   return v;
 }
@@ -143,11 +234,13 @@ const printed = new WeakSet<object>();
 
 /**
  * The copy of a worksheet or booklet the renderers print: with maths notation, its printed text
- * typeset. A plain document is returned unchanged. The saved document is never changed.
+ * typeset. In every document, flowing text keeps short last words, ranges and short equations on
+ * one line (keepTogether). The saved document is never changed.
  */
 export function typesetForPrint<T extends { document: { notation?: string } }>(resource: T): T {
-  if (resource.document.notation !== "maths" || printed.has(resource)) return resource;
-  const copy = { ...resource, document: typesetValue(resource.document, "") as T["document"] };
+  if (printed.has(resource)) return resource;
+  // Plain text is printed as typed, except that its line breaks never read badly (keepTogether).
+  const copy = { ...resource, document: typesetValue(resource.document, "", resource.document.notation === "maths") as T["document"] };
   printed.add(copy);
   return copy;
 }

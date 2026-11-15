@@ -4,7 +4,7 @@ import { drawDiagram } from "../../diagram-core/src/registry";
 import { answerNeed, card as measureCard, isReminder, columnBoxes, HEADER_RIGHT, overflowMessage, paperSvg, planColumn, renderResource, scoreBox, STAGE_BAND, stageLetters, tooWideMessage, type Ctx, type Issue, type View } from "./render";
 import { diagramEnvelope, type Card, type Cell, type Diagram, type Item, type Leaf, type Resource } from "./schema";
 import { SIZE, styles, type HouseStyle } from "./style";
-import { ANSWER_SLOT_GAP, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
+import { ANSWER_SLOT_GAP, loneSlot, answerHasFraction, packAnswerLines, stubFits, FRAC_ANSWER_EXTRA, FRAC_CIRCLE_ROW, FRAC_TABLE_ROW, FRAC_FOOT, FRAC_LINE, fracStyle, stackAnswerText, hasFraction, lineWidth, parseRuns, plainWidth, wrap, type Run } from "./text";
 
 /**
  * Word (.docx) output for the A3 worksheet, built from the same source and the same layout as the
@@ -337,8 +337,7 @@ type Block = string;
 /** Joins blocks with exact gaps; adjacent tables are always separated by a paragraph. */
 const stack = (blocks: Block[], gapMm: number, indent = 0) => blocks.join(gap(gapMm, indent));
 
-function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx): { grid: number[]; cells: string[] } {
-  const slot = (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
+function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, ctx: WordCtx, lone = false): { grid: number[]; cells: string[] } {
   const grid: number[] = [];
   const cells: string[] = [];
   const size = S.body;
@@ -347,6 +346,11 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   const shownText = (s: string) => (maths ? stackAnswerText(s) : s);
   // Plain sheets keep their saved measurements exactly.
   const widthOf = (s: string) => (maths ? lineWidth(parseRuns(shownText(s), "regular", true), size) : plainWidth(s, size));
+  // A lone inline line is short and left-aligned, as on the SVG page.
+  const one = lone ? lines[0] : null;
+  const slot = one
+    ? loneSlot(one.prefix ? widthOf(one.prefix) + 1.8 : 0, one.suffix ? widthOf(one.suffix) + 1.8 : 0, one.answer ? widthOf(one.answer) : 0, w)
+    : (w - (lines.length - 1) * ANSWER_SLOT_GAP) / lines.length;
   lines.forEach((l, i) => {
     if (i) {
       grid.push(ANSWER_SLOT_GAP);
@@ -382,8 +386,8 @@ function answerCells(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, 
   });
   return { grid, cells };
 }
-function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, indent: number, ctx: WordCtx): Block {
-  const { grid, cells } = answerCells(lines, w, ctx);
+function answerRow(lines: Extract<Leaf, { type: "answerLine" }>[], w: number, indent: number, ctx: WordCtx, lone = false): Block {
+  const { grid, cells } = answerCells(lines, w, ctx, lone);
   const below = grid.map((g) => cell(gap(END_MM), { width: g }));
   // A row holding a stacked fraction is taller, in both copies, as on the SVG page.
   const tall = lines.some((l) => [l.prefix, l.suffix, l.answer].some((s) => answerHasFraction(s, !!ctx.maths)));
@@ -597,7 +601,7 @@ function items(list: Item[], w: number, indent: number, ctx: WordCtx, extra: num
       const group = [it];
       while (list[i + 1]?.type === "answerLine" && (list[i + 1] as typeof it).inline) group.push(list[++i] as typeof it);
       // Rows hold as many lines as fit, as on the SVG page.
-      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) blocks.push(answerRow(rowLines, w, indent, ctx));
+      for (const rowLines of (ctx.maths ? packAnswerLines(group, w, (l) => answerNeed(l, true)) : [group])) blocks.push(answerRow(rowLines, w, indent, ctx, group.length === 1));
     } else if (it.type === "part") {
       const label = `${String.fromCharCode(97 + part++)})`;
       const textW = w - S.partIndent;
@@ -876,7 +880,7 @@ export async function writeWorksheetDocx(saved: Resource, options: DocxOptions):
     ctx,
     options,
     title: `${doc.title}${view === "answers" ? " (answers)" : ""}`,
-    subject: [doc.code, doc.objective].filter(Boolean).join(" "),
+    subject: [doc.code, doc.objective].filter(Boolean).join(" ").replace(/\u00a0/g, " "),
     keywords: ["MathsDock worksheet", doc.code, doc.group, view === "answers" ? "answers" : "pupil"].filter(Boolean).join("; "),
     description: `Made by MathsDock from the worksheet source. Edit the source and remake this file to keep the pupil and answer copies in step.`,
     pages: 2,
