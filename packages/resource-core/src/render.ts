@@ -775,7 +775,7 @@ export function questionReferenceIssues(resource: Resource): Issue[] {
   })));
   for (const { cd, n: own, side, column } of cards) {
     for (const text of readableText(cd)) {
-      for (const m of text.matchAll(/\b(Total for )?Questions? (\d+)\b/gi)) {
+      for (const m of text.matchAll(/\b(Total\sfor\s)?Questions?\s(\d+)\b/gi)) {
         const ref = Number(m[2]);
         const where = { side, column, question: own };
         const tail = "Reminder cards are not numbered, so check the number after adding, removing or moving cards.";
