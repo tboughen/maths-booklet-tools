@@ -480,11 +480,12 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
    * Changing one angle of a shape keeps a shape: when the new angle makes no letter with the other one,
    * the other moves to the nearest angle that does, keeping the same letter where it can.
    */
-  function withPartner(changed: string, other: string, letter: string | undefined): string {
+  function withPartner(changed: string, other: string, letter: string | undefined, index: number): string {
     if (letterOf(changed, other)) return other;
+    const taken = new Set((d.letters ?? []).filter((_, k) => k !== index).map((l) => [l.a, l.b].sort().join(" ")));
     const line = Number(changed.slice(1, changed.indexOf("-"))),
       near = (id: string) => Math.abs(Number(id.slice(1, id.indexOf("-"))) - line);
-    const options = letterSlots.map((s) => s.id).filter((id) => letterOf(changed, id));
+    const options = letterSlots.map((s) => s.id).filter((id) => letterOf(changed, id) && !taken.has([changed, id].sort().join(" ")));
     options.sort((x, y) => Number(letterOf(changed, y)!.letter === letter) - Number(letterOf(changed, x)!.letter === letter) || near(x) - near(y));
     return options[0] ?? other;
   }
@@ -502,7 +503,8 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
     if (!start || start.id !== id) return;
     // The drag reads the layout from when it began, so the diagram growing under the pointer does not feed back.
     const p = figurePoint(start.g, history.present.document.turnDeg, { x: (clientX - start.rect.left) / start.px, y: (clientY - start.rect.top) / start.px });
-    const next = dragTo(history.present, id, p, fine);
+    // Each step starts from where the preview has got to, so a long drag of a transversal stops at its limit.
+    const next = dragTo(drag?.e ?? history.present, id, p, fine);
     if (next) setDrag({ e: next, label: id.startsWith("v") ? "drag corner" : f.type === "parallel" ? "drag transversal" : f.type === "crossing" ? "drag line" : "drag ray" });
   }
   function endDrag() {
@@ -951,7 +953,7 @@ export default function AnglesPage({ active = true }: { active?: boolean }) {
                       const shape = letterOf(l.a, l.b);
                       const set = (next: { a: string; b: string }) => patch((n) => void (n.letters = (n.letters ?? []).map((x, k) => (k === i ? next : x))), "change shape");
                       const choose = (side: "a" | "b", id: string) =>
-                        set(side === "a" ? { a: id, b: withPartner(id, l.b, shape?.letter) } : { a: withPartner(id, l.a, shape?.letter), b: id });
+                        set(side === "a" ? { a: id, b: withPartner(id, l.b, shape?.letter, i) } : { a: withPartner(id, l.a, shape?.letter, i), b: id });
                       return (
                         <div key={i} className="pt-row ang-letter">
                           {(["a", "b"] as const).map((side) => (
