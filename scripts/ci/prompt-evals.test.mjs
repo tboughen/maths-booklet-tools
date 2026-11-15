@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CASES, caseFiles, safetyPattern, created, checkedTools, ANSWER_OPERATIONS, VENN_BOTH, VENN_SHADED, VENN_UNSHADED_SPEC } from '../evals/cases.mjs';
+import { CASES, caseFiles, safetyPattern, created, CHECKED_TOOLS, ANSWER_OPERATIONS, VENN_BOTH, VENN_SHADED, VENN_UNSHADED_SPEC } from '../evals/cases.mjs';
 import { options, evalArgs, summary, localPlugin, exitCode } from '../evals/run.mjs';
 import { CONFIG } from '../loop/preflight.mjs';
 
@@ -29,14 +29,14 @@ test('the safety pattern matches answer-revealing tool input and nothing safe', 
   for (const op of ANSWER_OPERATIONS) assert.match(`{"op":"${op}"}`, unsafe, op);
 });
 
-test('every case checks the generic tools and its family\'s older tools for answer reveals', () => {
+test('every case checks the generic tools for answer reveals', () => {
   const files = caseFiles();
-  for (const c of CASES) for (const tool of checkedTools(c.family ?? 'chart')) {
+  for (const c of CASES) for (const tool of CHECKED_TOOLS) {
     const grader = Object.entries(files).find(([p, t]) => p.startsWith(`plugins/mathsdock-claude/evals/${c.name}/graders/no-answers-`) && t.includes(`tool: '${tool}'`));
     assert.ok(grader, `${c.name} checks ${tool}`);
     assert.match(grader[1], /\nmax: 0\n/);
   }
-  assert.ok(checkedTools('venn').includes('mcp__plugin_mathsdock_mathsdock__create_diagram'));
+  assert.ok(CHECKED_TOOLS.includes('mcp__plugin_mathsdock_mathsdock__create_diagram'));
 });
 
 test('a case allows only what its teacher asked for', () => {
@@ -47,13 +47,16 @@ test('a case allows only what its teacher asked for', () => {
   for (const c of CASES) for (const a of c.allow ?? []) assert.ok(new RegExp(a).test(c.prompt) || /answer version|print the equation/i.test(c.prompt), `${c.name} allows ${a} without asking`);
 });
 
-test('the created pattern accepts the generic tool or the older per-family tool, not the tool list', () => {
+test('the created check needs a create_diagram call for the case\'s kind', () => {
   const graph = new RegExp(created('graph'));
-  assert.match('"name":"mcp__plugin_mathsdock_mathsdock__create_diagram"', graph);
-  assert.match('"name": "mcp__plugin_mathsdock_mathsdock__create_graph"', graph);
-  assert.doesNotMatch('"tools":["mcp__plugin_mathsdock_mathsdock__create_graph"]', graph);
-  assert.doesNotMatch('"tool_name":"mcp__plugin_mathsdock_mathsdock__create_graph"', graph);
-  assert.doesNotMatch('"name":"mcp__plugin_mathsdock_mathsdock__revise_graph"', graph);
+  assert.match('{"kind":"graph","spec":{}}', graph);
+  assert.match('{"kind" : "graph"}', graph);
+  assert.doesNotMatch('{"kind":"value-graph"}', graph);
+  for (const c of CASES.filter(c => c.kind)) {
+    const grader = caseFiles()[`plugins/mathsdock-claude/evals/${c.name}/graders/created.md`];
+    assert.match(grader, /tool: 'mcp__plugin_mathsdock_mathsdock__create_diagram'/, c.name);
+    assert.match(grader, /\nmin: 1\n/, c.name);
+  }
 });
 
 test('the runner always sets a cost ceiling, one arm and the real connector', () => {

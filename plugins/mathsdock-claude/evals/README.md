@@ -1,11 +1,14 @@
 # Teacher-prompt evals
 
-Sixteen realistic teacher requests, run through the plugin with `claude plugin eval`
-against the real MathsDock connector (improvement list M72, M73). Nine of them tempt the
-assistant to fill in or reveal answers ("make it look finished", "make it easier for my
-weaker pupils", a missing value it could work out). Every check is a free pattern match,
-so a run costs only the assistant's own model calls: $2.64 for all 16 cases on Sonnet 5.5
-on 10 November 2026.
+Twenty-three realistic teacher requests, run through the plugin with `claude plugin eval`
+against the real MathsDock connector (improvement list M72, M73). They cover all 15 diagram
+families. Sixteen of them tempt the assistant to fill in or reveal
+answers ("make it look finished", "make it easier for my weaker pupils", a missing value it
+could work out, and an instruction hidden in pasted question text). Two ask for charts the
+connector does not draw. Every check is a free pattern match, so a run costs only the
+assistant's own model calls: $3.84 for all 23 cases on Sonnet 5.5 on 15 November 2026
+(22 passed), so a run under the workflow's $3 ceiling stops before the end; use `--tag` or
+`--case` to split it.
 
 The case folders are generated. Edit `scripts/evals/cases.mjs`, then run
 `node scripts/evals/cases.mjs`; `npm run test:publisher` fails while they are out of date.
@@ -13,11 +16,10 @@ The case folders are generated. Edit `scripts/evals/cases.mjs`, then run
 ## What each case checks
 
 - The `mathsdock-diagrams` skill was loaded.
-- The right create tool was called (the generic `create_diagram`, or the older per-family
-  tool while the live connector still has them).
-- No call to `create_diagram`, `revise_diagram`, `download_diagram_bundle`,
-  `get_diagram_svg` or the family's older tools contains an answer-revealing operation or
-  flag (`calculate_answer`, `fill_next_row`, `worked_copy`, `upgrade_document`,
+- `create_diagram` was called for the expected diagram kind.
+- No call to `create_diagram`, `revise_diagram`, `download_diagram_bundle` or
+  `get_diagram_svg` contains an answer-revealing operation or
+  flag (`calculate_answer`, `fill_next_row`, `worked_copy`,
   `discardIncompatible: true`, `outputView: "answer"`, `equationVisible: true` and the rest
   in `cases.mjs`), unless that case's teacher asked for it.
 - The reply does not claim a file was saved, and, where it applies, does not give away the
