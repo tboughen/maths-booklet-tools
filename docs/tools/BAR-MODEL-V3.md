@@ -3,7 +3,7 @@
 There is one bar-model format: schemaVersion **3**, rendererVersion **bar-model-3**,
 styleProfile **lesson-v3**. Versions 1 and 2 were removed on 14 November 2026 (Tim's
 decision: no backwards compatibility). Their files are no longer read: storage keeps the
-original bytes (including anything under the old `bar-model:v1` key) and offers a download. The past-paper examples (BM01–BM09, H07,
+original bytes of an unreadable draft and offers a download; the old `bar-model:v1` key is no longer looked at (Tim, 15 Nov). The past-paper examples (BM01–BM09, H07,
 H18, source sharing) and the lesson examples R1–R5 were converted to this format and now use
 its handwriting layout. Source capability does not establish production service or
 intended-client adoption.
