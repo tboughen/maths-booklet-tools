@@ -10,10 +10,7 @@ import { z } from "zod";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { schema as algebraGrid } from "../../packages/algebra-grid-core/src/index";
-import { schema as barModelV1 } from "../../packages/bar-model-core/src/index";
-import { schema as barModelV2 } from "../../packages/bar-model-core/src/v2";
 import { schema as barModelV3 } from "../../packages/bar-model-core/src/v3";
-import { schema as barModelVersioned } from "../../packages/bar-model-core/src/versioned";
 import { envelopeSchema as cuboid } from "../../packages/cuboid-core/src/index";
 import { envelopeSchema as graph } from "../../packages/graph-core/src/interchange";
 import { envelopeSchema as numberLine } from "../../packages/number-line-core/src/index";
@@ -43,8 +40,7 @@ function compare(name: string, actual: unknown) {
 }
 
 const savedFiles: Record<string, z.ZodType> = {
-  "algebra-grid": algebraGrid, "bar-model-v1": barModelV1, "bar-model-v2": barModelV2, "bar-model-v3": barModelV3,
-  "bar-model-versioned": barModelVersioned, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
+  "algebra-grid": algebraGrid, "bar-model": barModelV3, charts, construction, cuboid, elevations, graph, "number-line": numberLine, "frequency-tree": frequencyTree, "probability-tree": probabilityTree, "ratio-table": ratioTable,
   triangle, "two-way-table": twoWayTable, "factor-tree": ft, "sample-space": ss, "value-graph": valueGraph, venn,
 };
 

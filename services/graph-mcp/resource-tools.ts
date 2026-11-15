@@ -78,7 +78,7 @@ function editorLinkOf(source: NewSource, base: string): string | null {
 }
 /** Longest editor link a chat client handles reliably for each family's link format. */
 const editorLimit = (source: NewSource) =>
-  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "factor-tree" || source.kind === "sample-space" || (source.kind === "bar-model" && source.envelope.schemaVersion === 2) ? 16_000 : 7500;
+  source.kind === "venn" || source.kind === "triangle" || source.kind === "charts" || source.kind === "probability-tree" || source.kind === "frequency-tree" || source.kind === "construction" || source.kind === "elevations" || source.kind === "two-way-table" || source.kind === "factor-tree" || source.kind === "sample-space" ? 16_000 : 7500;
 /** Families whose editable files can hold answers hidden from the pupil artwork. */
 const HIDDEN_ANSWER_KINDS: readonly ResourceKind[] = ["venn", "algebra-grid", "bar-model", "charts", "probability-tree", "frequency-tree", "two-way-table", "sample-space", "factor-tree", "triangle", "construction", "elevations"];
 

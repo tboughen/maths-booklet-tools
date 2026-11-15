@@ -5,9 +5,8 @@
 import { describe, expect, it } from "vitest";
 import * as algebraGrid from "../../packages/algebra-grid-core/src/index";
 import { exampleNames as algebraGridExamples } from "../../packages/algebra-grid-core/src/interchange";
-import * as barModel from "../../packages/bar-model-core/src/index";
 import * as barModelV3 from "../../packages/bar-model-core/src/v3";
-import { lessonExample, lessonExampleNames } from "../../packages/bar-model-core/src/lesson-examples-v3";
+import { example, exampleNames, lessonExample, lessonExampleNames } from "../../packages/bar-model-core/src/examples";
 import * as cuboid from "../../packages/cuboid-core/src/index";
 import { examples as cuboidExamples } from "../../packages/cuboid-core/src/examples";
 import * as numberLine from "../../packages/number-line-core/src/index";
@@ -70,8 +69,7 @@ interface Tool { name: string; envelopes: () => unknown[]; validate: (raw: unkno
 
 const tools: Tool[] = [
   { name: "algebra grid", envelopes: () => algebraGridExamples.flatMap(n => [algebraGrid.example(n), algebraGrid.example(n, true)]), validate: algebraGrid.validate, pupilSvg: e => algebraGrid.renderSvg(e, false) },
-  { name: "bar model v1", envelopes: () => barModel.exampleNames.flatMap(n => [barModel.example(n), barModel.example(n, true)]), validate: barModel.validate, pupilSvg: barModel.renderSvg },
-  { name: "bar model v3", envelopes: () => lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), validate: barModelV3.validate, pupilSvg: barModelV3.renderSvg },
+  { name: "bar model v3", envelopes: () => [...lessonExampleNames.flatMap(n => [lessonExample(n), lessonExample(n, true)]), ...exampleNames.flatMap(n => [example(n), example(n, true)])], validate: barModelV3.validate, pupilSvg: barModelV3.renderSvg },
   { name: "cuboids", envelopes: () => cuboidExamples.flatMap(x => [x.create(false), x.create(true)]), validate: cuboid.validate, pupilSvg: cuboid.renderSvg },
   { name: "probability trees", envelopes: () => treeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: tree.validate, pupilSvg: tree.renderSvg },
   { name: "frequency trees", envelopes: () => frequencyTreeExamples.flatMap(x => [x.make(false), x.make(true)]), validate: frequencyTree.validate, pupilSvg: frequencyTree.renderSvg },

@@ -28,7 +28,7 @@ const tools = [
   ["venn", "maths-booklet-tools:venn:v1"],
   ["triangle", "maths-booklet-tools:triangle:v1"],
   ["expanding-factorising", "maths-booklet-tools:algebra-grid:v1"],
-  ["bar-model", "maths-booklet-tools:bar-model:v1"],
+  ["bar-model", "maths-booklet-tools:bar-model:v2"],
   ["charts", "maths-booklet-tools:charts:v1"],
   ["probability-tree", "maths-booklet-tools:probability-tree:v1"],
 ] as const;
@@ -180,7 +180,8 @@ for (const [tool, key] of tools) {
       source = await readFile(sourcePath, "utf8");
       await page.evaluate(({ key, text }) => localStorage.setItem(key, text), {
         key,
-        text: source,
+        // The bar model stores its envelope inside a storage record.
+        text: tool === "bar-model" ? JSON.stringify({ storageVersion: 1, envelope: JSON.parse(source) }) : source,
       });
       await page.reload();
     } else {

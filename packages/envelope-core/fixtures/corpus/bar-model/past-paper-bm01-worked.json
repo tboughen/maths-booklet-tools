@@ -1,0 +1,185 @@
+{
+ "kind": "bar-model",
+ "schemaVersion": 3,
+ "rendererVersion": "bar-model-3",
+ "styleProfile": "lesson-v3",
+ "document": {
+  "bars": [
+   {
+    "id": "b1",
+    "name": {
+     "text": "3 : 5",
+     "state": "value"
+    },
+    "offset": "0",
+    "parts": [
+     {
+      "id": "b1p1",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "8",
+        "state": "value"
+       }
+      },
+      "fill": "neutral"
+     },
+     {
+      "id": "b1p2",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "neutral"
+     },
+     {
+      "id": "b1p3",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "neutral"
+     },
+     {
+      "id": "b1p4",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b1p5",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b1p6",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b1p7",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     },
+     {
+      "id": "b1p8",
+      "weight": "1",
+      "labels": {
+       "inside": {
+        "text": "",
+        "state": "blank"
+       }
+      },
+      "fill": "none"
+     }
+    ]
+   }
+  ],
+  "annotations": [
+   {
+    "id": "whole",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b1",
+      "partId": "b1p1",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b1",
+      "partId": "b1p8",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "64",
+     "state": "value"
+    },
+    "decoration": "brace",
+    "placement": "above"
+   },
+   {
+    "id": "first",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b1",
+      "partId": "b1p1",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b1",
+      "partId": "b1p3",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "24",
+     "state": "value"
+    },
+    "decoration": "brace",
+    "placement": "below"
+   },
+   {
+    "id": "second",
+    "scope": {
+     "kind": "range",
+     "from": {
+      "barId": "b1",
+      "partId": "b1p4",
+      "edge": "start"
+     },
+     "to": {
+      "barId": "b1",
+      "partId": "b1p8",
+      "edge": "end"
+     }
+    },
+    "label": {
+     "text": "40",
+     "state": "value"
+    },
+    "decoration": "brace",
+    "placement": "below"
+   }
+  ],
+  "presentation": {
+   "unitMm": 10,
+   "barHeightMm": 10,
+   "fontPt": 12,
+   "titlePt": 14,
+   "nameWidthMm": 28,
+   "output": "grey"
+  },
+  "captions": []
+ }
+}
