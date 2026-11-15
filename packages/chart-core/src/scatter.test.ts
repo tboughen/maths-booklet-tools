@@ -173,6 +173,8 @@ describe("scatter graphs", () => {
     const answer = forView(plot, "answer", true);
     expect(scatterLayout(answer).table.blocks[0].columns.map((c) => c.x)).toEqual(["7", "8"]);
     expect(layout(answer).height).toBe(layout(plot).height);
+    // An unmarked answer view (sizes, checks) lists the same points.
+    expect(scatterLayout(forView(plot, "answer")).table.blocks[0].columns.map((c) => c.x)).toEqual(["7", "8"]);
     expect(layout(answer).width).toBe(layout(plot).width);
     // No hidden points: no table, with a note.
     const none = scatterLayout(scatter((s) => void (s.table = "plot")));

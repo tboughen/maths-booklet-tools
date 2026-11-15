@@ -101,7 +101,7 @@ A pictogram is another kind of the same document: one row per category from the 
 
 - **Drawing (Edexcel style):** crosses on graph paper with arrowed axes numbered at every step,
   the vertical axis title to the left and the horizontal title below. Axes may start away from 0,
-  optionally with a zig-zag break next to the corner (labelled 0), which moves the grid 6 mm off
+  optionally with a zig-zag break next to the corner (each broken axis labels the corner 0), which moves the grid 6 mm off
   that axis.
 - **Settings (`scatter`):** up to 40 points `{x, y, show, ring}`; `xAxis` and `yAxis` (start, end,
   step, title, length 40–160 mm on paper and `broken`); grid (none, lines at each step, graph paper) with

@@ -127,6 +127,11 @@ export const revealed = (c: object) => REVEALED.has(c);
 const ANSWER_KEY = new WeakSet<object>();
 export const markAnswerKey = (c: object) => void ANSWER_KEY.add(c);
 export const answerKey = (c: object) => ANSWER_KEY.has(c);
+/** Scatter points an answer view shows only because they were saved hidden, whether or not
+ * the view is marked pink: a table of only the points pupils plot still lists them. */
+const TO_PLOT = new WeakSet<object>();
+export const markToPlot = (c: object) => void TO_PLOT.add(c);
+export const toPlot = (c: object) => TO_PLOT.has(c);
 /** A pictogram whose key value is hidden for pupils to complete. */
 export const pictogramKeyHidden = (d: { kind: string; pictogram?: PictogramSettings }) =>
   d.kind === "pictogram" && d.pictogram?.key.show === "hidden";

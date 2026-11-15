@@ -11,6 +11,7 @@ import {
   scatterOf,
   text,
   textWidth,
+  toPlot,
   type ScatterSettings,
 } from "./shared";
 import type { Envelope, Target } from "./index";
@@ -42,7 +43,7 @@ export type TableBlock = { x: number; y: number; headerWidth: number; rows: { he
 function tableLayout(sc: ScatterSettings, notes: string[]): { blocks: TableBlock[]; width: number; height: number } {
   const empty = { blocks: [], width: 0, height: 0 };
   if (sc.table === "none") return empty;
-  const listed = sc.points.filter((p) => p.x.trim() && p.y.trim() && (sc.table === "all" || p.show === "hidden" || revealed(p)));
+  const listed = sc.points.filter((p) => p.x.trim() && p.y.trim() && (sc.table === "all" || p.show === "hidden" || toPlot(p)));
   if (!listed.length) {
     notes.push(sc.table === "plot" ? "The table lists only hidden points, and no point is hidden, so no table prints." : "The table has no points to list.");
     return empty;
@@ -292,8 +293,9 @@ export function scatterSvg(e: Envelope): string {
   out.push(`<path d="${g.xTicks.map((_, i) => `M${n(p.x + i * stepX)},${n(c.y)}v1.5`).join("")}${g.yTicks.map((_, i) => `M${n(c.x)},${n(bottom - i * stepY)}h-1.5`).join("")}" stroke="black" stroke-width="0.3" fill="none"/>`);
   g.xTicks.forEach((t, i) => out.push(text(formatNumber(t), p.x + i * stepX, g.xLabelY)));
   g.yTicks.forEach((t, i) => out.push(text(formatNumber(t), c.x - 2.2, bottom - i * stepY + FONT * 0.33, "end")));
-  if (sc.xAxis.broken) out.push(text("0", c.x, g.xLabelY));
-  if (sc.yAxis.broken) out.push(text("0", c.x - 2.2, c.y + FONT * 0.33, "end"));
+  // An axis that starts at 0 already numbers 0, so its corner is not labelled again.
+  if (sc.xAxis.broken && g.xs.lo !== 0) out.push(text("0", c.x, g.xLabelY));
+  if (sc.yAxis.broken && g.ys.lo !== 0) out.push(text("0", c.x - 2.2, c.y + FONT * 0.33, "end"));
   // The table of values, ruled like the papers' tables.
   for (const b of g.table.blocks) {
     const bRight = b.x + b.headerWidth + b.columns.length * (b.columns[0]?.width ?? 0),
