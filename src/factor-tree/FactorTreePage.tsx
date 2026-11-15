@@ -509,8 +509,9 @@ export default function FactorTreePage({ active = true }: { active?: boolean }) 
                     <label className="pt-hide" title="Pupils draw this circle themselves; it prints on the answers copy.">
                       <input
                         type="checkbox"
-                        disabled={blocked}
+                        disabled={blocked || !selectedNode.value.text}
                         checked={selectedNode.circled === "hidden"}
+                        title={selectedNode.value.text ? undefined : "Enter the number first."}
                         onChange={(ev) => commit(() => setNode(e, selected.tree, selected.node, { circled: ev.target.checked ? "hidden" : true }))}
                       />
                       Circle only on the answers copy

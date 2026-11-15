@@ -1190,8 +1190,8 @@
  "factor-tree/default": {
   "schemaVersion": 1,
   "contentHash": "69d85b1ad8a62b6e7386f6b7df0f241f6f61008eb223a20dab2c613bfddbe5c9",
-  "pupilSvg": "9946eb661dcd4605b52f1fc7f90cdf8786c25df468a36383cf8c287b62af0fcb",
-  "answerSvg": "9946eb661dcd4605b52f1fc7f90cdf8786c25df468a36383cf8c287b62af0fcb"
+  "pupilSvg": "e83d16115bff9f3a47417992a6007a72714d33ddfcee5e07e6b1223140c694f8",
+  "answerSvg": "e83d16115bff9f3a47417992a6007a72714d33ddfcee5e07e6b1223140c694f8"
  },
  "factor-tree/example-complete-360-worked": {
   "schemaVersion": 1,

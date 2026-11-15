@@ -139,9 +139,14 @@ describe("factor trees (N-5)", () => {
     const blank = f.split(f.create("72"), "t1", "n1");
     const hidden = f.setNode(blank, "t1", "n2", { text: "36", show: "hidden" });
     expect(f.renderSvg(hidden)).toBe(f.renderSvg(blank));
-    const big = f.setNode(f.split(f.create("6"), "t1", "n1"), "t1", "n2", { text: "12345", show: "hidden" });
-    expect(f.layout(big).r).toBe(f.layout(f.split(f.create("6"), "t1", "n1")).r);
+    const big = f.setNode(f.split(f.create("123456"), "t1", "n1"), "t1", "n2", { text: "2", show: "hidden" });
+    expect(f.layout(big).r).toBe(f.layout(f.split(f.create("123456"), "t1", "n1")).r);
     expect(() => f.completeTree(blank, "", true)).toThrow();
-    expect(f.setNode(blank, "t1", "n2", { circled: "hidden" }).document.trees[0].nodes[1].circled).toBe(true);
+    expect(() => f.setNode(blank, "t1", "n2", { circled: "hidden" })).toThrow(/blank number cannot be circled/);
+    const answersOnly = f.setNode(blank, "t1", "n2", { text: "8", circled: "hidden" });
+    expect(f.setNode(answersOnly, "t1", "n2", { text: "" }).document.trees[0].nodes[1].circled).toBeUndefined();
+    // A hidden top number leaves room for the most digits; a hidden factor, for its printed parent's.
+    const top = f.setNode(f.split(f.create("1000000"), "t1", "n1", ["1000", "1000"]), "t1", "n1", { show: "hidden" });
+    expect(f.layout(top).r).toBeGreaterThanOrEqual(f.textWidth("0000000") / 2 + 1.6);
   });
 });

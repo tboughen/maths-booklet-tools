@@ -169,8 +169,7 @@ export function validate(input: unknown): Envelope {
       n.value.text = text;
       if (!text && n.value.show === "hidden") throw Error("A blank number cannot hold a hidden answer. Enter the answer, then hide it.");
       if (n.circled !== true && n.circled !== "hidden") delete n.circled;
-      // An empty circle is a scaffold that both copies print.
-      if (n.circled === "hidden" && !text) n.circled = true;
+      if (n.circled === "hidden" && !text) throw Error("A blank number cannot be circled only on the answers copy. Enter the number, then choose that circle.");
     });
     for (const n of t.nodes) {
       const k = childrenOf(t, n.id).length;
@@ -235,6 +234,8 @@ export function setNode(e: Envelope, treeId: string, nodeId: string, change: { t
     if (change.circled) node.circled = change.circled;
     else delete node.circled;
   }
+  // Clearing a number clears an answers-only circle, which needs its number.
+  else if (!node.value.text && node.circled === "hidden") delete node.circled;
   return validate(n);
 }
 /** Gives a number two branches, with the factors given (blank by default). */
@@ -442,10 +443,16 @@ export type PlacedNode = { treeId: string; id: string; x: number; y: number; nod
 export function layout(e: Envelope) {
   const d = e.document,
     issues: string[] = [];
-  // Only printed numbers set sizes, so the pupil copy gives no hint of a hidden number. A factor is never
-  // longer than the number it splits, so a blank still has room for its answer.
+  // Only printed numbers set sizes, so the pupil copy gives no hint of a hidden number. Every number that
+  // is not printed (blank or hidden alike) gets room for as many digits as its nearest printed number above
+  // it, since a factor is never longer than the number it splits, or for the most digits a number can have.
   const shown = (v: Value) => (v.show === "show" ? v.text : "");
-  const widest = Math.max(textWidth("00"), ...d.trees.flatMap((t) => t.nodes.map((n) => textWidth(shown(n.value)))));
+  const room = (t: Tree, n: TreeNode): string => {
+    for (let p: TreeNode | undefined = n; p; p = p.parent ? t.nodes.find((x) => x.id === p!.parent) : undefined)
+      if (shown(p.value)) return "0".repeat(shown(p.value).length);
+    return "0".repeat(MAX_DIGITS);
+  };
+  const widest = Math.max(textWidth("00"), ...d.trees.flatMap((t) => t.nodes.map((n) => textWidth(shown(n.value) || room(t, n)))));
   // Every number gets the same slot, wide enough for the widest number and a 10 mm pupil blank.
   const r = Math.max(BLANK_MM / 2 + 0.8, widest / 2 + 1.6);
   const slot = 2 * r + GAP;
