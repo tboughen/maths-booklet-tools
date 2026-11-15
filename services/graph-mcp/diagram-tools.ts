@@ -70,6 +70,7 @@ export const diagramOutput = z
     downloads: z.object({ svg: link.optional(), png: link.optional(), json: link.optional() }).strict(),
     editorUrl: z.string().url().nullable(),
     physicalSizeCm: z.object({ width: z.number(), height: z.number() }),
+    next: z.array(z.string()),
   })
   .passthrough();
 
@@ -107,6 +108,21 @@ function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;
 }
 
+/**
+ * M83: what a model can usefully do next with this result, in the order it usually needs them.
+ * Answers copies are offered only as something to make when the teacher asks.
+ */
+export function nextSteps(source: DiagramSource, warnings: readonly string[]): string[] {
+  const f = FAMILIES[source.kind];
+  const outputView = ("outputView" in source && source.outputView) || "pupil";
+  return [
+    ...(warnings.length ? ["Read the notes in the summary to the teacher; change the diagram with revise_diagram if a note asks for it."] : []),
+    `To change this diagram, call revise_diagram with kind "${source.kind}", this exact envelope and contentHash as baseHash${outputView === "answer" ? ', and outputView "answer" again for the answers copy' : ""}.`,
+    ...(f.answerView && outputView === "pupil" ? ['Only if the teacher asks for answers: call create_diagram with this envelope and outputView "answer".'] : []),
+    "To place it at another size, call check_diagram_placement; for every file in one ZIP, call download_diagram_bundle.",
+  ];
+}
+
 const MIME = { svg: "image/svg+xml", png: "image/png", json: "application/json" } as const;
 async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Checked", build: ResultBuilder, signal: AbortSignal) {
   const r = await build(source, signal);
@@ -116,6 +132,7 @@ async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
   for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);
+  const next = nextSteps(source, s.warnings);
   // Files as MCP resource links, so clients can offer them directly instead of retyping URLs.
   const links: ContentBlock[] = (Object.keys(MIME) as (keyof typeof MIME)[]).flatMap((format) => {
     const d = s.downloads[format];
@@ -124,8 +141,8 @@ async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   // Drop the builders' own lead-in text: the summary replaces it.
   const content = r.content.filter((c, i) => !(i === 0 && c.type === "text"));
   return {
-    structuredContent: { kind: source.kind, ...r.structuredContent, summary, altText: alt },
-    content: [{ type: "text" as const, text: summary }, ...content, ...links],
+    structuredContent: { kind: source.kind, ...r.structuredContent, summary, altText: alt, next },
+    content: [{ type: "text" as const, text: summary }, ...content, ...links, { type: "text" as const, text: `Next: ${next.join(" ")}` }],
   };
 }
 
