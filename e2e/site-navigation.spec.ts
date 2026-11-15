@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
@@ -5,8 +6,6 @@ import { PDFDocument } from "pdf-lib";
 const graphKey = "maths-booklet-tools:graph-envelope:v1";
 const ratioKey = "maths-booklet-tools:ratio-table-envelope:v1";
 const current = (page: Page) => page.locator(".site-page:not([hidden])");
-const tools = (page: Page) =>
-  page.getByRole("navigation", { name: "Diagram builder", exact: true });
 const sections = (page: Page) =>
   page.getByRole("navigation", { name: "Main sections" });
 
@@ -22,7 +21,7 @@ test("the wide header does not repeat the current tool's name beside the section
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/tools/graph");
-  await expect(page.locator(".site-tool-navigation [aria-current=page]")).toContainText("Graph tool");
+  await expect(current(page).locator(".tool-switcher-button")).toContainText("Graph tool");
   await expect(page.locator(".site-navigation-row")).not.toContainText("Graph tool");
   await expect(page.locator(".site-navigation-row").getByRole("link", { name: "Diagram builder", exact: true })).toHaveAttribute("aria-current", "true");
 });
@@ -40,44 +39,19 @@ test("home has one visible page heading and navigation focuses it", async ({
   await expect(heading).toBeFocused();
 });
 
-test("the booklet tool row shows when it scrolls and keeps the current tool in view", async ({
+test("the tool switcher lists every tool, marks the current one and fits a phone", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const row = page.getByRole("navigation", { name: "Diagram builder" });
-  await page.goto("/tools/bar-model");
-  await expect(row).toHaveClass(/has-more-end/);
-  await expect(row).not.toHaveClass(/has-more-start/);
   await page.goto("/tools/number-line");
-  await expect(row).toHaveClass(/has-more-start/);
-  const current = row.locator('[aria-current="page"]');
-  const [r, c] = [(await row.boundingBox())!, (await current.boundingBox())!];
-  expect(c.x).toBeGreaterThanOrEqual(r.x);
-  expect(c.x + c.width).toBeLessThanOrEqual(r.x + r.width);
-  await row.evaluate((el) => (el.scrollLeft = 0));
-  await expect(row).toHaveClass(/has-more-end/);
-  await expect(row).not.toHaveClass(/has-more-start/);
-  // Tabbing along the row keeps every focused link clear of the 48 px fades.
-  await page.goto("/tools/bar-model");
-  await row.getByRole("link").first().focus();
-  for (let i = 1; i < (await row.getByRole("link").count()); i++) {
-    await page.keyboard.press("Tab");
-    const clear = await row.evaluate((el) => {
-      const link = document.activeElement as HTMLElement;
-      if (!el.contains(link)) return "focus left the row";
-      const r = el.getBoundingClientRect(),
-        l = link.getBoundingClientRect();
-      if (el.classList.contains("has-more-end") && l.right > r.right - 48)
-        return `${link.textContent} under the right fade`;
-      if (el.classList.contains("has-more-start") && l.left < r.left + 48)
-        return `${link.textContent} under the left fade`;
-      return "";
-    });
-    expect(clear).toBe("");
-  }
-  // The 20-link tool row (All tools + 19 tools) needs about 3,030 px; a 3,400 px screen shows it all.
-  await page.setViewportSize({ width: 3400, height: 900 });
-  await expect(row).not.toHaveClass(/has-more/);
+  await current(page).locator(".tool-switcher-button").click();
+  const panel = page.getByRole("dialog", { name: "Switch diagram tool" });
+  await expect(panel.locator(".tool-switcher-groups").getByRole("link")).toHaveCount(19);
+  await expect(panel.locator('[aria-current="page"]')).toHaveText("Number lines");
+  const [box, view] = [(await panel.boundingBox())!, page.viewportSize()!];
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(view.width);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(view.width);
 });
 
 test("home and overview keep the two sections distinct; bare and existing URLs still work", async ({
@@ -117,8 +91,8 @@ test("home and overview keep the two sections distinct; bare and existing URLs s
     .click();
   await expect(page).toHaveTitle("Ratio tables · Maths Dock");
   await expect(
-    tools(page).getByRole("link", { name: "Ratio tables" }),
-  ).toHaveAttribute("aria-current", "page");
+    current(page).locator(".tool-switcher-button"),
+  ).toContainText("Ratio tables");
   await page.goBack();
   await expect(
     page.getByRole("heading", { name: "Diagram builder", exact: true }),
@@ -134,7 +108,7 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
 }) => {
   await page.goto("/tools/graph");
   await addLine(page);
-  await tools(page).getByRole("link", { name: "Ratio tables" }).click();
+  await switchTool(page, "Ratio tables");
   await current(page)
     .getByRole("group", { name: "Table structure" })
     .getByRole("button", { name: "Add row", exact: true })
@@ -157,7 +131,7 @@ test("immediate tool switching retains graphs, ratio edits and separate undo his
   await expect(
     current(page).getByLabel("Row 3 x cell type", { exact: true }),
   ).toHaveCount(0);
-  await tools(page).getByRole("link", { name: "Graph tool" }).click();
+  await switchTool(page, "Graph tool");
   await expect(
     current(page).getByRole("button", { name: /Objects 1/ }),
   ).toBeVisible();
@@ -200,8 +174,8 @@ test("invalid ratio drafts survive leaving and returning without silently replac
   await page.goto("/tools/ratio-table");
   const field = current(page).getByLabel("Row 1 x value", { exact: true });
   await field.fill("1/");
-  await tools(page).getByRole("link", { name: "Graph tool" }).click();
-  await tools(page).getByRole("link", { name: "Ratio tables" }).click();
+  await switchTool(page, "Graph tool");
+  await switchTool(page, "Ratio tables");
   await expect(field).toHaveValue("1/");
   await expect(field).toHaveAttribute("aria-invalid", "true");
   await expect(
@@ -330,8 +304,8 @@ test("storage failure retains current work through tool navigation", async ({
   });
   await page.goto("/tools/graph");
   await addLine(page);
-  await tools(page).getByRole("link", { name: "Ratio tables" }).click();
-  await tools(page).getByRole("link", { name: "Graph tool" }).click();
+  await switchTool(page, "Ratio tables");
+  await switchTool(page, "Graph tool");
   await expect(
     current(page).getByRole("button", { name: /Objects 1/ }),
   ).toBeVisible();
@@ -419,10 +393,7 @@ test("every page has its own address; old ?tool= links and unknown addresses are
 
   await page.goto("/?tool=ratio-table");
   await expect(page).toHaveURL(/\/tools\/ratio-table$/);
-  await page
-    .getByRole("navigation", { name: "Diagram builder" })
-    .getByRole("link", { name: "Graph tool" })
-    .click();
+  await switchTool(page, "Graph tool");
   await expect(page).toHaveURL(/\/tools\/graph$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/tools\/ratio-table$/);

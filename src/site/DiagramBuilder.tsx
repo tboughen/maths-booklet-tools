@@ -3,6 +3,8 @@ import { LayoutGrid, Grid3X3, Tags, Settings2, Star, ZoomIn, X } from "lucide-re
 import { PageHeading } from "./PageHeading";
 import { bookletTools, pageHref } from "./registry";
 import { setHousePreference, useHousePreference } from "./houseStyle";
+import { FavouriteStar } from "./FavouriteStar";
+import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, isNew, searchTool, strands, type StrandId } from "./toolCatalogue";
 import { HOUSE_STYLES, HOUSE_STYLE_NAMES, LINE_WEIGHTS, LINE_WEIGHT_NAMES, type HouseStyle, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import "./diagram-builder.css";
@@ -15,7 +17,6 @@ const VIEWS: { id: View; name: string; icon: ReactNode }[] = [
   { id: "topics", name: "Topics", icon: <Tags size={15} aria-hidden="true" /> },
 ];
 const VIEW_KEY = "mathsdock.toolsView";
-const FAVOURITES_KEY = "mathsdock.favouriteTools";
 
 function load<T>(key: string, check: (value: unknown) => value is T, fallback: T): T {
   try {
@@ -33,25 +34,19 @@ function save(key: string, value: unknown) {
   }
 }
 const isView = (v: unknown): v is View => VIEWS.some((view) => view.id === v);
-const isIds = (v: unknown): v is string[] => Array.isArray(v) && v.every((id) => typeof id === "string");
 
 /** The Diagram builder page: every diagram tool as a picture, grouped by GCSE strand. */
 export function DiagramBuilder() {
   const [search, setSearch] = useState("");
   const [strand, setStrand] = useState<StrandId | "all">("all");
   const [view, setViewState] = useState<View>(() => load(VIEW_KEY, isView, "pictures"));
-  const [favourites, setFavourites] = useState<string[]>(() => [...new Set(load(FAVOURITES_KEY, isIds, []))]);
+  const favouriteTools = useFavouriteToolList();
   const [peek, setPeek] = useState<Tool | null>(null);
   const root = useRef<HTMLElement>(null);
   const searchBox = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
 
   const setView = (next: View) => { setViewState(next); save(VIEW_KEY, next); };
-  const toggleFavourite = (id: string) => {
-    const next = favourites.includes(id) ? favourites.filter((f) => f !== id) : [...favourites, id];
-    setFavourites(next);
-    save(FAVOURITES_KEY, next);
-  };
 
   // Press / anywhere on this page to search, unless typing in a field already.
   useEffect(() => {
@@ -72,11 +67,9 @@ export function DiagramBuilder() {
 
   const results = bookletTools.map((tool) => ({ tool, ...searchTool(tool, search) })).filter((r) => r.found);
   const shownStrands = strand === "all" ? strands : strands.filter((s) => s.id === strand);
-  const favouriteTools = favourites.map((id) => bookletTools.find((t) => t.id === id)).filter((t): t is Tool => !!t);
   const showFavourites = !search && strand === "all";
 
   const tile = (tool: Tool, matched: string, place: string) => {
-    const starred = favourites.includes(tool.id);
     return (
       <article key={`${place}-${tool.id}`} className="tool-tile">
         <a className="overview-tool-card" href={pageHref(tool.id)} aria-label={`Open ${tool.name}`}>
@@ -89,7 +82,7 @@ export function DiagramBuilder() {
         </a>
         <span className="tool-tile-actions">
           <button type="button" className="tool-icon-button" aria-label={`Preview ${tool.name}`} title="Preview" onClick={() => setPeek(tool)}><ZoomIn size={15} aria-hidden="true" /></button>
-          <button type="button" className={`tool-icon-button${starred ? " is-favourite" : ""}`} aria-pressed={starred} aria-label={`${starred ? "Remove" : "Add"} ${tool.name} ${starred ? "from" : "to"} favourite tools`} title={starred ? "Remove from favourite tools" : "Add to favourite tools"} onClick={() => toggleFavourite(tool.id)}><Star size={15} aria-hidden="true" /></button>
+          <FavouriteStar tool={tool} className="tool-icon-button" size={15} />
         </span>
       </article>
     );

@@ -43,7 +43,7 @@ Direct-edit popovers must not be clipped by the white resource, scroll container
 
 ## Group controls by their purpose
 
-Use the existing shared header, tool navigation, page heading, workspace and settings panels. The Question bank's white panels, pale blue-grey background, navy text and blue actions became the common interface style. Keep the current MathsDock branding and shared tokens rather than copying an older screenshot's header.
+Use the existing shared header, page heading with its tool switcher, workspace and settings panels. The Question bank's white panels, pale blue-grey background, navy text and blue actions became the common interface style. Keep the current MathsDock branding and shared tokens rather than copying an older screenshot's header.
 
 Within the editor:
 

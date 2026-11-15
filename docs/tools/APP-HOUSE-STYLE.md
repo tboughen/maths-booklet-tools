@@ -29,8 +29,8 @@ that have not moved, and the two sets are not yet the same values. Do not add to
 | Brand | `--md-navy`, `--md-blue`, `--md-blue-soft` |
 | Meaning | `--md-green` (done), `--md-amber` (check), `--md-red` (error), `--md-pink` (teacher only) |
 | App bar | `--md-bar`, `--md-bar-ink`, `--md-bar-ink-2`, `--md-bar-accent`, `--md-bar-height` (44 px) |
-| Text sizes | `--md-text-xs` 12, `--md-text-sm` 13, `--md-text-md` 14, `--md-text-lg` 18, `--md-text-xl` 20 |
-| Controls | `--md-control` (32 px high), `--md-radius` (6 px), `--md-radius-card` (8 px) |
+| Text sizes | `--md-text-2xs` 11 (key hints only), `--md-text-xs` 12, `--md-text-sm` 13, `--md-text-md` 14, `--md-text-lg` 18, `--md-text-xl` 20 |
+| Controls | `--md-control` (32 px high), `--md-radius` (6 px), `--md-radius-card` (8 px), `--md-radius-key` (4 px, key hints), `--md-radius-pill` (chips), `--md-shadow-pop` (a panel that opens over the page) |
 
 Pink means one thing: the teacher's view, with hidden answers showing. Do not use it for anything else.
 
@@ -58,10 +58,31 @@ One navy bar, 44 px high, on every page: the logo, then the six pages. The curre
 with a white underline. Below about 1,055 px the links lose their icons, below about 900 px they
 fold onto a second line, and on a phone they sit behind the Menu button.
 
+## Moving between tools (in the site)
+
+A diagram tool's page heading is "Diagram builder ›" and then the tool's name. The name is a button
+that opens the tool switcher (`src/site/ToolSwitcher.tsx`): a search by tool or teaching topic,
+the teacher's favourite tools, and every tool grouped by strand. There is no row of tool links.
+
+- The strands are the four of the school's scheme of learning: Number and proportion, Algebra,
+  Geometry and measure, Statistics and probability (`src/site/toolCatalogue.ts`), one column each
+  in that order. Graph tools are Algebra. The Diagram builder page uses the same four.
+- `PageHeading` adds the switcher by itself on every registered tool's page. A tool does nothing.
+- The switcher's code, styles and search words load with a tool's page (`toolPage` in
+  `src/site/toolPage.ts`), not with the site's first load. If they cannot be fetched the page
+  still opens with a plain heading.
+- Up and down arrows move through the tools, Enter opens one, and Escape closes the switcher and
+  returns focus to the name. While searching, Enter opens the first tool found.
+- While the switcher is open its keys are its own: none reaches the editor behind it, so arrows,
+  Delete and Escape never change the diagram.
+- The open switcher sits above the editor and below the app bar.
+- The star beside the name adds the tool to favourites. Favourites are kept in the browser and
+  shared with the Diagram builder page (`src/site/favouriteTools.ts`).
+- Clicking the tool's name no longer moves focus harmlessly, so browser tests that need a neutral
+  click use `clickAway` from `e2e/tool-switcher.ts`, and move between tools with `switchTool`.
+
 ## Decided, and built in later steps
 
-- **Moving between tools.** The row of tool links goes. Clicking the tool's name opens a switcher
-  with search, favourites and every tool grouped by strand.
 - **Tall windows.** Settings go underneath the work in three columns, so the work keeps the full
   width.
 - **Answers showing.** While hidden answers are on screen, the switch turns pink and a small pink

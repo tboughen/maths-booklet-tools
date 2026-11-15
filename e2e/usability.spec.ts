@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "./release-fixtures";
 import { readFile } from "node:fs/promises";
 import { clickResourceAction } from "./resource-actions";
@@ -303,8 +304,8 @@ test("invalid notation survives tool navigation; Escape restores exports and mod
   await field.fill("x != 2");
   await field.press("Enter");
   await expect(page.getByRole("alert")).toContainText("not supported");
-  await page.getByRole("link", { name: "Triangles", exact: true }).click();
-  await page.getByRole("link", { name: "Number lines", exact: true }).click();
+  await switchTool(page, "Triangles");
+  await switchTool(page, "Number lines");
   await expect(field).toHaveValue("x != 2");
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),

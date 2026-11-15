@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { showExamples, galleryCard, chooseExample } from "./example-gallery";
 import { test, expect } from "./release-fixtures";
 import type { Page } from "@playwright/test";
@@ -352,17 +353,11 @@ test("invalid printed question drafts survive navigation and cancel without a sa
   await expect(
     page.getByRole("button", { name: "Undo", exact: true }),
   ).toBeDisabled();
-  const nav = page.getByRole("navigation", {
-    name: "Diagram builder",
-    exact: true,
-  });
-  await nav.getByRole("link", { name: "Graph tool", exact: true }).click();
+  await switchTool(page, "Graph tool");
   await expect(
     page.getByRole("dialog", { name: "Edit printed question" }),
   ).toBeHidden();
-  await nav
-    .getByRole("link", { name: "Expanding and factorising", exact: true })
-    .click();
+  await switchTool(page, "Expanding and factorising");
   await expect(input).toHaveValue("1/");
   await input.press("Escape");
   await expect(question).toBeFocused();
@@ -578,17 +573,11 @@ test("invalid drafts guard exports/history, survive navigation, and cancel witho
   await expect(
     page.getByRole("button", { name: "Copy for Word", exact: true }),
   ).toBeDisabled();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Graph tool", exact: true })
-    .click();
+  await switchTool(page, "Graph tool");
   await expect(
     page.getByRole("dialog", { name: "Edit grid cell" }),
   ).toBeHidden();
-  await page
-    .getByRole("navigation", { name: "Diagram builder", exact: true })
-    .getByRole("link", { name: "Expanding and factorising", exact: true })
-    .click();
+  await switchTool(page, "Expanding and factorising");
   await expect(page.getByLabel("Cell entry", { exact: true })).toHaveValue(
     "1/",
   );

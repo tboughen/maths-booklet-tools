@@ -1,5 +1,7 @@
 import { resourceCopyId } from "./copyDocument";
-import type { ReactNode } from "react";
+import { useContext, type ReactNode } from "react";
+import { bookletTools } from "./registry";
+import { ToolPageContext, useToolSwitcher } from "./toolPage";
 
 export function PageHeading({
   title,
@@ -10,10 +12,15 @@ export function PageHeading({
   description: string;
   children?: ReactNode;
 }) {
+  // On a diagram tool's page the heading is also the way to every other tool.
+  const toolId = useContext(ToolPageContext);
+  const tool = bookletTools.find((item) => item.id === toolId);
+  // It loads with the tool's page. If that failed, the heading stays the plain name.
+  const ToolSwitcher = useToolSwitcher();
   return (
     <div className="page-heading">
       <div>
-        <h1 tabIndex={-1}>{title}</h1>
+        {tool && ToolSwitcher ? <ToolSwitcher tool={tool} title={title} /> : <h1 tabIndex={-1}>{title}</h1>}
         {resourceCopyId && (
           <span className="worked-copy-badge">Separate worked copy</span>
         )}

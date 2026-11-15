@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { test, expect, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { unzipSync, strFromU8 } from "fflate";
@@ -80,8 +81,8 @@ test("adds a category beside the chart and work survives leaving the page", asyn
   await expect(page.getByLabel("Category 5 label")).toBeFocused();
   await page.getByLabel("Category 5 label").fill("Train");
   await page.getByLabel("Category 5 label").press("Enter");
-  await page.getByRole("link", { name: "Venn diagrams" }).first().click();
-  await page.getByRole("link", { name: "Statistical charts" }).first().click();
+  await switchTool(page, "Venn diagrams");
+  await switchTool(page, "Statistical charts");
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");
   await page.reload();
   await expect(page.getByLabel("Category 5 label")).toHaveValue("Train");

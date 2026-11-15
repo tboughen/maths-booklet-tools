@@ -1,3 +1,4 @@
+import { switchTool } from "./tool-switcher";
 import { showExamples } from "./example-gallery";
 import { clickResourceAction, openResourceMenu } from "./resource-actions";
 import { test, expect, type Page } from "@playwright/test";
@@ -451,8 +452,8 @@ test("teaching scaffold UI and Answer view retain undoable original document", a
       "",
     ),
   ).toContain("24681012");
-  await page.getByRole("link", { name: "Ratio tables", exact: true }).click();
-  await page.getByRole("link", { name: "Venn diagrams", exact: true }).click();
+  await switchTool(page, "Ratio tables");
+  await switchTool(page, "Venn diagrams");
   await expect(
     page.getByRole("checkbox", { name: "Teacher copy: show hidden answers", exact: true }),
   ).toBeChecked();

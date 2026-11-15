@@ -11,12 +11,19 @@ describe("Diagram builder catalogue", () => {
       expect(catalogue[id].topics.length).toBeGreaterThanOrEqual(2);
     }
   });
+  it("uses the scheme's four strands, with the graph tools under Algebra", () => {
+    expect(strands.map((s) => s.name)).toEqual(["Number and proportion", "Algebra", "Geometry and measure", "Statistics and probability"]);
+    expect(toolIds.filter((id) => catalogue[id].strand === "algebra")).toEqual(["expanding-factorising", "graph", "value-table-graph"]);
+  });
   it("finds tools by teaching words and names the topic that matched", () => {
     expect(searchTool(tool("triangle", "Triangles"), "hypotenuse")).toEqual({ found: true, matched: "hypotenuse" });
     expect(searchTool(tool("construction", "Constructions and loci"), "bearings")).toEqual({ found: true, matched: "Bearings" });
     expect(searchTool(tool("triangle", "Triangles"), "triangles")).toEqual({ found: true, matched: "" });
     expect(searchTool(tool("venn", "Venn diagrams"), "pythagoras").found).toBe(false);
     expect(searchTool(tool("venn", "Venn diagrams"), "  ")).toEqual({ found: true, matched: "" });
+    // A strand's name finds its tools, and the heading already says why.
+    expect(searchTool(tool("graph", "Graph tool"), "algebra")).toEqual({ found: true, matched: "" });
+    expect(searchTool(tool("venn", "Venn diagrams"), "algebra").found).toBe(false);
   });
   it("shows the New badge for 30 days after a tool is added", () => {
     expect(isNew("angles", new Date("2026-11-20"))).toBe(true);
