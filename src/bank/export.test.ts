@@ -34,6 +34,23 @@ describe("native PDF export and reviewed assets",()=>{
       }
     }
   });
+  it("prints only the chosen parts with the stem and earlier part they need",async()=>{
+    const stemmed=catalogue.questions.find(q=>q.id==="1MA1_JUN_2017_1F_Q14")!,needing=catalogue.questions.find(q=>q.id==="1MA1_JUN_2018_2H_Q5")!;
+    const marks=(q:typeof needing,labels:string[])=>q.parts.filter(p=>labels.includes(p.label)).reduce((n,p)=>n+p.marks,0);
+    for(const preset of ["compact","writing"] as const){
+      const result=await makePapers([stemmed,needing],catalogue.version,preset,()=>undefined,undefined,{[stemmed.id]:["14b"],[needing.id]:["c"]});
+      expect(result.marks).toBe(marks(stemmed,["14b"])+marks(needing,["b","c"]));
+      const pdf=await PDFDocument.load(new Uint8Array(await result.questions.arrayBuffer()));
+      expect(pdf.getSubject()).toContain(`${result.marks} marks`);
+      // A cut follows on under the one before it when it fits (Q5 (b) and (c)); one too tall for the rest
+      // of the page (Q14 (b) under its stem) starts a new page under a "continued" heading, at full size.
+      const one=`${stemmed.source} (b) | 1 mark`;
+      expect(marks(stemmed,["14b"])).toBe(1);
+      expect(result.headings).toEqual([`1. ${one}`,`1 (continued). ${one}`,`2. ${needing.source} (b) and (c) | ${marks(needing,["b","c"])} marks`]);
+      const scheme=await PDFDocument.load(new Uint8Array(await result.schemes.arrayBuffer()));
+      expect(scheme.getPageCount()).toBeGreaterThanOrEqual(2);
+    }
+  });
   it("supports writing space and keeps the scale drawing at a 1:1 matrix",async()=>{
     const question=catalogue.questions.find(q=>q.id==="1MA1_NOV_2019_1H_Q8")!;
     const result=await makePapers([question],catalogue.version,"writing",()=>undefined);

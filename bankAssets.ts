@@ -9,6 +9,7 @@ export interface CatalogueAssets {
     schemePdf: string;
     questionViews: {preview: string}[];
     schemeViews: {preview: string}[];
+    cuts?: {pdf: string; views: {preview: string}[]}[];
   }[];
 }
 
@@ -21,6 +22,7 @@ export function catalogueAssetPaths(catalogue: CatalogueAssets): string[] {
       question.questionPdf, question.printPdf, question.schemePdf,
       ...question.questionViews.map(view => view.preview),
       ...question.schemeViews.map(view => view.preview),
+      ...(question.cuts ?? []).flatMap(cut => [cut.pdf, ...cut.views.map(view => view.preview)]),
       ...(question.workedSolution ? [question.workedSolution.pdf, ...question.workedSolution.views.map(view => view.preview)] : []),
     ];
   });

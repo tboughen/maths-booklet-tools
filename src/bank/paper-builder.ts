@@ -2,7 +2,8 @@ import { normalizeCode, questionIdentity, type BankCatalogue, type BankListQuest
 import type { Coverage } from "./coverage";
 import { compareAccessibility } from "./performance";
 
-export interface PaperDraft { codes: string[]; manual: Record<string,string>; excluded: string[]; order: string[]; version: string; manuallyOrdered?: boolean }
+/** `partsOnly`: print only the parts that match the ticked codes (with the parts and stems they need), not whole questions. */
+export interface PaperDraft { codes: string[]; manual: Record<string,string>; excluded: string[]; order: string[]; version: string; manuallyOrdered?: boolean; partsOnly?: boolean }
 export interface PaperEntry<Q extends BankListQuestion = BankListQuestion> { key: string; question: Q; matchingCodes: string[]; matchedParts: string[]; otherParts: string[] }
 export const emptyDraft = (version = ""): PaperDraft => ({codes: [], manual: {}, excluded: [], order: [], version});
 export type DraftAction =
@@ -11,6 +12,7 @@ export type DraftAction =
   | {type: "add"; questions: BankListQuestion[]}
   | {type: "exclude"; key: string}
   | {type: "restore"}
+  | {type: "partsOnly"; value: boolean}
   | {type: "clear"}
   | {type: "remember"; keys: string[]}
   | {type: "move"; key: string; direction: number; visible: string[]}
@@ -26,6 +28,7 @@ export function draftReducer(state: PaperDraft, action: DraftAction): PaperDraft
     case "add": return action.questions.reduce((s, question) => draftReducer(s, {type: "question", question, checked: true}), state);
     case "exclude": return {...state, excluded: [...new Set([...state.excluded, action.key])]};
     case "restore": return {...state, excluded: []};
+    case "partsOnly": { const {partsOnly: _old, ...rest} = state; void _old; return action.value ? {...rest, partsOnly: true} : rest; }
     case "clear": return emptyDraft(state.version);
     case "remember": {
       const added = action.keys.filter(key => !state.order.includes(key));
@@ -63,7 +66,10 @@ export function draftEntries<Q extends BankListQuestion>(coverage: Coverage<Q>, 
     if (!matchingCodes.length && !state.manual[key]) continue;
     const mapped = appearances.filter(q => q.codes.some(c => selected.has(c)));
     const question = appearances.find(q => q.id === state.manual[key]) || mapped[0] || appearances[0];
-    const matchedParts = [...new Set(appearances.flatMap(q => q.parts.filter(p => p.codes.some(c => selected.has(c))).map(p => p.label)))];
+    // A crossover pair labels its parts differently ("21a" on one tier, "a" on the other), so a part
+    // matched on either appearance is named by the chosen question's label in the same position.
+    const matchedAt = new Set(appearances.flatMap(q => q.parts.length === question.parts.length ? q.parts.flatMap((p, i) => p.codes.some(c => selected.has(c)) ? [i] : []) : []));
+    const matchedParts = question.parts.filter((p, i) => matchedAt.has(i) || p.codes.some(c => selected.has(c))).map(p => p.label);
     entries.push({key, question, matchingCodes, matchedParts, otherParts: matchingCodes.length ? question.parts.filter(p => !matchedParts.includes(p.label)).map(p => p.label) : []});
   }
   const position = new Map(state.order.map((key,i) => [key,i]));
@@ -73,3 +79,8 @@ export function draftEntries<Q extends BankListQuestion>(coverage: Coverage<Q>, 
 }
 
 export const hasDraftIntent = (state: PaperDraft) => !!(state.codes.length || Object.keys(state.manual).length);
+
+/** The catalogue parts of each entry that would print on their own: only entries matched by code with other parts left over. */
+export function entryParts(entries: PaperEntry[]): Record<string, string[]> {
+  return Object.fromEntries(entries.filter(e=>e.matchingCodes.length&&e.otherParts.length).map(e=>[e.question.id,e.matchedParts.filter(l=>e.question.parts.some(p=>p.label===l))]).filter(([,labels])=>labels.length));
+}

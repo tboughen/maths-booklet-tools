@@ -1,5 +1,5 @@
 import { compareAccessibility, type QuestionPerformance } from "./performance";
-import { validateWorkedSolution, type WorkedSolution } from "../../workedSolution";
+import { bankAssetPath, validateWorkedSolution, type WorkedSolution } from "../../workedSolution";
 import { paperDetailPath, type DetailKey } from "../../bankCatalogueSplit";
 
 export type Tier = "all" | "F" | "H";
@@ -29,6 +29,24 @@ export interface BankPart {
   sourceCodes: string[];
   mappingStatus: string;
   notes: string[];
+}
+
+/**
+ * One separately served piece of a question, cut from the original paper: a part (as labelled on the
+ * paper, covering one or more catalogue parts) or the question's shared stem. `context` lists the
+ * cuts shown above it so it makes sense; `requiresAnswerTo` the earlier parts whose answers it needs,
+ * so it is never served without them.
+ */
+export interface BankCut {
+  id: string;
+  kind: "part" | "stem";
+  label: string;
+  /** The catalogue part labels this cut covers; empty for a stem. */
+  parts: string[];
+  pdf: string;
+  views: BankView[];
+  context: string[];
+  requiresAnswerTo: string[];
 }
 
 /** A question as the catalogue index lists it: everything except its views, PDFs and worked solution. */
@@ -73,6 +91,8 @@ export interface BankQuestionDetail {
   schemePdf: string;
   workedSolution?: WorkedSolution;
   printPages: {width: number; height: number}[];
+  /** The question's part and stem cuts; absent when the question is only served whole. */
+  cuts?: BankCut[];
   exportRouting74?: { policy: "q8-classroom-compact74"; scopeSHA256: string; authoritySHA256: string };
 }
 // The split must move exactly these fields; this fails to compile if the two lists drift apart.
@@ -251,7 +271,27 @@ function missingDetail(q: BankQuestion): string | null {
   if (!q.questionPdf) return "questionPdf";
   if (!q.printPdf) return "printPdf";
   if (!q.schemePdf) return "schemePdf";
+  if (q.cuts !== undefined && !cutsValid(q)) return "cuts";
   return null;
+}
+
+/**
+ * True when the cuts cover every catalogue part exactly once, each has its file and previews, and
+ * every context and needs-answer link points at another cut of the same question.
+ */
+function cutsValid(q: BankQuestion): boolean {
+  const cuts = q.cuts;
+  if (!Array.isArray(cuts) || !cuts.length) return false;
+  const ids = new Set(cuts.map(c => c.id));
+  if (ids.size !== cuts.length) return false;
+  if (!cuts.every(c => c && Array.isArray(c.parts))) return false;
+  const covered = cuts.flatMap(c => c.parts);
+  const labels = q.parts.map(p => p.label);
+  if (covered.length !== labels.length || new Set(covered).size !== covered.length || covered.some(l => !labels.includes(l))) return false;
+  return cuts.every(c => Array.isArray(c.parts) && Array.isArray(c.context) && Array.isArray(c.requiresAnswerTo) && (c.kind === "part" ? c.parts.length > 0 : c.kind === "stem" && c.parts.length === 0)
+    && typeof c.label === "string" && !!c.label && bankAssetPath(c.pdf, "pdf") && Array.isArray(c.views) && c.views.length > 0 && c.views.every(v => bankAssetPath(v.preview, "png"))
+    && [...c.context, ...c.requiresAnswerTo].every(id => id !== c.id && ids.has(id))
+    && c.requiresAnswerTo.every(id => c.context.includes(id) && cuts.find(o => o.id === id)?.kind === "part"));
 }
 
 const QUESTION_FAILED = "A question failed its catalogue check. Please report the affected question.";

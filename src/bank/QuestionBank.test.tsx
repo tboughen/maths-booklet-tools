@@ -11,7 +11,7 @@ vi.mock("./catalogueLoader", () => ({
   createDetailLoader: () => ({load: () => new Promise(() => undefined)}),
 }));
 vi.mock("./PdfView", () => ({PdfView: () => null}));
-vi.mock("./pdf", () => ({assetUrl: (p: string) => p, downloadBlob: vi.fn(), preloadQuestion: vi.fn(), questionImage: vi.fn()}));
+vi.mock("./pdf", () => ({assetUrl: (p: string) => p, downloadBlob: vi.fn(), preloadQuestion: vi.fn(), questionImage: vi.fn(), stackImage: vi.fn()}));
 
 import QuestionBank from "./QuestionBank";
 

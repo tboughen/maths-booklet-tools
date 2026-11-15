@@ -12,7 +12,7 @@ const memory = () => {
   const items = new Map<string, string>();
   return { items, getItem: (k: string) => items.get(k) ?? null, setItem: (k: string, v: string) => void items.set(k, v), removeItem: (k: string) => void items.delete(k) };
 };
-const draft: PaperDraft = { codes: ["U538", "U793"], manual: { "1MA1_JUN_2018_3H_Q3": "1MA1_JUN_2018_3H_Q3" }, excluded: ["x"], order: ["b", "a"], version: "v7", manuallyOrdered: true };
+const draft: PaperDraft = { codes: ["U538", "U793"], manual: { "1MA1_JUN_2018_3H_Q3": "1MA1_JUN_2018_3H_Q3" }, excluded: ["x"], order: ["b", "a"], version: "v7", manuallyOrdered: true, partsOnly: true };
 
 describe("paper draft saved on this device", () => {
   it("round-trips every part of the draft, including manual order and exclusions", () => {
