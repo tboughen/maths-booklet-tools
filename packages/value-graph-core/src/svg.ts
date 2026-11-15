@@ -110,9 +110,11 @@ export function metrics(e: ValueEnvelope) {
     withGraph,
   };
 }
+/** Value-graph axis values and numbers keep 8 decimal places. */
+const VALUE_PLACES = 8;
 /** The numbered values of one axis: multiples of every, except 0 (the origin has its own label). */
 export function labels(min: number, max: number, every: number): number[] {
-  return axisTickValues(min, max, every).filter((v) => v !== 0);
+  return axisTickValues(min, max, every, 0, VALUE_PLACES).filter((v) => v !== 0);
 }
 export function renderSvg(raw: ValueEnvelope): string {
   const e = validate(raw),
@@ -283,7 +285,7 @@ export function renderSvg(raw: ValueEnvelope): string {
     );
     const xl = labels(number(b.xMin), number(b.xMax), number(g.xLabelEvery)),
       yl = labels(number(b.yMin), number(b.yMax), number(g.yLabelEvery));
-    if (axisNumbersTouch(xl.map((x) => ({ at: (x * 10) / sx, width: width(axisNumberText(x)) })), 1))
+    if (axisNumbersTouch(xl.map((x) => ({ at: x, width: width(axisNumberText(x, VALUE_PLACES)) })), 1, (from, to) => ((to - from) * 10) / sx))
       throw Error("Axis labels overlap. Use a larger label interval.");
     elements.push(`<g data-layer="axis-values" data-font-points="12">`);
     xl.forEach((x) =>
@@ -291,7 +293,7 @@ export function renderSvg(raw: ValueEnvelope): string {
         numericText(
           px(x),
           oy + 4,
-          axisNumberText(x),
+          axisNumberText(x, VALUE_PLACES),
           "middle",
           g.axisStyle === "exam",
         ),
@@ -302,7 +304,7 @@ export function renderSvg(raw: ValueEnvelope): string {
         numericText(
           ox - 1.6,
           py(y) + f * 0.3,
-          axisNumberText(y),
+          axisNumberText(y, VALUE_PLACES),
           "end",
           g.axisStyle === "exam",
         ),

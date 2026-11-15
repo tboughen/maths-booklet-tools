@@ -31,5 +31,7 @@ describe("shared axis numbering (U58)", () => {
     d.axes.x = { ...d.axes.x, unitsPerSquare: 2, labelEvery: 2 };
     expect(axisTicks(d, "x").map((t) => [t.index, t.label])).toEqual([[0, "−8"], [2, "−4"], [6, "4"], [8, "8"], [10, "12"]]);
     expect(labels(-2, 3, 1)).toEqual([-2, -1, 1, 2, 3]);
+    // The value graph keeps 8 places, so a 2/3 interval prints 0.66666667 as before.
+    expect(labels(-1, 1, 2 / 3).map((v) => axisNumberText(v, 8))).toEqual(["−0.66666667", "0.66666667"]);
   });
 });

@@ -137,8 +137,8 @@ export function readableName(name: string): string {
  */
 export function xNumbersCrowded(document: DiagramDocumentV1): boolean {
   const fontSize = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, 100);
-  const numbers = axisTicks(document, "x").map((tick) => ({ at: tick.index * 100, width: axisLabelBoxWidth(tick.label, fontSize) }));
-  return axisNumbersTouch(numbers, 4);
+  const numbers = axisTicks(document, "x").map((tick) => ({ at: tick.index, width: axisLabelBoxWidth(tick.label, fontSize) }));
+  return axisNumbersTouch(numbers, 4, (from, to) => (to - from) * 100);
 }
 
 /** Printed coordinates are exact only for short decimals: (1/3, 2) would print as 0.333333. */
