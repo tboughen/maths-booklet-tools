@@ -36,6 +36,8 @@ if (typeof window !== "undefined") {
   window.addEventListener("blur", () => { device.space = false; });
 }
 let strokeCount = 0;
+// Each layer's way to abandon a finger's stroke, so a stylus landing on any page beats a palm on every page.
+const touchDrops = new Set<() => void>();
 
 type Draft =
   | { tool: "draw"; kind: StrokeKind; id: number; type: string; points: [number, number][]; start: [number, number] }
@@ -63,9 +65,19 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
       for (const stroke of live.current.strokes) if (!draft.erased.has(stroke.id) && touchesStroke(stroke, point, draft.radius)) { draft.erased.add(stroke.id); changed = true; }
       if (changed) set(draft);
     };
+    // Abandons a stroke without committing it: no ink, no undo step.
+    // A pinch keeps the finger's capture, so the stage zoom still follows it off the stage.
+    const drop = (draft: Draft, release = true) => {
+      if (draft.tool === "laser") setTrails(t => t.filter(trail => trail.id !== draft.id));
+      if (release) try { el.releasePointerCapture(draft.id); } catch { /* Capture is optional. */ }
+      set(undefined);
+    };
+    const dropTouch = () => { if (current?.type === "touch") drop(current); };
+    touchDrops.add(dropTouch);
     const down = (event: PointerEvent) => {
       const { settings: s } = live.current;
-      if (event.pointerType === "pen") device.stylus = true;
+      // A stylus beats a finger: a palm that landed first, on any page, loses its stroke and the stylus draws.
+      if (event.pointerType === "pen") { device.stylus = true; for (const dropOne of touchDrops) dropOne(); }
       const stylusEraser = isStylusEraser(event);
       if (event.pointerType === "mouse" && event.button !== 0) return;
       if (device.space && event.pointerType === "mouse") return;
@@ -75,7 +87,7 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
         // Palm rejection: once a stylus is in use, fingers pan and pinch.
         if (device.stylus) return;
         // A second finger means a pinch: drop the stroke and let the stage zoom.
-        if (current) { if (current.type === "touch") { if (current.tool === "laser") setTrails(t => t.filter(trail => trail.id !== current!.id)); set(undefined); } return; }
+        if (current) { if (current.type === "touch") drop(current, false); return; }
       }
       if (current) return;
       (event as ClaimedPointerEvent).qbClaimed = true;
@@ -137,7 +149,13 @@ export function AnnotationLayer({ strokes, width, height, scale, active, setting
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", up);
+    // A pen lifted over the toolbar, or anywhere capture did not reach, still ends its stroke.
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
     return () => {
+      touchDrops.delete(dropTouch);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
       stage?.removeEventListener("pointerdown", margin, true);
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);

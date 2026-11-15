@@ -146,4 +146,28 @@ test.describe("question viewer annotations on touch boards", () => {
     await expect.poll(async () => parseInt(await page.locator(".qb-footer .qb-zoom output").textContent() ?? "0")).toBeGreaterThan(150);
     expect(await strokes(page)).toBe(2);
   });
+  test("a stylus beats a palm that landed first, and a pen lifted off the page still ends its stroke", async ({ page, context }) => {
+    await open(page);
+    await page.keyboard.press("p");
+    const cdp = await context.newCDPSession(page);
+    const box = (await page.locator(".qb-stage canvas").first().boundingBox())!;
+    const touch = (type: string, points: { x: number; y: number }[]) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: points.map((p, id) => ({ x: box.x + p.x, y: box.y + p.y, id })) });
+    // Synthetic stylus events: the browser can't drive a real pen, so dispatch pen pointer events on the ink layer.
+    const pen = (type: string, x: number, y: number, target: "layer" | "body" = "layer") => page.evaluate(({ type, x, y, target }) => {
+      const layer = document.querySelector(".qb-stage .qb-annotations")!;
+      (target === "layer" ? layer : document.body).dispatchEvent(new PointerEvent(type, { pointerId: 77, pointerType: "pen", isPrimary: true, bubbles: true, cancelable: true, clientX: x, clientY: y, button: type === "pointermove" ? -1 : 0, buttons: type === "pointerup" ? 0 : 1 }));
+    }, { type, x: box.x + x, y: box.y + y, target });
+    await touch("touchStart", [{ x: 100, y: 100 }]);
+    await touch("touchMove", [{ x: 160, y: 100 }]);
+    await expect(ink(page)).toHaveCount(1);
+    await pen("pointerdown", 100, 400);
+    for (let i = 1; i <= 6; i++) await pen("pointermove", 100 + i * 30, 400);
+    // Lifted over something that isn't the ink layer (a toolbar, say).
+    await pen("pointerup", 280, 400, "body");
+    await touch("touchMove", [{ x: 220, y: 100 }]);
+    await touch("touchEnd", []);
+    await expect.poll(() => strokes(page)).toBe(1);
+    const drawn = (await ink(page).first().boundingBox())!;
+    expect(drawn.y - box.y).toBeGreaterThan(300);
+  });
 });
