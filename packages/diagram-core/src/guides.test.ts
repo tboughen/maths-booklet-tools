@@ -54,7 +54,9 @@ describe("ratio-table gradient guidance (Tim, 15 Nov 2026)", () => {
     expect(guide).not.toMatch(/y ↓ for a negative gradient/);
   });
   it("its compact example builds and prints the negative movement", () => {
-    const spec = JSON.parse(guide.match(/Compact form[^{]*(\{columns:.*?\})\./)![1].replace(/(\w+):\[/g, '"$1":['));
+    const match = guide.match(/Compact form[^{]*(\{columns:.*?\})\./);
+    expect(match, "the guide has a compact-form example").not.toBeNull();
+    const spec = JSON.parse(match![1].replace(/(\w+):\[/g, '"$1":['));
     expect(spec.columns).toEqual(["x →", "y ↑"]);
     const envelope = FAMILIES["ratio-table"].create({ spec });
     const answer = drawDiagram("ratio-table", envelope, "answer").svg;

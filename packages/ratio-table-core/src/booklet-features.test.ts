@@ -14,10 +14,11 @@ import {
 } from "./interchange";
 import { drawDiagram } from "../../diagram-core/src/registry";
 
-// Hidden answers, the down arrow and the compact form, which booklets need to use ratio tables
-// in place of plain tables (Tim, 11 Nov 2026).
+// Hidden answers, the down-arrow heading and the compact form, which booklets need to use ratio
+// tables in place of plain tables. The down arrow is a capability only: a gradient table is
+// always y ↑ with a negative movement (Tim, 15 Nov 2026).
 
-const gradient = () =>
+const downHeading = () =>
   createRatioTable({
     columns: ["x →", "y ↓"],
     table: [
@@ -49,7 +50,7 @@ describe("hidden answers", () => {
   });
 
   it("hides a scaling operation: an answer line for pupils, the label in the answers copy", () => {
-    const e = gradient();
+    const e = downHeading();
     expect(e.document.mode).toBe("annotated");
     expect(e.document.transitions).toEqual([{ from: "row-1", to: "row-2", operation: "divide", factor: "2", hidden: true }]);
     const pupil = renderRatioSvg(e.document),
@@ -64,7 +65,7 @@ describe("hidden answers", () => {
 
   it("reserves a full answer line for a hidden operation, never a shorter one", () => {
     const shown = createRatioTable({ table: [["2", "6"], ["1", "3"]], steps: ["÷ 2"] }),
-      hidden = gradient();
+      hidden = downHeading();
     expect(ratioMetrics(hidden.document).gutter).toBeGreaterThan(ratioMetrics(shown.document).gutter);
     const [line] = ratioPrintFacts(hidden.document).referenceFeatures.answerLineLengthsMm;
     expect(line).toBeGreaterThanOrEqual(6);
@@ -82,7 +83,7 @@ describe("hidden answers", () => {
   });
 
   it("gives the booklet both copies through the shared diagram registry", () => {
-    const e = gradient(),
+    const e = downHeading(),
       pupil = drawDiagram("ratio-table", e, "pupil"),
       answer = drawDiagram("ratio-table", e, "answer");
     expect(pupil.svg).not.toContain(">3<");
@@ -100,14 +101,14 @@ describe("hidden answers", () => {
     });
     expect(e.document.rows[1].cells[1]).toEqual({ kind: "hidden", value: "3" });
     expect(e.document.transitions[0]).not.toHaveProperty("hidden");
-    const again = parseRatioFile(JSON.stringify(gradient()));
-    expect(await ratioHash(again)).toBe(await ratioHash(gradient()));
+    const again = parseRatioFile(JSON.stringify(downHeading()));
+    expect(await ratioHash(again)).toBe(await ratioHash(downHeading()));
   });
 });
 
 describe("down arrow headings", () => {
   it("draws y ↓ with the arrow head at the bottom", () => {
-    const e = gradient();
+    const e = downHeading();
     expect(e.document.headings).toEqual([
       { text: "x", italic: true, direction: "right" },
       { text: "y", italic: true, direction: "down" },
