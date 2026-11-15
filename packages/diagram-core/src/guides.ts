@@ -214,11 +214,73 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   elevations: fromConfig(elevationsConfig),
 };
 
-const jsonSchema = (schema: z.ZodType) => {
-  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
+const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
+  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any", reused }) as Record<string, unknown>;
   delete s.$schema;
   return s;
 };
+/**
+ * M1/M14: a family's spec or operations schema, written once. Shapes the schema reuses (a label,
+ * an annotation, a point) can go in its own $defs and be referred to with $ref; that form is used
+ * only when it is smaller, because hoisting a tiny shape costs more than repeating it.
+ */
+const leanSchema = (schema: z.ZodType | undefined) => {
+  if (!schema) return null;
+  const inline = jsonSchema(schema),
+    shared = readableDefs(jsonSchema(schema, "ref"));
+  return JSON.stringify(shared).length < JSON.stringify(inline).length ? shared : inline;
+};
+/**
+ * Puts small or single-use shapes back inline (a $ref to an id string reads worse than the
+ * string) and names the rest after what they hold, e.g. "text-state" for a label.
+ */
+function readableDefs(root: Record<string, unknown>): Record<string, unknown> {
+  const defs = { ...((root.$defs as Record<string, unknown>) ?? {}) };
+  type Visit = (name: string, siblings: Record<string, unknown>) => unknown;
+  // A reference may carry its own keys beside $ref (a description, say); they are kept.
+  const walk = (v: unknown, visit: Visit): unknown => {
+    if (Array.isArray(v)) return v.map((x) => walk(x, visit));
+    if (!v || typeof v !== "object") return v;
+    const { $ref, ...rest } = v as Record<string, unknown>;
+    const siblings = Object.fromEntries(Object.entries(rest).map(([k, x]) => [k, walk(x, visit)]));
+    const name = typeof $ref === "string" ? ($ref.split("/").pop() as string) : null;
+    if (name !== null && name in defs) return visit(name, siblings);
+    return $ref === undefined ? siblings : { $ref, ...siblings };
+  };
+  const keep: Visit = (n, siblings) => ({ $ref: `#/$defs/${n}`, ...siblings });
+  const body = Object.fromEntries(Object.entries(root).filter(([k]) => k !== "$defs"));
+  // Inline until stable: a def used once, or short enough that a reference saves nothing.
+  for (let changed = true; changed; ) {
+    changed = false;
+    const uses = new Map<string, number>();
+    walk({ body, defs }, (n, siblings) => (uses.set(n, (uses.get(n) ?? 0) + 1), keep(n, siblings)));
+    for (const [name, def] of Object.entries(defs)) {
+      if ((uses.get(name) ?? 0) > 1 && JSON.stringify(def).length > 60) continue;
+      if (JSON.stringify(def).includes(`/${name}"`)) continue; // recursive: must stay a reference
+      const swap = (v: unknown): unknown =>
+        walk(v, (n, siblings) => (n === name ? { ...(swap(def) as object), ...siblings } : keep(n, siblings)));
+      for (const [k, d] of Object.entries(defs)) if (k !== name) defs[k] = swap(d);
+      Object.assign(body, swap(body));
+      delete defs[name];
+      changed = true;
+      break;
+    }
+  }
+  const names = new Map<string, string>(),
+    taken = new Set<string>();
+  for (const [name, def] of Object.entries(defs)) {
+    const d = def as { properties?: Record<string, unknown>; oneOf?: unknown; anyOf?: unknown };
+    let base = d.properties ? Object.keys(d.properties).slice(0, 3).join("-") : d.oneOf || d.anyOf ? "choice" : "shape";
+    if (taken.has(base)) for (let i = 2; ; i++) if (!taken.has(`${base}${i}`)) { base = `${base}${i}`; break; }
+    taken.add(base);
+    names.set(name, base);
+  }
+  const rename = (v: unknown): unknown => walk(v, (n, siblings) => ({ $ref: `#/$defs/${names.get(n)}`, ...siblings }));
+  const out = rename(body) as Record<string, unknown>;
+  if (names.size) out.$defs = Object.fromEntries([...names].map(([old, next]) => [next, rename(defs[old])]));
+  return out;
+}
+const field = (schema: z.ZodType, name: string) => (schema as unknown as { shape?: Record<string, z.ZodType> }).shape?.[name];
 const cache = new Map<DiagramKind, Record<string, unknown>>();
 /** Everything diagram_capabilities returns for one family, built once per process. */
 export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
@@ -226,8 +288,6 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
   if (!v) {
     const f = FAMILIES[kind],
       g = GUIDES[kind];
-    const create = jsonSchema(f.createSchema) as { properties?: Record<string, unknown> };
-    const revise = jsonSchema(f.revisionSchema) as { properties?: Record<string, unknown> };
     v = {
       kind,
       label: f.label,
@@ -239,8 +299,8 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: create.properties?.spec ?? null,
-      operationsSchema: revise.properties?.operations ?? null,
+      specSchema: leanSchema(field(f.createSchema, "spec")),
+      operationsSchema: leanSchema(field(f.revisionSchema, "operations")),
     };
     cache.set(kind, v);
   }
