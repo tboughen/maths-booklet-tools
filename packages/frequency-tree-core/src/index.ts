@@ -5,6 +5,9 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { withFields } from "../../envelope-core/src/errors";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "frequency-tree-1" as const;
+
 /**
  * Frequency trees, drawn left to right as in GCSE papers: the total in the
  * first oval, then one oval per group with its count, and the group names on
@@ -79,7 +82,7 @@ export const envelopeSchema = z
   .object({
     tool: z.literal("frequency-tree"),
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("frequency-tree-1"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     document: documentSchema,
     ...aboutShape,
   })
@@ -428,7 +431,7 @@ function empty(): Envelope {
   return {
     tool: "frequency-tree",
     schemaVersion: 1,
-    rendererVersion: "frequency-tree-1",
+    rendererVersion: RENDERER_VERSION,
     document: {
       total: label(),
       nodes: [newNode("n1", null), newNode("n2", null)],

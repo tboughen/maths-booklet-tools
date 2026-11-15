@@ -2,6 +2,9 @@ import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
 import { parseNumber } from "../../ratio-table-core/src/numbers";
 import { LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
+
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "triangle-2" as const;
 /** Fraction parts print at 85% of the label size, so triangle labels stay at 11 pt or more. */
 export const TRIANGLE_MIN_PT = Math.max(MIN_TEXT_PT, 11);
 
@@ -126,7 +129,7 @@ export const envelopeSchema = z
   .object({
     kind: z.literal("triangle"),
     schemaVersion: z.literal(2),
-    rendererVersion: z.literal("triangle-2"),
+    rendererVersion: z.literal(RENDERER_VERSION),
     styleProfile: z.literal("exam-v1"),
     document: documentSchema,
     ...aboutShape,

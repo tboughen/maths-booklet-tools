@@ -4,7 +4,7 @@ export const constructionConfig = {
   capabilities: {
     editor: "The returned editor link opens the drawing at /tools/construction, where teachers drag points, add constructions and regions, and save or print.",
     schemaVersions: [1],
-    rendererVersions: ["construction-1"],
+    rendererVersions: [core.RENDERER_VERSION],
     units: "centimetres, y upwards, origin at the bottom-left corner of the drawing area; printed at true size (1 cm prints as 1 cm)",
     widthCm: core.WIDTH,
     heightCm: core.HEIGHT,

@@ -6,7 +6,7 @@ import { unzipSync } from "fflate";
 import { verifyPrintBytes } from "../../packages/graph-core/src/png-bytes";
 import { graphHash } from "../../packages/graph-core/src/interchange";
 import type { GraphEnvelope } from "../../packages/graph-core/src/interchange";
-import { ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
+import { RATIO_RENDERER_VERSION, ratioHash, ratioMetrics } from "../../packages/ratio-table-core/src/interchange";
 import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
 import { receiveSvg } from "./svg-consumer";
 import { discoverTools } from "./discovery";
@@ -61,7 +61,7 @@ try {
     rows: { minimum: number; maximum: number }; revisionOperations: string[];
   };
   if (capabilities.isError || JSON.stringify(caps.supportedColumns) !== "[1,2,3]" ||
-      JSON.stringify(caps.rendererVersions) !== '["ratio-2"]' ||
+      JSON.stringify(caps.rendererVersions) !== JSON.stringify([RATIO_RENDERER_VERSION]) ||
       caps.rows.minimum !== 1 || caps.rows.maximum !== 6 ||
       !caps.revisionOperations.includes("add_column") || !caps.revisionOperations.includes("remove_column"))
     throw Error("Extended ratio capabilities were not advertised.");
@@ -219,7 +219,7 @@ try {
     return reply.structuredContent as typeof table;
   }
   const extended = await reviseTable(table, [{ op: "add_column", heading: { text: "z", italic: true, direction: "none" } }]);
-  if (extended.envelope.schemaVersion !== 2 || extended.envelope.rendererVersion !== "ratio-2" ||
+  if (extended.envelope.schemaVersion !== 2 || extended.envelope.rendererVersion !== RATIO_RENDERER_VERSION ||
       extended.envelope.document.rows.some(row => row.cells[2].kind !== "empty"))
     throw Error("Column addition did not preserve a blank third column.");
   const factorEdit = await reviseTable(extended, [{ op: "set_transition", transition: {

@@ -9,6 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const SAVED = "Saved on this device";
 export const SAVE_UNAVAILABLE = "Save unavailable — download editable file";
+/** Shown while recovery data is protected: this tab is not saving until it is resolved. */
+export const NOT_SAVED = "Not saved on device";
 export const STORAGE_UNAVAILABLE = "Device storage is unavailable. Save an editable file to keep your work.";
 
 /** What an editor starts from: the saved draft, or a fresh document with the unreadable draft kept as recovery. */
@@ -58,24 +60,34 @@ export interface DraftAutosaveOptions {
    * tab saved while this one was open. The page shows its own message and keeps `raw` as recovery data.
    */
   onConflict: (raw: string, reason: DraftConflict) => void;
+  /**
+   * The stored text this tab opened with (null when there was none). When given, the first save already guards
+   * it: a draft another tab saved in between is protected, not overwritten. Without it the first save writes.
+   */
+  opened?: string | null;
 }
 
 /**
  * Autosave the present document, guarded against other tabs. Returns the save status text and `keepStored`,
  * which resolves recovery data once the stored draft is unchanged since it was protected.
  */
-export function useDraftAutosave({ key, text, paused, onConflict }: DraftAutosaveOptions) {
-  const [saveState, setSaveState] = useState(SAVED);
-  const expected = useRef<string | null>(null);
+export function useDraftAutosave({ key, text, paused, onConflict, opened }: DraftAutosaveOptions) {
+  const [saveState, setSaveState] = useState(paused ? NOT_SAVED : SAVED);
+  const expected = useRef<string | null>(opened ?? null),
+    guarded = useRef(opened !== undefined);
   const conflict = useRef(onConflict);
   conflict.current = onConflict;
 
   useEffect(() => {
-    if (paused) return;
+    if (paused) {
+      setSaveState(NOT_SAVED);
+      return;
+    }
     try {
       const raw = localStorage.getItem(key);
-      if (expected.current !== null && raw !== expected.current && raw !== text) {
+      if ((guarded.current || expected.current !== null) && raw !== expected.current && raw !== text) {
         conflict.current(raw ?? "", "newer");
+        setSaveState(NOT_SAVED);
         return;
       }
       localStorage.setItem(key, text);

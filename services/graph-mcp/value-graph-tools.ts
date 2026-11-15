@@ -9,6 +9,7 @@ import {
   editorLink,
   type ValueEnvelope,
 } from "../../packages/value-graph-core/src/interchange";
+import { RENDERER_VERSION } from "../../packages/value-graph-core/src/schema";
 import { printRasterSize } from "../../packages/graph-core/src/png-bytes";
 import { GraphError } from "../../packages/graph-core/src/interchange";
 import { ValueDownloads } from "./value-downloads";
@@ -123,7 +124,7 @@ export function valueGraphTools(
         printGuidance: valuePrintFacts(e),
         envelope: e,
         contentHash: hash,
-        rendererVersion: "value-graph-1" as const,
+        rendererVersion: RENDERER_VERSION,
         warnings: notice,
         downloads: links,
         editorUrl,

@@ -5,9 +5,12 @@
  */
 import { z } from "zod";
 import { DIAGRAM_KINDS, FAMILIES, type DiagramKind } from "./registry";
+import { SPEC_FIELD_DOCS } from "./field-docs";
 import * as graph from "../../graph-core/src/interchange";
 import * as ratio from "../../ratio-table-core/src/interchange";
 import * as ci from "../../cuboid-core/src/interchange";
+import * as cuboid from "../../cuboid-core/src/index";
+import * as valueSchema from "../../value-graph-core/src/schema";
 import * as line from "../../number-line-core/src/index";
 import * as venn from "../../venn-core/src/index";
 import * as vi from "../../venn-core/src/interchange";
@@ -95,7 +98,7 @@ const ratioGuide: FamilyGuide = {
 
 const valueGuide: FamilyGuide = {
   capabilities: {
-    rendererVersion: "value-graph-1",
+    rendererVersion: valueSchema.RENDERER_VERSION,
     columns: { minimum: 2, maximum: 13 },
     maximumPoints: 40,
     maximumRevisionOperations: 40,
@@ -114,8 +117,8 @@ const valueGuide: FamilyGuide = {
 const cuboidGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["cuboids-2"],
-    defaultRendererVersion: "cuboids-2",
+    rendererVersions: [cuboid.RENDERER_VERSION],
+    defaultRendererVersion: cuboid.RENDERER_VERSION,
     shapes: { minimum: 1, maximum: 3 },
     widthCm: { minimum: 4, maximum: 18 },
     views: ["plain", "cubes", "layers"],
@@ -137,7 +140,7 @@ const cuboidGuide: FamilyGuide = {
 const lineGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [1],
-    rendererVersions: ["number-line-1"],
+    rendererVersions: [line.RENDERER_VERSION],
     styleProfile: "examination-v1",
     widthCm: { minimum: 8, maximum: 18 },
     tickIntervals: { minimum: 2, maximum: 32 },
@@ -159,8 +162,8 @@ const lineGuide: FamilyGuide = {
 const vennGuide: FamilyGuide = {
   capabilities: {
     schemaVersions: [2],
-    rendererVersions: ["venn-2"],
-    defaultRendererVersion: "venn-2",
+    rendererVersions: [venn.RENDERER_VERSION],
+    defaultRendererVersion: venn.RENDERER_VERSION,
     setCounts: [1, 2, 3],
     arrangements: venn.arrangements,
     shapes: ["circles", "ovals"],
@@ -219,6 +222,12 @@ const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
   delete s.$schema;
   return s;
 };
+/** M10: the family's top-level spec fields get their short description, unless the core gave one. */
+export function withFieldDocs(spec: unknown, docs: Readonly<Record<string, string>>) {
+  const properties = (spec as { properties?: Record<string, Record<string, unknown>> } | null)?.properties;
+  if (properties) for (const [key, field] of Object.entries(properties)) if (!field.description && docs[key]) field.description = docs[key];
+  return spec;
+}
 /**
  * M1/M14: a family's spec or operations schema, written once. Shapes the schema reuses (a label,
  * an annotation, a point) can go in its own $defs and be referred to with $ref; that form is used
@@ -313,7 +322,7 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: leanSchema(field(f.createSchema, "spec")),
+      specSchema: withFieldDocs(leanSchema(field(f.createSchema, "spec")), SPEC_FIELD_DOCS[kind]),
       operationsSchema: leanSchema(field(f.revisionSchema, "operations")),
     };
     cache.set(kind, v);

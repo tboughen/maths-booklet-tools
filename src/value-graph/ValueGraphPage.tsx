@@ -19,6 +19,7 @@ import { formatResourceSize } from "../site/resourceSizeFormat";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent,
@@ -50,7 +51,7 @@ import { PageHeading, Panel } from "../site/PageHeading";
 import { RatioDialog } from "../ratio-table/RatioDialog";
 import { downloadBlob, copyPngToClipboard } from "../export/clipboard";
 import { download, copyForWord, printPng } from "./export";
-import { freshValueGraph, recovery, save, STORAGE_KEY } from "./persistence";
+import { freshValueGraph, STORAGE_KEY } from "./persistence";
 import { LINE_WEIGHTS, LINE_WEIGHT_NAMES, type LineWeight } from "../../packages/envelope-core/src/house-style";
 import { Field } from "./Field";
 import { equationText } from "../../packages/value-graph-core/src/svg";
@@ -58,7 +59,7 @@ import { parseEquation } from "./equation";
 import { LocalEditor } from "./LocalEditor";
 import { InspectorEditor } from "./InspectorEditor";
 import "./value-graph.css";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
+import { handleUndoKeys, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, operationLabel, stepName } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 
 type Selection =
@@ -96,13 +97,21 @@ export default function ValueGraphPage({
       ? `${STORAGE_KEY}:${draft}`
       : copyStorageKey(STORAGE_KEY);
   });
-  const [startup] = useState(() => recovery(storageKey));
+  const [startup] = useState(() => {
+    const start = openDraft({ key: storageKey, parse: parseFile, fresh: freshValueGraph, recoveryMessage: "The saved resource needs recovery. Its original data has been preserved." });
+    let opened: string | null = null;
+    try {
+      opened = localStorage.getItem(storageKey);
+    } catch {
+      /* Saving reports the failure. */
+    }
+    return { envelope: start.document, raw: start.recovery, error: start.message, opened };
+  });
   const documentHistory = useDocumentHistory<ValueEnvelope>(startup.envelope),
     { history, commit: record } = documentHistory;
   const [recoverRaw, setRecoverRaw] = useState(startup.raw),
     [message, setMessage] = useState(startup.error);
-  const [saved, setSaved] = useState(!startup.error),
-    [pending, setPending] = useState<Pending | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
   const [examplePreview, setExamplePreview] = useState<ValueEnvelope | null>(
     null,
   );
@@ -129,20 +138,10 @@ export default function ValueGraphPage({
     handled = useRef<string>("");
   const current = useRef(history.present);
   current.current = history.present;
-  const expected = useRef<string | null>(null),
-    initialized = useRef(false);
-  if (!initialized.current) {
-    initialized.current = true;
-    try {
-      expected.current = localStorage.getItem(storageKey);
-    } catch {
-      /* Saving reports the failure. */
-    }
-  }
   const envelope = history.present,
     d = envelope.document,
     g = d.graph;
-  const blocked = !!recoverRaw || busy || pendingFields.size > 0;
+  const blocked = recoverRaw !== null || busy || pendingFields.size > 0;
   const onPending = useCallback(
     (key: string, value: boolean) =>
       setPendingFields((previous) => {
@@ -203,16 +202,22 @@ export default function ValueGraphPage({
     setSelection(null);
     documentHistory.redo();
   }
-  useEffect(() => {
-    if (recoverRaw) return;
-    try {
-      expected.current = save(envelope, expected.current, storageKey);
-      setSaved(true);
-    } catch (e) {
-      setSaved(false);
-      setMessage(errorText(e));
-    }
-  }, [envelope, recoverRaw, storageKey]);
+  // Autosave with protection for another tab's draft, guarded from the draft this tab opened.
+  const savedText = useMemo(() => canonical(envelope), [envelope]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: storageKey,
+    text: savedText,
+    paused: recoverRaw !== null,
+    opened: startup.opened,
+    onConflict: (raw, reason) => {
+      setRecoverRaw(raw);
+      setMessage(
+        reason === "newer"
+          ? "A newer resource was saved in another tab. Its saved data is protected."
+          : "The saved resource changed in another tab. Download its data before replacing it.",
+      );
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const keys = (e: KeyboardEvent) => {
@@ -1285,7 +1290,7 @@ export default function ValueGraphPage({
           description="Make tables of values and plot quadratic graphs on exam-style axes."
         >
           <ResourceSaveStatus
-            text={saved ? "Saved on this device" : "Not saved on device"}
+            text={saveState}
           />
         </PageHeading>
         <section className="workspace">
@@ -1415,7 +1420,7 @@ export default function ValueGraphPage({
                 {message}
               </p>
             )}
-            {!!recoverRaw && (
+            {recoverRaw !== null && (
               <div className="vg-recovery" role="alert">
                 <p>
                   Preserved recovery data must be downloaded before starting
@@ -1441,17 +1446,19 @@ export default function ValueGraphPage({
                       "Recovery download prepared. You can now start afresh."
                     )
                       return;
+                    let unchanged = true;
                     try {
-                      expected.current = save(
-                        freshValueGraph(),
-                        recoverRaw,
-                        storageKey,
-                      );
-                      setRecoverRaw(null);
-                      commit(freshValueGraph());
-                    } catch (e) {
-                      setMessage(errorText(e));
+                      unchanged = keepStored(recoverRaw);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
                     }
+                    if (!unchanged) {
+                      setRecoverRaw(localStorage.getItem(storageKey) ?? "");
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
+                    setRecoverRaw(null);
+                    commit(freshValueGraph());
                   }}
                 >
                   Start afresh after downloading
