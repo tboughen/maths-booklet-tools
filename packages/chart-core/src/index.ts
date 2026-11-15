@@ -1,24 +1,38 @@
 import { aboutShape } from "../../envelope-core/src/about";
 import { z } from "zod";
-import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import { withFields } from "../../envelope-core/src/errors";
+import { pieLayout, pieSvg } from "./pie";
+import { pictogramLayout, pictogramSvg } from "./pictogram";
+import { scatterLayout, scatterSvg } from "./scatter";
+export { scatterLayout } from "./scatter";
+import { FONT, MARGIN, CHART_ANSWER_COLOUR, PIE_RADIUS, SYMBOL_MM, esc, formatNumber, markAnswerKey, markRevealed, n, pictogramKeyHidden, singleSetNote, pictogramSchema, pieSchema, scatterSchema, MAX_POINTS, readNumber, revealed, text, textWidth } from "./shared";
+export { pictogramLayout } from "./pictogram";
+export * from "./shared";
+export { pieLayout, round1 } from "./pie";
 
 /**
  * Bar charts, dual (comparative) bar charts, composite bar charts and vertical
  * line charts share one categorical axis, one numerical axis, one grid and one
- * key, so they are kinds of one document. Time series graphs and frequency
- * polygons need a continuous axis and belong in their own tools. Switching kind never discards data.
- * Lengths are millimetres.
+ * key. Pie charts draw the same categories and first data set as sectors, so they
+ * are kinds of one document too. Time series graphs, frequency polygons and scatter
+ * graphs need a continuous axis and belong in their own tools. Switching kind never
+ * discards data. Lengths are millimetres.
  */
-export const kinds = ["bar", "dual", "composite", "vline"] as const;
+export const kinds = ["bar", "dual", "composite", "vline", "pie", "pictogram", "scatter"] as const;
 export type Kind = (typeof kinds)[number];
 export const kindNames: Record<Kind, string> = {
   bar: "Bar chart",
   dual: "Dual bar chart",
   composite: "Composite bar chart",
   vline: "Vertical line chart",
+  pie: "Pie chart",
+  pictogram: "Pictogram",
+  scatter: "Scatter graph",
 };
+/** Kinds drawn on a categorical axis with a numerical scale. */
+export const axisKind = (kind: Kind) => kind !== "pie" && kind !== "pictogram" && kind !== "scatter";
+
 export const fills = [
   "grey",
   "hatch",
@@ -88,6 +102,12 @@ export const envelopeSchema = z
           .enum(LINE_WEIGHTS)
           .transform((v) => (v === "bold" ? v : undefined))
           .optional(),
+        /** Pie chart radius and labels; absent means PIE_DEFAULTS. Bar-family charts ignore it. */
+        pie: pieSchema.optional(),
+        /** Pictogram symbol, size and key; absent means PICTOGRAM_DEFAULTS. Other kinds ignore it. */
+        pictogram: pictogramSchema.optional(),
+        /** Scatter graph points, axes, line of best fit and readings; absent means SCATTER_DEFAULTS. */
+        scatter: scatterSchema.optional(),
       })
       .strict(),
     ...aboutShape,
@@ -152,6 +172,12 @@ export function validate(input: unknown): Envelope {
       throw withFields(Error("Choose a chart height from 40 to 140 mm."), parsed.error);
     if (path.includes("barMm"))
       throw withFields(Error("Choose a bar width from 5 to 20 mm."), parsed.error);
+    if (path.includes("scatter"))
+      throw withFields(Error(`Use at most ${MAX_POINTS} scatter points and 3 readings, values of at most 12 characters, axis titles of at most 40 characters and axis lengths from 40 to 160 mm.`), parsed.error);
+    if (path.includes("pictogram"))
+      throw withFields(Error(`Choose a circle or square symbol from ${SYMBOL_MM.minimum} to ${SYMBOL_MM.maximum} mm, a key value of at most 12 characters and a unit of at most 24 characters, without markup.`), parsed.error);
+    if (path.includes("pie"))
+      throw withFields(Error(`Choose a pie chart radius from ${PIE_RADIUS.minimum} to ${PIE_RADIUS.maximum} mm and a supported label choice.`), parsed.error);
     if (path.includes("xTitle") || path.includes("yTitle"))
       throw withFields(Error("Use axis titles of at most 40 characters, without markup."), parsed.error);
     throw withFields(Error("This is not a supported chart file (version 1 is supported)."), parsed.error);
@@ -175,41 +201,44 @@ export function parseFile(text: string) {
 export function forView(e: Envelope, view: "pupil" | "answer", mark = false): Envelope {
   if (view === "pupil") return e;
   const n = structuredClone(e);
+  // A hidden pictogram key stays saved as hidden (so it keeps its answer-line width); the answer
+  // view prints its value, in pink when marked.
+  const key = n.document.pictogram?.key;
+  if (key && pictogramKeyHidden(n.document)) {
+    markAnswerKey(key);
+    if (mark && key.value.trim()) markRevealed(key);
+  }
+  const sc = n.document.kind === "scatter" ? n.document.scatter : undefined;
+  if (sc)
+    for (const item of [...sc.points, ...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) {
+      if (mark && item.show === "hidden") markRevealed(item);
+      item.show = "show";
+    }
   for (const s of n.document.series)
     for (const c of s.values) {
-      if (mark && c.show === "hidden" && c.value.trim()) REVEALED.add(c);
+      if (mark && c.show === "hidden" && c.value.trim()) markRevealed(c);
       c.show = "show";
     }
   return n;
 }
-/** Cells an answer view draws only because they were saved hidden. */
-const REVEALED = new WeakSet<Cell>();
-/** The house answer colour, as on graphs, ratio tables, trees and worksheet answer lines. */
-export const CHART_ANSWER_COLOUR = "#b0125b";
 export const hasHidden = (e: Envelope) =>
-  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim()));
+  drawnSeries(e).some((s) => s.values.some((c) => c.show === "hidden" && c.value.trim())) || pictogramKeyHidden(e.document) || scatterHidden(e.document);
 
 /** Single-set charts draw only their first data set; the others are kept unchanged. */
-export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline";
+export const singleSet = (kind: Kind) => kind === "bar" || kind === "vline" || kind === "pie" || kind === "pictogram" || kind === "scatter";
+/** A scatter graph with a point, line or reading left for pupils. */
+const scatterHidden = (d: ChartDocument) =>
+  d.kind === "scatter" &&
+  !!d.scatter &&
+  [...d.scatter.points.filter((p) => p.x.trim() && p.y.trim()), ...d.scatter.readings, ...(d.scatter.bestFit ? [d.scatter.bestFit] : [])].some(
+    (x) => x.show === "hidden",
+  );
 export function drawnSeries(e: Envelope): Series[] {
   const d = e.document;
   return singleSet(d.kind) ? d.series.slice(0, 1) : d.series;
 }
 
-const NUMBER = /^-?\d{1,9}(\.\d{1,4})?$/;
-export function readNumber(text: string): number | null {
-  const t = text.trim().replace("−", "-");
-  return NUMBER.test(t) ? Number(t) : null;
-}
-export function formatNumber(n: number) {
-  const text = String(Math.round(n * 1e6) / 1e6);
-  return text.startsWith("-") ? "−" + text.slice(1) : text;
-}
 
-export const FONT = (11 * 25.4) / 72;
-const MARGIN = 2;
-export const textWidth = (text: string, font = FONT) =>
-  [...text].reduce((n, c) => n + glyphAdvance(c), 0) * font;
 function wrap(text: string, width: number): string[] {
   const lines: string[] = [];
   for (const word of text.trim().split(/\s+/).filter(Boolean)) {
@@ -230,10 +259,46 @@ export type Target = {
   height: number;
 };
 export type Bar = Target & { fill: Fill; drawn: boolean; revealed?: boolean };
-export type Layout = ReturnType<typeof layout>;
+export type AxesLayout = ReturnType<typeof axesLayout>;
+/** A box the editor makes clickable: a value (bar, line or sector) or a category label. */
+export type HitBox = { category: number; x: number; y: number; width: number; height: number };
+/** What every kind shares: physical size, issues (which block export), notes and click targets. */
+export type Frame = {
+  width: number;
+  height: number;
+  issues: string[];
+  notes: string[];
+  targets: Target[];
+  labels: HitBox[];
+};
 
-/** All positions and teacher-facing issues; issues block export. */
-export function layout(e: Envelope) {
+/** The size, issues, notes and click targets of any kind of chart. */
+export function layout(e: Envelope): Frame {
+  if (e.document.kind === "pie") {
+    const g = pieLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (e.document.kind === "scatter") {
+    const g = scatterLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: [] };
+  }
+  if (e.document.kind === "pictogram") {
+    const g = pictogramLayout(e);
+    return { width: g.width, height: g.height, issues: g.issues, notes: g.notes, targets: g.targets, labels: g.labels };
+  }
+  const g = axesLayout(e);
+  return {
+    width: g.width,
+    height: g.height,
+    issues: g.issues,
+    notes: g.notes,
+    targets: g.targets,
+    labels: g.centres.map((c, category) => ({ category, x: c - g.slot / 2, y: g.labelY - 4, width: g.slot, height: 5.5 })),
+  };
+}
+
+/** Bar-family positions and teacher-facing issues; issues block export. */
+export function axesLayout(e: Envelope) {
   const d = e.document,
     issues: string[] = [],
     notes: string[] = [];
@@ -268,9 +333,7 @@ export function layout(e: Envelope) {
   if (lo !== 0)
     issues.push("These charts start their axis at 0. Change the axis start to 0.");
   if (singleSet(d.kind) && d.series.length > 1)
-    notes.push(
-      `A ${kindNames[d.kind].toLowerCase()} draws only the first data set. The other data sets are kept for dual and composite bar charts.`,
-    );
+    notes.push(singleSetNote(kindNames[d.kind]));
   const H = d.heightMm,
     major = H / count,
     minor = major / d.axis.minor;
@@ -334,7 +397,7 @@ export function layout(e: Envelope) {
         // A vertical line chart draws a single thick line; width 0 marks it.
         const top = y(clamp(Math.max(0, v ?? 0)));
         if (v !== null)
-          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+          bars.push({ series: si, category: ci, x: centre, y: top, width: 0, height: y0 + H - top, fill: s.fill, drawn, revealed: revealed(cell) });
         targets.push({ series: si, category: ci, x: centre - 2.5, y: Math.min(top, y0 + H - 4), width: 5, height: Math.max(y0 + H - top, 4) });
         return;
       }
@@ -346,7 +409,7 @@ export function layout(e: Envelope) {
       const by = y(clamp(top)),
         bh = y(clamp(base)) - by;
       if (v !== null)
-        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: REVEALED.has(cell) });
+        bars.push({ series: si, category: ci, x: left, y: by, width: bw, height: bh, fill: s.fill, drawn, revealed: revealed(cell) });
       targets.push({
         series: si,
         category: ci,
@@ -403,16 +466,14 @@ export function layout(e: Envelope) {
 }
 export const exportIssue = (e: Envelope) => layout(e).issues.join(" ") || null;
 
-const n = (v: number) => String(Math.round(v * 1000) / 1000);
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const text = (t: string, x: number, y: number, anchor = "middle") =>
-  `<text x="${n(x)}" y="${n(y)}" text-anchor="${anchor}" font-family="STIX Two Text,STIX Two Math,serif" font-size="${n(FONT)}" fill="black">${esc(t)}</text>`;
 const fillRef = (f: Fill) =>
   f === "grey" ? "#9a9a9a" : f === "black" ? "#231f20" : f === "white" ? "#ffffff" : `url(#ch-${f})`;
 export function renderSvg(e: Envelope): string {
+  if (e.document.kind === "pie") return pieSvg(e);
+  if (e.document.kind === "pictogram") return pictogramSvg(e);
+  if (e.document.kind === "scatter") return scatterSvg(e);
   const d = e.document,
-    g = layout(e),
+    g = axesLayout(e),
     p = g.plot,
     out: string[] = [];
   const defs =
@@ -522,5 +583,13 @@ export function removeSeries(e: Envelope, index = e.document.series.length - 1):
 export function setAllShown(e: Envelope, show: Cell["show"]): Envelope {
   const n2 = structuredClone(e);
   for (const s of n2.document.series) for (const c of s.values) c.show = show;
+  // Show all also shows a hidden pictogram key; hiding every value keeps the key as it is.
+  if (show === "show" && n2.document.kind === "pictogram" && n2.document.pictogram) n2.document.pictogram.key.show = "show";
+  // Scatter graphs: hide every point (pupils plot them); show all also shows the line and readings.
+  const sc = n2.document.kind === "scatter" ? n2.document.scatter : undefined;
+  if (sc) {
+    for (const p of sc.points) p.show = show;
+    if (show === "show") for (const item of [...sc.readings, ...(sc.bestFit ? [sc.bestFit] : [])]) item.show = "show";
+  }
   return n2;
 }

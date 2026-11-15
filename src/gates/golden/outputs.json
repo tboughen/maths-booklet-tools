@@ -492,6 +492,90 @@
    "png600": "3976x1932",
    "pixels": "1e5ceb2f84c8b7f0"
   },
+  "charts: chart-pictogram-cycles": {
+   "json": "a8a29ecd3444845f",
+   "svg": "9036d438ede8f400",
+   "mm": "155.6x74",
+   "png600": "3676x1748",
+   "pixels": "df9c281cba11c0e5"
+  },
+  "charts: chart-pictogram-cycles (worked)": {
+   "json": "2b50c42fbbc94135",
+   "svg": "31f97ce3abdcc782",
+   "mm": "143.5x74",
+   "png600": "3390x1748",
+   "pixels": "26eca457840ff864"
+  },
+  "charts: chart-pictogram-pictures": {
+   "json": "643e48944e9c0cdb",
+   "svg": "a98a8b00bfe225f0",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "633e6a1ee5958d3e"
+  },
+  "charts: chart-pictogram-pictures (worked)": {
+   "json": "4294c1f1ffd65b91",
+   "svg": "1e2f3add5421580a",
+   "mm": "145.9x60",
+   "png600": "3446x1417",
+   "pixels": "cc641a11718967a5"
+  },
+  "charts: chart-pie-complete": {
+   "json": "afefc206d2a7a4bd",
+   "svg": "acb544cb6296ec23",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "f8b2bb20e666652b"
+  },
+  "charts: chart-pie-complete (worked)": {
+   "json": "a63689532f3a07e4",
+   "svg": "08ae222e6b6a6e43",
+   "mm": "84x84",
+   "png600": "1984x1984",
+   "pixels": "dba2484f0442e977"
+  },
+  "charts: chart-pie-snacks": {
+   "json": "58c09d677cd2e2eb",
+   "svg": "6066ae14ee914ecb",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "0936a37f832fad08"
+  },
+  "charts: chart-pie-snacks (worked)": {
+   "json": "c83355ce6d7f4844",
+   "svg": "ce17677214654cf0",
+   "mm": "104x104",
+   "png600": "2457x2457",
+   "pixels": "2aebbaf53c15cf53"
+  },
+  "charts: chart-scatter-judges": {
+   "json": "14388e3ef03afe71",
+   "svg": "f6edbb52d9fefa75",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "9fc523e7ca226f37"
+  },
+  "charts: chart-scatter-judges (worked)": {
+   "json": "09e08a8b780fbbbc",
+   "svg": "e8f7639c701065b5",
+   "mm": "154.3x141.4",
+   "png600": "3645x3340",
+   "pixels": "76e371edc1db99f5"
+  },
+  "charts: chart-scatter-plot": {
+   "json": "cd620a3b775e721c",
+   "svg": "b7ee827bac63a7b8",
+   "mm": "134.9x101.4",
+   "png600": "3187x2395",
+   "pixels": "c5b9e046fca68e2b"
+  },
+  "charts: chart-scatter-plot (worked)": {
+   "json": "9fe27b663b9830c8",
+   "svg": "f8f6d3baa56cc905",
+   "mm": "134.9x101.4",
+   "png600": "3187x2395",
+   "pixels": "e85f0c821daeeb73"
+  },
   "charts: chart-vline-cars": {
    "json": "b4afd19fd8472d86",
    "svg": "fff25f4f64245caf",

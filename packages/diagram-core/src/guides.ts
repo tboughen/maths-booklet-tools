@@ -197,12 +197,8 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   "algebra-grid": fromConfig(algebraConfig),
   "bar-model": {
     capabilities: { ...barConfig.capabilities, maximumRequestBytes: 32768 },
-    create:
-      "Bar models keep one shared unit width and stable anchored annotations; labels never set widths or calculate answers. Every bar model has horizontal working fractions and 12 mm above / 3 mm below handwriting space. Maths captions stack simple a/b fractions; Plain text is explicit for dates and literal slashes; ambiguity is refused, never silently changed. " +
-      barConfig.createDescription,
-    revise:
-      "Deleting structure an annotation refers to needs explicit annotation removal or discard intent. " +
-      barConfig.reviseDescription,
+    create: barConfig.createDescription,
+    revise: barConfig.reviseDescription,
   },
   charts: fromConfig(chartConfig),
   "probability-tree": fromConfig(treeConfig),
@@ -218,11 +214,87 @@ export const GUIDES: Record<DiagramKind, FamilyGuide> = {
   area: fromConfig(areaConfig),
 };
 
-const jsonSchema = (schema: z.ZodType) => {
-  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
+const jsonSchema = (schema: z.ZodType, reused: "inline" | "ref" = "inline") => {
+  const s = z.toJSONSchema(schema, { io: "input", unrepresentable: "any", reused }) as Record<string, unknown>;
   delete s.$schema;
   return s;
 };
+/**
+ * M1/M14: a family's spec or operations schema, written once. Shapes the schema reuses (a label,
+ * an annotation, a point) can go in its own $defs and be referred to with $ref; that form is used
+ * only when it is smaller, because hoisting a tiny shape costs more than repeating it.
+ */
+const leanSchema = (schema: z.ZodType | undefined) => {
+  if (!schema) return null;
+  const inline = jsonSchema(schema),
+    shared = readableDefs(jsonSchema(schema, "ref"));
+  return JSON.stringify(shared).length < JSON.stringify(inline).length ? shared : inline;
+};
+/**
+ * Puts small or single-use shapes back inline (a $ref to an id string reads worse than the
+ * string) and names the rest after what they hold, e.g. "text-state" for a label.
+ */
+function readableDefs(root: Record<string, unknown>): Record<string, unknown> {
+  const defs = { ...((root.$defs as Record<string, unknown>) ?? {}) };
+  type Visit = (name: string, siblings: Record<string, unknown>) => unknown;
+  // A reference may carry its own keys beside $ref (a description, say); they are kept.
+  const walk = (v: unknown, visit: Visit): unknown => {
+    if (Array.isArray(v)) return v.map((x) => walk(x, visit));
+    if (!v || typeof v !== "object") return v;
+    const { $ref, ...rest } = v as Record<string, unknown>;
+    const siblings = Object.fromEntries(Object.entries(rest).map(([k, x]) => [k, walk(x, visit)]));
+    const name = typeof $ref === "string" ? ($ref.split("/").pop() as string) : null;
+    if (name !== null && Object.hasOwn(defs, name)) return visit(name, siblings);
+    return $ref === undefined ? siblings : { $ref, ...siblings };
+  };
+  const keep: Visit = (n, siblings) => ({ $ref: `#/$defs/${n}`, ...siblings });
+  const body = Object.fromEntries(Object.entries(root).filter(([k]) => k !== "$defs"));
+  // Inline until stable: a def used once, or short enough that a reference saves nothing.
+  for (let changed = true; changed; ) {
+    changed = false;
+    const uses = new Map<string, number>();
+    walk({ body, defs }, (n, siblings) => (uses.set(n, (uses.get(n) ?? 0) + 1), keep(n, siblings)));
+    for (const [name, def] of Object.entries(defs)) {
+      if ((uses.get(name) ?? 0) > 1 && JSON.stringify(def).length > 60) continue;
+      if (JSON.stringify(def).includes(`/${name}"`)) continue; // recursive: must stay a reference
+      const swap = (v: unknown): unknown =>
+        walk(v, (n, siblings) => (n === name ? { ...(swap(def) as object), ...siblings } : keep(n, siblings)));
+      for (const [k, d] of Object.entries(defs)) if (k !== name) defs[k] = swap(d);
+      Object.assign(body, swap(body));
+      delete defs[name];
+      changed = true;
+      break;
+    }
+  }
+  // A shape that is not an object is named after the first property that uses it ("hidden").
+  const usedAs = new Map<string, string>();
+  const findUses = (v: unknown, key: string) => {
+    if (Array.isArray(v)) return v.forEach((x) => findUses(x, key));
+    if (!v || typeof v !== "object") return;
+    const ref = (v as { $ref?: unknown }).$ref;
+    if (typeof ref === "string") {
+      const n = ref.split("/").pop() as string;
+      if (!usedAs.has(n) && /^[A-Za-z][A-Za-z0-9]*$/.test(key)) usedAs.set(n, key);
+    }
+    for (const [k, x] of Object.entries(v)) findUses(x, k === "items" || k === "anyOf" || k === "oneOf" || k === "properties" ? key : k);
+  };
+  findUses({ body, defs }, "");
+  const names = new Map<string, string>(),
+    taken = new Set<string>();
+  for (const [name, def] of Object.entries(defs)) {
+    const d = def as { properties?: Record<string, unknown> };
+    const keys = d.properties ? Object.keys(d.properties).filter((k) => /^[A-Za-z][A-Za-z0-9]*$/.test(k)).slice(0, 3) : [];
+    let base = keys.length ? keys.join("-") : (usedAs.get(name) ?? "shape");
+    if (taken.has(base)) for (let i = 2; ; i++) if (!taken.has(`${base}${i}`)) { base = `${base}${i}`; break; }
+    taken.add(base);
+    names.set(name, base);
+  }
+  const rename = (v: unknown): unknown => walk(v, (n, siblings) => ({ $ref: `#/$defs/${names.get(n)}`, ...siblings }));
+  const out = rename(body) as Record<string, unknown>;
+  if (names.size) out.$defs = Object.fromEntries([...names].map(([old, next]) => [next, rename(defs[old])]));
+  return out;
+}
+const field = (schema: z.ZodType, name: string) => (schema as unknown as { shape?: Record<string, z.ZodType> }).shape?.[name];
 const cache = new Map<DiagramKind, Record<string, unknown>>();
 /** Everything diagram_capabilities returns for one family, built once per process. */
 export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
@@ -230,8 +302,6 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
   if (!v) {
     const f = FAMILIES[kind],
       g = GUIDES[kind];
-    const create = jsonSchema(f.createSchema) as { properties?: Record<string, unknown> };
-    const revise = jsonSchema(f.revisionSchema) as { properties?: Record<string, unknown> };
     v = {
       kind,
       label: f.label,
@@ -243,8 +313,8 @@ export function familyCapabilities(kind: DiagramKind): Record<string, unknown> {
       createGuide: g.create,
       reviseGuide: g.revise,
       // The envelope is copied back from a previous result, so only the parts a model writes are listed.
-      specSchema: create.properties?.spec ?? null,
-      operationsSchema: revise.properties?.operations ?? null,
+      specSchema: leanSchema(field(f.createSchema, "spec")),
+      operationsSchema: leanSchema(field(f.revisionSchema, "operations")),
     };
     cache.set(kind, v);
   }
@@ -265,7 +335,7 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   venn: ["sets and set notation", "Venn diagram probability", "HCF and LCM by prime factors", "union, intersection and complement"],
   "algebra-grid": ["expanding single and double brackets", "factorising quadratics", "grid method multiplication"],
   "bar-model": ["fractions of amounts", "percentages", "ratio problems", "part-whole and comparison problems", "equations from word problems"],
-  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "reading and drawing charts"],
+  charts: ["bar charts", "dual and composite bar charts", "vertical line charts", "pie charts", "pictograms", "scatter graphs, outliers and lines of best fit", "reading and drawing charts"],
   "probability-tree": ["tree diagrams", "independent and dependent events", "with and without replacement"],
   "frequency-tree": ["frequency trees", "probability from frequencies"],
   "two-way-table": ["two-way tables", "probability from tables", "missing totals"],
@@ -276,5 +346,5 @@ export const FAMILY_TOPICS: Record<DiagramKind, string[]> = {
   area: ["area and perimeter of compound shapes", "area of triangles, parallelograms and trapeziums", "circles: area and circumference", "semicircles, quarter circles and sectors", "arc length and sector area", "shaded areas", "counting squares"],
 };
 /** Common requests no family draws, so an assistant says so instead of improvising. */
-export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "pictograms", "pie charts", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
+export const NOT_DRAWN = ["histograms", "time-series graphs", "frequency polygons", "box plots", "cumulative frequency graphs", "circle theorems", "prisms and cylinders as 3D drawings"];
 export const FAMILY_LIST = DIAGRAM_KINDS.map((kind) => ({ kind, summary: FAMILIES[kind].summary, topics: FAMILY_TOPICS[kind], answerView: FAMILIES[kind].answerView }));
