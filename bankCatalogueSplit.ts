@@ -22,6 +22,7 @@ export const DETAIL_KEYS = [
   "schemePdf",
   "workedSolution",
   "printPages",
+  "cuts",
   "exportRouting74",
 ] as const;
 export type DetailKey = (typeof DETAIL_KEYS)[number];

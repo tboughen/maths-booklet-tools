@@ -155,6 +155,36 @@ describe("Sparx link and question selection contract", () => {
       errors.mockRestore();
     }
   });
+  it("accepts part and stem cuts only when they cover every part once and every link is real", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const view = (preview: string) => ({id: "v-1", label: "v", page: 1, width: 500, height: 100, preview, description: "", sourcePages: [2]});
+      const cut = (id: string, kind: "part" | "stem", parts: string[], context: string[] = [], requiresAnswerTo: string[] = []) =>
+        ({id, kind, label: id, parts, pdf: `bank/assets/cuts/first/${id}.pdf`, views: [view(`bank/assets/cuts/first/${id}-1.png`)], context, requiresAnswerTo});
+      const cuts = [cut("stem", "stem", []), cut("a", "part", ["9a"], ["stem"]), cut("b-c", "part", ["9b", "9c"], ["stem", "a"], ["a"])];
+      const ready = {...first, review: "reviewed", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf", cuts} as unknown as BankQuestion;
+      expect(verifyQuestionDetail(ready).cuts).toHaveLength(3);
+      const broken: unknown[][] = [
+        [],
+        [cuts[1], cuts[2]].map(c => ({...c, parts: ["9a"]})),
+        [cuts[0], cuts[1]],
+        [cuts[0], cuts[1], {...cuts[2], parts: ["9b", "9d"]}],
+        [cuts[0], cuts[1], {...cuts[2], context: ["stem", "z"]}],
+        [cuts[0], cuts[1], {...cuts[2], requiresAnswerTo: ["stem"], context: ["stem"]}],
+        [cuts[0], cuts[1], {...cuts[2], context: ["stem"]}],
+        [cuts[0], cuts[1], {...cuts[2], context: ["b-c"]}],
+        [{...cuts[0], parts: ["9a"]}, {...cuts[1], parts: []}, cuts[2]],
+        [cuts[0], {...cuts[1], pdf: "bank/assets/../a.pdf"}, cuts[2]],
+        [cuts[0], {...cuts[1], views: []}, cuts[2]],
+      ];
+      for (const bad of broken) {
+        expect(() => verifyQuestionDetail({...ready, cuts: bad} as unknown as BankQuestion)).toThrow("A question failed its catalogue check.");
+        expect(errors.mock.calls.at(-1)?.join(" ")).toContain("question first, field cuts");
+      }
+    } finally {
+      errors.mockRestore();
+    }
+  });
   it("only opens draft assets in an explicitly labelled draft catalogue", () => {
     const q = {...first, review: "draft", questionViews: [{}], schemeViews: [{}], questionPdf: "q.pdf", printPdf: "p.pdf", schemePdf: "m.pdf"};
     const draft = {...catalogue, questions: [q]};

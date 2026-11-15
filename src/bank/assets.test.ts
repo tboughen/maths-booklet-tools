@@ -20,3 +20,11 @@ it.each(["../private.pdf", "bank/assets/../private.pdf", "bank/assets/a/../../x.
   "rejects unsafe or non-content paths: %s", path => {
     expect(() => catalogueAssetPaths({questions: [{...question("a", "Q1"), questionPdf: path}]})).toThrow("Invalid");
   });
+
+it("includes each part and stem cut's print file and previews", () => {
+  const q = {...question("cuts", "Q1"), cuts: [{pdf: "bank/assets/cuts/Q1/part-a.pdf", views: [{preview: "bank/assets/cuts/Q1/part-a-1.png"}]}]};
+  const paths = catalogueAssetPaths({questions: [q]});
+  expect(paths).toContain("bank/assets/cuts/Q1/part-a.pdf");
+  expect(paths).toContain("bank/assets/cuts/Q1/part-a-1.png");
+  expect(() => catalogueAssetPaths({questions: [{...q, cuts: [{pdf: "bank/assets/../x.pdf", views: []}]}]})).toThrow("Invalid");
+});
