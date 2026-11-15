@@ -42,8 +42,10 @@ describe("keepTogether edge cases (review, 15 Nov 2026)", () => {
   it("caps a glued run by its printed width as well as its length", () => {
     const glued = keepTogether("Work out 123456 + 234567 = 358023");
     const widest = Math.max(...glued.split(" ").map((w) => wrap(w, 11 * (25.4 / 72), 1000, "bold")[0].reduce((t, r) => t + r.text.length, 0)));
-    expect(glued).not.toContain("123456 + 234567 = 358023");
+    expect(glued).not.toContain("123456\u00a0+\u00a0234567\u00a0=\u00a0358023");
     expect(widest).toBeLessThan(24);
+    // Too long to keep whole, so only the last number keeps its neighbour: it is never alone.
+    expect(glued).toBe("Work out 123456 + 234567 =\u00a0358023");
   });
   it("keeps a squared bracket with its equation", () => {
     expect(kept("so (2x + 3)² = 25")).toBe("so (2*x*·+·3)²·=·25");

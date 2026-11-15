@@ -182,20 +182,30 @@ export function keepTogether(source: string): string {
   }
   // The last word: a number or a short word never starts a line on its own.
   const last = visible(words[words.length - 1]).replace(/[.,;:?!)"”’]+$/, "");
-  if (words[words.length - 1] && (NUMBER.test(words[words.length - 1]) || last.length <= 3)) glue[words.length - 2] = true;
-  // A run may not grow past the limit: break it at its first space again where it would.
-  let out = words[0];
-  let run = words[0];
-  for (let i = 1; i < words.length; i++) {
-    const joined = `${run} ${words[i]}`;
-    if (glue[i - 1] && visible(joined).length <= GLUE_MAX && runMm(joined) <= GLUE_MAX_MM) {
-      out += NBSP + words[i];
-      run = joined;
-    } else {
-      out += " " + words[i];
-      run = words[i];
+  const lastGlue = !!words[words.length - 1] && (NUMBER.test(words[words.length - 1]) || last.length <= 3);
+  if (lastGlue) glue[words.length - 2] = true;
+  // A glued run too long to fit the narrowest card is not glued at all (a half-glued equation
+  // could leave its last number alone); only the last-word rule is kept, when that pair fits.
+  const fits = (a: number, b: number) => {
+    const joined = words.slice(a, b + 1).join(" ");
+    return visible(joined).length <= GLUE_MAX && runMm(joined) <= GLUE_MAX_MM;
+  };
+  for (let i = 0; i < glue.length; ) {
+    if (!glue[i]) {
+      i++;
+      continue;
     }
+    let j = i;
+    while (j < glue.length && glue[j]) j++;
+    // Words i to j are one run.
+    if (!fits(i, j)) {
+      for (let k = i; k < j; k++) glue[k] = false;
+      if (lastGlue && j === words.length - 1 && fits(j - 1, j)) glue[j - 1] = true;
+    }
+    i = j;
   }
+  let out = words[0];
+  for (let i = 1; i < words.length; i++) out += (glue[i - 1] ? NBSP : " ") + words[i];
   return out;
 }
 
