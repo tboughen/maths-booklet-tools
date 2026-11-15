@@ -35,24 +35,22 @@ import "../worksheet/worksheet.css";
 import "./booklet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
 import { usePrintSize } from "../site/usePrintSize";
-import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, openDraft, STORAGE_UNAVAILABLE, useDraftAutosave } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:booklet:v1");
 const MAX_FILE = 4_000_000;
 type BookletDoc = Booklet["document"];
 
 function initial(): { b: Booklet; message: string; recovery: string | null } {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (!raw) return { b: a7Booklet, message: "", recovery: null };
-    try {
-      return { b: validateBooklet(JSON.parse(raw)), message: "", recovery: null };
-    } catch {
-      return { b: a7Booklet, message: "Saved booklet data needs recovery. Download it before starting again.", recovery: raw };
-    }
-  } catch {
-    return { b: a7Booklet, message: "Device storage is unavailable. Save the editable file to keep your work.", recovery: null };
-  }
+  const start = openDraft({
+    key: STORAGE,
+    parse: (raw) => validateBooklet(JSON.parse(raw)),
+    fresh: () => a7Booklet,
+    recoveryMessage: "Saved booklet data needs recovery. Download it before starting again.",
+  });
+  // Kept: this page's own wording for unavailable storage.
+  const message = start.message === STORAGE_UNAVAILABLE ? "Device storage is unavailable. Save the editable file to keep your work." : start.message;
+  return { b: start.document, message, recovery: start.recovery };
 }
 
 /** A list edited as lines of text: one item per line, applied on leaving the box. */
@@ -91,12 +89,19 @@ function ListField({ label, value, max, maxItems, onCommit, disabled }: { label:
 const pdfName = (b: Booklet, view: "pupil" | "answers", lesson?: number) => (lesson === undefined ? bookletFileName(b, view) : lessonFileName(b, lesson, view));
 
 export default function BookletPage({ active = true }: { active?: boolean }) {
-  const [startup] = useState(initial);
+  const [startup] = useState(() => {
+    let opened: string | null = null;
+    try {
+      opened = localStorage.getItem(STORAGE);
+    } catch {
+      /* Saving reports the failure. */
+    }
+    return { ...initial(), opened };
+  });
   const documentHistory = useDocumentHistory<Booklet>(startup.b, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
   const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
-  const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
   const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
@@ -137,15 +142,22 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
 
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(history.present));
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
+  // Autosave with protection for another tab's booklet, guarded from the draft this tab opened.
+  const savedText = useMemo(() => JSON.stringify(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    opened: startup.opened,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setMessage(
+        reason === "newer"
+          ? "A newer booklet was saved in another tab. Its saved data is protected."
+          : "The saved booklet changed in another tab. Download it before replacing it.",
+      );
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -507,13 +519,24 @@ export default function BookletPage({ active = true }: { active?: boolean }) {
             )}
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved booklet data">
-                <p>The saved booklet on this device could not be read. Download it before starting again.</p>
+                <p>The saved booklet on this device is protected. Download it before starting again.</p>
                 <button className="tool-button" onClick={() => void run(() => downloadBlob(new Blob([recovery], { type: "application/json" }), "booklet-recovered.json"), "Saved data downloaded.")}>
                   Download saved data
                 </button>
                 <button
                   className="tool-button"
                   onClick={() => {
+                    let unchanged = true;
+                    try {
+                      unchanged = keepStored(recovery);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
+                    }
+                    if (!unchanged) {
+                      setRecovery(localStorage.getItem(STORAGE) ?? "");
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
                     setRecovery(null);
                     setMessage("");
                   }}

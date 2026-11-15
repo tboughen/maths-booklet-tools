@@ -2,8 +2,8 @@
  * Axis numbering and object names shared by the editor preview, the print renderer and the
  * connector, so every copy of a graph numbers and names things the same way.
  */
-import { gridDivisions, isSketch, shouldLabelAxisSquare } from "./diagram";
-import { formatNumber } from "./equations";
+import { axisNumberText, axisNumbersTouch, axisTickValues } from "./axis-scale";
+import { gridDivisions, isSketch } from "./diagram";
 import { AXIS_LABEL_FONT_POINTS, axisLabelBoxWidth, pointsToDiagramUnits } from "./graphStyle";
 import type { AxisConfig, DiagramDocumentV1 } from "./types";
 
@@ -37,11 +37,7 @@ export function parseTimeOfDay(text: string): number | null {
 
 /** Axis numbers are decimals (0.25, not 1/4); whole numbers print exactly as before. */
 export function formatAxisValue(value: number, axis: Pick<AxisConfig, "format">): string {
-  if (axis.format === "time") return formatTime(value);
-  const clean = Number(value.toFixed(6));
-  if (Number.isInteger(clean)) return formatNumber(clean);
-  const text = String(clean);
-  return text.startsWith("-") ? `−${text.slice(1)}` : text;
+  return axis.format === "time" ? formatTime(value) : axisNumberText(value);
 }
 
 /** True when the shared origin mark (0 or O) replaces both axes' own numbers at the corner. */
@@ -64,15 +60,13 @@ export function axisTicks(document: DiagramDocumentV1, axis: "x" | "y"): AxisTic
   const origin = config.origin ?? 0;
   const total = config.negativeSquares + config.positiveSquares;
   const skipOrigin = sharedOriginLabel(document);
-  const ticks: AxisTick[] = [];
-  for (let index = 0; index <= total; index += 1) {
-    const offset = index - config.negativeSquares;
-    if (!shouldLabelAxisSquare(offset, config.unitsPerSquare, config.labelEvery)) continue;
-    if (offset === 0 && skipOrigin) continue;
-    const value = Number((origin + offset * config.unitsPerSquare).toFixed(9));
-    ticks.push({ index, value, label: formatAxisValue(value, config) });
-  }
-  return ticks;
+  const step = config.unitsPerSquare;
+  // Every labelEvery-th line from the origin; at 0.5 per square, every 2nd line by default.
+  const every = (config.labelEvery ?? (step === 0.5 ? 2 : 1)) * step;
+  const min = origin - config.negativeSquares * step;
+  return axisTickValues(min, origin + config.positiveSquares * step, every, origin)
+    .map((value) => ({ index: Math.round((value - min) / step), value, label: formatAxisValue(value, config) }))
+    .filter((tick) => tick.index >= 0 && tick.index <= total && !(skipOrigin && tick.index === config.negativeSquares));
 }
 
 /** The 1 cm line pitch and, for a fine grid, its smaller pitch, in millimetres. */
@@ -143,13 +137,8 @@ export function readableName(name: string): string {
  */
 export function xNumbersCrowded(document: DiagramDocumentV1): boolean {
   const fontSize = pointsToDiagramUnits(AXIS_LABEL_FONT_POINTS, 100);
-  const ticks = axisTicks(document, "x");
-  return ticks.some((tick, i) => {
-    const next = ticks[i + 1];
-    if (!next) return false;
-    const room = (next.index - tick.index) * 100;
-    return (axisLabelBoxWidth(tick.label, fontSize) + axisLabelBoxWidth(next.label, fontSize)) / 2 > room - 4;
-  });
+  const numbers = axisTicks(document, "x").map((tick) => ({ at: tick.index, width: axisLabelBoxWidth(tick.label, fontSize) }));
+  return axisNumbersTouch(numbers, 4, (from, to) => (to - from) * 100);
 }
 
 /** Printed coordinates are exact only for short decimals: (1/3, 2) would print as 0.333333. */

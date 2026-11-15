@@ -22,7 +22,7 @@ import {
 import { diagramFileMenu } from "../site/fileMenu";
 import { ResourceSize } from "../site/ResourceSize";
 import { formatResourceSize } from "../site/resourceSizeFormat";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   create,
   validate,
@@ -53,7 +53,7 @@ import { copyPngToClipboard, downloadBlob } from "../export/clipboard";
 import { copyWord, downloadImage, printPng } from "./export";
 import "./number-line.css";
 import { nearestTick, TAP_REACH } from "./hitTest";
-import { handleUndoKeys, objectKeyCommand, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
+import { handleUndoKeys, objectKeyCommand, openDraft, useDocumentHistory, useDraftAutosave, redoLabel as redoStepName, undoLabel as undoStepName, stepName, operationLabel } from "../editor-kit";
 import { downloadName } from "../export/filenames";
 const STORAGE = copyStorageKey("maths-booklet-tools:number-line:v1");
 /** A new number line starts from the house style's lines (U111); its text is always 11 pt. */
@@ -63,29 +63,8 @@ function fresh() {
   return e;
 }
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { envelope: parseFile(raw), recovery: null, error: "" };
-      } catch {
-        return {
-          envelope: fresh(),
-          recovery: raw,
-          error:
-            "The saved number line needs recovery. Download its original data before starting afresh.",
-        };
-      }
-    }
-  } catch {
-    return {
-      envelope: fresh(),
-      recovery: null,
-      error:
-        "Device storage is unavailable. Save an editable file to keep your work.",
-    };
-  }
-  return { envelope: fresh(), recovery: null, error: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh, recoveryMessage: "The saved number line needs recovery. Download its original data before starting afresh." });
+  return { envelope: start.document, recovery: start.recovery, error: start.message };
 }
 type Selection =
   | "axis-min"
@@ -185,8 +164,7 @@ export default function NumberLinePage({
     history = documentHistory.history;
   const [message, setMessage] = useState(startup.error),
     [recovery, setRecovery] = useState<string | null>(startup.recovery),
-    [recoverySaved, setRecoverySaved] = useState(false),
-    [saveState, setSaveState] = useState("Saved on this device");
+    [recoverySaved, setRecoverySaved] = useState(false);
   const [selection, setSelection] = useState<Selection>(null),
     [mode, setMode] = useState<
       "select" | "interval" | "left" | "right" | "point"
@@ -203,7 +181,6 @@ export default function NumberLinePage({
     [dragValue, setDragValue] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null),
     white = useRef<HTMLDivElement>(null),
-    expected = useRef<string | null>(null),
     current = useRef(history.present);
   const [rayDirection, setRayDirection] = useState<"left" | "right">("right");
   const pointer = useRef<{
@@ -309,42 +286,18 @@ export default function NumberLinePage({
     }
     setPending({ envelope, title });
   }
-  useEffect(() => {
-    if (recovery) return;
-    try {
-      const raw = localStorage.getItem(STORAGE);
-      if (
-        expected.current !== null &&
-        raw !== expected.current &&
-        raw !== canonical(history.present)
-      ) {
-        setRecovery(raw ?? "");
-        setMessage(
-          "A newer draft exists in another tab. Download its data before replacing it.",
-        );
-        return;
-      }
-      const text = canonical(history.present);
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setRecoverySaved(false);
-        setMessage(
-          "The saved line changed in another tab. Its data is protected.",
-        );
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  // Autosave with protection for another tab's newer draft.
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setRecoverySaved(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Download its data before replacing it." : "The saved line changed in another tab. Its data is protected.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const handle = () => {
@@ -1105,12 +1058,10 @@ export default function NumberLinePage({
                   disabled={!recoverySaved}
                   onClick={() => {
                     try {
-                      if (localStorage.getItem(STORAGE) !== (recovery || null))
-                        throw Error(
-                          "The saved data changed again. Reload before a fresh start.",
-                        );
-                      expected.current = canonical(current.current);
-                      localStorage.setItem(STORAGE, expected.current);
+                      if (!keepStored(recovery)) {
+                        setMessage("The saved data changed again. Reload before a fresh start.");
+                        return;
+                      }
                       setRecovery(null);
                       setRecoverySaved(false);
                       setMessage(

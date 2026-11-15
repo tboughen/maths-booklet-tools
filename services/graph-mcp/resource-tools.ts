@@ -39,7 +39,7 @@ export const isResourceSource = (source: DiagramSource): source is NewSource =>
 
 const viewOf = (source: NewSource) => ("outputView" in source ? source.outputView : undefined) ?? "pupil";
 
-function warningsOf(source: NewSource): string[] {
+export function warningsOf(source: NewSource): string[] {
   switch (source.kind) {
     case "triangle": return triangle.warnings(source.envelope);
     case "probability-tree": return tree.warnings(source.envelope);

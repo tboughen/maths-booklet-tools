@@ -15,40 +15,37 @@ import { AiPanel } from "./ai/AiPanel";
 import "./worksheet.css";
 import { HistoryButtons } from "../site/HistoryButtons";
 import { usePrintSize } from "../site/usePrintSize";
-import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName } from "../editor-kit";
+import { handleUndoKeys, pushHistory, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, openDraft, STORAGE_UNAVAILABLE, useDraftAutosave } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:worksheet:v1");
 const MAX_FILE = 400_000;
 
 function initial(): { r: Resource; message: string; recovery: string | null } {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (!raw) return { r: treeDiagrams, message: "", recovery: null };
-    try {
-      return { r: validate(JSON.parse(raw)), message: "", recovery: null };
-    } catch {
-      return {
-        r: treeDiagrams,
-        message: "Saved worksheet data needs recovery. Download it before starting again.",
-        recovery: raw,
-      };
-    }
-  } catch {
-    return {
-      r: treeDiagrams,
-      message: "Device storage is unavailable. Save the editable file to keep your work.",
-      recovery: null,
-    };
-  }
+  const start = openDraft({
+    key: STORAGE,
+    parse: (raw) => validate(JSON.parse(raw)),
+    fresh: () => treeDiagrams,
+    recoveryMessage: "Saved worksheet data needs recovery. Download it before starting again.",
+  });
+  // Kept: this page's own wording for unavailable storage.
+  const message = start.message === STORAGE_UNAVAILABLE ? "Device storage is unavailable. Save the editable file to keep your work." : start.message;
+  return { r: start.document, message, recovery: start.recovery };
 }
 
 export default function WorksheetPage({ active = true }: { active?: boolean }) {
-  const [startup] = useState(initial);
+  const [startup] = useState(() => {
+    let opened: string | null = null;
+    try {
+      opened = localStorage.getItem(STORAGE);
+    } catch {
+      /* Saving reports the failure. */
+    }
+    return { ...initial(), opened };
+  });
   const documentHistory = useDocumentHistory<Resource>(startup.r, { equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
   const { history, setHistory } = documentHistory;
   const [recovery, setRecovery] = useState<string | null>(startup.recovery);
   const [message, setMessage] = useState(startup.message);
-  const [saveState, setSaveState] = useState("Saved on this device");
   const [answers, setAnswers] = useState(false);
   const printSize = usePrintSize();
   const [menu, setMenu] = useState(false);
@@ -83,15 +80,22 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
   const undo = () => !blocked && documentHistory.undo();
   const redo = () => !blocked && documentHistory.redo();
 
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(history.present));
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
+  // Autosave with protection for another tab's worksheet, guarded from the draft this tab opened.
+  const savedText = useMemo(() => JSON.stringify(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    opened: startup.opened,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setMessage(
+        reason === "newer"
+          ? "A newer worksheet was saved in another tab. Its saved data is protected."
+          : "The saved worksheet changed in another tab. Download it before replacing it.",
+      );
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -289,13 +293,24 @@ export default function WorksheetPage({ active = true }: { active?: boolean }) {
             )}
             {recovery !== null && (
               <div className="ws-confirm" role="alertdialog" aria-label="Recover saved worksheet data">
-                <p>The saved worksheet on this device could not be read. Download it before starting again.</p>
+                <p>The saved worksheet on this device is protected. Download it before starting again.</p>
                 <button className="tool-button" onClick={() => void run(() => downloadBlob(new Blob([recovery], { type: "application/json" }), "worksheet-recovered.json"), "Saved data downloaded.")}>
                   Download saved data
                 </button>
                 <button
                   className="tool-button"
                   onClick={() => {
+                    let unchanged = true;
+                    try {
+                      unchanged = keepStored(recovery);
+                    } catch {
+                      // Storage is unavailable: nothing on the device can be overwritten.
+                    }
+                    if (!unchanged) {
+                      setRecovery(localStorage.getItem(STORAGE) ?? "");
+                      setMessage("Saved data changed again. Download this latest copy first.");
+                      return;
+                    }
                     setRecovery(null);
                     setMessage("");
                   }}

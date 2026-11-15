@@ -4,7 +4,7 @@ export const anglesConfig = {
   capabilities: {
     editor: "The returned editor link opens the diagram at /tools/angles, where teachers change the figure, mark and label angles, and save or print.",
     schemaVersions: [1],
-    rendererVersions: ["angles-1"],
+    rendererVersions: [core.RENDERER_VERSION],
     figures: core.FIGURES,
     angleIds: {
       "straight-line": "s1, s2 ... anticlockwise from the right-hand end of the line (s1 is between the line's right end and the lowest-direction ray)",

@@ -40,7 +40,8 @@ import {
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { MathsDockError, zodFields } from "../../envelope-core/src/errors";
 
-export const RENDERER_VERSION = "graph-1";
+import { RENDERER_VERSION } from "./version";
+export { RENDERER_VERSION };
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const MAX_LINK_LENGTH = 8192;
 export const MAX_FILE_BYTES = 1024 * 1024;
@@ -438,6 +439,16 @@ export function createEnvelope(document: DiagramDocumentV1): GraphEnvelope {
     styleProfile: styleProfile ?? "legacy",
     document: structuredClone(raw),
   };
+}
+/** The note the connector gives when a saved graph moves to the portable print font. */
+export const PORTABLE_NOTE = "The graph now uses the portable print font; mathematical values are unchanged.";
+/**
+ * A graph in the portable print profile, as the connector draws every graph: a legacy envelope is
+ * converted (values, title and note unchanged) and `converted` says so.
+ */
+export function portableEnvelope(raw: GraphEnvelope): { envelope: GraphEnvelope; converted: boolean } {
+  if (raw.styleProfile === "portable-v1") return { envelope: raw, converted: false };
+  return { envelope: { ...createEnvelope({ ...documentFromEnvelope(raw), styleProfile: "portable-v1" }), ...aboutOf(raw) }, converted: true };
 }
 export function documentFromEnvelope(
   envelope: GraphEnvelope,

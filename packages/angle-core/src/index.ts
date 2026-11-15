@@ -22,6 +22,9 @@ import { ANSWER_COLOUR } from "../../envelope-core/src/answer-state";
 import { boldLines, LINE_WEIGHTS, MIN_TEXT_PT } from "../../envelope-core/src/house-style";
 import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "angles-1" as const;
+
 export { ANSWER_COLOUR };
 export const FIGURES = ["straight-line", "point", "crossing", "parallel", "polygon"] as const;
 export type FigureKind = (typeof FIGURES)[number];
@@ -123,7 +126,7 @@ export const documentSchema = z
   })
   .strict();
 export const envelopeSchema = z
-  .object({ kind: z.literal("angles"), schemaVersion: z.literal(1), rendererVersion: z.literal("angles-1"), document: documentSchema, ...aboutShape })
+  .object({ kind: z.literal("angles"), schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), document: documentSchema, ...aboutShape })
   .strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type AngleDocument = Envelope["document"];
@@ -404,7 +407,7 @@ export function prune(e: Envelope): Envelope {
 /* ---------- Building ---------- */
 
 export function blank(figure: Figure = { type: "straight-line", rays: [62] }): Envelope {
-  return { kind: "angles", schemaVersion: 1, rendererVersion: "angles-1", document: { figure, angles: [], names: [], turnDeg: 0, sizeMm: 70, notToScale: true } };
+  return { kind: "angles", schemaVersion: 1, rendererVersion: RENDERER_VERSION, document: { figure, angles: [], names: [], turnDeg: 0, sizeMm: 70, notToScale: true } };
 }
 /** A starting figure for each kind, with one given angle and one for pupils to find. */
 export function starter(kind: FigureKind = "straight-line"): Envelope {

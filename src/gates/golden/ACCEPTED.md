@@ -451,6 +451,13 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - bar model: bar-source-sharing (worked): png600 3260x1643 -> 3293x1037
 - bar model: bar-source-sharing (worked): pixels 2ab65c5c0693f6c1 -> b765ced7d4ba0427
 
+## 2026-11-14: Pie charts added to Statistical charts: four new pie example outputs, no existing output changed
+
+- charts: chart-pie-snacks: added
+- charts: chart-pie-snacks (worked): added
+- charts: chart-pie-complete: added
+- charts: chart-pie-complete (worked): added
+
 ## 2026-11-14: U35: saved graph envelopes no longer carry the editor's selectedObjectId; artwork unchanged
 
 - graph: graph-1MA1_JUN_2019_2H_Q2: json 169b037986e5a308 -> 75f5e8de89a74165
@@ -459,6 +466,20 @@ higher and waits for Tim (`docs/AUTONOMOUS-LOOP-POLICY.md`).
 - graph: graph-1MA1_NOV_2017_3F_Q13 (worked): json edd91e3824371975 -> d106633b195329f2
 - graph: graph-1MA1_NOV_2021_1F_Q18: json 320cb0f7ac481726 -> 6b1d6f131727bc66
 - graph: graph-1MA1_NOV_2021_1F_Q18 (worked): json 50094a4dd9cdab15 -> f3131ffaec134c16
+
+## 2026-11-15: Pictograms added to Statistical charts: four new pictogram example outputs, no existing output changed
+
+- charts: chart-pictogram-pictures: added
+- charts: chart-pictogram-pictures (worked): added
+- charts: chart-pictogram-cycles: added
+- charts: chart-pictogram-cycles (worked): added
+
+## 2026-11-15: Scatter graphs added to Statistical charts: four new scatter example outputs, no existing output changed
+
+- charts: chart-scatter-judges: added
+- charts: chart-scatter-judges (worked): added
+- charts: chart-scatter-plot: added
+- charts: chart-scatter-plot (worked): added
 
 ## 2026-11-15: New angle diagrams tool: its nine gallery examples, pupil and worked (new outputs only)
 

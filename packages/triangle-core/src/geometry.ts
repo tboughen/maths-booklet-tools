@@ -1,3 +1,4 @@
+import { RENDERER_VERSION } from "./model";
 import {
   add,
   cross,
@@ -34,7 +35,7 @@ export function build(
   const e: Envelope = {
     kind: "triangle",
     schemaVersion: 2,
-    rendererVersion: "triangle-2",
+    rendererVersion: RENDERER_VERSION,
     styleProfile: "exam-v1",
     document: {
       layout,
