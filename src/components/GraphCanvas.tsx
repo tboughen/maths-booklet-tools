@@ -66,7 +66,7 @@ import {
 } from "../domain/graphStyle";
 import type {
   Coordinate,
-  DiagramDocumentV1,
+  GraphEditorDocument,
   DrawingTool,
   GraphObject,
   PointObject,
@@ -76,11 +76,11 @@ import type {
 } from "../domain/types";
 
 interface GraphCanvasProps {
-  document: DiagramDocumentV1;
+  document: GraphEditorDocument;
   zoom?: number;
   disabled?: boolean;
   tool: DrawingTool;
-  onCommit: (document: DiagramDocumentV1) => void;
+  onCommit: (document: GraphEditorDocument) => void;
   onSelect: (id: string | null) => void;
   onAxisAdjust: (
     axis: "x" | "y",
@@ -92,7 +92,7 @@ interface GraphCanvasProps {
 type ObjectDrag = {
   kind: "point" | "start" | "end" | "label" | "name";
   objectId: string;
-  baseDocument: DiagramDocumentV1;
+  baseDocument: GraphEditorDocument;
   pointerId: number;
 };
 
@@ -191,7 +191,7 @@ function editorAutoLabelPosition(
 }
 
 function objectHitIds(
-  document: DiagramDocumentV1,
+  document: GraphEditorDocument,
   layout: SvgLayout,
   pointer: Coordinate,
 ): string[] {
@@ -293,7 +293,7 @@ export function GraphCanvas({
     key: "",
     index: 0,
   });
-  const [draftDocument, setDraftDocument] = useState<DiagramDocumentV1 | null>(
+  const [draftDocument, setDraftDocument] = useState<GraphEditorDocument | null>(
     null,
   );
   const [segmentPreview, setSegmentPreview] = useState<SegmentDrag | null>(

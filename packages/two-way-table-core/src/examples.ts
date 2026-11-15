@@ -1,4 +1,4 @@
-import { forView, validate, type Envelope } from "./index";
+import { RENDERER_VERSION, forView, validate, type Envelope } from "./index";
 
 /**
  * Builds a table from rows of cell text. "?24" is a hidden answer: the pupil copy leaves the box
@@ -10,7 +10,7 @@ function table(corner: string, columns: string[], rows: [string, ...string[]][],
   return validate({
     kind: "two-way-table",
     schemaVersion: 1,
-    rendererVersion: "two-way-table-1",
+    rendererVersion: RENDERER_VERSION,
     document: {
       corner,
       columns: columns.map((heading, i) => ({ id: `c${i + 1}`, heading })),

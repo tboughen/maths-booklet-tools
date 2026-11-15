@@ -7,7 +7,7 @@ import { answerSize, previewArt, workedIssue } from "../export/worked";
 import { workedOf } from "../../packages/envelope-core/src/worked";
 import { TITLE_NOTE_STEP, withAbout } from "../site/titleNoteData";
 import { aboutOf } from "../../packages/envelope-core/src/about";
-import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useResourceFit } from "../site/useResourceFit";
 import { ExampleGallery } from "../examples/ExampleGallery";
 import { twoWayTableGallery } from "../examples/galleryCatalogue";
@@ -48,7 +48,7 @@ import {
 } from "../../packages/two-way-table-core/src";
 import { LINK_PREFIX, parseTwoWayTableLink, twoWayTableLink } from "./links";
 import { copyWord, downloadEditable, downloadImage, printPng, downloadBoth } from "./export";
-import { handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
+import { openDraft, useDraftAutosave, handleUndoKeys, useDocumentHistory, redoLabel as redoStepName, undoLabel as undoStepName, stepName } from "../editor-kit";
 
 const STORAGE = copyStorageKey("maths-booklet-tools:two-way-table:v1");
 type Doc = Envelope["document"];
@@ -56,19 +56,8 @@ type Doc = Envelope["document"];
 type Address = { row: string; column: string };
 
 function initial() {
-  try {
-    const raw = localStorage.getItem(STORAGE);
-    if (raw) {
-      try {
-        return { e: parseFile(raw), recovery: null, message: "" };
-      } catch {
-        return { e: create(), recovery: raw, message: "Saved table data needs recovery. Download the original before starting afresh." };
-      }
-    }
-  } catch {
-    return { e: create(), recovery: null, message: "Device storage is unavailable. Save an editable file to keep your work." };
-  }
-  return { e: create(), recovery: null, message: "" };
+  const start = openDraft({ key: STORAGE, parse: parseFile, fresh: create, recoveryMessage: "Saved table data needs recovery. Download the original before starting afresh." });
+  return { e: start.document, recovery: start.recovery, message: start.message };
 }
 
 /** Lets each refused draft keep its reason on screen until that field is fixed or restored. */
@@ -159,7 +148,6 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   const [recovery, setRecovery] = useState<string | null>(startup.recovery),
     [protectedCopy, setProtectedCopy] = useState(false),
     [message, setMessage] = useState(startup.message),
-    [saveState, setSaveState] = useState("Saved on this device"),
     [zoom, setZoom] = useState(0),
     [view, setView] = useState<"pupil" | "answer">("pupil"),
     [menu, setMenu] = useState(false),
@@ -167,8 +155,7 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
     [selected, setSelected] = useState<Address | null>(null),
     [hideFilled, setHideFilled] = useState(true),
     [pending, setPending] = useState<{ e: Envelope; title: string; explanation: string } | null>(null);
-  const file = useRef<HTMLInputElement>(null),
-    expected = useRef<string | null>(null);
+  const file = useRef<HTMLInputElement>(null);
   const e = history.present,
     d = e.document,
     displayed = forView(e, view),
@@ -240,35 +227,17 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
   }
 
   // Autosave with protection for another tab's newer draft.
-  useEffect(() => {
-    if (recovery !== null) return;
-    try {
-      const raw = localStorage.getItem(STORAGE),
-        text = canonical(history.present);
-      if (expected.current !== null && raw !== expected.current && raw !== text) {
-        setRecovery(raw ?? "");
-        setProtectedCopy(false);
-        setMessage("A newer draft exists in another tab. Its saved data is protected.");
-        return;
-      }
-      localStorage.setItem(STORAGE, text);
-      expected.current = text;
-      setSaveState("Saved on this device");
-    } catch {
-      setSaveState("Save unavailable — download editable file");
-    }
-  }, [history.present, recovery]);
-  useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === STORAGE && event.newValue !== expected.current) {
-        setRecovery(event.newValue ?? "");
-        setProtectedCopy(false);
-        setMessage("Saved table data changed in another tab. Download its data before replacing it.");
-      }
-    };
-    window.addEventListener("storage", listener);
-    return () => window.removeEventListener("storage", listener);
-  }, []);
+  const savedText = useMemo(() => canonical(history.present), [history.present]);
+  const { saveState, keepStored } = useDraftAutosave({
+    key: STORAGE,
+    text: savedText,
+    paused: recovery !== null,
+    onConflict: (raw, reason) => {
+      setRecovery(raw);
+      setProtectedCopy(false);
+      setMessage(reason === "newer" ? "A newer draft exists in another tab. Its saved data is protected." : "Saved table data changed in another tab. Download its data before replacing it.");
+    },
+  });
   useEffect(() => {
     if (!active) return;
     const key = (event: KeyboardEvent) => {
@@ -672,14 +641,12 @@ export default function TwoWayTablePage({ active = true }: { active?: boolean })
               disabled={!protectedCopy}
               onClick={() => {
                 try {
-                  const raw = localStorage.getItem(STORAGE);
-                  if (raw !== recovery) {
-                    setRecovery(raw ?? "");
+                  if (!keepStored(recovery)) {
+                    setRecovery(localStorage.getItem(STORAGE) ?? "");
                     setProtectedCopy(false);
                     setMessage("Saved data changed again. Download this latest copy first.");
                     return;
                   }
-                  expected.current = raw;
                   setRecovery(null);
                   setMessage("");
                 } catch {

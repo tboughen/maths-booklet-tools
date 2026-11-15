@@ -1,5 +1,6 @@
 import { aboutOf, type About } from "../../envelope-core/src/about";
 import { z } from "zod";
+import { RENDERER_VERSION as GRAPH_RENDERER_VERSION } from "../../graph-core/src/version";
 import { LINE_WEIGHTS } from "../../envelope-core/src/house-style";
 import {
   DEFAULT_HEADINGS,
@@ -62,7 +63,7 @@ export function validateRatioEnvelope(input: unknown): RatioEnvelope {
     input &&
     typeof input === "object" &&
     (("kind" in input && input.kind !== "ratio-table") ||
-      ("rendererVersion" in input && input.rendererVersion === "graph-1"))
+      ("rendererVersion" in input && input.rendererVersion === GRAPH_RENDERER_VERSION))
   )
     throw new RatioError(
       "wrong_tool",

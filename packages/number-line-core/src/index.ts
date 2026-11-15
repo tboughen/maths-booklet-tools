@@ -5,6 +5,9 @@ import { glyphAdvance } from "../../ratio-table-core/src/font-metrics";
 import { patchSchema } from "../../graph-core/src/patch-schema";
 import { sha256Hex, toBase64Url } from "../../envelope-core/src/index";
 import { boldLines, LINE_WEIGHTS } from "../../envelope-core/src/house-style";
+
+/** The drawing rules version this core writes and reads: the one source for schemas, guides and the connector (M19). */
+export const RENDERER_VERSION = "number-line-1" as const;
 const textWidth = (text: string, size: number) => Array.from(text).reduce((sum, c) => sum + glyphAdvance(c), 0) * size;
 /** Numeric fields where a typed mixed number ("1 1/2" or "1½") is read as its improper fraction ("3/2"). */
 const NUMERIC_KEYS = new Set(["minimum", "maximum", "step", "value", "lower", "upper", "stop"]);
@@ -53,7 +56,7 @@ export type Secondary = z.infer<typeof secondarySchema>;
 export const documentSchema = z.object({ axis: axisSchema.default({ minimum: "-5", maximum: "5", step: "1", labelEvery: 1, variable: "x", numberFormat: "decimal", variableBelow: false }), solution: setSchema.nullable().default(null), teaching: teachingSchema.default({ solutionVisible: true, labels: {}, prompt: "", answer: "", answerVisible: false, responseLines: 0 }), widthCm: z.number().min(8).max(18).default(14), markers: z.array(markerSchema).min(1).max(6).optional(), secondary: secondarySchema.optional(),
     /** Bold lines (U111). Normal lines are the default and are never saved. */
     lines: z.enum(LINE_WEIGHTS).transform(v => v === "bold" ? v : undefined).optional() }).strict();
-export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal("number-line-1"), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
+export const envelopeSchema = z.object({ schemaVersion: z.literal(1), rendererVersion: z.literal(RENDERER_VERSION), styleProfile: z.literal("examination-v1"), kind: z.literal("number-line"), document: documentSchema, ...aboutShape }).strict();
 export type Envelope = z.infer<typeof envelopeSchema>;
 export type LineDocument = z.infer<typeof documentSchema>;
 export type Solution = z.infer<typeof setSchema>;
@@ -196,7 +199,7 @@ export function validate(raw: unknown): Envelope {
             throw Error("The prompt or answer is too long for this print width.");
     return e;
 }
-export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: "number-line-1", styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(unmix(raw)) }); }
+export function create(raw: unknown = {}): Envelope { return validate({ schemaVersion: 1, rendererVersion: RENDERER_VERSION, styleProfile: "examination-v1", kind: "number-line", document: documentSchema.parse(unmix(raw)) }); }
 export function canonical(e: Envelope) { return JSON.stringify(validate(e)); }
 export function parseFile(text: string) { if (new TextEncoder().encode(text).length > 32768)
     throw Error("Use a number-line file smaller than 32 KiB."); return validate(JSON.parse(text)); }

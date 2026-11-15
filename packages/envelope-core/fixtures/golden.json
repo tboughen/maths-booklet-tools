@@ -1,25 +1,25 @@
 {
  "graph/blank": {
   "schemaVersion": 1,
-  "contentHash": "3b8111166129a22df48ce364fa26ff9644a927a101d53cb1504df144402417b9",
+  "contentHash": "4a7f52ed497e65a889e0721aad95982a199a5db0deef620adc16be1d9645cec8",
   "pupilSvg": "f17dec6a30e6b50bde00e573f3509591de9cbb3e02c3c98f30e4c0fbd8aa2a66",
   "answerSvg": "f17dec6a30e6b50bde00e573f3509591de9cbb3e02c3c98f30e4c0fbd8aa2a66"
  },
  "graph/file-tool-card-preview-examples-graph-tool": {
   "schemaVersion": 1,
-  "contentHash": "607aa1172fe1f675a1197b241cc2724ad27716933c122ee8d5fc2cb4ad388d71",
+  "contentHash": "69ed84740cc49f128ed25d44aadffc634b6c5048be9edf09c56861d913b9d04c",
   "pupilSvg": "f61be3f446f7be419af2caf0911ce1a60c5cb254d4804d825964602968c0d5be",
   "answerSvg": "f61be3f446f7be419af2caf0911ce1a60c5cb254d4804d825964602968c0d5be"
  },
  "graph/named-line-and-points": {
   "schemaVersion": 1,
-  "contentHash": "85eecb64caef4934f606500f490e9024470798436dd0e24ab1e9b8d70afacf63",
+  "contentHash": "2dc5fa33479c41b3feedda3152d759e68e1af19029fe4752ab0f37d9a801899b",
   "pupilSvg": "bd970ad29e96f40df22ed20ac8a6866f9ed615b36b5437527428aeb591334e9b",
   "answerSvg": "bd970ad29e96f40df22ed20ac8a6866f9ed615b36b5437527428aeb591334e9b"
  },
  "graph/print-consumption": {
   "schemaVersion": 1,
-  "contentHash": "5acecc8b447994fc1e15276e1b105210290f444f4bbe030c5b1e2ea179a0b40e",
+  "contentHash": "f0fcae4a6ab7615f3a9f7b5ff664a1c5259cf4e8ce3eab8fff817670acc937b2",
   "pupilSvg": "d940c273ed1c888ef272b1d003dc7c97c5287bc98c86f13351d6bb2020f1c081",
   "answerSvg": "d940c273ed1c888ef272b1d003dc7c97c5287bc98c86f13351d6bb2020f1c081"
  },

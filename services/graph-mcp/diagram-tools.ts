@@ -9,9 +9,11 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import { ANSWER_VIEW_KINDS, DIAGRAM_KINDS, FAMILIES, altText, diagramKindSchema, type DiagramKind } from "../../packages/diagram-core/src/registry";
 import { FAMILY_LIST, NOT_DRAWN, familyCapabilities } from "../../packages/diagram-core/src/guides";
-import { GraphError } from "../../packages/graph-core/src/interchange";
-import { describeGraph } from "../../packages/graph-core/src/interchange";
-import { describeRatio } from "../../packages/ratio-table-core/src/interchange";
+import { GraphError, PORTABLE_NOTE, describeGraph, graphWarnings, portableEnvelope, type GraphEnvelope } from "../../packages/graph-core/src/interchange";
+import { describeRatio, ratioWarnings } from "../../packages/ratio-table-core/src/interchange";
+import type { RatioEnvelope } from "../../packages/ratio-table-core/src/schema";
+import { warnings as valueWarnings, type ValueEnvelope } from "../../packages/value-graph-core/src/interchange";
+import { warningsOf, type NewSource } from "./resource-tools";
 import * as line from "../../packages/number-line-core/src/index";
 import { diagramSource, type DiagramSource } from "./diagram-source";
 import { toolFailure } from "./tool-error";
@@ -30,8 +32,19 @@ function summaryOf(source: DiagramSource): string | null {
 type ToolResult = { structuredContent: Record<string, unknown>; content: ContentBlock[] };
 /** Builds the finished result (preview, files, links, print facts) for one validated source. */
 export type ResultBuilder = (source: DiagramSource, signal: AbortSignal) => Promise<ToolResult>;
+/** The printed size of one validated source, without making any file (dryRun, M32). */
+export type Measure = (source: DiagramSource, signal: AbortSignal) => Promise<{ physicalSizeCm: { width: number; height: number } }>;
+
+/** The family's own notes on what was drawn (crowded labels, off-grid objects and so on), as create_diagram reports them. */
+function contentWarnings(source: DiagramSource): string[] {
+  if (source.kind === "graph") return graphWarnings(source.envelope as GraphEnvelope);
+  if (source.kind === "ratio-table") return ratioWarnings(source.envelope as RatioEnvelope);
+  if (source.kind === "value-graph") return valueWarnings(source.envelope as ValueEnvelope);
+  return warningsOf(source as NewSource);
+}
 
 const view = z.enum(["pupil", "answer"]).optional();
+const dryRun = z.boolean().optional().describe("true checks and describes the result (envelope, contentHash, summary, notes, size) without making files or links.");
 const object = z.record(z.string(), z.unknown());
 const kind = diagramKindSchema.describe("Diagram family. Call diagram_capabilities with this kind first to read its spec and operations.");
 
@@ -44,6 +57,7 @@ export const createInput = z
     spec: object.optional().describe("Settings for a new diagram, as that family's specSchema describes. Leave out for the family's blank default. Supply spec or envelope, not both."),
     envelope: object.optional().describe("A saved source.json or a previous result's envelope, to re-check it and get fresh files and links."),
     outputView: view,
+    dryRun,
   })
   .strict();
 export const reviseInput = z
@@ -53,6 +67,7 @@ export const reviseInput = z
     baseHash: z.string(),
     operations: z.array(object).max(40).describe("Edits from the family's operationsSchema, applied in order and atomically. An empty array changes nothing and returns fresh links."),
     outputView: view,
+    dryRun,
   })
   .strict();
 const link = z.object({ url: z.string().url(), expiresAt: z.string() }).strict();
@@ -62,14 +77,15 @@ export const diagramOutput = z
     envelope: object,
     contentHash: z.string().regex(/^[0-9a-f]{64}$/),
     rendererVersion: z.string(),
-    printDpi: z.literal(600),
-    printVerified: z.boolean(),
+    printDpi: z.literal(600).optional(),
+    printVerified: z.boolean().optional(),
     summary: z.string(),
     altText: z.string(),
     warnings: z.array(z.string()),
-    downloads: z.object({ svg: link.optional(), png: link.optional(), json: link.optional() }).strict(),
-    editorUrl: z.string().url().nullable(),
+    downloads: z.object({ svg: link.optional(), png: link.optional(), json: link.optional() }).strict().optional(),
+    editorUrl: z.string().url().nullable().optional(),
     physicalSizeCm: z.object({ width: z.number(), height: z.number() }),
+    next: z.array(z.string()),
   })
   .passthrough();
 
@@ -107,6 +123,21 @@ function plainSummary(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   return `${verb} a ${f.label}, ${size.width} × ${size.height} cm at 100%. ${what}${viewNote}${notes}`;
 }
 
+/**
+ * M83: what a model can usefully do next with this result, in the order it usually needs them.
+ * Answers copies are offered only as something to make when the teacher asks.
+ */
+export function nextSteps(source: DiagramSource, warnings: readonly string[]): string[] {
+  const f = FAMILIES[source.kind];
+  const outputView = ("outputView" in source && source.outputView) || "pupil";
+  return [
+    ...(warnings.length ? ["Read the notes in the summary to the teacher; change the diagram with revise_diagram if a note asks for it."] : []),
+    `To change this diagram, call revise_diagram with kind "${source.kind}", this exact envelope and contentHash as baseHash${outputView === "answer" ? ', and outputView "answer" again for the answers copy' : ""}.`,
+    ...(f.answerView && outputView === "pupil" ? ['Only if the teacher asks for answers: call create_diagram with this envelope and outputView "answer".'] : []),
+    "To place it at another size, call check_diagram_placement; for every file in one ZIP, call download_diagram_bundle.",
+  ];
+}
+
 const MIME = { svg: "image/svg+xml", png: "image/png", json: "application/json" } as const;
 async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Checked", build: ResultBuilder, signal: AbortSignal) {
   const r = await build(source, signal);
@@ -116,6 +147,7 @@ async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   // W90: report any saved answer that reaches the pupil copy, whichever view was asked for.
   for (const leak of answerLeaks(source.kind, source.envelope)) (s.warnings ??= []).push(leak.message);
   const summary = plainSummary(source, verb, s.physicalSizeCm, alt, s.warnings);
+  const next = nextSteps(source, s.warnings);
   // Files as MCP resource links, so clients can offer them directly instead of retyping URLs.
   const links: ContentBlock[] = (Object.keys(MIME) as (keyof typeof MIME)[]).flatMap((format) => {
     const d = s.downloads[format];
@@ -124,12 +156,43 @@ async function finish(source: DiagramSource, verb: "Created" | "Revised" | "Chec
   // Drop the builders' own lead-in text: the summary replaces it.
   const content = r.content.filter((c, i) => !(i === 0 && c.type === "text"));
   return {
-    structuredContent: { kind: source.kind, ...r.structuredContent, summary, altText: alt },
-    content: [{ type: "text" as const, text: summary }, ...content, ...links],
+    structuredContent: { kind: source.kind, ...r.structuredContent, summary, altText: alt, next },
+    content: [{ type: "text" as const, text: summary }, ...content, ...links, { type: "text" as const, text: `Next: ${next.join(" ")}` }],
   };
 }
 
-export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
+/** M32/M33: the checked envelope and what it draws, without files, links or a preview. */
+async function dryRunResult(given: DiagramSource, verb: "Created" | "Revised" | "Checked", measure: Measure, signal: AbortSignal) {
+  // A legacy graph is converted exactly as create_diagram converts it, so the hash, size and notes match.
+  const portable = given.kind === "graph" ? portableEnvelope(given.envelope as GraphEnvelope) : null;
+  const source = portable?.converted ? ({ ...given, envelope: portable.envelope } as DiagramSource) : given;
+  const f = FAMILIES[source.kind];
+  const { physicalSizeCm } = await measure(source, signal);
+  const warnings = [...(portable?.converted ? [PORTABLE_NOTE] : []), ...contentWarnings(source), ...answerLeaks(source.kind, source.envelope).map((l) => l.message)];
+  // Alt text and the summary describe the pupil copy's own label, so hidden answers stay hidden.
+  const alt = altText(source.kind, f.svg(source.envelope, "pupil"));
+  const summary = `${plainSummary(source, verb, physicalSizeCm, alt, warnings)} Dry run: no files were made.`;
+  const next = [
+    `Call create_diagram with this envelope${"outputView" in source && source.outputView === "answer" ? ' and outputView "answer"' : ""} (no dryRun) for the preview, files and links.`,
+    ...nextSteps(source, warnings).filter((n) => !n.startsWith("To place it")),
+  ];
+  const value = {
+    kind: source.kind,
+    ...("outputView" in source && source.outputView ? { outputView: source.outputView } : {}),
+    envelope: source.envelope as Record<string, unknown>,
+    contentHash: await f.hash(source.envelope),
+    rendererVersion: String((source.envelope as { rendererVersion?: unknown }).rendererVersion ?? ""),
+    summary,
+    altText: alt,
+    warnings,
+    physicalSizeCm,
+    next,
+    dryRun: true,
+  };
+  return { structuredContent: value, content: [{ type: "text" as const, text: `${summary}\nNext: ${next.join(" ")}` }] };
+}
+
+export function diagramTools(builders: Record<DiagramKind, ResultBuilder>, measure: Measure) {
   function register(server: McpServer, connection: AbortSignal) {
     const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
     server.registerTool(
@@ -173,7 +236,9 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
             throw input.envelope !== undefined ? prefixFields(error, "envelope") : prefixFields(error, "spec", (path) => !/^(document|tool|schemaVersion|rendererVersion)\b/.test(path));
           }
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
-          return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], AbortSignal.any([extra.signal, connection]));
+          const signal = AbortSignal.any([extra.signal, connection]);
+          if (input.dryRun) return await dryRunResult(source, input.envelope ? "Checked" : "Created", measure, signal);
+          return await finish(source, input.envelope ? "Checked" : "Created", builders[input.kind], signal);
         } catch (error) {
           return diagramFailure(error, input.kind);
         }
@@ -194,7 +259,9 @@ export function diagramTools(builders: Record<DiagramKind, ResultBuilder>) {
           if (input.outputView !== undefined && !f.answerView) throw new GraphError("invalid_input", `outputView applies only to ${ANSWER_VIEW_KINDS}.`);
           const envelope = await f.revise({ envelope: input.envelope, baseHash: input.baseHash, operations: input.operations });
           const source = diagramSource({ kind: input.kind, envelope, ...(input.outputView ? { outputView: input.outputView } : {}) });
-          return await finish(source, "Revised", builders[input.kind], AbortSignal.any([extra.signal, connection]));
+          const signal = AbortSignal.any([extra.signal, connection]);
+          if (input.dryRun) return await dryRunResult(source, "Revised", measure, signal);
+          return await finish(source, "Revised", builders[input.kind], signal);
         } catch (error) {
           return diagramFailure(error, input.kind);
         }
