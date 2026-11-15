@@ -7,7 +7,7 @@
 import type { DiagramKind } from "./registry";
 
 const example = "A saved starter that keeps pupil blanks; on its own it opens that example.";
-const worked = "true shows the example's saved answers (a worked version); default false.";
+const worked = "true shows the saved answers (a worked version); default false.";
 const lines = "normal (default) or bold: bold prints strokes 1.5 times as heavy.";
 const widthCm = "Printed width in centimetres at 100% size.";
 
@@ -42,7 +42,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     solution: "null, an interval, a ray or points with stable IDs, drawn with filled or hollow ends.",
     teaching: "What the pupil copy shows: solutionVisible, tick-label states, prompt and the hidden answer.",
     widthCm,
-    markers: "Up to 6 down arrows for \"what number is the arrow pointing to?\"; not with a solution.",
+    markers: "Up to 6 down arrows for \"what number is the arrow pointing to?\"; not with a solution or a second scale.",
     secondary: "A second scale above the line: a double number line or percentage bar.",
     lines,
   },
@@ -53,7 +53,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     caption: "off, relationship (prints the set relationship) or line (an answer line); separate or nested sets only.",
     labels: "Set and universe labels, each with text and visibility.",
     definitions: "Words describing each set, such as \"multiples of 3\".",
-    regions: "What each region holds, by mask (0 outside; A=1, B=2, C=4): empty, members or a frequency, shown, hidden or an answer line.",
+    regions: "Each region by mask (0 outside; A=1, B=2, C=4): empty, members, frequency, number, algebra or text; shown, hidden or an answer line; optional shade.",
     showDefinitions: "Whether the set definitions print beside the diagram.",
     widthCm,
     fontPt: "Printed text size in points, 10 to 14.",
@@ -87,7 +87,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     worked,
     kind: "bar, dual (comparative), composite (stacked) or vline (vertical line chart).",
     categories: "Category labels along the horizontal axis, up to 12.",
-    series: "Up to 4 data series, one numeric-string value (or null for blank) per category, with a fill.",
+    series: "Up to 4 data series (bar and vline draw the first only), one numeric-string value or null (blank) per category, with a fill.",
     axis: "Vertical axis min, max, step and minor divisions; it starts at 0.",
     presentation: "Axis titles, grid (none, major or fine), key, heights and widths in millimetres, and bold lines.",
   },
@@ -96,7 +96,7 @@ export const SPEC_FIELD_DOCS: Readonly<Record<DiagramKind, Readonly<Record<strin
     worked,
     stages: "Equal tree: each stage's outcomes and probabilities.",
     branches: "Unequal tree: branches with id, parent, outcome, probability; parents first.",
-    bag: "Counts per outcome and replacement; writes unsimplified fractions.",
+    bag: "Counts and replacement; writes unsimplified fractions, shown unless hidden. Only on request.",
     hide: "none, probabilities, end or all: saves those as hidden answers.",
     settings: "Stage titles, end columns, blank style, branch and gap lengths (mm), bold lines.",
     questions: "Up to 8 questions below the tree, each with an answer line.",
