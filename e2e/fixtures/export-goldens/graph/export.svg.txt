@@ -8,8 +8,10 @@
   <rect fill="#ffffff" height="100%" width="100%">
   <defs>
     <clipPath id="plot-clip">
+      <rect height="1005.29" width="1005.29" x="46.35" y="67.35">
+    <clipPath id="plot-fill-clip">
       <rect height="1000" width="1000" x="49" y="70">
-  <g class="grid-lines" fill="none" stroke-width="5.29" stroke="#a9abaa">
+  <g class="grid-lines" fill="none" stroke-width="3.53" stroke="#a9abaa">
     <line x1="49" x2="49" y1="70" y2="1070">
     <line x1="149" x2="149" y1="70" y2="1070">
     <line x1="249" x2="249" y1="70" y2="1070">
@@ -35,7 +37,7 @@
   <defs>
     <marker id="axis-arrow" markerHeight="25" markerUnits="userSpaceOnUse" markerWidth="25" orient="auto" refX="8.5" refY="5" viewBox="0 0 10 10">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2224">
-  <g class="graph-axes" fill="none" stroke-width="7.06" stroke="#1f2224">
+  <g class="graph-axes" fill="none" stroke-width="5.29" stroke="#1f2224">
     <line marker-end="url(#axis-arrow)" x1="49" x2="1072.33" y1="570" y2="570">
     <line marker-end="url(#axis-arrow)" x1="549" x2="549" y1="1070" y2="46.67">
   <g clip-path="url(#plot-clip)" fill="none" stroke-linecap="round" stroke-width="5.29" stroke="#202224">
@@ -122,8 +124,8 @@
         "−5"
     <g class="axis-number axis-number-origin">
       <rect fill="#ffffff" height="44.03" rx="2.12" width="44.03" x="488.89" y="581.01">
-      <text text-anchor="end" transform="translate(532.91 615.72) skewX(-12) translate(-532.91 -615.72)" x="532.91" y="615.72">
-        "0"
+      <text text-anchor="end" x="532.91" y="615.72">
+        "𝑂"
     <text class="axis-name axis-name-x" font-family="'STIX Two Text', 'STIX Two Math', serif" x="1097" y="615.72">
       "𝑥"
     <text class="axis-name axis-name-y" font-family="'STIX Two Text', 'STIX Two Math', serif" text-anchor="end" x="529" y="40">
