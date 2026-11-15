@@ -58,3 +58,16 @@ describe("a lone inline answer line is short", () => {
     expect(xml).toMatch(/<w:tcW w:w="1701" w:type="dxa"\/>[^]*?<w:bottom w:val="single"/);
   });
 });
+
+describe("inline lines that share a group stay in their slots", () => {
+  it("does not shorten an inline line that packing put on a row of its own", () => {
+    const long = "a saved answer of thirty-odd letters";
+    const doc = sheet({ prefix: "A:", answer: long, inline: true });
+    const card = doc.document.sides[0].columns[0].cards[0];
+    card.items.push({ type: "answerLine", prefix: "B:", suffix: "", answer: long, inline: true });
+    const lengths = lineLengths(doc).slice(-2);
+    // Each needs more than half the row, so each gets a row of its own at full width.
+    expect(lengths[0]).toBeGreaterThan(100);
+    expect(lengths[1]).toBeGreaterThan(100);
+  });
+});
