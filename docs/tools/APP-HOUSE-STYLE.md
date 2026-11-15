@@ -29,8 +29,8 @@ that have not moved, and the two sets are not yet the same values. Do not add to
 | Brand | `--md-navy`, `--md-blue`, `--md-blue-soft` |
 | Meaning | `--md-green` (done), `--md-amber` (check), `--md-red` (error), `--md-pink` (teacher only) |
 | App bar | `--md-bar`, `--md-bar-ink`, `--md-bar-ink-2`, `--md-bar-accent`, `--md-bar-height` (44 px) |
-| Text sizes | `--md-text-xs` 12, `--md-text-sm` 13, `--md-text-md` 14, `--md-text-lg` 18, `--md-text-xl` 20 |
-| Controls | `--md-control` (32 px high), `--md-radius` (6 px), `--md-radius-card` (8 px) |
+| Text sizes | `--md-text-2xs` 11 (key hints only), `--md-text-xs` 12, `--md-text-sm` 13, `--md-text-md` 14, `--md-text-lg` 18, `--md-text-xl` 20 |
+| Controls | `--md-control` (32 px high), `--md-radius` (6 px), `--md-radius-card` (8 px), `--md-radius-key` (4 px, key hints), `--md-radius-pill` (chips), `--md-shadow-pop` (a panel that opens over the page) |
 
 Pink means one thing: the teacher's view, with hidden answers showing. Do not use it for anything else.
 
@@ -67,6 +67,9 @@ the teacher's favourite tools, and every tool grouped by strand. There is no row
 - `PageHeading` adds the switcher by itself on every registered tool's page. A tool does nothing.
 - Up and down arrows move through the tools, Enter opens one, and Escape closes the switcher and
   returns focus to the name. While searching, Enter opens the first tool found.
+- While the switcher is open its keys are its own: none reaches the editor behind it, so arrows,
+  Delete and Escape never change the diagram.
+- The open switcher sits above the editor and below the app bar.
 - The star beside the name adds the tool to favourites. Favourites are kept in the browser and
   shared with the Diagram builder page (`src/site/favouriteTools.ts`).
 - Clicking the tool's name no longer moves focus harmlessly, so browser tests that need a neutral

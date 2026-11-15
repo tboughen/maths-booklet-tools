@@ -69,3 +69,47 @@ for (const width of [1920, 820, 390])
     expect(box.y + box.height).toBeLessThanOrEqual(width === 1920 ? 1080 : 900);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   });
+
+test("keys pressed in the open switcher never reach the diagram behind it", async ({ page }) => {
+  const key = "maths-booklet-tools:graph-envelope:v1";
+  const shape = async () => JSON.parse((await page.evaluate((k) => localStorage.getItem(k), key)) ?? "null")?.document?.objects[0];
+  await page.goto("/tools/graph");
+  await page.evaluate((k) => localStorage.removeItem(k), key);
+  await page.reload();
+  await page.getByRole("button", { name: "Add shape", exact: true }).click();
+  await expect(page.locator(".graph-canvas .graph-polygon")).toHaveCount(1);
+  await expect.poll(async () => (await shape())?.vertices?.length).toBeGreaterThan(2);
+  const before = await shape();
+
+  // With the shape still selected, arrows move through the tools and Delete does nothing.
+  await button(page).click();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator(":focus")).toHaveText("Expanding and factorising");
+  await page.keyboard.press("Delete");
+  await page.keyboard.press("Backspace");
+  // A click on a strand heading keeps the keys inside the switcher.
+  await panel(page).getByRole("heading", { name: "Geometry" }).click();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator(":focus")).toHaveText("Bar modelling");
+  await page.keyboard.press("Escape");
+  await expect(panel(page)).toHaveCount(0);
+  await expect(page.locator(".graph-canvas .graph-polygon")).toHaveCount(1);
+  expect(await shape()).toEqual(before);
+
+  // The shape is still selected: once the switcher is closed the arrow moves it again.
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(async () => (await shape())?.vertices[0].x).toBe(before.vertices[0].x + 0.5);
+});
+
+test("a search of spaces alone changes nothing, and the open switcher passes under the app bar", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 500 });
+  await page.goto("/tools/graph");
+  await button(page).click();
+  await page.keyboard.type("  ");
+  await expect(panel(page).getByRole("status")).toHaveText("");
+  await expect(panel(page).locator(".tool-switcher-favourites")).toBeVisible();
+  await expect(panel(page).locator("a.is-first")).toHaveCount(0);
+  const [bar, pop] = await page.evaluate(() => [".site-navigation", ".tool-switcher-panel"].map((s) => Number(getComputedStyle(document.querySelector(s)!).zIndex)));
+  expect(pop).toBeLessThan(bar);
+});

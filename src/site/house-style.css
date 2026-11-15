@@ -32,6 +32,7 @@
   --md-bar-accent: #8dbcff;
   --md-bar-height: 44px;
   /* Text sizes, control height and corners */
+  --md-text-2xs: 11px;
   --md-text-xs: 12px;
   --md-text-sm: 13px;
   --md-text-md: 14px;
@@ -40,6 +41,10 @@
   --md-control: 32px;
   --md-radius: 6px;
   --md-radius-card: 8px;
+  --md-radius-key: 4px;
+  --md-radius-pill: 999px;
+  /* The shadow under a panel that opens over the page */
+  --md-shadow-pop: 0 18px 48px #14263d2e;
   /* The one accent part of a MathsDock icon */
   --md-icon-accent: var(--md-blue);
 }

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { bookletTools } from "./registry";
 
 /** The diagram tools a teacher has starred, kept in this browser and shared by every page that
  * shows them (the Diagram builder page and the tool switcher). */
@@ -17,18 +18,18 @@ function read(): readonly string[] {
 function snapshot(): readonly string[] {
   return (current ??= read());
 }
-function subscribe(listener: () => void) {
-  // Another tab changing the list reaches this one through the storage event.
-  const storage = (event: StorageEvent) => {
+// Another tab changing the list reaches this one through the storage event. One listener for the
+// whole site, kept for as long as the site is open, so the list is never stale when a page returns.
+if (typeof window !== "undefined")
+  window.addEventListener("storage", (event) => {
     if (event.key !== KEY && event.key !== null) return;
     current = read();
-    listener();
-  };
+    listeners.forEach((listener) => listener());
+  });
+function subscribe(listener: () => void) {
   listeners.add(listener);
-  window.addEventListener("storage", storage);
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", storage);
   };
 }
 
@@ -46,6 +47,12 @@ export function toggleFavouriteTool(id: string) {
 /** The starred tool IDs, oldest first. */
 export function useFavouriteTools(): readonly string[] {
   return useSyncExternalStore(subscribe, snapshot);
+}
+
+/** The starred tools that still exist, oldest first. */
+export function useFavouriteToolList() {
+  const ids = useFavouriteTools();
+  return ids.map((id) => bookletTools.find((tool) => tool.id === id)).filter((tool) => !!tool);
 }
 
 /** Tests start each case from what storage holds. */

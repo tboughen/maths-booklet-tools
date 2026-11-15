@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PageHeading } from "./PageHeading";
 import { bookletTools } from "./registry";
 import { resetFavouriteToolsForTests } from "./favouriteTools";
@@ -75,5 +75,21 @@ describe("ToolSwitcher", () => {
     open();
     const favourites = within(screen.getByRole("list", { name: "Favourite tools" })).getAllByRole("link");
     expect(favourites.map((a) => a.textContent)).toEqual(["Venn diagrams", "Graph tool"]);
+  });
+
+  it("keeps its keys from the editor behind it and treats a search of spaces as no search", () => {
+    const editor = vi.fn();
+    window.addEventListener("keydown", editor);
+    heading("graph", "Graph tool");
+    open();
+    const panel = screen.getByRole("dialog");
+    const link = panel.querySelector<HTMLAnchorElement>("a[data-switch=tool]")!;
+    for (const key of ["ArrowDown", "Delete", "Backspace", "Escape"]) fireEvent.keyDown(link, { key });
+    expect(editor).not.toHaveBeenCalled();
+    window.removeEventListener("keydown", editor);
+    open();
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "  " } });
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(screen.getByText("Star a tool and it will wait for you here.")).toBeTruthy();
   });
 });

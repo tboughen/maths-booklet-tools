@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Check, ChevronDown, ChevronRight, LayoutGrid, Search, Star } from "lucide-react";
+import { FavouriteStar } from "./FavouriteStar";
 import { bookletTools, pageHref } from "./registry";
-import { toggleFavouriteTool, useFavouriteTools } from "./favouriteTools";
+import { useFavouriteToolList } from "./favouriteTools";
 import { catalogue, searchTool, strands } from "./toolCatalogue";
 
 type Tool = (typeof bookletTools)[number];
@@ -17,12 +18,13 @@ const COLUMNS = [["number", "graphs"], ["geometry"], ["statistics"]] as const;
 export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const favourites = useFavouriteTools();
+  const favouriteTools = useFavouriteToolList();
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLInputElement>(null);
   const panel = useId();
-  const starred = favourites.includes(tool.id);
+  // A search of spaces alone is no search.
+  const query = search.trim();
 
   const close = (returnFocus: boolean) => {
     setOpen(false);
@@ -32,10 +34,7 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
   useEffect(() => {
     if (!open) return;
     box.current?.focus();
-    const shut = () => {
-      setOpen(false);
-      setSearch("");
-    };
+    const shut = () => close(false);
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) shut();
     };
@@ -50,21 +49,23 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
   }, [open]);
 
   const results = bookletTools.map((item) => ({ item, ...searchTool(item, search) })).filter((r) => r.found);
-  const favouriteTools = favourites.map((id) => bookletTools.find((t) => t.id === id)).filter((t): t is Tool => !!t);
   // Columns that still hold a tool, each strand with its matches, in the order they are drawn.
   const columns = COLUMNS.map((column) => column.map((id) => ({ id, list: results.filter((r) => catalogue[r.item.id].strand === id) })).filter((group) => group.list.length)).filter((column) => column.length);
   // While searching, Enter opens the first tool drawn.
-  const first = search.trim() ? columns[0]?.[0]?.list[0]?.item.id : undefined;
+  const first = query ? columns[0]?.[0]?.list[0]?.item.id : undefined;
 
   function keys(event: KeyboardEvent<HTMLDivElement>) {
+    // Editors listen for keys on the window (arrows nudge, Delete removes, Escape deselects).
+    // While the switcher is open its keys are its own and never reach the diagram behind it.
+    event.stopPropagation();
     if (event.key === "Escape") {
-      // Editors listen for Escape too; this one only closes the switcher.
-      event.stopPropagation();
       close(true);
       return;
     }
     const links = [...(root.current?.querySelectorAll<HTMLAnchorElement>("a[data-switch]") ?? [])];
     if (event.key === "Enter" && event.target === box.current) {
+      // Enter that confirms a word from an input method editor is not a choice of tool.
+      if (event.nativeEvent.isComposing) return;
       // Enter in the search box opens the first tool found.
       event.preventDefault();
       root.current?.querySelector<HTMLAnchorElement>("a.is-first")?.click();
@@ -108,15 +109,15 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
           <ChevronDown size={16} aria-hidden="true" />
         </button>
       </h1>
-      <button type="button" className={`tool-switcher-star${starred ? " is-favourite" : ""}`} aria-pressed={starred} aria-label={`${starred ? "Remove" : "Add"} ${tool.name} ${starred ? "from" : "to"} favourite tools`} title={starred ? "Remove from favourite tools" : "Add to favourite tools"} onClick={() => toggleFavouriteTool(tool.id)}>
-        <Star size={16} aria-hidden="true" />
-      </button>
+      <FavouriteStar tool={tool} className="tool-switcher-star" size={16} />
       {open && (
         <div
           id={panel}
           className="tool-switcher-panel"
           role="dialog"
           aria-label="Switch diagram tool"
+          // A click on the panel's own padding or headings keeps focus, and so the keys, inside it.
+          tabIndex={-1}
           onClick={(event) => {
             if ((event.target as HTMLElement).closest("a")) close(false);
           }}
@@ -126,7 +127,7 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
             <span className="sr-only">Find a tool or topic</span>
             <input ref={box} type="search" value={search} placeholder="Find a tool or topic: Pythagoras, bearings, inequalities" onChange={(event) => setSearch(event.target.value)} />
           </label>
-          {!search && (
+          {!query && (
             <div className="tool-switcher-favourites">
               <span><Star size={15} aria-hidden="true" />Favourites</span>
               {favouriteTools.length
@@ -153,7 +154,7 @@ export function ToolSwitcher({ tool, title }: { tool: Tool; title: string }) {
           ) : (
             <p className="tool-switcher-empty">No tools found. Try a teaching topic, such as ratio or angles.</p>
           )}
-          <p className="tool-switcher-status sr-only" role="status">{search ? `${results.length} ${results.length === 1 ? "tool" : "tools"} found` : ""}</p>
+          <p className="tool-switcher-status sr-only" role="status">{query ? `${results.length} ${results.length === 1 ? "tool" : "tools"} found` : ""}</p>
           <div className="tool-switcher-foot">
             <a data-switch="all" href={pageHref("booklet-tools")}><LayoutGrid size={15} aria-hidden="true" />See all {bookletTools.length} tools with pictures</a>
             <span aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> to move, <kbd>Enter</kbd> to open</span>
