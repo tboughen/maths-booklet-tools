@@ -87,7 +87,7 @@ test("overview search matches teaching vocabulary, handles no results and retain
   await page.getByRole("searchbox").fill("not-a-teaching-tool");
   await expect(page.getByRole("status")).toContainText("No tools found");
   await page.getByRole("button", { name: "Clear search" }).click();
-  await expect(page.locator(".overview-tool-card")).toHaveCount(15);
+  await expect(page.locator(".overview-tool-card")).toHaveCount(16);
   await page.getByRole("link", { name: "Maths Dock home" }).click();
   await expect(page.locator(".overview-card")).toHaveCount(6);
 });
