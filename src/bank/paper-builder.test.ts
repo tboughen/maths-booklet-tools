@@ -13,11 +13,11 @@ const scope=catalogueCoverage(fixture,emptyRoute);
 const tick=(code:string)=>({type:"code" as const,code,checked:true});
 
 describe("shared paper draft",()=>{
-  it("matches independent catalogue counts for every topic in all 27 filter combinations",()=>{
-    for(const tier of ["all","F","H"] as const)for(const collection of ["all","past","mock"] as const)for(const calculator of ["all","yes","no"] as const){
-      const filters={tier,collection,calculator},coverage=catalogueCoverage(bank,filters);
+  it("matches independent catalogue counts for every topic in all 27 filter combinations, and with Crossover only for each tier",()=>{
+    for(const tier of ["all","F","H"] as const)for(const collection of ["all","past","mock"] as const)for(const calculator of ["all","yes","no"] as const)for(const crossover of (collection==="all"&&calculator==="all"?["all","only"]:["all"]) as ("all"|"only")[]){
+      const filters={tier,collection,calculator,crossover},coverage=catalogueCoverage(bank,filters);
       for(const topic of bank.topics){
-        const raw=bank.questions.filter(q=>(tier==="all"||q.tier===tier)&&(collection==="all"||(/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes"))&&q.codes.includes(topic.code));
+        const raw=bank.questions.filter(q=>(tier==="all"||q.tier===tier)&&(collection==="all"||(/^mock/i.test(q.collection)?"mock":"past")===collection)&&(calculator==="all"||q.calculator===(calculator==="yes"))&&(crossover==="all"||Boolean(q.equivalentId))&&q.codes.includes(topic.code));
         const expected=new Set(raw.map(q=>q.equivalentId?[q.id,q.equivalentId].sort().join("|"):q.id));
         expect(coverage.codes.get(topic.code)||new Set(),`${topic.code} ${JSON.stringify(filters)}`).toEqual(expected);
         const entries=draftEntries(coverage,draftReducer(emptyDraft(),tick(topic.code)));
