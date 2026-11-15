@@ -178,11 +178,12 @@ export default function AreaPage({ active = true }: { active?: boolean }) {
   const issue = [...g.issues, workedIssue(answerSvg, e)].filter(Boolean).join(" ");
   const slots = g.geometry.slots;
   // Place ids name sides, heights and circle parts by position, so the selection lets go, for good, whenever the
-  // shape itself changes (by any edit, undo or redo); label edits keep it.
-  const shapeKey = useMemo(() => JSON.stringify(s), [s]);
-  const [seenShape, setSeenShape] = useState(shapeKey);
-  if (seenShape !== shapeKey) {
-    setSeenShape(shapeKey);
+  // places change (a corner, height, hole or circle part added or removed, by any edit, undo or redo). Moving or
+  // resizing keeps it.
+  const placesKey = `${s.type === "polygon" ? `${s.corners.length}|${s.heights.length}` : s.type}|${slots.map((x) => `${x.id}:${x.name}`).join(",")}`;
+  const [seenPlaces, setSeenPlaces] = useState(placesKey);
+  if (seenPlaces !== placesKey) {
+    setSeenPlaces(placesKey);
     setSelected(null);
   }
   const current = selected && slots.some((x) => x.id === selected) ? selected : null;
