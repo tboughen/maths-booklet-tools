@@ -244,7 +244,7 @@ function readableDefs(root: Record<string, unknown>): Record<string, unknown> {
     const { $ref, ...rest } = v as Record<string, unknown>;
     const siblings = Object.fromEntries(Object.entries(rest).map(([k, x]) => [k, walk(x, visit)]));
     const name = typeof $ref === "string" ? ($ref.split("/").pop() as string) : null;
-    if (name !== null && name in defs) return visit(name, siblings);
+    if (name !== null && Object.hasOwn(defs, name)) return visit(name, siblings);
     return $ref === undefined ? siblings : { $ref, ...siblings };
   };
   const keep: Visit = (n, siblings) => ({ $ref: `#/$defs/${n}`, ...siblings });
@@ -266,11 +266,25 @@ function readableDefs(root: Record<string, unknown>): Record<string, unknown> {
       break;
     }
   }
+  // A shape that is not an object is named after the first property that uses it ("hidden").
+  const usedAs = new Map<string, string>();
+  const findUses = (v: unknown, key: string) => {
+    if (Array.isArray(v)) return v.forEach((x) => findUses(x, key));
+    if (!v || typeof v !== "object") return;
+    const ref = (v as { $ref?: unknown }).$ref;
+    if (typeof ref === "string") {
+      const n = ref.split("/").pop() as string;
+      if (!usedAs.has(n) && /^[A-Za-z][A-Za-z0-9]*$/.test(key)) usedAs.set(n, key);
+    }
+    for (const [k, x] of Object.entries(v)) findUses(x, k === "items" || k === "anyOf" || k === "oneOf" || k === "properties" ? key : k);
+  };
+  findUses({ body, defs }, "");
   const names = new Map<string, string>(),
     taken = new Set<string>();
   for (const [name, def] of Object.entries(defs)) {
-    const d = def as { properties?: Record<string, unknown>; oneOf?: unknown; anyOf?: unknown };
-    let base = d.properties ? Object.keys(d.properties).slice(0, 3).join("-") : d.oneOf || d.anyOf ? "choice" : "shape";
+    const d = def as { properties?: Record<string, unknown> };
+    const keys = d.properties ? Object.keys(d.properties).filter((k) => /^[A-Za-z][A-Za-z0-9]*$/.test(k)).slice(0, 3) : [];
+    let base = keys.length ? keys.join("-") : (usedAs.get(name) ?? "shape");
     if (taken.has(base)) for (let i = 2; ; i++) if (!taken.has(`${base}${i}`)) { base = `${base}${i}`; break; }
     taken.add(base);
     names.set(name, base);
