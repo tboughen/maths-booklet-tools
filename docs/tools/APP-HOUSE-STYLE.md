@@ -90,11 +90,12 @@ app bar and the page itself does not scroll (`src/site/editor-frame.css`):
 - Inside the card, the bars keep their own height and the diagram's stage takes all the rest.
 - The settings column scrolls on its own.
 - The foot of the card (`--md-status-line`, 36 px) is kept for the status line: "Image copied", a
-  failed copy, a protected draft. It always sits there, so a message never resizes or moves the
-  diagram. A long message grows upwards. Warnings about the diagram itself stay where the tool
-  draws them.
+  failed copy, a protected draft. It always sits there, as the last thing in its own card, so a
+  one-line message never resizes or moves the diagram and never covers anything beside or under
+  the card. A second line takes its room from the stage. Warnings about the diagram itself stay
+  where the tool draws them.
 - If a tool's own rows under the diagram leave the stage less than 280 px, the card scrolls
-  instead of squeezing the diagram.
+  instead of squeezing the diagram. The status line then stays at the visible foot of the card.
 - From 1,500 px wide the tool's name and its one-line description share a row.
 
 Narrower or shorter windows, and print, keep the stacked page that scrolls, with the stage heights

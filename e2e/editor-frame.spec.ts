@@ -58,6 +58,39 @@ test.describe("the status line", () => {
     expect(panel.y).toBeGreaterThanOrEqual(at.cardBottom);
     expect(panel.y + panel.height).toBeLessThanOrEqual(1000);
   });
+
+  test("a recovery block inside the card sits above the status line, with its button free to press", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.addInitScript(() => localStorage.setItem("maths-booklet-tools:cuboids:v1", "not-json"));
+    await page.goto("/tools/cuboids");
+    const button = page.getByRole("button", { name: "Download recovery data", exact: true });
+    await expect(button).toBeVisible();
+    const line = page.locator(".site-page:not([hidden]) .editor-card > .resource-feedback");
+    await expect(line).toBeVisible();
+    const at = await frame(page), box = (await line.boundingBox())!, press = (await button.boundingBox())!;
+    expect(press.y + press.height).toBeLessThanOrEqual(box.y);
+    expect(box.y + box.height).toBeLessThanOrEqual(at.cardBottom + 1);
+    const download = page.waitForEvent("download");
+    await button.click();
+    await download;
+  });
+
+  test("in a card that scrolls, the status line stays at the visible foot", async ({ page }) => {
+    // Sample space keeps its entry grid under the diagram, so on a small window its card scrolls.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/tools/sample-space");
+    const card = page.locator(".site-page:not([hidden]) .editor-card");
+    expect(await card.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(40);
+    await page.getByRole("button", { name: "Copy image", exact: true }).click();
+    const line = page.locator(".site-page:not([hidden])").getByRole("status").filter({ hasText: /copied/i });
+    await expect(line).toBeVisible();
+    for (const top of [0, 40, 10_000]) {
+      await card.evaluate((el, y) => el.scrollTo(0, y), top);
+      const at = await frame(page), box = (await line.boundingBox())!;
+      expect(Math.abs(box.y + box.height - at.cardBottom), `scrolled to ${top}`).toBeLessThanOrEqual(2);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(800);
+  });
 });
 
 for (const [width, height, why] of [[600, 900, "narrow"], [1280, 720, "short"]] as const)

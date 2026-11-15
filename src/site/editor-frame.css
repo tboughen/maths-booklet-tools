@@ -11,19 +11,21 @@
   .site-app .site-page--tool .booklet-editor .workspace { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
   /* The foot of the card is kept for the status line, so a message never resizes the diagram.
      If a tool's own rows leave the stage less than its smallest height, the card scrolls. */
-  .site-app .site-page--tool .booklet-editor .editor-card { position: relative; min-height: 0; overflow-y: auto; padding-bottom: var(--md-status-line); }
+  .site-app .site-page--tool .booklet-editor .editor-card { min-height: 0; overflow-y: auto; }
+  .site-app .site-page--tool .booklet-editor .editor-card::after { content: ""; order: 100; flex: none; height: var(--md-status-line); }
   .site-app .site-page--tool .booklet-editor .inspector-stack { align-content: start; min-height: 0; max-height: none; overflow-y: auto; scrollbar-gutter: stable; }
   /* !important because one tool still sets a largest height on the element itself. */
   .site-app .site-page--tool .booklet-editor .editor-card > .editor-stage { flex: 1 1 0; height: auto; min-height: 280px; max-height: none !important; }
-  /* The status line ("Image copied", a failed copy, a protected draft) sits in the card's foot,
-     wherever in the card a tool draws it, so nothing beside or under the card is ever covered.
-     A long message grows upwards. Warnings about the diagram itself stay where the tool puts them. */
-  .site-app .site-page--tool .booklet-editor :is(.resource-feedback:not(.nl-pending-note), .editor-feedback, .ag-message[role="status"], .tr-feedback:not(.tr-error)) { position: absolute; z-index: 5; left: 0; bottom: 0; box-sizing: border-box; max-width: 100%; min-height: var(--md-status-line); margin: 0; padding: 8px 14px; border: 0; border-radius: 0 0 0 var(--md-radius-card); background: var(--md-paper); color: var(--md-ink); font: 500 var(--md-text-sm)/20px var(--md-font); }
-  /* One tool draws its line above the card: there it goes to the same corner of the window. */
-  .site-app .site-page--tool .booklet-editor .main-content > .resource-feedback { position: fixed; left: 21px; bottom: 13px; max-width: calc(100vw - 400px); }
-  .site-app .site-page--tool .booklet-editor :is(.resource-feedback, .editor-feedback, .ag-message, .tr-feedback):empty { display: none; }
-  /* A status wrapper that holds only that line takes no room of its own. */
-  .site-app .site-page--tool .booklet-editor :is(.pt-status, .vn-status, .ch-status):not(:has(> :not(.resource-feedback))) { padding: 0; }
+  /* The status line ("Image copied", a failed copy, a protected draft) is the last thing in its
+     card and sits in the foot kept for it. If the card scrolls it stays at the visible foot.
+     Warnings about the diagram itself keep their own room, just above it. */
+  .site-app .site-page--tool .booklet-editor .editor-card > :is(.resource-feedback:not(.nl-pending-note), .editor-feedback, .ag-message[role="status"], .tr-feedback:not(.tr-error), :is(.pt-status, .vn-status, .ch-status):has(> .resource-feedback)) { order: 99; position: sticky; z-index: 5; bottom: 0; margin: 0 0 calc(-1 * var(--md-status-line)); border: 0; background: var(--md-paper); }
+  .site-app .site-page--tool .booklet-editor .editor-card :is(.resource-feedback:not(.nl-pending-note), .editor-feedback, .ag-message[role="status"], .tr-feedback:not(.tr-error)) { box-sizing: border-box; min-height: var(--md-status-line); padding: 8px 14px; border: 0; border-radius: 0 0 var(--md-radius-card) var(--md-radius-card); background: var(--md-paper); color: var(--md-ink); font: 500 var(--md-text-sm)/20px var(--md-font); }
+  .site-app .site-page--tool .booklet-editor .editor-card :is(.resource-feedback, .editor-feedback, .ag-message, .tr-feedback):empty { display: none; }
+  /* A status wrapper holding the line: its warnings first, the line last and flush with the foot. */
+  .site-app .site-page--tool .booklet-editor .editor-card > :is(.pt-status, .vn-status, .ch-status):has(> .resource-feedback) { display: flex; flex-direction: column; padding: 0; }
+  .site-app .site-page--tool .booklet-editor .editor-card > :is(.pt-status, .vn-status, .ch-status) > .resource-feedback { order: 99; margin: 0; }
+  .site-app .site-page--tool .booklet-editor .editor-card > :is(.pt-status, .vn-status, .ch-status):has(> .resource-feedback) > :not(.resource-feedback) { margin-inline: 14px; }
 }
 /* On a wide window the tool's name and its one-line description share a row. */
 @media screen and (min-width: 1500px) {
