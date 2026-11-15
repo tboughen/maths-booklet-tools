@@ -26,7 +26,7 @@ test.describe("question viewer annotations", () => {
     await draw(page, [100, 100], [300, 140]);
     await draw(page, [100, 200], [300, 240]);
     expect(await strokes(page)).toBe(2);
-    await bar.getByRole("radio", { name: "Highlighter" }).click();
+    await bar.getByRole("button", { name: "Highlighter" }).click();
     await draw(page, [120, 300], [380, 300]);
     expect(await strokes(page)).toBe(3);
     await expect(page.locator(".qb-ink-highlighter path")).toHaveCount(1);
@@ -172,21 +172,48 @@ test.describe("question viewer annotations", () => {
     await open(page);
     await page.keyboard.press("p");
     const bar = page.locator(".qb-annotate-bar");
-    await expect(bar.getByRole("radiogroup", { name: "Pen colour" }).getByRole("radio")).toHaveCount(8);
+    await expect(bar.getByRole("group", { name: "Pen colour" }).getByRole("button")).toHaveCount(8);
     await page.keyboard.press("7");
-    await expect(bar.getByRole("radio", { name: "Purple" })).toHaveAttribute("aria-checked", "true");
-    await bar.getByRole("radio", { name: "Thin" }).click();
+    await expect(bar.getByRole("button", { name: "Purple" })).toHaveAttribute("aria-pressed", "true");
+    await bar.getByRole("button", { name: "Thin" }).click();
     await page.keyboard.press("h");
-    await bar.getByRole("radio", { name: "Thick" }).click();
+    await bar.getByRole("button", { name: "Thick" }).click();
     await page.keyboard.press("p");
-    await expect(bar.getByRole("radio", { name: "Thin" })).toHaveAttribute("aria-checked", "true");
+    await expect(bar.getByRole("button", { name: "Thin" })).toHaveAttribute("aria-pressed", "true");
     await bar.getByRole("button", { name: "Straight lines" }).click();
     await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "true");
-    await bar.getByRole("radio", { name: "Blue" }).click();
+    await bar.getByRole("button", { name: "Blue" }).click();
     await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("h");
-    await expect(bar.getByRole("radio", { name: "Thick" })).toHaveAttribute("aria-checked", "true");
+    await expect(bar.getByRole("button", { name: "Thick" })).toHaveAttribute("aria-pressed", "true");
     await expect(bar.getByRole("button", { name: "Straight lines" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  test("the tools sit on a rail beside the page; arrow keys move along it, and a tapped button doesn't keep focus", async ({ page }) => {
+    await open(page);
+    await page.keyboard.press("p");
+    const bar = page.locator(".qb-annotate-bar"), stage = page.locator(".qb-stage");
+    const [rail, view] = [(await bar.boundingBox())!, (await stage.boundingBox())!];
+    expect(rail.x + rail.width).toBeLessThanOrEqual(view.x + 1);
+    expect(rail.height).toBeGreaterThan(rail.width);
+    // Every control is in view without scrolling the rail.
+    for (const name of ["Pen", "Orange", "Thick", "Clear this view", "Close annotation tools"]) await expect(bar.getByRole("button", { name, exact: true })).toBeInViewport();
+    await bar.getByRole("button", { name: "Highlighter" }).click();
+    await expect(bar.getByRole("button", { name: "Highlighter" })).not.toBeFocused();
+    // Zoomed in, the overview map's button sits clear of the rail.
+    await page.keyboard.press("+");
+    await page.keyboard.press("+");
+    const toggle = page.locator(".qb-overview-toggle, .qb-overview").first();
+    await expect(toggle).toBeVisible();
+    expect((await toggle.boundingBox())!.x).toBeGreaterThanOrEqual(rail.x + rail.width);
+    await bar.getByRole("button", { name: "Pen", exact: true }).focus();
+    const before = await page.locator(".qb-navigation strong").textContent();
+    await page.keyboard.press("ArrowDown");
+    await expect(bar.getByRole("button", { name: "Highlighter" })).toBeFocused();
+    await page.keyboard.press("End");
+    await expect(bar.getByRole("button", { name: "Close annotation tools" })).toBeFocused();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator(".qb-navigation strong")).toHaveText(before!);
   });
 });
 
@@ -209,7 +236,7 @@ test.describe("question viewer annotations on touch boards", () => {
     await touch("touchEnd", []);
     await expect.poll(() => strokes(page)).toBe(2);
     await expect(page.getByText("Fist eraser")).toHaveCount(0);
-    await expect(page.getByRole("radio", { name: "Pen" })).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("button", { name: "Pen", exact: true })).toHaveAttribute("aria-pressed", "true");
     // A second finger turns a stroke into a pinch, leaving no ink.
     const cx = 400, cy = 300;
     await touch("touchStart", [{ x: cx - 40, y: cy }]);
